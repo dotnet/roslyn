@@ -13,11 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </summary>
     internal class NewLinesViewModel : AbstractOptionPreviewViewModel
     {
-        internal override bool ShouldPersistOption(OptionKey key)
-        {
-            return key.Option.Feature == CSharpFormattingOptions.NewLineFormattingFeatureName;
-        }
-
         private static string s_previewText = @"//[
 class C {
 }

@@ -167,8 +167,6 @@
       <DependentUpon>AdvancedOptionPageControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Options\AutomationObject.cs" />
-    <Compile Include="Options\CSharpLanguageSettingsSerializer.cs" />
-    <Compile Include="Options\CSharpSettingsManagerOptionSerializer.cs" />
     <Compile Include="Options\Formatting\IndentationViewModel.cs" />
     <Compile Include="Options\Formatting\FormattingIndentationOptionPage.cs" />
     <Compile Include="Options\Formatting\NewLinesViewModel.cs" />

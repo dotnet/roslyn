@@ -827,9 +827,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new INamedTypeSymbol with the given element types and (optional) element names.
         /// </summary>
-        /// <remarks>
-        /// Since VB doesn't support tuples yet, this call will fail in a VB compilation.
-        /// </remarks>
         public INamedTypeSymbol CreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames = default(ImmutableArray<string>))
         {
             return CommonCreateTupleTypeSymbol(elementTypes, elementNames);

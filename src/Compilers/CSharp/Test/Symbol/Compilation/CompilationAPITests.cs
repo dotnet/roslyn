@@ -493,25 +493,27 @@ namespace A.B {
              );
 
             comp.VerifyDiagnostics(
-    // (1,19): error CS1002: ; expected
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-    // (1,20): error CS1031: Type expected
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
-    // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-    // (1,61): error CS1026: ) expected
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-    // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
-    // (1,1): hidden CS8020: Unused extern alias.
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
-
+                // (1,19): error CS1002: ; expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
+                // (1,19): error CS8124: Tuple must contain at least two elements.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithLocation(1, 19),
+                // (1,20): error CS1031: Type expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
+                // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
+                // (1,61): error CS1026: ) expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
+                // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
+                // (1,1): hidden CS8020: Unused extern alias.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
                 );
         }
 
@@ -562,6 +564,9 @@ namespace A.B {
                 // (1,19): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
+                // (1,19): error CS8124: Tuple must contain at least two elements.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithLocation(1, 19),
                 // (1,19): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "7").WithLocation(1, 19),

@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                   diagnostics)
 
                 Case SymbolKind.NamedType
-                    Dim namedType = DirectCast(type, NamedTypeSymbol)
+                    Dim namedType = DirectCast(type.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
                     If Not namedType.IsGenericType Then
                         Return

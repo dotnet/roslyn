@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Threading;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests : CSharpTestBase
     {
         [Fact]
@@ -14617,9 +14617,88 @@ unsafe struct S
                 // (8,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //             if ((1, object.Equals) is()) {}
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2").WithLocation(8, 17),
-                // (8,17): error CS8117: Invalid operand for pattern match; value required, but found '(int, method group)'.
+                // (8,17): error CS0023: Operator 'is' cannot be applied to operand of type '(int, method group)'
                 //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "(1, object.Equals)").WithArguments("(int, method group)").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, object.Equals) is()").WithArguments("is", "(int, method group)").WithLocation(8, 17)
+                );
+        }
+
+        [Fact, WorkItem(13723, "https://github.com/dotnet/roslyn/issues/13723")]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void ExpressionWithoutAType()
+        {
+            var source =
+@"
+public class Vec
+{
+    public static void Main()
+    {
+        if (null is 1) {}
+        if (Main is 2) {}
+        if (delegate {} is 3) {}
+        if ((1, null) is 4) {}
+        if (null is var x1) {}
+        if (Main is var x2) {}
+        if (delegate {} is var x3) {}
+        if ((1, null) is var x4) {}
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+                // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
+                //         if (null is 1) {}
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
+                // (7,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         if (Main is 2) {}
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "Main is 2").WithLocation(7, 13),
+                // (8,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         if (delegate {} is 3) {}
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is 3").WithLocation(8, 13),
+                // (9,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         if ((1, null) is 4) {}
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(9, 13),
+                // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
+                //         if ((1, null) is 4) {}
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
+                // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
+                //         if (null is var x1) {}
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
+                // (11,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         if (Main is var x2) {}
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "Main is var x2").WithLocation(11, 13),
+                // (12,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         if (delegate {} is var x3) {}
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is var x3").WithLocation(12, 13),
+                // (13,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         if ((1, null) is var x4) {}
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(13, 13),
+                // (13,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
+                //         if ((1, null) is var x4) {}
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", "(int, <null>)").WithLocation(13, 13)
+                );
+        }
+
+        [Fact, WorkItem(13746, "https://github.com/dotnet/roslyn/issues/13746")]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void ExpressionWithoutAType02()
+        {
+            var source =
+@"
+public class Program
+{
+    public static void Main()
+    {
+        if ((1, null) is Program) {}
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+                // (6,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         if ((1, null) is Program) {}
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 13),
+                // (6,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
+                //         if ((1, null) is Program) {}
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", "(int, <null>)").WithLocation(6, 13)
                 );
         }
     }

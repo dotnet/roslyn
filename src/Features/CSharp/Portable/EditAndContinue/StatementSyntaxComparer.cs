@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ForStatement,
             ForStatementPart,                 // tied to parent
             ForEachStatement,
+            ForEachComponentStatement,
             UsingStatement,
             FixedStatement,
             LockStatement,
@@ -334,6 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.ForEachStatement:
                     return Label.ForEachStatement;
+
+                case SyntaxKind.ForEachComponentStatement:
+                    return Label.ForEachComponentStatement;
 
                 case SyntaxKind.UsingStatement:
                     return Label.UsingStatement;
@@ -772,6 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachComponentStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.DoStatement:
