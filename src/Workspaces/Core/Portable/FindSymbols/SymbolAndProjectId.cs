@@ -28,6 +28,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// be marshalled in an OOP scenario.  Existing features, and third party clients
     /// will then have code that still works (albeit just in-process).  However,
     /// code that updates to use this can then opt-into working OOP.
+    /// 
+    /// Note: for purposes of Equality/Hashing, all that we use is the underlying
+    /// Symbol.  That's because nearly all IDE features only care if they're looking
+    /// at the same symbol, they don't care if hte symbol came from a different 
+    /// project or not.  i.e. a feature like FAR doesn't want to cascade into the 
+    /// "same" symbol even if it hits it in another project.  As such, we do not
+    /// include the ProjectId when computing the result.
     /// </summary>
     internal struct SymbolAndProjectId
     {
@@ -44,11 +51,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool Equals(SymbolAndProjectId other)
         {
+            // See class comment on why we only use Symbol and ignore ProjectId.
             return Equals(this.Symbol, other.Symbol);
         }
 
         public override int GetHashCode()
         {
+            // See class comment on why we only use Symbol and ignore ProjectId.
             return this.Symbol.GetHashCode();
         }
 
