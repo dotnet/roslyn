@@ -1294,11 +1294,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns true if the type is generic or non-generic custom task-like type due to the
-        /// [AsyncBuilder(typeof(B))] attribute. It returns the "B".
+        /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
         /// </summary>
         /// <remarks>
         /// For the Task types themselves, this method might return true or false depending on mscorlib.
-        /// The definition of "custom task-like type" is one that has an [AsyncBuilder(typeof(B))] attribute,
+        /// The definition of "custom task-like type" is one that has an [AsyncMethodBuilder(typeof(B))] attribute,
         /// no more, no less. Validation of builder type B is left for elsewhere. This method returns B
         /// without validation of any kind.
         /// </remarks>
@@ -1313,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Find the AsyncBuilder attribute.
                 foreach (var attr in type.GetAttributes())
                 {
-                    if (attr.IsTargetAttribute(type, AttributeDescription.AsyncBuilderAttribute)
+                    if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
                         && attr.CommonConstructorArguments.Length == 1
                         && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {

@@ -20,13 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </remarks>
     internal class StyleViewModel : AbstractOptionPreviewViewModel
     {
-        internal override bool ShouldPersistOption(OptionKey key)
-        {
-            return key.Option.Feature == CSharpCodeStyleOptions.FeatureName ||
-                key.Option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
-                key.Option.Feature == CodeAnalysis.Editing.GenerationOptions.FeatureName;
-        }
-
         #region "Preview Text"
 
         private static readonly string s_fieldDeclarationPreviewTrue = @"

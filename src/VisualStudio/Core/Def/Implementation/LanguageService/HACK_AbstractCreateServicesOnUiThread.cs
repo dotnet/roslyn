@@ -2,11 +2,10 @@
 
 using System;
 using System.Collections.ObjectModel;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Text;
@@ -64,13 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
             }
 
-            var serializers = componentModel.DefaultExportProvider.GetExports<IOptionSerializer, OptionSerializerMetadata>();
+            var serializers = componentModel.DefaultExportProvider.GetExports<IOptionPersister>();
             foreach (var serializer in serializers)
             {
-                if (serializer.Metadata.Language == null || serializer.Metadata.Language == languageName)
-                {
-                    var unused = serializer.Value;
-                }
+                var unused = serializer.Value;
             }
         }
     }
