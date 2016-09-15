@@ -1,13 +1,13 @@
 ﻿{
-  "dependencies": {
-    "Mono.Options": "4.4.0"
-  },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": {},
-    "ubuntu.14.04": {},
-    "osx.10.10": {}
-  }
+    "dependencies": {
+        "Mono.Options": "4.4.0"
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { },
+        "ubuntu.14.04": { },
+        "osx.10.10": { }
+    }
 }

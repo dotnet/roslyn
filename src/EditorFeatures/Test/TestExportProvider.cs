@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.VisualStudio.Composition;

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -282,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 SyntaxUtilities.FindLeafNodeAndPartner(declarationBody, position, partnerDeclarationBodyOpt, out node, out partnerOpt);
             }
-            else 
+            else
             {
                 node = declarationBody.FindToken(position).Parent;
                 partnerOpt = null;
@@ -1343,6 +1345,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.GroupClause:
                     return ((GroupClauseSyntax)node).GroupKeyword.Span;
 
+                case SyntaxKind.ForEachComponentStatement:
+                    return ((ForEachComponentStatementSyntax)node).VariableComponent.Span;
+
+                case SyntaxKind.IsPatternExpression:
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                case SyntaxKind.ParenthesizedVariableComponent:
+                case SyntaxKind.TypedVariableComponent:
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
+                case SyntaxKind.DeclarationExpression:
+                case SyntaxKind.RefType:
+                case SyntaxKind.RefExpression:
+                case SyntaxKind.DeclarationPattern:
+                case SyntaxKind.VariableComponentAssignment:
+                    return node.Span;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
@@ -1585,6 +1603,34 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.QueryContinuation:
                     return CSharpFeaturesResources.into_clause;
+
+                case SyntaxKind.IsPatternExpression:
+                    return CSharpFeaturesResources.is_pattern;
+
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ParenthesizedVariableComponent:
+                case SyntaxKind.TypedVariableComponent:
+                case SyntaxKind.VariableComponentAssignment:
+                    return CSharpFeaturesResources.deconstruction;
+
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
+                    return CSharpFeaturesResources.tuple;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    return CSharpFeaturesResources.local_function;
+
+                case SyntaxKind.DeclarationExpression:
+                    return CSharpFeaturesResources.out_var;
+
+                case SyntaxKind.RefType:
+                case SyntaxKind.RefExpression:
+                    return CSharpFeaturesResources.ref_local_or_expression;
+
+                case SyntaxKind.SwitchStatement:
+                case SyntaxKind.DeclarationPattern:
+                    return CSharpFeaturesResources.v7_switch;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -3019,8 +3065,64 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
+            ReportRudeEditsForUnsupportedCSharp7EnC(diagnostics, match);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
+        }
+
+        /// <summary>
+        /// If either trees (after or before the edit) contain unsupported C# 7 features around the active statement, report it.
+        /// </summary>
+        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match)
+        {
+            SyntaxNode foundCSharp7Syntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
+            if (foundCSharp7Syntax != null)
+            {
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundCSharp7Syntax);
+                return;
+            }
+
+            foundCSharp7Syntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
+            if (foundCSharp7Syntax != null)
+            {
+                AddRudeUpdateInCSharp7Method(diagnostics, foundCSharp7Syntax);
+            }
+        }
+
+        /// <summary>
+        /// If the active method used unsupported C# 7 features before the edit, it needs to be reported.
+        /// </summary>
+        private void AddRudeUpdateInCSharp7Method(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldCSharp7Syntax)
+        {
+            diagnostics.Add(new RudeEditDiagnostic(
+                RudeEditKind.UpdateAroundActiveStatement,
+                default(TextSpan), // no span since the offending node is in the old syntax
+                oldCSharp7Syntax,
+                new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
+        }
+
+        private static bool IsUnsupportedCSharp7EnCNode(SyntaxNode n)
+        {
+            switch (n.Kind())
+            {
+                case SyntaxKind.IsPatternExpression:
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                case SyntaxKind.VariableComponentAssignment:
+                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ParenthesizedVariableComponent:
+                case SyntaxKind.TypedVariableComponent:
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.DeclarationExpression:
+                case SyntaxKind.RefType:
+                case SyntaxKind.RefExpression:
+                case SyntaxKind.DeclarationPattern:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         private void ReportRudeEditsForCheckedStatements(
@@ -3131,6 +3233,73 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return true;
+        }
+
+        internal override void ReportSemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            var foundNode = FindUnsupportedV7Switch(oldModel, oldNode, diagnostics);
+            if (foundNode != null)
+            {
+                AddRudeUpdateInCSharp7Method(diagnostics, foundNode);
+            }
+            else if ((foundNode = FindUnsupportedV7Switch(newModel, newNode, diagnostics)) != null)
+            {
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundNode);
+            }
+        }
+
+        private SyntaxNode FindUnsupportedV7Switch(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            foreach (var node in syntaxNode.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.SwitchStatement))
+            {
+                var switchExpression = ((SwitchStatementSyntax)node).Expression;
+                ITypeSymbol governingType = model.GetTypeInfo(switchExpression).Type;
+
+                if (!IsValidV6SwitchGoverningType(governingType))
+                {
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns true iff the supplied type is sbyte, byte, short, ushort, int, uint,
+        /// long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
+        /// corresponding to one of those types. These types were permitted as the governing
+        /// type of a switch statement in C# 6.
+        /// </summary>
+        private static bool IsValidV6SwitchGoverningType(ITypeSymbol type)
+        {
+            Debug.Assert(type != null);
+
+            if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                type = ((INamedTypeSymbol)type).TypeArguments[0];
+            }
+
+            if (type.TypeKind == TypeKind.Enum)
+            {
+                type = ((INamedTypeSymbol)type).EnumUnderlyingType;
+            }
+
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Char:
+                case SpecialType.System_String:
+                case SpecialType.System_Boolean:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         #endregion

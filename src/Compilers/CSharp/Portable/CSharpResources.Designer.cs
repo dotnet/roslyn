@@ -8819,15 +8819,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tuple member names must all be provided, if any one is provided..
-        /// </summary>
-        internal static string ERR_TupleExplicitNamesOnAllMembersOrNone {
-            get {
-                return ResourceManager.GetString("ERR_TupleExplicitNamesOnAllMembersOrNone", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Tuple member name &apos;{0}&apos; is only allowed at position {1}..
         /// </summary>
         internal static string ERR_TupleReservedMemberName {

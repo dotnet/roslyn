@@ -4848,9 +4848,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
     <value>Tuple member names must be unique.</value>
   </data>
-  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
-    <value>Tuple member names must all be provided, if any one is provided.</value>
-  </data>
   <data name="ERR_TupleReservedMemberName" xml:space="preserve">
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
