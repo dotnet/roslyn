@@ -406,10 +406,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // things it knows about.  i.e. there will be gaps in what it produces.
                 // Fill in those gaps so we have *all* parts of the span 
                 // classified properly.
-                var syntaxParts = FillInClassifiedSpanGaps(
-                    sourceText, widenedSpan.Start, syntaxSpans);
-                var semanticParts = FillInClassifiedSpanGaps(
-                    sourceText, widenedSpan.Start, semanticSpans);
+                var syntaxParts = FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, syntaxSpans);
+                var semanticParts = FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, semanticSpans);
 
                 // Now merge the lists together, taking all the results from syntaxParts
                 // unless they were overridden by results in semanticParts.
