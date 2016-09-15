@@ -11,6 +11,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// It should always be the case that if you have the original solution
     /// that this symbol came from, that you'll be able to find this symbol
     /// in the compilation for the specified project.
+    /// 
+    /// The purpose of this type is to support serializing/deserializing symbols
+    /// and allowing features to work out-of-process (OOP).  In OOP scenarios, 
+    /// we will need to marshal <see cref="ISymbol"/>s to and from the host and 
+    /// the external process.  That means being able to recover the <see cref="ISymbol"/> 
+    /// on either side.  With the <see cref="ProjectId"/> this becomes possible.
+    /// 
+    /// Accordingly, it is ok to have a <see cref="SymbolAndProjectId"/> that does
+    /// not have a <see cref="ProjectId"/>.  It just means that that data cannot
+    /// be marshalled in an OOP scenario.  Existing features, and third party clients
+    /// will then have code that still works (albeit just in-process).  However,
+    /// code that updates to use this can then opt-into working OOP.
     /// </summary>
     internal struct SymbolAndProjectId
     {
