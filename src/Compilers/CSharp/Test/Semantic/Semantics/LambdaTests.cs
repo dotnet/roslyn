@@ -2271,5 +2271,24 @@ class Program
                 Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
             }
         }
+
+        [Fact]
+        [WorkItem(13797, "https://github.com/dotnet/roslyn/issues/13797")]
+        public void DelegateAsAction()
+        {
+            var source = @"
+using System;
+
+public static class C
+{
+    public static void M() => Dispatch(delegate { });
+
+    public static T Dispatch<T>(Func<T> func) => default(T);
+
+    public static void Dispatch(Action func) { }
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            CompileAndVerify(comp);
+        }
     }
 }
