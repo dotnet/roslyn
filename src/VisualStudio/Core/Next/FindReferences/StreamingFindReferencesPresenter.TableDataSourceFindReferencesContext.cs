@@ -450,10 +450,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // Take all the syntax parts.  However, if any have been overridden by a 
                 // semantic part, then choose that one.
 
-                // To make life easier, determine the spans for all the parts in the lists.
-                //var syntaxPartsAndSpans = AddSpans(syntaxParts);
-                //var semanticPartsAndSpans = AddSpans(semanticParts);
-
                 var finalParts = ImmutableArray.CreateBuilder<ClassifiedSpan>();
                 var lastReplacementIndex = 0;
                 for (int i = 0, n = syntaxParts.Count; i < n; i++)
@@ -487,23 +483,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // spaces between the actual interesting semantic spans, and we don't 
                 // want them to override actual good syntax spans.
                 return partAndSpan.ClassificationType != ClassificationTypeNames.Text;
-            }
-
-            private List<ValueTuple<TaggedText, TextSpan>> AddSpans(
-                List<TaggedText> parts)
-            {
-                var result = new List<ValueTuple<TaggedText, TextSpan>>(parts.Count);
-                var position = 0;
-
-                foreach (var part in parts)
-                {
-                    var partLength = part.ToString().Length;
-                    result.Add(ValueTuple.Create(part, new TextSpan(position, partLength)));
-
-                    position += partLength;
-                }
-
-                return result;
             }
 
             private RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
