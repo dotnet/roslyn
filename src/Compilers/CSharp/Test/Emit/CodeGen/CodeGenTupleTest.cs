@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18045,7 +18046,12 @@ class C
 
             // emit with pdb
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "");
+            CompileAndVerify(comp, expectedOutput: "", validator: (assembly) =>
+            {
+                var reader = assembly.GetMetadataReader();
+                AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
+                Assert.Contains("ValueTuple`2, System, System.ValueTuple", reader.DumpTypeReferences());
+            });
             // no assertion in MetadataWriter
         }
 
@@ -18076,6 +18082,7 @@ class C
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
+                    Assert.Contains("ReferencedType, , lib", reader.DumpTypeReferences());
                 });
         }
     }
