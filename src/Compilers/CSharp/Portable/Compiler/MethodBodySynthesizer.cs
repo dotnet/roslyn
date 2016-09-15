@@ -521,29 +521,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: the Finalize method need not be a destructor or be overridden by the current method.
             MethodSymbol baseTypeFinalize = GetBaseTypeFinalizeMethod(method);
 
-            Text.TextSpan endBodySpan = syntax.IsKind(SyntaxKind.Block) ?
-                 ((BlockSyntax)syntax).CloseBraceToken.Span
-                 : ((ArrowExpressionClauseSyntax)syntax).GetLastToken().Span;
-            // Not sure if the following assumption is always correct.
-            // But if, then the previous expression could be eased, resp. put directly in the call below
-            // Debug.Assert(endBodySpan.Equals(new Text.TextSpan(syntax.Span.End - 1, 1)));
-
             if ((object)baseTypeFinalize != null)
             {
-                BoundStatement baseFinalizeCall = new BoundSequencePointWithSpan( //sequence point to mimic Dev10
+                BoundStatement baseFinalizeCall = new BoundExpressionStatement(
                     syntax,
-                    new BoundExpressionStatement(
+                    BoundCall.Synthesized(
                         syntax,
-                        BoundCall.Synthesized(
+                        new BoundBaseReference(
                             syntax,
-                            new BoundBaseReference(
-                                syntax,
-                                method.ContainingType)
-                            { WasCompilerGenerated = true },
-                            baseTypeFinalize)
-                        )
-                    { WasCompilerGenerated = true },
-                    endBodySpan);
+                            method.ContainingType)
+                        { WasCompilerGenerated = true },
+                        baseTypeFinalize))
+                    { WasCompilerGenerated = true };
+
+                if (syntax.Kind() == SyntaxKind.Block)
+                {
+                    //sequence point to mimic Dev10
+                    baseFinalizeCall = new BoundSequencePointWithSpan(
+                        syntax,
+                        baseFinalizeCall,
+                        ((BlockSyntax)syntax).CloseBraceToken.Span);
+                }
 
                 return new BoundBlock(
                     syntax,
