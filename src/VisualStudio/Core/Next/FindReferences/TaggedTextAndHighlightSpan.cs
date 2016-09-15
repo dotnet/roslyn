@@ -3,17 +3,20 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
-    internal struct TaggedTextAndHighlightSpan
+    internal struct ClassifiedSpansAndHighlightSpan
     {
-        public readonly ImmutableArray<TaggedText> TaggedText;
+        public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
         public readonly TextSpan HighlightSpan;
 
-        public TaggedTextAndHighlightSpan(ImmutableArray<TaggedText> taggedText, TextSpan highlightSpan)
+        public ClassifiedSpansAndHighlightSpan(
+            ImmutableArray<ClassifiedSpan> classifiedSpans,
+            TextSpan highlightSpan)
         {
-            TaggedText = taggedText;
+            ClassifiedSpans = classifiedSpans;
             HighlightSpan = highlightSpan;
         }
     }

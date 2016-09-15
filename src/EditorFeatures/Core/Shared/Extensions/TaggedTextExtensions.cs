@@ -9,19 +9,21 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 using System;
+using Microsoft.CodeAnalysis.Classification;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static partial class TaggedTextExtensions
     {
-        public static Run ToRun(this TaggedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
+        public static Run ToRun(this ClassifiedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
         {
-            var text = part.ToVisibleDisplayString(includeLeftToRightMarker: true);
+            var text = part.Text;
 
             var run = new Run(text);
 
             var format = formatMap.GetTextProperties(typeMap.GetClassificationType(
-                part.Tag.ToClassificationTypeName()));
+                part.ClassificationType));
             run.SetTextProperties(format);
 
             return run;
@@ -33,10 +35,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         public static IList<Inline> ToInlines(
-            this IEnumerable<TaggedText> parts, 
+            this IEnumerable<TaggedText> parts,
+            ClassificationTypeMap typeMap,
+            string classificationFormatMap = null)
+        {
+            var classifiedTexts = parts.Select(p =>
+                new ClassifiedText(
+                    p.Tag.ToClassificationTypeName(),
+                    p.ToVisibleDisplayString(includeLeftToRightMarker: true)));
+            return classifiedTexts.ToInlines(typeMap, classificationFormatMap);
+        }
+
+         public static IList<Inline> ToInlines(
+            this IEnumerable<ClassifiedText> parts, 
             ClassificationTypeMap typeMap,
             string classificationFormatMap = null,
-            Action<Run, TaggedText, int> runCallback = null)
+            Action<Run, ClassifiedText, int> runCallback = null)
         {
             classificationFormatMap = classificationFormatMap ?? "tooltip";
 
@@ -59,12 +73,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static TextBlock ToTextBlock(
             this IEnumerable<TaggedText> parts,
             ClassificationTypeMap typeMap,
-            string classificationFormatMap = null,
-            Action<Run, TaggedText, int> runCallback = null)
+            string classificationFormatMap = null)
         {
             classificationFormatMap = classificationFormatMap ?? "tooltip";
 
-            var inlines = parts.ToInlines(typeMap, classificationFormatMap, runCallback);
+            var inlines = parts.ToInlines(typeMap, classificationFormatMap);
             return inlines.ToTextBlock(typeMap, classificationFormatMap);
         }
 
