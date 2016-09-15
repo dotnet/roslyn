@@ -14799,5 +14799,50 @@ yes";
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void IsPatternPrecedence03()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        object A = new B<C, D>();
+        Console.WriteLine(A is B < C, D > E);
+        Console.WriteLine(A as B < C, D > ?? string.Empty);
+    }
+}
+
+class B<C,D>
+{
+    public static implicit operator string(B<C,D> b) => nameof(B<C,D>);
+}
+class C {}
+class D {}
+";
+            var expectedOutput =
+@"True
+B";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            SyntaxFactory.ParseExpression("A is B < C, D > E").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("A as B < C, D > E").GetDiagnostics().Verify(
+                // (1,1): error CS1073: Unexpected token 'E'
+                // A as B < C, D > E
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "A as B < C, D >").WithArguments("E").WithLocation(1, 1)
+                );
+
+            SyntaxFactory.ParseExpression("A as B < C, D > ?? string.Empty").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("A is B < C, D > ?? string.Empty").GetDiagnostics().Verify(
+                // (1,1): error CS1073: Unexpected token ','
+                // A is B < C, D > ?? string.Empty
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "A is B < C").WithArguments(",").WithLocation(1, 1)
+                );
+        }
     }
 }

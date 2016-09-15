@@ -5527,6 +5527,7 @@ tryAgain:
                                 return ((options & NameOptions.PossiblePattern) != 0)
                                     ? ScanTypeArgumentListKind.DefiniteTypeArgumentList
                                     : ScanTypeArgumentListKind.PossibleTypeArgumentList;
+
                             case SyntaxKind.OpenParenToken:
                             case SyntaxKind.CloseParenToken:
                             case SyntaxKind.CloseBracketToken:
@@ -5537,15 +5538,18 @@ tryAgain:
                             case SyntaxKind.QuestionToken:
                             case SyntaxKind.EqualsEqualsToken:
                             case SyntaxKind.ExclamationEqualsToken:
-                                // The preceding tokens are from 7.5.4.2 Grammar Ambiguities;
-                                // the following tokens are not.
+                                // These tokens are from 7.5.4.2 Grammar Ambiguities
+                                return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+
                             case SyntaxKind.AmpersandAmpersandToken:
                             case SyntaxKind.BarBarToken:
                             case SyntaxKind.CaretToken:
                             case SyntaxKind.BarToken:
                             case SyntaxKind.CloseBraceToken:
                             case SyntaxKind.EndOfFileToken:
+                                // These tokens are not from 7.5.4.2 Grammar Ambiguities
                                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+
                             default:
                                 return ScanTypeArgumentListKind.PossibleTypeArgumentList;
                         }
@@ -6335,7 +6339,7 @@ tryAgain:
 
         private TypeSyntax ParseType(bool parentIsParameter)
         {
-            return ParseTypeCore(parentIsParameter, isOrAs: false, expectSizes: false, isArrayCreation: false);
+            return ParseTypeCore(parentIsParameter, isPattern: false, rightOfAs: false, expectSizes: false, isArrayCreation: false);
         }
 
         private bool IsTerm()
@@ -6376,30 +6380,33 @@ tryAgain:
 
         private TypeSyntax ParseTypeCore(
             bool parentIsParameter,
-            bool isOrAs,
+            bool isPattern,
+            bool rightOfAs,
             bool expectSizes,
             bool isArrayCreation)
         {
-            if (!parentIsParameter && !isOrAs && !expectSizes && !isArrayCreation && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            if (!parentIsParameter && !(isPattern || rightOfAs) && !expectSizes && !isArrayCreation && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 var refKeyword = this.EatToken();
-                var type = ParseTypeCore1(parentIsParameter, isOrAs, expectSizes, isArrayCreation);
+                var type = ParseTypeCore1(parentIsParameter, isPattern, rightOfAs, expectSizes, isArrayCreation);
                 return this.CheckFeatureAvailability(_syntaxFactory.RefType(refKeyword, type), MessageID.IDS_FeatureRefLocalsReturns);
             }
             else
             {
-                return ParseTypeCore1(parentIsParameter, isOrAs, expectSizes, isArrayCreation);
+                return ParseTypeCore1(parentIsParameter, isPattern, rightOfAs, expectSizes, isArrayCreation);
             }
         }
 
         private TypeSyntax ParseTypeCore1(
             bool parentIsParameter,
-            bool isOrAs,
+            bool rightOfIs,
+            bool rightOfAs,
             bool expectSizes,
             bool isArrayCreation)
         {
+            var isOrAs = rightOfIs | rightOfAs;
             var type = this.ParseUnderlyingType(parentIsParameter,
-                isOrAs ? NameOptions.InExpression | NameOptions.PossiblePattern : NameOptions.None);
+                rightOfIs ? NameOptions.InExpression | NameOptions.PossiblePattern : NameOptions.None);
 
             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
             {
@@ -9359,7 +9366,7 @@ tryAgain:
 
                 if (opKind == SyntaxKind.AsExpression)
                 {
-                    var type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+                    var type = this.ParseTypeCore(parentIsParameter: false, isPattern: false, rightOfAs: true, expectSizes: false, isArrayCreation: false);
                     leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, type);
                 }
                 else if (opKind == SyntaxKind.IsExpression)
@@ -10555,7 +10562,7 @@ tryAgain:
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
             bool isPossibleArrayCreation = this.IsPossibleArrayCreationExpression();
-            var type = this.ParseTypeCore(parentIsParameter: false, isOrAs: false, expectSizes: isPossibleArrayCreation, isArrayCreation: isPossibleArrayCreation);
+            var type = this.ParseTypeCore(parentIsParameter: false, isPattern: false, rightOfAs: false, expectSizes: isPossibleArrayCreation, isArrayCreation: isPossibleArrayCreation);
 
             if (type.Kind == SyntaxKind.ArrayType)
             {
@@ -10961,7 +10968,7 @@ tryAgain:
         private StackAllocArrayCreationExpressionSyntax ParseStackAllocExpression()
         {
             var stackAlloc = this.EatToken(SyntaxKind.StackAllocKeyword);
-            var elementType = this.ParseTypeCore(parentIsParameter: false, isOrAs: false, expectSizes: true, isArrayCreation: false);
+            var elementType = this.ParseTypeCore(parentIsParameter: false, isPattern: false, rightOfAs: false, expectSizes: true, isArrayCreation: false);
             if (elementType.Kind != SyntaxKind.ArrayType)
             {
                 elementType = this.AddError(elementType, ErrorCode.ERR_BadStackAllocExpr);

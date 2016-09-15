@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.CommaToken:
                     // HACK: for error recovery, we prefer a (missing) type.
-                    return this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+                    return this.ParseTypeCore(parentIsParameter: false, isPattern: true, rightOfAs: false, expectSizes: false, isArrayCreation: false);
                 default:
                     // attempt to disambiguate.
                     break;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    TypeSyntax type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+                    TypeSyntax type = this.ParseTypeCore(parentIsParameter: false, isPattern: true, rightOfAs: false, expectSizes: false, isArrayCreation: false);
 
                     tk = this.CurrentToken.ContextualKind;
                     if (!type.IsMissing)
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    TypeSyntax type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+                    TypeSyntax type = this.ParseTypeCore(parentIsParameter: false, isPattern: true, rightOfAs: false, expectSizes: false, isArrayCreation: false);
                     if (!type.IsMissing)
                     {
                         // X.Y.Z id
