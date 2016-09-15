@@ -19,23 +19,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            IPropertySymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IPropertySymbol> symbolAndProjectId, 
+            Solution solution, 
+            IImmutableSet<Project> projects, 
+            CancellationToken cancellationToken)
         {
-            var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
-            baseSymbols = baseSymbols ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-            var backingField = symbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Where(f => symbol.Equals(f.AssociatedSymbol));
+            var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
+            baseSymbols = baseSymbols ?? SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
 
-            var result = baseSymbols.Concat(backingField);
+            var symbol = symbolAndProjectId.Symbol;
+            var backingFields = symbol.ContainingType.GetMembers()
+                                      .OfType<IFieldSymbol>()
+                                      .Where(f => symbol.Equals(f.AssociatedSymbol))
+                                      .Select(f => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(f));
+
+            var result = baseSymbols.Concat(backingFields);
 
             if (symbol.GetMethod != null)
             {
-                result = result.Concat(symbol.GetMethod);
+                result = result.Concat(symbolAndProjectId.WithSymbol(symbol.GetMethod));
             }
 
             if (symbol.SetMethod != null)
             {
-                result = result.Concat(symbol.SetMethod);
+                result = result.Concat(symbolAndProjectId.WithSymbol(symbol.SetMethod));
             }
 
             return result;

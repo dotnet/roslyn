@@ -43,27 +43,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         /// there may be symbol mapping involved (for example in Metadata-As-Source
         /// scenarios).
         /// </summary>
-        private async Task<Tuple<ISymbol, Solution>> GetRelevantSymbolAndSolutionAtPositionAsync(
+        private async Task<Tuple<ISymbol, Project>> GetRelevantSymbolAndProjectAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (symbol != null)
+            if (symbol == null)
             {
-                // If this document is not in the primary workspace, we may want to search for results
-                // in a solution different from the one we started in. Use the starting workspace's
-                // ISymbolMappingService to get a context for searching in the proper solution.
-                var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
-
-                var mapping = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
-                if (mapping != null)
-                {
-                    return Tuple.Create(mapping.Symbol, mapping.Solution);
-                }
+                return null;
             }
 
-            return null;
+            // If this document is not in the primary workspace, we may want to search for results
+            // in a solution different from the one we started in. Use the starting workspace's
+            // ISymbolMappingService to get a context for searching in the proper solution.
+            var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
+
+            var mapping = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
+            if (mapping == null)
+            {
+                return null;
+            }
+
+            return Tuple.Create(mapping.Symbol, mapping.Project);
         }
 
         /// <summary>
@@ -87,23 +89,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         {
             var cancellationToken = waitContext.CancellationToken;
 
-            var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndSolution == null)
+            var symbolAndProject = await GetRelevantSymbolAndProjectAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (symbolAndProject == null)
             {
                 return null;
             }
 
-            var symbol = symbolAndSolution.Item1;
-            var solution = symbolAndSolution.Item2;
+            var symbol = symbolAndProject.Item1;
+            var project = symbolAndProject.Item2;
 
             var displayName = GetDisplayName(symbol);
 
             waitContext.Message = string.Format(
                 EditorFeaturesResources.Finding_references_of_0, displayName);
 
-            var result = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            var result = await SymbolFinder.FindReferencesAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false);
 
-            return Tuple.Create(result, solution);
+            return Tuple.Create(result, project.Solution);
         }
 
         private static string GetDisplayName(ISymbol symbol)
@@ -196,20 +198,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             cancellationToken.ThrowIfCancellationRequested();
 
             // Find the symbol we want to search and the solution we want to search in.
-            var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(
+            var symbolAndProject = await GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndSolution == null)
+            if (symbolAndProject == null)
             {
                 return;
             }
 
-            var symbol = symbolAndSolution.Item1;
-            var solution = symbolAndSolution.Item2;
+            var symbol = symbolAndProject.Item1;
+            var project = symbolAndProject.Item2;
 
             var displayName = GetDisplayName(symbol);
             context.SetSearchLabel(displayName);
 
-            var progressAdapter = new ProgressAdapter(solution, context);
+            var progressAdapter = new ProgressAdapter(project.Solution, context);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
@@ -220,8 +222,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             // to the UI thread.  There's more work we need to do once the FAR engine
             // is done.
             await SymbolFinder.FindReferencesAsync(
-                symbol,
-                solution,
+                SymbolAndProjectId.Create(symbol, project.Id),
+                project.Solution,
                 progressAdapter,
                 documents: null,
                 cancellationToken: cancellationToken).ConfigureAwait(true);

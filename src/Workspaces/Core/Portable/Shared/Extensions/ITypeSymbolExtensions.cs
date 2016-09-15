@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -95,8 +96,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// interfaceMember, or this type doesn't supply a member that successfully implements
         /// interfaceMember).
         /// </summary>
-        public static IEnumerable<ISymbol> FindImplementationsForInterfaceMember(
-            this ITypeSymbol typeSymbol,
+        public static IEnumerable<SymbolAndProjectId> FindImplementationsForInterfaceMember(
+            this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
             ISymbol interfaceMember,
             Workspace workspace,
             CancellationToken cancellationToken)
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
-
+            var typeSymbol = typeSymbolAndProjectId.Symbol;
             if (typeSymbol == null || interfaceMember == null)
             {
                 yield break;
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                         if (result != null)
                         {
-                            yield return result;
+                            yield return typeSymbolAndProjectId.WithSymbol(result);
                             break;
                         }
                     }
