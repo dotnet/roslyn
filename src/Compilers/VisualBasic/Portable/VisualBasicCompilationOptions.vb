@@ -1228,21 +1228,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithDelaySign(delaySign)
         End Function
 
-        ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with a different check overflow specified.
-        ''' </summary>
-        ''' <param name="value">The check overflow setting. </param>        
-        ''' <returns>A new instance of VisualBasicCompilationOptions, if the check overflow is different; otherwise current instance.</returns>        
-        Public Shadows Function WithCheckOverflow(value As Boolean) As VisualBasicCompilationOptions
-            If value = Me.CheckOverflow Then
-                Return Me
-            End If
-
-            Return New VisualBasicCompilationOptions(Me) With {.CheckOverflow = value}
-        End Function
-
         Protected Overrides Function CommonWithCheckOverflow(checkOverflow As Boolean) As CompilationOptions
-            Return WithCheckOverflow(checkOverflow)
+            Return WithOverflowChecks(checkOverflow)
         End Function
 
         ''' <summary>

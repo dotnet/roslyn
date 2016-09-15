@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { OptimizationLevel = value };
         }
 
-        public CSharpCompilationOptions WithOverflowChecks(bool enabled)
+        public new CSharpCompilationOptions WithOverflowChecks(bool enabled)
         {
             if (enabled == this.CheckOverflow)
             {
@@ -669,19 +669,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithDelaySign(delaySign);
         }
 
-        public new CompilationOptions WithCheckOverflow(bool checkOverflow)
-        {
-            if (checkOverflow == CheckOverflow)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { CheckOverflow = checkOverflow };
-        }
-
         protected override CompilationOptions CommonWithCheckOverflow(bool checkOverflow)
         {
-            return WithCheckOverflow(checkOverflow);
+            return WithOverflowChecks(checkOverflow);
         }
 
         protected override CompilationOptions CommonWithWarningLevel(int warningLevel)

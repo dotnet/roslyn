@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithDelaySign(delaySign);
         }
 
-        public CompilationOptions WithCheckOverflow(bool checkOverflow)
+        public CompilationOptions WithOverflowChecks(bool checkOverflow)
         {
             return CommonWithCheckOverflow(checkOverflow);
         }

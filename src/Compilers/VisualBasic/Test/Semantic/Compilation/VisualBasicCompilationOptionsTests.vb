@@ -9,20 +9,58 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class VisualBasicCompilationOptionsTests
         Inherits BasicTestBase
+        
+        Private Sub TestShadowedProperty(Of T)(factory As Func(Of CompilationOptions, T, CompilationOptions),
+                                       getter As Func(Of CompilationOptions, T),
+                                       validNonDefaultValue As T)
+            TestPropertyGeneric(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), factory, getter, validNonDefaultValue)
+        End Sub
+        
+        <Fact>
+        Public Sub ShadowInvariants()
+            TestShadowedProperty(Function(old, value) old.WithOutputKind(value), Function(opt) opt.OutputKind, OutputKind.DynamicallyLinkedLibrary)
+            TestShadowedProperty(Function(old, value) old.WithModuleName(value), Function(opt) opt.ModuleName, "foo.dll")
+            TestShadowedProperty(Function(old, value) old.WithMainTypeName(value), Function(opt) opt.MainTypeName, "Foo.Bar")
+            TestShadowedProperty(Function(old, value) old.WithScriptClassName(value), Function(opt) opt.ScriptClassName, "<Script>")
+
+            TestShadowedProperty(Function(old, value) old.WithOptimizationLevel(value), Function(opt) opt.OptimizationLevel, OptimizationLevel.Release)
+            TestShadowedProperty(Function(old, value) old.WithOverflowChecks(value), Function(opt) opt.CheckOverflow, False)
+            TestShadowedProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "foo")
+            TestShadowedProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "foo")
+            TestShadowedProperty(Function(old, value) old.WithCryptoPublicKey(value), Function(opt) opt.CryptoPublicKey, ImmutableArray.CreateRange(Of Byte)({1, 2, 3, 4}))
+            TestShadowedProperty(Function(old, value) old.WithDelaySign(value), Function(opt) opt.DelaySign, True)
+            TestShadowedProperty(Function(old, value) old.WithPlatform(value), Function(opt) opt.Platform, Platform.X64)
+            TestShadowedProperty(Function(old, value) old.WithGeneralDiagnosticOption(value), Function(opt) opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress)
+
+            TestShadowedProperty(Function(old, value) old.WithSpecificDiagnosticOptions(value), Function(opt) opt.SpecificDiagnosticOptions,
+                New Dictionary(Of String, ReportDiagnostic) From {{"VB0001", ReportDiagnostic.Error}}.ToImmutableDictionary())
+            TestShadowedProperty(Function(old, value) old.WithReportSuppressedDiagnostics(value), Function(opt) opt.ReportSuppressedDiagnostics, True)
+
+            TestShadowedProperty(Function(old, value) old.WithConcurrentBuild(value), Function(opt) opt.ConcurrentBuild, False)
+
+            TestShadowedProperty(Function(old, value) old.WithXmlReferenceResolver(value), Function(opt) opt.XmlReferenceResolver, New XmlFileResolver(Nothing))
+            TestShadowedProperty(Function(old, value) old.WithSourceReferenceResolver(value), Function(opt) opt.SourceReferenceResolver, New SourceFileResolver(ImmutableArray(Of String).Empty, Nothing))
+            TestShadowedProperty(Function(old, value) old.WithMetadataReferenceResolver(value), Function(opt) opt.MetadataReferenceResolver, New TestMetadataReferenceResolver())
+            TestShadowedProperty(Function(old, value) old.WithAssemblyIdentityComparer(value), Function(opt) opt.AssemblyIdentityComparer, New DesktopAssemblyIdentityComparer(New AssemblyPortabilityPolicy()))
+            TestShadowedProperty(Function(old, value) old.WithWarningLevel(value), Function(opt) opt.WarningLevel, 3)
+        End Sub
 
         Private Sub TestProperty(Of T)(factory As Func(Of VisualBasicCompilationOptions, T, VisualBasicCompilationOptions),
                                        getter As Func(Of VisualBasicCompilationOptions, T),
                                        validNonDefaultValue As T)
+            TestPropertyGeneric(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), factory, getter, validNonDefaultValue)
+        End Sub
 
-            Dim oldOpt1 = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
-
-            Dim validDefaultValue = getter(oldOpt1)
+        Private Shared Sub TestPropertyGeneric(Of TOptions As CompilationOptions, T)(oldOptions As TOptions,
+                                                     factory As Func(Of TOptions, T, TOptions), 
+                                                     getter As Func(Of TOptions, T), validNonDefaultValue As T)
+            Dim validDefaultValue = getter(oldOptions)
 
             '  we need non-default value to test Equals And GetHashCode
             Assert.NotEqual(validNonDefaultValue, validDefaultValue)
 
             ' check that the assigned value can be read
-            Dim newOpt1 = factory(oldOpt1, validNonDefaultValue)
+            Dim newOpt1 = factory(oldOptions, validNonDefaultValue)
             Assert.Equal(validNonDefaultValue, getter(newOpt1))
             Assert.Equal(0, newOpt1.Errors.Length)
 
@@ -31,14 +69,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(newOpt1_alias, newOpt1)
 
             ' check that Equals And GetHashCode work
-            Dim newOpt2 = factory(oldOpt1, validNonDefaultValue)
-            Assert.False(newOpt1.Equals(oldOpt1))
+            Dim newOpt2 = factory(oldOptions, validNonDefaultValue)
+            Assert.False(newOpt1.Equals(oldOptions))
             Assert.True(newOpt1.Equals(newOpt2))
 
             Assert.Equal(newOpt1.GetHashCode(), newOpt2.GetHashCode())
 
             ' test Nothing:
-            Assert.NotNull(factory(oldOpt1, Nothing))
+            Assert.NotNull(factory(oldOptions, Nothing))
         End Sub
 
         <Fact>
@@ -83,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithSourceReferenceResolver(value), Function(opt) opt.SourceReferenceResolver, New SourceFileResolver(ImmutableArray(Of String).Empty, Nothing))
             TestProperty(Function(old, value) old.WithMetadataReferenceResolver(value), Function(opt) opt.MetadataReferenceResolver, New TestMetadataReferenceResolver())
             TestProperty(Function(old, value) old.WithAssemblyIdentityComparer(value), Function(opt) opt.AssemblyIdentityComparer, New DesktopAssemblyIdentityComparer(New AssemblyPortabilityPolicy()))
-            TestProperty(Function(old, value) old.WithStrongNameProvider(value), Function(opt) opt.StrongNameProvider, New DesktopStrongNameProvider())
+            TestProperty(Function(old, value) old.WithWarningLevel(value), Function(opt) opt.WarningLevel, 3)
         End Sub
 
         Public Sub WithXxx()
