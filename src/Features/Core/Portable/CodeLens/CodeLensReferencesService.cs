@@ -2,21 +2,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeLens
 {
-    [ExportWorkspaceService(typeof(ICodeLensReferencesService)), Shared]
-    internal sealed class CodeLensReferenceService : ICodeLensReferencesService
+    internal sealed class CodeLensReferencesService : ICodeLensReferencesService
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
             new SymbolDisplayFormat(
