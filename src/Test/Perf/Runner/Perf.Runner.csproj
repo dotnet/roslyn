@@ -80,4 +80,10 @@
     <Folder Include="CPC-Consumption\" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>call "$(MSBuildThisFileDirectory)install_benchview_tools.cmd" "$(OutDir)"</PostBuildEvent>
+  </PropertyGroup>
+  <Target Name="Clean">
+    <Exec Command='call "$(MSBuildThisFileDirectory)clean_benchview_tools.cmd" "$(OutDir)"' />
+  </Target>
 </Project>
