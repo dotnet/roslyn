@@ -5279,6 +5279,7 @@ tryAgain:
             None = 0,
             InExpression = 1 << 0, // Used to influence parser ambiguity around "<" and generics vs. expressions. Used in ParseSimpleName.
             InTypeList = 1 << 1, // Allows attributes to appear within the generic type argument list. Used during ParseInstantiation.
+            PossiblePattern = 1 << 2, // Used to influence parser ambiguity around "<" and generics vs. expressions on the right of 'is'
         }
 
         /// <summary>
@@ -5482,7 +5483,7 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
                 var pt = this.GetResetPoint();
-                var kind = this.ScanTypeArgumentList((options & NameOptions.InExpression) != 0);
+                var kind = this.ScanTypeArgumentList(options);
                 this.Reset(ref pt);
                 this.Release(ref pt);
 
@@ -5509,42 +5510,44 @@ tryAgain:
             DefiniteTypeArgumentList
         }
 
-        private ScanTypeArgumentListKind ScanTypeArgumentList(bool inExpression)
+        private ScanTypeArgumentListKind ScanTypeArgumentList(NameOptions options)
         {
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
-                if (inExpression)
+                if ((options & NameOptions.InExpression) != 0)
                 {
                     // Scan for a type argument list. If we think it's a type argument list
                     // then assume it is unless we see specific tokens following it.
                     if (this.ScanPossibleTypeArgumentList())
                     {
-                        var tokenID = this.CurrentToken.Kind;
-                        if (tokenID != SyntaxKind.OpenParenToken &&
-                            tokenID != SyntaxKind.CloseParenToken &&
-                            tokenID != SyntaxKind.CloseBracketToken &&
-                            tokenID != SyntaxKind.ColonToken &&
-                            tokenID != SyntaxKind.SemicolonToken &&
-                            tokenID != SyntaxKind.CommaToken &&
-                            tokenID != SyntaxKind.DotToken &&
-                            tokenID != SyntaxKind.QuestionToken &&
-                            tokenID != SyntaxKind.EqualsEqualsToken &&
-                            tokenID != SyntaxKind.ExclamationEqualsToken &&
-
-                            // The preceding tokens are from 7.5.4.2 Grammar Ambiguities;
-                            // the following tokens are not.
-                            tokenID != SyntaxKind.AmpersandAmpersandToken &&
-                            tokenID != SyntaxKind.BarBarToken &&
-                            tokenID != SyntaxKind.CaretToken &&
-                            tokenID != SyntaxKind.BarToken &&
-                            tokenID != SyntaxKind.CloseBraceToken &&
-                            tokenID != SyntaxKind.EndOfFileToken)
+                        switch (this.CurrentToken.Kind)
                         {
-                            return ScanTypeArgumentListKind.PossibleTypeArgumentList;
-                        }
-                        else
-                        {
-                            return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+                            case SyntaxKind.IdentifierToken:
+                                // we allow 'G<T,U> x' as a pattern-matching operation.
+                                return ((options & NameOptions.PossiblePattern) != 0)
+                                    ? ScanTypeArgumentListKind.DefiniteTypeArgumentList
+                                    : ScanTypeArgumentListKind.PossibleTypeArgumentList;
+                            case SyntaxKind.OpenParenToken:
+                            case SyntaxKind.CloseParenToken:
+                            case SyntaxKind.CloseBracketToken:
+                            case SyntaxKind.ColonToken:
+                            case SyntaxKind.SemicolonToken:
+                            case SyntaxKind.CommaToken:
+                            case SyntaxKind.DotToken:
+                            case SyntaxKind.QuestionToken:
+                            case SyntaxKind.EqualsEqualsToken:
+                            case SyntaxKind.ExclamationEqualsToken:
+                                // The preceding tokens are from 7.5.4.2 Grammar Ambiguities;
+                                // the following tokens are not.
+                            case SyntaxKind.AmpersandAmpersandToken:
+                            case SyntaxKind.BarBarToken:
+                            case SyntaxKind.CaretToken:
+                            case SyntaxKind.BarToken:
+                            case SyntaxKind.CloseBraceToken:
+                            case SyntaxKind.EndOfFileToken:
+                                return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+                            default:
+                                return ScanTypeArgumentListKind.PossibleTypeArgumentList;
                         }
                     }
                 }
@@ -6395,7 +6398,8 @@ tryAgain:
             bool expectSizes,
             bool isArrayCreation)
         {
-            var type = this.ParseUnderlyingType(parentIsParameter);
+            var type = this.ParseUnderlyingType(parentIsParameter,
+                isOrAs ? NameOptions.InExpression | NameOptions.PossiblePattern : NameOptions.None);
 
             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
             {
@@ -6608,7 +6612,7 @@ tryAgain:
                 expected);
         }
 
-        private TypeSyntax ParseUnderlyingType(bool parentIsParameter)
+        private TypeSyntax ParseUnderlyingType(bool parentIsParameter, NameOptions options = NameOptions.None)
         {
             if (IsPredefinedType(this.CurrentToken.Kind))
             {
@@ -6623,7 +6627,7 @@ tryAgain:
             }
             else if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
-                return this.ParseQualifiedName();
+                return this.ParseQualifiedName(options);
             }
             else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {

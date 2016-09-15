@@ -14701,5 +14701,103 @@ public class Program
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", "(int, <null>)").WithLocation(6, 13)
                 );
         }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void IsPatternPrecedence()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    const bool B = true;
+    const int One = 1;
+
+    public static void Main(string[] args)
+    {
+        object a = null;
+        B c = null;
+        Console.WriteLine(a is B & c); // prints 5 (correct)
+        Console.WriteLine(a is B > c); // prints 6 (correct)
+        Console.WriteLine(a is B < c); // was syntax error but should print 7
+        Console.WriteLine(3 is One + 2); // should print True
+        Console.WriteLine(One + 2 is 3); // should print True
+    }
+}
+
+class B
+{
+    public static int operator &(bool left, B right) => 5;
+    public static int operator >(bool left, B right) => 6;
+    public static int operator <(bool left, B right) => 7;
+    public static int operator +(bool left, B right) => 8;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
+                parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                //         Console.WriteLine(3 is One + 2); // should print True
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7").WithLocation(15, 27),
+                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                //         Console.WriteLine(One + 2 is 3); // should print True
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7").WithLocation(16, 27)
+                );
+            var expectedOutput =
+@"5
+6
+7
+True
+True";
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void IsPatternPrecedence02()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        foreach (object A in new[] { null, new B<C,D>() })
+        {
+            // pass one argument, a pattern-matching operation
+            M(A is B < C, D > E);
+            switch (A)
+            {
+                case B < C, D > F:
+                    Console.WriteLine(""yes"");
+                    break;
+                default:
+                    Console.WriteLine(""no"");
+                    break;
+            }
+        }
+    }
+    static void M(object o)
+    {
+        Console.WriteLine(o);
+    }
+}
+
+class B<C,D>
+{
+}
+class C {}
+class D {}
+";
+            var expectedOutput =
+@"False
+no
+True
+yes";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
