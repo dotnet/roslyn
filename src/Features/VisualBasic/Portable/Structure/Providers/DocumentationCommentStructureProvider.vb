@@ -87,8 +87,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
-            spans.Add(
-                CreateRegion(fullSpan, GetBannerText(documentationComment, cancellationToken), autoCollapse:=True))
+            spans.Add(CreateRegion(
+                fullSpan, GetBannerText(documentationComment, cancellationToken),
+                autoCollapse:=True, type:=BlockTypes.Nonstructural, isCollapsible:=True))
         End Sub
     End Class
 End Namespace

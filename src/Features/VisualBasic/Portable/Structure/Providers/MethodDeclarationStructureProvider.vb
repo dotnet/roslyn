@@ -16,8 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(methodDeclaration.Parent, MethodBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then
-                spans.Add(
-                    CreateRegionFromBlock(block, bannerNode:=methodDeclaration, autoCollapse:=True))
+                spans.Add(CreateRegionFromBlock(
+                    block, bannerNode:=methodDeclaration, autoCollapse:=True,
+                    type:=BlockTypes.Method, isCollapsible:=True))
             End If
         End Sub
     End Class
