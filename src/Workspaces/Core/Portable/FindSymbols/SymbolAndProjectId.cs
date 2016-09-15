@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// that this symbol came from, that you'll be able to find this symbol
     /// in the compilation for the specified project.
     /// 
+    /// Note that the 'Same' symbol could be acquired from many different projects
+    /// (after all, each project sees, at least, all the public symbols for all the 
+    /// projects it references).  As such, a single ISymbol could be found in many
+    /// places.  The ProjectId at least gives us a single place to look for it again.
+    /// 
     /// The purpose of this type is to support serializing/deserializing symbols
     /// and allowing features to work out-of-process (OOP).  In OOP scenarios, 
     /// we will need to marshal <see cref="ISymbol"/>s to and from the host and 
