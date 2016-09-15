@@ -158,7 +158,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            var projectInfo = allProjectInfos[projectFilename];
+            DeferredProjectInformation projectInfo;
+            if (!allProjectInfos.TryGetValue(projectFilename, out projectInfo))
+            {
+                return null;
+            }
+
             var commandLineParser = _workspace.Services.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
             var projectDirectory = Path.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
