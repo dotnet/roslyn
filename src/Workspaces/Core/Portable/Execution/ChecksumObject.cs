@@ -89,5 +89,6 @@ namespace Microsoft.CodeAnalysis.Execution
         public const string MetadataReference = nameof(MetadataReference);
         public const string AnalyzerReference = nameof(AnalyzerReference);
         public const string SourceText = nameof(SourceText);
+        public const string OptionSet = nameof(OptionSet);
     }
 }

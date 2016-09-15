@@ -1,10 +1,10 @@
 {
-  "dependencies": {
-  },
-  "frameworks": {
-    "net46": { }
-  },
-  "runtimes": {
-    "win7": { }
-  }
+    "dependencies": {
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

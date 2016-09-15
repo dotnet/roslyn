@@ -10,7 +10,7 @@
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
     <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.0.0</RoslynFileVersionBase>
     <!-- This is the base of the NuGet versioning for prerelease packages -->
-    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-beta5</NuGetPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-beta6</NuGetPreReleaseVersion>
     <!-- Currently we version IW the same as Roslyn. -->
     <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynAssemblyVersionBase)</MicrosoftVisualStudioInteractiveWindowVersion>
   </PropertyGroup>

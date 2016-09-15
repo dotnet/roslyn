@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Drawing;
 using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Win32;
@@ -101,5 +102,32 @@ namespace Roslyn.Test.Utilities
     public sealed class OSVersion
     {
         public static readonly bool IsWin8 = System.Environment.OSVersion.Version.Build >= 9200;
+    }
+
+    public class HasValidFonts : ExecutionCondition
+    {
+        public override bool ShouldSkip
+        {
+            get
+            {
+                try
+                {
+                    var unused = SystemFonts.DefaultFont;
+                    return unused == null;
+                }
+                catch
+                {
+                    // Motivating issue: https://github.com/dotnet/roslyn/issues/11278
+                    //
+                    // On a small percentage of Jenkins runs we see that fonts are corrupted on the machine.  That causes any
+                    // font based test to fail with no reasonable way to recover (other than manually re-installing fonts). 
+                    //
+                    // This at least gives us a mechanism for skipping those tests when fonts are in a bad state.
+                    return true;
+                }
+            }
+        }
+
+        public override string SkipReason => "Fonts are unavailable";
     }
 }

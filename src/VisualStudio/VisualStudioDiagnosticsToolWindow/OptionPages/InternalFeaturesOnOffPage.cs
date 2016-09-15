@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
-            return new InternalFeaturesOptionsControl(InternalFeatureOnOffOptions.OptionName, serviceProvider);
+            return new InternalFeaturesOptionsControl(nameof(InternalFeatureOnOffOptions), serviceProvider);
         }
 
         internal class InternalFeaturesOptionsControl : InternalOptionsControl

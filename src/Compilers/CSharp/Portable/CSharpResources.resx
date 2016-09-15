@@ -2509,6 +2509,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_CantReadResource" xml:space="preserve">
     <value>Error reading resource '{0}' -- '{1}'</value>
   </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
+  </data>
   <data name="WRN_XMLParseError" xml:space="preserve">
     <value>XML comment has badly formed XML -- '{0}'</value>
   </data>
@@ -4851,9 +4854,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
     <value>Tuple member names must be unique.</value>
   </data>
-  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
-    <value>Tuple member names must all be provided, if any one is provided.</value>
-  </data>
   <data name="ERR_TupleReservedMemberName" xml:space="preserve">
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
@@ -4872,7 +4872,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
   </data>
-  <data name="ERR_PatternValueExpected" xml:space="preserve">
+  <data name="ERR_SwitchExpressionValueExpected" xml:space="preserve">
     <value>The switch expression must be a value; found {0}.</value>
   </data>
   <data name="ERR_PatternIsSubsumed" xml:space="preserve">
