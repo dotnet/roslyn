@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _cancellationToken.ThrowIfCancellationRequested();
                     var nodeOrToken = _pendingNodes.Pop();
 
-                    if (nodeOrToken.Span.IntersectsWith(_textSpan))
+                    if (nodeOrToken.FullSpan.IntersectsWith(_textSpan))
                     {
                         ClassifyNodeOrToken(nodeOrToken);
 
