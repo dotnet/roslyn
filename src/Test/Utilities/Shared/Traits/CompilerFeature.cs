@@ -18,5 +18,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Tuples,
         RefLocalsReturns,
         OutVar,
+        Patterns,
     }
 }

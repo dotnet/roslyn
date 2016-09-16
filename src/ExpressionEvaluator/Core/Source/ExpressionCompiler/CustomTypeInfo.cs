@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -70,12 +71,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static string GetTupleElementNameIfAny(ReadOnlyCollection<string> tupleElementNames, int index)
         {
-            return tupleElementNames?[index];
+            return tupleElementNames != null && index < tupleElementNames.Count ?
+                tupleElementNames[index] :
+                null;
         }
 
         // Encode in payload as a sequence of bytes {count}{dynamicFlags}{tupleNames}
         // where {count} is a byte of the number of bytes in {dynamicFlags} (max: 8*256 bits)
-        // and {tupleNames} is a UTF8 encoded string of the names separated by '|'.
+        // and {tupleNames} is a UTF8 encoded string of the names each preceded by '|'.
         internal static ReadOnlyCollection<byte> Encode(
             ReadOnlyCollection<byte> dynamicFlags,
             ReadOnlyCollection<string> tupleElementNames)
@@ -96,6 +99,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (length > byte.MaxValue)
                 {
                     // Length exceeds capacity of byte.
+                    builder.Free();
                     return null;
                 }
                 builder.Add((byte)length);
@@ -142,22 +146,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static ReadOnlyCollection<byte> EncodeNames(ReadOnlyCollection<string> names)
         {
-            var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
-            bool any = false;
-            foreach (var name in names)
-            {
-                if (any)
-                {
-                    builder.Append(NameSeparator);
-                }
-                if (name != null)
-                {
-                    builder.Append(name);
-                }
-                any = true;
-            }
-            var str = pooledBuilder.ToStringAndFree();
+            var str = JoinNames(names);
             return new ReadOnlyCollection<byte>(Encoding.UTF8.GetBytes(str));
         }
 
@@ -166,7 +155,44 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             int length = bytes.Count - start;
             var array = CopyBytes(bytes, start, length);
             var str = Encoding.UTF8.GetString(array, 0, length);
-            return new ReadOnlyCollection<string>(NullNotEmpty(str.Split(NameSeparator)));
+            return SplitNames(str);
+        }
+
+        private static string JoinNames(ReadOnlyCollection<string> names)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            foreach (var name in names)
+            {
+                builder.Append(NameSeparator);
+                if (name != null)
+                {
+                    builder.Append(name);
+                }
+            }
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private static ReadOnlyCollection<string> SplitNames(string str)
+        {
+            Debug.Assert(str != null);
+            Debug.Assert(str.Length > 0);
+            Debug.Assert(str[0] == NameSeparator);
+            var builder = ArrayBuilder<string>.GetInstance();
+            int offset = 1;
+            int n = str.Length;
+            while (true)
+            {
+                int next = str.IndexOf(NameSeparator, offset);
+                var name = (next < 0) ? str.Substring(offset) : str.Substring(offset, next - offset);
+                builder.Add((name.Length == 0) ? null : name);
+                if (next < 0)
+                {
+                    break;
+                }
+                offset = next + 1;
+            }
+            return new ReadOnlyCollection<string>(builder.ToArrayAndFree());
         }
 
         private static byte[] CopyBytes(ReadOnlyCollection<byte> bytes, int start, int length)
@@ -177,30 +203,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 array[i] = bytes[start + i];
             }
             return array;
-        }
-
-        private static string[] NullNotEmpty(string[] names)
-        {
-            var builder = ArrayBuilder<string>.GetInstance(names.Length);
-            bool hasNull = false;
-            foreach (var name in names)
-            {
-                if (string.IsNullOrEmpty(name))
-                {
-                    hasNull = true;
-                    builder.Add(null);
-                }
-                else
-                {
-                    builder.Add(name);
-                }
-            }
-            if (hasNull)
-            {
-                names = builder.ToArray();
-            }
-            builder.Free();
-            return names;
         }
     }
 }

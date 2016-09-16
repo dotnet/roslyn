@@ -1194,5 +1194,289 @@ class C
                 Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
             }
         }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleField()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int, int) x = (1, 2);
+        var y = x.Item1$$;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleFieldVB()
+        {
+            var code = @"
+class C
+    Sub M()
+        Dim x as (Integer, Integer) = (1, 2)
+        Dim y = x.Item1$$
+    End Sub
+End Class
+";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleFieldExtended()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int, int, int, int, int, int, int, int, int, int) x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        var y = x.Item9$$;
+    }
+}
+";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleFieldExtendedVB()
+        {
+            var code = @"
+Class C
+    Sub M()
+        Dim x as (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        Dim y = x.Item9$$
+    End Sub
+End Class
+";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameExplicitTupleField()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int Item1, int) x = (1, 2);
+        var y = x.Item1$$;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertTag("Item1", "Ite", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void M()
+    {
+        (int Ite, int) x = (1, 2);
+        var y = x.Ite;
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameExplicitTupleFieldVB()
+        {
+            var code = @"
+class C
+    Sub M()
+        Dim x as (Item1 as integer, int Item2 as integer) = (1, 2)
+        Dim y = x.Item1$$
+    End Sub
+End Class";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertTag("Item1", "Ite", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+    Sub M()
+        Dim x as (Ite as integer, int Item2 as integer) = (1, 2)
+        Dim y = x.Ite
+    End Sub
+End Class";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
+            }
+        }
+
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameExplicitTupleField01()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int Ite, int) x = (1, 2);
+        var y = x.Ite$$;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("m1");
+
+                await state.AssertTag("Ite", "Item1", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void M()
+    {
+        (int Item1, int) x = (1, 2);
+        var y = x.Item1;
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameExplicitTupleField01VB()
+        {
+            var code = @"
+class C
+    Sub M()
+        Dim x as (Ite as Integer, Item2 as Integer) = (1, 2)
+        var y = x.Ite$$
+    End Sub
+End Class";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.InsertText("m1");
+
+                await state.AssertTag("Ite", "Item1", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+    Sub M()
+        Dim x as (Item1 as Integer, Item2 as Integer) = (1, 2)
+        var y = x.Item1
+    End Sub
+End Class";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameExplicitTupleFieldExtended()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int, int, int, int, int, int, int, int, int Item9, int) x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        var y = x.Item9$$;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertTag("Item9", "Ite", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void M()
+    {
+        (int, int, int, int, int, int, int, int, int Ite, int) x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        var y = x.Ite;
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameExplicitTupleFieldExtendedVB()
+        {
+            var code = @"
+class C
+    Sub M()
+        Dim x as (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Item9 As Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        var y = x.Item9$$;
+    End Sub
+End Class";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertTag("Item9", "Ite", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+    Sub M()
+        Dim x as (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Ite As Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        var y = x.Ite;
+    End Sub
+End Class";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
+            }
+        }
     }
 }

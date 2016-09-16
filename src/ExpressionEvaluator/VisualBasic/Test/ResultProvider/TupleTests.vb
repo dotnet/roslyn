@@ -1,10 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
+Imports Roslyn.Test.Utilities
 Imports System.Collections.Immutable
 Imports Xunit
 
@@ -40,7 +42,7 @@ End Class"
                         "o._17",
                         DkmEvaluationResultFlags.Expandable))
                 children = GetChildren(children(0))
-                Assert.Equal(8, children.Length) ' Should be 18. https://github.com/dotnet/roslyn/issues/13421
+                Assert.Equal(18, children.Length)
                 Dim child = children(children.Length - 1)
                 Verify(child,
                     EvalResult(
@@ -50,7 +52,7 @@ End Class"
                         "o._17.Rest",
                         DkmEvaluationResultFlags.Expandable))
                 children = GetChildren(child)
-                Assert.Equal(8, children.Length) ' Should be 11. https://github.com/dotnet/roslyn/issues/13421
+                Assert.Equal(11, children.Length)
                 child = children(children.Length - 1)
                 Verify(child,
                     EvalResult(
@@ -62,25 +64,58 @@ End Class"
             End Using
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/12347")>
-        Public Sub NamesFromTypeArguments()
+        <WorkItem(13625, "https://github.com/dotnet/roslyn/issues/13625")>
+        <Fact>
+        Public Sub Names_LongTuple()
             Const source =
-"Class A(Of T, U)
-    Private F As T
-    Private G() As U = New U() { }
-End Class
-Class B(Of T)
-    Friend Structure S
-    End Structure
-    Private F As (X As Object, Y As T)
-End Class
-Class C
-    Private F As New A(Of (A As Object, B As Object)(), (C As Object, D As Object()))()
-    Private G As New B(Of (E As Object, H As B(Of (F As Object, G As Object)).S))()
-End Class"
+"class C
+{
+    ((int A, (int B, int C) D, int E, int F, int G, int H, int I, int J) K, (int L, int M, int N) O) F =
+        ((1, (2, 3), 4, 5, 6, 7, 8, 9), (10, 11, 12));
+}"
             Dim assembly0 = GenerateTupleAssembly()
             Dim reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference()
-            Dim compilation1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll, references:={reference0}, assemblyName:=GetUniqueName())
+            Dim compilation1 = CreateCSharpCompilation(source, references:={TestBase.MscorlibRef, TestBase.SystemCoreRef, reference0})
+            Dim assembly1 = compilation1.EmitToArray()
+            Dim runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)))
+            Using runtime.Load()
+                Dim type = runtime.GetType("C")
+                Dim value = type.Instantiate()
+                Dim result = FormatResult("o", value)
+                Verify(result,
+                       EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable))
+                Dim children = GetChildren(result)
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "((1, (2, 3), 4, 5, 6, 7, 8, 9), (10, 11, 12))",
+                        "(K As (A As Integer, D As (B As Integer, C As Integer), E As Integer, F As Integer, G As Integer, H As Integer, I As Integer, J As Integer), O As (L As Integer, M As Integer, N As Integer))",
+                        "o.F",
+                        DkmEvaluationResultFlags.Expandable))
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub NamesFromTypeArguments()
+            Const source =
+"class A<T, U>
+{
+    T F;
+    U[] G = new U[0];
+}
+class B<T>
+{
+    internal struct S { }
+    (dynamic X, T Y) F = (null, default(T));
+}
+class C
+{
+    A<(dynamic A, object B)[], (object C, dynamic[] D)> F = new A<(dynamic A, object B)[], (object, dynamic[])>();
+    B<(object E, B<(object F, dynamic G)>.S H)> G = new B<(object E, B<(object F, dynamic G)>.S H)>();
+}"
+            Dim assembly0 = GenerateTupleAssembly()
+            Dim reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference()
+            Dim compilation1 = CreateCSharpCompilation(source, references:={TestBase.MscorlibRef, TestBase.SystemCoreRef, reference0})
             Dim assembly1 = compilation1.EmitToArray()
             Dim runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)))
             Using runtime.Load()
@@ -89,7 +124,7 @@ End Class"
                 Dim result = FormatResult("o", value)
                 Dim children = GetChildren(result)
                 Verify(children,
-                    EvalResult("F", "{A(Of (Object, Object)(), (Object, Object()))}", "A(Of (A As Object, B As Object)(), (Object, Object()))", "o.F", DkmEvaluationResultFlags.Expandable),
+                    EvalResult("F", "{A(Of (Object, Object)(), (Object, Object()))}", "A(Of (A As Object, B As Object)(), (C As Object, D As Object()))", "o.F", DkmEvaluationResultFlags.Expandable),
                     EvalResult("G", "{B(Of (Object, B(Of (Object, Object)).S))}", "B(Of (E As Object, H As B(Of (F As Object, G As Object)).S))", "o.G", DkmEvaluationResultFlags.Expandable))
                 Dim moreChildren = GetChildren(children(0))
                 Verify(moreChildren,
@@ -100,8 +135,16 @@ End Class"
                     EvalResult("F", "(Nothing, (Nothing, {B(Of (Object, Object)).S}))", "(X As Object, Y As (E As Object, H As B(Of (F As Object, G As Object)).S))", "o.G.F", DkmEvaluationResultFlags.Expandable))
                 moreChildren = GetChildren(moreChildren(0))
                 Verify(moreChildren,
+                    EvalResult("X", "Nothing", "Object", "o.G.F.Item1"),
                     EvalResult("Item1", "Nothing", "Object", "o.G.F.Item1"),
+                    EvalResult("Y", "(Nothing, {B(Of (Object, Object)).S})", "(E As Object, H As B(Of (F As Object, G As Object)).S)", "o.G.F.Item2", DkmEvaluationResultFlags.Expandable),
                     EvalResult("Item2", "(Nothing, {B(Of (Object, Object)).S})", "(E As Object, H As B(Of (F As Object, G As Object)).S)", "o.G.F.Item2", DkmEvaluationResultFlags.Expandable))
+                moreChildren = GetChildren(moreChildren(3))
+                Verify(moreChildren,
+                    EvalResult("E", "Nothing", "Object", "o.G.F.Item2.Item1"),
+                    EvalResult("Item1", "Nothing", "Object", "o.G.F.Item2.Item1"),
+                    EvalResult("H", "{B(Of (Object, Object)).S}", "B(Of (F As Object, G As Object)).S", "o.G.F.Item2.Item2"),
+                    EvalResult("Item2", "{B(Of (Object, Object)).S}", "B(Of (F As Object, G As Object)).S", "o.G.F.Item2.Item2"))
             End Using
         End Sub
 
@@ -138,6 +181,12 @@ End Class"
                     EvalResult("Item2", "{Namespace.Structure}", "Namespace.Structure", "DirectCast(o._f, ([As], [Namespace].[Structure])).Item2"))
             End Using
         End Sub
+
+        Private Shared Function CreateCSharpCompilation(source As String, references As IEnumerable(Of MetadataReference)) As CSharpCompilation
+            Dim tree = CSharpSyntaxTree.ParseText(source)
+            Dim options = New CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, concurrentBuild:=False)
+            Return CSharpCompilation.Create(GetUniqueName(), {tree}, references, options)
+        End Function
 
         Private Shared Function GenerateTupleAssembly() As ImmutableArray(Of Byte)
             Const source =
@@ -250,7 +299,7 @@ End Namespace
 Namespace System.Runtime.CompilerServices
     Public Class TupleElementNamesAttribute
         Inherits Attribute
-        Public Sub TupleElementNamesAttribute(names As String())
+        Public Sub New(names As String())
         End Sub
     End Class
 End Namespace"

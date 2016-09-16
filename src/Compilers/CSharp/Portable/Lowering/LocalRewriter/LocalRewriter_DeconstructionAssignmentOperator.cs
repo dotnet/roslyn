@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             temps.Add(savedTuple.LocalSymbol);
 
             // list the tuple fields accessors
-            var fields = tupleType.TupleElementFields;
+            var fields = tupleType.TupleDefaultElementFields;
 
             for (int i = 0; i < numElements; i++)
             {
