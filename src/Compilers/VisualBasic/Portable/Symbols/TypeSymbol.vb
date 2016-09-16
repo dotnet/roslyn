@@ -516,7 +516,7 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
             Get
-                Return Me.TypeKind.ToCommon()
+                Return Me.TypeKind
             End Get
         End Property
 
