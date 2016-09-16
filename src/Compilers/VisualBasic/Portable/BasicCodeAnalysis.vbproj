@@ -827,7 +827,6 @@
     <Compile Include="Symbols\Tuples\TuplePropertySymbol.vb" />
     <Compile Include="Symbols\Tuples\TupleTypeSymbol.vb" />
     <Compile Include="Symbols\TypedConstant.vb" />
-    <Compile Include="Symbols\TypeKind.vb" />
     <Compile Include="Symbols\TypeParameterConstraint.vb" />
     <Compile Include="Symbols\TypeParameterSymbol.vb" />
     <Compile Include="Symbols\TypeSubstitution.vb" />
