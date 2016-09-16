@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 
             if (token.LeadingTrivia.Contains(trivia))
             {
-                return CSharpStructureHelpers.CreateCommentRegions(token.LeadingTrivia).ToArray();
+                return CSharpStructureHelpers.CreateCommentBlockSpan(token.LeadingTrivia).ToArray();
             }
             else if (token.TrailingTrivia.Contains(trivia))
             {
-                return CSharpStructureHelpers.CreateCommentRegions(token.TrailingTrivia).ToArray();
+                return CSharpStructureHelpers.CreateCommentBlockSpan(token.TrailingTrivia).ToArray();
             }
             else
             {
