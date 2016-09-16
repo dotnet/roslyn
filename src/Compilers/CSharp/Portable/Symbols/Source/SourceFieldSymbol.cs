@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeDynamicAttribute(Type, CustomModifiers.Length));
             }
 
-            if (Type.ContainsTuple())
+            if (Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
                     DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(Type));

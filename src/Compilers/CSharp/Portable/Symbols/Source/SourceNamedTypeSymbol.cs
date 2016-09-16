@@ -1089,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
                 }
 
-                if (baseType.ContainsTuple())
+                if (baseType.ContainsTupleNames())
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttributeOpt(baseType));
                 }

@@ -831,6 +831,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly s_isTypeParameterFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) (type.TypeKind = TypeKind.TypeParameter)
 
         ''' <summary>
+        ''' Return true if the type contains any tuples.
+        ''' </summary>
+        <Extension()>
+        Friend Function ContainsTuple(type As TypeSymbol) As Boolean
+            Return type.VisitType(s_isTupleTypeFunc, Nothing) IsNot Nothing
+        End Function
+
+        Private ReadOnly s_isTupleTypeFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) type.IsTupleType
+
+        ''' <summary>
+        ''' Return true if the type contains any tuples with element names.
+        ''' </summary>
+        <Extension()>
+        Friend Function ContainsTupleNames(type As TypeSymbol) As Boolean
+            Return type.VisitType(s_isTupleTypeFunc, Nothing) IsNot Nothing
+        End Function
+
+        Private ReadOnly s_hasTupleNamesFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) Not type.TupleElementNames.IsDefault
+
+        ''' <summary>
         ''' Visit the given type and, in the case of compound types, visit all "sub type"
         ''' (such as A in A(), or { A(Of T), T, U } in A(Of T).B(Of U)) invoking 'predicate'
         ''' with the type and 'arg' at each sub type. If the predicate returns true for any type,

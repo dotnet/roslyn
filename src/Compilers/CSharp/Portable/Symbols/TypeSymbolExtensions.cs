@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Return true if the type contains any tuples with element names.
         /// </summary>
         internal static bool ContainsTupleNames(this TypeSymbol type) =>
-            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => t.IsTupleType && !t.TupleElementNames.IsDefault , null) != null;
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault , null) != null;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -1470,7 +1470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation declaringCompilation,
             Cci.ITypeReference typeRef)
         {
-            if (type.ContainsTuple())
+            if (type.ContainsTupleNames())
             {
                 var attr = declaringCompilation.SynthesizeTupleNamesAttributeOpt(type);
                 if (attr != null)

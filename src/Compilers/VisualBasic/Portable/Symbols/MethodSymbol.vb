@@ -141,6 +141,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
+        ''' Build and add synthesized return type attributes for this method symbol.
+        ''' </summary>
+        Friend Overridable Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        End Sub
+
+        ''' <summary>
         ''' Optimization: in many cases, the parameter count (fast) is sufficient and we
         ''' don't need the actual parameter symbols (slow).
         ''' </summary>
