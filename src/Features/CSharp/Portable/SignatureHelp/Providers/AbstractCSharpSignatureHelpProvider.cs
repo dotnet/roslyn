@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -9,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 {
-    internal abstract class AbstractCSharpSignatureHelpProvider : SymbolSignatureHelpProvider
+    internal abstract class AbstractCSharpSignatureHelpProvider : CommonSignatureHelpProvider
     {
         protected AbstractCSharpSignatureHelpProvider()
         {
@@ -48,17 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
         protected static IList<SymbolDisplayPart> GetSeparatorParts() => _separatorParts;
 
-        protected static SignatureHelpSymbolParameter Convert(
+        protected static CommonParameterData Convert(
             IParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
-            IDocumentationCommentFormattingService formatter,
             CancellationToken cancellationToken)
         {
-            return new SignatureHelpSymbolParameter(
+            return new CommonParameterData(
                 parameter.Name,
                 parameter.IsOptional,
-                parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
+                parameter,
+                position,
                 parameter.ToMinimalDisplayParts(semanticModel, position));
         }
 
@@ -71,6 +73,26 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             }
 
             return SpecializedCollections.EmptyList<TaggedText>();
+        }
+
+        public override async Task<ImmutableArray<TaggedText>> GetItemDocumentationAsync(Document document, SignatureHelpItem item, CancellationToken cancellationToken)
+        {
+            var symbol = await item.GetSymbolAsync(document, cancellationToken).ConfigureAwait(false);
+            if (symbol != null)
+            {
+                var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var parts = await base.GetItemDocumentationAsync(document, item, cancellationToken).ConfigureAwait(false);
+
+                var method = symbol as IMethodSymbol;
+                if (method != null)
+                {
+                    parts = parts.Concat(GetAwaitableUsage(method, model, item.GetPosition()).ToImmutableArray());
+                }
+
+                return parts;
+            }
+
+            return ImmutableArray<TaggedText>.Empty;
         }
     }
 }

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -13,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                                 semanticModel As SemanticModel,
                                                 symbolDisplayService As ISymbolDisplayService,
                                                 anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                                documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                 within As ISymbol,
                                                 delegateType As INamedTypeSymbol,
                                                 cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
@@ -27,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic:=invokeMethod.IsParams(),
-                documentationFactory:=Nothing,
                 prefixParts:=GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts:=GetSeparatorParts(),
                 suffixParts:=GetDelegateInvokePostambleParts(invokeMethod, semanticModel, position),
-                parameters:=GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken))
+                parameters:=GetDelegateInvokeParameters(invokeMethod, semanticModel, position, cancellationToken))
+            item = item.WithSymbol(Nothing) ' forces documentation to be empty
             Return SpecializedCollections.SingletonEnumerable(item)
         End Function
 
@@ -48,14 +48,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Return displayParts
         End Function
 
-        Private Function GetDelegateInvokeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As IList(Of SignatureHelpSymbolParameter)
-            Dim parameters = New List(Of SignatureHelpSymbolParameter)
+        Private Function GetDelegateInvokeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As IList(Of CommonParameterData)
+            Dim parameters = New List(Of CommonParameterData)
             For Each parameter In invokeMethod.Parameters
                 cancellationToken.ThrowIfCancellationRequested()
-                parameters.Add(New SignatureHelpSymbolParameter(
+                parameters.Add(New CommonParameterData(
                     parameter.Name,
                     isOptional:=False,
-                    documentationFactory:=parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
+                    symbol:=parameter,
+                    position:=position,
                     displayParts:=parameter.ToMinimalDisplayParts(semanticModel, position)))
             Next
 

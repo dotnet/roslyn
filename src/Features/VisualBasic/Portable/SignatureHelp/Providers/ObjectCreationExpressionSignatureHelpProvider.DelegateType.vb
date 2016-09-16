@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             semanticModel As SemanticModel,
             symbolDisplayService As ISymbolDisplayService,
             anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-            documentationCommentFormattingService As IDocumentationCommentFormattingService,
             delegateType As INamedTypeSymbol,
             within As ISymbol,
             cancellationToken As CancellationToken
@@ -30,12 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic:=False,
-                documentationFactory:=invokeMethod.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 prefixParts:=GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts:=GetSeparatorParts(),
                 suffixParts:=GetDelegateTypePostambleParts(invokeMethod),
                 parameters:=GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken))
-                
+
             Return SpecializedCollections.SingletonList(item)
         End Function
 
@@ -46,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Return result
         End Function
 
-        Private Function GetDelegateTypeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As IList(Of SignatureHelpSymbolParameter)
+        Private Function GetDelegateTypeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As IList(Of CommonParameterData)
             Const TargetName As String = "target"
 
             Dim parts = New List(Of SymbolDisplayPart)()
@@ -80,11 +78,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 parts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position))
             End If
 
-            Return {New SignatureHelpSymbolParameter(
+            Return {New CommonParameterData(
                 TargetName,
                 isOptional:=False,
-                documentationFactory:=Nothing,
-                displayParts:=parts)}
+                symbol:=Nothing,
+                position:=0,
+                displayParts:=parts.ToImmutableArrayOrEmpty())}
         End Function
 
         Private Function GetDelegateTypePostambleParts(invokeMethod As IMethodSymbol) As IList(Of SymbolDisplayPart)

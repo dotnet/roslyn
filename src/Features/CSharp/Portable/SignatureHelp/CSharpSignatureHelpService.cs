@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     {
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return new CSharpSignatureHelpService();
+            return new CSharpSignatureHelpService(languageServices.WorkspaceServices.Workspace);
         }
     }
 
@@ -31,7 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 new ObjectCreationExpressionSignatureHelpProvider()
             );
 
-        public override string Language => LanguageNames.CSharp;
+        public CSharpSignatureHelpService(Workspace workspace)
+            : base(workspace, LanguageNames.CSharp)
+        {
+        }
 
         protected override ImmutableArray<SignatureHelpProvider> GetBuiltInProviders()
         {

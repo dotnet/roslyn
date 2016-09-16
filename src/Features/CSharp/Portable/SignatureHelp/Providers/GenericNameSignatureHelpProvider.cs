@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -129,14 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             }
 
             var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
             var textSpan = GetTextSpan(genericIdentifier, lessThanToken);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             context.AddItems(accessibleSymbols.Select(s =>
-                Convert(s, lessThanToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)));
+                Convert(s, lessThanToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)));
 
-            context.SetApplicableSpan(textSpan);
+            context.SetSpan(textSpan);
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
             CancellationToken cancellationToken)
         {
             var position = lessThanToken.SpanStart;
@@ -188,11 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,
                     false,
-                    symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(namedType),
-                    namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                    namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, cancellationToken)).ToList());
             }
             else
             {
@@ -201,11 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,
                     false,
-                    c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
                     GetPreambleParts(method, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(method, semanticModel, position),
-                    method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                    method.TypeParameters.Select(p => Convert(p, semanticModel, position, cancellationToken)).ToList());
             }
 
             return item;
@@ -215,19 +212,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(
                 SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeVariance);
 
-        private SignatureHelpSymbolParameter Convert(
+        private CommonParameterData Convert(
             ITypeParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
-            IDocumentationCommentFormattingService formatter,
             CancellationToken cancellationToken)
         {
-            return new SignatureHelpSymbolParameter(
+            return new CommonParameterData(
                 parameter.Name,
                 isOptional: false,
-                documentationFactory: parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
+                symbol: parameter,
+                position: position,
                 displayParts: parameter.ToMinimalDisplayParts(semanticModel, position, s_minimallyQualifiedFormat),
-                selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position, cancellationToken));
+                selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position, cancellationToken).ToImmutableArrayOrEmpty());
         }
 
         private IList<SymbolDisplayPart> GetSelectedDisplayParts(

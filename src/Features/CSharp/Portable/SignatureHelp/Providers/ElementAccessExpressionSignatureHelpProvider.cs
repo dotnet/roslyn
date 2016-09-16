@@ -107,14 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 .Sort(symbolDisplayService, semanticModel, expression.SpanStart);
 
             var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
             var textSpan = GetTextSpan(expression, openBrace);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             context.AddItems(accessibleIndexers.Select(p =>
-                Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)));
+                Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)));
 
-            context.SetApplicableSpan(textSpan);
+            context.SetSpan(textSpan);
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
@@ -230,18 +229,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
             CancellationToken cancellationToken)
         {
             var position = openToken.SpanStart;
             var item = CreateItem(indexer, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 indexer.IsParams(),
-                indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(indexer, position, semanticModel),
                 GetSeparatorParts(),
                 GetPostambleParts(indexer),
-                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                indexer.Parameters.Select(p => Convert(p, semanticModel, position, cancellationToken)).ToList());
             return item;
         }
 

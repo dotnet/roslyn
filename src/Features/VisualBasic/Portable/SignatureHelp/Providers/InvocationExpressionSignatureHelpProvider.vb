@@ -102,24 +102,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                  Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart))
 
             Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
 
             If memberGroup.Count > 0 Then
-                context.AddItems(GetMemberGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, memberGroup, cancellationToken))
+                context.AddItems(GetMemberGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, within, memberGroup, cancellationToken))
             End If
 
             If expressionType.IsDelegateType() Then
-                context.AddItems(GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
+                context.AddItems(GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, within, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
             End If
 
             If defaultProperties.Count > 0 Then
-                context.AddItems(GetElementAccessItems(targetExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
+                context.AddItems(GetElementAccessItems(targetExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, within, defaultProperties, cancellationToken))
             End If
 
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            context.SetApplicableSpan(textSpan)
+            context.SetSpan(textSpan)
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
     End Class

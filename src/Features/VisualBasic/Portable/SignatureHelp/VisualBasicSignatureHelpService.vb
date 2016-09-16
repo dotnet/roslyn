@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Implements ILanguageServiceFactory
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSignatureHelpService()
+            Return New VisualBasicSignatureHelpService(languageServices.WorkspaceServices.Workspace)
         End Function
     End Class
 
@@ -38,7 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             New TernaryConditionalExpressionSignatureHelpProvider()
         )
 
-        Public Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
+        Public Sub New(workspace As Workspace)
+            MyBase.New(workspace, LanguageNames.VisualBasic)
+        End Sub
 
         Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of SignatureHelpProvider)
             Return _defaultProviders

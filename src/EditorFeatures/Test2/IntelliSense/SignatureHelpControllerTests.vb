@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Windows.Threading
@@ -85,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim slowProvider = New MockSignatureHelpProvider(
                 Sub(context)
                     context.AddItems(CreateItems(2))
-                    context.SetApplicableSpan(TextSpan.FromBounds(0, 0))
+                    context.SetSpan(TextSpan.FromBounds(0, 0))
                     context.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
                 End Sub)
 
@@ -111,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Sub(context)
                     manualResetEvent.WaitOne()
                     context.AddItems(CreateItems(2))
-                    context.SetApplicableSpan(TextSpan.FromBounds(0, 0))
+                    context.SetSpan(TextSpan.FromBounds(0, 0))
                     context.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
                 End Sub)
 
@@ -131,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Sub(context)
                     manualResetEvent.WaitOne()
                     context.AddItems(CreateItems(2))
-                    context.SetApplicableSpan(TextSpan.FromBounds(0, 0))
+                    context.SetSpan(TextSpan.FromBounds(0, 0))
                     context.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
                 End Sub)
 
@@ -150,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              Dim slowProvider = New MockSignatureHelpProvider(
                                 Sub(context)
                                     context.AddItems(CreateItems(2))
-                                    context.SetApplicableSpan(TextSpan.FromBounds(0, 0))
+                                    context.SetSpan(TextSpan.FromBounds(0, 0))
                                     context.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
                                 End Sub)
 
@@ -164,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 Sub(context)
                                     checkpoint.Task.Wait()
                                     context.AddItems(CreateItems(2))
-                                    context.SetApplicableSpan(TextSpan.FromBounds(0, 2))
+                                    context.SetSpan(TextSpan.FromBounds(0, 2))
                                     context.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
                                 End Sub)
 
@@ -350,16 +351,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Private Shared Function CreateItems(count As Integer) As IList(Of SignatureHelpItem)
             Return Enumerable.Range(0, count) _
-                .Select(Function(i)
-                            Return New SignatureHelpItem(
-                                isVariadic:=False,
-                                documentationFactory:=Nothing,
-                                prefixParts:=New List(Of TaggedText),
-                                separatorParts:={},
-                                suffixParts:={},
-                                parameters:={},
-                                descriptionParts:={})
-                        End Function) _
+                .Select(Function(i) SignatureHelpItem.Empty) _
                 .ToList()
         End Function
 

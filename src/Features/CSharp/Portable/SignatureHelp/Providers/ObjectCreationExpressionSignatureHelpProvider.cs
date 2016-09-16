@@ -78,13 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var items = type.TypeKind == TypeKind.Delegate
                 ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken)
-                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
+                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken);
 
             if (items == null)
             {
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             }
 
             context.AddItems(items);
-            context.SetApplicableSpan(textSpan);
+            context.SetSpan(textSpan);
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 

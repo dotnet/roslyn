@@ -76,12 +76,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
             Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Dim items = If(type.TypeKind = TypeKind.Delegate,
-                GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken),
+                GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken),
                 GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken))
 
             If items Is Nothing Then
@@ -89,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             context.AddItems(items)
-            context.SetApplicableSpan(textSpan)
+            context.SetSpan(textSpan)
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
     End Class

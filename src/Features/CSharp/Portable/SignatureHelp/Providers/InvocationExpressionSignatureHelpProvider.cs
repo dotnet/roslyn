@@ -96,28 +96,27 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             var expressionType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
 
             var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             if (methodGroup.Any())
             {
-                var items = GetMethodGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, cancellationToken);
+                var items = GetMethodGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, within, methodGroup, cancellationToken);
                 if (items != null)
                 {
                     context.AddItems(items);
-                    context.SetApplicableSpan(textSpan);
+                    context.SetSpan(textSpan);
                     context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
                 }
             }
             else if (expressionType?.TypeKind == TypeKind.Delegate)
             {
-                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, expressionType, cancellationToken);
+                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, within, expressionType, cancellationToken);
                 if (items != null)
                 {
                     context.AddItems(items);
-                    context.SetApplicableSpan(textSpan);
+                    context.SetSpan(textSpan);
                     context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
                 }
             }

@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
     Friend MustInherit Class AbstractVisualBasicSignatureHelpProvider
-        Inherits SymbolSignatureHelpProvider
+        Inherits CommonSignatureHelpProvider
 
         Protected Shared Function SynthesizedParameter(s As String) As SymbolDisplayPart
             Return New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, s)
@@ -38,11 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
         Protected Shared Function Convert(parameter As IParameterSymbol,
                                           semanticModel As SemanticModel,
-                                          position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As SignatureHelpSymbolParameter
-            Return New SignatureHelpSymbolParameter(
+                                          position As Integer, cancellationToken As CancellationToken) As CommonParameterData
+            Return New CommonParameterData(
                 parameter.Name,
                 parameter.IsOptional,
-                parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
+                parameter,
+                position,
                 parameter.ToMinimalDisplayParts(semanticModel, position))
         End Function
 

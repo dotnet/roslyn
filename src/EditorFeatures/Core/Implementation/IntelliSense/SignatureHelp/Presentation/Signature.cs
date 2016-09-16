@@ -19,8 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private const int MaxParamColumnCount = 100;
 
         private readonly SignatureHelpItem _signatureHelpItem;
+        private readonly SignatureHelpService _signatureHelpService;
+        private readonly Document _document;
 
-        public Signature(ITrackingSpan applicableToSpan, SignatureHelpItem signatureHelpItem, int selectedParameterIndex)
+        public Signature(ITrackingSpan applicableToSpan, SignatureHelpItem signatureHelpItem, int selectedParameterIndex, SignatureHelpService signatureHelpService, Document document)
         {
             if (selectedParameterIndex < -1 || selectedParameterIndex >= signatureHelpItem.Parameters.Length)
             {
@@ -30,7 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             this.ApplicableToSpan = applicableToSpan;
             _signatureHelpItem = signatureHelpItem;
             _parameterIndex = selectedParameterIndex;
+            _signatureHelpService = signatureHelpService;
+            _document = document;
         }
+
+        internal SignatureHelpService Service => _signatureHelpService;
+        internal Document Document => _document;
 
         private bool _isInitialized;
         private void EnsureInitialized()
@@ -179,8 +186,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             AddRange(_signatureHelpItem.DescriptionParts, parts, prettyPrintedParts);
             Append(_signatureHelpItem.DescriptionParts.GetFullText(), content, prettyPrintedContent);
 
-            var documentation = _signatureHelpItem.DocumentationFactory(CancellationToken.None).ToList();
-            if (documentation.Count > 0)
+            var documentation = _signatureHelpService.GetItemDocumentationAsync(_document, _signatureHelpItem, CancellationToken.None).Result;
+            if (documentation.Length > 0)
             {
                 AddRange(new[] { newLinePart }, parts, prettyPrintedParts);
                 Append(newLineContent, content, prettyPrintedContent);

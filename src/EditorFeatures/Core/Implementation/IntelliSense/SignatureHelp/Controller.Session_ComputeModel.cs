@@ -56,13 +56,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         var service = document.GetLanguageService<SignatureHelpService>();
 
                         var signatureList = await service.GetSignaturesAsync(document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        if (signatureList?.Provider == null)
+                        if (signatureList.Items.Length == 0)
                         {
                             return null;
                         }
 
                         if (currentModel != null &&
-                            currentModel.Provider == signatureList.Provider &&
+                            currentModel.OriginalList == signatureList &&
                             currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == signatureList.ApplicableSpan.Start &&
                             currentModel.ArgumentIndex == signatureList.ArgumentIndex &&
                             currentModel.ArgumentCount == signatureList.ArgumentCount &&
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         }
 
                         var selectedItem = GetSelectedItem(currentModel, signatureList);
-                        var model = new Model(disconnectedBufferGraph, signatureList.ApplicableSpan, signatureList.Provider,
+                        var model = new Model(disconnectedBufferGraph, signatureList.ApplicableSpan, signatureList,
                             signatureList.Items, selectedItem, signatureList.ArgumentIndex, signatureList.ArgumentCount, signatureList.ArgumentName,
                             selectedParameter: 0);
 

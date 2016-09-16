@@ -3,6 +3,7 @@
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -17,7 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Function CreateSession(textView As ITextView, subjectBuffer As ITextBuffer, sessionOpt As ISignatureHelpSession) As ISignatureHelpPresenterSession _
             Implements IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession).CreateSession
-            Return New TestSignatureHelpPresenterSession(_testState)
+            Dim document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Return New TestSignatureHelpPresenterSession(_testState, document)
         End Function
     End Class
 End Namespace

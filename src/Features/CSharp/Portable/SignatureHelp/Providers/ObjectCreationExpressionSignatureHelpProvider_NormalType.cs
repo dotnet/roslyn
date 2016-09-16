@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
             INamedTypeSymbol normalType,
             ISymbol within,
             CancellationToken cancellationToken)
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
 
             return accessibleConstructors.Select(c =>
-                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList();
+                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)).ToList();
         }
 
         private SignatureHelpItem ConvertNormalTypeConstructor(
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
             CancellationToken cancellationToken)
         {
             var position = objectCreationExpression.SpanStart;
@@ -50,11 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 constructor.IsParams(),
-                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetNormalTypePostambleParts(constructor),
-                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                constructor.Parameters.Select(p => Convert(p, semanticModel, position, cancellationToken)).ToList());
 
             return item;
         }

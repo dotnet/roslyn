@@ -357,7 +357,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End If
 
             If documentation IsNot Nothing Then
-                Assert.Equal(documentation, Me.CurrentSignatureHelpPresenterSession.SelectedItem.DocumentationFactory(CancellationToken.None).GetFullText())
+                Dim document = Me.CurrentSignatureHelpPresenterSession.Document
+                Dim service = SignatureHelpService.GetService(document)
+                Dim actualDocumentation = service.GetItemDocumentationAsync(document, Me.CurrentSignatureHelpPresenterSession.SelectedItem).Result.GetFullText()
+                Assert.Equal(documentation, actualDocumentation)
             End If
 
             If selectedParameter IsNot Nothing Then

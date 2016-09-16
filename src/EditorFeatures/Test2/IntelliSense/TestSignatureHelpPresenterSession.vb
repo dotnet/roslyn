@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public TriggerSpan As ITrackingSpan
         Public SignatureHelpItems As IList(Of SignatureHelpItem)
+        Public Document As Document
         Public SelectedItem As SignatureHelpItem
         Public SelectedParameter As Integer?
         Private presented As Boolean = False
@@ -25,8 +26,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Event Dismissed As EventHandler(Of EventArgs) Implements ISignatureHelpPresenterSession.Dismissed
         Public Event ItemSelected As EventHandler(Of SignatureHelpItemEventArgs) Implements ISignatureHelpPresenterSession.ItemSelected
 
-        Public Sub New(testState As IIntelliSenseTestState)
+        Public Sub New(testState As IIntelliSenseTestState, document As Document)
             Me._testState = testState
+            Me.Document = document
         End Sub
 
         Public Sub PresentItems(triggerSpan As ITrackingSpan,

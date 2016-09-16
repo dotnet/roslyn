@@ -103,14 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             }
 
             var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             context.AddItems(accessibleConstructors.Select(c =>
-                Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)));
+                Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)));
 
-            context.SetApplicableSpan(textSpan);
+            context.SetSpan(textSpan);
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
@@ -132,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
             CancellationToken cancellationToken)
         {
             var position = openToken.SpanStart;
@@ -140,11 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 constructor.IsParams(),
-                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(constructor),
-                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                constructor.Parameters.Select(p => Convert(p, semanticModel, position, cancellationToken)).ToList());
             return item;
         }
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
@@ -50,10 +51,14 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public SignatureHelpState State => _state;
 
+
+        private readonly SignatureHelpProvider _provider;
+
         /// <summary>
         /// Creates a <see cref="SignatureContext"/> instance.
         /// </summary>
-        public SignatureContext(
+        internal SignatureContext(
+            SignatureHelpProvider provider,
             Document document,
             int position,
             SignatureHelpTrigger trigger,
@@ -70,6 +75,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 throw new ArgumentNullException(nameof(options));
             }
 
+            _provider = provider;
             this.Document = document;
             this.Position = position;
             this.Trigger = trigger;
@@ -83,6 +89,14 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             if (item == null)
             {
                 throw new ArgumentNullException(nameof(item));
+            }
+
+            // associate item and parameters with this provider
+            item = item.WithProperties(item.Properties.SetItem("Provider", _provider.Name));
+
+            if (item.Parameters.Length > 0)
+            {
+                item = item.WithParameters(item.Parameters.Select(p => p.WithProperties(p.Properties.SetItem("Provider", _provider.Name))).ToImmutableArray());
             }
 
             _items.Add(item);
@@ -101,7 +115,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
         }
 
-        public void SetApplicableSpan(TextSpan span)
+        public void SetSpan(TextSpan span)
         {
             _applicableSpan = span;
         }
@@ -111,7 +125,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             _state = state;
         }
 
-        internal SignatureList ToSignatureList(SignatureHelpProvider provider)
+        internal SignatureList ToSignatureList()
         {
             if (_items == null || !_items.Any() || _state == null)
             {
@@ -119,18 +133,18 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             var items = Filter(_items, _state.ArgumentNames);
-            return new SignatureList(provider, items.ToList(), _applicableSpan, _state.ArgumentIndex, _state.ArgumentCount, _state.ArgumentName);
+            return new SignatureList(items, _applicableSpan, _state.ArgumentIndex, _state.ArgumentCount, _state.ArgumentName);
         }
 
-        private static IList<SignatureHelpItem> Filter(IEnumerable<SignatureHelpItem> items, IEnumerable<string> parameterNames)
+        private static ImmutableArray<SignatureHelpItem> Filter(IEnumerable<SignatureHelpItem> items, IEnumerable<string> parameterNames)
         {
             if (parameterNames == null)
             {
-                return items.ToList();
+                return items.ToImmutableArray();
             }
 
-            var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
-            return filteredList.Count == 0 ? items.ToList() : filteredList;
+            var filteredList = items.Where(i => Include(i, parameterNames)).ToImmutableArray();
+            return filteredList.Length == 0 ? items.ToImmutableArray() : filteredList;
         }
 
         private static bool Include(SignatureHelpItem item, IEnumerable<string> parameterNames)

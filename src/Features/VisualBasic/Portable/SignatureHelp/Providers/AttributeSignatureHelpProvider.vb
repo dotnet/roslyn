@@ -76,14 +76,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             context.AddItems(accessibleConstructors.Select(
-                Function(c) Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)))
+                Function(c) Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)))
 
-            context.SetApplicableSpan(textSpan)
+            context.SetSpan(textSpan)
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
@@ -104,7 +103,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                            semanticModel As SemanticModel,
                                            symbolDisplayService As ISymbolDisplayService,
                                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                           documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                            cancellationToken As CancellationToken) As SignatureHelpItem
             Dim position = attribute.SpanStart
             Dim namedParameters = constructor.ContainingType.GetAttributeNamedParameters(semanticModel.Compilation, within).
@@ -118,11 +116,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic,
-                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(constructor),
-                GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormattingService, cancellationToken))
+                GetParameters(constructor, semanticModel, position, namedParameters, cancellationToken))
             Return item
         End Function
 
@@ -130,12 +127,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                        semanticModel As SemanticModel,
                                        position As Integer,
                                        namedParameters As List(Of ISymbol),
-                                       documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                       cancellationToken As CancellationToken) As IList(Of SignatureHelpSymbolParameter)
-            Dim result = New List(Of SignatureHelpSymbolParameter)
+                                       cancellationToken As CancellationToken) As IList(Of CommonParameterData)
+            Dim result = New List(Of CommonParameterData)
 
             For Each parameter In constructor.Parameters
-                result.Add(Convert(parameter, semanticModel, position, documentationCommentFormattingService, cancellationToken))
+                result.Add(Convert(parameter, semanticModel, position, cancellationToken))
             Next
 
             For i = 0 To namedParameters.Count - 1
@@ -153,12 +149,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 displayParts.Add(Punctuation(SyntaxKind.ColonEqualsToken))
                 displayParts.AddRange(type.ToMinimalDisplayParts(semanticModel, position))
 
-                result.Add(New SignatureHelpSymbolParameter(
+                result.Add(New CommonParameterData(
                     namedParameter.Name,
                     isOptional:=True,
-                    documentationFactory:=namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-                    displayParts:=displayParts,
-                    prefixDisplayParts:=GetParameterPrefixDisplayParts(i)))
+                    symbol:=namedParameter,
+                    position:=position,
+                    displayParts:=displayParts.ToImmutableArrayOrEmpty(),
+                    prefixDisplayParts:=GetParameterPrefixDisplayParts(i).ToImmutableArrayOrEmpty()))
             Next
 
             Return result

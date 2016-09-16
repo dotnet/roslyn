@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -13,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal abstract partial class SymbolSignatureHelpProvider : SignatureHelpProvider
+    internal abstract partial class CommonSignatureHelpProvider : SignatureHelpProvider
     {
         protected static readonly SymbolDisplayFormat MinimallyQualifiedWithoutParametersFormat =
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var finalItems = new List<SignatureHelpItem>();
             foreach (var item in context.Items)
             {
-                var symbolKey = ((SymbolKeySignatureHelpItem)item).SymbolKey;
+                var symbolKey = item.GetSymbolKey();
                 if (symbolKey == null)
                 {
                     finalItems.Add(item);
@@ -89,11 +91,10 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
-            IList<SignatureHelpSymbolParameter> parameters,
+            IList<CommonParameterData> parameters,
             IList<SymbolDisplayPart> descriptionParts = null)
         {
             prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position, symbolDisplayService);
@@ -126,55 +127,58 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
                 anonymousTypeParts.AddRange(info.AnonymousTypesParts);
 
-                return new SymbolKeySignatureHelpItem(
-                    orderSymbol,
+                return SignatureHelpItem.Create(
                     isVariadic,
-                    documentationFactory,
                     info.ReplaceAnonymousTypes(prefixParts).ToTaggedText(),
                     info.ReplaceAnonymousTypes(separatorParts).ToTaggedText(),
                     info.ReplaceAnonymousTypes(suffixParts).ToTaggedText(),
-                    parameters.Select(p => ReplaceAnonymousTypes(p, info)).Select(p => (SignatureHelpParameter)p),
-                    anonymousTypeParts.ToTaggedText());
+                    parameters.Select(p => ReplaceAnonymousTypes(p, info)).Select(p => (SignatureHelpParameter)p).ToImmutableArray(),
+                    anonymousTypeParts.ToTaggedText())
+                    .WithSymbol(orderSymbol)
+                    .WithPosition(position);
             }
 
-            return new SymbolKeySignatureHelpItem(
-                orderSymbol,
+            return SignatureHelpItem.Create(
                 isVariadic,
-                documentationFactory,
                 prefixParts.ToTaggedText(),
                 separatorParts.ToTaggedText(),
                 suffixParts.ToTaggedText(),
-                parameters.Select(p => (SignatureHelpParameter)p),
-                descriptionParts.ToTaggedText());
+                parameters.Select(p => (SignatureHelpParameter)p).ToImmutableArray(),
+                descriptionParts.ToTaggedText())
+                .WithSymbol(orderSymbol)
+                .WithPosition(position);
         }
 
-        private SignatureHelpSymbolParameter ReplaceAnonymousTypes(
-            SignatureHelpSymbolParameter parameter,
+        private CommonParameterData ReplaceAnonymousTypes(
+            CommonParameterData parameter,
             AnonymousTypeDisplayInfo info)
         {
-            return new SignatureHelpSymbolParameter(
+            return new CommonParameterData(
                 parameter.Name,
                 parameter.IsOptional,
-                parameter.DocumentationFactory,
-                info.ReplaceAnonymousTypes(parameter.DisplayParts),
-                info.ReplaceAnonymousTypes(parameter.SelectedDisplayParts));
+                parameter.Symbol,
+                parameter.Position,
+                displayParts: info.ReplaceAnonymousTypes(parameter.DisplayParts).ToImmutableArrayOrEmpty(),
+                selectedDisplayParts: info.ReplaceAnonymousTypes(parameter.SelectedDisplayParts).ToImmutableArrayOrEmpty());
         }
 
-        private SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
-            SignatureHelpSymbolParameter parameter,
+        private CommonParameterData InlineDelegateAnonymousTypes(
+            CommonParameterData parameter,
             SemanticModel semanticModel,
             int position,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService)
         {
-            return new SignatureHelpSymbolParameter(
+            return new CommonParameterData(
                 parameter.Name,
                 parameter.IsOptional,
-                parameter.DocumentationFactory,
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.DisplayParts, semanticModel, position, symbolDisplayService),
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.PrefixDisplayParts, semanticModel, position, symbolDisplayService),
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SuffixDisplayParts, semanticModel, position, symbolDisplayService),
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SelectedDisplayParts, semanticModel, position, symbolDisplayService));
+                parameter.Symbol,
+                position,
+                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.DisplayParts, semanticModel, position, symbolDisplayService).ToImmutableArray(),
+                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.PrefixDisplayParts, semanticModel, position, symbolDisplayService).ToImmutableArray(),
+                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SuffixDisplayParts, semanticModel, position, symbolDisplayService).ToImmutableArray(),
+                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SelectedDisplayParts, semanticModel, position, symbolDisplayService).ToImmutableArray(),
+                properties: parameter.Properties);
         }
 
         private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItems(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
@@ -183,7 +187,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             foreach (var related in relatedDocuments)
             {
                 // If we don't have symbol keys, give up.
-                if (related.Item2.Any(s => ((SymbolKeySignatureHelpItem)s).SymbolKey == null))
+                if (related.Item2.Any(s => s.GetSymbolKey() == null))
                 {
                     continue;
                 }
@@ -192,7 +196,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 if (!related.Item1.GetLanguageService<ISyntaxFactsService>().IsInInactiveRegion(syntaxTree, position, cancellationToken))
                 {
                     var relatedSemanticModel = await related.Item1.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
-                    var symbolSet = related.Item2.Select(s => ((SymbolKeySignatureHelpItem)s).SymbolKey?.Resolve(relatedSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol)
+                    var symbolSet = related.Item2.Select(s => s.GetSymbolKey()?.Resolve(relatedSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol)
                                                  .WhereNotNull()
                                                  .ToSet(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
                     resultSets.Add(Tuple.Create(related.Item1.Project.Id, symbolSet));
@@ -218,8 +222,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 ? concatted
                 : item.DescriptionParts.Concat(concatted);
 
-            item.DescriptionParts = updatedDescription.ToImmutableArrayOrEmpty();
-            return item;
+            return item.WithDescriptionParts(updatedDescription.ToImmutableArray());
         }
 
         private async Task<List<Tuple<Document, IEnumerable<SignatureHelpItem>>>> GetItemsForRelatedDocuments(SignatureContext context, IEnumerable<DocumentId> relatedDocuments)
@@ -229,13 +232,47 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             {
                 var relatedDocument = context.Document.Project.Solution.GetDocument(relatedDocumentId);
                 var semanticModel = await relatedDocument.GetSemanticModelForSpanAsync(new TextSpan(context.Position, 0), context.CancellationToken).ConfigureAwait(false);
-                var newContext = new SignatureContext(relatedDocument, context.Position, context.Trigger, context.Options, context.CancellationToken);
+                var newContext = new SignatureContext(this, relatedDocument, context.Position, context.Trigger, context.Options, context.CancellationToken);
                 await ProvideSignaturesWorkerAsync(newContext).ConfigureAwait(false);
 
                 supportedPlatforms.Add(Tuple.Create(relatedDocument, (IEnumerable<SignatureHelpItem>)newContext.Items));
             }
 
             return supportedPlatforms;
+        }
+
+        public override async Task<ImmutableArray<TaggedText>> GetItemDocumentationAsync(Document document, SignatureHelpItem item, CancellationToken cancellationToken)
+        {
+            var symbol = await item.GetSymbolAsync(document, cancellationToken).ConfigureAwait(false);
+            if (symbol != null)
+            {
+                var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+                if (documentationCommentFormattingService != null)
+                {
+                    var position = item.GetPosition();
+                    var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return symbol.GetDocumentationParts(model, position, documentationCommentFormattingService, cancellationToken).ToImmutableArray();
+                }
+            }
+
+            return ImmutableArray<TaggedText>.Empty;
+        }
+
+        public override async Task<ImmutableArray<TaggedText>> GetParameterDocumentationAsync(Document document, SignatureHelpParameter parameter, CancellationToken cancellationToken)
+        {
+            var symbol = await parameter.GetSymbolAsync(document, cancellationToken).ConfigureAwait(false);
+            if (symbol != null)
+            {
+                var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+                if (documentationCommentFormattingService != null)
+                {
+                    var position = parameter.GetPosition();
+                    var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return symbol.GetDocumentationParts(model, position, documentationCommentFormattingService, cancellationToken).ToImmutableArray();
+                }
+            }
+
+            return ImmutableArray<TaggedText>.Empty;
         }
     }
 }

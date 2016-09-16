@@ -13,7 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                                semanticModel As SemanticModel,
                                                symbolDisplayService As ISymbolDisplayService,
                                                anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                               documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                within As ISymbol,
                                                defaultProperties As IList(Of IPropertySymbol),
                                                cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
@@ -28,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             Return accessibleDefaultProperties.Select(
-                Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken))
+                Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken))
         End Function
 
         Private Function ConvertIndexer(indexer As IPropertySymbol,
@@ -36,17 +35,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                         semanticModel As SemanticModel,
                                         symbolDisplayService As ISymbolDisplayService,
                                         anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                        documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                         cancellationToken As CancellationToken) As SignatureHelpItem
             Dim item = CreateItem(
                 indexer, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 indexer.IsParams(),
-                indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetIndexerPreambleParts(indexer, semanticModel, position),
                 GetSeparatorParts(),
                 GetIndexerPostambleParts(indexer, semanticModel, position),
-                indexer.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
+                indexer.Parameters.Select(Function(p) Convert(p, semanticModel, position, cancellationToken)).ToList())
             Return item
         End Function
 

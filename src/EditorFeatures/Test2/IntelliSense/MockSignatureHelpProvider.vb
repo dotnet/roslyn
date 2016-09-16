@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Shared Function CreateProvideSignaturesAction(items As IList(Of SignatureHelpItem)) As Action(Of SignatureContext)
             Return Sub(context)
                        context.AddItems(items)
-                       context.SetApplicableSpan(New TextSpan(context.Position, 0))
+                       context.SetSpan(New TextSpan(context.Position, 0))
                        context.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
                    End Sub
         End Function

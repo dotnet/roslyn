@@ -77,12 +77,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = CommonSignatureHelpUtilities.GetSignatureHelpSpan(functionAggregation, functionAggregation.SpanStart, Function(n) n.CloseParenToken)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            context.AddItems(accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)))
-            context.SetApplicableSpan(textSpan)
+            context.AddItems(accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)))
+            context.SetSpan(textSpan)
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
@@ -91,18 +90,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                            semanticModel As SemanticModel,
                                            symbolDisplayService As ISymbolDisplayService,
                                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                           documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                            cancellationToken As CancellationToken) As SignatureHelpItem
             Dim position = functionAggregation.SpanStart
             Dim item = CreateItem(
                 method, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 False,
-                method.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(method, semanticModel, position),
-                GetParameterParts(method, semanticModel, position, documentationCommentFormattingService, cancellationToken))
+                GetParameterParts(method, semanticModel, position, cancellationToken))
             Return item
         End Function
 
@@ -130,11 +127,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Return parts
         End Function
 
-        Private Function GetParameterParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer,
-                                           documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As IList(Of SignatureHelpSymbolParameter)
+        Private Function GetParameterParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As IList(Of CommonParameterData)
             ' Function <name>() As <type>
             If method.Parameters.Length <> 1 Then
-                Return SpecializedCollections.EmptyList(Of SignatureHelpSymbolParameter)()
+                Return SpecializedCollections.EmptyList(Of CommonParameterData)()
             End If
 
             ' Function <name>(selector as Func(Of T, R)) As R
@@ -153,17 +149,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                     parts.Add(Space())
                     parts.AddRange(delegateInvokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position))
 
-                    Dim sigHelpParameter = New SignatureHelpSymbolParameter(
+                    Dim sigHelpParameter = New CommonParameterData(
                         VBWorkspaceResources.expression,
                         parameter.IsOptional,
-                        parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-                        parts)
+                        parameter,
+                        position,
+                        parts.ToImmutableArrayOrEmpty())
 
                     Return {sigHelpParameter}
                 End If
             End If
 
-            Return SpecializedCollections.EmptyList(Of SignatureHelpSymbolParameter)()
+            Return SpecializedCollections.EmptyList(Of CommonParameterData)()
         End Function
     End Class
 End Namespace

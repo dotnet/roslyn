@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -13,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                              semanticModel As SemanticModel,
                                              symbolDisplayService As ISymbolDisplayService,
                                              anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                             documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                              within As ISymbol,
                                              memberGroup As IEnumerable(Of ISymbol),
                                              cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             Return accessibleMembers.[Select](
-                Function(s) ConvertMemberGroupMember(s, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken))
+                Function(s) ConvertMemberGroupMember(s, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken))
         End Function
 
         Private Function ConvertMemberGroupMember(member As ISymbol,
@@ -47,18 +47,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                                   semanticModel As SemanticModel,
                                                   symbolDisplayService As ISymbolDisplayService,
                                                   anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                                  documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                   cancellationToken As CancellationToken) As SignatureHelpItem
             Dim position = invocationExpression.SpanStart
             Dim item = CreateItem(
                 member, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 member.IsParams(),
-                Function(c) member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableDescription(member, semanticModel, position).ToTaggedText()),
                 GetMemberGroupPreambleParts(member, semanticModel, position),
                 GetSeparatorParts(),
                 GetMemberGroupPostambleParts(member, semanticModel, position),
-                member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
+                member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, cancellationToken)).ToList())
             Return item
         End Function
 
@@ -68,6 +66,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             Return SpecializedCollections.EmptyList(Of SymbolDisplayPart)
+        End Function
+
+        Public Overrides Async Function GetItemDocumentationAsync(document As Document, item As SignatureHelpItem, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of TaggedText))
+            Dim text = Await MyBase.GetItemDocumentationAsync(document, item, cancellationToken).ConfigureAwait(False)
+
+            Dim symbol = Await item.GetSymbolAsync(document, cancellationToken).ConfigureAwait(False)
+            If symbol IsNot Nothing Then
+                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                text = text.Concat(GetAwaitableDescription(symbol, semanticModel, item.GetPosition()).ToTaggedText())
+            End If
+
+            Return text
         End Function
 
         Private Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)

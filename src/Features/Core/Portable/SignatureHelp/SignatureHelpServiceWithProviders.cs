@@ -5,10 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
@@ -17,6 +20,39 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
     /// </summary>
     internal abstract class SignatureHelpServiceWithProviders : SignatureHelpService
     {
+        private readonly Workspace _workspace;
+        private readonly string _language;
+
+        public SignatureHelpServiceWithProviders(Workspace workspace, string language)
+        {
+            _workspace = workspace;
+            _language = language;
+        }
+
+        protected virtual ImmutableArray<SignatureHelpProvider> GetBuiltInProviders()
+        {
+            return ImmutableArray<SignatureHelpProvider>.Empty;
+        }
+
+        private ImmutableArray<SignatureHelpProvider> _importedProviders;
+
+        private IEnumerable<SignatureHelpProvider> GetImportedProviders()
+        {
+            if (_importedProviders.IsDefault)
+            {
+                var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
+
+                var providers = ExtensionOrderer.Order(
+                        mefExporter.GetExports<SignatureHelpProvider, SignatureHelpProviderMetadata>()
+                        .Where(lz => lz.Metadata.Language == _language)
+                        ).Select(lz => lz.Value).ToImmutableArray();
+
+                ImmutableInterlocked.InterlockedCompareExchange(ref _importedProviders, providers, default(ImmutableArray<SignatureHelpProvider>));
+            }
+
+            return _importedProviders;
+        }
+
         private ImmutableArray<SignatureHelpProvider> _testProviders = ImmutableArray<SignatureHelpProvider>.Empty;
         private bool _testAugmentBuiltInProviders;
 
@@ -29,23 +65,25 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             _testAugmentBuiltInProviders = augmentBuiltInProviders;
         }
 
-        protected virtual ImmutableArray<SignatureHelpProvider> GetBuiltInProviders()
-        {
-            return ImmutableArray<SignatureHelpProvider>.Empty;
-        }
+        private ImmutableArray<SignatureHelpProvider> _providers;
 
         private ImmutableArray<SignatureHelpProvider> GetProviders()
         {
-            if (_testProviders.Length > 0)
+            if (_providers.IsDefault)
             {
-                return _testAugmentBuiltInProviders
-                    ? GetBuiltInProviders().Concat(_testProviders)
-                    : _testProviders;
+                if (_testProviders.Length > 0)
+                {
+                    _providers = _testAugmentBuiltInProviders
+                        ? GetBuiltInProviders().Concat(this.GetImportedProviders()).Concat(_testProviders).ToImmutableArray()
+                        : _testProviders;
+                }
+                else
+                {
+                    _providers = GetBuiltInProviders().Concat(this.GetImportedProviders()).ToImmutableArray();
+                }
             }
-            else
-            {
-                return GetBuiltInProviders();
-            }
+
+            return _providers;
         }
 
         public override bool ShouldTriggerSignatureHelp(
@@ -152,12 +190,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new SignatureContext(document, caretPosition, trigger, options, cancellationToken);
+                    var context = new SignatureContext(provider, document, caretPosition, trigger, options, cancellationToken);
 
                     await provider.ProvideSignaturesAsync(context).ConfigureAwait(false);
                     if (context.Items.Count >= 0 && context.ApplicableSpan.IntersectsWith(caretPosition))
                     {
-                        var currentSignatureList = context.ToSignatureList(provider);
+                        var currentSignatureList = context.ToSignatureList();
 
                         // If another provider provides sig help items, then only take them if they
                         // start after the last batch of items.  i.e. we want the set of items that
@@ -194,6 +232,54 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             // only better if the distance from it to the caret position is less than the best
             // one so far.
             return currentTextSpan.Value.Start > bestItems.ApplicableSpan.Start;
+        }
+
+        private SignatureHelpProvider GetProvider(SignatureHelpItem item)
+        {
+            string providerName;
+            if (item.Properties.TryGetValue("Provider", out providerName))
+            {
+                return this.GetProviders().FirstOrDefault(p => p.Name == providerName);
+            }
+
+            return null;
+        }
+
+        private SignatureHelpProvider GetProvider(SignatureHelpParameter parameter)
+        {
+            string providerName;
+            if (parameter.Properties.TryGetValue("Provider", out providerName))
+            {
+                return this.GetProviders().FirstOrDefault(p => p.Name == providerName);
+            }
+
+            return null;
+        }
+
+        public override Task<ImmutableArray<TaggedText>> GetItemDocumentationAsync(Document document, SignatureHelpItem item, CancellationToken cancellationToken)
+        {
+            var provider = GetProvider(item);
+            if (provider != null)
+            {
+                return provider.GetItemDocumentationAsync(document, item, cancellationToken);
+            }
+            else
+            {
+                return EmptyTextTask;
+            }
+        }
+
+        public override Task<ImmutableArray<TaggedText>> GetParameterDocumentationAsync(Document document, SignatureHelpParameter parameter, CancellationToken cancellationToken)
+        {
+            var provider = GetProvider(parameter);
+            if (provider != null)
+            {
+                return provider.GetParameterDocumentationAsync(document, parameter, cancellationToken);
+            }
+            else
+            {
+                return EmptyTextTask;
+            }
         }
     }
 }

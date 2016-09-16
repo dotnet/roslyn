@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,15 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             }
 
             var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormatter = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             context.AddItems(accessibleConstructors.Select(c =>
-                Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormatter, cancellationToken)));
+                Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)));
 
-            context.SetApplicableSpan(textSpan);
+            context.SetSpan(textSpan);
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
@@ -127,7 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormatter,
             CancellationToken cancellationToken)
         {
             var position = attribute.SpanStart;
@@ -142,26 +141,24 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic,
-                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(constructor),
-                GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormatter, cancellationToken));
+                GetParameters(constructor, semanticModel, position, namedParameters, cancellationToken));
             return item;
         }
 
-        private IList<SignatureHelpSymbolParameter> GetParameters(
+        private IList<CommonParameterData> GetParameters(
             IMethodSymbol constructor,
             SemanticModel semanticModel,
             int position,
             IList<ISymbol> namedParameters,
-            IDocumentationCommentFormattingService documentationCommentFormatter,
             CancellationToken cancellationToken)
         {
-            var result = new List<SignatureHelpSymbolParameter>();
+            var result = new List<CommonParameterData>();
             foreach (var parameter in constructor.Parameters)
             {
-                result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter, cancellationToken));
+                result.Add(Convert(parameter, semanticModel, position, cancellationToken));
             }
 
             for (int i = 0; i < namedParameters.Count; i++)
@@ -182,12 +179,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 displayParts.Add(Space());
                 displayParts.AddRange(type.ToMinimalDisplayParts(semanticModel, position));
 
-                result.Add(new SignatureHelpSymbolParameter(
+                result.Add(new CommonParameterData(
                     namedParameter.Name,
                     isOptional: true,
-                    documentationFactory: namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
-                    displayParts: displayParts,
-                    prefixDisplayParts: GetParameterPrefixDisplayParts(i)));
+                    symbol: namedParameter,
+                    position: position,
+                    displayParts: displayParts.ToImmutableArray(),
+                    prefixDisplayParts: GetParameterPrefixDisplayParts(i).ToImmutableArrayOrEmpty()));
             }
 
             return result;

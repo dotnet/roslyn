@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
             ISymbol within,
             IEnumerable<IMethodSymbol> methodGroup,
             CancellationToken cancellationToken)
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToList();
 
             return accessibleMethods.Select(m =>
-                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList();
+                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)).ToList();
         }
 
         private bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)
@@ -100,7 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
             CancellationToken cancellationToken)
         {
             var position = invocationExpression.SpanStart;
@@ -108,11 +106,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 method, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 method.IsParams(),
-                c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
                 GetMethodGroupPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetMethodGroupPostambleParts(method),
-                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                method.Parameters.Select(p => Convert(p, semanticModel, position, cancellationToken)).ToList());
             return item;
         }
 

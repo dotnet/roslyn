@@ -30,26 +30,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 Return Nothing
             End If
 
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
-
             Return accessibleConstructors.Select(
-                Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList()
+                Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)).ToList()
         End Function
 
         Private Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,
                                                       symbolDisplayService As ISymbolDisplayService,
                                                       anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                                      documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                       cancellationToken As CancellationToken) As SignatureHelpItem
             Dim position = objectCreationExpression.SpanStart
             Dim item = CreateItem(
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 constructor.IsParams(),
-                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position), GetSeparatorParts(),
                 GetNormalTypePostambleParts(constructor),
-                constructor.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
+                constructor.Parameters.Select(Function(p) Convert(p, semanticModel, position, cancellationToken)).ToList())
             Return item
         End Function
 

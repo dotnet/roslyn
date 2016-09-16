@@ -4,5 +4,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     internal abstract class CommonSignatureHelpService : SignatureHelpServiceWithProviders
     {
+        protected CommonSignatureHelpService(Workspace workspace, string language)
+            : base(workspace, language)
+        {
+        }
     }
 }

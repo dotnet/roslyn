@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
@@ -16,17 +17,25 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
     internal abstract class SignatureHelpService : ILanguageService
     {
         /// <summary>
-        /// Gets the service corresponding to the specified document.
+        /// Gets the <see cref="SignatureHelpService"/> corresponding to the specified document.
         /// </summary>
         public static SignatureHelpService GetService(Document document)
         {
-            return document.Project.LanguageServices.GetService<SignatureHelpService>();
+            return GetService(document.Project.Solution.Workspace, document.Project.Language);
         }
 
         /// <summary>
-        /// The language from <see cref="LanguageNames"/> this service corresponds to.
+        /// Gets the <see cref="SignatureHelpService"/> corresponding to the specified workspace and language.
         /// </summary>
-        public abstract string Language { get; }
+        public static SignatureHelpService GetService(Workspace workspace, string language)
+        {
+            return workspace.Services.GetLanguageServices(language)?.GetService<SignatureHelpService>() ?? NoOpService.Instance;
+        }
+
+        private class NoOpService : SignatureHelpService
+        {
+            public static readonly NoOpService Instance = new NoOpService();
+        }
 
         /// <summary>
         /// Returns true if the character recently inserted in the text should trigger SignatureHelp.
@@ -55,11 +64,27 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">Optional options that override the default options.</param>
         /// <param name="cancellationToken"></param>
-        public abstract Task<SignatureList> GetSignaturesAsync(
+        public virtual Task<SignatureList> GetSignaturesAsync(
             Document document,
             int caretPosition,
             SignatureHelpTrigger trigger = default(SignatureHelpTrigger),
             OptionSet options = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return EmptyListTask;
+        }
+
+        public virtual Task<ImmutableArray<TaggedText>> GetItemDocumentationAsync(Document document, SignatureHelpItem item, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return EmptyTextTask;
+        }
+
+        public virtual Task<ImmutableArray<TaggedText>> GetParameterDocumentationAsync(Document document, SignatureHelpParameter parameter, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return EmptyTextTask;
+        }
+
+        private static readonly Task<SignatureList> EmptyListTask = Task.FromResult(SignatureList.Empty);
+        internal static readonly Task<ImmutableArray<TaggedText>> EmptyTextTask = Task.FromResult(ImmutableArray<TaggedText>.Empty);
     }
 }

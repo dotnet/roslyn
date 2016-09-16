@@ -80,12 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 .Sort(symbolDisplayService, semanticModel, raiseEventStatement.SpanStart)
 
             Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(raiseEventStatement.ArgumentList, raiseEventStatement.Name.SpanStart)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            context.AddItems(allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)))
-            context.SetApplicableSpan(textSpan)
+            context.AddItems(allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, symbolDisplayService, anonymousTypeDisplayService, cancellationToken)))
+            context.SetSpan(textSpan)
             context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
@@ -95,7 +94,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             semanticModel As SemanticModel,
             symbolDisplayService As ISymbolDisplayService,
             anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-            documentationCommentFormattingService As IDocumentationCommentFormattingService,
             cancellationToken As CancellationToken
         ) As SignatureHelpItem
 
@@ -107,11 +105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 eventSymbol, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 False,
-                eventSymbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(eventSymbol, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(eventSymbol, semanticModel, position),
-                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
+                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, cancellationToken)).ToList())
 
             Return item
         End Function

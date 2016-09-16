@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -12,14 +13,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
     internal sealed class SignatureList
     {
         /// <summary>
-        /// The <see cref="SignatureHelpProvider"/> that produced this <see cref="SignatureList"/>.
+        /// The <see cref="SignatureHelpItem"/>'s to present to the user.
         /// </summary>
-        public SignatureHelpProvider Provider { get; }
-
-        /// <summary>
-        /// The list of items to present to the user.
-        /// </summary>
-        public IList<SignatureHelpItem> Items { get; }
+        public ImmutableArray<SignatureHelpItem> Items { get; }
 
         /// <summary>
         /// The span this session applies to.
@@ -41,12 +37,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public int ArgumentCount { get; }
 
         /// <summary>
-        /// Returns the name of specified argument at the current position in the document.  
+        /// Returns the name of specified argument at the current position in the document.
         /// This only applies to languages that allow the user to provide named arguments.
-        /// If no named argument exists at the current position, then null should be returned. 
+        /// If no named argument exists at the current position, then this property is null.
         /// 
         /// This value is used to determine which documentation comment should be provided for the current
-        /// parameter.  Normally this is determined simply by determining the parameter by index.
+        /// parameter. Normally this is determined simply by determining the parameter by index.
         /// </summary>
         public string ArgumentName { get; }
 
@@ -57,19 +53,17 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// </summary>
         public int? SelectedItemIndex { get; }
 
-        public SignatureList(
-            SignatureHelpProvider provider,
-            IList<SignatureHelpItem> items,
+        internal SignatureList(
+            ImmutableArray<SignatureHelpItem> items,
             TextSpan applicableSpan,
             int argumentIndex,
             int argumentCount,
             string argumentName,
             int? selectedItem = null)
         {
-            Contract.ThrowIfNull(provider, "provider is null");
-            Contract.ThrowIfNull(items);
-            Contract.ThrowIfTrue(items.IsEmpty());
-            Contract.ThrowIfTrue(selectedItem.HasValue && selectedItem.Value >= items.Count);
+            items = items.IsDefault ? ImmutableArray<SignatureHelpItem>.Empty : items;
+
+            Contract.ThrowIfTrue(selectedItem.HasValue && selectedItem.Value >= items.Length);
 
             if (argumentIndex < 0)
             {
@@ -82,8 +76,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             // Adjust the `selectedItem` index if duplicates are able to be removed.
-            var distinctItems = items.Distinct().ToList();
-            if (selectedItem.HasValue && items.Count != distinctItems.Count)
+            var distinctItems = items.Distinct();
+            if (selectedItem.HasValue && items.Length != distinctItems.Length)
             {
                 // `selectedItem` index has already been determined to be valid, it now needs to be adjusted to point
                 // to the equivalent item in the reduced list to account for duplicates being removed
@@ -99,7 +93,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 Debug.Assert(selectedItem.Value >= 0, "actual item was not part of the final list");
             }
 
-            this.Provider = provider;
             this.Items = distinctItems;
             this.ApplicableSpan = applicableSpan;
             this.ArgumentIndex = argumentIndex;
@@ -107,5 +100,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             this.SelectedItemIndex = selectedItem;
             this.ArgumentName = argumentName;
         }
+
+        public static readonly SignatureList Empty = new SignatureList(
+            items: ImmutableArray<SignatureHelpItem>.Empty,
+            applicableSpan: default(TextSpan),
+            argumentIndex: 0,
+            argumentCount: 0,
+            argumentName: null,
+            selectedItem: null);
     }
 }

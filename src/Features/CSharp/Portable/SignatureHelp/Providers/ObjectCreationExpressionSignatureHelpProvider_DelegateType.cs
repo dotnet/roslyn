@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -32,11 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic: false,
-                documentationFactory: null,
                 prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts: GetSeparatorParts(),
                 suffixParts: GetDelegateTypePostambleParts(invokeMethod),
-                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken));
+                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken))
+                .WithSymbol(null); // will cause documentation to be empty;
 
             return SpecializedCollections.SingletonList(item);
         }
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             return result;
         }
 
-        private IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private IList<CommonParameterData> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             const string TargetName = "target";
 
@@ -78,11 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, TargetName));
 
             return SpecializedCollections.SingletonList(
-                new SignatureHelpSymbolParameter(
+                new CommonParameterData(
                     TargetName,
                     isOptional: false,
-                    documentationFactory: null,
-                    displayParts: parts));
+                    symbol: null,
+                    position: 0,
+                    displayParts: parts.ToImmutableArray()));
         }
 
         private IList<SymbolDisplayPart> GetDelegateTypePostambleParts(IMethodSymbol invokeMethod)

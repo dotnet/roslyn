@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -117,9 +118,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             {
                 _signatureMap = BidirectionalMap<SignatureHelpItem, Signature>.Empty;
 
+                var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var service = SignatureHelpService.GetService(document);
+
                 foreach (var item in _signatureHelpItems)
                 {
-                    _signatureMap = _signatureMap.Add(item, new Signature(triggerSpan, item, GetParameterIndexForItem(item, selectedParameter)));
+                    _signatureMap = _signatureMap.Add(item, new Signature(triggerSpan, item, GetParameterIndexForItem(item, selectedParameter), service, document));
                 }
             }
 

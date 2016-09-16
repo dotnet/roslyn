@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
     {
         private IList<SignatureHelpItem> GetDelegateInvokeItems(
             InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, CancellationToken cancellationToken)
+            ISymbol within, INamedTypeSymbol delegateType, CancellationToken cancellationToken)
         {
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
@@ -38,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic: invokeMethod.IsParams(),
-                documentationFactory: null,
                 prefixParts: GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts: GetSeparatorParts(),
                 suffixParts: GetDelegateInvokePostambleParts(),
-                parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
+                parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, cancellationToken))
+                .WithSymbol(null); // will cause documentation to be empty.
 
             return SpecializedCollections.SingletonList(item);
         }
@@ -58,18 +60,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             return displayParts;
         }
 
-        private IList<SignatureHelpSymbolParameter> GetDelegateInvokeParameters(
-            IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
+        private IList<CommonParameterData> GetDelegateInvokeParameters(
+            IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var result = new List<SignatureHelpSymbolParameter>();
+            var result = new List<CommonParameterData>();
 
             foreach (var parameter in invokeMethod.Parameters)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                result.Add(new SignatureHelpSymbolParameter(
+                result.Add(new CommonParameterData(
                     parameter.Name,
                     parameter.IsOptional,
-                    parameter.GetDocumentationPartsFactory(semanticModel, position, formattingService),
+                    parameter,
+                    position,
                     parameter.ToMinimalDisplayParts(semanticModel, position)));
             }
 
