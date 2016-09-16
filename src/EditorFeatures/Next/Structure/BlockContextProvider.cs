@@ -96,25 +96,41 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 this.AssertIsForeground();
 
                 var result = new ViewHostingControl(
-                    CreateElisionBufferView, CreateElisionBuffer);
+                    CreateElisionBufferView, CreateProjectionBufferForBlockHeaders);
 
                 return result;
             }
 
             private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
             {
-                return RoslynOutliningRegionTag.CreateElisionBufferView(
+                return RoslynOutliningRegionTag.CreateShrunkenTextView(
                     _provider._textEditorFactoryService, finalBuffer);
             }
 
-            private ITextBuffer CreateElisionBuffer()
+            private ITextBuffer CreateProjectionBufferForBlockHeaders()
             {
-                var statementBuffers = new List<ITextBuffer>();
+                // We want to create a projection buffer that will show the block tags like so:
+                //
+                //      namespace N
+                //          class C
+                //              public void M()
+                //
+                // To do this, we grab the 'header' part of each block span and stich them 
+                // all together one after the other.
+                //
+                // We consider hte 'header' to be from the start of the line containing the
+                // block all the way to the end of the line, or the start of the collapsed
+                // block region (whichever is closer).  That way, if you have multi-line
+                // statement start (for example, with a multi-line if-expression) we'll only
+                // take the first line.  In the case where we're cutting things off, we'll
+                // put in a ... to indicate as such.
+
                 var blockTags = GetBlockTags();
 
                 var textSnapshot = blockTags[0].StatementSpan.Snapshot;
-                // var headerSpans = new List<SnapshotSpan>();
 
+                // The list of mapping spans, ...'s and newlines that we'll build the 
+                // projection buffer out of.
                 var objects = new List<object>();
 
                 for (var i = 0; i < blockTags.Count; i++)
@@ -129,6 +145,13 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                     var collapseSpan = blockTag.Span;
 
                     var statementLine = textSnapshot.GetLineFromPosition(blockTag.StatementSpan.Start);
+
+                    // We want the span from the start of the line the statement is on, up
+                    // till the end of the line, or the beginning of the collapsed region 
+                    // (whichever is closer).
+                    //
+                    // The beginning of the line ensures that all the headers look properly
+                    // indented in the tooltip.
                     var lineStart = statementLine.Start.Position;
                     var lineEnd = Math.Min(statementLine.End.Position, collapseSpan.Start);
 
@@ -138,6 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                     objects.Add(mappingSpan);
                     if (statementLine.End.Position < collapseSpan.Start)
                     {
+                        // If we had to cut off the line, then add a ... to indicate as such.
                         objects.Add("...");
                     }
                 }

@@ -57,10 +57,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
         {
-            return CreateElisionBufferView(_textEditorFactoryService, finalBuffer);
+            return CreateShrunkenTextView(_textEditorFactoryService, finalBuffer);
         }
 
-        internal static IWpfTextView CreateElisionBufferView(
+        internal static IWpfTextView CreateShrunkenTextView(
             ITextEditorFactoryService textEditorFactoryService,
             ITextBuffer finalBuffer)
         {
@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
             return view;
         }
-
 
         private ITextBuffer CreateElisionBuffer()
         {
