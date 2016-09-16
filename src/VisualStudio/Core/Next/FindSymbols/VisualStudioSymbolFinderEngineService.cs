@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
                 _cancellationToken = cancellationToken;
             }
 
-            public Task OnStarted() => _progress.OnStartedAsync();
+            public Task OnStartedAsync() => _progress.OnStartedAsync();
             public Task OnCompletedAsync() => _progress.OnCompletedAsync();
             public Task ReportProgressAsync(int current, int maximum) => _progress.ReportProgressAsync(current, maximum);
 
@@ -103,9 +103,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
                 return _progress.OnFindInDocumentCompletedAsync(document);
             }
 
-            public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId argument)
+            public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
             {
-                var symbolAndProjectId = await argument.RehydrateAsync(
+                var symbolAndProjectId = await definition.RehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
                 await _progress.OnDefinitionFoundAsync(symbolAndProjectId).ConfigureAwait(false);
             }
