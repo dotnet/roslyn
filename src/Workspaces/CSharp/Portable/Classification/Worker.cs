@@ -54,23 +54,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void AddClassification(TextSpan span, string type)
         {
-            _result.Add(new ClassifiedSpan(type, span));
+            if (ShouldAddSpan(span))
+            {
+                _result.Add(new ClassifiedSpan(type, span));
+            }
+        }
+
+        private bool ShouldAddSpan(TextSpan span)
+        {
+            return span.Length > 0 && _textSpan.OverlapsWith(span);
         }
 
         private void AddClassification(SyntaxTrivia trivia, string type)
         {
-            if (trivia.Width() > 0 && _textSpan.OverlapsWith(trivia.Span))
-            {
-                AddClassification(trivia.Span, type);
-            }
+            AddClassification(trivia.Span, type);
         }
 
         private void AddClassification(SyntaxToken token, string type)
         {
-            if (token.Width() > 0 && _textSpan.OverlapsWith(token.Span))
-            {
-                AddClassification(token.Span, type);
-            }
+            AddClassification(token.Span, type);
         }
 
         private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private void ClassifyToken(SyntaxToken token)
         {
             var span = token.Span;
-            if (span.Length != 0 && _textSpan.OverlapsWith(span))
+            if (ShouldAddSpan(span))
             {
                 var type = ClassificationHelpers.GetClassification(token);
 
