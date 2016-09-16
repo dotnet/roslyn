@@ -39,8 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
                         symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
                 }
             }
-#if false
-#endif
         }
 
         private async Task FindReferencesInServiceProcessAsync(
