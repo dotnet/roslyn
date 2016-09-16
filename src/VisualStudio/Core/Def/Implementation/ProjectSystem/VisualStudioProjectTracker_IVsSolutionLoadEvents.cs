@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -112,24 +113,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
 
             var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
-            var solutionConfig = dte.Solution.SolutionBuild.ActiveConfiguration;
+            var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte.Solution.SolutionBuild.ActiveConfiguration;
 
             var start = DateTimeOffset.UtcNow;
             OutputToOutputWindow($"Getting project information - start");
             // Capture the context so that we come back on the UI thread, and do the actual project creation there.
             var projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
-                $"{solutionConfig.Name}|Any CPU",
+                $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
                 cancellationToken).ConfigureAwait(true);
             AssertIsForeground();
             OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
 
             OutputToOutputWindow($"Creating projects - start");
+            var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
+            //var targetPathsToProjectPaths = projectInfos.ToImmutableDictionary(kvp => kvp.Value.TargetPath, kvp => kvp.Key);
             foreach (var projectFilename in projectInfos.Keys)
             {
                 CreateProjectFromArgumentsAndReferences(
                     workspaceProjectContextFactory,
                     projectFilename,
-                    projectInfos);
+                    projectInfos,
+                    targetPathsToProjectPaths);
             }
             OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
 
@@ -137,6 +141,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             start = DateTimeOffset.UtcNow;
             FinishLoad();
             OutputToOutputWindow($"Pushing to workspace - done (took {DateTimeOffset.UtcNow - start})");
+        }
+
+        private static ImmutableDictionary<string, string> BuildTargetPathMap(IReadOnlyDictionary<string, DeferredProjectInformation> projectInfos)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            foreach (var item in projectInfos)
+            {
+                var targetPath = item.Value.TargetPath;
+                if (targetPath != null)
+                {
+                    if (!builder.ContainsKey(targetPath))
+                    {
+                        builder[item.Value.TargetPath] = item.Key;
+                    }
+                    else
+                    {
+                        Debug.Fail($"Already have a target path of '{item.Value.TargetPath}', with value '{builder[item.Value.TargetPath]}'.");
+                    }
+                }
+            }
+            return builder.ToImmutable();
         }
 
         private void OutputToOutputWindow(string message)
@@ -150,7 +175,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IWorkspaceProjectContext CreateProjectFromArgumentsAndReferences(
             IWorkspaceProjectContextFactory workspaceProjectContextFactory,
             string projectFilename,
-            IReadOnlyDictionary<string, DeferredProjectInformation> allProjectInfos)
+            IReadOnlyDictionary<string, DeferredProjectInformation> allProjectInfos,
+            IReadOnlyDictionary<string, string> targetPathsToProjectPaths)
         {
             var languageName = GetLanguageOfProject(projectFilename);
             if (languageName == null)
@@ -182,7 +208,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return project as IWorkspaceProjectContext;
             }
 
-            // TODO: We need to actually get an output path somehow.
             OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
             var solution5 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution5;
             var projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
@@ -192,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectFilename,
                 projectGuid: projectGuid,
                 hierarchy: null,
-                binOutputPath: null);
+                binOutputPath: projectInfo.TargetPath);
 
             projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
 
@@ -206,11 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectContext.AddAdditionalFile(sourceFile.Path);
             }
 
-            foreach (var reference in commandLineArguments.MetadataReferences)
-            {
-                projectContext.AddMetadataReference(reference.Reference, reference.Properties);
-            }
-
+            var addedProjectReferences = new HashSet<string>();
             foreach (var projectReference in projectInfo.ProjectReferences)
             {
                 var projectReferencePath = projectReference.Substring("/ProjectReference:".Length);
@@ -220,12 +241,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     referencedProject = (AbstractProject)CreateProjectFromArgumentsAndReferences(
                         workspaceProjectContextFactory,
                         projectReferencePath,
-                        allProjectInfos);
+                        allProjectInfos,
+                        targetPathsToProjectPaths);
                 }
 
                 var referencedProjectContext = referencedProject as IWorkspaceProjectContext;
                 if (referencedProjectContext != null)
                 {
+                    addedProjectReferences.Add(projectReferencePath);
                     projectContext.AddProjectReference(
                         referencedProjectContext,
                         new MetadataReferenceProperties());
@@ -245,6 +268,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 else
                 {
                     // We don't know how to create this project.  Another language or something?
+                }
+            }
+
+            foreach (var reference in commandLineArguments.MetadataReferences)
+            {
+                string possibleProjectReference;
+                if (!targetPathsToProjectPaths.TryGetValue(reference.Reference, out possibleProjectReference) ||
+                    !addedProjectReferences.Contains(possibleProjectReference))
+                {
+                    projectContext.AddMetadataReference(reference.Reference, reference.Properties);
                 }
             }
 
