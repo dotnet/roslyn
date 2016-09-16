@@ -83,7 +83,13 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
       <Link>Diagnostics\DiagnosticResultSerializer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\FindReferences\FindReferencesArgument.cs">
+      <Link>FindSymbols\FindReferencesArgument.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
+      <Link>Shared\ClientDirectStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
@@ -133,6 +139,9 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Services\" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

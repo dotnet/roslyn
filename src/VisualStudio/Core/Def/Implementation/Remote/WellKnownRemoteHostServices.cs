@@ -11,6 +11,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public const string RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId = "PersistentStorageService_RegisterPrimarySolutionId";
         public const string RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId = "PersistentStorageService_UnregisterPrimarySolutionId";
         public const string RemoteHostService_PersistentStorageService_UpdateSolutionIdStorageLocation = "PersistentStorageService_UpdateSolutionIdStorageLocation";
-
     }
 }
