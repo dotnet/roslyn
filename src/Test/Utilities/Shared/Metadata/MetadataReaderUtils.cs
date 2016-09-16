@@ -245,5 +245,29 @@ namespace Roslyn.Test.Utilities
                 return EncodedStringText.Create(stream);
             }
         }
+
+        public static IEnumerable<string> DumpAssemblyReferences(this MetadataReader reader)
+        {
+            return reader.AssemblyReferences.Select(r => reader.GetAssemblyReference(r))
+                .Select(row => $"{reader.GetString(row.Name)} {row.Version.Major}.{row.Version.Minor}");
+        }
+
+        public static IEnumerable<string> DumpTypeReferences(this MetadataReader reader)
+        {
+            return reader.TypeReferences
+                .Select(t => reader.GetTypeReference(t))
+                .Select(t => $"{reader.GetString(t.Name)}, {reader.GetString(t.Namespace)}, {reader.Dump(t.ResolutionScope)}");
+        }
+
+        public static string Dump(this MetadataReader reader, EntityHandle handle)
+        {
+            switch (handle.Kind)
+            {
+                case HandleKind.AssemblyReference:
+                    return "AssemblyRef:" + reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)handle).Name);
+                default:
+                    return handle.Kind.ToString();
+            }
+        }
     }
 }

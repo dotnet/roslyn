@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -213,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return true;
                 }
 
-                if (TestImpactEnabled())
+                if (DynamicAnalysisEnabled())
                 {
                     return true;
                 }
@@ -226,26 +225,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return false;
             }
 
-            private bool TestImpactEnabled()
+            private bool DynamicAnalysisEnabled()
             {
-                const string TestImpactPath = @"CodeAnalysis\TestImpact\IsGloballyEnabled";
-                const string KeyName = "Value";
+                const string dynamicAnalysisPackageGuid = "3EADAB3E-2035-4513-8C13-FBA84414A16C";
 
                 // TODO: think about how to get rid of this code. since we don't want any code that require foreground
                 //       thread to run
                 AssertIsForeground();
 
-                var shellSettingsManager = new ShellSettingsManager(Shell.ServiceProvider.GlobalProvider);
-                var writeableSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-
-                if (writeableSettingsStore.PropertyExists(TestImpactPath, KeyName))
-                {
-                    return writeableSettingsStore.GetBoolean(TestImpactPath, KeyName);
-                }
-                else
+                var guid = new Guid(dynamicAnalysisPackageGuid);
+                var shell = (IVsShell)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsShell));
+                if (shell == null)
                 {
                     return false;
                 }
+
+                int installed;
+                if (ErrorHandler.Failed(shell.IsPackageInstalled(ref guid, out installed)))
+                {
+                    return false;
+                }
+
+                return installed != 0;
             }
 
             private bool CodeLenEnabled()

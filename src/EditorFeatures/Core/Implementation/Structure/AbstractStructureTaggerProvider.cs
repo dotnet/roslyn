@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         IEqualityComparer<TRegionTag>
         where TRegionTag : class, ITag
     {
-        public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
-
         private static IComparer<BlockSpan> s_blockSpanComparer =
             Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void Dispose()
         {
-            if (Path != null && File.Exists(Path))
+            if (Path != null)
             {
                 try
                 {
