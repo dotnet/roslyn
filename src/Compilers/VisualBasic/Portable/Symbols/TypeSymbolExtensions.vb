@@ -838,45 +838,81 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' completes without the predicate returning true for any type, this method returns null.
         ''' </summary>
         <Extension()>
-        Friend Function VisitType(Of T)(this As TypeSymbol, predicate As Func(Of TypeSymbol, T, Boolean), arg As T) As TypeSymbol
+        Friend Function VisitType(Of T)(type As TypeSymbol, predicate As Func(Of TypeSymbol, T, Boolean), arg As T) As TypeSymbol
+            ' In order to handle extremely "deep" types like "Integer()()()()()()()()()...()"
+            ' we implement manual tail recursion rather than doing the natural recursion.
 
-            Select Case this.Kind
-                Case SymbolKind.TypeParameter
-                    If predicate(this, arg) Then
-                        Return this
-                    End If
+            Dim current As TypeSymbol = type
 
-                Case SymbolKind.ArrayType
-                    If predicate(this, arg) Then
-                        Return this
-                    End If
+            Do
+                ' Visit containing types from outer-most to inner-most.
+                Select Case current.TypeKind
 
-                    Return DirectCast(this, ArrayTypeSymbol).ElementType.VisitType(predicate, arg)
+                    Case TypeKind.Class,
+                         TypeKind.Struct,
+                         TypeKind.Interface,
+                         TypeKind.Enum,
+                         TypeKind.Delegate
 
-                Case SymbolKind.NamedType, SymbolKind.ErrorType
-                    Dim typeToCheck = DirectCast(this, NamedTypeSymbol)
+                        Dim containingType = current.ContainingType
+                        If containingType IsNot Nothing Then
+                            Dim result = containingType.VisitType(predicate, arg)
 
-                    Do
-                        If predicate(typeToCheck, arg) Then
-                            Return typeToCheck
+                            If result IsNot Nothing Then
+                                Return result
+                            End If
                         End If
 
-                        For Each typeArg In typeToCheck.TypeArgumentsNoUseSiteDiagnostics
-                            Dim result = typeArg.VisitType(predicate, arg)
+                    Case TypeKind.Submission
+                        Debug.Assert(current.ContainingType Is Nothing)
+                End Select
+
+                If predicate(current, arg) Then
+                    Return current
+                End If
+
+                Select Case current.TypeKind
+
+                    Case TypeKind.Dynamic,
+                         TypeKind.TypeParameter,
+                         TypeKind.Submission,
+                         TypeKind.Enum,
+                         TypeKind.Module
+
+                        Return Nothing
+
+                    Case TypeKind.Class,
+                         TypeKind.Struct,
+                         TypeKind.Interface,
+                         TypeKind.Delegate,
+                         TypeKind.Error
+
+                        If current.IsTupleType Then
+                            ' turn tuple type elements into parameters
+                            current = current.TupleUnderlyingType
+                        End If
+
+                        For Each nestedType In DirectCast(current, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics
+                            Dim result = nestedType.VisitType(predicate, arg)
                             If result IsNot Nothing Then
                                 Return result
                             End If
                         Next
 
-                        typeToCheck = typeToCheck.ContainingType
-                    Loop While typeToCheck IsNot Nothing
+                        Return Nothing
 
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(this.Kind)
+                    Case TypeKind.Array
+                        current = DirectCast(current, ArrayTypeSymbol).ElementType
+                        Continue Do
 
-            End Select
+                    Case TypeKind.Pointer
+                        ' VB does not support pointers
+                        Return Nothing
 
-            Return Nothing
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(current.TypeKind)
+                End Select
+            Loop
         End Function
 
         ''' <summary>
