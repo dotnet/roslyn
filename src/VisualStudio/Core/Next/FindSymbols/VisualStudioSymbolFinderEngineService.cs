@@ -50,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
             IImmutableSet<Document> documents, 
             CancellationToken cancellationToken)
         {
+            documents = documents ?? ImmutableHashSet<Document>.Empty;
             var clientService = solution.Workspace.Services.GetService<IRemoteHostClientService>();
             var client = await clientService.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
 
