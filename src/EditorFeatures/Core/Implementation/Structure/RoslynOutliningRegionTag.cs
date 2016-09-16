@@ -57,8 +57,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
         {
-            var roles = _textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
-            var view = _textEditorFactoryService.CreateTextView(finalBuffer, roles);
+            return CreateElisionBufferView(_textEditorFactoryService, finalBuffer);
+        }
+
+        internal static IWpfTextView CreateElisionBufferView(
+            ITextEditorFactoryService textEditorFactoryService,
+            ITextBuffer finalBuffer)
+        {
+            var roles = textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
+            var view = textEditorFactoryService.CreateTextView(finalBuffer, roles);
 
             view.Background = Brushes.Transparent;
 
@@ -69,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
             return view;
         }
+
 
         private ITextBuffer CreateElisionBuffer()
         {
