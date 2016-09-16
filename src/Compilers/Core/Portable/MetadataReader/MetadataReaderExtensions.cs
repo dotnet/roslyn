@@ -198,25 +198,5 @@ namespace Microsoft.CodeAnalysis
                 reader.StringComparer.Equals(typeDef.Name, typeName) &&
                 reader.StringComparer.Equals(typeDef.Namespace, namespaceName);
         }
-
-        internal static IEnumerable<string> DumpAssemblyReferences(this MetadataReader reader)
-        {
-            return reader.AssemblyReferences.Select(r => reader.GetAssemblyReference(r))
-                .Select(row => $"{reader.GetString(row.Name)} {row.Version.Major}.{row.Version.Minor}");
-        }
-
-        internal static IEnumerable<string> DumpTypeReferences(this MetadataReader reader)
-        {
-            return reader.TypeReferences
-                .Select(t => reader.GetTypeReference(t))
-                .Select(t =>
-                {
-                    var assemblyName = t.ResolutionScope.Kind == HandleKind.AssemblyReference
-                        ? reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)t.ResolutionScope).Name)
-                        : "";
-
-                    return $"{reader.GetString(t.Name)}, {reader.GetString(t.Namespace)}, {assemblyName}";
-                });
-        }
     }
 }

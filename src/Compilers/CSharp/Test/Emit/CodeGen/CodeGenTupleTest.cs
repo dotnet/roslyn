@@ -18041,17 +18041,21 @@ class C
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs, options: TestOptions.DebugExe);
 
             // emit without pdb
-            var stream = new System.IO.MemoryStream();
-            Assert.True(comp.Emit(stream, options: new CodeAnalysis.Emit.EmitOptions()).Success);
+            using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
+            {
+                var reader = block.MetadataReader;
+                AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
+                Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+            }
 
             // emit with pdb
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "", validator: (assembly) =>
-            {
-                var reader = assembly.GetMetadataReader();
-                AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
-                Assert.Contains("ValueTuple`2, System, System.ValueTuple", reader.DumpTypeReferences());
-            });
+                {
+                    var reader = assembly.GetMetadataReader();
+                    AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
+                    Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                });
             // no assertion in MetadataWriter
         }
 
@@ -18075,15 +18079,24 @@ class C
             libComp.VerifyDiagnostics();
 
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
-            // no assertion in MetadataWriter
 
+            // emit without pdb
+            using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
+            {
+                var reader = block.MetadataReader;
+                AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
+                Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+            }
+
+            // emit with pdb
+            comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "", validator: (assembly) =>
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
-                    Assert.Contains("ReferencedType, , lib", reader.DumpTypeReferences());
+                    Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
                 });
+            // no assertion in MetadataWriter
         }
     }
 }
