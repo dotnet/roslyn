@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18020,6 +18021,82 @@ public interface I<in T>
                 //     void M((bool, T)[] x);
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "(bool, T)[]").WithArguments("I<T>.M((bool, T)[])", "T", "contravariant", "invariantly").WithLocation(4, 12)
                 );
+        }
+
+        [Fact]
+        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        public void TupleInConstant()
+        {
+            var source = @"
+class C<T> { }
+class C
+{
+    static void Main()
+    {
+        const C<(int, int)> c = null;
+        System.Console.Write(c);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs, options: TestOptions.DebugExe);
+
+            // emit without pdb
+            using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
+            {
+                var reader = block.MetadataReader;
+                AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
+                Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+            }
+
+            // emit with pdb
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "", validator: (assembly) =>
+                {
+                    var reader = assembly.GetMetadataReader();
+                    AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
+                    Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                });
+            // no assertion in MetadataWriter
+        }
+
+        [Fact]
+        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        public void ConstantTypeFromReferencedAssembly()
+        {
+            var libSource = @" public class ReferencedType { } ";
+
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        const ReferencedType c = null;
+        System.Console.Write(c);
+    }
+}";
+
+            var libComp = CreateCompilationWithMscorlib(libSource, assemblyName: "lib");
+            libComp.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
+
+            // emit without pdb
+            using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
+            {
+                var reader = block.MetadataReader;
+                AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
+                Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+            }
+
+            // emit with pdb
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "", validator: (assembly) =>
+                {
+                    var reader = assembly.GetMetadataReader();
+                    AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
+                    Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                });
+            // no assertion in MetadataWriter
         }
     }
 }
