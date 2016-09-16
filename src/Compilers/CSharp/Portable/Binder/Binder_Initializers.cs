@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var fieldsBeingBound = binder.FieldsBeingBound;
 
-            var sourceField = fieldSymbol as SourceMemberFieldSymbol;
+            var sourceField = fieldSymbol as SourceMemberFieldSymbolFromDeclarator;
             bool isImplicitlyTypedField = (object)sourceField != null && sourceField.FieldTypeInferred(fieldsBeingBound);
 
             // If the type is implicitly typed, the initializer diagnostics have already been reported, so ignore them here:

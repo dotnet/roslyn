@@ -1647,7 +1647,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Might be a local variable.
             var memberModel = this.GetMemberModel(declarationSyntax);
-            return memberModel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+            ISymbol local = memberModel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+
+            if (local != null)
+            {
+                return local;
+            }
+
+            // Might be a field
+            Binder binder = GetEnclosingBinder(declarationSyntax.Position);
+            return binder?.LookupDeclaredField(declarationSyntax);
         }
 
         /// <summary>
