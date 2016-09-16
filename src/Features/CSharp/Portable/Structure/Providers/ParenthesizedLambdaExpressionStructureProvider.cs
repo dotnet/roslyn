@@ -34,11 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 lambdaExpression,
                 lambdaExpression.ArrowToken,
                 lastToken,
-                autoCollapse: false));
+                autoCollapse: false,
+                type: BlockTypes.AnonymousMethod,
+                isCollapsible: true));
         }
     }
 }

@@ -4,25 +4,40 @@ namespace Microsoft.CodeAnalysis.Structure
 {
     internal static class BlockTypes
     {
-        public const string AccessorBlock = "AccessorBlock";
-        public const string AnonymousMethodBlock = "AnonymousMethodBlock";
-        public const string Case = "Case";
-        public const string Class = "Class";
-        public const string Conditional = "Conditional";
-        public const string Constructor = "Constructor";
-        public const string Destructor = "Destructor";
-        public const string Interface = "Interface";
-        public const string Lock = "Context";
-        public const string Loop = "Loop";
-        public const string Method = "Method";
-        public const string Namespace = "Namespace";
-        public const string Nonstructural = "Nonstructural";
-        public const string Operator = "Operator";
-        public const string PropertyBlock = "PropertyBlock";
-        public const string Standalone = "Standalone";
-        public const string Struct = "Struct";
-        public const string Structural = "Structural";
-        public const string TryCatchFinally = "TryCatchFinally";
-        public const string Unknown = "Unknown";
+        // Basic types.
+        public const string Structural = nameof(Structural);
+        public const string Nonstructural = nameof(Nonstructural);
+
+        // Top level declarations.
+        public const string Namespace = nameof(Namespace);
+        public const string Class = nameof(Class);
+        public const string Enum = nameof(Enum);
+        public const string Interface = nameof(Interface);
+        public const string Module = nameof(Module);
+        public const string Structure = nameof(Structure);
+
+        // Type level declarations.
+        public const string Accessor = nameof(Accessor);
+        public const string Constructor = nameof(Constructor);
+        public const string Destructor = nameof(Destructor);
+        public const string Event = nameof(Event);
+        public const string Indexer = nameof(Indexer);
+        public const string Method = nameof(Method);
+        public const string Operator = nameof(Operator);
+        public const string Property = nameof(Property);
+
+        // Statements
+        public const string Case = nameof(Case);
+        public const string Conditional = nameof(Conditional);
+        public const string Lock = nameof(Lock);
+        public const string Loop = nameof(Loop);
+        public const string TryCatchFinally = nameof(TryCatchFinally);
+        public const string Standalone = nameof(Standalone);
+
+        // Expressions
+        public const string AnonymousMethod = nameof(AnonymousMethod);
+        public const string Xml = nameof(Xml);
+
+        public const string Other = nameof(Other);
     }
 }

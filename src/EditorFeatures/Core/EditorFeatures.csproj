@@ -568,7 +568,7 @@
     <Compile Include="Implementation\Organizing\OrganizeDocumentCommandHandler.cs" />
     <Compile Include="Implementation\Structure\OutliningCommandHandler.cs" />
     <Compile Include="Implementation\Structure\VisualStudio14StructureTaggerProvider.cs" />
-    <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.RegionTag.cs" />
+    <Compile Include="Implementation\Structure\RoslynOutliningRegionTag.cs" />
     <Compile Include="Implementation\Peek\DefinitionPeekableItem.cs" />
     <Compile Include="Implementation\Peek\ExternalFilePeekableItem.cs" />
     <Compile Include="Implementation\Peek\PeekableItem.cs" />
