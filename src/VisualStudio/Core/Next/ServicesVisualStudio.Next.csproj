@@ -83,8 +83,8 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
       <Link>Diagnostics\DiagnosticResultSerializer.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\FindReferences\FindReferencesArgument.cs">
-      <Link>FindSymbols\FindReferencesArgument.cs</Link>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\FindReferences\FindReferencesArguments.cs">
+      <Link>FindSymbols\FindReferencesArguments.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>

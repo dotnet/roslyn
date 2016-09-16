@@ -17,29 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote.FindReferences
     /// Arguments to pass from client to server when performing the FindReferences
     /// call.
     /// </summary>
-    //    internal class FindReferencesArgument
-    //    {
-    //#if false
-    //        SymbolAndProjectId symbolAndProjectId,
-    //            Solution solution, 
-    //            IStreamingFindReferencesProgress progress, 
-    //            IImmutableSet<Document> documents, 
-    //            CancellationToken cancellationToken
-    //#endif
-    //        public SerializableSymbolAndProjectId SymbolAndProjectId;
-    //        public DocumentIdArgument[] Documents;
-
-    //        public static FindReferencesArgument Dehydrate(
-    //            SymbolAndProjectId symbolAndProjectId, IImmutableSet<Document> documents)
-    //        {
-    //            return new FindReferencesArgument
-    //            {
-    //                SymbolAndProjectId = SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
-    //                Documents = documents.Select(d => DocumentIdArgument.Dehydrate(d.Id)).ToArray()
-    //            };
-    //        }
-    //    }
-
     internal class SerializableProjectId
     {
         public Guid Id;
