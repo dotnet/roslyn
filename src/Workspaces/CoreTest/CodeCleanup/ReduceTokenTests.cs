@@ -1965,14 +1965,18 @@ End Module
             var code = @"[|
 Module Module1
     Sub Main()
-        Dim sMax As Short = &B101
-        Dim usMax As UShort = &B00100
-        Dim iMax As Integer = &B00100100
-        Dim uiMax As UInteger = &B001001100110
-        Dim lMax As Long = &B001001100110
-        Dim ulMax As ULong = &B001001100110
-        Dim z As Long = &B001001100110
-        Dim x As Long =&B001001100110
+        ' signed
+        Dim a As Short = &B101
+        Dim b As Integer = &B00100100
+        Dim c As Long = &B001001100110
+
+        Dim d As UShort = &B00100
+        Dim e As UInteger = &B001001100110
+        Dim f As ULong = &B001001100110
+
+        Dim g As Short = -&B101
+        Dim h As Integer = -&B00100100
+        Dim i As Long = -&B001001100110
     End Sub
 End Module
 |]";
@@ -1980,14 +1984,18 @@ End Module
             var expected = @"
 Module Module1
     Sub Main()
-        Dim sMax As Short = &B101
-        Dim usMax As UShort = &B100
-        Dim iMax As Integer = &B100100
-        Dim uiMax As UInteger = &B1001100110
-        Dim lMax As Long = &B1001100110
-        Dim ulMax As ULong = &B1001100110
-        Dim z As Long = &B1001100110
-        Dim x As Long = &B1001100110
+        ' signed
+        Dim a As Short = &B101
+        Dim b As Integer = &B100100
+        Dim c As Long = &B1001100110
+
+        Dim d As UShort = &B100
+        Dim e As UInteger = &B1001100110
+        Dim f As ULong = &B1001100110
+
+        Dim g As Short = -&B101
+        Dim h As Integer = -&B100100
+        Dim i As Long = -&B1001100110
     End Sub
 End Module
 ";
