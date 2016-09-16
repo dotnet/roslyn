@@ -18116,7 +18116,8 @@ class C
 ";
             CompileAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
-                parseOptions: TestOptions.Regular, expectedOutput: @"9");
+                options: TestOptions.DebugExe,
+                expectedOutput: @"9");
             // no assert hit
         }
     }

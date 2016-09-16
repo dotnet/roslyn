@@ -8213,7 +8213,8 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:="9")
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+options:=TestOptions.DebugExe, expectedOutput:="9")
             ' No assert hit
 
         End Sub
