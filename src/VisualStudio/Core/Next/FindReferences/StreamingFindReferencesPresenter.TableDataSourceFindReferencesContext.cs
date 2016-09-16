@@ -458,7 +458,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     var replacementIndex = semanticParts.FindIndex(
                         lastReplacementIndex, t => t.TextSpan == syntaxPartAndSpan.TextSpan);
 
-                    var part = replacementIndex >= 0 && ShouldUseSemanticPart(semanticParts[replacementIndex])
+                    // Take the semantic part if it's just 'text'.  We want to keep it if
+                    // the semantic classifier actually produced an interesting result 
+                    // (as opposed to it just being a 'gap' classification).
+                    var part = replacementIndex >= 0 && !IsClassifiedAsText(semanticParts[replacementIndex])
                         ? semanticParts[replacementIndex]
                         : syntaxPartAndSpan;
                     finalParts.Add(part);
@@ -475,12 +478,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 return finalParts.ToImmutable();
             }
 
-            private bool ShouldUseSemanticPart(ClassifiedSpan partAndSpan)
+            private bool IsClassifiedAsText(ClassifiedSpan partAndSpan)
             {
                 // Don't take 'text' from the semantic parts.  We'll get those for the 
                 // spaces between the actual interesting semantic spans, and we don't 
                 // want them to override actual good syntax spans.
-                return partAndSpan.ClassificationType != ClassificationTypeNames.Text;
+                return partAndSpan.ClassificationType == ClassificationTypeNames.Text;
             }
 
             private RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
