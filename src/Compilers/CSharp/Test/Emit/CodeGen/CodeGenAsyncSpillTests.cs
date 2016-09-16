@@ -2982,9 +2982,10 @@ namespace AsyncBug
             }
         }
 
-        private Task<SomeClass> Danger()
+        private async Task<SomeClass> Danger()
         {
-            return Task.FromResult(new SomeClass());
+            await Task.Yield();
+            return new SomeClass();
         }
 
         private async Task<IEnumerable<bool>> Killer()
