@@ -18117,7 +18117,20 @@ class C
             CompileAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 options: TestOptions.DebugExe,
-                expectedOutput: @"9");
+                expectedOutput: @"9",
+                sourceSymbolValidator: (module) =>
+                {
+                    var sourceModule = (SourceModuleSymbol)module;
+                    var compilation = sourceModule.DeclaringCompilation;
+                    var tree = compilation.SyntaxTrees.First();
+                    var model = compilation.GetSemanticModel(tree);
+                    var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                    var x = nodes.OfType<VariableDeclaratorSyntax>().First();
+                    var xSymbol = ((SourceLocalSymbol)model.GetDeclaredSymbol(x)).Type;
+                    AssertEx.SetEqual(xSymbol.GetMembers().OfType<FieldSymbol>().Select(f => f.Name),
+                        "A", "C", "D", "E", "F", "G", "I", "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Rest");
+                });
             // no assert hit
         }
     }
