@@ -89,9 +89,6 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>
     </Compile>
-    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
-      <Link>Shared\ClientDirectStream.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
       <Link>Shared\Extensions.cs</Link>
     </Compile>
