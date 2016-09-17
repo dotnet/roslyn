@@ -56,9 +56,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 var languagePreferences = new LANGPREFERENCES3[1];
                 languagePreferences[0].guidLang = languageGuid;
-                Marshal.ThrowExceptionForHR(_textManager.GetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null));
 
-                RefreshLanguageSettings(languagePreferences);
+                // The function can potentially fail if that language service isn't installed
+                if (ErrorHandler.Succeeded(_textManager.GetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null)))
+                {
+                    RefreshLanguageSettings(languagePreferences);
+                }
             }
 
             _textManagerEvents2Sink = ComEventSink.Advise<IVsTextManagerEvents4>(_textManager, this);
