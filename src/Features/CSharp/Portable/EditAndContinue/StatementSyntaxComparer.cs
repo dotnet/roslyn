@@ -164,7 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ForStatement,
             ForStatementPart,                 // tied to parent
             ForEachStatement,
-            ForEachComponentStatement,
             UsingStatement,
             FixedStatement,
             LockStatement,
@@ -192,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             LocalDeclarationStatement,         // tied to parent
             LocalVariableDeclaration,          // tied to parent
             LocalVariableDeclarator,           // tied to parent
+            DeconstructionDeclarationStatement, // tied to parent
+            VariableComponentAssignment, // tied to parent
 
             AwaitExpression,
 
@@ -212,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             GroupClauseLambda,                // tied to parent
             QueryContinuation,                // tied to parent
 
+            ForEachComponentStatement,
+
             // helpers:
             Count,
             Ignored = IgnoredNode
@@ -224,6 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.LocalDeclarationStatement:
                 case Label.LocalVariableDeclaration:
                 case Label.LocalVariableDeclarator:
+                case Label.DeconstructionDeclarationStatement:
+                case Label.VariableComponentAssignment:
                 case Label.GotoCaseStatement:
                 case Label.BreakContinueStatement:
                 case Label.ElseClause:
@@ -479,6 +484,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.AwaitExpression:
                     return Label.AwaitExpression;
+
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                    return Label.DeconstructionDeclarationStatement;
+
+                case SyntaxKind.VariableComponentAssignment:
+                    return Label.VariableComponentAssignment;
 
                 default:
                     // any other node may contain a lambda:
@@ -869,9 +880,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             double distance = conditionDistance * 0.3 + incDistance * 0.3 + statementDistance * 0.4;
 
             double localsDistance;
-            if (TryComputeLocalsDistance(left.Declaration, right.Declaration, out localsDistance))
+            if (TryComputeLocalsDistance(left.Declaration, right.Declaration, out localsDistance) ||
+                TryComputeLocalsDistance(left.Deconstruction, right.Deconstruction, out localsDistance))
             {
                 distance = distance * 0.4 + localsDistance * 0.6;
+
             }
 
             return distance;
@@ -938,15 +951,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             List<SyntaxToken> leftLocals = null;
             List<SyntaxToken> rightLocals = null;
 
-            if (leftOpt != null)
+            GetLocalNames(leftOpt, ref leftLocals);
+            GetLocalNames(rightOpt, ref rightLocals);
+
+            if (leftLocals == null || rightLocals == null)
             {
-                GetLocalNames(leftOpt, ref leftLocals);
+                distance = 0;
+                return false;
             }
 
-            if (rightOpt != null)
-            {
-                GetLocalNames(rightOpt, ref rightLocals);
-            }
+            distance = ComputeDistance(leftLocals, rightLocals);
+            return true;
+        }
+
+        private static bool TryComputeLocalsDistance(VariableComponentAssignmentSyntax leftOpt, VariableComponentAssignmentSyntax rightOpt, out double distance)
+        {
+            List<SyntaxToken> leftLocals = null;
+            List<SyntaxToken> rightLocals = null;
+
+            GetLocalNames(leftOpt, ref leftLocals);
+            GetLocalNames(rightOpt, ref rightLocals);
 
             if (leftLocals == null || rightLocals == null)
             {
@@ -991,6 +1015,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         // doesn't include variables declared in declaration expressions
         private static void GetLocalNames(VariableDeclarationSyntax localDeclaration, ref List<SyntaxToken> result)
         {
+            if (localDeclaration == null)
+            {
+                return;
+            }
+
             foreach (var local in localDeclaration.Variables)
             {
                 if (result == null)
@@ -999,6 +1028,55 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 result.Add(local.Identifier);
+            }
+        }
+
+        // doesn't include variables declared in declaration expressions
+        private static void GetLocalNames(VariableComponentAssignmentSyntax deconstructionAssignment, ref List<SyntaxToken> result)
+        {
+            if (deconstructionAssignment == null)
+            {
+                return;
+            }
+
+            GetLocalNames(deconstructionAssignment.VariableComponent, ref result);
+        }
+
+        private static void GetLocalNames(VariableComponentSyntax variableComponent, ref List<SyntaxToken> result)
+        {
+            switch (variableComponent.Kind())
+            {
+                case SyntaxKind.TypedVariableComponent:
+                    GetLocalNames(((TypedVariableComponentSyntax)variableComponent).Designation, ref result);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    foreach (VariableComponentSyntax component in ((ParenthesizedVariableComponentSyntax)variableComponent).Variables)
+                    {
+                        GetLocalNames(component, ref result);
+                    }
+                    break;
+            }
+        }
+
+        private static void GetLocalNames(VariableDesignationSyntax variableDesignation, ref List<SyntaxToken> result)
+        {
+            switch (variableDesignation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    if (result == null)
+                    {
+                        result = new List<SyntaxToken>();
+                    }
+                    result.Add(((SingleVariableDesignationSyntax)variableDesignation).Identifier);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    foreach (VariableDesignationSyntax designation in ((ParenthesizedVariableDesignationSyntax)variableDesignation).Variables)
+                    {
+                        GetLocalNames(designation, ref result);
+                    }
+                    break;
             }
         }
 
