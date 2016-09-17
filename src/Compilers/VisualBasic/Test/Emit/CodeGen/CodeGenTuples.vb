@@ -8198,6 +8198,40 @@ End Module
 
         End Sub
 
+        <Fact>
+        <WorkItem(13661, "https://github.com/dotnet/roslyn/issues/13661")>
+        Public Sub LongTupleWithPartialNames_Bug13661()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module C
+    Sub Main()
+        Dim t = (A:=1, 2, C:=3, D:=4, E:=5, F:=6, G:=7, 8, I:=9)
+        System.Console.Write($"{t.I}")
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                options:=TestOptions.DebugExe, expectedOutput:="9",
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim t = nodes.OfType(Of VariableDeclaratorSyntax)().Single().Names(0)
+                        Dim xSymbol = DirectCast(model.GetDeclaredSymbol(t), LocalSymbol).Type
+
+                        AssertEx.SetEqual(xSymbol.GetMembers().OfType(Of FieldSymbol)().Select(Function(f) f.Name),
+                            "A", "C", "D", "E", "F", "G", "I", "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Rest")
+                    End Sub)
+            ' No assert hit
+
+        End Sub
+
     End Class
 
 End Namespace

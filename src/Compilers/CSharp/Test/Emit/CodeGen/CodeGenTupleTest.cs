@@ -18098,5 +18098,40 @@ class C
                 });
             // no assertion in MetadataWriter
         }
+
+        [Fact]
+        [WorkItem(13661, "https://github.com/dotnet/roslyn/issues/13661")]
+        public void LongTupleWithPartialNames_Bug13661()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var o = (A: 1, 2, C: 3, D: 4, E: 5, F: 6, G: 7, 8, I: 9);
+        Console.Write(o.I);
+    }
+}
+";
+            CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                options: TestOptions.DebugExe,
+                expectedOutput: @"9",
+                sourceSymbolValidator: (module) =>
+                {
+                    var sourceModule = (SourceModuleSymbol)module;
+                    var compilation = sourceModule.DeclaringCompilation;
+                    var tree = compilation.SyntaxTrees.First();
+                    var model = compilation.GetSemanticModel(tree);
+                    var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                    var x = nodes.OfType<VariableDeclaratorSyntax>().First();
+                    var xSymbol = ((SourceLocalSymbol)model.GetDeclaredSymbol(x)).Type;
+                    AssertEx.SetEqual(xSymbol.GetMembers().OfType<FieldSymbol>().Select(f => f.Name),
+                        "A", "C", "D", "E", "F", "G", "I", "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Rest");
+                });
+            // no assert hit
+        }
     }
 }
