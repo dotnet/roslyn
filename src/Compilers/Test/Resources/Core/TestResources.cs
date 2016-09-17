@@ -253,6 +253,9 @@ namespace TestResources
         private static byte[] s_snPublicKey2;
         public static byte[] snPublicKey2 => ResourceLoader.GetOrCreateResource(ref s_snPublicKey2, "SymbolsTests.snPublicKey2.snk");
 
+        private static byte[] s_snMaxSizeKey;
+        public static byte[] snMaxSizeKey => ResourceLoader.GetOrCreateResource(ref s_snMaxSizeKey, "SymbolsTests.snMaxSizeKey.snk");
+
         private static byte[] s_CSharpErrors;
         public static byte[] CSharpErrors => ResourceLoader.GetOrCreateResource(ref s_CSharpErrors, "SymbolsTests.UseSiteErrors.CSharpErrors.dll");
 
