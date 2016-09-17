@@ -603,6 +603,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return true;
                     }
 
+                case SyntaxKind.ForEachComponentStatement:
+                    {
+                        var leftForEach = (ForEachComponentStatementSyntax)leftNode;
+                        var rightForEach = (ForEachComponentStatementSyntax)rightNode;
+                        distance = ComputeWeightedDistance(leftForEach, rightForEach);
+                        return true;
+                    }
+
                 case SyntaxKind.UsingStatement:
                     var leftUsing = (UsingStatementSyntax)leftNode;
                     var rightUsing = (UsingStatementSyntax)rightNode;
@@ -869,6 +877,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return AdjustForLocalsInBlock(distance, left.Statement, right.Statement, localsWeight: 0.6);
         }
 
+        private static double ComputeWeightedDistance(ForEachComponentStatementSyntax left, ForEachComponentStatementSyntax right)
+        {
+            double statementDistance = ComputeDistance(left.Statement, right.Statement);
+            double expressionDistance = ComputeDistance(left.Expression, right.Expression);
+
+            double identifiersDistance;
+            TryComputeLocalsDistance(left.VariableComponent, right.VariableComponent, out identifiersDistance);
+
+            double distance = identifiersDistance * 0.7 + expressionDistance * 0.2 + statementDistance * 0.1;
+            return AdjustForLocalsInBlock(distance, left.Statement, right.Statement, localsWeight: 0.6);
+        }
+
         private static double ComputeWeightedDistance(ForStatementSyntax left, ForStatementSyntax right)
         {
             double statementDistance = ComputeDistance(left.Statement, right.Statement);
@@ -884,7 +904,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 TryComputeLocalsDistance(left.Deconstruction, right.Deconstruction, out localsDistance))
             {
                 distance = distance * 0.4 + localsDistance * 0.6;
-
             }
 
             return distance;
@@ -964,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return true;
         }
 
-        private static bool TryComputeLocalsDistance(VariableComponentAssignmentSyntax leftOpt, VariableComponentAssignmentSyntax rightOpt, out double distance)
+        private static bool TryComputeLocalsDistance(VariableComponentSyntax leftOpt, VariableComponentSyntax rightOpt, out double distance)
         {
             List<SyntaxToken> leftLocals = null;
             List<SyntaxToken> rightLocals = null;
@@ -980,6 +999,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             distance = ComputeDistance(leftLocals, rightLocals);
             return true;
+        }
+
+        private static bool TryComputeLocalsDistance(VariableComponentAssignmentSyntax leftOpt, VariableComponentAssignmentSyntax rightOpt, out double distance)
+        {
+            if (leftOpt == null || rightOpt == null)
+            {
+                distance = 0;
+                return false;
+            }
+
+            return TryComputeLocalsDistance(leftOpt.VariableComponent, rightOpt.VariableComponent, out distance);
         }
 
         private static bool TryComputeLocalsDistance(BlockSyntax left, BlockSyntax right, out double distance)
