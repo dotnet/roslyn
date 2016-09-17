@@ -303,10 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             private IEnumerable<StatementSyntax> MoveDeclarationOutFromMethodDefinition(
                 IEnumerable<StatementSyntax> statements, CancellationToken cancellationToken)
             {
-                var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
-                    this.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken);
+                var variablesToRemove = this.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken);
+                var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(variablesToRemove, cancellationToken);
+                var variableNamesToRemove = new HashSet<string>(variablesToRemove.Select(v => v.Name));
 
-                foreach (var statement in statements)
+                foreach (var statement in statements
+                    .Select(s => RemoveOutVariablesFromDeclarationExpressions(s, variableNamesToRemove)))
                 {
                     var declarationStatement = statement as LocalDeclarationStatementSyntax;
                     if (declarationStatement == null)
@@ -392,6 +394,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         yield return expressionStatement;
                     }
                 }
+            }
+
+            private StatementSyntax RemoveOutVariablesFromDeclarationExpressions(StatementSyntax statement,
+                HashSet<string> variablesToRemove)
+            {
+                foreach (var declaration in statement
+                    .DescendantNodes()
+                    .Where(n => n.Kind() == SyntaxKind.DeclarationExpression)
+                    .Cast<DeclarationExpressionSyntax>())
+                {
+                    if (declaration.VariableComponent.Kind() == SyntaxKind.TypedVariableComponent)
+                    {
+                        var variableComponent = (TypedVariableComponentSyntax)declaration.VariableComponent;
+                        var name = ((SingleVariableDesignationSyntax)variableComponent.Designation).Identifier.ValueText;
+
+                        if (variablesToRemove.Contains(name))
+                        {
+                            statement = statement.ReplaceNode(declaration, SyntaxFactory.IdentifierName(name));
+                        }
+                    }
+                }
+
+                return statement;
             }
 
             private static SyntaxToken ApplyTriviaFromDeclarationToAssignmentIdentifier(LocalDeclarationStatementSyntax declarationStatement, bool firstVariableToAttachTrivia, VariableDeclaratorSyntax variable)
