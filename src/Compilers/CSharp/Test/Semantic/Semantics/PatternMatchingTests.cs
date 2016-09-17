@@ -172,7 +172,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"expression 1 is not String
@@ -299,7 +299,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"No for 1
@@ -335,7 +335,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
 #if ALLOW_IN_FIELD_INITIALIZER
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -384,7 +384,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -420,7 +420,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -458,7 +458,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -532,7 +532,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -585,7 +585,7 @@ public struct X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"one
