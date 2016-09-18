@@ -201,7 +201,7 @@
     <Compile Include="BoundTree\DecisionTree.cs" />
     <Compile Include="BoundTree\Expression.cs" />
     <Compile Include="BoundTree\DeconstructionLocalPendingInference.cs" />
-    <Compile Include="BoundTree\OutVarLocalPendingInference.cs" />
+    <Compile Include="BoundTree\OutVariablePendingInference.cs" />
     <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
     <Compile Include="BoundTree\Formatting.cs" />
@@ -524,6 +524,7 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.cs" />
+    <Compile Include="Symbols\Source\SourceMemberFieldSymbolFromDesignation.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleFieldSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />

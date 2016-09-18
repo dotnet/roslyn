@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool okToDowngradeToNeither;
                 BetterResult r;
 
-                if (argumentKind == BoundKind.OutVarLocalPendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
+                if (argumentKind == BoundKind.OutVariablePendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
                 {
                     // If argument is an out variable that needs type inference,
                     // neither candidate is better in this argument.
@@ -2972,7 +2972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitDynamic;
             }
 
-            if (argument.Kind == BoundKind.OutVarLocalPendingInference || argument.Kind == BoundKind.OutDeconstructVarPendingInference)
+            if (argument.Kind == BoundKind.OutVariablePendingInference || argument.Kind == BoundKind.OutDeconstructVarPendingInference)
             {
                 Debug.Assert(argRefKind != RefKind.None);
 

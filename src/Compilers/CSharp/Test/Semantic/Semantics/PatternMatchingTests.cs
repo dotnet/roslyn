@@ -1049,6 +1049,7 @@ public class X
         {
             var symbol = model.GetDeclaredSymbol(decl);
             Assert.Equal(decl.Identifier.ValueText, symbol.Name);
+            Assert.Equal(decl, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)decl));
 
@@ -1062,6 +1063,9 @@ public class X
             }
 
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+
+            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(decl.Type));
+            Assert.True(SyntaxFacts.IsInTypeOnlyContext(decl.Type));
 
             var type = ((LocalSymbol)symbol).Type;
             if (!decl.Type.IsVar || !type.IsErrorType())
@@ -1081,6 +1085,7 @@ public class X
         {
             var symbol = model.GetDeclaredSymbol(decl);
             Assert.Equal(decl.Identifier.ValueText, symbol.Name);
+            Assert.Equal(decl, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)decl));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
@@ -14487,16 +14492,17 @@ unsafe struct S
             Assert.Null(model.GetDeclaredSymbol(decl));
             Assert.Null(model.GetDeclaredSymbol((SyntaxNode)decl));
 
-            Assert.False(model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Any());
-            Assert.False(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+            var identifierText = decl.Identifier.ValueText;
+            Assert.False(model.LookupSymbols(decl.SpanStart, name: identifierText).Any());
+            Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
 
             Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
 
             foreach (var reference in references)
             {
                 Assert.Null(model.GetSymbolInfo(reference).Symbol);
-                Assert.False(model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Any());
-                Assert.False(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
+                Assert.False(model.LookupSymbols(reference.SpanStart, name: identifierText).Any());
+                Assert.False(model.LookupNames(reference.SpanStart).Contains(identifierText));
             }
         }
 

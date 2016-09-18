@@ -2974,10 +2974,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>
-    /// This node represents an out var local.
+    /// This node represents an out variable.
     /// It is only used temporarily during initial binding.
     /// </summary>
-    internal partial class OutVarLocalPendingInference
+    internal partial class OutVariablePendingInference
     {
         public override void Accept(OperationVisitor visitor)
         {
