@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     solution,
                     documents,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
-                    FindReferencesProgress.Instance,
+                    StreamingFindReferencesProgress.Instance,
                     cancellationToken);
 
                 return await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);

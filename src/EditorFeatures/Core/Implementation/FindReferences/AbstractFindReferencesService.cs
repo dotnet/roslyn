@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
-            progressAdapter.CallThirdPartyExtensions();
+            await progressAdapter.CallThirdPartyExtensionsAsync().ConfigureAwait(true);
         }
     }
 }

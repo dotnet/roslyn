@@ -128,17 +128,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            public override void OnCompleted()
+            public override async Task OnCompletedAsync()
             {
                 // Now that we know the search is over, create and display any error messages
                 // for definitions that were not found.
-                CreateMissingReferenceEntriesIfNecessary();
-                CreateNoResultsFoundEntryIfNecessary();
+                await CreateMissingReferenceEntriesIfNecessaryAsync().ConfigureAwait(false);
+                await CreateNoResultsFoundEntryIfNecessaryAsync().ConfigureAwait(false);
 
                 _tableDataSink.IsStable = true;
             }
 
-            private void CreateNoResultsFoundEntryIfNecessary()
+            private async Task CreateNoResultsFoundEntryIfNecessaryAsync()
             {
                 bool noDefinitions;
                 lock(_gate)
@@ -149,9 +149,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 if (noDefinitions)
                 {
                     // Create a fake definition/reference called "search found no results"
-                    this.OnEntryFound(NoResultsDefinitionItem,
+                    await OnEntryFoundAsync(NoResultsDefinitionItem,
                         (db, c) => SimpleMessageEntry.CreateAsync(
-                            db, ServicesVisualStudioNextResources.Search_found_no_results));
+                            db, ServicesVisualStudioNextResources.Search_found_no_results)).ConfigureAwait(false);
                 }
             }
 
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                         TextTags.Text,
                         ServicesVisualStudioNextResources.Search_found_no_results)));
 
-            private void CreateMissingReferenceEntriesIfNecessary()
+            private async Task CreateMissingReferenceEntriesIfNecessaryAsync()
             {
                 // Go through and add dummy entries for any definitions that 
                 // that we didn't find any references for.
@@ -172,9 +172,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 {
                     // Create a fake reference to this definition that says 
                     // "no references found to <symbolname>".
-                    OnEntryFound(definition,
+                    await OnEntryFoundAsync(definition,
                         (db, c) => SimpleMessageEntry.CreateAsync(
-                            db, GetMessage(db.DefinitionItem)));
+                            db, GetMessage(db.DefinitionItem))).ConfigureAwait(false);
                 }
             }
 
@@ -223,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            public override void OnDefinitionFound(DefinitionItem definition)
+            public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (_gate)
                 {
@@ -232,39 +232,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 foreach (var location in definition.SourceSpans)
                 {
-                    OnEntryFound(definition,
+                    await OnEntryFoundAsync(definition,
                         (db, c) => CreateDocumentLocationEntryAsync(
-                            db, location, isDefinitionLocation: true, cancellationToken: c));
+                            db, location, isDefinitionLocation: true, cancellationToken: c)).ConfigureAwait(false);
                 }
             }
 
-            public override void OnReferenceFound(SourceReferenceItem reference)
+            public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
             {
-                OnEntryFound(reference.Definition,
+                return OnEntryFoundAsync(reference.Definition,
                     (db, c) => CreateDocumentLocationEntryAsync(
                         db, reference.SourceSpan, isDefinitionLocation: false, cancellationToken: c));
-            }
-
-            private async void OnEntryFound(
-                DefinitionItem definition,
-                Func<RoslynDefinitionBucket, CancellationToken, Task<Entry>> createEntryAsync)
-            {
-                try
-                {
-                    // We're told about this reference synchronously, but we need to get the 
-                    // SourceText for the definition/reference's Document so that we can determine 
-                    // things like it's line/column/text.  We don't want to block this method getting
-                    // that data, so instead we just fire off the async work to get the text
-                    // and use it.  Because we're starting some async work, let the test harness
-                    // know so that it doesn't verify results until this completes.
-                    using (var token = Presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
-                    {
-                        await OnEntryFoundAsync(definition, createEntryAsync).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-                {
-                }
             }
 
             private async Task OnEntryFoundAsync(
@@ -501,9 +479,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            public override void ReportProgress(int current, int maximum)
+            public override Task ReportProgressAsync(int current, int maximum)
             {
+                //var progress = maximum == 0 ? 0 : ((double)current / maximum);
                 // _findReferencesWindow.SetProgress(current, maximum);
+                return SpecializedTasks.EmptyTask;
             }
 
             #endregion
