@@ -126,7 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             OutputToOutputWindow($"Creating projects - start");
             var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
-            //var targetPathsToProjectPaths = projectInfos.ToImmutableDictionary(kvp => kvp.Value.TargetPath, kvp => kvp.Key);
             foreach (var projectFilename in projectInfos.Keys)
             {
                 CreateProjectFromArgumentsAndReferences(
@@ -260,6 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     var existingReferenceOutputPath = referencedProject?.BinOutputPath;
                     if (existingReferenceOutputPath != null)
                     {
+                        addedProjectReferences.Add(projectReferencePath);
                         projectContext.AddMetadataReference(
                             existingReferenceOutputPath,
                             new MetadataReferenceProperties());
@@ -274,11 +274,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var reference in commandLineArguments.MetadataReferences)
             {
                 string possibleProjectReference;
-                if (!targetPathsToProjectPaths.TryGetValue(reference.Reference, out possibleProjectReference) ||
-                    !addedProjectReferences.Contains(possibleProjectReference))
+                if (targetPathsToProjectPaths.TryGetValue(reference.Reference, out possibleProjectReference) &&
+                    addedProjectReferences.Contains(possibleProjectReference))
                 {
-                    projectContext.AddMetadataReference(reference.Reference, reference.Properties);
+                    // We already added a P2P reference for this, we don't need to add the file reference too.
+                    continue;
                 }
+
+                projectContext.AddMetadataReference(reference.Reference, reference.Properties);
             }
 
             foreach (var reference in commandLineArguments.AnalyzerReferences)
