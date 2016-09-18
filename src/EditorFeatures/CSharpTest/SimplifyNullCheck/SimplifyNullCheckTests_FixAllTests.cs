@@ -97,7 +97,7 @@ class C
         _s = s ?? throw new ArgumentNullException(nameof(s));
         _t = t ?? throw new ArgumentNullException(nameof(t));
     }
-}", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey);
+}", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.ExpressionStatementEquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
@@ -127,7 +127,7 @@ class C
         _s = s ?? throw new ArgumentNullException(nameof(s));
         _t = t ?? throw new ArgumentNullException(nameof(t));
     }
-}", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey);
+}", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.ExpressionStatementEquivalenceKey);
         }
     }
 }
