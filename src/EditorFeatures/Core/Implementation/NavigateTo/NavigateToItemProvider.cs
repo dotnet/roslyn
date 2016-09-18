@@ -59,10 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return;
             }
 
-            var optionsService = _optionsServices.Length > 0
-                ? VersionSelector.SelectHighest(_optionsServices)
-                : null;
-            var searchCurrentDocument = optionsService?.GetSearchCurrentDocument(callback.Options) ?? false;
+            var searchCurrentDocument = GetSearchCurrentDocumentOption(callback);
             var searcher = new Searcher(
                 _workspace.CurrentSolution,
                 _asyncListener,
@@ -73,6 +70,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _cancellationTokenSource.Token);
 
             searcher.Search();
+        }
+
+        private bool GetSearchCurrentDocumentOption(INavigateToCallback callback)
+        {
+            try
+            {
+                return GetSearchCurrentDocumentOptionWorker(callback);
+            }
+            catch (TypeLoadException)
+            {
+                // The version of the APIs we call in VS may not match what the 
+                // user currently has on the box (as the APIs have changed during
+                // the VS15 timeframe.  Be resilient to this happening and just
+                // default to searching all documents.
+                return false;
+            }
+        }
+
+        private bool GetSearchCurrentDocumentOptionWorker(INavigateToCallback callback)
+        {
+            var optionsService = _optionsServices.Length > 0
+                ? VersionSelector.SelectHighest(_optionsServices)
+                : null;
+            var searchCurrentDocument = optionsService?.GetSearchCurrentDocument(callback.Options) ?? false;
+            return searchCurrentDocument;
         }
     }
 }
