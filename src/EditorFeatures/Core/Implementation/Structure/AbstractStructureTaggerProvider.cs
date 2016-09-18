@@ -155,6 +155,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
         {
+            try
+            {
+                ProcessSpansWorker(context, snapshotSpan, outliningService, spans);
+            }
+            catch (TypeLoadException)
+            {
+                // We're targetting a version of the BlockTagging infrastructure in 
+                // VS that may not match the version that the user is currently
+                // developing against.  Be resilient to this until everything moves
+                // forward to the right VS version.
+            }
+        }
+
+        private void ProcessSpansWorker(
+            TaggerContext<TRegionTag> context,
+            SnapshotSpan snapshotSpan,
+            BlockStructureService outliningService,
+            ImmutableArray<BlockSpan> spans)
+        {
             if (spans != null)
             {
                 var snapshot = snapshotSpan.Snapshot;
