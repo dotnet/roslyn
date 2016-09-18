@@ -75,6 +75,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
+        public async Task TestOnAssign()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (s == null) throw new ArgumentNullException(nameof(s));
+        _s = [|s|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        _s = s ?? throw new ArgumentNullException(nameof(s));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
         public async Task OnlyInCSharp7AndHigher()
         {
             await TestMissingAsync(

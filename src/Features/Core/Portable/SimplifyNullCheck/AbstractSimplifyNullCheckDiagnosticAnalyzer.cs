@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
@@ -130,9 +131,23 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
                 assignmentExpression.Value.Syntax.GetLocation());
 
             context.ReportDiagnostic(
-                Diagnostic.Create(s_descriptor, ifOperation.Syntax.GetLocation(), additionalLocations: allLocations));
+                Diagnostic.Create(s_descriptor, ifOperation.Syntax.GetLocation(), additionalLocations: allLocations,
+                    properties: GetProperties(ifStatement: true)));
             context.ReportDiagnostic(
-                Diagnostic.Create(s_descriptor, expressionStatement.Syntax.GetLocation(), additionalLocations: allLocations));
+                Diagnostic.Create(s_descriptor, expressionStatement.Syntax.GetLocation(), additionalLocations: allLocations,
+                    properties: GetProperties(ifStatement: false)));
+        }
+
+        private static ImmutableDictionary<string, string> GetProperties(
+            bool ifStatement)
+        {
+            var equivalenceKey = ifStatement
+                ? SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey
+                : SimplifyNullCheckCodeFixProvider.ExpressionStatementEquivalenceKey;
+
+            return ImmutableDictionary<string, string>.Empty.Add(
+                nameof(CodeAction.EquivalenceKey),
+                equivalenceKey);
         }
 
         private bool TryFindAssignmentExpression(

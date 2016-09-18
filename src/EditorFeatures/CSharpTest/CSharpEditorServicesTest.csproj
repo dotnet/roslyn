@@ -309,6 +309,7 @@
     <Compile Include="Organizing\OrganizeModifiersTests.cs" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.cs" />
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
+    <Compile Include="SimplifyNullCheck\SimplifyNullCheckTests_FixAllTests.cs" />
     <Compile Include="SimplifyNullCheck\SimplifyNullCheckTests.cs" />
     <Compile Include="Structure\AbstractCSharpSyntaxNodeStructureTests.cs" />
     <Compile Include="Structure\AbstractCSharpSyntaxTriviaStructureTests.cs" />
