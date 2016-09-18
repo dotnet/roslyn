@@ -53,8 +53,10 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
                 CancellationToken cancellationToken)
             {
                 // Process all documents in parallel.
+                // Defer to the actual SimplifyNullCheckCodeFixProvider to process htis
+                // document.  It can process all the diagnostics and apply them properly.
                 var updatedDocumentTasks = documentsAndDiagnosticsToFixMap.Select(
-                    kvp => FixAsync(fixAllState, kvp.Key, kvp.Value, cancellationToken));
+                    kvp => _provider.FixAllAsync(kvp.Key, kvp.Value, cancellationToken));
 
                 await Task.WhenAll(updatedDocumentTasks).ConfigureAwait(false);
 
@@ -69,17 +71,6 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
 
                 var title = GetFixAllTitle(fixAllState);
                 return new CodeAction.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
-            }
-
-            private Task<Document> FixAsync(
-                FixAllState fixAllState, Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            {
-                var filteredDiagnostics = diagnostics.WhereAsArray(
-                    d => d.Properties[nameof(CodeAction.EquivalenceKey)] == fixAllState.CodeActionEquivalenceKey);
-
-                // Defer to the actual SimplifyNullCheckCodeFixProvider to process htis
-                // document.  It can process all the diagnostics and apply them properly.
-                return _provider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
             }
         }
     }

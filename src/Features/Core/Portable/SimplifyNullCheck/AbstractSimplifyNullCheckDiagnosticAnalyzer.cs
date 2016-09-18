@@ -147,23 +147,7 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
                 isEnabledByDefault: true);
 
             context.ReportDiagnostic(
-                Diagnostic.Create(descriptor, ifOperation.Syntax.GetLocation(), additionalLocations: allLocations,
-                    properties: GetProperties(ifStatement: true)));
-            context.ReportDiagnostic(
-                Diagnostic.Create(descriptor, expressionStatement.Syntax.GetLocation(), additionalLocations: allLocations,
-                    properties: GetProperties(ifStatement: false)));
-        }
-
-        private static ImmutableDictionary<string, string> GetProperties(
-            bool ifStatement)
-        {
-            var equivalenceKey = ifStatement
-                ? SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey
-                : SimplifyNullCheckCodeFixProvider.ExpressionStatementEquivalenceKey;
-
-            return ImmutableDictionary<string, string>.Empty.Add(
-                nameof(CodeAction.EquivalenceKey),
-                equivalenceKey);
+                Diagnostic.Create(descriptor, ifOperation.Syntax.GetLocation(), additionalLocations: allLocations));
         }
 
         private bool TryFindAssignmentExpression(

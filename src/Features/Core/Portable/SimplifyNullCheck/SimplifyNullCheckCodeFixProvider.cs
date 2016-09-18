@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
         Name = PredefinedCodeFixProviderNames.SimplifyNullCheck), Shared]
     internal partial class SimplifyNullCheckCodeFixProvider : CodeFixProvider
     {
-        public static readonly string IfStatementEquivalenceKey = nameof(IfStatementEquivalenceKey);
-        public static readonly string ExpressionStatementEquivalenceKey = nameof(ExpressionStatementEquivalenceKey);
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.SimplifyNullCheckDiagnosticId);
 
@@ -31,9 +28,8 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            var equivalenceKey = diagnostic.Properties[nameof(CodeAction.EquivalenceKey)];
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, diagnostic, c), equivalenceKey),
+                new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
                 diagnostic);
 
             return SpecializedTasks.EmptyTask;
@@ -79,9 +75,8 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument,
-                string equivalenceKey) 
-                : base(FeaturesResources.Simplify_null_check, createChangedDocument, equivalenceKey)
+                Func<CancellationToken, Task<Document>> createChangedDocument) 
+                : base(FeaturesResources.Simplify_null_check, createChangedDocument)
             {
             }
         }

@@ -37,7 +37,7 @@ class C
         _s = s ?? throw new ArgumentNullException(nameof(s));
         _t = t ?? throw new ArgumentNullException(nameof(t));
     }
-}", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
@@ -67,67 +67,7 @@ class C
         _s = s ?? throw new ArgumentNullException(nameof(s));
         _t = t ?? throw new ArgumentNullException(nameof(t));
     }
-}", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
-        public async Task FixAllInDocument3()
-        {
-            await TestAsync(
-@"
-using System;
-
-class C
-{
-    void M(string s, string t)
-    {
-        if (s == null) { throw new ArgumentNullException(nameof(s)); }
-        if (t == null) { throw new ArgumentNullException(nameof(t)); }
-        _s = {|FixAllInDocument:s|};
-        _t = t;
-    }
-}",
-@"
-using System;
-
-class C
-{
-    void M(string s, string t)
-    {
-        _s = s ?? throw new ArgumentNullException(nameof(s));
-        _t = t ?? throw new ArgumentNullException(nameof(t));
-    }
-}", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.ExpressionStatementEquivalenceKey);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
-        public async Task FixAllInDocument4()
-        {
-            await TestAsync(
-@"
-using System;
-
-class C
-{
-    void M(string s, string t)
-    {
-        if (s == null) { throw new ArgumentNullException(nameof(s)); }
-        if (t == null) { throw new ArgumentNullException(nameof(t)); }
-        _s = s;
-        _t = {|FixAllInDocument:t|};
-    }
-}",
-@"
-using System;
-
-class C
-{
-    void M(string s, string t)
-    {
-        _s = s ?? throw new ArgumentNullException(nameof(s));
-        _t = t ?? throw new ArgumentNullException(nameof(t));
-    }
-}", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.ExpressionStatementEquivalenceKey);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
@@ -191,7 +131,7 @@ class D
 }
         </Document>
     </Project>
-</Workspace>", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey);
+</Workspace>");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
@@ -254,7 +194,7 @@ class D
 }
         </Document>
     </Project>
-</Workspace>", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey);
+</Workspace>");
         }
     }
 }
