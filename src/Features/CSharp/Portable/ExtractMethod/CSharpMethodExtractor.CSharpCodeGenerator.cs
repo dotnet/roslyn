@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -309,8 +310,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(variablesToRemove, cancellationToken);
                 var variableNamesToRemove = new HashSet<string>(variablesToRemove.Select(v => v.Name));
 
-                foreach (var statement in statements
-                    .Select(s => RemoveOutVariablesFromDeclarationExpressions(s, variableNamesToRemove)))
+                statements = statements.Select(s => RemoveOutVariablesFromDeclarationExpressions(s, variableNamesToRemove));
+
+                foreach (var statement in statements)
                 {
                     var declarationStatement = statement as LocalDeclarationStatementSyntax;
                     if (declarationStatement == null)
@@ -401,9 +403,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             private StatementSyntax RemoveOutVariablesFromDeclarationExpressions(StatementSyntax statement,
                 HashSet<string> variablesToRemove)
             {
-                foreach (var node in statement
-                    .DescendantNodes()
-                    .Where(n => n.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.DeclarationPattern)))
+                var replacements = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
+
+                var declarations = statement.DescendantNodes()
+                    .Where(n => n.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.DeclarationPattern));
+
+                foreach (var node in declarations)
                 {
                     switch (node.Kind())
                     {
@@ -420,10 +425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 break;
                             }
 
-                            var name = ((SingleVariableDesignationSyntax)variableComponent.Designation).Identifier.ValueText;
+                            var designation = (SingleVariableDesignationSyntax)variableComponent.Designation;
+                            var name = designation.Identifier.ValueText;
                             if (variablesToRemove.Contains(name))
                             {
-                                statement = statement.ReplaceNode(declaration, SyntaxFactory.IdentifierName(name));
+                                replacements.Add(declaration, SyntaxFactory.IdentifierName(name));
                             }
 
                             break;
@@ -434,19 +440,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                             {
                                 break;
                             }
+
                             // We don't have a good refactoring for this, so we just annotate the conflict
                             var identifier = pattern.Identifier;
-
                             var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
-
-                            statement = statement.ReplaceNode(pattern,
-                                pattern.WithIdentifier(identifier.WithAdditionalAnnotations(annotation)));
+                            var newIdentifier = identifier.WithAdditionalAnnotations(annotation);
+                            replacements.Add(pattern, pattern.WithIdentifier(newIdentifier));
 
                             break;
                     }
                 }
 
-                return statement;
+                var result = statement.ReplaceNodes(replacements.Keys, (orig, partiallyReplaced) => replacements[orig]);
+                replacements.Free();
+                return result;
             }
 
             private static SyntaxToken ApplyTriviaFromDeclarationToAssignmentIdentifier(LocalDeclarationStatementSyntax declarationStatement, bool firstVariableToAttachTrivia, VariableDeclaratorSyntax variable)
