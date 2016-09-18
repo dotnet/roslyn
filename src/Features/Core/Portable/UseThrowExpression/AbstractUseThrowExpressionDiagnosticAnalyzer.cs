@@ -170,12 +170,16 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                         ifOperation.Syntax.SpanStart,
                         tokenBeforeThrow.Span.End)),
                     additionalLocations: allLocations));
-            context.ReportDiagnostic(
-                Diagnostic.Create(s_unnecessaryCodeDescriptor,
-                    Location.Create(syntaxTree, TextSpan.FromBounds(
-                        tokenAfterThrow.Span.Start,
-                        ifOperation.Syntax.Span.End)),
-                    additionalLocations: allLocations));
+
+            if (ifOperation.Syntax.Span.End > tokenAfterThrow.Span.Start)
+            {
+                context.ReportDiagnostic(
+                    Diagnostic.Create(s_unnecessaryCodeDescriptor,
+                        Location.Create(syntaxTree, TextSpan.FromBounds(
+                            tokenAfterThrow.Span.Start,
+                            ifOperation.Syntax.Span.End)),
+                        additionalLocations: allLocations));
+            }
         }
 
         private bool TryFindAssignmentExpression(
