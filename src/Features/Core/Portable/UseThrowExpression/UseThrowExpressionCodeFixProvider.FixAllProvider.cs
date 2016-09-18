@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 // Defer to the actual SimplifyNullCheckCodeFixProvider to process htis
                 // document.  It can process all the diagnostics and apply them properly.
                 var updatedDocumentTasks = documentsAndDiagnosticsToFixMap.Select(
-                    kvp => _provider.FixAllAsync(kvp.Key, kvp.Value, cancellationToken));
+                    kvp => FixAllAsync(kvp.Key, kvp.Value, cancellationToken));
 
                 await Task.WhenAll(updatedDocumentTasks).ConfigureAwait(false);
 
@@ -71,6 +71,14 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
                 var title = GetFixAllTitle(fixAllState);
                 return new CodeAction.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
+            }
+
+            private Task<Document> FixAllAsync(
+                Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+            {
+                var filteredDiagnostics = diagnostics.WhereAsArray(
+                    d => !d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
+                return _provider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
             }
         }
     }

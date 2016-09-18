@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
@@ -36,15 +37,24 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-                IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
-                s_localizableTitle,
-                s_localizableMessage,
-                DiagnosticCategory.Style,
-                DiagnosticSeverity.Hidden,
-                isEnabledByDefault: true);
+            IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
+            s_localizableTitle,
+            s_localizableMessage,
+            DiagnosticCategory.Style,
+            DiagnosticSeverity.Hidden,
+            isEnabledByDefault: true);
+
+        private static DiagnosticDescriptor s_unnecessaryCodeDescriptor = new DiagnosticDescriptor(
+            IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
+            s_localizableTitle,
+            s_localizableMessage,
+            DiagnosticCategory.Style,
+            DiagnosticSeverity.Hidden,
+            isEnabledByDefault: true,
+            customTags: DiagnosticCustomTags.Unnecessary);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
-            => ImmutableArray.Create(s_descriptor);
+            => ImmutableArray.Create(s_descriptor, s_unnecessaryCodeDescriptor);
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
@@ -70,7 +80,8 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            if (!IsSupported(context.Operation.Syntax.SyntaxTree.Options))
+            var syntaxTree = context.Operation.Syntax.SyntaxTree;
+            if (!IsSupported(syntaxTree.Options))
             {
                 return;
             }
@@ -148,6 +159,23 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));
+
+            // Fade out the rest of the if that surrounds the 'throw' exception.
+
+            var tokenBeforeThrow = throwStatement.GetFirstToken().GetPreviousToken();
+            var tokenAfterThrow = throwStatement.GetLastToken().GetNextToken();
+            context.ReportDiagnostic(
+                Diagnostic.Create(s_unnecessaryCodeDescriptor,
+                    Location.Create(syntaxTree, TextSpan.FromBounds(
+                        ifOperation.Syntax.SpanStart,
+                        tokenBeforeThrow.Span.End)),
+                    additionalLocations: allLocations));
+            context.ReportDiagnostic(
+                Diagnostic.Create(s_unnecessaryCodeDescriptor,
+                    Location.Create(syntaxTree, TextSpan.FromBounds(
+                        tokenAfterThrow.Span.Start,
+                        ifOperation.Syntax.Span.End)),
+                    additionalLocations: allLocations));
         }
 
         private bool TryFindAssignmentExpression(

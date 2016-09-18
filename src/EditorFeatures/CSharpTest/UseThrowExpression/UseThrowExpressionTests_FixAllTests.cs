@@ -70,6 +70,66 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task FixAllInDocument3()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string s, string t)
+    {
+        {|FixAllInDocument:if|} (s == null) { throw new ArgumentNullException(nameof(s)); }
+        if (t == null) { throw new ArgumentNullException(nameof(t)); }
+        _s = s;
+        _t = t;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M(string s, string t)
+    {
+        _s = s ?? throw new ArgumentNullException(nameof(s));
+        _t = t ?? throw new ArgumentNullException(nameof(t));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task FixAllInDocument4()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string s, string t)
+    {
+        if (s == null) { throw new ArgumentNullException(nameof(s)); }
+        {|FixAllInDocument:if|} (t == null) { throw new ArgumentNullException(nameof(t)); }
+        _s = s;
+        _t = t;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M(string s, string t)
+    {
+        _s = s ?? throw new ArgumentNullException(nameof(s));
+        _t = t ?? throw new ArgumentNullException(nameof(t));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
         public async Task FixAllInDocumentDoNotTouchOtherDocuments()
         {
             await TestAsync(

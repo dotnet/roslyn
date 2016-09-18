@@ -49,6 +49,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestOnIf()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string s)
+    {
+        [|if|] (s == null) throw new ArgumentNullException(nameof(s));
+        _s = s;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        _s = s ?? throw new ArgumentNullException(nameof(s));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
         public async Task WithBraces()
         {
             await TestAsync(
