@@ -129,5 +129,132 @@ class C
     }
 }", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.ExpressionStatementEquivalenceKey);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
+        public async Task FixAllInDocumentDoNotTouchOtherDocuments()
+        {
+            await TestAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+class C
+{
+    void M(string s, string t)
+    {
+        {|FixAllInDocument:if|} (s == null) { throw new ArgumentNullException(nameof(s)); }
+        _s = s;
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+class D
+{
+    void M(string s, string t)
+    {
+        if (s == null) { throw new ArgumentNullException(nameof(s)); }
+        _s = s;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+",
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+class C
+{
+    void M(string s, string t)
+    {
+        _s = s ?? throw new ArgumentNullException(nameof(s));
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+class D
+{
+    void M(string s, string t)
+    {
+        if (s == null) { throw new ArgumentNullException(nameof(s)); }
+        _s = s;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
+        public async Task FixAllInProject1()
+        {
+            await TestAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+class C
+{
+    void M(string s, string t)
+    {
+        {|FixAllInProject:if|} (s == null) { throw new ArgumentNullException(nameof(s)); }
+        _s = s;
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+class D
+{
+    void M(string s, string t)
+    {
+        if (s == null) { throw new ArgumentNullException(nameof(s)); }
+        _s = s;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+",
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+class C
+{
+    void M(string s, string t)
+    {
+        _s = s ?? throw new ArgumentNullException(nameof(s));
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+class D
+{
+    void M(string s, string t)
+    {
+        _s = s ?? throw new ArgumentNullException(nameof(s));
+    }
+}
+        </Document>
+    </Project>
+</Workspace>", fixAllActionEquivalenceKey: SimplifyNullCheckCodeFixProvider.IfStatementEquivalenceKey);
+        }
     }
 }
