@@ -92,7 +92,7 @@
     </Compile>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
-    <Compile Include="SimplifyNullCheck\SimplifyNullCheckAnalyzer.cs" />
+    <Compile Include="SimplifyNullCheck\AbstractSimplifyNullCheckDiagnosticAnalyzer.cs" />
     <Compile Include="SimplifyNullCheck\SimplifyNullCheckCodeFixProvider.cs" />
     <Compile Include="Structure\BlockTypes.cs" />
     <Compile Include="CodeLens\CodeLensReferencesServiceFactory.cs" />

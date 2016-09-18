@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
@@ -32,8 +28,7 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
     /// Note: this analyzer can be udpated to run on VB once VB supports 'throw' 
     /// expressions as well.
     /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class SimplifyNullCheckAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class AbstractSimplifyNullCheckDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Simplify_null_check), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Simplify_null_check), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
@@ -60,6 +55,8 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
         private static MethodInfo s_getOperationInfo =
             typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
 
+        protected abstract bool IsSupported(ParseOptions options);
+
         public override void Initialize(AnalysisContext context)
         {
             s_registerOperationActionInfo.Invoke(context, new object[]
@@ -69,14 +66,19 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
             });
         }
 
-        private void AnalyzeOperation(OperationAnalysisContext operationContext)
+        private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var cancellationToken = operationContext.CancellationToken;
+            if (!IsSupported(context.Operation.Syntax.SyntaxTree.Options))
+            {
+                return;
+            }
 
-            var throwOperation = (IThrowStatement)operationContext.Operation;
+            var cancellationToken = context.CancellationToken;
+
+            var throwOperation = (IThrowStatement)context.Operation;
             var throwStatement = throwOperation.Syntax;
 
-            var compilation = operationContext.Compilation;
+            var compilation = context.Compilation;
             var semanticModel = compilation.GetSemanticModel(throwStatement.SyntaxTree);
 
             var ifOperation = GetContainingIfOperation(
@@ -127,9 +129,9 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
                 throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            operationContext.ReportDiagnostic(
+            context.ReportDiagnostic(
                 Diagnostic.Create(s_descriptor, ifOperation.Syntax.GetLocation(), additionalLocations: allLocations));
-            operationContext.ReportDiagnostic(
+            context.ReportDiagnostic(
                 Diagnostic.Create(s_descriptor, expressionStatement.Syntax.GetLocation(), additionalLocations: allLocations));
         }
 
