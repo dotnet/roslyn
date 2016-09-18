@@ -75,9 +75,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
-        public async Task TestOnAssign()
+        public async Task TestNotOnAssign()
         {
-            await TestAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -87,15 +87,6 @@ class C
     {
         if (s == null) throw new ArgumentNullException(nameof(s));
         _s = [|s|];
-    }
-}",
-@"using System;
-
-class C
-{
-    void M(string s)
-    {
-        _s = s ?? throw new ArgumentNullException(nameof(s));
     }
 }");
         }
