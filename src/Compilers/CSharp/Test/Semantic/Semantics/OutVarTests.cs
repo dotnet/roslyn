@@ -20229,7 +20229,13 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
+        }
+
+        private static void AssertNoGlobalStatements(SyntaxTree tree)
+        {
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
         [Fact]
@@ -20348,6 +20354,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -20535,6 +20542,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -20674,6 +20682,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -20898,6 +20907,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21030,6 +21040,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21151,6 +21162,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21273,6 +21285,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21439,6 +21452,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21562,6 +21576,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21702,6 +21717,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21863,6 +21879,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22049,6 +22066,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22188,6 +22206,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22423,6 +22442,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22563,6 +22583,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22797,6 +22818,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22936,6 +22958,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23199,6 +23222,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23329,6 +23353,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23460,6 +23485,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -24085,6 +24111,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -24240,6 +24267,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
