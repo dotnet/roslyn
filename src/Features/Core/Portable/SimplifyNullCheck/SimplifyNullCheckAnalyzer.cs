@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Simplify_null_check), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Simplify_null_check), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
-        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
+        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+            IDEDiagnosticIds.SimplifyNullCheckDiagnosticId,
             s_localizableTitle,
             s_localizableMessage,
             DiagnosticCategory.Style,
@@ -122,8 +123,8 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
             // Ok, there were no intervening writes.  This check+assignment can be simplified.
 
             var allLocations = ImmutableArray.Create(
-                throwOperation.Syntax.GetLocation(),
-                expressionStatement.Syntax.GetLocation(),
+                ifOperation.Syntax.GetLocation(),
+                throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
             operationContext.ReportDiagnostic(
