@@ -2,13 +2,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.SimplifyNullCheck;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyNullCheck
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
 {
-    public partial class SimplifyNullCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseThrowExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
         public async Task FixAllInDocument1()
@@ -21,7 +20,7 @@ class C
 {
     void M(string s, string t)
     {
-        {|FixAllInDocument:if|} (s == null) { throw new ArgumentNullException(nameof(s)); }
+        if (s == null) { {|FixAllInDocument:throw|} new ArgumentNullException(nameof(s)); }
         if (t == null) { throw new ArgumentNullException(nameof(t)); }
         _s = s;
         _t = t;
@@ -52,7 +51,7 @@ class C
     void M(string s, string t)
     {
         if (s == null) { throw new ArgumentNullException(nameof(s)); }
-        {|FixAllInDocument:if|} (t == null) { throw new ArgumentNullException(nameof(t)); }
+        if (t == null) { {|FixAllInDocument:throw|} new ArgumentNullException(nameof(t)); }
         _s = s;
         _t = t;
     }
@@ -84,7 +83,7 @@ class C
 {
     void M(string s, string t)
     {
-        {|FixAllInDocument:if|} (s == null) { throw new ArgumentNullException(nameof(s)); }
+        if (s == null) { {|FixAllInDocument:throw|} new ArgumentNullException(nameof(s)); }
         _s = s;
     }
 }
@@ -148,7 +147,7 @@ class C
 {
     void M(string s, string t)
     {
-        {|FixAllInProject:if|} (s == null) { throw new ArgumentNullException(nameof(s)); }
+        if (s == null) { {|FixAllInProject:throw|} new ArgumentNullException(nameof(s)); }
         _s = s;
     }
 }

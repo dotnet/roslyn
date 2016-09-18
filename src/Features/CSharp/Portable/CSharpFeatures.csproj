@@ -354,7 +354,7 @@
     <Compile Include="Organizing\Organizers\OperatorDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\PropertyDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\StructDeclarationOrganizer.cs" />
-    <Compile Include="SimplifyNullCheck\CSharpSimplifyNullCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="Structure\CSharpBlockStructureProvider.cs" />
     <Compile Include="Structure\CSharpStructureHelpers.cs" />
     <Compile Include="Structure\CSharpBlockStructureService.cs" />

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
-namespace Microsoft.CodeAnalysis.SimplifyNullCheck
+namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
     /// <summary>
     /// Looks for patterns of the form:
@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
     /// Note: this analyzer can be udpated to run on VB once VB supports 'throw' 
     /// expressions as well.
     /// </summary>
-    internal abstract class AbstractSimplifyNullCheckDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Simplify_null_check), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Simplify_null_check), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-                IDEDiagnosticIds.SimplifyNullCheckDiagnosticId,
+                IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
                 s_localizableTitle,
                 s_localizableMessage,
                 DiagnosticCategory.Style,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
                 assignmentExpression.Value.Syntax.GetLocation());
 
             var descriptor = new DiagnosticDescriptor(
-                IDEDiagnosticIds.SimplifyNullCheckDiagnosticId,
+                IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
                 s_localizableTitle,
                 s_localizableMessage,
                 DiagnosticCategory.Style,
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
                 isEnabledByDefault: true);
 
             context.ReportDiagnostic(
-                Diagnostic.Create(descriptor, ifOperation.Syntax.GetLocation(), additionalLocations: allLocations));
+                Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));
         }
 
         private bool TryFindAssignmentExpression(

@@ -4,22 +4,22 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.SimplifyNullCheck;
+using Microsoft.CodeAnalysis.CSharp.UseThrowExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.SimplifyNullCheck;
+using Microsoft.CodeAnalysis.UseThrowExpression;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyNullCheck
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
 {
-    public partial class SimplifyNullCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseThrowExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpSimplifyNullCheckDiagnosticAnalyzer(),
-                new SimplifyNullCheckCodeFixProvider());
+                new CSharpUseThrowExpressionDiagnosticAnalyzer(),
+                new UseThrowExpressionCodeFixProvider());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyNullCheck)]
@@ -33,7 +33,7 @@ class C
 {
     void M(string s)
     {
-        [|if|] (s == null) throw new ArgumentNullException(nameof(s));
+        if (s == null) [|throw|] new ArgumentNullException(nameof(s));
         _s = s;
     }
 }",
@@ -59,7 +59,7 @@ class C
 {
     void M(string s)
     {
-        [|if|] (s == null) { throw new ArgumentNullException(nameof(s)); }
+        if (s == null) { [|throw|] new ArgumentNullException(nameof(s)); }
         _s = s;
     }
 }",
@@ -102,7 +102,7 @@ class C
 {
     void M(string s)
     {
-        [|if|] (s == null) { throw new ArgumentNullException(nameof(s)) };
+        if (s == null) { [|throw|] new ArgumentNullException(nameof(s)) };
         _s = s;
     }
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -119,7 +119,7 @@ class C
 {
     void M(string s, string t)
     {
-        [|if|] (s == null) { throw new ArgumentNullException(nameof(s)); }
+        if (s == null) { [|throw|] new ArgumentNullException(nameof(s)); }
         if (t == null) { throw new ArgumentNullException(nameof(t)); }
         _s = s;
     }
@@ -147,7 +147,7 @@ class C
 {
     void M(string s, string t)
     {
-        [|if|] (s == null) { throw new ArgumentNullException(nameof(s)) };
+        if (s == null) { [|throw|] new ArgumentNullException(nameof(s)) };
         s = ""something"";
         _s = s;
     }
@@ -165,7 +165,7 @@ class C
 {
     void M(string s)
     {
-        [|if|] (null == s) throw new ArgumentNullException(nameof(s));
+        if (null == s) [|throw|] new ArgumentNullException(nameof(s));
         _s = s;
     }
 }",
@@ -192,7 +192,7 @@ class C
     void M()
     {
         string s = null;
-        [|if|] (null == s) throw new ArgumentNullException(nameof(s));
+        if (null == s) [|throw|] new ArgumentNullException(nameof(s));
         _s = s;
     }
 }",
@@ -221,7 +221,7 @@ class C
 
     void M()
     {
-        [|if|] (null == s) throw new ArgumentNullException(nameof(s));
+        if (null == s) [|throw|] new ArgumentNullException(nameof(s));
         _s = s;
     }
 }");
@@ -239,7 +239,7 @@ class C
     void M(string s)
     {
         _s = s;
-        [|if|] (s == null) throw new ArgumentNullException(nameof(s));
+        if (s == null) [|throw|] new ArgumentNullException(nameof(s));
     }
 }");
         }

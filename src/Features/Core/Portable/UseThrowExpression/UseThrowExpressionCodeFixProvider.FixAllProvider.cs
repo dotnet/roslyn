@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
-namespace Microsoft.CodeAnalysis.SimplifyNullCheck
+namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
-    internal partial class SimplifyNullCheckCodeFixProvider
+    internal partial class UseThrowExpressionCodeFixProvider
     {
         /// <summary>
         /// A specialized <see cref="FixAllProvider"/> for this CodeFixProvider.
@@ -34,15 +34,15 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
         /// 
         /// This FixAllProvider avoids this entirely by not doing any textual merging.
         /// Instead, we just take all the fixes to apply in the document, as we use
-        /// the core <see cref="SimplifyNullCheckCodeFixProvider.FixAllAsync"/> to do
+        /// the core <see cref="UseThrowExpressionCodeFixProvider.FixAllAsync"/> to do
         /// all the editing at once on the SyntaxTree.  Because we're doing real tree
         /// edits with actual nodes, there is no issue with anything getting messed up.
         /// </summary>
-        private class SimplifyNullCheckFixAllProvider : BatchFixAllProvider
+        private class UseThrowExpressionFixAllProvider : BatchFixAllProvider
         {
-            private readonly SimplifyNullCheckCodeFixProvider _provider;
+            private readonly UseThrowExpressionCodeFixProvider _provider;
 
-            public SimplifyNullCheckFixAllProvider(SimplifyNullCheckCodeFixProvider provider)
+            public UseThrowExpressionFixAllProvider(UseThrowExpressionCodeFixProvider provider)
             {
                 _provider = provider;
             }

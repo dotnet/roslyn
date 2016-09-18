@@ -13,17 +13,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SimplifyNullCheck
+namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp,
-        Name = PredefinedCodeFixProviderNames.SimplifyNullCheck), Shared]
-    internal partial class SimplifyNullCheckCodeFixProvider : CodeFixProvider
+        Name = PredefinedCodeFixProviderNames.UseThrowExpression), Shared]
+    internal partial class UseThrowExpressionCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.SimplifyNullCheckDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UseThrowExpressionDiagnosticId);
 
         public override FixAllProvider GetFixAllProvider()
-            => new SimplifyNullCheckFixAllProvider(this);
+            => new UseThrowExpressionFixAllProvider(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
         {
             public MyCodeAction(
                 Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Simplify_null_check, createChangedDocument)
+                : base(FeaturesResources.Use_throw_expression, createChangedDocument)
             {
             }
         }

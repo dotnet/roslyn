@@ -2332,15 +2332,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Simplify null check.
-        /// </summary>
-        internal static string Simplify_null_check {
-            get {
-                return ResourceManager.GetString("Simplify_null_check", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Solution.
         /// </summary>
         internal static string Solution {
@@ -2891,6 +2882,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_locally_installed_0_version_1_This_version_used_in_colon_2 {
             get {
                 return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_colon_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
+        /// </summary>
+        internal static string Use_throw_expression {
+            get {
+                return ResourceManager.GetString("Use_throw_expression", resourceCulture);
             }
         }
         

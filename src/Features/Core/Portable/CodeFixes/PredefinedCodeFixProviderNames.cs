@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveUnnecessaryImports = "Remove Unnecessary Usings or Imports";
         public const string RenameTracking = "Rename Tracking";
         public const string SimplifyNames = "Simplify Names";
-        public const string SimplifyNullCheck = nameof(SimplifyNullCheck);
         public const string SpellCheck = "Spell Check";
         public const string Suppression = nameof(Suppression);
         public const string AddOverloads = "Add Overloads to member";
         public const string AddNew = "Add new keyword to member";
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
+        public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string PreferFrameworkType = nameof(PreferFrameworkType);
     }
 }
