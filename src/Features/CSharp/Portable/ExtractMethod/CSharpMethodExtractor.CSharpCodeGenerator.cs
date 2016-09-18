@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -83,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected override OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken)
             {
                 var result = CreateMethodBody(cancellationToken);
+                var methodParameters = CreateMethodParameters();
+                OperationStatus hasDuplicateDefinitions = CheckForDuplicateDefinitions(result.Data, methodParameters);
 
                 var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: SpecializedCollections.EmptyList<AttributeData>(),
@@ -92,12 +95,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     explicitInterfaceSymbol: null,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(cancellationToken),
-                    parameters: CreateMethodParameters(),
+                    parameters: methodParameters,
                     statements: result.Data);
 
-                return result.With(
-                    this.MethodDefinitionAnnotation.AddAnnotationToSymbol(
+                return result
+                    .With(hasDuplicateDefinitions)
+                    .With(this.MethodDefinitionAnnotation.AddAnnotationToSymbol(
                         Formatter.Annotation.AddAnnotationToSymbol(methodSymbol)));
+            }
+
+            /// <summary>
+            /// Check whether the body has any left-over variable definitions that conflict with method parameters.
+            /// </summary>
+            private OperationStatus CheckForDuplicateDefinitions(List<SyntaxNode> body, IList<IParameterSymbol> methodParameters)
+            {
+                var parameters = new HashSet<string>(methodParameters.Select(p => p.Name));
+
+                foreach (var node in body)
+                {
+                    foreach (var decl in node.DescendantNodes()
+                        .Where(n => n.Kind() == SyntaxKind.DeclarationPattern)
+                        .Cast<DeclarationPatternSyntax>())
+                    {
+                        if (parameters.Contains(decl.Identifier.ValueText))
+                        {
+                            return OperationStatus.IsPattern;
+                        }
+                    }
+                }
+                return OperationStatus.Succeeded;
             }
 
             protected override async Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken)
