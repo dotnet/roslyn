@@ -505,15 +505,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot extract a method with an is-pattern declaration..
-        /// </summary>
-        internal static string Cannot_extract_a_method_with_an_is_pattern_declaration {
-            get {
-                return ResourceManager.GetString("Cannot_extract_a_method_with_an_is_pattern_declaration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot resolve reference &apos;{0}&apos;..
         /// </summary>
         internal static string Cannot_resolve_reference_0 {

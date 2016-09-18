@@ -171,9 +171,6 @@
   <data name="The_selection_contains_an_error_or_unknown_type" xml:space="preserve">
     <value>The selection contains an error or unknown type.</value>
   </data>
-  <data name="Cannot_extract_a_method_with_an_is_pattern_declaration" xml:space="preserve">
-    <value>Cannot extract a method with an is-pattern declaration.</value>
-  </data>
   <data name="Type_parameter_0_is_hidden_by_another_type_parameter_1" xml:space="preserve">
     <value>Type parameter '{0}' is hidden by another type parameter '{1}'.</value>
   </data>

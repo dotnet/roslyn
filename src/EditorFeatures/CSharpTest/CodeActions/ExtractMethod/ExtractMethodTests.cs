@@ -550,8 +550,11 @@ index: 0);
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
         public async Task TestIsPattern()
         {
-            await TestMissingAsync(
-@"class C { static void M(int i) { int r; [|r = M1(3 is int y, i);|] System.Console.WriteLine(r + y); } } ");
+            await TestAsync(
+@"class C { static void M(int i) { int r; [|r = M1(3 is int y, i);|] System.Console.WriteLine(r + y); } } ",
+@"class C { static void M(int i) { int r; int y; {|Rename:NewMethod|}(i, out r, out y); System.Console.WriteLine(r + y); } 
+private static void NewMethod(int i, out int r, out int y) { r = M1(3 is int {|Conflict:y|}, i); } }",
+index: 0);
         }
     }
 }

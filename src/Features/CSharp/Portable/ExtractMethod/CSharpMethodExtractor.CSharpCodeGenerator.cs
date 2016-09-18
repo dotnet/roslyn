@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -84,8 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected override OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken)
             {
                 var result = CreateMethodBody(cancellationToken);
-                var methodParameters = CreateMethodParameters();
-                OperationStatus hasDuplicateDefinitions = CheckForDuplicateDefinitions(result.Data, methodParameters);
 
                 var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: SpecializedCollections.EmptyList<AttributeData>(),
@@ -95,35 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     explicitInterfaceSymbol: null,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(cancellationToken),
-                    parameters: methodParameters,
+                    parameters: CreateMethodParameters(),
                     statements: result.Data);
 
-                return result
-                    .With(hasDuplicateDefinitions)
-                    .With(this.MethodDefinitionAnnotation.AddAnnotationToSymbol(
+                return result.With(
+                    this.MethodDefinitionAnnotation.AddAnnotationToSymbol(
                         Formatter.Annotation.AddAnnotationToSymbol(methodSymbol)));
-            }
-
-            /// <summary>
-            /// Check whether the body has any left-over variable definitions that conflict with method parameters.
-            /// </summary>
-            private OperationStatus CheckForDuplicateDefinitions(List<SyntaxNode> body, IList<IParameterSymbol> methodParameters)
-            {
-                var parameters = new HashSet<string>(methodParameters.Select(p => p.Name));
-
-                foreach (var node in body)
-                {
-                    foreach (var decl in node.DescendantNodes()
-                        .Where(n => n.Kind() == SyntaxKind.DeclarationPattern)
-                        .Cast<DeclarationPatternSyntax>())
-                    {
-                        if (parameters.Contains(decl.Identifier.ValueText))
-                        {
-                            return OperationStatus.IsPattern;
-                        }
-                    }
-                }
-                return OperationStatus.Succeeded;
             }
 
             protected override async Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken)
@@ -425,20 +401,48 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             private StatementSyntax RemoveOutVariablesFromDeclarationExpressions(StatementSyntax statement,
                 HashSet<string> variablesToRemove)
             {
-                foreach (var declaration in statement
+                foreach (var node in statement
                     .DescendantNodes()
-                    .Where(n => n.Kind() == SyntaxKind.DeclarationExpression)
-                    .Cast<DeclarationExpressionSyntax>())
+                    .Where(n => n.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.DeclarationPattern)))
                 {
-                    if (declaration.VariableComponent.Kind() == SyntaxKind.TypedVariableComponent)
+                    switch (node.Kind())
                     {
-                        var variableComponent = (TypedVariableComponentSyntax)declaration.VariableComponent;
-                        var name = ((SingleVariableDesignationSyntax)variableComponent.Designation).Identifier.ValueText;
+                        case SyntaxKind.DeclarationExpression:
+                            var declaration = (DeclarationExpressionSyntax)node;
+                            if (declaration.VariableComponent.Kind() != SyntaxKind.TypedVariableComponent)
+                            {
+                                break;
+                            }
 
-                        if (variablesToRemove.Contains(name))
-                        {
-                            statement = statement.ReplaceNode(declaration, SyntaxFactory.IdentifierName(name));
-                        }
+                            var variableComponent = (TypedVariableComponentSyntax)declaration.VariableComponent;
+                            if (variableComponent.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
+                            {
+                                break;
+                            }
+
+                            var name = ((SingleVariableDesignationSyntax)variableComponent.Designation).Identifier.ValueText;
+                            if (variablesToRemove.Contains(name))
+                            {
+                                statement = statement.ReplaceNode(declaration, SyntaxFactory.IdentifierName(name));
+                            }
+
+                            break;
+
+                        case SyntaxKind.DeclarationPattern:
+                            var pattern = (DeclarationPatternSyntax)node;
+                            if (!variablesToRemove.Contains(pattern.Identifier.ValueText))
+                            {
+                                break;
+                            }
+                            // We don't have a good refactoring for this, so we just annotate the conflict
+                            var identifier = pattern.Identifier;
+
+                            var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
+
+                            statement = statement.ReplaceNode(pattern,
+                                pattern.WithIdentifier(identifier.WithAdditionalAnnotations(annotation)));
+
+                            break;
                     }
                 }
 
