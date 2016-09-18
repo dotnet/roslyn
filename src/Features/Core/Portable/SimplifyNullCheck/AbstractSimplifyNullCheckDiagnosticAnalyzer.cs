@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
@@ -34,13 +35,13 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Simplify_null_check), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Simplify_null_check), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
-        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-            IDEDiagnosticIds.SimplifyNullCheckDiagnosticId,
-            s_localizableTitle,
-            s_localizableMessage,
-            DiagnosticCategory.Style,
-            DiagnosticSeverity.Hidden,
-            isEnabledByDefault: true);
+        private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                IDEDiagnosticIds.SimplifyNullCheckDiagnosticId,
+                s_localizableTitle,
+                s_localizableMessage,
+                DiagnosticCategory.Style,
+                DiagnosticSeverity.Hidden,
+                isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
             => ImmutableArray.Create(s_descriptor);
@@ -78,6 +79,13 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
 
             var throwOperation = (IThrowStatement)context.Operation;
             var throwStatement = throwOperation.Syntax;
+
+            var optionSet = context.Options.GetOptionSet();
+            var option = optionSet.GetOption(CodeStyleOptions.PreferThrowExpression, throwStatement.Language);
+            if (!option.Value)
+            {
+                return;
+            }
 
             var compilation = context.Compilation;
             var semanticModel = compilation.GetSemanticModel(throwStatement.SyntaxTree);
@@ -130,11 +138,19 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
                 throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
+            var descriptor = new DiagnosticDescriptor(
+                IDEDiagnosticIds.SimplifyNullCheckDiagnosticId,
+                s_localizableTitle,
+                s_localizableMessage,
+                DiagnosticCategory.Style,
+                option.Notification.Value,
+                isEnabledByDefault: true);
+
             context.ReportDiagnostic(
-                Diagnostic.Create(s_descriptor, ifOperation.Syntax.GetLocation(), additionalLocations: allLocations,
+                Diagnostic.Create(descriptor, ifOperation.Syntax.GetLocation(), additionalLocations: allLocations,
                     properties: GetProperties(ifStatement: true)));
             context.ReportDiagnostic(
-                Diagnostic.Create(s_descriptor, expressionStatement.Syntax.GetLocation(), additionalLocations: allLocations,
+                Diagnostic.Create(descriptor, expressionStatement.Syntax.GetLocation(), additionalLocations: allLocations,
                     properties: GetProperties(ifStatement: false)));
         }
 
