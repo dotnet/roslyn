@@ -2332,6 +2332,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Simplify null check.
+        /// </summary>
+        internal static string Simplify_null_check {
+            get {
+                return ResourceManager.GetString("Simplify_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solution.
         /// </summary>
         internal static string Solution {
