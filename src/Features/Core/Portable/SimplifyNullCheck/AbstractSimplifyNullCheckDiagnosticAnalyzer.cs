@@ -212,6 +212,13 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
         private bool TryGetLocalOrParameterSymbol(
             IOperation operation, out ISymbol localOrParameter)
         {
+            if (operation.Kind == OperationKind.ConversionExpression)
+            {
+                var conversionExpression = (IConversionExpression)operation;
+                return TryGetLocalOrParameterSymbol(
+                    conversionExpression.Operand, out localOrParameter);
+            }
+
             if (operation.Kind == OperationKind.LocalReferenceExpression)
             {
                 localOrParameter = ((ILocalReferenceExpression)operation).Local;
@@ -229,10 +236,8 @@ namespace Microsoft.CodeAnalysis.SimplifyNullCheck
 
         private bool IsNull(IOperation operation)
         {
-            var literalExpression = operation as ILiteralExpression;
-            return literalExpression != null &&
-                literalExpression.ConstantValue.HasValue &&
-                literalExpression.ConstantValue.Value == null;
+            return operation.ConstantValue.HasValue &&
+                   operation.ConstantValue.Value == null;
         }
 
         private IIfStatement GetContainingIfOperation(
