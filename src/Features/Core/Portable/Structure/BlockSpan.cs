@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Structure
             IsCollapsible = isCollapsible;
             AutoCollapse = autoCollapse;
             IsDefaultCollapsed = isDefaultCollapsed;
-            Type = type ?? PredefinedStructureTypes2.NonStructural;
+            Type = type ?? BlockTypes.Nonstructural;
         }
 
         public override string ToString()

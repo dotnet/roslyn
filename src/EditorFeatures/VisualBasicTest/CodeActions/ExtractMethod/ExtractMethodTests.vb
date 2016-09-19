@@ -329,5 +329,67 @@ End Namespace")
 
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
+        Public Async Function TestTupleDeclarationWithNames() As Task
+
+            Await TestAsync(
+"Class Program
+    Sub Main(args As String())
+        [|Dim x As (a As Integer, b As Integer) = (1, 2)|]
+        System.Console.WriteLine(x.a)
+    End Sub
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace",
+"Class Program
+    Sub Main(args As String())
+        Dim x As (a As Integer, b As Integer) = {|Rename:NewMethod|}()
+        System.Console.WriteLine(x.a)
+    End Sub
+    Private Shared Function NewMethod() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace")
+
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
+        Public Async Function TestTupleDeclarationWithSomeNames() As Task
+
+            Await TestAsync(
+"Class Program
+    Sub Main(args As String())
+        [|Dim x As (a As Integer, Integer) = (1, 2)|]
+        System.Console.WriteLine(x.a)
+    End Sub
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace",
+"Class Program
+    Sub Main(args As String())
+        Dim x As (a As Integer, Integer) = {|Rename:NewMethod|}()
+        System.Console.WriteLine(x.a)
+    End Sub
+    Private Shared Function NewMethod() As (a As Integer, Integer)
+        Return (1, 2)
+    End Function
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace")
+
+        End Function
+
     End Class
 End Namespace

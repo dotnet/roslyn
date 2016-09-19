@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -35,6 +37,31 @@ namespace Microsoft.CodeAnalysis.Remote
             _lastSolution = ValueTuple.Create(solutionChecksum, solution);
 
             return solution;
+        }
+
+        public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
+        {
+            // since option belong to workspace, we can't share solution
+
+            // create new solution
+            var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+            // set merged options
+            solution.Workspace.Options = MergeOptions(solution.Workspace.Options, optionSet);
+
+            // return new solution
+            return solution;
+        }
+
+        private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)
+        {
+            var newOptions = workspaceOptions;
+            foreach (var key in userOptions.GetChangedOptions(workspaceOptions))
+            {
+                newOptions = newOptions.WithChangedOption(key, userOptions.GetOption(key));
+            }
+
+            return newOptions;
         }
 
         private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)

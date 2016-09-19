@@ -68,7 +68,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void AddClassification(TextSpan textSpan, string type)
             {
-                _context.AddClassification(new ClassifiedSpan(type, textSpan));
+                if (textSpan.Length > 0 && textSpan.OverlapsWith(_textSpan))
+                {
+                    _context.AddClassification(new ClassifiedSpan(type, textSpan));
+                }
             }
 
             private void ProcessNodes()
@@ -78,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _cancellationToken.ThrowIfCancellationRequested();
                     var nodeOrToken = _pendingNodes.Pop();
 
-                    if (nodeOrToken.Span.IntersectsWith(_textSpan))
+                    if (nodeOrToken.FullSpan.IntersectsWith(_textSpan))
                     {
                         ClassifyNodeOrToken(nodeOrToken);
 

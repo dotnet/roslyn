@@ -58,10 +58,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var encoded = CustomTypeInfo.Encode(null, null);
             Assert.Null(encoded);
 
-            var bytes = GetBytesInRange(0, 256);
+            ReadOnlyCollection<byte> bytes;
+            ReadOnlyCollection<string> names;
+
+            // Exceed max bytes.
+            bytes = GetBytesInRange(0, 256);
             encoded = CustomTypeInfo.Encode(bytes, null);
             Assert.Null(encoded);
 
+            // Max bytes.
             bytes = GetBytesInRange(0, 255);
             encoded = CustomTypeInfo.Encode(bytes, null);
             Assert.Equal(256, encoded.Count);
@@ -72,13 +77,59 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Assert.Equal(bytes, dynamicFlags);
             Assert.Null(tupleElementNames);
 
-            var names = new ReadOnlyCollection<string>(new[] { null, "A", null, "B" });
+            // Empty dynamic flags collection
+            bytes = new ReadOnlyCollection<byte>(new byte[0]);
+            // ... with names.
+            names = new ReadOnlyCollection<string>(new[] { "A" });
+            encoded = CustomTypeInfo.Encode(bytes, names);
+            CustomTypeInfo.Decode(CustomTypeInfo.PayloadTypeId, encoded, out dynamicFlags, out tupleElementNames);
+            Assert.Null(dynamicFlags);
+            Assert.Equal(names, tupleElementNames);
+            // ... without names.
+            encoded = CustomTypeInfo.Encode(bytes, null);
+            CustomTypeInfo.Decode(CustomTypeInfo.PayloadTypeId, encoded, out dynamicFlags, out tupleElementNames);
+            Assert.Null(dynamicFlags);
+            Assert.Null(tupleElementNames);
+
+            // Empty names collection
+            names = new ReadOnlyCollection<string>(new string[0]);
+            // ... with dynamic flags.
+            bytes = GetBytesInRange(0, 255);
+            encoded = CustomTypeInfo.Encode(bytes, names);
+            CustomTypeInfo.Decode(CustomTypeInfo.PayloadTypeId, encoded, out dynamicFlags, out tupleElementNames);
+            Assert.Equal(bytes, dynamicFlags);
+            Assert.Null(tupleElementNames);
+            // ... without dynamic flags.
+            encoded = CustomTypeInfo.Encode(null, names);
+            CustomTypeInfo.Decode(CustomTypeInfo.PayloadTypeId, encoded, out dynamicFlags, out tupleElementNames);
+            Assert.Null(dynamicFlags);
+            Assert.Null(tupleElementNames);
+
+            // Single null name
+            names = new ReadOnlyCollection<string>(new string[] { null });
+            // ... with dynamic flags.
+            bytes = GetBytesInRange(0, 255);
             encoded = CustomTypeInfo.Encode(bytes, names);
             Assert.Equal(255, encoded[0]);
             CustomTypeInfo.Decode(CustomTypeInfo.PayloadTypeId, encoded, out dynamicFlags, out tupleElementNames);
             Assert.Equal(bytes, dynamicFlags);
             Assert.Equal(names, tupleElementNames);
+            // ... without dynamic flags.
+            encoded = CustomTypeInfo.Encode(null, names);
+            CustomTypeInfo.Decode(CustomTypeInfo.PayloadTypeId, encoded, out dynamicFlags, out tupleElementNames);
+            Assert.Null(dynamicFlags);
+            Assert.Equal(names, tupleElementNames);
 
+            // Multiple names
+            names = new ReadOnlyCollection<string>(new[] { null, "A", null, "B" });
+            // ... with dynamic flags.
+            bytes = GetBytesInRange(0, 255);
+            encoded = CustomTypeInfo.Encode(bytes, names);
+            Assert.Equal(255, encoded[0]);
+            CustomTypeInfo.Decode(CustomTypeInfo.PayloadTypeId, encoded, out dynamicFlags, out tupleElementNames);
+            Assert.Equal(bytes, dynamicFlags);
+            Assert.Equal(names, tupleElementNames);
+            // ... without dynamic flags.
             encoded = CustomTypeInfo.Encode(null, names);
             CustomTypeInfo.Decode(CustomTypeInfo.PayloadTypeId, encoded, out dynamicFlags, out tupleElementNames);
             Assert.Null(dynamicFlags);

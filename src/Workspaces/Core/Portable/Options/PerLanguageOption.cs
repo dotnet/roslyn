@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public T DefaultValue { get; }
 
+        public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
+
         public PerLanguageOption(string feature, string name, T defaultValue)
         {
             if (string.IsNullOrWhiteSpace(feature))
@@ -45,6 +48,12 @@ namespace Microsoft.CodeAnalysis.Options
             this.Feature = feature;
             this.Name = name;
             this.DefaultValue = defaultValue;
+        }
+
+        public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+            : this(feature, name, defaultValue)
+        {
+            StorageLocations = storageLocations.ToImmutableArray();
         }
 
         object IOption.DefaultValue => this.DefaultValue;

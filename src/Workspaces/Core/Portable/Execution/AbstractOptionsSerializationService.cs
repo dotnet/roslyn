@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -12,9 +16,11 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         public abstract void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
         public abstract void WriteTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
+        public abstract void WriteTo(OptionSet options, ObjectWriter writer, CancellationToken cancellationToken);
 
         public abstract CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
         public abstract ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
+        public abstract OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken);
 
         protected void WriteCompilationOptionsTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
@@ -203,6 +209,113 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             features = featuresList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, string>>();
+        }
+
+        protected void WriteOptionSetTo(OptionSet options, string language, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // order of options we serialize should be static so that we get deterministic checksum for options
+            WriteOptionTo(options, language, CodeStyleOptions.QualifyFieldAccess, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.QualifyPropertyAccess, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.QualifyMethodAccess, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.QualifyEventAccess, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, writer, cancellationToken);
+        }
+
+        protected OptionSet ReadOptionSetFrom(OptionSet options, string language, ObjectReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyFieldAccess, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyPropertyAccess, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyMethodAccess, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyEventAccess, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, reader, cancellationToken);
+
+            return options;
+        }
+
+        protected void WriteOptionTo<T>(OptionSet options, Option<CodeStyleOption<T>> option, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var value = options.GetOption(option);
+            writer.WriteString(value.ToXElement().ToString());
+        }
+
+        protected OptionSet ReadOptionFrom<T>(OptionSet options, Option<CodeStyleOption<T>> option, ObjectReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var xmlText = reader.ReadString();
+            var value = CodeStyleOption<T>.FromXElement(XElement.Parse(xmlText));
+
+            return options.WithChangedOption(option, value);
+        }
+
+        private void WriteOptionTo<T>(OptionSet options, string language, PerLanguageOption<CodeStyleOption<T>> option, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var value = options.GetOption(option, language);
+            writer.WriteString(value.ToXElement().ToString());
+        }
+
+        private OptionSet ReadOptionFrom<T>(OptionSet options, string language, PerLanguageOption<CodeStyleOption<T>> option, ObjectReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var xmlText = reader.ReadString();
+            var value = CodeStyleOption<T>.FromXElement(XElement.Parse(xmlText));
+
+            return options.WithChangedOption(option, language, value);
+        }
+
+        /// <summary>
+        /// this is not real option set. it doesn't have all options defined in host. but only those
+        /// we pre-selected.
+        /// </summary>
+        protected class SerializedPartialOptionSet : OptionSet
+        {
+            private readonly ImmutableDictionary<OptionKey, object> _values;
+
+            public SerializedPartialOptionSet()
+            {
+                _values = ImmutableDictionary<OptionKey, object>.Empty;
+            }
+
+            private SerializedPartialOptionSet(ImmutableDictionary<OptionKey, object> values)
+            {
+                _values = values;
+            }
+
+            public override object GetOption(OptionKey optionKey)
+            {
+                object value;
+                Contract.ThrowIfFalse(_values.TryGetValue(optionKey, out value));
+
+                return value;
+            }
+
+            public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+            {
+                return new SerializedPartialOptionSet(_values.SetItem(optionAndLanguage, value));
+            }
+
+            internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+            {
+                foreach (var kvp in _values)
+                {
+                    var currentValue = optionSet.GetOption(kvp.Key);
+                    if (!object.Equals(currentValue, kvp.Value))
+                    {
+                        yield return kvp.Key;
+                    }
+                }
+            }
         }
     }
 }

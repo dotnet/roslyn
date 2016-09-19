@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
         protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
-        private ClassificationService _classificationService;
-
         [ImportingConstructor]
         public SemanticClassificationViewTaggerProvider(
             IForegroundNotificationService notificationService,
@@ -96,18 +94,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // Attempt to get a classification service which will actually produce the results.
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
-            if (_classificationService == null)
-            {
-                var document = spanToTag.Document;
-                _classificationService = document?.Project.LanguageServices.GetService<ClassificationService>();
-            }
+            var document = spanToTag.Document;
+            var classificationService = document?.Project.LanguageServices.GetService<ClassificationService>();
 
-            if (_classificationService == null)
+            if (classificationService == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, _classificationService, _typeMap);
+            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }
 }

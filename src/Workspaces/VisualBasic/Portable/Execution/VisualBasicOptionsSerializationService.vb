@@ -5,6 +5,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Execution
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
     <ExportLanguageService(GetType(IOptionsSerializationService), LanguageNames.VisualBasic), [Shared]>
@@ -38,6 +39,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
                 ' all value here should be primitive types
                 writer.WriteValue(kv.Value)
             Next
+        End Sub
+
+        Public Overrides Sub WriteTo(options As OptionSet, writer As ObjectWriter, cancellationToken As CancellationToken)
+            ' no vb specific options
+            WriteOptionSetTo(options, LanguageNames.VisualBasic, writer, cancellationToken)
         End Sub
 
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
@@ -106,6 +112,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Next
             Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.MoveToImmutable())
             Return options.WithFeatures(features)
+        End Function
+
+        Public Overrides Function ReadOptionSetFrom(reader As ObjectReader, cancellationToken As CancellationToken) As OptionSet
+            Dim options As OptionSet = New SerializedPartialOptionSet()
+
+            ' no vb specific options
+            Return ReadOptionSetFrom(options, LanguageNames.VisualBasic, reader, cancellationToken)
         End Function
     End Class
 End Namespace

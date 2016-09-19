@@ -1,22 +1,22 @@
 {
-  "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
-    "Microsoft.NETCore.Platforms": "1.0.1",
-    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.3-rc4-24221-02",
-    "Microsoft.NETCore.TestHost": "1.0.0"
-  },
-  "frameworks": {
-    // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
-    "netstandard1.6": {
-      "imports": "portable-net452"
+    "dependencies": {
+        "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+        "Microsoft.NETCore.Platforms": "1.0.1",
+        "Microsoft.NETCore.Runtime.CoreCLR": "1.0.3-rc4-24221-02",
+        "Microsoft.NETCore.TestHost": "1.0.0"
     },
-    "NETCoreApp1.0": {
-      "imports": "portable-net452"
+    "frameworks": {
+        // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
+        "netstandard1.6": {
+            "imports": "portable-net452"
+        },
+        "NETCoreApp1.0": {
+            "imports": "portable-net452"
+        }
+    },
+    "runtimes": {
+        "win7-x64": { },
+        "ubuntu.14.04-x64": { },
+        "osx.10.10-x64": { }
     }
-  },
-  "runtimes": {
-    "win7-x64": { },
-    "ubuntu.14.04-x64": { },
-    "osx.10.10-x64": { }
-  }
 }
