@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             boundExpression.WasCompilerGenerated = true;
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVarLocalPendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference));
+            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVariablePendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference));
             analyzedArguments.Arguments.AddRange(args);
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(arguments.Arguments[i].Kind != BoundKind.OutDeconstructVarPendingInference);
 
-                if (arguments.Arguments[i].Kind == BoundKind.OutVarLocalPendingInference)
+                if (arguments.Arguments[i].Kind == BoundKind.OutVariablePendingInference)
                 {
                     var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
                     builder.AddRange(arguments.Arguments);
@@ -344,9 +344,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundExpression argument = builder[i];
 
-                        if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+                        if (argument.Kind == BoundKind.OutVariablePendingInference)
                         {
-                            builder[i] = ((OutVarLocalPendingInference)argument).FailInference(this, diagnostics);
+                            builder[i] = ((OutVariablePendingInference)argument).FailInference(this, diagnostics);
                         }
 
                         i++;
@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
             // Since the purpose is to bind any unbound lambdas, we return early if there are none.
-            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda || e.Kind == BoundKind.OutVarLocalPendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference))
+            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda || e.Kind == BoundKind.OutVariablePendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference))
             {
                 return analyzedArguments.Arguments.ToImmutable();
             }
@@ -1175,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // replace the unbound lambda with its best inferred bound version
                     newArguments[i] = unboundArgument.BindForErrorRecovery();
                 }
-                else if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+                else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
                     // See if all applicable applicable parameters have the same type
                     TypeSymbol candidateType = null;
@@ -1199,11 +1199,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)candidateType == null)
                     {
-                        newArguments[i] = ((OutVarLocalPendingInference)argument).FailInference(this, null);
+                        newArguments[i] = ((OutVariablePendingInference)argument).FailInference(this, null);
                     }
                     else
                     {
-                        newArguments[i] = ((OutVarLocalPendingInference)argument).SetInferredType(candidateType, success: true);
+                        newArguments[i] = ((OutVariablePendingInference)argument).SetInferredType(candidateType, null);
                     }
                 }
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)

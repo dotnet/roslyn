@@ -1958,6 +1958,42 @@ End Module
             await VerifyAsync(code, expected);
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        public async Task ReduceBinaryIntegerLiteral()
+        {
+            var code = @"[|
+Module Module1
+    Sub Main()
+        Dim sMax As Short = &B101
+        Dim usMax As UShort = &B00100
+        Dim iMax As Integer = &B00100100
+        Dim uiMax As UInteger = &B001001100110
+        Dim lMax As Long = &B001001100110
+        Dim ulMax As ULong = &B001001100110
+        Dim z As Long = &B001001100110
+        Dim x As Long =&B001001100110
+    End Sub
+End Module
+|]";
+
+            var expected = @"
+Module Module1
+    Sub Main()
+        Dim sMax As Short = &B101
+        Dim usMax As UShort = &B100
+        Dim iMax As Integer = &B100100
+        Dim uiMax As UInteger = &B1001100110
+        Dim lMax As Long = &B1001100110
+        Dim ulMax As ULong = &B1001100110
+        Dim z As Long = &B1001100110
+        Dim x As Long = &B1001100110
+    End Sub
+End Module
+";
+            await VerifyAsync(code, expected);
+        }
+
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
             var codeWithoutMarker = default(string);

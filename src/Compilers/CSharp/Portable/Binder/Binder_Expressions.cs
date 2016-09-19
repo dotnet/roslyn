@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.BindRangeVariable(node, qv, diagnostics);
         }
 
-        private BoundExpression SynthesizeReceiver(SimpleNameSyntax node, Symbol member, DiagnosticBag diagnostics)
+        private BoundExpression SynthesizeReceiver(CSharpSyntaxNode node, Symbol member, DiagnosticBag diagnostics)
         {
             // SPEC: Otherwise, if T is the instance type of the immediately enclosing class or
             // struct type, if the lookup identifies an instance member, and if the reference occurs
@@ -2091,44 +2091,83 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
-            var declaration = (TypedVariableComponentSyntax)declarationExpression.VariableComponent;
-            var typeSyntax = declaration.Type;
-
-            if (InConstructorInitializer || InFieldInitializer)
-            {
-                Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, declarationExpression);
-            }
-
-            bool isConst = false;
+            var typeSyntax = declarationExpression.Type();
             bool isVar;
-            AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(declarationExpression, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
 
+            // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(declarationExpression.Identifier());
 
-            if ((object)localSymbol == null)
+            if ((object)localSymbol != null)
+            {
+                if (InConstructorInitializer || InFieldInitializer)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, declarationExpression);
+                }
+
+                bool isConst = false;
+                AliasSymbol alias;
+                TypeSymbol declType = BindVariableType(declarationExpression, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+
+                localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+
+                if (isVar)
+                {
+                    return new OutVariablePendingInference(declarationExpression, localSymbol, null);
+                }
+
+                if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
+                    && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
+                    && declType.IsRestrictedType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
+                }
+
+                return new BoundLocal(declarationExpression, localSymbol, constantValueOpt: null, type: declType);
+            }
+
+            // Is this a field?
+            SourceMemberFieldSymbolFromDesignation expressionVariableField = LookupDeclaredField(declarationExpression.VariableDesignation());
+
+            if ((object)expressionVariableField == null)
             {
                 // We should have the right binder in the chain, cannot continue otherwise.
                 throw ExceptionUtilities.Unreachable;
             }
-            else
+
+            BoundExpression receiver = SynthesizeReceiver(declarationExpression.VariableDesignation(), expressionVariableField, diagnostics);
+
+            if (typeSyntax.IsVar)
             {
-                localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+                var ignored = DiagnosticBag.GetInstance();
+                BindTypeOrAlias(typeSyntax, ignored, out isVar);
+                ignored.Free();
+
+                if (isVar)
+                {
+                    return new OutVariablePendingInference(declarationExpression, expressionVariableField, receiver);
+                }
             }
 
-            if (isVar)
+            TypeSymbol fieldType = expressionVariableField.GetFieldType(this.FieldsBeingBound);
+            return new BoundFieldAccess(declarationExpression,
+                                        receiver,
+                                        expressionVariableField, null, LookupResultKind.Viable, fieldType);
+        }
+
+        internal SourceMemberFieldSymbolFromDesignation LookupDeclaredField(SingleVariableDesignationSyntax variableDesignator)
+        {
+            foreach (Symbol member in ContainingType?.GetMembers(variableDesignator.Identifier.ValueText) ?? ImmutableArray<Symbol>.Empty)
             {
-                return new OutVarLocalPendingInference(declarationExpression, localSymbol);
+                SourceMemberFieldSymbolFromDesignation field;
+                if (member.Kind == SymbolKind.Field &&
+                    (field = member as SourceMemberFieldSymbolFromDesignation)?.SyntaxTree == variableDesignator.SyntaxTree &&
+                    field.SyntaxNode == variableDesignator)
+                {
+                    return field;
+                }
             }
 
-            if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                && declType.IsRestrictedType())
-            {
-                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
-            }
-
-            return new BoundLocal(declarationExpression, localSymbol, constantValueOpt: null, type: declType);
+            return null;
         }
 
         // Bind a named/positional argument.
@@ -2281,21 +2320,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     arguments[arg] = CreateConversion(argument.Syntax, argument, kind, false, type, diagnostics);
                 }
-                else if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+                else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
-                    bool hasErrors = false;
-
-                    if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                        && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                        && parameterType.IsRestrictedType())
-                    {
-                        var declaration = (TypedVariableComponentSyntax)((DeclarationExpressionSyntax)argument.Syntax).VariableComponent;
-                        Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, declaration.Type, parameterType);
-                        hasErrors = true;
-                    }
-
-                    arguments[arg] = ((OutVarLocalPendingInference)argument).SetInferredType(parameterType, success: !hasErrors);
+                    arguments[arg] = ((OutVariablePendingInference)argument).SetInferredType(parameterType, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
                 {
@@ -6115,9 +6143,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(index != null);
 
-            if (index.Kind == BoundKind.OutVarLocalPendingInference)
+            if (index.Kind == BoundKind.OutVariablePendingInference)
             {
-                return ((OutVarLocalPendingInference)index).FailInference(this, diagnostics);
+                return ((OutVariablePendingInference)index).FailInference(this, diagnostics);
             }
 
             var result =

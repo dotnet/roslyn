@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
@@ -20,6 +21,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private readonly bool _isDefinitionLocation;
             private readonly object _boxedProjectGuid;
             private readonly SourceText _sourceText;
-            private readonly TaggedTextAndHighlightSpan _taggedLineParts;
+            private readonly ClassifiedSpansAndHighlightSpan _classifiedSpans;
 
             public DocumentSpanEntry(
                 TableDataSourceFindReferencesContext context,
@@ -44,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 bool isDefinitionLocation,
                 Guid projectGuid,
                 SourceText sourceText,
-                TaggedTextAndHighlightSpan taggedLineParts)
+                ClassifiedSpansAndHighlightSpan classifiedSpans)
                 : base(definitionBucket)
             {
                 _context = context;
@@ -54,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _isDefinitionLocation = isDefinitionLocation;
                 _boxedProjectGuid = projectGuid;
                 _sourceText = sourceText;
-                _taggedLineParts = taggedLineParts;
+                _classifiedSpans = classifiedSpans;
             }
 
             private StreamingFindReferencesPresenter Presenter => _context.Presenter;
@@ -87,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {
-                    var inlines = GetHighlightedInlines(Presenter, _taggedLineParts, _isDefinitionLocation);
+                    var inlines = GetHighlightedInlines(Presenter, _sourceText, _classifiedSpans, _isDefinitionLocation);
                     var textBlock = inlines.ToTextBlock(Presenter._typeMap, wrap: false);
 
                     LazyToolTip.AttachTo(textBlock, CreateDisposableToolTip);
@@ -102,7 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             private static IList<System.Windows.Documents.Inline> GetHighlightedInlines(
                 StreamingFindReferencesPresenter presenter,
-                TaggedTextAndHighlightSpan taggedTextAndHighlight,
+                SourceText sourceText,
+                ClassifiedSpansAndHighlightSpan classifiedSpansAndHighlight,
                 bool isDefinition)
             {
                 var propertyId = isDefinition
@@ -114,14 +117,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                                           .GetProperties(propertyId);
                 var highlightBrush = properties["Background"] as Brush;
 
-                var lineParts = taggedTextAndHighlight.TaggedText;
-                var inlines = lineParts.ToInlines(
+                var classifiedSpans = classifiedSpansAndHighlight.ClassifiedSpans;
+                var classifiedTexts = classifiedSpans.SelectAsArray(
+                    cs => new ClassifiedText(cs.ClassificationType, sourceText.ToString(cs.TextSpan)));
+
+                var inlines = classifiedTexts.ToInlines(
                     presenter._typeMap,
-                    runCallback: (run, taggedText, position) =>
+                    runCallback: (run, classifiedText, position) =>
                     {
                         if (highlightBrush != null)
                         {
-                            if (position == taggedTextAndHighlight.HighlightSpan.Start)
+                            if (position == classifiedSpansAndHighlight.HighlightSpan.Start)
                             {
                                 run.SetValue(
                                     System.Windows.Documents.TextElement.BackgroundProperty,

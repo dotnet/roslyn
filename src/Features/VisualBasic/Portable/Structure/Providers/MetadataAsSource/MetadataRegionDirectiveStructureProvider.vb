@@ -25,11 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
                                                   cancellationToken As CancellationToken)
             Dim match = regionDirective.GetMatchingStartOrEndDirective(cancellationToken)
             If match IsNot Nothing Then
-                spans.Add(
-                    VisualBasicOutliningHelpers.CreateRegion(
-                        TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
-                        GetBannerText(regionDirective),
-                        autoCollapse:=True))
+                spans.Add(CreateRegion(
+                    TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
+                    GetBannerText(regionDirective),
+                    autoCollapse:=True,
+                    type:=BlockTypes.Nonstructural, isCollapsible:=True))
             End If
         End Sub
 

@@ -1049,6 +1049,7 @@ public class X
         {
             var symbol = model.GetDeclaredSymbol(decl);
             Assert.Equal(decl.Identifier.ValueText, symbol.Name);
+            Assert.Equal(decl, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)decl));
 
@@ -1062,6 +1063,9 @@ public class X
             }
 
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+
+            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(decl.Type));
+            Assert.True(SyntaxFacts.IsInTypeOnlyContext(decl.Type));
 
             var type = ((LocalSymbol)symbol).Type;
             if (!decl.Type.IsVar || !type.IsErrorType())
@@ -1081,6 +1085,7 @@ public class X
         {
             var symbol = model.GetDeclaredSymbol(decl);
             Assert.Equal(decl.Identifier.ValueText, symbol.Name);
+            Assert.Equal(decl, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)decl));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
@@ -7075,15 +7080,21 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (12,43): error CS0128: A local variable named 'x1' is already defined in this scope
-    //         using (var x1 = Dummy(true is var x1, x1))
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 43),
-    // (12,47): error CS0841: Cannot use local variable 'x1' before it is declared
-    //         using (var x1 = Dummy(true is var x1, x1))
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 47),
-    // (20,58): error CS0128: A local variable named 'x2' is already defined in this scope
-    //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 58)
+                // (12,43): error CS0128: A local variable named 'x1' is already defined in this scope
+                //         using (var x1 = Dummy(true is var x1, x1))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 43),
+                // (12,47): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         using (var x1 = Dummy(true is var x1, x1))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 47),
+                // (12,47): error CS0165: Use of unassigned local variable 'x1'
+                //         using (var x1 = Dummy(true is var x1, x1))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 47),
+                // (20,58): error CS0128: A local variable named 'x2' is already defined in this scope
+                //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 58),
+                // (20,62): error CS0165: Use of unassigned local variable 'x2'
+                //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 62)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -14487,16 +14498,17 @@ unsafe struct S
             Assert.Null(model.GetDeclaredSymbol(decl));
             Assert.Null(model.GetDeclaredSymbol((SyntaxNode)decl));
 
-            Assert.False(model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Any());
-            Assert.False(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+            var identifierText = decl.Identifier.ValueText;
+            Assert.False(model.LookupSymbols(decl.SpanStart, name: identifierText).Any());
+            Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
 
             Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
 
             foreach (var reference in references)
             {
                 Assert.Null(model.GetSymbolInfo(reference).Symbol);
-                Assert.False(model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Any());
-                Assert.False(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
+                Assert.False(model.LookupSymbols(reference.SpanStart, name: identifierText).Any());
+                Assert.False(model.LookupNames(reference.SpanStart).Contains(identifierText));
             }
         }
 

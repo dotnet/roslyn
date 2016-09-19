@@ -12,42 +12,63 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
     Friend Class VisualBasicReferenceFinder
         Implements ILanguageServiceReferenceFinder
 
-        Public Function DetermineCascadedSymbolsAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
-            If symbol.Kind = SymbolKind.Property Then
-                Return DetermineCascadedSymbolsAsync(DirectCast(symbol, IPropertySymbol), project, cancellationToken)
-            ElseIf symbol.Kind = SymbolKind.NamedType Then
-                Return DetermineCascadedSymbolsAsync(DirectCast(symbol, INamedTypeSymbol), project, cancellationToken)
+        Public Function DetermineCascadedSymbolsAsync(symbolAndProjectId As SymbolAndProjectId,
+                                                      project As Project,
+                                                      cancellationToken As CancellationToken) As Task(Of IEnumerable(Of SymbolAndProjectId)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
+            Dim symbol = symbolAndProjectId.Symbol
+            If Symbol.Kind = SymbolKind.Property Then
+                Return DetermineCascadedSymbolsAsync(
+                    symbolAndProjectId.WithSymbol(DirectCast(symbol, IPropertySymbol)),
+                    project, cancellationToken)
+            ElseIf Symbol.Kind = SymbolKind.NamedType Then
+                Return DetermineCascadedSymbolsAsync(
+                    symbolAndProjectId.WithSymbol(DirectCast(symbol, INamedTypeSymbol)),
+                    project, cancellationToken)
             Else
-                Return Task.FromResult(Of IEnumerable(Of ISymbol))(Nothing)
+                Return Task.FromResult(Of IEnumerable(Of SymbolAndProjectId))(Nothing)
             End If
         End Function
 
-        Private Async Function DetermineCascadedSymbolsAsync([property] As IPropertySymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Private Async Function DetermineCascadedSymbolsAsync(
+                [propertyAndProjectId] As SymbolAndProjectId(Of IPropertySymbol),
+                project As Project,
+                cancellationToken As CancellationToken) As Task(Of IEnumerable(Of SymbolAndProjectId))
+
+            Dim [property] = propertyAndProjectId.Symbol
             Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim relatedSymbol = [property].FindRelatedExplicitlyDeclaredSymbol(compilation)
 
             Return If([property].Equals(relatedSymbol),
-                SpecializedCollections.EmptyEnumerable(Of ISymbol),
-                SpecializedCollections.SingletonEnumerable(relatedSymbol))
+                SpecializedCollections.EmptyEnumerable(Of SymbolAndProjectId),
+                SpecializedCollections.SingletonEnumerable(
+                    SymbolAndProjectId.Create(relatedSymbol, project.Id)))
         End Function
 
-        Private Async Function DetermineCascadedSymbolsAsync(namedType As INamedTypeSymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Private Async Function DetermineCascadedSymbolsAsync(
+                namedType As SymbolAndProjectId(Of INamedTypeSymbol),
+                project As Project,
+                cancellationToken As CancellationToken) As Task(Of IEnumerable(Of SymbolAndProjectId))
+
             Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
 
             ' If this is a WinForms project, then the VB 'my' feature may have synthesized 
             ' a property that would return an instance of the main Form type for the project.
             ' Search for such properties and cascade to them as well.
-            Return GetMatchingMyPropertySymbols(namedType, DirectCast(compilation, VisualBasicCompilation), cancellationToken).Distinct().ToList()
+            Return GetMatchingMyPropertySymbols(namedType, project.Id, compilation, cancellationToken).Distinct().ToList()
         End Function
 
-        Private Function GetMatchingMyPropertySymbols(namedType As INamedTypeSymbol, compilation As VisualBasicCompilation, cancellationToken As CancellationToken) As IEnumerable(Of IPropertySymbol)
+        Private Function GetMatchingMyPropertySymbols(
+                namedType As SymbolAndProjectId(Of INamedTypeSymbol),
+                projectId As ProjectId,
+                compilation As Compilation,
+                cancellationToken As CancellationToken) As IEnumerable(Of SymbolAndProjectId)
             Return From childNamespace In compilation.RootNamespace.GetNamespaceMembers()
                    Where childNamespace.IsMyNamespace(compilation)
                    From type In childNamespace.GetAllTypes(cancellationToken)
                    Where type.Name = "MyForms"
                    From childProperty In type.GetMembers().OfType(Of IPropertySymbol)
-                   Where childProperty.IsImplicitlyDeclared AndAlso childProperty.Type.Equals(namedType)
-                   Select childProperty
+                   Where childProperty.IsImplicitlyDeclared AndAlso childProperty.Type.Equals(namedType.Symbol)
+                   Select SymbolAndProjectId.Create(DirectCast(childProperty, ISymbol), projectId)
         End Function
     End Class
 End Namespace
