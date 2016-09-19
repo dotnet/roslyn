@@ -158,16 +158,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
                     var nextToken = expressionStatement.GetLastToken().GetNextToken();
 
+                    // Fade out the code up to the expression statement.
                     syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
                         Location.Create(tree, TextSpan.FromBounds(ifStatement.SpanStart, previousToken.Span.End)),
                         additionalLocations, properties));
 
-                    var descriptor = CreateDescriptor(severity);
-
-                    syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+                    // Put a diagnostic with the appropriate severity on the expression-statement itself.
+                    syntaxContext.ReportDiagnostic(Diagnostic.Create(CreateDescriptor(severity),
                         expressionStatement.GetLocation(),
                         additionalLocations, properties));
 
+                    // If the if-statement extends past the expression statement, then fade out the rest.
                     if (nextToken.Span.Start < ifStatement.Span.End)
                     {
                         syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
@@ -282,17 +283,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
             var nextToken = expressionStatement.GetLastToken().GetNextToken();
 
+            // Fade out the code from the local-declaration to the expression-statement.
             syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
                 Location.Create(tree, TextSpan.FromBounds(
                     localDeclarationStatement.SpanStart, previousToken.Span.End)),
                 additionalLocations, properties));
 
-            var descriptor = CreateDescriptor(severity);
-
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+            // Put a diagnostic with the appropriate severity on the expression-statement itself.
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(CreateDescriptor(severity),
                 expressionStatement.GetLocation(),
                 additionalLocations, properties));
 
+            // If the if-statement extends past the expression statement, then fade out the rest.
             if (nextToken.Span.Start < ifStatement.Span.End)
             {
                 syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
