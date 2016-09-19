@@ -30,18 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        private static DiagnosticDescriptor CreateDescriptor(
-            DiagnosticSeverity severity, params string[] customTags)
-        {
-            return new DiagnosticDescriptor(
-                        IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
-                        CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
-                        CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
-                        DiagnosticCategory.Style,
-                        severity,
-                        isEnabledByDefault: true,
-                        customTags: customTags);
-        }
+        private static DiagnosticDescriptor CreateDescriptor(DiagnosticSeverity severity, params string[] customTags)
+            => new DiagnosticDescriptor(
+                IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
+                CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
+                CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
+                DiagnosticCategory.Style,
+                severity,
+                isEnabledByDefault: true,
+                customTags: customTags);
 
         public override void Initialize(AnalysisContext context)
         {
