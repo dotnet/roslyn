@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public virtual string GetFixAllTitle(FixAllState fixAllState)
         {
-            return FixAllProvider.GetFixAllTitle(fixAllState);
+            return fixAllState.GetDefaultFixAllTitle();
         }
 
         public virtual async Task<Solution> TryMergeFixesAsync(

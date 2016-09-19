@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences
                     await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            var title = GetFixAllTitle(fixAllState);
+            var title = fixAllState.GetDefaultFixAllTitle();
             return new CodeAction.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
         }
 
