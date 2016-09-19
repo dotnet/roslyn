@@ -4830,8 +4830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // No member accesses on void
             if ((object)leftType != null && leftType.SpecialType == SpecialType.System_Void)
             {
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), leftType);
-                diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
+                diagnostics.Add(ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), SyntaxFacts.GetText(operatorToken.Kind()), leftType);
                 return BadExpression(node, boundLeft);
             }
 
