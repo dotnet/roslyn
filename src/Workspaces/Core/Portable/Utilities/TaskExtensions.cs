@@ -20,7 +20,13 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async void FireAndForget(this Task task)
         {
-            await task.ConfigureAwait(false);
+            try
+            {
+                await task.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)

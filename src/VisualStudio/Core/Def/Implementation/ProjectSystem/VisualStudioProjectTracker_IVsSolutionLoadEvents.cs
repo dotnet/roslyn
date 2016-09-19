@@ -122,12 +122,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
                 cancellationToken).ConfigureAwait(true);
             AssertIsForeground();
+
+            cancellationToken.ThrowIfCancellationRequested();
             OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
 
             OutputToOutputWindow($"Creating projects - start");
             var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
             foreach (var projectFilename in projectInfos.Keys)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 CreateProjectFromArgumentsAndReferences(
                     workspaceProjectContextFactory,
                     projectFilename,
