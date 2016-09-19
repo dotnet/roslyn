@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         /// By taking control ourselves, we can simply make all the tree edits and not have to
         /// try to back-infer textual changes which then may or may not merge properly.
         /// </summary>
-        private class InvokeDelegateWithConditionalAccessFixAllProvider : BatchFixAllProvider
+        private class InvokeDelegateWithConditionalAccessFixAllProvider : DocumentBasedFixAllProvider
         {
             private readonly InvokeDelegateWithConditionalAccessCodeFixProvider _provider;
 
@@ -40,32 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 _provider = provider;
             }
 
-            internal override async Task<CodeAction> GetFixAsync(
-                ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-                FixAllState fixAllState,
-                CancellationToken cancellationToken)
-            {
-                // Process all documents in parallel.
-                var updatedDocumentTasks = documentsAndDiagnosticsToFixMap.Select(
-                    kvp => FixAsync(fixAllState, kvp.Key, kvp.Value, cancellationToken));
-
-                await Task.WhenAll(updatedDocumentTasks).ConfigureAwait(false);
-
-                var currentSolution = fixAllState.Solution;
-                foreach (var task in updatedDocumentTasks)
-                {
-                    var updatedDocument = await task.ConfigureAwait(false);
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(
-                        updatedDocument.Id,
-                        await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
-                }
-
-                var title = GetFixAllTitle(fixAllState);
-                return new CodeAction.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
-            }
-
-            private Task<Document> FixAsync(
-                FixAllState fixAllState, Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+            protected override Task<Document> FixDocumentAsync(
+                Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
             {
                 // Filter out the diagnostics we created for the faded out code.  We don't want
                 // to try to fix those as well as the normal diagnostics we created.
