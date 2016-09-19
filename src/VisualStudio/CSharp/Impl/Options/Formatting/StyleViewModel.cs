@@ -226,6 +226,7 @@ class C{
     }
 }";
 
+        /*
         private static readonly string s_preferThrowExpression = @"
 using System;
 
@@ -246,6 +247,30 @@ class C
         }
 
         this.s = s;
+//]
+    }
+}
+";
+*/
+
+        private static readonly string s_preferConditionalFunctionCall = @"
+using System;
+
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+//[
+        // Prefer:
+        func?.Invoke(args);
+
+        // Over:
+        if (func != null)
+        {
+            func(args);
+        }
 //]
     }
 }
@@ -292,7 +317,8 @@ class C
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.When_variable_type_is_apparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, s_preferThrowExpression, s_preferThrowExpression, this, optionSet, nullCheckingTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalFunctionCall, CSharpVSResources.Prefer_conditional_function_call, s_preferConditionalFunctionCall, s_preferConditionalFunctionCall, this, optionSet, nullCheckingTitle));
+            //CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, s_preferThrowExpression, s_preferThrowExpression, this, optionSet, nullCheckingTitle));
         }
     }
 }

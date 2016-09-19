@@ -871,6 +871,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer conditional function call.
+        /// </summary>
+        internal static string Prefer_conditional_function_call {
+            get {
+                return ResourceManager.GetString("Prefer_conditional_function_call", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer explicit type.
         /// </summary>
         internal static string Prefer_explicit_type {

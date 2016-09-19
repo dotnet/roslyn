@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -18,17 +19,29 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-            IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
-            CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
-            CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
-            DiagnosticCategory.Style,
-            DiagnosticSeverity.Hidden,
-            isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Unnecessary);
+        private static readonly DiagnosticDescriptor s_descriptor = 
+            CreateDescriptor(DiagnosticSeverity.Hidden);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+        private static readonly DiagnosticDescriptor s_unnecessaryDescriptor = 
+            CreateDescriptor(DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(s_descriptor, s_unnecessaryDescriptor);
+
         public bool OpenFileOnly(Workspace workspace) => false;
+
+        private static DiagnosticDescriptor CreateDescriptor(
+            DiagnosticSeverity severity, params string[] customTags)
+        {
+            return new DiagnosticDescriptor(
+                        IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
+                        CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
+                        CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
+                        DiagnosticCategory.Style,
+                        severity,
+                        isEnabledByDefault: true,
+                        customTags: customTags);
+        }
 
         public override void Initialize(AnalysisContext context)
         {
@@ -37,6 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
+            var options = syntaxContext.Options.GetOptionSet();
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferConditionalFunctionCall);
+            if (!styleOption.Value)
+            {
+                // Bail immediately if the user has disabled this feature.
+                return;
+            }
+
+            var severity = styleOption.Notification.Value;
+
             // look for the form "if (a != null)" or "if (null != a)"
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
 
@@ -85,12 +108,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
 
             var condition = (BinaryExpressionSyntax)ifStatement.Condition;
-            if (TryCheckVariableAndIfStatementForm(syntaxContext, ifStatement, condition, expressionStatement, invocationExpression))
+            if (TryCheckVariableAndIfStatementForm(
+                    syntaxContext, ifStatement, condition, 
+                    expressionStatement, invocationExpression,
+                    severity))
             {
                 return;
             }
 
-            TryCheckSingleIfStatementForm(syntaxContext, ifStatement, condition, expressionStatement, invocationExpression);
+            TryCheckSingleIfStatementForm(
+                syntaxContext, ifStatement, condition, 
+                expressionStatement, invocationExpression,
+                severity);
         }
 
         private bool TryCheckSingleIfStatementForm(
@@ -98,7 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             IfStatementSyntax ifStatement,
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
-            InvocationExpressionSyntax invocationExpression)
+            InvocationExpressionSyntax invocationExpression,
+            DiagnosticSeverity severity)
         {
             var cancellationToken = syntaxContext.CancellationToken;
 
@@ -125,14 +155,23 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
                     var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.SingleIfStatementForm);
 
-                    syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        Location.Create(tree, TextSpan.FromBounds(ifStatement.SpanStart, expressionStatement.SpanStart)),
+                    var previouToken = expressionStatement.GetFirstToken().GetPreviousToken();
+                    var nextToken = expressionStatement.GetLastToken().GetNextToken();
+
+                    syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
+                        Location.Create(tree, TextSpan.FromBounds(ifStatement.SpanStart, previouToken.Span.End)),
                         additionalLocations, properties));
 
-                    if (expressionStatement.Span.End != ifStatement.Span.End)
+                    var descriptor = CreateDescriptor(severity);
+
+                    syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        expressionStatement.GetLocation(),
+                        additionalLocations, properties));
+
+                    if (nextToken.Span.Start < ifStatement.Span.End)
                     {
-                        syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                            Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
+                            Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End)),
                             additionalLocations, properties));
                     }
 
@@ -148,7 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             IfStatementSyntax ifStatement,
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
-            InvocationExpressionSyntax invocationExpression)
+            InvocationExpressionSyntax invocationExpression,
+            DiagnosticSeverity severity)
         {
             var cancellationToken = syntaxContext.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
@@ -239,14 +279,25 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.VariableAndIfStatementForm);
 
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                Location.Create(tree, TextSpan.FromBounds(localDeclarationStatement.SpanStart, expressionStatement.SpanStart)),
+            var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
+            var nextToken = expressionStatement.GetLastToken().GetNextToken();
+
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
+                Location.Create(tree, TextSpan.FromBounds(
+                    localDeclarationStatement.SpanStart, previousToken.Span.End)),
                 additionalLocations, properties));
 
-            if (expressionStatement.Span.End != ifStatement.Span.End)
+            var descriptor = CreateDescriptor(severity);
+
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+                expressionStatement.GetLocation(),
+                additionalLocations, properties));
+
+            if (nextToken.Span.Start < ifStatement.Span.End)
             {
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                    Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
+                syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
+                    Location.Create(tree, TextSpan.FromBounds(
+                        nextToken.Span.Start, ifStatement.Span.End)),
                     additionalLocations, properties));
             }
 

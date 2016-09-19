@@ -489,4 +489,7 @@
   <data name="Prefer_throw_expression" xml:space="preserve">
     <value>Prefer throw-expression</value>
   </data>
+  <data name="Prefer_conditional_function_call" xml:space="preserve">
+    <value>Prefer conditional function call</value>
+  </data>
 </root>
