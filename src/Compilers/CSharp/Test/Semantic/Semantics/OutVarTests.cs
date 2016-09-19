@@ -17796,9 +17796,9 @@ public class Cls
                 // (8,23): error CS0103: The name 'x3' does not exist in the current context
                 //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(8, 23),
-                // (7,9): error CS0177: The out parameter 'x2' must be assigned to before control leaves the current method
+                // (7,13): error CS0177: The out parameter 'x2' must be assigned to before control leaves the current method
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "int b(out var x2) ").WithArguments("x2").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "b").WithArguments("x2").WithLocation(7, 13),
                 // (6,25): warning CS0219: The variable 'a' is assigned but its value is never used
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 25),
