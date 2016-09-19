@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             // We clip off a bit off the start of the line to prevent a half-square being
             // drawn.
             var clipRectangle = geometry.Bounds;
-            clipRectangle.Offset(1, 0);
+            clipRectangle.Offset(2, 0);
 
             var line = new Line
             {
