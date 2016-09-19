@@ -20,6 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 {
     internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : CodeFixProvider
     {
+        /// <summary>
+        /// We use a specialized <see cref="FixAllProvider"/> so that we can make many edits to 
+        /// the syntax tree which would otherwise be in close proximity.  Close-proximity
+        /// edits can fail in the normal <see cref="BatchFixAllProvider" />.  That's because
+        /// each individual edit will be diffed in the syntax tree.  The diff is purely textual
+        /// and may result in a value that doesn't actually correspond to the syntax edit
+        /// made.  As such, the individual textual edits wll overlap and won't merge properly.
+        /// 
+        /// By taking control ourselves, we can simply make all the tree edits and not have to
+        /// try to back-infer textual changes which then may or may not merge properly.
+        /// </summary>
         private class InvokeDelegateWithConditionalAccessFixAllProvider : BatchFixAllProvider
         {
             private readonly InvokeDelegateWithConditionalAccessCodeFixProvider _provider;
