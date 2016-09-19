@@ -2035,12 +2035,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindArgumentValue(DiagnosticBag diagnostics, ArgumentSyntax argumentSyntax, bool allowArglist, RefKind refKind)
         {
-            if (argumentSyntax.Expression.Kind() != SyntaxKind.DeclarationExpression)
+            if (argumentSyntax.Expression.Kind() == SyntaxKind.DeclarationExpression)
             {
-                return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
+                return BindOutVariableArgument((DeclarationExpressionSyntax)argumentSyntax.Expression, diagnostics);
             }
 
-            var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
+            return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
+        }
+
+        private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
+        {
             var typeSyntax = declarationExpression.Type();
             bool isVar;
 
