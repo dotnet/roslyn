@@ -537,11 +537,15 @@ public class C {}
 "e47395955d222b04472da50de86f931084653e4b0f91ffccef2c777c80d92683f8f87b6b60733d" +
 "73b0035501dd2adba2bbdf6697";
 
+            const string pubKeyToken = "1540923db30520b2";
+            var pubKeyTokenBytes = AssemblyIdentity.CalculatePublicKeyToken(
+                ImmutableArray.Create(TestResources.General.snMaxSizePublicKey));
+
             var comp = CreateCompilationWithMscorlib($@"
 using System;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo(""MaxSizeComp2, PublicKey={pubKey}, PublicKeyToken=1540923db30520b2"")]
+[assembly: InternalsVisibleTo(""MaxSizeComp2, PublicKey={pubKey}, PublicKeyToken={pubKeyToken}"")]
 
 internal class C
 {{
@@ -556,6 +560,8 @@ internal class C
 
             Assert.True(comp.IsRealSigned);
             VerifySignedBitSetAfterEmit(comp);
+            Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey);
+            Assert.Equal<byte>(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken);
 
             var comp2 = CreateCompilationWithMscorlib(@"
 class D
@@ -572,6 +578,8 @@ options: TestOptions.ReleaseExe
         .WithStrongNameProvider(s_defaultProvider));
 
             CompileAndVerify(comp2, expectedOutput: "Called M");
+            Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey);
+            Assert.Equal<byte>(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken);
         }
 
         [Fact]
