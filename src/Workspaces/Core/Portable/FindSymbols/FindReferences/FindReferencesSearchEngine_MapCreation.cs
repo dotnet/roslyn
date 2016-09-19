@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var searchSymbol = searchSymbolAndProjectId.Symbol;
             if (searchSymbol != null && result.Add(searchSymbolAndProjectId))
             {
-                _progress.OnDefinitionFound(searchSymbol);
+                await _progress.OnDefinitionFoundAsync(searchSymbolAndProjectId).ConfigureAwait(false);
 
                 _foundReferences.GetOrAdd(searchSymbolAndProjectId, s_createSymbolLocations);
 

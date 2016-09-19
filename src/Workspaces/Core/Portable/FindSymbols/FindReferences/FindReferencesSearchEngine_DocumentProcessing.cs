@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             List<ValueTuple<SymbolAndProjectId, IReferenceFinder>> documentQueue,
             ProgressWrapper wrapper)
         {
-            _progress.OnFindInDocumentStarted(document);
+            await _progress.OnFindInDocumentStartedAsync(document).ConfigureAwait(false);
 
             SemanticModel model = null;
             try
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 FindReferenceCache.Stop(model);
 
-                _progress.OnFindInDocumentCompleted(document);
+                await _progress.OnFindInDocumentCompletedAsync(document).ConfigureAwait(false);
             }
         }
 
@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var references = await finder.FindReferencesInDocumentAsync(symbolAndProjectId, document, _cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
                     foreach (var location in references)
                     {
-                        HandleLocation(symbolAndProjectId, location);
+                        await HandleLocationAsync(symbolAndProjectId, location).ConfigureAwait(false);
                     }
                 }
                 finally
                 {
-                    wrapper.Increment();
+                    await wrapper.IncrementAsync().ConfigureAwait(false);
                 }
             }
         }

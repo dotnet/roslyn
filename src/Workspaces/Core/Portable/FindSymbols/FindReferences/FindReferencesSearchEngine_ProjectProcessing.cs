@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
                 finally
                 {
-                    _progressTracker.ItemCompleted();
+                    await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
                 }
             }
         }

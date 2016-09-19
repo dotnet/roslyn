@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly Solution _solution;
         private readonly IImmutableSet<Document> _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
-        private readonly ProgressTracker _progressTracker;
-        private readonly IFindReferencesProgress _progress;
+        private readonly StreamingProgressTracker _progressTracker;
+        private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IImmutableSet<Document> documents,
             ImmutableArray<IReferenceFinder> finders,
-            IFindReferencesProgress progress,
+            IStreamingFindReferencesProgress progress,
             CancellationToken cancellationToken)
         {
             _documents = documents;
@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
 
-            _progressTracker = new ProgressTracker(progress.ReportProgress);
+            _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
         }
 
         public async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId)
         {
-            _progress.OnStarted();
-            _progressTracker.AddItems(1);
+            await _progress.OnStartedAsync().ConfigureAwait(false);
+            await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
             try
             {
                 var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId).ConfigureAwait(false);
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                _progressTracker.ItemCompleted();
-                _progress.OnCompleted();
+                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
+                await _progress.OnCompletedAsync().ConfigureAwait(false);
             }
 
             return _foundReferences.Select(
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var connectedProjects = _dependencyGraph.GetDependencySets(_cancellationToken);
                 var projectMap = CreateProjectMap(documentMap);
 
-                _progressTracker.AddItems(connectedProjects.Flatten().Count());
+                await _progressTracker.AddItemsAsync(connectedProjects.Flatten().Count()).ConfigureAwait(false);
                 foreach (var projectSet in connectedProjects)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
@@ -152,10 +152,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private void HandleLocation(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
+        private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
         {
             _foundReferences.GetOrAdd(symbolAndProjectId, s_createSymbolLocations).Add(location);
-            _progress.OnReferenceFound(symbolAndProjectId.Symbol, location);
+            return _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
         }
     }
 }

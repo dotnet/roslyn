@@ -568,7 +568,7 @@
     <Compile Include="Implementation\Organizing\OrganizeDocumentCommandHandler.cs" />
     <Compile Include="Implementation\Structure\OutliningCommandHandler.cs" />
     <Compile Include="Implementation\Structure\VisualStudio14StructureTaggerProvider.cs" />
-    <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.RegionTag.cs" />
+    <Compile Include="Implementation\Structure\RoslynOutliningRegionTag.cs" />
     <Compile Include="Implementation\Peek\DefinitionPeekableItem.cs" />
     <Compile Include="Implementation\Peek\ExternalFilePeekableItem.cs" />
     <Compile Include="Implementation\Peek\PeekableItem.cs" />
@@ -698,7 +698,7 @@
     <Compile Include="Shared\Extensions\SnapshotPointExtensions.cs" />
     <Compile Include="Shared\Extensions\SnapshotSpanExtensions.cs" />
     <Compile Include="Shared\Extensions\SpanExtensions.cs" />
-    <Compile Include="Shared\Extensions\TaggedTextExtensions.cs" />
+    <Compile Include="Shared\Extensions\ClassificationExtensions.cs" />
     <Compile Include="Shared\Extensions\TextChangeExtensions.cs" />
     <Compile Include="Shared\Extensions\WorkspaceExtensions.cs" />
     <Compile Include="Shared\Options\ComponentOnOffOptions.cs" />

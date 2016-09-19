@@ -13,8 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                   spans As ImmutableArray(Of BlockSpan).Builder,
                                                   cancellationToken As CancellationToken)
             If Not lambdaExpression.EndSubOrFunctionStatement.IsMissing Then
-                spans.Add(
-                    CreateRegionFromBlock(lambdaExpression, bannerNode:=lambdaExpression.SubOrFunctionHeader, autoCollapse:=False))
+                spans.Add(CreateRegionFromBlock(
+                    lambdaExpression, bannerNode:=lambdaExpression.SubOrFunctionHeader, autoCollapse:=False,
+                    type:=BlockTypes.AnonymousMethod, isCollapsible:=True))
             End If
         End Sub
     End Class

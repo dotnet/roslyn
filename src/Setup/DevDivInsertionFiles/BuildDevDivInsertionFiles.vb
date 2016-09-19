@@ -908,6 +908,20 @@ Public Class BuildDevDivInsertionFiles
         ' No duplicates are allowed
         filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
 
+        ' Write an Init.cmd that sets DEVPATH to the toolset location. This overrides
+        ' assembly loading during the VS build to always look in the Roslyn toolset
+        ' first. This is necessary because there are various incompatible versions
+        ' of Roslyn littered throughout the DEVPATH already and this one should always
+        ' take precedence.
+        Dim fileContents = "@echo off
+
+set RoslynToolsRoot=%~dp0
+set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
+
+        File.WriteAllText(
+            Path.Combine(_binDirectory, "Init.cmd"),
+            fileContents)
+
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
                   <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
                       <metadata>
@@ -918,6 +932,7 @@ Public Class BuildDevDivInsertionFiles
                           <version>0.0</version>
                       </metadata>
                       <files>
+                          <file src="Init.cmd"/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
                               Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
