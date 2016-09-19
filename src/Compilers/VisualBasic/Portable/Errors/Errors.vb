@@ -1686,6 +1686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PeWritingFailure = 37256
 
         ERR_OptionMustBeAbsolutePath = 37257
+        ERR_DocFileGen = 37258
 
         ' available 37258
         ERR_TupleTooFewElements = 37259
