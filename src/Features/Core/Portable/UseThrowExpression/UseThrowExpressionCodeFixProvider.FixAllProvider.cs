@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         /// all the editing at once on the SyntaxTree.  Because we're doing real tree
         /// edits with actual nodes, there is no issue with anything getting messed up.
         /// </summary>
-        private class UseThrowExpressionFixAllProvider : BatchFixAllProvider
+        private class UseThrowExpressionFixAllProvider : DocumentBasedFixAllProvider
         {
             private readonly UseThrowExpressionCodeFixProvider _provider;
 
@@ -47,33 +49,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 _provider = provider;
             }
 
-            internal override async Task<CodeAction> GetFixAsync(
-                ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-                FixAllState fixAllState,
-                CancellationToken cancellationToken)
-            {
-                // Process all documents in parallel.
-                // Defer to the actual SimplifyNullCheckCodeFixProvider to process htis
-                // document.  It can process all the diagnostics and apply them properly.
-                var updatedDocumentTasks = documentsAndDiagnosticsToFixMap.Select(
-                    kvp => FixAllAsync(kvp.Key, kvp.Value, cancellationToken));
-
-                await Task.WhenAll(updatedDocumentTasks).ConfigureAwait(false);
-
-                var currentSolution = fixAllState.Solution;
-                foreach (var task in updatedDocumentTasks)
-                {
-                    var updatedDocument = await task.ConfigureAwait(false);
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(
-                        updatedDocument.Id,
-                        await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
-                }
-
-                var title = GetFixAllTitle(fixAllState);
-                return new CodeAction.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
-            }
-
-            private Task<Document> FixAllAsync(
+            protected override Task<Document> FixDocumentAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
             {
                 var filteredDiagnostics = diagnostics.WhereAsArray(
