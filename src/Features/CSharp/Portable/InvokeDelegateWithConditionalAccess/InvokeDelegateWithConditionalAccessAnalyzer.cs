@@ -155,11 +155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
                     var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.SingleIfStatementForm);
 
-                    var previouToken = expressionStatement.GetFirstToken().GetPreviousToken();
+                    var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
                     var nextToken = expressionStatement.GetLastToken().GetNextToken();
 
                     syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
-                        Location.Create(tree, TextSpan.FromBounds(ifStatement.SpanStart, previouToken.Span.End)),
+                        Location.Create(tree, TextSpan.FromBounds(ifStatement.SpanStart, previousToken.Span.End)),
                         additionalLocations, properties));
 
                     var descriptor = CreateDescriptor(severity);
