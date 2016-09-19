@@ -153,34 +153,52 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                         Location.Create(tree, expressionStatement.Span)
                     };
 
-                    var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.SingleIfStatementForm);
-
-                    var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
-                    var nextToken = expressionStatement.GetLastToken().GetNextToken();
-
-                    // Fade out the code up to the expression statement.
-                    syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
-                        Location.Create(tree, TextSpan.FromBounds(ifStatement.SpanStart, previousToken.Span.End)),
-                        additionalLocations, properties));
-
-                    // Put a diagnostic with the appropriate severity on the expression-statement itself.
-                    syntaxContext.ReportDiagnostic(Diagnostic.Create(CreateDescriptor(severity),
-                        expressionStatement.GetLocation(),
-                        additionalLocations, properties));
-
-                    // If the if-statement extends past the expression statement, then fade out the rest.
-                    if (nextToken.Span.Start < ifStatement.Span.End)
-                    {
-                        syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
-                            Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End)),
-                            additionalLocations, properties));
-                    }
+                    ReportDiagnostics(
+                        syntaxContext, ifStatement, ifStatement, 
+                        expressionStatement, severity, additionalLocations,
+                        Constants.SingleIfStatementForm);
 
                     return true;
                 }
             }
 
             return false;
+        }
+
+        private static void ReportDiagnostics(
+            SyntaxNodeAnalysisContext syntaxContext,
+            StatementSyntax firstStatement,
+            IfStatementSyntax ifStatement,
+            ExpressionStatementSyntax expressionStatement, 
+            DiagnosticSeverity severity, 
+            List<Location> additionalLocations, 
+            string kind)
+        {
+            var tree = syntaxContext.Node.SyntaxTree;
+
+            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                Constants.Kind, kind);
+
+            var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
+            var nextToken = expressionStatement.GetLastToken().GetNextToken();
+
+            // Fade out the code up to the expression statement.
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
+                Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End)),
+                additionalLocations, properties));
+
+            // Put a diagnostic with the appropriate severity on the expression-statement itself.
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(CreateDescriptor(severity),
+                expressionStatement.GetLocation(),
+                additionalLocations, properties));
+
+            // If the if-statement extends past the expression statement, then fade out the rest.
+            if (nextToken.Span.Start < ifStatement.Span.End)
+            {
+                syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
+                    Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End)),
+                    additionalLocations, properties));
+            }
         }
 
         private bool TryCheckVariableAndIfStatementForm(
@@ -278,30 +296,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 Location.Create(tree, expressionStatement.Span)
             };
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.VariableAndIfStatementForm);
-
-            var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
-            var nextToken = expressionStatement.GetLastToken().GetNextToken();
-
-            // Fade out the code from the local-declaration to the expression-statement.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
-                Location.Create(tree, TextSpan.FromBounds(
-                    localDeclarationStatement.SpanStart, previousToken.Span.End)),
-                additionalLocations, properties));
-
-            // Put a diagnostic with the appropriate severity on the expression-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(CreateDescriptor(severity),
-                expressionStatement.GetLocation(),
-                additionalLocations, properties));
-
-            // If the if-statement extends past the expression statement, then fade out the rest.
-            if (nextToken.Span.Start < ifStatement.Span.End)
-            {
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
-                    Location.Create(tree, TextSpan.FromBounds(
-                        nextToken.Span.Start, ifStatement.Span.End)),
-                    additionalLocations, properties));
-            }
+            ReportDiagnostics(syntaxContext,
+                localDeclarationStatement, ifStatement, expressionStatement,
+                severity, additionalLocations, Constants.VariableAndIfStatementForm);
 
             return true;
         }
