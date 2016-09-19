@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences
             var currentSolution = fixAllState.Solution;
             foreach (var task in updatedDocumentTasks)
             {
+                // 'await' the tasks so that if any completed in a cancelled manner then we'll
+                // throw the right exception here.  Calling .Result on the tasks might end up
+                // with AggregateExceptions being thrown instead.
                 var updatedDocument = await task.ConfigureAwait(false);
                 currentSolution = currentSolution.WithDocumentSyntaxRoot(
                     updatedDocument.Id,
