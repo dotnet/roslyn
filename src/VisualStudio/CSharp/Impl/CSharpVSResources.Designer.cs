@@ -871,11 +871,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer conditional function call.
+        ///   Looks up a localized string similar to Prefer conditional delegate call.
         /// </summary>
-        internal static string Prefer_conditional_function_call {
+        internal static string Prefer_conditional_delegate_call {
             get {
-                return ResourceManager.GetString("Prefer_conditional_function_call", resourceCulture);
+                return ResourceManager.GetString("Prefer_conditional_delegate_call", resourceCulture);
             }
         }
         
