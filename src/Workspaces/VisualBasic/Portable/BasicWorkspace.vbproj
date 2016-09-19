@@ -60,7 +60,7 @@
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionService.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionServiceFactory.vb" />
     <Compile Include="Classification\ClassificationHelpers.vb" />
-    <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.vb" />
+    <Compile Include="Classification\Classifiers\AbstractSemanticClassifier.vb" />
     <Compile Include="Classification\Classifiers\IdentifierNameSyntaxClassifier.vb" />
     <Compile Include="Classification\Classifiers\ImportAliasClauseSyntaxClassifier.vb" />
     <Compile Include="Classification\Classifiers\NameSyntaxClassifier.vb" />

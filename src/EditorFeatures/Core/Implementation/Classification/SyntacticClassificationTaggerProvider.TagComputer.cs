@@ -241,19 +241,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         var languageServices = _workspace.Services.GetLanguageServices(firstSpan.Snapshot.ContentType);
                         if (languageServices != null)
                         {
-                            var classificationService = languageServices.GetService<ClassificationService>();
+                            var classificationService = ClassificationService.GetService(_workspace, languageServices.Language);
+                            var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                            if (classificationService != null)
+                            foreach (var span in spans)
                             {
-                                var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-
-                                foreach (var span in spans)
-                                {
-                                    AddClassifiedSpans(classificationService, span, classifiedSpans);
-                                }
-
-                                return ClassificationUtilities.ConvertAndReturnList(_typeMap, spans[0].Snapshot, classifiedSpans);
+                                AddClassifiedSpans(classificationService, span, classifiedSpans);
                             }
+
+                            return ClassificationUtilities.ConvertAndReturnList(_typeMap, spans[0].Snapshot, classifiedSpans);
                         }
                     }
 

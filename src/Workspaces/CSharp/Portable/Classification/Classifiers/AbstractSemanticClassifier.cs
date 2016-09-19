@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Classification.Classifiers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal abstract class AbstractSyntaxClassifier : ISemanticClassifier
+    internal abstract class AbstractSemanticClassifier : ISemanticClassifier
     {
-        protected AbstractSyntaxClassifier()
+        protected AbstractSemanticClassifier()
         {
         }
 

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    [ExportClassificationProvider(ClassificationProviderNames.Default, LanguageNames.CSharp), Shared]
+    [ExportClassificationProvider(PredefinedClassificationProviderNames.Default, LanguageNames.CSharp), Shared]
     internal class CSharpClassificationProvider : CommonClassificationProvider
     {
         private static readonly ImmutableArray<ISemanticClassifier> s_defaultClassifiers =

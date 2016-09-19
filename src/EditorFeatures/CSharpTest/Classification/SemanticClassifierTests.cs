@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+                var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var service = ClassificationService.GetService(document);
                 return await service.GetSemanticClassificationsAsync(document, textSpan);
             }

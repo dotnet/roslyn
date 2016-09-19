@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </summary>
         public static ClassificationService GetService(Workspace workspace, string language)
         {
-            return workspace.Services.GetLanguageServices(language).GetService<ClassificationService>() ?? NoOpService.Instance;
+            return workspace.Services.GetLanguageServices(language)?.GetService<ClassificationService>() ?? NoOpService.Instance;
         }
 
         private class NoOpService : ClassificationService

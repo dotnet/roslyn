@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal static class ClassificationProviderNames
+    internal static class PredefinedClassificationProviderNames
     {
         public const string Default = nameof(Default);
     }

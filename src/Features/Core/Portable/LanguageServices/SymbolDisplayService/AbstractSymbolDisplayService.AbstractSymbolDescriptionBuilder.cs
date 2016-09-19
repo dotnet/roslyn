@@ -5,11 +5,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Classification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {

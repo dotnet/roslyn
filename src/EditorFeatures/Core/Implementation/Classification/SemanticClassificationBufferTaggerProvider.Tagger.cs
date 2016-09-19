@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         return Array.Empty<ITagSpan<IClassificationTag>>();
                     }
 
-                    _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<ClassificationService>();
+                    _classificationService = _classificationService ?? ClassificationService.GetService(document);
 
                     var context = new TaggerContext<IClassificationTag>(document, snapshot, cancellationToken: cancellationToken);
 

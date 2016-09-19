@@ -11,10 +11,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Classification
 {
     /// <summary>
-    /// 
+    /// The <see cref="Classifier"/> provides language classifications for ranges of text.
     /// </summary>
     public static class Classifier
     {
+        /// <summary>
+        /// Gets language classifications for a range of the document corresponding to the specified text span.
+        /// </summary>
         public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan textSpan,
@@ -33,6 +36,10 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
+        /// <summary>
+        /// Gets language classifications for a range of the document corresponding to the specified text span,
+        /// given a specific semantic model.
+        /// </summary>
         public static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
             SemanticModel semanticModel,
             TextSpan textSpan,

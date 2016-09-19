@@ -95,13 +95,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
             var document = spanToTag.Document;
-            var classificationService = document?.Project.LanguageServices.GetService<ClassificationService>();
-
-            if (classificationService == null)
+            if (document == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
+            var classificationService = ClassificationService.GetService(document);
             return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }

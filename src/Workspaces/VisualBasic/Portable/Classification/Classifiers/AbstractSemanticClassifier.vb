@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
-    Friend MustInherit Class AbstractSyntaxClassifier
+    Friend MustInherit Class AbstractSemanticClassifier
         Implements ISemanticClassifier
 
         Protected Sub New()

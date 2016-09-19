@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    <ExportClassificationProvider(ClassificationProviderNames.Default, LanguageNames.VisualBasic), [Shared]>
+    <ExportClassificationProvider(PredefinedClassificationProviderNames.Default, LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicClassificationProvider
         Inherits CommonClassificationProvider
 

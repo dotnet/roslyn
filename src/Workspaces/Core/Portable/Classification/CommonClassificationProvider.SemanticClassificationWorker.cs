@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal partial class CommonClassificationProvider
     {
-        private struct SemanticClassifier
+        private struct SemanticClassificationWorker
         {
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly Func<SyntaxToken, List<ISemanticClassifier>> _getTokenClassifiers;
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
 
-            private SemanticClassifier(
+            private SemanticClassificationWorker(
                 Workspace workspace,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 Func<SyntaxToken, List<ISemanticClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
             {
-                var worker = new SemanticClassifier(workspace, semanticModel, textSpan, context, getNodeClassifiers, getTokenClassifiers, cancellationToken);
+                var worker = new SemanticClassificationWorker(workspace, semanticModel, textSpan, context, getNodeClassifiers, getTokenClassifiers, cancellationToken);
 
                 try
                 {

@@ -337,11 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForReferenceAsync(
                 Document document, TextSpan referenceSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
             {
-                var classificationService = document.GetLanguageService<ClassificationService>();
-                if (classificationService == null)
-                {
-                    return new ClassifiedSpansAndHighlightSpan(ImmutableArray<ClassifiedSpan>.Empty, new TextSpan());
-                }
+                var classificationService = ClassificationService.GetService(document);
 
                 // Call out to the individual language to classify the chunk of text around the
                 // reference. We'll get both the syntactic and semantic spans for this region.

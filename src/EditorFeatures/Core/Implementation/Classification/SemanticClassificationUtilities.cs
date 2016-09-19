@@ -122,10 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                    var newSpans = await classificationService.GetSemanticClassificationsAsync(
-                        document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-
-                    CombineSpans(classifiedSpans, newSpans);
+                    classifiedSpans.AddRange(await classificationService.GetSemanticClassificationsAsync(
+                        document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false));
 
                     ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
@@ -140,28 +138,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        private static void CombineSpans(List<ClassifiedSpan> spans, IEnumerable<ClassifiedSpan> newSpans)
-        {
-            var spanSet = SharedPools.Default<HashSet<ClassifiedSpan>>().Allocate();
-            try
-            {
-                spanSet.AddAll(spans);
-
-                foreach (var span in newSpans)
-                {
-                    if (!spanSet.Contains(span))
-                    {
-                        spanSet.Add(span);
-                        spans.Add(span);
-                    }
-                }
-            }
-            finally
-            {
-                SharedPools.Default<HashSet<ClassifiedSpan>>().ClearAndFree(spanSet);
             }
         }
     }

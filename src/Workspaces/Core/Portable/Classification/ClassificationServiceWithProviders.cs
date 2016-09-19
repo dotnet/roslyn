@@ -64,10 +64,6 @@ namespace Microsoft.CodeAnalysis.Classification
                         }
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
                 catch (Exception e) when (extensionManager.CanHandleException(provider, e))
                 {
                     extensionManager.HandleException(provider, e);

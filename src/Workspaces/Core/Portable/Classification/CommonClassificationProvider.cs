@@ -8,10 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Extensions;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             try
             {
-                SemanticClassifier.Classify(workspace, model, span, context, getNodeClassifiers, getTokenClassifiers, cancellationToken);
+                SemanticClassificationWorker.Classify(workspace, model, span, context, getNodeClassifiers, getTokenClassifiers, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {

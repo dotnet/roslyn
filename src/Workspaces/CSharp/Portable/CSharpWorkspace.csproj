@@ -54,7 +54,7 @@
   <ItemGroup>
     <Compile Include="CaseCorrection\CSharpCaseCorrectionService.cs" />
     <Compile Include="Classification\ClassificationHelpers.cs" />
-    <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.cs" />
+    <Compile Include="Classification\Classifiers\AbstractSemanticClassifier.cs" />
     <Compile Include="Classification\Classifiers\NameSyntaxClassifier.cs" />
     <Compile Include="Classification\Classifiers\SyntaxTokenClassifier.cs" />
     <Compile Include="Classification\Classifiers\UsingDirectiveSyntaxClassifier.cs" />
