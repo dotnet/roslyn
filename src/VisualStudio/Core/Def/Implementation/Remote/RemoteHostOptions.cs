@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public const string OptionName = "FeatureManager/Features";
 
         [ExportOption]
-        public static readonly Option<bool> RemoteHost = new Option<bool>(OptionName, nameof(RemoteHost), defaultValue: false);
+        public static readonly Option<bool> RemoteHost = new Option<bool>(OptionName, nameof(RemoteHost), defaultValue: true);
 
         [ExportOption]
         public static readonly Option<int> SolutionChecksumMonitorBackOffTimeSpanInMS = new Option<int>(OptionName, nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 10000);
