@@ -1859,7 +1859,7 @@ tryAgain:
                 }
                 else
                 {
-                    TypeSyntax firstType = this.ParseDeclarationType(isConstraint: false, parentIsParameter: false);
+                    TypeSyntax firstType = this.ParseDeclarationType(isConstraint: false);
 
                     list.Add(_syntaxFactory.SimpleBaseType(firstType));
 
@@ -1880,7 +1880,7 @@ tryAgain:
                             }
                             else
                             {
-                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseDeclarationType(isConstraint: false, parentIsParameter: false)));
+                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseDeclarationType(isConstraint: false)));
                             }
 
                             continue;
@@ -2037,7 +2037,7 @@ tryAgain:
 
                     return _syntaxFactory.ClassOrStructConstraint(isStruct ? SyntaxKind.StructConstraint : SyntaxKind.ClassConstraint, token);
                 default:
-                    var type = this.ParseDeclarationType(true, false);
+                    var type = this.ParseDeclarationType(isConstraint: true);
                     return _syntaxFactory.TypeConstraint(type);
             }
         }
@@ -2052,9 +2052,9 @@ tryAgain:
                 expected);
         }
 
-        private TypeSyntax ParseDeclarationType(bool isConstraint, bool parentIsParameter)
+        private TypeSyntax ParseDeclarationType(bool isConstraint)
         {
-            var type = this.ParseType(parentIsParameter);
+            var type = this.ParseType();
             if (type.Kind != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(type.Kind))
             {
                 if (isConstraint)
@@ -3031,7 +3031,7 @@ parse_member_name:;
 
             SyntaxToken opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
 
-            var type = this.ParseType(parentIsParameter: false);
+            var type = this.ParseType();
 
             var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
             if (paramList.Parameters.Count != 1)
@@ -4093,11 +4093,11 @@ tryAgain:
             TypeSyntax type = null;
             if (!hasArgList)
             {
-                type = this.ParseType(true);
+                type = this.ParseType(mode: ParseTypeMode.Parameter);
             }
             else if (this.IsPossibleType())
             {
-                type = this.ParseType(true);
+                type = this.ParseType(mode: ParseTypeMode.Parameter);
                 type = WithAdditionalDiagnostics(type, this.GetExpectedTokenError(SyntaxKind.CloseParenToken, SyntaxKind.IdentifierToken, 0, type.Width));
             }
 
@@ -4306,7 +4306,7 @@ tryAgain:
             fixedToken = CheckFeatureAvailability(fixedToken, MessageID.IDS_FeatureFixedBuffer);
             modifiers.Add(fixedToken);
 
-            var type = this.ParseType(parentIsParameter: false);
+            var type = this.ParseType();
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfFieldDeclaration;
@@ -4337,7 +4337,7 @@ tryAgain:
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EventKeyword);
 
             var eventToken = this.EatToken();
-            var type = this.ParseType(parentIsParameter: false);
+            var type = this.ParseType();
 
             if (IsFieldDeclaration(isEvent: true))
             {
@@ -5026,7 +5026,7 @@ tryAgain:
             var constToken = this.EatToken(SyntaxKind.ConstKeyword);
             modifiers.Add(constToken);
 
-            var type = this.ParseType(false);
+            var type = this.ParseType();
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
@@ -5099,7 +5099,7 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
             {
                 var colon = this.EatToken(SyntaxKind.ColonToken);
-                var type = this.ParseType(false);
+                var type = this.ParseType();
                 var tmpList = _pool.AllocateSeparated<BaseTypeSyntax>();
                 tmpList.Add(_syntaxFactory.SimpleBaseType(type));
                 baseList = _syntaxFactory.BaseList(colon, tmpList);
@@ -5712,7 +5712,7 @@ tryAgain:
                     varianceToken = this.AddError(varianceToken, ErrorCode.ERR_IllegalVarianceSyntax);
                 }
 
-                var result = this.ParseType(parentIsParameter: false);
+                var result = this.ParseType();
 
                 // Consider the case where someone supplies an invalid type argument
                 // Such as Action<0> or Action<static>.  In this case we generate a missing 
@@ -6323,7 +6323,7 @@ tryAgain:
 
         public TypeSyntax ParseTypeName()
         {
-            return ParseType(parentIsParameter: false);
+            return ParseType();
         }
 
         private TypeSyntax ParseTypeOrVoid()
@@ -6334,12 +6334,7 @@ tryAgain:
                 return _syntaxFactory.PredefinedType(this.EatToken());
             }
 
-            return this.ParseType(parentIsParameter: false);
-        }
-
-        private TypeSyntax ParseType(bool parentIsParameter)
-        {
-            return ParseTypeCore(parentIsParameter, isPattern: false, rightOfAs: false, expectSizes: false, isArrayCreation: false);
+            return this.ParseType();
         }
 
         private bool IsTerm()
@@ -6378,35 +6373,38 @@ tryAgain:
             }
         }
 
-        private TypeSyntax ParseTypeCore(
-            bool parentIsParameter,
-            bool isPattern,
-            bool rightOfAs,
-            bool expectSizes,
-            bool isArrayCreation)
+        private enum ParseTypeMode
         {
-            if (!parentIsParameter && !(isPattern || rightOfAs) && !expectSizes && !isArrayCreation && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            Normal,
+            Parameter,
+            Pattern,
+            AsExpression,
+            ArrayCreation
+        }
+
+        private TypeSyntax ParseType(
+            ParseTypeMode mode = ParseTypeMode.Normal,
+            bool expectSizes = false)
+        {
+            if (mode == ParseTypeMode.Normal && !expectSizes && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 var refKeyword = this.EatToken();
-                var type = ParseTypeCore1(parentIsParameter, isPattern, rightOfAs, expectSizes, isArrayCreation);
+                var type = ParseTypeCore(mode, expectSizes);
                 return this.CheckFeatureAvailability(_syntaxFactory.RefType(refKeyword, type), MessageID.IDS_FeatureRefLocalsReturns);
             }
             else
             {
-                return ParseTypeCore1(parentIsParameter, isPattern, rightOfAs, expectSizes, isArrayCreation);
+                return ParseTypeCore(mode, expectSizes);
             }
         }
 
-        private TypeSyntax ParseTypeCore1(
-            bool parentIsParameter,
-            bool rightOfIs,
-            bool rightOfAs,
-            bool expectSizes,
-            bool isArrayCreation)
+        private TypeSyntax ParseTypeCore(
+            ParseTypeMode mode,
+            bool expectSizes)
         {
-            var isOrAs = rightOfIs | rightOfAs;
-            var type = this.ParseUnderlyingType(parentIsParameter,
-                rightOfIs ? NameOptions.InExpression | NameOptions.PossiblePattern : NameOptions.None);
+            var isOrAs = mode == ParseTypeMode.AsExpression || mode == ParseTypeMode.Pattern;
+            var type = this.ParseUnderlyingType(mode == ParseTypeMode.Parameter,
+                mode == ParseTypeMode.Pattern ? NameOptions.InExpression | NameOptions.PossiblePattern : NameOptions.None);
 
             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
             {
@@ -6444,7 +6442,7 @@ tryAgain:
                     while (this.IsPossibleRankAndDimensionSpecifier())
                     {
                         bool unused;
-                        var rank = this.ParseArrayRankSpecifier(isArrayCreation, expectSizes, out unused);
+                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, out unused);
                         ranks.Add(rank);
                         expectSizes = false;
                     }
@@ -6600,7 +6598,7 @@ tryAgain:
 
         private TupleElementSyntax ParseTupleElement()
         {
-            var type = ParseType(parentIsParameter: false);
+            var type = ParseType();
             IdentifierNameSyntax name = null;
 
             if (CurrentToken.Kind == SyntaxKind.IdentifierToken)
@@ -7668,7 +7666,7 @@ tryAgain:
 
         private TypeSyntax ParseClassType()
         {
-            var type = this.ParseType(false);
+            var type = this.ParseType();
             switch (type.Kind)
             {
                 case SyntaxKind.PredefinedType:
@@ -7933,7 +7931,7 @@ tryAgain:
             SyntaxToken name = null;
             if (deconstruction == null)
             {
-                type = this.ParseType(false);
+                type = this.ParseType();
                 if (this.CurrentToken.Kind == SyntaxKind.InKeyword)
                 {
                     name = this.ParseIdentifierToken();
@@ -8544,7 +8542,7 @@ tryAgain:
                 }
                 else
                 {
-                    type = ParseType(false);
+                    type = ParseType();
                 }
 
                 VariableDesignationSyntax designation = ParseDeconstructionDesignation(topLevel);
@@ -8689,7 +8687,7 @@ tryAgain:
             out TypeSyntax type,
             out LocalFunctionStatementSyntax localFunction)
         {
-            type = allowLocalFunctions ? ParseReturnType() : this.ParseType(false);
+            type = allowLocalFunctions ? ParseReturnType() : this.ParseType();
 
             VariableFlags flags = VariableFlags.Local;
             if (mods.Any((int)SyntaxKind.ConstKeyword))
@@ -9366,7 +9364,7 @@ tryAgain:
 
                 if (opKind == SyntaxKind.AsExpression)
                 {
-                    var type = this.ParseTypeCore(parentIsParameter: false, isPattern: false, rightOfAs: true, expectSizes: false, isArrayCreation: false);
+                    var type = this.ParseType(ParseTypeMode.AsExpression);
                     leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, type);
                 }
                 else if (opKind == SyntaxKind.IsExpression)
@@ -9852,7 +9850,7 @@ tryAgain:
                 // that the ref/out of the argument must match the parameter when binding the argument list.
                 if (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword && IsPossibleOutVarDeclaration())
                 {
-                    TypeSyntax typeSyntax = ParseType(parentIsParameter: false);
+                    TypeSyntax typeSyntax = ParseType();
                     SyntaxToken identifier = CheckFeatureAvailability(this.ParseIdentifierToken(), MessageID.IDS_FeatureOutVar);
                     var declarationSyntax = _syntaxFactory.TypedVariableComponent(
                         typeSyntax,
@@ -9939,7 +9937,7 @@ tryAgain:
         {
             var keyword = this.EatToken();
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var type = this.ParseType(false);
+            var type = this.ParseType();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             keyword = CheckFeatureAvailability(keyword, MessageID.IDS_FeatureDefault);
@@ -9951,7 +9949,7 @@ tryAgain:
         {
             var keyword = this.EatToken();
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var type = this.ParseType(false);
+            var type = this.ParseType();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             return _syntaxFactory.SizeOfExpression(keyword, openParen, type, closeParen);
@@ -9996,7 +9994,7 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var expr = this.ParseSubExpression(Precedence.Expression);
             var comma = this.EatToken(SyntaxKind.CommaToken);
-            var type = this.ParseType(false);
+            var type = this.ParseType();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             return _syntaxFactory.RefValueExpression(@refvalue, openParen, expr, comma, type, closeParen);
@@ -10163,7 +10161,7 @@ tryAgain:
                         // Looks like a cast, so parse it as one.
                         this.Reset(ref resetPoint);
                         var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                        var type = this.ParseType(false);
+                        var type = this.ParseType();
                         var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                         var expr = this.ParseSubExpression(Precedence.Cast);
                         return _syntaxFactory.CastExpression(openParen, type, closeParen, expr);
@@ -10562,7 +10560,7 @@ tryAgain:
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
             bool isPossibleArrayCreation = this.IsPossibleArrayCreationExpression();
-            var type = this.ParseTypeCore(parentIsParameter: false, isPattern: false, rightOfAs: false, expectSizes: isPossibleArrayCreation, isArrayCreation: isPossibleArrayCreation);
+            var type = this.ParseType(isPossibleArrayCreation ? ParseTypeMode.ArrayCreation : ParseTypeMode.Normal, expectSizes: isPossibleArrayCreation);
 
             if (type.Kind == SyntaxKind.ArrayType)
             {
@@ -10968,7 +10966,7 @@ tryAgain:
         private StackAllocArrayCreationExpressionSyntax ParseStackAllocExpression()
         {
             var stackAlloc = this.EatToken(SyntaxKind.StackAllocKeyword);
-            var elementType = this.ParseTypeCore(parentIsParameter: false, isPattern: false, rightOfAs: false, expectSizes: true, isArrayCreation: false);
+            var elementType = this.ParseType(expectSizes: true);
             if (elementType.Kind != SyntaxKind.ArrayType)
             {
                 elementType = this.AddError(elementType, ErrorCode.ERR_BadStackAllocExpr);
@@ -11184,7 +11182,7 @@ tryAgain:
                     refOrOutOrParams = this.EatToken();
                 }
 
-                paramType = this.ParseType(true);
+                paramType = this.ParseType();
             }
 
             paramName = this.ParseIdentifierToken();
@@ -11414,7 +11412,7 @@ tryAgain:
             TypeSyntax type = null;
             if (this.PeekToken(1).Kind != SyntaxKind.InKeyword)
             {
-                type = this.ParseType(false);
+                type = this.ParseType();
             }
 
             SyntaxToken name;
@@ -11444,7 +11442,7 @@ tryAgain:
             TypeSyntax type = null;
             if (this.PeekToken(1).Kind != SyntaxKind.InKeyword)
             {
-                type = this.ParseType(false);
+                type = this.ParseType();
             }
 
             var name = this.ParseIdentifierToken();
