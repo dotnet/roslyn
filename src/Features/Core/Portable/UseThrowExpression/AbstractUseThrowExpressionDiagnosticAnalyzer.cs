@@ -36,24 +36,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
-        private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-            IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
-            s_localizableTitle,
-            s_localizableMessage,
-            DiagnosticCategory.Style,
-            DiagnosticSeverity.Hidden,
-            isEnabledByDefault: true);
+        private static DiagnosticDescriptor s_descriptor = 
+            CreateDescriptor(DiagnosticSeverity.Hidden);
 
-        private static DiagnosticDescriptor s_unnecessaryCodeDescriptor = new DiagnosticDescriptor(
-            IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
-            s_localizableTitle,
-            s_localizableMessage,
-            DiagnosticCategory.Style,
-            DiagnosticSeverity.Hidden,
-            isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Unnecessary);
+        private static DiagnosticDescriptor s_unnecessaryCodeDescriptor =
+            CreateDescriptor(DiagnosticSeverity.Hidden, customTags: DiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(s_descriptor, s_unnecessaryCodeDescriptor);
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -68,6 +57,16 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
 
         protected abstract bool IsSupported(ParseOptions options);
+
+        private static DiagnosticDescriptor CreateDescriptor(DiagnosticSeverity severity, params string[] customTags)
+            => new DiagnosticDescriptor(
+                    IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
+                    s_localizableTitle,
+                    s_localizableMessage,
+                    DiagnosticCategory.Style,
+                    DiagnosticSeverity.Hidden,
+                    isEnabledByDefault: true,
+                    customTags: customTags);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -149,13 +148,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            var descriptor = new DiagnosticDescriptor(
-                IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
-                s_localizableTitle,
-                s_localizableMessage,
-                DiagnosticCategory.Style,
-                option.Notification.Value,
-                isEnabledByDefault: true);
+            var descriptor = CreateDescriptor(option.Notification.Value);
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));
@@ -307,7 +300,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         }
 
         private static IOperation GetOperation(
-            SemanticModel semanticModel, 
+            SemanticModel semanticModel,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
