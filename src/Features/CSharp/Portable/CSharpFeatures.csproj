@@ -325,6 +325,7 @@
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceLocal.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceQueryLocal.cs" />
     <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessAnalyzer.cs" />
+    <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.cs" />
     <Compile Include="LanguageServices\CSharpAnonymousTypeDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.cs" />
