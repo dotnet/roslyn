@@ -683,6 +683,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     distance = ComputeWeightedDistanceOfLocalFunctions((LocalFunctionStatementSyntax)leftNode, (LocalFunctionStatementSyntax)rightNode);
                     return true;
 
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                    {
+                        var leftDeconstruction = (DeconstructionDeclarationStatementSyntax)leftNode;
+                        var rightDeconstruction = (DeconstructionDeclarationStatementSyntax)rightNode;
+                        distance = ComputeWeightedDistance(leftDeconstruction, rightDeconstruction);
+                        return true;
+                    }
+
                 case SyntaxKind.YieldBreakStatement:
                 case SyntaxKind.YieldReturnStatement:
                     // Ignore the expression of yield return. The structure of the state machine is more important than the yielded values.
@@ -858,6 +866,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return ComputeValueDistance(leftBlock, rightBlock);
+        }
+
+        private static double ComputeWeightedDistance(DeconstructionDeclarationStatementSyntax left, DeconstructionDeclarationStatementSyntax right)
+        {
+            return ComputeWeightedDistance(left.Assignment, right.Assignment);
+        }
+
+        private static double ComputeWeightedDistance(VariableComponentAssignmentSyntax left, VariableComponentAssignmentSyntax right)
+        {
+            double distance = ComputeDistance(left, right);
+
+            double identifiersDistance;
+            if (TryComputeLocalsDistance(left.VariableComponent, right.VariableComponent, out identifiersDistance))
+            {
+                distance = distance * 0.4 + identifiersDistance * 0.6;
+            }
+
+            return distance;
         }
 
         private static double ComputeWeightedDistance(CatchClauseSyntax left, CatchClauseSyntax right)
@@ -1081,7 +1107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     break;
 
                 case SyntaxKind.ParenthesizedVariableComponent:
-                    foreach (VariableComponentSyntax component in ((ParenthesizedVariableComponentSyntax)variableComponent).Variables)
+                    var variables = ((ParenthesizedVariableComponentSyntax)variableComponent).Variables;
+                    foreach (VariableComponentSyntax component in variables)
                     {
                         GetLocalNames(component, ref result);
                     }
@@ -1102,7 +1129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     break;
 
                 case SyntaxKind.ParenthesizedVariableDesignation:
-                    foreach (VariableDesignationSyntax designation in ((ParenthesizedVariableDesignationSyntax)variableDesignation).Variables)
+                    var variables = ((ParenthesizedVariableDesignationSyntax)variableDesignation).Variables;
+                    foreach (VariableDesignationSyntax designation in variables)
                     {
                         GetLocalNames(designation, ref result);
                     }
