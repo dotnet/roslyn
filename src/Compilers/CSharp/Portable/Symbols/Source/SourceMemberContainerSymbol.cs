@@ -2972,14 +2972,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.GetMethod, diagnostics);
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.SetMethod, diagnostics);
+                            FieldSymbol backingField = property.BackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
                             //   In addition, we will change autoproperties to behavior in 
                             //   a similar manner and make the autoproperty fields private.
-                            if ((object)property.BackingField != null)
+                            if ((object)backingField != null)
                             {
-                                builder.NonTypeNonIndexerMembers.Add(property.BackingField);
+                                builder.NonTypeNonIndexerMembers.Add(backingField);
 
                                 var initializer = propertySyntax.Initializer;
                                 if (initializer != null)
@@ -2991,16 +2992,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                       initializer,
                                                                                       this,
                                                                                       DeclarationModifiers.Private | (property.IsStatic ? DeclarationModifiers.Static : 0),
-                                                                                      property.BackingField);
+                                                                                      backingField);
                                     }
 
                                     if (property.IsStatic)
                                     {
-                                        AddInitializer(ref staticInitializers, ref builder.StaticSyntaxLength, property.BackingField, initializer);
+                                        AddInitializer(ref staticInitializers, ref builder.StaticSyntaxLength, backingField, initializer);
                                     }
                                     else
                                     {
-                                        AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, property.BackingField, initializer);
+                                        AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, backingField, initializer);
                                     }
                                 }
                             }
