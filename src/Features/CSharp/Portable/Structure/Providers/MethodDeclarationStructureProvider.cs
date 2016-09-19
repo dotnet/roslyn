@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             ImmutableArray<BlockSpan>.Builder spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(methodDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(methodDeclaration, spans);
 
             // fault tolerance
             if (methodDeclaration.Body == null ||
@@ -24,10 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 methodDeclaration,
                 methodDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
-                autoCollapse: true));
+                autoCollapse: true,
+                type: BlockTypes.Method,
+                isCollapsible: true));
         }
     }
 }

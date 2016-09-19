@@ -23,45 +23,51 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol.MethodKind == MethodKind.LocalFunction;
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            IMethodSymbol symbol,
+        protected override async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
             // If it's a delegate method, then cascade to the type as well.  These guys are
             // practically equivalent for users.
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
             {
-                return SpecializedCollections.SingletonEnumerable((ISymbol)symbol.ContainingType);
+                return SpecializedCollections.SingletonEnumerable(
+                    symbolAndProjectId.WithSymbol((ISymbol)symbol.ContainingType));
             }
             else
             {
-                var otherPartsOfPartial = GetOtherPartsOfPartial(symbol);
-                var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
+                var otherPartsOfPartial = GetOtherPartsOfPartial(symbolAndProjectId);
+                var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
 
                 if (otherPartsOfPartial == null && baseCascadedSymbols == null)
                 {
                     return null;
                 }
 
-                otherPartsOfPartial = otherPartsOfPartial ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-                baseCascadedSymbols = baseCascadedSymbols ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
+                otherPartsOfPartial = otherPartsOfPartial ?? SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
+                baseCascadedSymbols = baseCascadedSymbols ?? SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
 
                 return otherPartsOfPartial.Concat(baseCascadedSymbols);
             }
         }
 
-        private IEnumerable<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
+        private IEnumerable<SymbolAndProjectId> GetOtherPartsOfPartial(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId)
         {
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol.PartialDefinitionPart != null)
             {
-                return SpecializedCollections.SingletonEnumerable(symbol.PartialDefinitionPart);
+                return SpecializedCollections.SingletonEnumerable(
+                    symbolAndProjectId.WithSymbol((ISymbol)symbol.PartialDefinitionPart));
             }
 
             if (symbol.PartialImplementationPart != null)
             {
-                return SpecializedCollections.SingletonEnumerable(symbol.PartialImplementationPart);
+                return SpecializedCollections.SingletonEnumerable(
+                    symbolAndProjectId.WithSymbol((ISymbol)symbol.PartialImplementationPart));
             }
 
             return null;

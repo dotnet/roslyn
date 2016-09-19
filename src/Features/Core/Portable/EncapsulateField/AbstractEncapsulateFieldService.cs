@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Rename;
@@ -15,7 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField
 {
@@ -232,14 +233,18 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 return solution;
             }
 
+            var projectId = document.Project.Id;
             if (field.IsReadOnly)
             {
                 // Inside the constructor we want to rename references the field to the final field name.
                 var constructorSyntaxes = GetConstructorNodes(field.ContainingType).ToSet();
                 if (finalFieldName != field.Name && constructorSyntaxes.Count > 0)
                 {
-                    solution = await Renamer.RenameSymbolAsync(solution, field, finalFieldName, solution.Options,
-                        location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)), cancellationToken: cancellationToken).ConfigureAwait(false);
+                    solution = await Renamer.RenameSymbolAsync(solution,
+                        SymbolAndProjectId.Create(field, projectId), 
+                        finalFieldName, solution.Options,
+                        location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)),
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
                     document = solution.GetDocument(document.Id);
 
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -248,13 +253,18 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 }
 
                 // Outside the constructor we want to rename references to the field to final property name.
-                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Options,
-                    location => !constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)), cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await Renamer.RenameSymbolAsync(solution,
+                    SymbolAndProjectId.Create(field, projectId),
+                    generatedPropertyName, solution.Options,
+                    location => !constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)),
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // Just rename everything.
-                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
+                return await Renamer.RenameSymbolAsync(
+                    solution, SymbolAndProjectId.Create(field, projectId), 
+                    generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
 

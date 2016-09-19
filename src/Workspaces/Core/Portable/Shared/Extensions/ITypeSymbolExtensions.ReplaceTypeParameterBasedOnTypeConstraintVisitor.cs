@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                 var derivedAndImplementedTypes = new List<INamedTypeSymbol>();
                                 var derivedClasses = SymbolFinder.FindDerivedClassesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken);
                                 var implementedTypes = DependentTypeFinder.FindTransitivelyImplementingTypesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken);
-                                return derivedClasses.Concat(implementedTypes).ToList();
+                                return derivedClasses.Concat(implementedTypes.Select(s => s.Symbol)).ToList();
                             }).ToList();
 
                             var intersectingTypes = derivedImplementedTypesOfEachConstraintType.Aggregate((x, y) => x.Intersect(y).ToList());

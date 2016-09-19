@@ -18,11 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 Dim startPos = nodeSpan.Start
                 Dim endPos = startPos + trivia.ToString().TrimEnd().Length
 
-                spans.Add(
-                    CreateRegion(
-                        span:=TextSpan.FromBounds(startPos, endPos),
-                        bannerText:=Ellipsis,
-                        autoCollapse:=True))
+                spans.Add(CreateRegion(
+                    span:=TextSpan.FromBounds(startPos, endPos),
+                    bannerText:=Ellipsis, autoCollapse:=True,
+                    type:=BlockTypes.Nonstructural, isCollapsible:=True))
             End If
         End Sub
     End Class

@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             string replacementText,
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
-            IEnumerable<ISymbol> referencedSymbols,
+            IEnumerable<SymbolAndProjectId> referencedSymbols,
             Solution baseSolution,
             Solution newSolution,
             IDictionary<Location, Location> reverseMappedLocations,
@@ -834,9 +834,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     {
                         var property = await RenameLocations.ReferenceProcessing.GetPropertyFromAccessorOrAnOverride(
                             referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
-                        if (property != null)
+                        if (property.Symbol != null)
                         {
-                            properties.Add(property);
+                            properties.Add(property.Symbol);
                         }
                     }
 

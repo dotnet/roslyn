@@ -128,17 +128,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            public override void OnCompleted()
+            public override async Task OnCompletedAsync()
             {
                 // Now that we know the search is over, create and display any error messages
                 // for definitions that were not found.
-                CreateMissingReferenceEntriesIfNecessary();
-                CreateNoResultsFoundEntryIfNecessary();
+                await CreateMissingReferenceEntriesIfNecessaryAsync().ConfigureAwait(false);
+                await CreateNoResultsFoundEntryIfNecessaryAsync().ConfigureAwait(false);
 
                 _tableDataSink.IsStable = true;
             }
 
-            private void CreateNoResultsFoundEntryIfNecessary()
+            private async Task CreateNoResultsFoundEntryIfNecessaryAsync()
             {
                 bool noDefinitions;
                 lock(_gate)
@@ -149,9 +149,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 if (noDefinitions)
                 {
                     // Create a fake definition/reference called "search found no results"
-                    this.OnEntryFound(NoResultsDefinitionItem,
+                    await OnEntryFoundAsync(NoResultsDefinitionItem,
                         (db, c) => SimpleMessageEntry.CreateAsync(
-                            db, ServicesVisualStudioNextResources.Search_found_no_results));
+                            db, ServicesVisualStudioNextResources.Search_found_no_results)).ConfigureAwait(false);
                 }
             }
 
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                         TextTags.Text,
                         ServicesVisualStudioNextResources.Search_found_no_results)));
 
-            private void CreateMissingReferenceEntriesIfNecessary()
+            private async Task CreateMissingReferenceEntriesIfNecessaryAsync()
             {
                 // Go through and add dummy entries for any definitions that 
                 // that we didn't find any references for.
@@ -172,9 +172,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 {
                     // Create a fake reference to this definition that says 
                     // "no references found to <symbolname>".
-                    OnEntryFound(definition,
+                    await OnEntryFoundAsync(definition,
                         (db, c) => SimpleMessageEntry.CreateAsync(
-                            db, GetMessage(db.DefinitionItem)));
+                            db, GetMessage(db.DefinitionItem))).ConfigureAwait(false);
                 }
             }
 
@@ -223,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            public override void OnDefinitionFound(DefinitionItem definition)
+            public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (_gate)
                 {
@@ -232,39 +232,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 foreach (var location in definition.SourceSpans)
                 {
-                    OnEntryFound(definition,
+                    await OnEntryFoundAsync(definition,
                         (db, c) => CreateDocumentLocationEntryAsync(
-                            db, location, isDefinitionLocation: true, cancellationToken: c));
+                            db, location, isDefinitionLocation: true, cancellationToken: c)).ConfigureAwait(false);
                 }
             }
 
-            public override void OnReferenceFound(SourceReferenceItem reference)
+            public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
             {
-                OnEntryFound(reference.Definition,
+                return OnEntryFoundAsync(reference.Definition,
                     (db, c) => CreateDocumentLocationEntryAsync(
                         db, reference.SourceSpan, isDefinitionLocation: false, cancellationToken: c));
-            }
-
-            private async void OnEntryFound(
-                DefinitionItem definition,
-                Func<RoslynDefinitionBucket, CancellationToken, Task<Entry>> createEntryAsync)
-            {
-                try
-                {
-                    // We're told about this reference synchronously, but we need to get the 
-                    // SourceText for the definition/reference's Document so that we can determine 
-                    // things like it's line/column/text.  We don't want to block this method getting
-                    // that data, so instead we just fire off the async work to get the text
-                    // and use it.  Because we're starting some async work, let the test harness
-                    // know so that it doesn't verify results until this completes.
-                    using (var token = Presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
-                    {
-                        await OnEntryFoundAsync(definition, createEntryAsync).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-                {
-                }
             }
 
             private async Task OnEntryFoundAsync(
@@ -355,13 +333,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     sourceText.Lines[lastLineNumber].End);
             }
 
-            private async Task<TaggedTextAndHighlightSpan> GetTaggedTextForReferenceAsync(
+            private async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForReferenceAsync(
                 Document document, TextSpan referenceSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
             {
                 var classificationService = document.GetLanguageService<IEditorClassificationService>();
                 if (classificationService == null)
                 {
-                    return new TaggedTextAndHighlightSpan(ImmutableArray<TaggedText>.Empty, new TextSpan());
+                    return new ClassifiedSpansAndHighlightSpan(ImmutableArray<ClassifiedSpan>.Empty, new TextSpan());
                 }
 
                 // Call out to the individual language to classify the chunk of text around the
@@ -381,18 +359,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 await classificationService.AddSemanticClassificationsAsync(
                     document, widenedSpan, semanticSpans, cancellationToken).ConfigureAwait(false);
 
-                var allParts = MergeClassifiedSpans(
+                var classifiedSpans = MergeClassifiedSpans(
                     syntaxSpans, semanticSpans, widenedSpan, sourceText);
-                var taggedText = allParts.ToTaggedText();
 
                 var highlightSpan = new TextSpan(
                     start: referenceSpan.Start - widenedSpan.Start,
                     length: referenceSpan.Length);
 
-                return new TaggedTextAndHighlightSpan(taggedText, highlightSpan);
+                return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
             }
 
-            private List<SymbolDisplayPart> MergeClassifiedSpans(
+            private ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
                 List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, 
                 TextSpan widenedSpan, SourceText sourceText)
             {
@@ -403,17 +380,38 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 Order(syntaxSpans);
                 Order(semanticSpans);
 
-                // Produce SymbolDisplayParts for both sets of ClassifiedSpans.  This will
-                // also produce parts for the regions between the sections that the classifiers
-                // returned results for (i.e. for things like spaces and plain text).
-                var syntaxParts = Classifier.ConvertClassifications(
-                    sourceText, widenedSpan.Start, syntaxSpans, insertSourceTextInGaps: true);
-                var semanticParts = Classifier.ConvertClassifications(
-                    sourceText, widenedSpan.Start, semanticSpans, insertSourceTextInGaps: true);
+                // The classification service will only produce classifications for
+                // things it knows about.  i.e. there will be gaps in what it produces.
+                // Fill in those gaps so we have *all* parts of the span 
+                // classified properly.
+                var syntaxParts = FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, syntaxSpans);
+                var semanticParts = FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, semanticSpans);
 
                 // Now merge the lists together, taking all the results from syntaxParts
                 // unless they were overridden by results in semanticParts.
                 return MergeParts(syntaxParts, semanticParts);
+            }
+
+            private static List<ClassifiedSpan> FillInClassifiedSpanGaps(
+                SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans)
+            {
+                var result = new List<ClassifiedSpan>();
+
+                foreach (var span in classifiedSpans)
+                {
+                    // If there is space between this span and the last one, then add a space.
+                    if (startPosition != span.TextSpan.Start)
+                    {
+                        result.Add(new ClassifiedSpan(ClassificationTypeNames.Text,
+                            TextSpan.FromBounds(
+                                startPosition, span.TextSpan.Start)));
+                    }
+
+                    result.Add(span);
+                    startPosition = span.TextSpan.End;
+                }
+
+                return result;
             }
 
             private void Order(List<ClassifiedSpan> syntaxSpans)
@@ -421,30 +419,29 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 syntaxSpans.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
             }
 
-            private List<SymbolDisplayPart> MergeParts(
-                List<SymbolDisplayPart> syntaxParts,
-                List<SymbolDisplayPart> semanticParts)
+            private ImmutableArray<ClassifiedSpan> MergeParts(
+                List<ClassifiedSpan> syntaxParts,
+                List<ClassifiedSpan> semanticParts)
             {
                 // Take all the syntax parts.  However, if any have been overridden by a 
                 // semantic part, then choose that one.
 
-                // To make life easier, determine the spans for all the parts in the lists.
-                var syntaxPartsAndSpans = AddSpans(syntaxParts);
-                var semanticPartsAndSpans = AddSpans(semanticParts);
-
-                var finalParts = new List<SymbolDisplayPart>();
+                var finalParts = ImmutableArray.CreateBuilder<ClassifiedSpan>();
                 var lastReplacementIndex = 0;
-                for (int i = 0, n = syntaxPartsAndSpans.Count; i < n; i++)
+                for (int i = 0, n = syntaxParts.Count; i < n; i++)
                 {
-                    var syntaxPartAndSpan = syntaxPartsAndSpans[i];
+                    var syntaxPartAndSpan = syntaxParts[i];
 
                     // See if we can find a semantic part to replace this syntax part.
-                    var replacementIndex = semanticPartsAndSpans.FindIndex(
-                        lastReplacementIndex, t => t.Item2 == syntaxPartAndSpan.Item2);
+                    var replacementIndex = semanticParts.FindIndex(
+                        lastReplacementIndex, t => t.TextSpan == syntaxPartAndSpan.TextSpan);
 
-                    var part = replacementIndex >= 0 && ShouldUseSemanticPart(semanticPartsAndSpans[replacementIndex])
-                        ? semanticPartsAndSpans[replacementIndex].Item1
-                        : syntaxPartAndSpan.Item1;
+                    // Take the semantic part if it's just 'text'.  We want to keep it if
+                    // the semantic classifier actually produced an interesting result 
+                    // (as opposed to it just being a 'gap' classification).
+                    var part = replacementIndex >= 0 && !IsClassifiedAsText(semanticParts[replacementIndex])
+                        ? semanticParts[replacementIndex]
+                        : syntaxPartAndSpan;
                     finalParts.Add(part);
 
                     if (replacementIndex >= 0)
@@ -456,32 +453,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     }
                 }
 
-                return finalParts;
+                return finalParts.ToImmutable();
             }
 
-            private bool ShouldUseSemanticPart(ValueTuple<SymbolDisplayPart, TextSpan> partAndSpan)
+            private bool IsClassifiedAsText(ClassifiedSpan partAndSpan)
             {
                 // Don't take 'text' from the semantic parts.  We'll get those for the 
                 // spaces between the actual interesting semantic spans, and we don't 
                 // want them to override actual good syntax spans.
-                return partAndSpan.Item1.Kind != SymbolDisplayPartKind.Text;
-            }
-
-            private List<ValueTuple<SymbolDisplayPart, TextSpan>> AddSpans(
-                List<SymbolDisplayPart> parts)
-            {
-                var result = new List<ValueTuple<SymbolDisplayPart, TextSpan>>(parts.Count);
-                var position = 0;
-
-                foreach (var part in parts)
-                {
-                    var partLength = part.ToString().Length;
-                    result.Add(ValueTuple.Create(part, new TextSpan(position, partLength)));
-
-                    position += partLength;
-                }
-
-                return result;
+                return partAndSpan.ClassificationType == ClassificationTypeNames.Text;
             }
 
             private RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
@@ -499,9 +479,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 }
             }
 
-            public override void ReportProgress(int current, int maximum)
+            public override Task ReportProgressAsync(int current, int maximum)
             {
+                //var progress = maximum == 0 ? 0 : ((double)current / maximum);
                 // _findReferencesWindow.SetProgress(current, maximum);
+                return SpecializedTasks.EmptyTask;
             }
 
             #endregion

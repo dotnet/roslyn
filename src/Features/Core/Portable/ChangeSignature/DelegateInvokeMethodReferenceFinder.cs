@@ -31,18 +31,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return symbol.MethodKind == MethodKind.DelegateInvoke;
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            IMethodSymbol symbol,
+        protected override async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            var result = new List<ISymbol>();
+            var result = new List<SymbolAndProjectId>();
 
+            var symbol = symbolAndProjectId.Symbol;
             var beginInvoke = symbol.ContainingType.GetMembers(WellKnownMemberNames.DelegateBeginInvokeName).FirstOrDefault();
             if (beginInvoke != null)
             {
-                result.Add(beginInvoke);
+                result.Add(symbolAndProjectId.WithSymbol(beginInvoke));
             }
 
             // All method group references
@@ -51,7 +52,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 foreach (var document in project.Documents)
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
-                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvoke(symbol, document, cancellationToken).ConfigureAwait(false));
+                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvoke(
+                        symbolAndProjectId, document, cancellationToken).ConfigureAwait(false));
                 }
             }
 
