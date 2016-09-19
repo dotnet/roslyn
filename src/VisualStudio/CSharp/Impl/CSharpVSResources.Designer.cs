@@ -637,6 +637,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;null&apos; checking:.
+        /// </summary>
+        internal static string null_checking_colon {
+            get {
+                return ResourceManager.GetString("null_checking_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Only add new line on enter after end of fully typed word.
         /// </summary>
         internal static string Only_add_new_line_on_enter_after_end_of_fully_typed_word {
@@ -862,6 +871,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer conditional function call.
+        /// </summary>
+        internal static string Prefer_conditional_function_call {
+            get {
+                return ResourceManager.GetString("Prefer_conditional_function_call", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer explicit type.
         /// </summary>
         internal static string Prefer_explicit_type {
@@ -876,6 +894,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Prefer_this {
             get {
                 return ResourceManager.GetString("Prefer_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer throw-expression.
+        /// </summary>
+        internal static string Prefer_throw_expression {
+            get {
+                return ResourceManager.GetString("Prefer_throw_expression", resourceCulture);
             }
         }
         

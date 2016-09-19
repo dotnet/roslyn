@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindReferences;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -18,20 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor
         {
         }
 
-        public virtual void OnCompleted()
-        {
-        }
+        public virtual Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
 
-        public virtual void OnDefinitionFound(DefinitionItem definition)
-        {
-        }
+        public virtual Task OnDefinitionFoundAsync(DefinitionItem definition) => SpecializedTasks.EmptyTask;
 
-        public virtual void OnReferenceFound(SourceReferenceItem reference)
-        {
-        }
+        public virtual Task OnReferenceFoundAsync(SourceReferenceItem reference) => SpecializedTasks.EmptyTask;
 
-        public virtual void ReportProgress(int current, int maximum)
-        {
-        }
+        public virtual Task ReportProgressAsync(int current, int maximum) => SpecializedTasks.EmptyTask;
     }
 }

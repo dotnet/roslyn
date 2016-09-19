@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.MethodKind == MethodKind.Destructor;
         }
 
-        protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            IMethodSymbol symbol,
+        protected override Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IMethodSymbol> symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyEnumerable<ISymbol>();
+            return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId>();
         }
 
         protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(

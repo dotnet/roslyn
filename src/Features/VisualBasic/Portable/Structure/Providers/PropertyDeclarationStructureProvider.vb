@@ -16,8 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(propertyDeclaration.Parent, PropertyBlockSyntax)
             If Not block?.EndPropertyStatement.IsMissing Then
-                spans.Add(
-                    CreateRegionFromBlock(block, bannerNode:=propertyDeclaration, autoCollapse:=True))
+                spans.Add(CreateRegionFromBlock(
+                    block, bannerNode:=propertyDeclaration, autoCollapse:=True,
+                    type:=BlockTypes.Property, isCollapsible:=True))
 
                 CollectCommentsRegions(block.EndPropertyStatement, spans)
             End If

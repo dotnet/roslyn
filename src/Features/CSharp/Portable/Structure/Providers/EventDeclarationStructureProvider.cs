@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             ImmutableArray<BlockSpan>.Builder spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(eventDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(eventDeclaration, spans);
 
             // fault tolerance
             if (eventDeclaration.AccessorList.IsMissing ||
@@ -24,10 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 eventDeclaration,
                 eventDeclaration.Identifier,
-                autoCollapse: true));
+                autoCollapse: true,
+                type: BlockTypes.Event,
+                isCollapsible: true));
         }
     }
 }

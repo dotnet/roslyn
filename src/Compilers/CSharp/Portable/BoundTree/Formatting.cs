@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class OutVarLocalPendingInference
+    internal partial class OutVariablePendingInference
     {
         public override object Display
         {
