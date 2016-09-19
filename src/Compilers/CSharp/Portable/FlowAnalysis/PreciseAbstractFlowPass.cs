@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public PendingBranch(BoundNode branch, LocalState state)
             {
                 this.Branch = branch;
-                this.State = state;
+                this.State = state.Clone();
             }
         }
 
@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = new SavedPending(ref _pendingBranches, ref _labelsSeen);
             if (_trackExceptions)
             {
-                _pendingBranches.Add(new PendingBranch(null, this.State.Clone()));
+                _pendingBranches.Add(new PendingBranch(null, this.State));
             }
 
             return result;
@@ -2005,7 +2005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             VisitRvalue(node.Expression);
-            _pendingBranches.Add(new PendingBranch(node, this.State.Clone()));
+            _pendingBranches.Add(new PendingBranch(node, this.State));
             if (_trackExceptions) NotePossibleException(node);
             return null;
         }
@@ -2445,7 +2445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
             VisitRvalue(node.Expression);
-            _pendingBranches.Add(new PendingBranch(node, this.State.Clone()));
+            _pendingBranches.Add(new PendingBranch(node, this.State));
             return null;
         }
 
@@ -2539,7 +2539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
         {
             VisitRvalue(node.Condition);
-            _pendingBranches.Add(new PendingBranch(node, this.State.Clone()));
+            _pendingBranches.Add(new PendingBranch(node, this.State));
             return null;
         }
 
