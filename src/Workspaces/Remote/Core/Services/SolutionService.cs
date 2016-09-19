@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class SolutionService
     {
-        public const string WorkspaceKind = "RemoteHostWorkspace";
+        public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
 
         // TODO: make this simple cache better
         // this simple cache hold onto the last solution created
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObject>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // TODO: Make these to do work concurrently
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind);
+            var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
             var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObjectInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
