@@ -23,7 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class CSharpCompilationOptionsTests : CSharpTestBase
     {
-        private void TestShadowedProperty<T>(
+        /// <summary>
+        /// Using an instance of <see cref="CSharpCompilationOptions"/>, tests a property in <see cref="CompilationOptions"/> , even it is hidden by <see cref="CSharpCompilationOptions"/>.
+        /// </summary>
+        private void TestHiddenProperty<T>(
             Func<CompilationOptions, T, CompilationOptions> factory,
             Func<CompilationOptions, T> getter,
             T validNonDefaultValue)
@@ -63,30 +66,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ShadowInvariants()
         {
-            TestShadowedProperty((old, value) => old.WithOutputKind(value), opt => opt.OutputKind, OutputKind.DynamicallyLinkedLibrary);
-            TestShadowedProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "foo.dll");
-            TestShadowedProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Foo.Bar");
-            TestShadowedProperty((old, value) => old.WithScriptClassName(value), opt => opt.ScriptClassName, "<Script>");
-            TestShadowedProperty((old, value) => old.WithOptimizationLevel(value), opt => opt.OptimizationLevel, OptimizationLevel.Release);
-            TestShadowedProperty((old, value) => old.WithOverflowChecks(value), opt => opt.CheckOverflow, true);
-            TestShadowedProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
-            TestShadowedProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
-            TestShadowedProperty((old, value) => old.WithCryptoPublicKey(value), opt => opt.CryptoPublicKey, ImmutableArray.Create<byte>(0, 1, 2, 3));
-            TestShadowedProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
-            TestShadowedProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
-            TestShadowedProperty((old, value) => old.WithGeneralDiagnosticOption(value), opt => opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress);
-            TestShadowedProperty((old, value) => old.WithWarningLevel(value), opt => opt.WarningLevel, 3);
+            TestHiddenProperty((old, value) => old.WithOutputKind(value), opt => opt.OutputKind, OutputKind.DynamicallyLinkedLibrary);
+            TestHiddenProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "foo.dll");
+            TestHiddenProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Foo.Bar");
+            TestHiddenProperty((old, value) => old.WithScriptClassName(value), opt => opt.ScriptClassName, "<Script>");
+            TestHiddenProperty((old, value) => old.WithOptimizationLevel(value), opt => opt.OptimizationLevel, OptimizationLevel.Release);
+            TestHiddenProperty((old, value) => old.WithOverflowChecks(value), opt => opt.CheckOverflow, true);
+            TestHiddenProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
+            TestHiddenProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
+            TestHiddenProperty((old, value) => old.WithCryptoPublicKey(value), opt => opt.CryptoPublicKey, ImmutableArray.Create<byte>(0, 1, 2, 3));
+            TestHiddenProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
+            TestHiddenProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
+            TestHiddenProperty((old, value) => old.WithGeneralDiagnosticOption(value), opt => opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress);
+            TestHiddenProperty((old, value) => old.WithWarningLevel(value), opt => opt.WarningLevel, 3);
 
-            TestShadowedProperty((old, value) => old.WithSpecificDiagnosticOptions(value), opt => opt.SpecificDiagnosticOptions,
+            TestHiddenProperty((old, value) => old.WithSpecificDiagnosticOptions(value), opt => opt.SpecificDiagnosticOptions,
                 new Dictionary<string, ReportDiagnostic> { { "CS0001", ReportDiagnostic.Error } }.ToImmutableDictionary());
-            TestShadowedProperty((old, value) => old.WithReportSuppressedDiagnostics(value), opt => opt.ReportSuppressedDiagnostics, true);
+            TestHiddenProperty((old, value) => old.WithReportSuppressedDiagnostics(value), opt => opt.ReportSuppressedDiagnostics, true);
 
-            TestShadowedProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
+            TestHiddenProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
 
-            TestShadowedProperty((old, value) => old.WithXmlReferenceResolver(value), opt => opt.XmlReferenceResolver, new XmlFileResolver(null));
-            TestShadowedProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new TestMetadataReferenceResolver());
-            TestShadowedProperty((old, value) => old.WithAssemblyIdentityComparer(value), opt => opt.AssemblyIdentityComparer, new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy()));
-            TestShadowedProperty((old, value) => old.WithStrongNameProvider(value), opt => opt.StrongNameProvider, new DesktopStrongNameProvider());
+            TestHiddenProperty((old, value) => old.WithXmlReferenceResolver(value), opt => opt.XmlReferenceResolver, new XmlFileResolver(null));
+            TestHiddenProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new TestMetadataReferenceResolver());
+            TestHiddenProperty((old, value) => old.WithAssemblyIdentityComparer(value), opt => opt.AssemblyIdentityComparer, new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy()));
+            TestHiddenProperty((old, value) => old.WithStrongNameProvider(value), opt => opt.StrongNameProvider, new DesktopStrongNameProvider());
         }
 
         private void TestProperty<T>(
