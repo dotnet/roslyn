@@ -466,10 +466,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             userDefined = Me.GetReturnTypeAttributes()
             Me.AddSynthesizedReturnTypeAttributes(synthesized)
 
-            If userDefined.IsEmpty AndAlso synthesized Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of VisualBasicAttributeData)()
-            End If
-
             ' Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             ' all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
             Return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False)

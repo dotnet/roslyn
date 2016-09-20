@@ -662,10 +662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(stringType IsNot Nothing)
             Dim names As ImmutableArray(Of TypedConstant) = TupleNamesEncoder.Encode(type, stringType)
 
-            ' If there are no names, elide the attribute entirely
-            If names.IsDefault Then
-                Return Nothing
-            End If
+            Debug.Assert(Not names.IsDefault, "should not need the attribute when no tuple names")
 
             Dim stringArray = ArrayTypeSymbol.CreateSZArray(stringType, ImmutableArray(Of CustomModifier).Empty, stringType.ContainingAssembly)
             Dim args = ImmutableArray.Create(New TypedConstant(stringArray, names))
@@ -710,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Shared Function AddNames(type As TypeSymbol, namesBuilder As ArrayBuilder(Of String)) As Boolean
                 If type.IsTupleType Then
-                    If (type.TupleElementNames.IsDefaultOrEmpty) Then
+                    If type.TupleElementNames.IsDefaultOrEmpty Then
                         ' If none of the tuple elements have names, put
                         ' null placeholders in.
                         namesBuilder.AddMany(Nothing, type.TupleElementTypes.Length)

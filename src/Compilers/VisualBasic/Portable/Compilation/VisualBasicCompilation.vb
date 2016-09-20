@@ -1837,8 +1837,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Function CanEmitSpecialType(type As SpecialType) As Boolean
             Dim typeSymbol = GetSpecialType(type)
-            Dim Diagnostic = typeSymbol.GetUseSiteErrorInfo
-            Return Diagnostic Is Nothing OrElse Diagnostic.Severity <> DiagnosticSeverity.Error
+            Dim diagnostic = typeSymbol.GetUseSiteErrorInfo
+            Return diagnostic Is Nothing OrElse diagnostic.Severity <> DiagnosticSeverity.Error
         End Function
 
 #End Region

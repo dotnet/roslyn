@@ -845,7 +845,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension()>
         Friend Function ContainsTupleNames(type As TypeSymbol) As Boolean
-            Return type.VisitType(s_isTupleTypeFunc, Nothing) IsNot Nothing
+            Return type.VisitType(s_hasTupleNamesFunc, Nothing) IsNot Nothing
         End Function
 
         Private ReadOnly s_hasTupleNamesFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) Not type.TupleElementNames.IsDefault
@@ -924,10 +924,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case TypeKind.Array
                         current = DirectCast(current, ArrayTypeSymbol).ElementType
                         Continue Do
-
-                    Case TypeKind.Pointer
-                        ' VB does not support pointers
-                        Return Nothing
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(current.TypeKind)
