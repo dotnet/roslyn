@@ -306,10 +306,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             private IEnumerable<StatementSyntax> MoveDeclarationOutFromMethodDefinition(
                 IEnumerable<StatementSyntax> statements, CancellationToken cancellationToken)
             {
-                var variablesToRemove = this.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken);
-                var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(variablesToRemove, cancellationToken);
+                var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
+                    this.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken);
 
-                statements = statements.Select(s => FixDeclarationExpressionsAndDeclarationPatterns(s, variablesToRemove));
+                statements = statements.Select(s => FixDeclarationExpressionsAndDeclarationPatterns(s, variableToRemoveMap));
 
                 foreach (var statement in statements)
                 {
@@ -408,12 +408,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             /// a better refactoring.
             /// </summary>
             private StatementSyntax FixDeclarationExpressionsAndDeclarationPatterns(StatementSyntax statement,
-                IEnumerable<VariableInfo> variablesToRemove)
+                HashSet<SyntaxAnnotation> variablesToRemove)
             {
                 var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
 
                 var declarations = statement.DescendantNodes()
                     .Where(n => n.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.DeclarationPattern));
+
+                var semanticModel = this.SemanticDocument.SemanticModel;
 
                 foreach (var node in declarations)
                 {
@@ -434,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                             var designation = (SingleVariableDesignationSyntax)variableComponent.Designation;
                             var name = designation.Identifier.ValueText;
-                            if (variablesToRemove.Select(v => v.Name).Contains(name))
+                            if (variablesToRemove.HasSyntaxAnnotation(designation))
                             {
                                 replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier));
                             }
@@ -443,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                         case SyntaxKind.DeclarationPattern:
                             var pattern = (DeclarationPatternSyntax)node;
-                            if (!variablesToRemove.Select(v => v.Name).Contains(pattern.Identifier.ValueText))
+                            if (!variablesToRemove.HasSyntaxAnnotation(pattern))
                             {
                                 break;
                             }

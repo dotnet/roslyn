@@ -564,5 +564,25 @@ private static void NewMethod(int i, out int r, out int y) { r = M1(3 is int {|C
 @"class C { static void M() { int r; int y, z; {|Rename:NewMethod|}(out r, out y, out z); System.Console.WriteLine(r + y + z); }
 private static void NewMethod(out int r, out int y, out int z) { r = M1(out y /*y*/) + M2(3 is int {|Conflict:z|}); } } ");
         }
-    }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        public async Task ConflictingOutVarLocals()
+        {
+            await TestAsync(
+@"class C { static void M() { int r; [| r = M1(out int y); { M2(out int y); System.Console.Write(y); }|] System.Console.WriteLine(r + y); } } ",
+@"class C { static void M() { int r; int y; {|Rename:NewMethod|}(out r, out y); System.Console.WriteLine(r + y); }
+private static void NewMethod(out int r, out int y) { r = M1(out y); { M2(out int y); System.Console.Write(y); } } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        public async Task ConflictingPatternLocals()
+        {
+            await TestAsync(
+@"class C { static void M() { int r; [| r = M1(1 is int y); { M2(2 is int y); System.Console.Write(y); }|] System.Console.WriteLine(r + y); } } ",
+@"class C { static void M() { int r; int y; {|Rename:NewMethod|}(out r, out y); System.Console.WriteLine(r + y); }
+private static void NewMethod(out int r, out int y) { r = M1(1 is int {|Conflict:y|}); { M2(2 is int y); System.Console.Write(y); } } } ");
+        }
+     }
 }
