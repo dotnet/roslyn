@@ -192,5 +192,50 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestFixAllInDocument()
+        {
+            await TestAsync(
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        C[] array;
+
+        array[0] = {|FixAllInDocument:new|} C();
+        array[0].i = 1;
+        array[0].j = 2;
+
+        array[1] = new C();
+        array[1].i = 3;
+        array[1].j = 4;
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        C[] array;
+
+        array[0] = new C()
+        {
+            i = 1,
+            j = 2
+        };
+        array[1] = new C()
+        {
+            i = 3,
+            j = 4
+        };
+    }
+}");
+        }
     }
 }

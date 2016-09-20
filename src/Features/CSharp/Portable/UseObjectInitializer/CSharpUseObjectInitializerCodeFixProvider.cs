@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]
     internal class CSharpUseObjectInitializerCodeFixProvider : CodeFixProvider
     {
+        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
 
