@@ -65,17 +65,16 @@ namespace Microsoft.CodeAnalysis.Options
 
             private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
             {
-                var eventHandlers = GetEventHandlers();
-                if (eventHandlers.Length > 0)
+                _taskQueue?.ScheduleTask(() =>
                 {
-                    _taskQueue?.ScheduleTask(() =>
+                    // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
+                    // but getting the event later on the UI thread
+                    var eventHandlers = GetEventHandlers();
+                    foreach (var handler in eventHandlers)
                     {
-                        foreach (var handler in eventHandlers)
-                        {
-                            handler(this, e);
-                        }
-                    }, "OptionsService.SetOptions");
-                }
+                        handler(this, e);
+                    }
+                }, "OptionsService.SetOptions");
             }
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 remove
                 {
-                    lock(_gate)
+                    lock (_gate)
                     {
                         _eventHandlers = _eventHandlers.Remove(value);
                     }
