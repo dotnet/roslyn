@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 result.WasCompilerGenerated = true;
 
-                if (result.HasAnyErrors && !receiver.HasAnyErrors)
+                if (result.HasErrors && !receiver.HasAnyErrors)
                 {
                     return MissingDeconstruct(receiver, syntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
