@@ -7457,10 +7457,19 @@ tryAgain:
                 statement = this.ParseStatementCore();
             }
 
+            // The consumers of embedded statements are expecting to receive a non-null statement yet there are 
+            // several error conditions that can lead ParseStatementCore to return null.  When that occurs 
+            // create an empty error Statement and return it to the caller.
+            if (statement == null)
+            {
+                Debug.Assert(CurrentToken.Kind != SyntaxKind.SemicolonToken);
+                statement = SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
+            }
+
             // An "embedded" statement is simply a statement that is not a labelled
             // statement or a declaration statement.  Parse a normal statement and post-
             // check for the error case.
-            switch (statement?.Kind)
+            switch (statement.Kind)
             {
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
