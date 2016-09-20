@@ -308,9 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var variablesToRemove = this.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken);
                 var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(variablesToRemove, cancellationToken);
-                var variableNamesToRemove = new HashSet<string>(variablesToRemove.Select(v => v.Name));
 
-                statements = statements.Select(s => RemoveOutVariablesFromDeclarationExpressions(s, variableNamesToRemove));
+                statements = statements.Select(s => RemoveOutVariablesFromDeclarationExpressions(s, variablesToRemove));
 
                 foreach (var statement in statements)
                 {
@@ -401,9 +400,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             private StatementSyntax RemoveOutVariablesFromDeclarationExpressions(StatementSyntax statement,
-                HashSet<string> variablesToRemove)
+                IEnumerable<VariableInfo> variablesToRemove)
             {
-                var replacements = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
+                var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
 
                 var declarations = statement.DescendantNodes()
                     .Where(n => n.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.DeclarationPattern));
@@ -427,21 +426,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                             var designation = (SingleVariableDesignationSyntax)variableComponent.Designation;
                             var name = designation.Identifier.ValueText;
-                            if (variablesToRemove.Contains(name))
+                            if (variablesToRemove.Select(v => v.Name).Contains(name))
                             {
-                                replacements.Add(declaration, SyntaxFactory.IdentifierName(name));
+                                replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier));
                             }
 
                             break;
 
                         case SyntaxKind.DeclarationPattern:
                             var pattern = (DeclarationPatternSyntax)node;
-                            if (!variablesToRemove.Contains(pattern.Identifier.ValueText))
+                            if (!variablesToRemove.Select(v => v.Name).Contains(pattern.Identifier.ValueText))
                             {
                                 break;
                             }
 
                             // We don't have a good refactoring for this, so we just annotate the conflict
+                            // For instance, when a local declared by a pattern declaration (`3 is int i`) is
+                            // used outside the block we're trying to extract.
                             var identifier = pattern.Identifier;
                             var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
                             var newIdentifier = identifier.WithAdditionalAnnotations(annotation);
@@ -451,9 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                 }
 
-                var result = statement.ReplaceNodes(replacements.Keys, (orig, partiallyReplaced) => replacements[orig]);
-                replacements.Free();
-                return result;
+                return statement.ReplaceNodes(replacements.Keys, (orig, partiallyReplaced) => replacements[orig]);
             }
 
             private static SyntaxToken ApplyTriviaFromDeclarationToAssignmentIdentifier(LocalDeclarationStatementSyntax declarationStatement, bool firstVariableToAttachTrivia, VariableDeclaratorSyntax variable)
