@@ -20,17 +20,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicSyntaxFactsServiceFactory
         Implements ILanguageServiceFactory
 
-        Public Shared ReadOnly Property Instance As New VisualBasicSyntaxFactsService
-
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return Instance
+            Return VisualBasicSyntaxFactsService.Instance
         End Function
-
     End Class
 
     Friend Class VisualBasicSyntaxFactsService
         Inherits AbstractSyntaxFactsService
         Implements ISyntaxFactsService
+
+        Public Shared ReadOnly Property Instance As New VisualBasicSyntaxFactsService
+
+        Private Sub New()
+        End Sub
 
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
             Return token.Kind = SyntaxKind.AwaitKeyword

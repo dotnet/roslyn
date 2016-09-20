@@ -3874,22 +3874,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(expression, ExpressionSyntax))
 
         End Function
-
-        Friend Overrides Function ObjectMemberInitializer(fieldInitializers As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxFactory.ObjectMemberInitializer(
-                fieldInitializers.Cast(Of FieldInitializerSyntax).ToArray())
-        End Function
-
-        Friend Overrides Function NamedFieldInitializer(name As SyntaxNode, value As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.NamedFieldInitializer(
-                DirectCast(name, IdentifierNameSyntax),
-                DirectCast(value, ExpressionSyntax))
-        End Function
-
-        Friend Overrides Function WithObjectCreationInitializer(objectCreationExpression As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
-            Return DirectCast(objectCreationExpression, ObjectCreationExpressionSyntax).
-                WithInitializer(DirectCast(initializer, ObjectCreationInitializerSyntax))
-        End Function
 #End Region
 
     End Class

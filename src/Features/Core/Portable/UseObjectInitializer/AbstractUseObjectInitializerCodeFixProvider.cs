@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -22,12 +23,14 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
+        TAssignmentStatementSyntax,
         TVariableDeclarator>
         : CodeFixProvider
         where TExpressionSyntax : SyntaxNode
+        where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TStatementSyntax : SyntaxNode
+        where TAssignmentStatementSyntax : TStatementSyntax
         where TVariableDeclarator : SyntaxNode
     {
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -50,14 +53,16 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var objectCreation = (TObjectCreationExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TVariableDeclarator>(
+            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclarator>(
                 syntaxFacts, objectCreation);
             var matches = analyzer.Analyze();
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            editor.ReplaceNode(objectCreation, GetNewObjectCreation(
-                syntaxFacts, editor.Generator, objectCreation, matches));
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            editor.ReplaceNode(
+                objectCreation, 
+                GetNewObjectCreation(options, objectCreation, matches));
             foreach (var match in matches)
             {
                 editor.RemoveNode(match.Statement);
@@ -67,31 +72,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private TObjectCreationExpressionSyntax GetNewObjectCreation(
-            ISyntaxFactsService syntaxFacts,
-            SyntaxGenerator genarator,
+        protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
+            DocumentOptionSet options,
             TObjectCreationExpressionSyntax objectCreation,
-            List<Match<TStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches)
-        {
-            var initializer = genarator.ObjectMemberInitializer(
-                matches.Select(m => CreateNamedFieldInitializer(syntaxFacts, genarator, m)));
+            List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches);
 
-
-            return (TObjectCreationExpressionSyntax)genarator.WithObjectCreationInitializer(objectCreation, initializer)
-                .WithAdditionalAnnotations(Formatter.Annotation);
-        }
-
-        private SyntaxNode CreateNamedFieldInitializer(
-            ISyntaxFactsService syntaxFacts,
-            SyntaxGenerator generator,
-            Match<TStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax> match)
-        {
-            return generator.NamedFieldInitializer(
-                syntaxFacts.GetNameOfMemberAccessExpression(match.MemberAccessExpression),
-                match.Initializer).WithLeadingTrivia(GetNewLine());
-        }
-
-        protected abstract SyntaxTrivia GetNewLine();
+        // protected abstract SyntaxNode AddTrivia(SyntaxNode syntaxNode);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

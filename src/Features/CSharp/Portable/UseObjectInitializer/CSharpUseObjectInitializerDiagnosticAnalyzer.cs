@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             StatementSyntax,
             ObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
+            ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
         protected override SyntaxKind GetObjectCreationSyntaxKind() => SyntaxKind.ObjectCreationExpression;

@@ -1,21 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
 {
@@ -26,11 +17,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             StatementSyntax,
             ObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
+            ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
-        protected override SyntaxTrivia GetNewLine()
+        protected override ObjectCreationExpressionSyntax GetNewObjectCreation(
+            DocumentOptionSet options,
+            ObjectCreationExpressionSyntax objectCreation,
+            List<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
         {
-            return SyntaxFactory.ElasticCarriageReturnLineFeed;
+            var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
+                                         .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+            var initializer = SyntaxFactory.InitializerExpression(
+                SyntaxKind.ObjectInitializerExpression,
+                CreateExpressions(matches)).WithOpenBraceToken(openBrace);
+
+            return objectCreation.WithInitializer(initializer)
+                                 .WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
+            List<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
+        {
+            var nodesAndTokens = new List<SyntaxNodeOrToken>();
+            foreach (var match in matches)
+            {
+                var expressionStatement = match.Statement;
+                var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
+
+                var newAssignment = assignment.WithLeft(
+                    match.MemberAccessExpression.Name.WithLeadingTrivia(match.MemberAccessExpression.GetLeadingTrivia()));
+
+                nodesAndTokens.Add(newAssignment);
+                var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken)
+                    .WithTriviaFrom(expressionStatement.SemicolonToken);
+
+                nodesAndTokens.Add(commaToken);
+            }
+
+            return SyntaxFactory.SeparatedList<ExpressionSyntax>(nodesAndTokens);
         }
     }
 }

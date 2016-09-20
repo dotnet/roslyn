@@ -4099,27 +4099,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (ExpressionSyntax)expression);
         }
 
-        internal override SyntaxNode ObjectMemberInitializer(IEnumerable<SyntaxNode> fieldInitializers)
-        {
-            return SyntaxFactory.InitializerExpression(
-                SyntaxKind.ObjectInitializerExpression,
-                SyntaxFactory.SeparatedList(fieldInitializers.Cast<ExpressionSyntax>()));
-        }
-
-        internal override SyntaxNode NamedFieldInitializer(SyntaxNode name, SyntaxNode value)
-        {
-            return SyntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                (ExpressionSyntax)name,
-                (ExpressionSyntax)value);
-        }
-
-        internal override SyntaxNode WithObjectCreationInitializer(SyntaxNode objectCreationExpression, SyntaxNode initializer)
-        {
-            return ((ObjectCreationExpressionSyntax)objectCreationExpression)
-                .WithInitializer((InitializerExpressionSyntax)initializer);
-        }
-
         #endregion
     }
 }

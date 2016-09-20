@@ -15,13 +15,15 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
+        TAssignmentStatementSyntax,
         TVariableDeclarator>
         : DiagnosticAnalyzer, IBuiltInAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
+        where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TStatementSyntax : SyntaxNode
+        where TAssignmentStatementSyntax : TStatementSyntax
         where TVariableDeclarator : SyntaxNode
     {
         private static readonly string Id = IDEDiagnosticIds.UseObjectInitializerDiagnosticId;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
 
             var syntaxFacts = GetSyntaxFactsService();
-            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TVariableDeclarator>(
+            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclarator>(
                 syntaxFacts,
                 objectCreationExpression);
             var matches = analyzer.Analyze();
@@ -119,17 +121,17 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
     }
 
-    internal struct Match<TStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>
+    internal struct Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
         where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TStatementSyntax : SyntaxNode
+        where TAssignmentStatementSyntax : SyntaxNode
     {
-        public readonly TStatementSyntax Statement;
+        public readonly TAssignmentStatementSyntax Statement;
         public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
         public readonly TExpressionSyntax Initializer;
 
         public Match(
-            TStatementSyntax statement,
+            TAssignmentStatementSyntax statement,
             TMemberAccessExpressionSyntax memberAccessExpression,
             TExpressionSyntax initializer)
         {
@@ -144,11 +146,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             TStatementSyntax, 
             TObjectCreationExpressionSyntax, 
             TMemberAccessExpressionSyntax,
+            TAssignmentStatementSyntax,
             TVariableDeclaratorSyntax>
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
+        where TAssignmentStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         private readonly ISyntaxFactsService _syntaxFacts;
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             _objectCreationExpression = objectCreationExpression;
         }
 
-        internal List<Match<TStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> Analyze()
+        internal List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> Analyze()
         {
             if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
             {
@@ -188,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var containingBlock = _containingStatement.Parent;
             var foundStatement = false;
 
-            List<Match<TStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches = null;
+            List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches = null;
             HashSet<string> seenNames = null;
 
             foreach (var child in containingBlock.ChildNodesAndTokens())
@@ -208,7 +212,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
-                var statement = child.AsNode() as TStatementSyntax;
+                var statement = child.AsNode() as TAssignmentStatementSyntax;
                 if (statement == null)
                 {
                     break;
@@ -237,7 +241,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
                 // found a match!
                 seenNames = seenNames ?? new HashSet<string>();
-                matches = matches ?? new List<Match<TStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>();
+                matches = matches ?? new List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>();
 
                 // If we see an assignment to the same property/field, we can't convert it
                 // to an initializer.
@@ -248,7 +252,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
-                matches.Add(new Match<TStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>(
+                matches.Add(new Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>(
                     statement, leftMemberAccess, rightExpression));
             }
 
