@@ -701,6 +701,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
+        internal Func<Diagnostic, bool> IsSupportedDiagnostic => _isSupportedDiagnostic;
+
         public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _symbol = symbol;
@@ -1197,6 +1199,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
+
+        internal Func<Diagnostic, bool> IsSupportedDiagnostic => _isSupportedDiagnostic;
 
         public OperationAnalysisContext(IOperation operation, ISymbol containingSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {

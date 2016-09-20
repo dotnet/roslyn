@@ -1067,5 +1067,41 @@ namespace Microsoft.CodeAnalysis
                 });
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class AnalyzerForLocalsAndParameters : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor LocalDescriptor = new DiagnosticDescriptor(
+                "Local_ID",
+                "Local_Title",
+                "Local_Message",
+                "Local_Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor ParameterDescriptor = new DiagnosticDescriptor(
+                "Parameter_ID",
+                "Parameter_Title",
+                "Parameter_Message",
+                "Parameter_Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(LocalDescriptor, ParameterDescriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(SymbolAction, SymbolKind.Parameter, SymbolKind.Local);
+            }
+
+            private void SymbolAction(SymbolAnalysisContext context)
+            {
+                var diagnostic = context.Symbol.Kind == SymbolKind.Parameter
+                    ? Diagnostic.Create(ParameterDescriptor, context.Symbol.Locations[0])
+                    : Diagnostic.Create(LocalDescriptor, context.Symbol.Locations[0]);
+
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
     }
 }
