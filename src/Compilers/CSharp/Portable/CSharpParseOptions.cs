@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal bool IsFeatureEnabled(MessageID feature)
-        {
+        { 
             string featureFlag = feature.RequiredFeature();
             if (featureFlag != null)
             {
