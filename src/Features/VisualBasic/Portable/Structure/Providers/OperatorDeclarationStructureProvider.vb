@@ -16,8 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(operatorDeclaration.Parent, OperatorBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then
-                spans.Add(
-                    CreateRegionFromBlock(block, bannerNode:=operatorDeclaration, autoCollapse:=True))
+                spans.Add(CreateRegionFromBlock(
+                    block, bannerNode:=operatorDeclaration, autoCollapse:=True,
+                    type:=BlockTypes.Operator, isCollapsible:=True))
             End If
         End Sub
     End Class

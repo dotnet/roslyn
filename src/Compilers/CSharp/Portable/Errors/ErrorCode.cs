@@ -1354,6 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Available = 8112, 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
+        ERR_ThrowMisplaced = 8115,
         ERR_PatternNullableType = 8116,
         ERR_BadIsPatternExpression = 8117,
         ERR_SwitchExpressionValueExpected = 8119,

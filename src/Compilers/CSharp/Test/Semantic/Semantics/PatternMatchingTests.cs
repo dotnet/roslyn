@@ -1049,6 +1049,7 @@ public class X
         {
             var symbol = model.GetDeclaredSymbol(decl);
             Assert.Equal(decl.Identifier.ValueText, symbol.Name);
+            Assert.Equal(decl, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)decl));
 
@@ -1062,6 +1063,9 @@ public class X
             }
 
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+
+            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(decl.Type));
+            Assert.True(SyntaxFacts.IsInTypeOnlyContext(decl.Type));
 
             var type = ((LocalSymbol)symbol).Type;
             if (!decl.Type.IsVar || !type.IsErrorType())
@@ -1081,6 +1085,7 @@ public class X
         {
             var symbol = model.GetDeclaredSymbol(decl);
             Assert.Equal(decl.Identifier.ValueText, symbol.Name);
+            Assert.Equal(decl, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)decl));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
@@ -7075,15 +7080,21 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (12,43): error CS0128: A local variable named 'x1' is already defined in this scope
-    //         using (var x1 = Dummy(true is var x1, x1))
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 43),
-    // (12,47): error CS0841: Cannot use local variable 'x1' before it is declared
-    //         using (var x1 = Dummy(true is var x1, x1))
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 47),
-    // (20,58): error CS0128: A local variable named 'x2' is already defined in this scope
-    //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 58)
+                // (12,43): error CS0128: A local variable named 'x1' is already defined in this scope
+                //         using (var x1 = Dummy(true is var x1, x1))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 43),
+                // (12,47): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         using (var x1 = Dummy(true is var x1, x1))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 47),
+                // (12,47): error CS0165: Use of unassigned local variable 'x1'
+                //         using (var x1 = Dummy(true is var x1, x1))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 47),
+                // (20,58): error CS0128: A local variable named 'x2' is already defined in this scope
+                //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 58),
+                // (20,62): error CS0165: Use of unassigned local variable 'x2'
+                //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 62)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -14487,16 +14498,17 @@ unsafe struct S
             Assert.Null(model.GetDeclaredSymbol(decl));
             Assert.Null(model.GetDeclaredSymbol((SyntaxNode)decl));
 
-            Assert.False(model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Any());
-            Assert.False(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+            var identifierText = decl.Identifier.ValueText;
+            Assert.False(model.LookupSymbols(decl.SpanStart, name: identifierText).Any());
+            Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
 
             Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
 
             foreach (var reference in references)
             {
                 Assert.Null(model.GetSymbolInfo(reference).Symbol);
-                Assert.False(model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Any());
-                Assert.False(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
+                Assert.False(model.LookupSymbols(reference.SpanStart, name: identifierText).Any());
+                Assert.False(model.LookupNames(reference.SpanStart).Contains(identifierText));
             }
         }
 
@@ -14700,6 +14712,224 @@ public class Program
                 //         if ((1, null) is Program) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", "(int, <null>)").WithLocation(6, 13)
                 );
+        }
+
+        [Fact]
+        public void ThrowExpressionForParameterValidation()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        foreach (var s in new[] { ""0123"", ""foo"" })
+        {
+            Console.Write(s + "" "");
+            try
+            {
+                Console.WriteLine(Ver(s));
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine(""throws"");
+            }
+        }
+    }
+    static int Ver(string s)
+    {
+        var result = int.TryParse(s, out int k) ? k : throw new ArgumentException(nameof(s));
+        return k; // definitely assigned!
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"0123 123
+foo throws");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M(1));
+        try
+        {
+            Console.WriteLine(M(null));
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""thrown"");
+        }
+    }
+    static int M(int? data)
+    {
+        return data ?? throw null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"1
+thrown");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M(1));
+        try
+        {
+            Console.WriteLine(M(null));
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""thrown"");
+        }
+    }
+    static string M(object data)
+    {
+        return data?.ToString() ?? throw null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"1
+thrown");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable03()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MainAsync().Wait();
+    }
+    static async Task MainAsync()
+    {
+        foreach (var i in new[] { 1, 2 })
+        {
+            try
+            {
+                var used = (await Foo(i))?.ToString() ?? throw await Bar(i);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(""thrown "" + ex.Message);
+            }
+        }
+    }
+    static async Task<object> Foo(int i)
+    {
+        await Task.Yield();
+        return (i == 1) ? i : (object)null;
+    }
+    static async Task<Exception> Bar(int i)
+    {
+        await Task.Yield();
+        Console.WriteLine(""making exception "" + i);
+        return new Exception(i.ToString());
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
+                references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"making exception 2
+thrown 2");
+        }
+
+        [Fact]
+        public void ThrowExpressionPrecedence01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Exception ex = null;
+        try
+        {
+            // The ?? operator is right-associative, even under 'throw'
+            ex = ex ?? throw ex ?? throw new ArgumentException(""blue"");
+        }
+        catch (ArgumentException x)
+        {
+            Console.WriteLine(x.Message);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"blue");
+        }
+
+        [Fact]
+        public void ThrowExpressionPrecedence02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MyException ex = null;
+        try
+        {
+            // Throw expression binds looser than +
+            ex = ex ?? throw ex + 1;
+        }
+        catch (MyException x)
+        {
+            Console.WriteLine(x.Message);
+        }
+    }
+}
+class MyException : Exception
+{
+    public MyException(string message) : base(message) {}
+    public static MyException operator +(MyException left, int right)
+    {
+        return new MyException(""green"");
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"green");
         }
     }
 }

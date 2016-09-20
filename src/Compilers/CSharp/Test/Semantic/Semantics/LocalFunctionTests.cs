@@ -1606,5 +1606,139 @@ class Program
                     expectedOutput: "async");
             }
         }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_01()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        void TakeOutParam1(out int x)
+        {
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        void TakeOutParam2(out int x)
+        {
+        }
+}";
+            VerifyDiagnostics(src,
+                // (6,14): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         void TakeOutParam1(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam1").WithArguments("x").WithLocation(6, 14),
+                // (14,14): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         void TakeOutParam2(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam2").WithArguments("x").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_02()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        void TakeOutParam1(out int x)
+        {
+            return; // 1 
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        void TakeOutParam2(out int x)
+        {
+            return; // 2 
+        }
+}";
+            VerifyDiagnostics(src,
+                // (8,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return; // 1 
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("x").WithLocation(8, 13),
+                // (17,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return; // 2 
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("x").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_03()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        int TakeOutParam1(out int x)
+        {
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        int TakeOutParam2(out int x)
+        {
+        }
+}";
+            VerifyDiagnostics(src,
+                // (6,13): error CS0161: 'TakeOutParam1(out int)': not all code paths return a value
+                //         int TakeOutParam1(out int x)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "TakeOutParam1").WithArguments("TakeOutParam1(out int)").WithLocation(6, 13),
+                // (6,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         int TakeOutParam1(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam1").WithArguments("x").WithLocation(6, 13),
+                // (14,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         int TakeOutParam2(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam2").WithArguments("x").WithLocation(14, 13),
+                // (14,13): error CS0161: 'C.TakeOutParam2(out int)': not all code paths return a value
+                //         int TakeOutParam2(out int x)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "TakeOutParam2").WithArguments("C.TakeOutParam2(out int)").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_04()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        int TakeOutParam1(out int x)
+        {
+            return 1;
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        int TakeOutParam2(out int x)
+        {
+            return 2;
+        }
+}";
+            VerifyDiagnostics(src,
+                // (8,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return 1;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 1;").WithArguments("x").WithLocation(8, 13),
+                // (17,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return 2;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 2;").WithArguments("x").WithLocation(17, 13)
+                );
+        }
     }
 }

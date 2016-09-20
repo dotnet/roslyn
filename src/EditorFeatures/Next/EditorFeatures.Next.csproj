@@ -71,6 +71,7 @@
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
     <Compile Include="NavigateTo\Dev15NavigateToOptionsService.cs" />
+    <Compile Include="Structure\BlockContextProvider.cs" />
     <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
   </ItemGroup>
   <ItemGroup />

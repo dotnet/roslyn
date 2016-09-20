@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
     internal static class InternalFeatureOnOffOptions
     {
-        private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
+        internal const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
         [ExportOption]
         public static readonly Option<bool> BraceMatching = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(BraceMatching), defaultValue: true,

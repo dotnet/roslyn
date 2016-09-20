@@ -1109,6 +1109,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.Update(value);
         }
 
+        public override BoundNode VisitThrowExpression(BoundThrowExpression node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression operand = VisitExpression(ref builder, node.Expression);
+            return UpdateExpression(builder, node.Update(operand, node.Type));
+        }
+
         /// <summary>
         /// If an expression node that declares synthesized short-lived locals (currently only sequence) contains an await, these locals become long-lived since their 
         /// values may be read by code that follows the await. We promote these variables to long-lived of kind <see cref="SynthesizedLocalKind.AwaitSpill"/>. 
