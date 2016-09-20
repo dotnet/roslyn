@@ -11466,8 +11466,9 @@ class C
         System.Console.WriteLine(x <= 1);
     }
 }
+";
 
-
+            var tuple = @"
 namespace System
 {
     // struct with two values
@@ -11640,11 +11641,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source,
-                additionalRefs: s_valueTupleRefs,
-                parseOptions: TestOptions.Regular,
-                options: TestOptions.ReleaseExe.WithAllowUnsafe(true),
-                expectedOutput:
+            var expectedOutput =
 @"{1, 3}
 4
 {2, 4}
@@ -11673,7 +11670,15 @@ True
 False
 True
 False
-");
+";
+            var lib = CreateCompilationWithMscorlib(tuple, options: TestOptions.ReleaseDll);
+            lib.VerifyDiagnostics();
+
+            var consumer1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.ToMetadataReference() });
+            CompileAndVerify(consumer1, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var consumer2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.EmitToImageReference() });
+            CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -11723,8 +11728,8 @@ class C
         System.Console.WriteLine(x <= 1);
     }
 }
-
-
+";
+            var tuple = @"
 namespace System
 {
     // struct with two values
@@ -11897,11 +11902,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source,
-                additionalRefs: s_valueTupleRefs,
-                parseOptions: TestOptions.Regular,
-                options: TestOptions.ReleaseExe.WithAllowUnsafe(true),
-                expectedOutput:
+            var expectedOutput =
 @"{1, 3}
 4
 {2, 4}
@@ -11930,7 +11931,663 @@ True
 False
 True
 False
-");
+";
+            var lib = CreateCompilationWithMscorlib(tuple, options: TestOptions.ReleaseDll);
+            lib.VerifyDiagnostics();
+
+            var consumer1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.ToMetadataReference() });
+            CompileAndVerify(consumer1, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var consumer2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.EmitToImageReference() });
+            CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(11530, "https://github.com/dotnet/roslyn/issues/11530")]
+        public void UnifyUnderlyingWithTuple_10()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Test
+{
+    static void Main()
+    {
+        var a = new KeyValuePair<int, long>(1, 2);
+        (int, long) b = a;
+        System.Console.WriteLine(b.Item1);
+        System.Console.WriteLine(b.Item2);
+        b.Item1++;
+        b.Item2++;
+        a = b;
+        System.Console.WriteLine(a.Key);
+        System.Console.WriteLine(a.Value);
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public static implicit operator KeyValuePair<T1, T2>(ValueTuple<T1, T2> tuple)
+        {
+            T1 k;
+            T2 v;
+            (k, v) = tuple;
+            return new KeyValuePair<T1, T2>(k, v);
+        }
+
+        public static implicit operator ValueTuple<T1, T2>(KeyValuePair<T1, T2> kvp)
+        {
+            return (kvp.Key, kvp.Value);
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular,
+                options: TestOptions.ReleaseExe,
+                expectedOutput:
+@"1
+2
+2
+3");
+        }
+
+        [Fact]
+        [WorkItem(11986, "https://github.com/dotnet/roslyn/issues/11986")]
+        public void UnifyUnderlyingWithTuple_11()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Test
+{
+    static void Main()
+    {
+        var a = (1, 2);
+        System.Console.WriteLine((int)a);
+        System.Console.WriteLine((long)a);
+        System.Console.WriteLine((string)a);
+        System.Console.WriteLine((double)a);
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public static explicit operator int((T1, T2)? source)
+        {
+            return 1;
+        }
+
+        public static explicit operator long(Nullable<(T1, T2)> source)
+        {
+            return 2;
+        }
+
+        public static explicit operator string(Nullable<ValueTuple<T1, T2>> source)
+        {
+            return ""3"";
+        }
+
+        public static explicit operator double(ValueTuple<T1, T2>? source)
+        {
+            return 4;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular,
+                options: TestOptions.ReleaseExe,
+                expectedOutput:
+@"1
+2
+3
+4");
+        }
+
+        [Fact]
+        public void UnifyUnderlyingWithTuple_12()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        (int, int)? x = (1, 3);
+        string s = x;
+        System.Console.WriteLine(s);
+        System.Console.WriteLine((long)x);
+
+        (int, string)? y = new KeyValuePair<int, string>(2, ""4"");
+        System.Console.WriteLine(y);
+        System.Console.WriteLine((ValueTuple<string, string>)""5"");
+
+        System.Console.WriteLine(+x);
+        System.Console.WriteLine(-x);
+        System.Console.WriteLine(!x);
+        System.Console.WriteLine(~x);
+        System.Console.WriteLine(++x);
+        System.Console.WriteLine(--x);
+        System.Console.WriteLine(x ? true : false);
+        System.Console.WriteLine(!x ? true : false);
+
+        System.Console.WriteLine(x + 1);
+        System.Console.WriteLine(x - 1);
+        System.Console.WriteLine(x * 3);
+        System.Console.WriteLine(x / 2);
+        System.Console.WriteLine(x % 3);
+        System.Console.WriteLine(x & 3);
+        System.Console.WriteLine(x | 15);
+        System.Console.WriteLine(x ^ 4);
+        System.Console.WriteLine(x << 1);
+        System.Console.WriteLine(x >> 1);
+        System.Console.WriteLine(x == 1);
+        System.Console.WriteLine(x != 1);
+        System.Console.WriteLine(x > 1);
+        System.Console.WriteLine(x < 1);
+        System.Console.WriteLine(x >= 1);
+        System.Console.WriteLine(x <= 1);
+    }
+}
+";
+            var tuple = @"
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public static implicit operator string(ValueTuple<T1, T2>? arg)
+        {
+            return arg.ToString();
+        }
+
+        public static explicit operator long(ValueTuple<T1, T2>? arg)
+        {
+            return ((long)(int)(object)arg.Value.Item1 + (long)(int)(object)arg.Value.Item2);
+        }
+
+        public static implicit operator ValueTuple<T1, T2>?(System.Collections.Generic.KeyValuePair<T1, T2> arg)
+        {
+            return new ValueTuple<T1, T2>(arg.Key, arg.Value);
+        }
+
+        public static explicit operator ValueTuple<T1, T2>?(string arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)arg, (T2)(object)arg);
+        }
+
+
+        public static ValueTuple<T1, T2>? operator +(ValueTuple<T1, T2>? arg)
+        {
+            return arg;
+        }
+
+        public static long operator -(ValueTuple<T1, T2>? arg)
+        {
+            return -(long)arg;
+        }
+
+        public static bool operator !(ValueTuple<T1, T2>? arg)
+        {
+            return (long)arg == 0;
+        }
+
+        public static long operator ~(ValueTuple<T1, T2>? arg)
+        {
+            return -(long)arg;
+        }
+
+        public static ValueTuple<T1, T2>? operator ++(ValueTuple<T1, T2>? arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)((int)(object)arg.Value.Item1+1), (T2)(object)((int)(object)arg.Value.Item2+1));
+        }
+
+        public static ValueTuple<T1, T2>? operator --(ValueTuple<T1, T2>? arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)((int)(object)arg.Value.Item1 - 1), (T2)(object)((int)(object)arg.Value.Item2 - 1));
+        }
+
+        public static bool operator true(ValueTuple<T1, T2>? arg)
+        {
+            return (long)arg != 0;
+        }
+
+        public static bool operator false(ValueTuple<T1, T2>? arg)
+        {
+            return (long)arg == 0;
+        }
+
+        public static long operator + (ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 + arg2;
+        }
+
+        public static long operator -(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 - arg2;
+        }
+
+        public static long operator *(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 * arg2;
+        }
+
+        public static long operator /(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 / arg2;
+        }
+
+        public static long operator %(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 % arg2;
+        }
+
+        public static long operator &(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 & arg2;
+        }
+
+        public static long operator |(ValueTuple<T1, T2>? arg1, long arg2)
+        {
+            return (long)arg1 | arg2;
+        }
+
+        public static long operator ^(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 ^ arg2;
+        }
+        public static long operator <<(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 << arg2;
+        }
+
+        public static long operator >>(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 >> arg2;
+        }
+
+        public static bool operator ==(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 == arg2;
+        }
+
+        public static bool operator !=(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 != arg2;
+        }
+
+        public static bool operator >(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 > arg2;
+        }
+
+        public static bool operator <(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 < arg2;
+        }
+
+        public static bool operator >=(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 >= arg2;
+        }
+
+        public static bool operator <=(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 <= arg2;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+    }
+}
+";
+            
+            var expectedOutput =
+@"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+-4
+{2, 4}
+{1, 3}
+True
+False
+5
+3
+12
+2
+1
+0
+15
+0
+8
+2
+False
+True
+True
+False
+True
+False
+";
+            var lib = CreateCompilationWithMscorlib(tuple, options: TestOptions.ReleaseDll);
+            lib.VerifyDiagnostics();
+
+            var consumer1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.ToMetadataReference() });
+            CompileAndVerify(consumer1, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var consumer2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.EmitToImageReference() });
+            CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnifyUnderlyingWithTuple_13()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        (int, int)? x = (1, 3);
+        string s = x;
+        System.Console.WriteLine(s);
+        System.Console.WriteLine((long)x);
+
+        (int, string)? y = new KeyValuePair<int, string>(2, ""4"");
+        System.Console.WriteLine(y);
+        System.Console.WriteLine((ValueTuple<string, string>)""5"");
+
+        System.Console.WriteLine(+x);
+        System.Console.WriteLine(-x);
+        System.Console.WriteLine(!x);
+        System.Console.WriteLine(~x);
+        System.Console.WriteLine(++x);
+        System.Console.WriteLine(--x);
+        System.Console.WriteLine(x ? true : false);
+        System.Console.WriteLine(!x ? true : false);
+
+        System.Console.WriteLine(x + 1);
+        System.Console.WriteLine(x - 1);
+        System.Console.WriteLine(x * 3);
+        System.Console.WriteLine(x / 2);
+        System.Console.WriteLine(x % 3);
+        System.Console.WriteLine(x & 3);
+        System.Console.WriteLine(x | 15);
+        System.Console.WriteLine(x ^ 4);
+        System.Console.WriteLine(x << 1);
+        System.Console.WriteLine(x >> 1);
+        System.Console.WriteLine(x == 1);
+        System.Console.WriteLine(x != 1);
+        System.Console.WriteLine(x > 1);
+        System.Console.WriteLine(x < 1);
+        System.Console.WriteLine(x >= 1);
+        System.Console.WriteLine(x <= 1);
+    }
+}
+";
+            var tuple = @"
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public static implicit operator string((T1, T2)? arg)
+        {
+            return arg.ToString();
+        }
+
+        public static explicit operator long((T1, T2)? arg)
+        {
+            return ((long)(int)(object)arg.Value.Item1 + (long)(int)(object)arg.Value.Item2);
+        }
+
+        public static implicit operator (T1, T2)?(System.Collections.Generic.KeyValuePair<T1, T2> arg)
+        {
+            return new (T1, T2)(arg.Key, arg.Value);
+        }
+
+        public static explicit operator (T1, T2)?(string arg)
+        {
+            return new (T1, T2)((T1)(object)arg, (T2)(object)arg);
+        }
+
+
+        public static (T1, T2)? operator +((T1, T2)? arg)
+        {
+            return arg;
+        }
+
+        public static long operator -((T1, T2)? arg)
+        {
+            return -(long)arg;
+        }
+
+        public static bool operator !((T1, T2)? arg)
+        {
+            return (long)arg == 0;
+        }
+
+        public static long operator ~((T1, T2)? arg)
+        {
+            return -(long)arg;
+        }
+
+        public static (T1, T2)? operator ++((T1, T2)? arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)((int)(object)arg.Value.Item1+1), (T2)(object)((int)(object)arg.Value.Item2+1));
+        }
+
+        public static (T1, T2)? operator --((T1, T2)? arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)((int)(object)arg.Value.Item1 - 1), (T2)(object)((int)(object)arg.Value.Item2 - 1));
+        }
+
+        public static bool operator true((T1, T2)? arg)
+        {
+            return (long)arg != 0;
+        }
+
+        public static bool operator false((T1, T2)? arg)
+        {
+            return (long)arg == 0;
+        }
+
+        public static long operator + ((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 + arg2;
+        }
+
+        public static long operator -((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 - arg2;
+        }
+
+        public static long operator *((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 * arg2;
+        }
+
+        public static long operator /((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 / arg2;
+        }
+
+        public static long operator %((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 % arg2;
+        }
+
+        public static long operator &((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 & arg2;
+        }
+
+        public static long operator |((T1, T2)? arg1, long arg2)
+        {
+            return (long)arg1 | arg2;
+        }
+
+        public static long operator ^((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 ^ arg2;
+        }
+        public static long operator <<((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 << arg2;
+        }
+
+        public static long operator >>((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 >> arg2;
+        }
+
+        public static bool operator ==((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 == arg2;
+        }
+
+        public static bool operator !=((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 != arg2;
+        }
+
+        public static bool operator >((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 > arg2;
+        }
+
+        public static bool operator <((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 < arg2;
+        }
+
+        public static bool operator >=((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 >= arg2;
+        }
+
+        public static bool operator <=((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 <= arg2;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+    }
+}
+";
+
+            var expectedOutput =
+@"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+-4
+{2, 4}
+{1, 3}
+True
+False
+5
+3
+12
+2
+1
+0
+15
+0
+8
+2
+False
+True
+True
+False
+True
+False
+";
+            var lib = CreateCompilationWithMscorlib(tuple, options: TestOptions.ReleaseDll);
+            lib.VerifyDiagnostics();
+
+            var consumer1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.ToMetadataReference() });
+            CompileAndVerify(consumer1, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var consumer2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.EmitToImageReference() });
+            CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]

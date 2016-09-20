@@ -8232,6 +8232,485 @@ End Module
 
         End Sub
 
+        <Fact>
+        Public Sub UnifyUnderlyingWithTuple_08()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+
+    Sub Main()
+
+        Dim x = (1, 3)
+        Dim s As String = x
+        System.Console.WriteLine(s)
+        System.Console.WriteLine(CType(x, Long))
+
+        Dim y As (Integer, String) = New KeyValuePair(Of Integer, String)(2, "4")
+        System.Console.WriteLine(y)
+        System.Console.WriteLine(CType("5", ValueTuple(Of String, String)))
+
+        System.Console.WriteLine(+x)
+        System.Console.WriteLine(-x)
+        System.Console.WriteLine(Not x)
+        System.Console.WriteLine(If(x, True, False))
+        System.Console.WriteLine(If(Not x, True, False))
+
+        System.Console.WriteLine(x + 1)
+        System.Console.WriteLine(x - 1)
+        System.Console.WriteLine(x * 3)
+        System.Console.WriteLine(x / 2)
+        System.Console.WriteLine(x \ 2)
+        System.Console.WriteLine(x Mod 3)
+        System.Console.WriteLine(x & 3)
+        System.Console.WriteLine(x And 3)
+        System.Console.WriteLine(x Or 15)
+        System.Console.WriteLine(x Xor 3)
+        System.Console.WriteLine(x Like 15)
+        System.Console.WriteLine(x ^ 4)
+        System.Console.WriteLine(x << 1)
+        System.Console.WriteLine(x >> 1)
+        System.Console.WriteLine(x = 1)
+        System.Console.WriteLine(x <> 1)
+        System.Console.WriteLine(x > 1)
+        System.Console.WriteLine(x < 1)
+        System.Console.WriteLine(x >= 1)
+        System.Console.WriteLine(x <= 1)
+    End Sub
+End Module
+]]></file>
+</compilation>
+
+            Dim tuple =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace System
+
+    Public Structure ValueTuple(Of T1, T2)
+
+        Public Item1 As T1
+        Public Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            Me.Item1 = item1
+            Me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+
+        Public Shared Widening Operator CType(arg As ValueTuple(Of T1, T2)) As String
+            Return arg.ToString()
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As ValueTuple(Of T1, T2)) As Long
+            Return CLng(CObj(arg.Item1) + CObj(arg.Item2))
+        End Operator
+
+        Public Shared Widening Operator CType(arg As System.Collections.Generic.KeyValuePair(Of T1, T2)) As ValueTuple(Of T1, T2)
+            Return New ValueTuple(Of T1, T2)(arg.Key, arg.Value)
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As String) As ValueTuple(Of T1, T2)
+            Return New ValueTuple(Of T1, T2)(CType(CObj(arg), T1), CType(CObj(arg), T2))
+        End Operator
+
+        Public Shared Operator +(arg As ValueTuple(Of T1, T2)) As ValueTuple(Of T1, T2)
+            Return arg
+        End Operator
+
+        Public Shared Operator -(arg As ValueTuple(Of T1, T2)) As Long
+            Return -CType(arg, Long)
+        End Operator
+
+        Public Shared Operator Not(arg As ValueTuple(Of T1, T2)) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator IsTrue(arg As ValueTuple(Of T1, T2)) As Boolean
+            Return CType(arg, Long) <> 0
+        End Operator
+
+        Public Shared Operator IsFalse(arg As ValueTuple(Of T1, T2)) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator +(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) + arg2
+        End Operator
+
+        Public Shared Operator -(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) - arg2
+        End Operator
+
+        Public Shared Operator *(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) * arg2
+        End Operator
+
+        Public Shared Operator /(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) / arg2
+        End Operator
+
+        Public Shared Operator \(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) \ arg2
+        End Operator
+
+        Public Shared Operator Mod(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) Mod arg2
+        End Operator
+
+        Public Shared Operator &(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) & arg2
+        End Operator
+
+        Public Shared Operator And(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) And arg2
+        End Operator
+
+        Public Shared Operator Or(arg1 As ValueTuple(Of T1, T2), arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator Xor(arg1 As ValueTuple(Of T1, T2), arg2 As Long) As Long
+            Return CType(arg1, Long) Xor arg2
+        End Operator
+
+        Public Shared Operator Like(arg1 As ValueTuple(Of T1, T2), arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator ^(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) ^ arg2
+        End Operator
+
+        Public Shared Operator <<(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) << arg2
+        End Operator
+
+        Public Shared Operator >>(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) >> arg2
+        End Operator
+
+        Public Shared Operator =(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) = arg2
+        End Operator
+
+        Public Shared Operator <>(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <> arg2
+        End Operator
+
+        Public Shared Operator >(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) > arg2
+        End Operator
+
+        Public Shared Operator <(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) < arg2
+        End Operator
+
+        Public Shared Operator >=(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) >= arg2
+        End Operator
+
+        Public Shared Operator <=(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <= arg2
+        End Operator
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return False
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return 0
+        End Function
+    End Structure
+End Namespace
+]]></file>
+</compilation>
+
+            Dim expectedOutput =
+"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+True
+False
+5
+3
+12
+2
+2
+1
+43
+0
+15
+7
+15
+256
+8
+2
+False
+True
+True
+False
+True
+False
+"
+            Dim [lib] = CreateCompilationWithMscorlibAndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
+            [lib].VerifyEmitDiagnostics()
+
+            Dim consumer1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
+            CompileAndVerify(consumer1, expectedOutput:=expectedOutput).VerifyDiagnostics()
+
+            Dim consumer2 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
+            CompileAndVerify(consumer2, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub UnifyUnderlyingWithTuple_12()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+
+    Sub Main()
+
+        Dim x? = (1, 3)
+        Dim s As String = x
+        System.Console.WriteLine(s)
+        System.Console.WriteLine(CType(x, Long))
+
+        Dim y As (Integer, String)? = New KeyValuePair(Of Integer, String)(2, "4")
+        System.Console.WriteLine(y)
+        System.Console.WriteLine(CType("5", ValueTuple(Of String, String)))
+
+        System.Console.WriteLine(+x)
+        System.Console.WriteLine(-x)
+        System.Console.WriteLine(Not x)
+        System.Console.WriteLine(If(x, True, False))
+        System.Console.WriteLine(If(Not x, True, False))
+
+        System.Console.WriteLine(x + 1)
+        System.Console.WriteLine(x - 1)
+        System.Console.WriteLine(x * 3)
+        System.Console.WriteLine(x / 2)
+        System.Console.WriteLine(x \ 2)
+        System.Console.WriteLine(x Mod 3)
+        System.Console.WriteLine(x & 3)
+        System.Console.WriteLine(x And 3)
+        System.Console.WriteLine(x Or 15)
+        System.Console.WriteLine(x Xor 3)
+        System.Console.WriteLine(x Like 15)
+        System.Console.WriteLine(x ^ 4)
+        System.Console.WriteLine(x << 1)
+        System.Console.WriteLine(x >> 1)
+        System.Console.WriteLine(x = 1)
+        System.Console.WriteLine(x <> 1)
+        System.Console.WriteLine(x > 1)
+        System.Console.WriteLine(x < 1)
+        System.Console.WriteLine(x >= 1)
+        System.Console.WriteLine(x <= 1)
+    End Sub
+End Module
+]]></file>
+</compilation>
+
+            Dim tuple =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace System
+
+    Public Structure ValueTuple(Of T1, T2)
+
+        Public Item1 As T1
+        Public Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            Me.Item1 = item1
+            Me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+
+        Public Shared Widening Operator CType(arg As ValueTuple(Of T1, T2)?) As String
+            Return arg.ToString()
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As ValueTuple(Of T1, T2)?) As Long
+            Return CLng(CObj(arg.Value.Item1) + CObj(arg.Value.Item2))
+        End Operator
+
+        Public Shared Widening Operator CType(arg As System.Collections.Generic.KeyValuePair(Of T1, T2)) As ValueTuple(Of T1, T2)?
+            Return New ValueTuple(Of T1, T2)(arg.Key, arg.Value)
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As String) As ValueTuple(Of T1, T2)?
+            Return New ValueTuple(Of T1, T2)(CType(CObj(arg), T1), CType(CObj(arg), T2))
+        End Operator
+
+        Public Shared Operator +(arg As ValueTuple(Of T1, T2)?) As ValueTuple(Of T1, T2)?
+            Return arg
+        End Operator
+
+        Public Shared Operator -(arg As ValueTuple(Of T1, T2)?) As Long
+            Return -CType(arg, Long)
+        End Operator
+
+        Public Shared Operator Not(arg As ValueTuple(Of T1, T2)?) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator IsTrue(arg As ValueTuple(Of T1, T2)?) As Boolean
+            Return CType(arg, Long) <> 0
+        End Operator
+
+        Public Shared Operator IsFalse(arg As ValueTuple(Of T1, T2)?) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator +(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) + arg2
+        End Operator
+
+        Public Shared Operator -(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) - arg2
+        End Operator
+
+        Public Shared Operator *(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) * arg2
+        End Operator
+
+        Public Shared Operator /(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) / arg2
+        End Operator
+
+        Public Shared Operator \(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) \ arg2
+        End Operator
+
+        Public Shared Operator Mod(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) Mod arg2
+        End Operator
+
+        Public Shared Operator &(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) & arg2
+        End Operator
+
+        Public Shared Operator And(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) And arg2
+        End Operator
+
+        Public Shared Operator Or(arg1 As ValueTuple(Of T1, T2)?, arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator Xor(arg1 As ValueTuple(Of T1, T2)?, arg2 As Long) As Long
+            Return CType(arg1, Long) Xor arg2
+        End Operator
+
+        Public Shared Operator Like(arg1 As ValueTuple(Of T1, T2)?, arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator ^(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) ^ arg2
+        End Operator
+
+        Public Shared Operator <<(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) << arg2
+        End Operator
+
+        Public Shared Operator >>(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) >> arg2
+        End Operator
+
+        Public Shared Operator =(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) = arg2
+        End Operator
+
+        Public Shared Operator <>(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <> arg2
+        End Operator
+
+        Public Shared Operator >(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) > arg2
+        End Operator
+
+        Public Shared Operator <(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) < arg2
+        End Operator
+
+        Public Shared Operator >=(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) >= arg2
+        End Operator
+
+        Public Shared Operator <=(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <= arg2
+        End Operator
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return False
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return 0
+        End Function
+    End Structure
+End Namespace
+]]></file>
+</compilation>
+
+            Dim expectedOutput =
+"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+True
+False
+5
+3
+12
+2
+2
+1
+43
+0
+15
+7
+15
+256
+8
+2
+False
+True
+True
+False
+True
+False
+"
+            Dim [lib] = CreateCompilationWithMscorlibAndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
+            [lib].VerifyEmitDiagnostics()
+
+            Dim consumer1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
+            CompileAndVerify(consumer1, expectedOutput:=expectedOutput).VerifyDiagnostics()
+
+            Dim consumer2 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
+            CompileAndVerify(consumer2, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
     End Class
 
 End Namespace
