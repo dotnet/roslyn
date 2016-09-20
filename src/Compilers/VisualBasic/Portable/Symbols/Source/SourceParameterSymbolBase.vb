@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If Me.Type.ContainsTupleNames() Then
-                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(Type))
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
             End If
         End Sub
 

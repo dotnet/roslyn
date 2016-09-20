@@ -1448,7 +1448,7 @@ lReportErrorOnTwoTokens:
             MyBase.AddSynthesizedReturnTypeAttributes(attributes)
 
             If Me.ReturnType.ContainsTupleNames() Then
-                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(Me.ReturnType))
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Me.ReturnType))
             End If
         End Sub
 

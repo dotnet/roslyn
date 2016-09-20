@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal SynthesizedAttributeData SynthesizeTupleNamesAttributeOpt(TypeSymbol type)
+        internal SynthesizedAttributeData SynthesizeTupleNamesAttribute(TypeSymbol type)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(type.ContainsTuple());

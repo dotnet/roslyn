@@ -2443,7 +2443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim baseType As NamedTypeSymbol = Me.BaseTypeNoUseSiteDiagnostics
             If baseType IsNot Nothing Then
                 If baseType.ContainsTupleNames() Then
-                    AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttributeOpt(baseType))
+                    AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(baseType))
                 End If
             End If
         End Sub

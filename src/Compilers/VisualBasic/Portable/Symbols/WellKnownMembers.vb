@@ -654,7 +654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
         End Class
 
-        Friend Function SynthesizeTupleNamesAttributeOpt(type As TypeSymbol) As SynthesizedAttributeData
+        Friend Function SynthesizeTupleNamesAttribute(type As TypeSymbol) As SynthesizedAttributeData
             Debug.Assert(type IsNot Nothing)
             Debug.Assert(type.ContainsTuple())
 

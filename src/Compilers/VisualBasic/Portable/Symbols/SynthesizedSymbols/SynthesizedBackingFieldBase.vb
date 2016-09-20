@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 compilation.HasTupleNamesAttributes AndAlso
                 compilation.CanEmitSpecialType(SpecialType.System_String) Then
 
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttributeOpt(Type))
+                AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Type))
             End If
         End Sub
 

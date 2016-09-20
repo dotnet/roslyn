@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (type.ContainsTupleNames())
             {
-                var attr = declaringCompilation.SynthesizeTupleNamesAttributeOpt(type);
+                var attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
                 if (attr != null)
                 {
                     return new Cci.TypeReferenceWithAttributes(

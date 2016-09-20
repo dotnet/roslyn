@@ -749,7 +749,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             If Me.Type.ContainsTupleNames() Then
-                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(Type))
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
             End If
         End Sub
     End Class

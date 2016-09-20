@@ -1321,7 +1321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension>
         Friend Function GetTypeRefWithAttributes(type As TypeSymbol, declaringCompilation As VisualBasicCompilation, typeRef As Cci.ITypeReference) As Cci.TypeReferenceWithAttributes
             If type.ContainsTupleNames() Then
-                Dim attr = declaringCompilation.SynthesizeTupleNamesAttributeOpt(type)
+                Dim attr = declaringCompilation.SynthesizeTupleNamesAttribute(type)
                 If attr IsNot Nothing Then
                     Return New Cci.TypeReferenceWithAttributes(
                         typeRef,
