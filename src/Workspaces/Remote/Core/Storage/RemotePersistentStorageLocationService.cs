@@ -33,8 +33,15 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
         {
             lock (_gate)
             {
-                // Store the esent database in a different location for the out of proc server.
-                _idToStorageLocation[id] = Path.Combine(storageLocation, "Server");
+                if (storageLocation == null)
+                {
+                    _idToStorageLocation.Remove(id);
+                }
+                else
+                {
+                    // Store the esent database in a different location for the out of proc server.
+                    _idToStorageLocation[id] = Path.Combine(storageLocation, "Server");
+                }
             }
         }
     }
