@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast);
 
-        internal AssemblySymbol CorLibrary {  get { return corLibrary; } }
+        internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
         /// <summary>
         /// Determines if the source expression is convertible to the destination type via
@@ -819,11 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var defaultExpression = (BoundDefaultOperator)sourceExpression;
                     if ((object)defaultExpression.Type == null)
                     {
-                        var defaultConversion = ClassifyDefaultConversion(defaultExpression, destination, ref useSiteDiagnostics);
-                        if (defaultConversion.Exists)
-                        {
-                            return defaultConversion;
-                        }
+                        return Conversion.DefaultLiteral;
                     }
                     break;
 
@@ -888,20 +884,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (destination is PointerTypeSymbol)
             {
                 return Conversion.NullToPointer;
-            }
-
-            return Conversion.NoConversion;
-        }
-
-        private Conversion ClassifyDefaultConversion(BoundDefaultOperator source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            Debug.Assert((object)source != null);
-            Debug.Assert((object)source.Type == null);
-            Debug.Assert((object)destination != null);
-
-            if (destination.IsStructType() && !destination.IsNullableType())
-            {
-                return Conversion.DefaultLiteral;
             }
 
             return Conversion.NoConversion;

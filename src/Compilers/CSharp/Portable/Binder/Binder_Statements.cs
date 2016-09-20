@@ -2738,22 +2738,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (operand.IsLiteralDefault())
-            {
-                // PROTOTYPE(default) Need to handle type parameters here (`where T : struct` for instance)
-                //if (targetType.TypeKind == TypeKind.TypeParameter)
-                //{
-                //    Error(diagnostics, ErrorCode.ERR_TypeVarCantBeNull, syntax, targetType);
-                //    return;
-                //}
-
-                if (!targetType.IsStructType() || targetType.IsNullableType())
-                {
-                    Error(diagnostics, ErrorCode.ERR_RefCantBeDefault, syntax, targetType);
-                    return;
-                }
-            }
-
             if (operand.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)operand;

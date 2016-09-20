@@ -51,41 +51,49 @@ class C
         public void BadAssignment()
         {
             string source = @"
-class C
+class C<T>
 {
-    static void Main()
+    static void M()
     {
-        C x1 = default;
-        int? x2 = default;
-        dynamic x3 = default;
         var x4 = default;
-        ITest x5 = default;
     }
 }
-interface ITest { }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
-                // (6,16): error CS8300: Cannot convert default to 'C' because it is a value or nullable type
-                //         C x1 = default;
-                Diagnostic(ErrorCode.ERR_RefCantBeDefault, "default").WithArguments("C").WithLocation(6, 16),
-                // (7,19): error CS8300: Cannot convert default to 'int?' because it is a value or nullable type
-                //         int? x2 = default;
-                Diagnostic(ErrorCode.ERR_RefCantBeDefault, "default").WithArguments("int?").WithLocation(7, 19),
-                // (8,22): error CS8300: Cannot convert default to 'dynamic' because it is a value or nullable type
-                //         dynamic x3 = default;
-                Diagnostic(ErrorCode.ERR_RefCantBeDefault, "default").WithArguments("dynamic").WithLocation(8, 22),
-                // (9,13): error CS0815: Cannot assign default to an implicitly-typed variable
+                // (6,13): error CS0815: Cannot assign default to an implicitly-typed variable
                 //         var x4 = default;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x4 = default").WithArguments("default").WithLocation(9, 13),
-                // (10,20): error CS8300: Cannot convert default to 'ITest' because it is a value or nullable type
-                //         ITest x5 = default;
-                Diagnostic(ErrorCode.ERR_RefCantBeDefault, "default").WithArguments("ITest").WithLocation(10, 20)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x4 = default").WithArguments("default").WithLocation(6, 13)
                 );
         }
 
         [Fact]
-        public void ResolveMethod()
+        public void AssignmentToRefType()
+        {
+            string source = @"
+class C<T> where T : class
+{
+    static void M()
+    {
+        C<string> x1 = default;
+        int? x2 = default;
+        dynamic x3 = default;
+        ITest x5 = default;
+        T x6 = default;
+    }
+}
+interface ITest { }
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics(
+                // (7,14): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         int? x2 = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(7, 14)
+                );
+        }
+
+        [Fact]
+        public void AmbiguousMethod()
         {
             string source = @"
 class C
@@ -94,13 +102,16 @@ class C
     {
         M(default);
     }
-    static void M(int x) { System.Console.Write(""picked"");  }
+    static void M(int x) { }
     static void M(string x) { }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "picked");
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(int)' and 'C.M(string)'
+                //         M(default);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(int)", "C.M(string)").WithLocation(6, 9)
+                );
         }
 
         [Fact]
@@ -113,15 +124,12 @@ class C
     {
         M(default);
     }
-    static void M(string x) { }
+    static void M(string x) { System.Console.Write(x == null ? ""null"" : ""bad""); }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (6,11): error CS1503: Argument 1: cannot convert from 'default' to 'string'
-                //         M(default);
-                Diagnostic(ErrorCode.ERR_BadArgType, "default").WithArguments("1", "default", "string").WithLocation(6, 11)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "null");
         }
 
         [Fact]
@@ -134,15 +142,12 @@ class C
     {
         M(default);
     }
-    static void M(int? x) { }
+    static void M(int? x) { System.Console.Write(x.HasValue ? ""bad"" : ""null""); }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (6,11): error CS1503: Argument 1: cannot convert from 'default' to 'int?'
-                //         M(default);
-                Diagnostic(ErrorCode.ERR_BadArgType, "default").WithArguments("1", "default", "int?").WithLocation(6, 11)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "null");
         }
 
         [Fact]
@@ -338,7 +343,7 @@ class C
         }
 
         [Fact]
-        public void BadReturn()
+        public void ReturnRefType()
         {
             string source = @"
 class C
@@ -351,9 +356,6 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
-                // (6,16): error CS8300: Cannot convert default to 'int?' because it is a value or nullable type
-                //         return default;
-                Diagnostic(ErrorCode.ERR_RefCantBeDefault, "default").WithArguments("int?").WithLocation(6, 16)
                 );
         }
 
@@ -375,38 +377,6 @@ class C
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 0");
-        }
-
-        [Fact(Skip = "PROTOTYPE(default)")]
-        public void Generic()
-        {
-            string source = @"
-class C1<T>
-{
-    static void M()
-    {
-        T t = default;
-    }
-}
-class C2<T> where T : struct
-{
-    static void M()
-    {
-        T t = default;
-    }
-}
-";
-            // PROTOTYPE(default) The constrained T should be ok to infer "default" from
-
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
-            comp.VerifyDiagnostics(
-                // (13,14): error CS8300: Cannot convert default to 'T' because it is a value or nullable type
-                //        T t = default;
-                Diagnostic(ErrorCode.ERR_RefCantBeDefault, "default").WithArguments("T").WithLocation(13, 14),
-                // (6,14): error CS8300: Cannot convert default to 'T' because it is a value or nullable type
-                //        T t = default;
-                Diagnostic(ErrorCode.ERR_RefCantBeDefault, "default").WithArguments("T").WithLocation(6, 14)
-                );
         }
 
         [Fact(Skip = "PROTOTYPE(default)")]
@@ -589,15 +559,54 @@ class C
     {
         bool flag = true;
         var x = flag ? default : ""hello"";
+        System.Console.Write(x == null ? ""null"" : ""bad"");
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "null");
+        }
+
+        [Fact]
+        public void ExplicitCast()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x = (short)default;
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+            // PROTOTYPE(default) Verify semantic model. What is the type of default?
+        }
+
+        [Fact]
+        public void NotAType()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        default(System).ToString();
     }
 }
 ";
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'default' and 'string'
-                //         var x = flag ? default : "hello";
-                Diagnostic(ErrorCode.ERR_InvalidQM, @"flag ? default : ""hello""").WithArguments("default", "string").WithLocation(7, 17)
+                // (6,17): error CS0118: 'System' is a namespace but is used like a type
+                //         default(System).ToString();
+                Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(6, 17)
                 );
         }
     }

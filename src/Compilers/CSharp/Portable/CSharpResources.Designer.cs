@@ -7829,15 +7829,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert default to &apos;{0}&apos; because it is a value or nullable type.
-        /// </summary>
-        internal static string ERR_RefCantBeDefault {
-            get {
-                return ResourceManager.GetString("ERR_RefCantBeDefault", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{2}&apos; must be a reference type in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_RefConstraintNotSatisfied {

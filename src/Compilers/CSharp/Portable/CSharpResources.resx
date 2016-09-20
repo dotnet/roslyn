@@ -447,9 +447,6 @@
   <data name="ERR_ValueCantBeNull" xml:space="preserve">
     <value>Cannot convert null to '{0}' because it is a non-nullable value type</value>
   </data>
-  <data name="ERR_RefCantBeDefault" xml:space="preserve">
-    <value>Cannot convert default to '{0}' because it is a value or nullable type</value>
-  </data>
   <data name="ERR_NoExplicitBuiltinConv" xml:space="preserve">
     <value>Cannot convert type '{0}' to '{1}' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion</value>
   </data>
