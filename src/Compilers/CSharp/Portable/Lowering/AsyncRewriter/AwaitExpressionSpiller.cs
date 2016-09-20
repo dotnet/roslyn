@@ -854,6 +854,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: node.Type));
         }
 
+        public override BoundNode VisitMethodGroup(BoundMethodGroup node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var receiver = VisitExpression(ref builder, node.ReceiverOpt);
+            return UpdateExpression(builder, node.Update(node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, receiver, node.ResultKind));
+        }
+
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
             BoundSpillSequenceBuilder builder = null;
