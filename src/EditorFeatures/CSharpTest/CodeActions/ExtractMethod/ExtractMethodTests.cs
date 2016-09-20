@@ -560,9 +560,31 @@ private static void NewMethod(int i, out int r, out int y) { r = M1(3 is int {|C
         public async Task TestOutVarAndIsPattern()
         {
             await TestAsync(
-@"class C { static void M() { int r; [|r = M1(out int y) + M2(3 is int z);|] System.Console.WriteLine(r + y + z); } } ",
-@"class C { static void M() { int r; int y, z; {|Rename:NewMethod|}(out r, out y, out z); System.Console.WriteLine(r + y + z); }
-private static void NewMethod(out int r, out int y, out int z) { r = M1(out y) + M2(3 is int {|Conflict:z|}); } } ");
+@"class C
+{
+    static void M()
+    {
+        int r;
+        [|r = M1(out /*out*/ int /*int*/ y /*y*/) + M2(3 is int z);|]
+        System.Console.WriteLine(r + y + z);
+    }
+} ",
+@"class C
+{
+    static void M()
+    {
+        int r;
+        int y, z;
+        {|Rename:NewMethod|}(out r, out y, out z);
+        System.Console.WriteLine(r + y + z);
+    }
+
+    private static void NewMethod(out int r, out int y, out int z)
+    {
+        r = M1(out /*out*/  /*int*/ y /*y*/) + M2(3 is int {|Conflict:z|});
+    }
+} ",
+compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
