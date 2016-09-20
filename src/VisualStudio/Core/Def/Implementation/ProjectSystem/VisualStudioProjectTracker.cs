@@ -209,7 +209,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RegisterWorkspaceHost(IVisualStudioWorkspaceHost host)
         {
-            AssertIsForeground();
+            ExecuteOrScheduleForegroundAffinitizedAction(
+                () => RegisterWorkspaceHostOnForeground(host));
+        }
+
+        private void RegisterWorkspaceHostOnForeground(IVisualStudioWorkspaceHost host)
+        {
+            this.AssertIsForeground();
 
             lock (_gate)
             {
