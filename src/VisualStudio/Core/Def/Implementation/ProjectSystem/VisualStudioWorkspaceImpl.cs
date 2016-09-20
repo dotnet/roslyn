@@ -143,8 +143,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
+            var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
+            var projectsToLoad = new HashSet<Guid>();
+            foreach (var pc in projectChanges)
+            {
+                if (pc.GetAddedAdditionalDocuments().Any() ||
+                    pc.GetAddedAnalyzerReferences().Any() ||
+                    pc.GetAddedDocuments().Any() ||
+                    pc.GetAddedMetadataReferences().Any() ||
+                    pc.GetAddedProjectReferences().Any() ||
+                    pc.GetRemovedAdditionalDocuments().Any() ||
+                    pc.GetRemovedAnalyzerReferences().Any() ||
+                    pc.GetRemovedDocuments().Any() ||
+                    pc.GetRemovedMetadataReferences().Any() ||
+                    pc.GetRemovedProjectReferences().Any())
+                {
+                    projectsToLoad.Add(GetHostProject(pc.ProjectId).Guid);
+                }
+            }
+
+            if (projectsToLoad.Any())
+            {
+                var vsSolution4 = GetVsService(typeof(SVsSolution)) as IVsSolution4;
+                vsSolution4.EnsureProjectsAreLoaded(
+                    (uint)projectsToLoad.Count,
+                    projectsToLoad.ToArray(),
+                    (uint)__VSBSLFLAGS.VSBSLFLAGS_None);
+            }
+
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().SelectMany(pd => pd.GetChangedDocuments()).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments()).ToList();
             if (changedDocs.Count > 0)
             {
                 this.EnsureEditableDocuments(changedDocs);
