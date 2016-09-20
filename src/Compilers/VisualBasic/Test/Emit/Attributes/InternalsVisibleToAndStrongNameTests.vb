@@ -950,6 +950,8 @@ End Class
 </compilation>,
                 options:=TestOptions.ReleaseDll.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultProvider))
 
+        comp.VerifyEmitDiagnostics()
+
         Assert.True(comp.IsRealSigned)
         VerifySigned(comp)
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey)
@@ -970,6 +972,22 @@ options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyF
         CompileAndVerify(comp2, expectedOutput:="Called M")
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey)
         Assert.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
+
+        Dim comp3 = CreateCompilationWithMscorlib(
+<compilation name="MaxSizeComp2">
+    <file name="c.vb">
+Class D
+    Public Shared Sub Main()
+        C.M()
+    End Sub
+End Class
+    </file>
+</compilation>, references:={comp.EmitToImageReference()},
+options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultProvider))
+
+        CompileAndVerify(comp3, expectedOutput:="Called M")
+        Assert.Equal(TestResources.General.snMaxSizePublicKey, comp3.Assembly.Identity.PublicKey)
+        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken)
     End Sub
 
     <Fact>

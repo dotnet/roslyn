@@ -1040,6 +1040,8 @@ internal class C
                          .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
                          .WithStrongNameProvider(s_defaultProvider));
 
+            comp.VerifyEmitDiagnostics();
+
             Assert.True(comp.IsRealSigned);
             VerifySignedBitSetAfterEmit(comp);
             Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey);
@@ -1062,6 +1064,24 @@ options: TestOptions.ReleaseExe
             CompileAndVerify(comp2, expectedOutput: "Called M");
             Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey);
             Assert.Equal<byte>(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken);
+
+            var comp3 = CreateCompilationWithMscorlib(@"
+class D
+{
+    public static void Main()
+    {
+        C.M();
+    }
+}", 
+references: new[] { comp.EmitToImageReference() },
+assemblyName: "MaxSizeComp2",
+options: TestOptions.ReleaseExe
+        .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
+        .WithStrongNameProvider(s_defaultProvider));
+
+            CompileAndVerify(comp3, expectedOutput: "Called M");
+            Assert.Equal(TestResources.General.snMaxSizePublicKey, comp3.Assembly.Identity.PublicKey);
+            Assert.Equal<byte>(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken);
         }
 
         [Fact]
