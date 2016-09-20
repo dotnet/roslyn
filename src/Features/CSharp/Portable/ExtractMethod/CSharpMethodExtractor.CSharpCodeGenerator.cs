@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var variablesToRemove = this.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken);
                 var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(variablesToRemove, cancellationToken);
 
-                statements = statements.Select(s => RemoveOutVariablesFromDeclarationExpressions(s, variablesToRemove));
+                statements = statements.Select(s => FixDeclarationExpressionsAndDeclarationPatterns(s, variablesToRemove));
 
                 foreach (var statement in statements)
                 {
@@ -399,7 +399,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
             }
 
-            private StatementSyntax RemoveOutVariablesFromDeclarationExpressions(StatementSyntax statement,
+            /// <summary>
+            /// If the statement has an `out var` declaration expression for a variable which
+            /// needs to be removed, we need to turn it into a plain `out` parameter, so that
+            /// it doesn't declare a duplicate variable.
+            /// If the statement has a pattern declaration (such as `3 is int i`) for a variable
+            /// which needs to be removed, we will annotate it as a conflict, since we don't have
+            /// a better refactoring.
+            /// </summary>
+            private StatementSyntax FixDeclarationExpressionsAndDeclarationPatterns(StatementSyntax statement,
                 IEnumerable<VariableInfo> variablesToRemove)
             {
                 var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
