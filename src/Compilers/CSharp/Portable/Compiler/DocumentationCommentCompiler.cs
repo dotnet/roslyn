@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     leaveOpen: true); // Don't close caller's stream.
             }
 
-            using (writer)
+            try
             {
-                try
+                using (writer)
                 {
                     var compiler = new DocumentationCommentCompiler(assemblyName ?? compilation.SourceAssembly.Name, compilation, writer, filterTree, filterSpanWithinTree,
                         processIncludes: true, isForSingleSymbol: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(compiler._indentDepth == 0);
                     writer?.Flush();
                 }
-                catch (Exception e)
-                {
-                    diagnostics.Add(ErrorCode.ERR_DocFileGen, Location.None, e.Message);
-                }
+            }
+            catch (Exception e)
+            {
+                diagnostics.Add(ErrorCode.ERR_DocFileGen, Location.None, e.Message);
             }
 
             if (filterTree != null)
