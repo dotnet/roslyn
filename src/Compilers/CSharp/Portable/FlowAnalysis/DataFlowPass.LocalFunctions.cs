@@ -111,16 +111,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             RestorePending(oldPending2); // process any forward branches within the lambda body
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
-            LeaveParameters(localFunc.Symbol.Parameters, localFunc.Syntax, null);
+
+            Location location = null;
+
+            if (!localFunc.Symbol.Locations.IsDefaultOrEmpty)
+            {
+                location = localFunc.Symbol.Locations[0];
+            }
+
+            LeaveParameters(localFunc.Symbol.Parameters, localFunc.Syntax, location);
 
             LocalState stateAtReturn = this.State;
             foreach (PendingBranch pending in pendingReturns)
             {
                 this.State = pending.State;
-                if (pending.Branch.Kind == BoundKind.ReturnStatement)
+                BoundNode branch = pending.Branch;
+                if (branch.Kind == BoundKind.ReturnStatement)
                 {
                     // ensure out parameters are definitely assigned at each return
-                    LeaveParameters(localFunc.Symbol.Parameters, pending.Branch.Syntax, null);
+                    LeaveParameters(localFunc.Symbol.Parameters, branch.Syntax, 
+                                    branch.WasCompilerGenerated ? location : null);
                     IntersectWith(ref stateAtReturn, ref this.State);
                 }
                 else

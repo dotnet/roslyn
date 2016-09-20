@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Execution
                 // root tree node has extra data that we need to search as well
                 if (_additionalAssets == null)
                 {
-                    // this can't be reached
-                    throw ExceptionUtilities.Unreachable;
+                    // checksum looks like belong to global asset
+                    return;
                 }
 
                 AppendChecksumObjectsFromAdditionalAssets(map, searchingChecksumsLeft, cancellationToken);

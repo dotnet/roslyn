@@ -65,7 +65,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReadOnlyCollection<byte> dynamicFlags;
             ReadOnlyCollection<string> tupleElementNames;
             CustomTypeInfo.Decode(typeInfo.PayloadTypeId, typeInfo.Payload, out dynamicFlags, out tupleElementNames);
-            Debug.Assert(dynamicFlags != null || tupleElementNames != null);
+            if (dynamicFlags == null && tupleElementNames == null)
+            {
+                return s_empty;
+            }
 
             var typeDefinition = type.GetGenericTypeDefinition();
             Debug.Assert(typeDefinition != null);
@@ -80,6 +83,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 tupleElementNames,
                 tupleElementNameStartIndices);
         }
+
+        internal ReadOnlyCollection<string> TupleElementNames => _tupleElementNames;
 
         internal DkmClrCustomTypeInfo SubstituteCustomTypeInfo(Type type, DkmClrCustomTypeInfo customInfo)
         {
@@ -181,7 +186,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            Debug.Assert(pos > 1);
             startsBuilder.Add(pos);
             return startsBuilder.ToArrayAndFree();
         }

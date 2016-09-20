@@ -13,11 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </summary>
     internal class SpacingViewModel : AbstractOptionPreviewViewModel
     {
-        internal override bool ShouldPersistOption(OptionKey key)
-        {
-            return key.Option.Feature == CSharpFormattingOptions.SpacingFeatureName;
-        }
-
         private static readonly string s_methodPreview = @"
 class C {
 //[

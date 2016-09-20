@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -75,6 +76,13 @@ namespace Microsoft.CodeAnalysis.Execution
             return asset;
         }
 
+        public Asset Build(OptionSet options, string language, CancellationToken cancellationToken)
+        {
+            // get around issue where this can't be captured in struct
+            var local = this;
+            return _checksumTree.GetOrCreateAsset(options, options, WellKnownChecksumObjects.OptionSet, (v, k, c) => local.CreateOptionSet(v, language, k, c), cancellationToken);
+        }
+
         private Asset CreateSolutionChecksumObjectInfo(SolutionChecksumObjectInfo info, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -138,6 +146,14 @@ namespace Microsoft.CodeAnalysis.Execution
             return new SourceTextAsset(_serializer, state, checksum, kind);
         }
 
+        private Asset CreateOptionSet(OptionSet options, string language, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var serializer = _serializer;
+            return new Asset<OptionSet>(options, kind, (o, w, c) => serializer.SerializeOptionSet(o, language, w, c));
+        }
+
         private SolutionChecksumObjectInfo GetInfo(SolutionState solutionState)
         {
             return new SolutionChecksumObjectInfo(solutionState.Id, solutionState.Version, solutionState.FilePath);
@@ -182,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             public AssetOnlyTreeNode(Solution solution)
             {
-                Serializer = new Serializer(solution.Workspace.Services);
+                Serializer = ChecksumTreeCollection.GetOrCreateSerializer(solution.Workspace.Services);
             }
 
             public Serializer Serializer { get; }

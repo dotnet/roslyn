@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Options
         object GetOption(OptionKey optionKey);
 
         /// <summary>
-        /// Applies a set of options.
+        /// Applies a set of options, invoking serializers if needed.
         /// </summary>
         void SetOptions(OptionSet optionSet);
 
@@ -41,5 +41,10 @@ namespace Microsoft.CodeAnalysis.Options
         IEnumerable<IOption> GetRegisteredOptions();
 
         event EventHandler<OptionChangedEventArgs> OptionChanged;
+
+        /// <summary>
+        /// Refreshes the stored value of a serialized option. This should only be called from serializers.
+        /// </summary>
+        void RefreshOption(OptionKey optionKey, object newValue);
     }
 }

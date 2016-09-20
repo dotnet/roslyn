@@ -130,6 +130,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 expansions.Add(staticMembersExpansion);
             }
 
+            instanceMembers.Free();
+            staticMembers.Free();
+
             if (value.NativeComPointer != 0)
             {
                 expansions.Add(NativeViewExpansion.Instance);
@@ -478,7 +481,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (parent.ChildShouldParenthesize)
             {
-                parentFullName = $"({parentFullName})";
+                parentFullName = parentFullName.Parenthesize();
             }
 
             var typeDeclaringMember = typeDeclaringMemberAndInfo.Type;

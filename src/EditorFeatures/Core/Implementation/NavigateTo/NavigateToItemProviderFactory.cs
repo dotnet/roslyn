@@ -3,22 +3,24 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    [Export(typeof(INavigateToItemProviderFactory))]
-    [Shared]
+    [Export(typeof(INavigateToItemProviderFactory)), Shared]
     internal class NavigateToItemProviderFactory : INavigateToItemProviderFactory
     {
         private readonly IGlyphService _glyphService;
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IEnumerable<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>> _optionsServices;
 
         [ImportingConstructor]
         public NavigateToItemProviderFactory(
             IGlyphService glyphService,
+            [ImportMany] IEnumerable<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>> optionsServices,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             if (glyphService == null)
@@ -32,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
 
             _glyphService = glyphService;
+            _optionsServices = optionsServices;
             _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.NavigateTo);
         }
 
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return false;
             }
 
-            provider = new NavigateToItemProvider(workspace, _glyphService, _asyncListener);
+            provider = new NavigateToItemProvider(workspace, _glyphService,  _asyncListener, _optionsServices);
             return true;
         }
     }

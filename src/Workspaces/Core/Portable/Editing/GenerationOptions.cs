@@ -6,8 +6,7 @@ namespace Microsoft.CodeAnalysis.Editing
 {
     internal class GenerationOptions
     {
-        public const string FeatureName = "Organizer";
-
-        public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(FeatureName, "PlaceSystemNamespaceFirst", defaultValue: true);
+        public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(nameof(GenerationOptions), nameof(PlaceSystemNamespaceFirst), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst"));
     }
 }

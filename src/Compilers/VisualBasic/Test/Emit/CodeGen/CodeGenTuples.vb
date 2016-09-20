@@ -3191,7 +3191,7 @@ BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Public Sub TupleTypeWithLateDiscoveredName()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation name="Tuples">
     <file name="a.vb"><![CDATA[
 Imports System
 Module C
@@ -3201,23 +3201,12 @@ Module C
 End Module
 
 ]]></file>
-</compilation>)
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37258: Tuple member names must all be provided, if any one is provided.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
-BC37258: Tuple member names must all be provided, if any one is provided.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                                          ~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,,)' is not defined or imported.
+BC30311: Value of type '(Integer, String, C As Integer)' cannot be converted to '(Integer, A As String)'.
         Dim x As (Integer, A As String) = (1, "hello", C:=2)
                                           ~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -4293,7 +4282,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mFirst.CustomModifiers.IsEmpty)
             Assert.True(mFirst.GetAttributes().IsEmpty)
             'Assert.Null(mFirst.GetUseSiteDiagnostic())
-            Assert.False(mFirst.Locations.IsDefaultOrEmpty)
+            Assert.False(mFirst.Locations.IsEmpty)
             Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.False(mFirst.IsImplicitlyDeclared)
             Assert.Null(mFirst.TypeLayoutOffset)
@@ -4313,7 +4302,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mItem1.GetAttributes().IsEmpty)
             'Assert.Null(mItem1.GetUseSiteDiagnostic())
             Assert.True(mItem1.Locations.IsEmpty)
-            Assert.False(mItem1.IsImplicitlyDeclared)
+            Assert.True(mItem1.IsImplicitlyDeclared)
             Assert.Null(mItem1.TypeLayoutOffset)
 
         End Sub
@@ -5038,6 +5027,28 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub CreateTupleTypeSymbol_WithSomeNames()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+
+            Dim vt3 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T3).Construct(intType, stringType, intType)
+
+            Dim tupleWithSomeNames = comp.CreateTupleTypeSymbol(vt3, ImmutableArray.Create(Nothing, "Item2", "Charlie"))
+
+            Assert.True(tupleWithSomeNames.IsTupleType)
+            Assert.Equal(SymbolKind.ErrorType, tupleWithSomeNames.TupleUnderlyingType.Kind)
+            Assert.Equal("(System.Int32, Item2 As System.String, Charlie As System.Int32)", tupleWithSomeNames.ToTestDisplayString())
+            Assert.Equal(New String() {Nothing, "Item2", "Charlie"}, tupleWithSomeNames.TupleElementNames)
+            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32"},
+                         tupleWithSomeNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+
+            Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind)
+
+        End Sub
+
+        <Fact>
         Public Sub CreateTupleTypeSymbol_WithBadNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -5144,6 +5155,30 @@ End Class
                          tuple9WithNames.ToTestDisplayString())
 
             Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"}, tuple9WithNames.TupleElementNames)
+
+            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
+                         tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_Tuple9WithDefaultNames()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+
+            Dim vt9 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_TRest).
+                Construct(intType, stringType, intType, stringType, intType, stringType, intType,
+                                       comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(stringType, intType))
+
+            Dim tuple9WithNames = comp.CreateTupleTypeSymbol(vt9, ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"))
+
+            Assert.True(tuple9WithNames.IsTupleType)
+            Assert.Equal("(Item1 As System.Int32, Item2 As System.String, Item3 As System.Int32, Item4 As System.String, Item5 As System.Int32, Item6 As System.String, Item7 As System.Int32, Item8 As System.String, Item9 As System.Int32)",
+                         tuple9WithNames.ToTestDisplayString())
+
+            Assert.Equal(New String() {"Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"}, tuple9WithNames.TupleElementNames)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
                          tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
@@ -7161,6 +7196,1521 @@ additionalReferences:=s_valueTupleRefs)
                        Sub(t) Assert.Equal(SpecialType.System_Int32, t.SpecialType))
         End Sub
 
+        <Fact>
+        <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
+        Public Sub BadOverloadWithTupleLiteralWithNaturalType()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module C
+    Sub M(x As Integer)
+    End Sub
+    Sub M(x As String)
+    End Sub
+
+    Sub Main()
+        M((1, 2))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+
+            compilation.AssertTheseDiagnostics(
+<errors>
+    BC30518: Overload resolution failed because no accessible 'M' can be called with these arguments:
+    'Public Sub M(x As Integer)': Value of type '(Integer, Integer)' cannot be converted to 'Integer'.
+    'Public Sub M(x As String)': Value of type '(Integer, Integer)' cannot be converted to 'String'.
+        M((1, 2))
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
+        Public Sub BadOverloadWithTupleLiteralWithNothing()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module C
+    Sub M(x As Integer)
+    End Sub
+    Sub M(x As String)
+    End Sub
+
+    Sub Main()
+        M((1, Nothing))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+
+            compilation.AssertTheseDiagnostics(
+<errors>
+    BC30518: Overload resolution failed because no accessible 'M' can be called with these arguments:
+    'Public Sub M(x As Integer)': Value of type '(Integer, Object)' cannot be converted to 'Integer'.
+    'Public Sub M(x As String)': Value of type '(Integer, Object)' cannot be converted to 'String'.
+        M((1, Nothing))
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
+        Public Sub BadOverloadWithTupleLiteralWithAddressOf()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module C
+    Sub M(x As Integer)
+    End Sub
+    Sub M(x As String)
+    End Sub
+
+    Sub Main()
+        M((1, AddressOf Main))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+
+            compilation.AssertTheseDiagnostics(
+<errors>
+    BC30518: Overload resolution failed because no accessible 'M' can be called with these arguments:
+    'Public Sub M(x As Integer)': Expression does not produce a value.
+    'Public Sub M(x As String)': Expression does not produce a value.
+        M((1, AddressOf Main))
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleLiteralWithOnlySomeNames()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim t As (Integer, String, Integer) = (1, b:="hello", Item3:=3)
+        console.write($"{t.Item1} {t.Item2} {t.Item3}")
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:="1 hello 3")
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
+        Public Sub TupleCoVariance()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb"><![CDATA[
+Interface I(Of Out T)
+    Function M() As System.ValueTuple(Of Integer, T)
+End Interface
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' in this context because 'T' is an 'Out' type parameter.
+    Function M() As System.ValueTuple(Of Integer, T)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
+        Public Sub TupleCoVariance2()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb"><![CDATA[
+Interface I(Of Out T)
+    Function M() As (Integer, T)
+End Interface
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' in this context because 'T' is an 'Out' type parameter.
+    Function M() As (Integer, T)
+                    ~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
+        Public Sub TupleContraVariance()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb"><![CDATA[
+Interface I(Of In T)
+    Sub M(x As (Boolean, T))
+End Interface
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36727: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' in this context because 'T' is an 'In' type parameter.
+    Sub M(x As (Boolean, T))
+               ~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment001()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim  ss as (A as string, B as string)
+
+        ss.A = "q"
+        ss.Item2 = "w"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, w)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment001Err()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim  ss as (A as string, B as string)
+
+        ss.A = "q"
+        'ss.Item2 = "w"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, )]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(8, 34)
+            )
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment002()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim  ss as (A as string, B as string)
+
+        ss.A = "q"
+        ss.B = "q"
+        ss.Item1 = "w"
+        ss.Item2 = "w"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(w, w)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment003()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (A as string, D as (B as string, C as string ))
+
+        ss.A = "q"
+        ss.D.B = "w"
+        ss.D.C = "e"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, (w, e))]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment004()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as  (I1 as string , 
+            I2  As string, 
+            I3  As string, 
+            I4  As string, 
+            I5  As string, 
+            I6  As string, 
+            I7  As string, 
+            I8  As string, 
+            I9  As string, 
+            I10 As string)
+
+        ss.I1 = "q"
+        ss.I2 = "q"
+        ss.I3 = "q"
+        ss.I4 = "q"
+        ss.I5 = "q"
+        ss.I6 = "q"
+        ss.I7 = "q"
+        ss.I8 = "q"
+        ss.I9 = "q"
+        ss.I10 = "q"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, q, q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment005()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+            I2  As String, 
+            I3  As String, 
+            I4  As String, 
+            I5  As String, 
+            I6  As String, 
+            I7  As String, 
+            I8  As String, 
+            I9  As String, 
+            I10 As String)
+
+        ss.Item1 = "q"
+        ss.Item2 = "q"
+        ss.Item3 = "q"
+        ss.Item4 = "q"
+        ss.Item5 = "q"
+        ss.Item6 = "q"
+        ss.Item7 = "q"
+        ss.Item8 = "q"
+        ss.Item9 = "q"
+        ss.Item10 = "q"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, q, q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment006()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.Item1 = "q"
+        ss.I2 = "q"
+        ss.Item3 = "q"
+        ss.I4 = "q"
+        ss.Item5 = "q"
+        ss.I6 = "q"
+        ss.Item7 = "q"
+        ss.I8 = "q"
+        ss.Item9 = "q"
+        ss.I10 = "q"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, q, q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment007()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.Item1 = "q"
+        ss.I2 = "q"
+        ss.Item3 = "q"
+        ss.I4 = "q"
+        ss.Item5 = "q"
+        ss.I6 = "q"
+        ss.Item7 = "q"
+        ss.I8 = "q"
+        ss.Item9 = "q"
+        ss.I10 = "q"
+
+        System.Console.WriteLine(ss.Rest)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment008()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.I8 = "q"
+        ss.Item9 = "q"
+        ss.I10 = "q"
+
+        System.Console.WriteLine(ss.Rest)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment008long()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String,
+                    I11 as string, 
+                    I12  As String, 
+                    I13  As String, 
+                    I14  As String, 
+                    I15  As String, 
+                    I16  As String, 
+                    I17  As String, 
+                    I18  As String, 
+                    I19  As String,
+                    I20 As String,
+                    I21 as string, 
+                    I22  As String, 
+                    I23  As String, 
+                    I24  As String, 
+                    I25  As String, 
+                    I26  As String, 
+                    I27  As String, 
+                    I28  As String, 
+                    I29  As String,
+                    I30  As String,
+                    I31  As String)
+
+        'warn 
+        System.Console.WriteLine(ss.Rest.Rest.Rest)
+        'warn 
+        System.Console.WriteLine(ss.I31)
+
+        ss.I29 = "q"
+        ss.Item30 = "q"
+        ss.I31 = "q"
+
+        System.Console.WriteLine(ss.I29)
+        System.Console.WriteLine(ss.Rest.Rest.Rest)
+        System.Console.WriteLine(ss.I31)
+
+        ' warn
+        System.Console.WriteLine(ss.Rest.Rest)
+
+        ' warn
+        System.Console.WriteLine(ss.Rest)
+
+        ' warn
+        System.Console.WriteLine(ss)
+
+        ' warn
+        System.Console.WriteLine(ss.I2)
+
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+(, , , , , , , , , )
+
+q
+(, , , , , , , q, q, q)
+q
+(, , , , , , , , , , , , , , q, q, q)
+(, , , , , , , , , , , , , , , , , , , , , q, q, q)
+(, , , , , , , , , , , , , , , , , , , , , , , , , , , , q, q, q)]]>)
+
+            verifier.VerifyDiagnostics(
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest.Rest.Rest").WithArguments("Rest").WithLocation(36, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "ss.I31").WithArguments("I31").WithLocation(38, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest.Rest").WithArguments("Rest").WithLocation(49, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest").WithArguments("Rest").WithLocation(52, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(55, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "ss.I2").WithArguments("I2").WithLocation(58, 34))
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment009()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.I1 = "q"
+        ss.I2 = "q"
+        ss.I3 = "q"
+        ss.I4 = "q"
+        ss.I5 = "q"
+        ss.I6 = "q"
+        ss.I7 = "q"
+        ss.Rest = Nothing
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, q, , , )]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment010()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.Rest = ("q", "w", "e")
+
+        System.Console.WriteLine(ss.I9)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[w]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment011()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        if (1.ToString() = 2.ToString())
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+            ss.I8 = "q"
+
+            System.Console.WriteLine(ss)
+
+        elseif (1.ToString() = 3.ToString())
+    
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+            ' ss.I8 = "q"
+
+            System.Console.WriteLine(ss)
+
+        else 
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ' ss.I7 = "q"
+            ss.I8 = "q"
+
+            System.Console.WriteLine(ss) ' should fail
+        end if
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, , q)]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(44, 38),
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(65, 38)
+            )
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment012()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+       if (1.ToString() = 2.ToString())
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+            ss.I8 = "q"
+
+            System.Console.WriteLine(ss)
+
+        else if (1.ToString() = 3.ToString())
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+            ' ss.I8 = "q"
+
+            System.Console.WriteLine(ss) ' should fail1
+
+        else 
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ' ss.I7 = "q"
+            ss.I8 = "q"
+
+            System.Console.WriteLine(ss) ' should fail2
+        end if
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, , q)]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(43, 38),
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(64, 38)
+                )
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment013()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+
+            ss.Item1 = "q"
+            ss.Item2 = "q"
+            ss.Item3 = "q"
+            ss.Item4 = "q"
+            ss.Item5 = "q"
+            ss.Item6 = "q"
+            ss.Item7 = "q"
+
+            System.Console.WriteLine(ss.Rest)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[()]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest").WithArguments("Rest").WithLocation(28, 38)
+            )
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment014()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.Item2 = "aa"
+
+            System.Console.WriteLine(ss.Item1)
+            System.Console.WriteLine(ss.I2)
+
+            System.Console.WriteLine(ss.I3)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[q
+aa]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "ss.I3").WithArguments("I3").WithLocation(18, 38)
+            )
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment015()
+
+            Dim verifier = CompileAndVerify(
+    <compilation>
+        <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+        Sub Main()
+            Dim v = Test().Result
+        end sub
+
+        async Function Test() as Task(of long)
+            Dim v1 as (a as Integer, b as Integer)
+            Dim v2 as (x as Byte, y as Integer)
+
+            v1.a = 5
+
+            v2.x = 5   ' no need to persist across await since it is unused after it.
+            System.Console.WriteLine(v2.Item1)
+
+            await Task.Yield()
+
+            ' this is assigned and persisted across await
+            return v1.Item1            
+        end Function
+End Module
+
+            </file>
+    </compilation>, useLatestFramework:=True, additionalRefs:=s_valueTupleRefs, expectedOutput:="5")
+
+            ' NOTE: !!! There should be NO IL local for  " v1 as (Long, Integer)" , it should be captured instead
+            ' NOTE: !!! There should be an IL local for  " v2 as (Byte, Integer)" , it should not be captured 
+            verifier.VerifyIL("Module1.VB$StateMachine_1_Test.MoveNext()", <![CDATA[
+{
+  // Code size      214 (0xd6)
+  .maxstack  3
+  .locals init (Long V_0,
+                Integer V_1,
+                System.ValueTuple(Of Byte, Integer) V_2, //v2
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_3,
+                System.Runtime.CompilerServices.YieldAwaitable V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_0061
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$ResumableLocal_v1$0 As (a As Integer, b As Integer)"
+    IL_0010:  ldc.i4.5
+    IL_0011:  stfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+    IL_0016:  ldloca.s   V_2
+    IL_0018:  ldc.i4.5
+    IL_0019:  stfld      "System.ValueTuple(Of Byte, Integer).Item1 As Byte"
+    IL_001e:  ldloc.2
+    IL_001f:  ldfld      "System.ValueTuple(Of Byte, Integer).Item1 As Byte"
+    IL_0024:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0029:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
+    IL_002e:  stloc.s    V_4
+    IL_0030:  ldloca.s   V_4
+    IL_0032:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter() As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0037:  stloc.3
+    IL_0038:  ldloca.s   V_3
+    IL_003a:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.get_IsCompleted() As Boolean"
+    IL_003f:  brtrue.s   IL_007d
+    IL_0041:  ldarg.0
+    IL_0042:  ldc.i4.0
+    IL_0043:  dup
+    IL_0044:  stloc.1
+    IL_0045:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+    IL_004a:  ldarg.0
+    IL_004b:  ldloc.3
+    IL_004c:  stfld      "Module1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0051:  ldarg.0
+    IL_0052:  ldflda     "Module1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long)"
+    IL_0057:  ldloca.s   V_3
+    IL_0059:  ldarg.0
+    IL_005a:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Module1.VB$StateMachine_1_Test)(ByRef System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ByRef Module1.VB$StateMachine_1_Test)"
+    IL_005f:  leave.s    IL_00d5
+    IL_0061:  ldarg.0
+    IL_0062:  ldc.i4.m1
+    IL_0063:  dup
+    IL_0064:  stloc.1
+    IL_0065:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+    IL_006a:  ldarg.0
+    IL_006b:  ldfld      "Module1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0070:  stloc.3
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     "Module1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0077:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_007d:  ldloca.s   V_3
+    IL_007f:  call       "Sub System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+    IL_0084:  ldloca.s   V_3
+    IL_0086:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_008c:  ldarg.0
+    IL_008d:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$ResumableLocal_v1$0 As (a As Integer, b As Integer)"
+    IL_0092:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+    IL_0097:  conv.i8
+    IL_0098:  stloc.0
+    IL_0099:  leave.s    IL_00bf
+  }
+  catch System.Exception
+  {
+    IL_009b:  dup
+    IL_009c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00a1:  stloc.s    V_5
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldc.i4.s   -2
+    IL_00a6:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldflda     "Module1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long)"
+    IL_00b1:  ldloc.s    V_5
+    IL_00b3:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long).SetException(System.Exception)"
+    IL_00b8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00bd:  leave.s    IL_00d5
+  }
+  IL_00bf:  ldarg.0
+  IL_00c0:  ldc.i4.s   -2
+  IL_00c2:  dup
+  IL_00c3:  stloc.1
+  IL_00c4:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+  IL_00c9:  ldarg.0
+  IL_00ca:  ldflda     "Module1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long)"
+  IL_00cf:  ldloc.0
+  IL_00d0:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long).SetResult(Long)"
+  IL_00d5:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(13661, "https://github.com/dotnet/roslyn/issues/13661")>
+        Public Sub LongTupleWithPartialNames_Bug13661()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module C
+    Sub Main()
+        Dim t = (A:=1, 2, C:=3, D:=4, E:=5, F:=6, G:=7, 8, I:=9)
+        System.Console.Write($"{t.I}")
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                options:=TestOptions.DebugExe, expectedOutput:="9",
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim t = nodes.OfType(Of VariableDeclaratorSyntax)().Single().Names(0)
+                        Dim xSymbol = DirectCast(model.GetDeclaredSymbol(t), LocalSymbol).Type
+
+                        AssertEx.SetEqual(xSymbol.GetMembers().OfType(Of FieldSymbol)().Select(Function(f) f.Name),
+                            "A", "C", "D", "E", "F", "G", "I", "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Rest")
+                    End Sub)
+            ' No assert hit
+
+        End Sub
+
+        <Fact>
+        Public Sub UnifyUnderlyingWithTuple_08()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+
+    Sub Main()
+
+        Dim x = (1, 3)
+        Dim s As String = x
+        System.Console.WriteLine(s)
+        System.Console.WriteLine(CType(x, Long))
+
+        Dim y As (Integer, String) = New KeyValuePair(Of Integer, String)(2, "4")
+        System.Console.WriteLine(y)
+        System.Console.WriteLine(CType("5", ValueTuple(Of String, String)))
+
+        System.Console.WriteLine(+x)
+        System.Console.WriteLine(-x)
+        System.Console.WriteLine(Not x)
+        System.Console.WriteLine(If(x, True, False))
+        System.Console.WriteLine(If(Not x, True, False))
+
+        System.Console.WriteLine(x + 1)
+        System.Console.WriteLine(x - 1)
+        System.Console.WriteLine(x * 3)
+        System.Console.WriteLine(x / 2)
+        System.Console.WriteLine(x \ 2)
+        System.Console.WriteLine(x Mod 3)
+        System.Console.WriteLine(x & 3)
+        System.Console.WriteLine(x And 3)
+        System.Console.WriteLine(x Or 15)
+        System.Console.WriteLine(x Xor 3)
+        System.Console.WriteLine(x Like 15)
+        System.Console.WriteLine(x ^ 4)
+        System.Console.WriteLine(x << 1)
+        System.Console.WriteLine(x >> 1)
+        System.Console.WriteLine(x = 1)
+        System.Console.WriteLine(x <> 1)
+        System.Console.WriteLine(x > 1)
+        System.Console.WriteLine(x < 1)
+        System.Console.WriteLine(x >= 1)
+        System.Console.WriteLine(x <= 1)
+    End Sub
+End Module
+]]></file>
+</compilation>
+
+            Dim tuple =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace System
+
+    Public Structure ValueTuple(Of T1, T2)
+
+        Public Item1 As T1
+        Public Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            Me.Item1 = item1
+            Me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+
+        Public Shared Widening Operator CType(arg As ValueTuple(Of T1, T2)) As String
+            Return arg.ToString()
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As ValueTuple(Of T1, T2)) As Long
+            Return CLng(CObj(arg.Item1) + CObj(arg.Item2))
+        End Operator
+
+        Public Shared Widening Operator CType(arg As System.Collections.Generic.KeyValuePair(Of T1, T2)) As ValueTuple(Of T1, T2)
+            Return New ValueTuple(Of T1, T2)(arg.Key, arg.Value)
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As String) As ValueTuple(Of T1, T2)
+            Return New ValueTuple(Of T1, T2)(CType(CObj(arg), T1), CType(CObj(arg), T2))
+        End Operator
+
+        Public Shared Operator +(arg As ValueTuple(Of T1, T2)) As ValueTuple(Of T1, T2)
+            Return arg
+        End Operator
+
+        Public Shared Operator -(arg As ValueTuple(Of T1, T2)) As Long
+            Return -CType(arg, Long)
+        End Operator
+
+        Public Shared Operator Not(arg As ValueTuple(Of T1, T2)) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator IsTrue(arg As ValueTuple(Of T1, T2)) As Boolean
+            Return CType(arg, Long) <> 0
+        End Operator
+
+        Public Shared Operator IsFalse(arg As ValueTuple(Of T1, T2)) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator +(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) + arg2
+        End Operator
+
+        Public Shared Operator -(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) - arg2
+        End Operator
+
+        Public Shared Operator *(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) * arg2
+        End Operator
+
+        Public Shared Operator /(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) / arg2
+        End Operator
+
+        Public Shared Operator \(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) \ arg2
+        End Operator
+
+        Public Shared Operator Mod(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) Mod arg2
+        End Operator
+
+        Public Shared Operator &(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) & arg2
+        End Operator
+
+        Public Shared Operator And(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) And arg2
+        End Operator
+
+        Public Shared Operator Or(arg1 As ValueTuple(Of T1, T2), arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator Xor(arg1 As ValueTuple(Of T1, T2), arg2 As Long) As Long
+            Return CType(arg1, Long) Xor arg2
+        End Operator
+
+        Public Shared Operator Like(arg1 As ValueTuple(Of T1, T2), arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator ^(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) ^ arg2
+        End Operator
+
+        Public Shared Operator <<(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) << arg2
+        End Operator
+
+        Public Shared Operator >>(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) >> arg2
+        End Operator
+
+        Public Shared Operator =(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) = arg2
+        End Operator
+
+        Public Shared Operator <>(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <> arg2
+        End Operator
+
+        Public Shared Operator >(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) > arg2
+        End Operator
+
+        Public Shared Operator <(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) < arg2
+        End Operator
+
+        Public Shared Operator >=(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) >= arg2
+        End Operator
+
+        Public Shared Operator <=(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <= arg2
+        End Operator
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return False
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return 0
+        End Function
+    End Structure
+End Namespace
+]]></file>
+</compilation>
+
+            Dim expectedOutput =
+"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+True
+False
+5
+3
+12
+2
+2
+1
+43
+0
+15
+7
+15
+256
+8
+2
+False
+True
+True
+False
+True
+False
+"
+            Dim [lib] = CreateCompilationWithMscorlibAndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
+            [lib].VerifyEmitDiagnostics()
+
+            Dim consumer1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
+            CompileAndVerify(consumer1, expectedOutput:=expectedOutput).VerifyDiagnostics()
+
+            Dim consumer2 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
+            CompileAndVerify(consumer2, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub UnifyUnderlyingWithTuple_12()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+
+    Sub Main()
+
+        Dim x? = (1, 3)
+        Dim s As String = x
+        System.Console.WriteLine(s)
+        System.Console.WriteLine(CType(x, Long))
+
+        Dim y As (Integer, String)? = New KeyValuePair(Of Integer, String)(2, "4")
+        System.Console.WriteLine(y)
+        System.Console.WriteLine(CType("5", ValueTuple(Of String, String)))
+
+        System.Console.WriteLine(+x)
+        System.Console.WriteLine(-x)
+        System.Console.WriteLine(Not x)
+        System.Console.WriteLine(If(x, True, False))
+        System.Console.WriteLine(If(Not x, True, False))
+
+        System.Console.WriteLine(x + 1)
+        System.Console.WriteLine(x - 1)
+        System.Console.WriteLine(x * 3)
+        System.Console.WriteLine(x / 2)
+        System.Console.WriteLine(x \ 2)
+        System.Console.WriteLine(x Mod 3)
+        System.Console.WriteLine(x & 3)
+        System.Console.WriteLine(x And 3)
+        System.Console.WriteLine(x Or 15)
+        System.Console.WriteLine(x Xor 3)
+        System.Console.WriteLine(x Like 15)
+        System.Console.WriteLine(x ^ 4)
+        System.Console.WriteLine(x << 1)
+        System.Console.WriteLine(x >> 1)
+        System.Console.WriteLine(x = 1)
+        System.Console.WriteLine(x <> 1)
+        System.Console.WriteLine(x > 1)
+        System.Console.WriteLine(x < 1)
+        System.Console.WriteLine(x >= 1)
+        System.Console.WriteLine(x <= 1)
+    End Sub
+End Module
+]]></file>
+</compilation>
+
+            Dim tuple =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace System
+
+    Public Structure ValueTuple(Of T1, T2)
+
+        Public Item1 As T1
+        Public Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            Me.Item1 = item1
+            Me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+
+        Public Shared Widening Operator CType(arg As ValueTuple(Of T1, T2)?) As String
+            Return arg.ToString()
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As ValueTuple(Of T1, T2)?) As Long
+            Return CLng(CObj(arg.Value.Item1) + CObj(arg.Value.Item2))
+        End Operator
+
+        Public Shared Widening Operator CType(arg As System.Collections.Generic.KeyValuePair(Of T1, T2)) As ValueTuple(Of T1, T2)?
+            Return New ValueTuple(Of T1, T2)(arg.Key, arg.Value)
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As String) As ValueTuple(Of T1, T2)?
+            Return New ValueTuple(Of T1, T2)(CType(CObj(arg), T1), CType(CObj(arg), T2))
+        End Operator
+
+        Public Shared Operator +(arg As ValueTuple(Of T1, T2)?) As ValueTuple(Of T1, T2)?
+            Return arg
+        End Operator
+
+        Public Shared Operator -(arg As ValueTuple(Of T1, T2)?) As Long
+            Return -CType(arg, Long)
+        End Operator
+
+        Public Shared Operator Not(arg As ValueTuple(Of T1, T2)?) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator IsTrue(arg As ValueTuple(Of T1, T2)?) As Boolean
+            Return CType(arg, Long) <> 0
+        End Operator
+
+        Public Shared Operator IsFalse(arg As ValueTuple(Of T1, T2)?) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator +(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) + arg2
+        End Operator
+
+        Public Shared Operator -(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) - arg2
+        End Operator
+
+        Public Shared Operator *(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) * arg2
+        End Operator
+
+        Public Shared Operator /(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) / arg2
+        End Operator
+
+        Public Shared Operator \(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) \ arg2
+        End Operator
+
+        Public Shared Operator Mod(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) Mod arg2
+        End Operator
+
+        Public Shared Operator &(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) & arg2
+        End Operator
+
+        Public Shared Operator And(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) And arg2
+        End Operator
+
+        Public Shared Operator Or(arg1 As ValueTuple(Of T1, T2)?, arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator Xor(arg1 As ValueTuple(Of T1, T2)?, arg2 As Long) As Long
+            Return CType(arg1, Long) Xor arg2
+        End Operator
+
+        Public Shared Operator Like(arg1 As ValueTuple(Of T1, T2)?, arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator ^(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) ^ arg2
+        End Operator
+
+        Public Shared Operator <<(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) << arg2
+        End Operator
+
+        Public Shared Operator >>(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) >> arg2
+        End Operator
+
+        Public Shared Operator =(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) = arg2
+        End Operator
+
+        Public Shared Operator <>(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <> arg2
+        End Operator
+
+        Public Shared Operator >(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) > arg2
+        End Operator
+
+        Public Shared Operator <(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) < arg2
+        End Operator
+
+        Public Shared Operator >=(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) >= arg2
+        End Operator
+
+        Public Shared Operator <=(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <= arg2
+        End Operator
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return False
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return 0
+        End Function
+    End Structure
+End Namespace
+]]></file>
+</compilation>
+
+            Dim expectedOutput =
+"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+True
+False
+5
+3
+12
+2
+2
+1
+43
+0
+15
+7
+15
+256
+8
+2
+False
+True
+True
+False
+True
+False
+"
+            Dim [lib] = CreateCompilationWithMscorlibAndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
+            [lib].VerifyEmitDiagnostics()
+
+            Dim consumer1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
+            CompileAndVerify(consumer1, expectedOutput:=expectedOutput).VerifyDiagnostics()
+
+            Dim consumer2 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
+            CompileAndVerify(consumer2, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
     End Class
 
 End Namespace

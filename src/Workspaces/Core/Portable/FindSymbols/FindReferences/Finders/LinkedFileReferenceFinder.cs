@@ -11,10 +11,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
-        public async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var linkedSymbols = new HashSet<ISymbol>();
+            var linkedSymbols = new HashSet<SymbolAndProjectId>();
 
+            var symbol = symbolAndProjectId.Symbol;
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
                 var originalDocument = solution.GetDocument(location.SyntaxTree);
@@ -46,10 +48,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                     if (linkedSymbol != null &&
                         linkedSymbol.Kind == symbol.Kind &&
-                        linkedSymbol.Name == symbol.Name &&
-                        !linkedSymbols.Contains(linkedSymbol))
+                        linkedSymbol.Name == symbol.Name)
                     {
-                        linkedSymbols.Add(linkedSymbol);
+                        var linkedSymbolAndProjectId = SymbolAndProjectId.Create(linkedSymbol, linkedDocument.Project.Id);
+                        if (!linkedSymbols.Contains(linkedSymbolAndProjectId))
+                        {
+                            linkedSymbols.Add(linkedSymbolAndProjectId);
+                        }
                     }
                 }
             }
@@ -67,7 +72,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyEnumerable<Project>();
         }
 
-        public Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(ISymbol symbol, Document document, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+            SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken = default(CancellationToken))
         {
             return SpecializedTasks.EmptyEnumerable<ReferenceLocation>();
         }

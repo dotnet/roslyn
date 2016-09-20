@@ -140,20 +140,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitThrowStatement(BoundThrowStatement node)
         {
-            BoundExpression expr = node.ExpressionOpt;
-            if (expr != null)
-            {
-                this.EmitExpression(expr, true);
+            EmitThrow(node.ExpressionOpt);
+        }
 
-                var exprType = expr.Type;
+        private void EmitThrow(BoundExpression thrown)
+        {
+            if (thrown != null)
+            {
+                this.EmitExpression(thrown, true);
+
+                var exprType = thrown.Type;
                 // Expression type will be null for "throw null;".
                 if (exprType?.TypeKind == TypeKind.TypeParameter)
                 {
-                    this.EmitBox(exprType, expr.Syntax);
+                    this.EmitBox(exprType, thrown.Syntax);
                 }
             }
 
-            _builder.EmitThrow(isRethrow: expr == null);
+            _builder.EmitThrow(isRethrow: thrown == null);
         }
 
         private void EmitConditionalGoto(BoundConditionalGoto boundConditionalGoto)
