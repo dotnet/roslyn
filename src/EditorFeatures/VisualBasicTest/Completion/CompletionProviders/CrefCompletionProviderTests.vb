@@ -660,7 +660,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException()
             End Function
 
-            Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMemberAccessExpression
+            Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleMemberAccessExpression
                 Throw New NotImplementedException()
             End Function
 
@@ -895,6 +895,54 @@ End Class]]></a>.Value.NormalizeLineEndings()
             Public Sub AddFirstMissingCloseBrace(root As SyntaxNode, contextNode As SyntaxNode, ByRef newRoot As SyntaxNode, ByRef newContextNode As SyntaxNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
                 Throw New NotImplementedException()
             End Sub
+
+            Public Function GetObjectCreationInitializer(objectCreationExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetObjectCreationInitializer
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsSimpleAssignmentStatement(statement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleAssignmentStatement
+                Throw New NotImplementedException()
+            End Function
+
+            Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Function GetNameOfMemberAccessExpression(memberAccessExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetNameOfMemberAccessExpression
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetOperatorTokenOfMemberAccessExpression(memberAccessExpression As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetOperatorTokenOfMemberAccessExpression
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetIdentifierOfSimpleName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetIdentifierOfSimpleName
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetIdentifierOfVariableDeclarator(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetIdentifierOfVariableDeclarator
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsIdentifierName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIdentifierName
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsLocalDeclarationStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalDeclarationStatement
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsDeclaratorOfLocalDeclarationStatement(declator As SyntaxNode, localDeclarationStatement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeclaratorOfLocalDeclarationStatement
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function AreEquivalent(token1 As SyntaxToken, token2 As SyntaxToken) As Boolean Implements ISyntaxFactsService.AreEquivalent
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function AreEquivalent(node1 As SyntaxNode, node2 As SyntaxNode) As Boolean Implements ISyntaxFactsService.AreEquivalent
+                Throw New NotImplementedException()
+            End Function
         End Class
     End Class
 End Namespace

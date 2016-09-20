@@ -1020,6 +1020,71 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsSimpleAssignmentStatement(SyntaxNode statement)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxNode right)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsSimpleMemberAccessExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsIdentifierName(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsLocalDeclarationStatement(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declator, SyntaxNode localDeclarationStatement)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool AreEquivalent(SyntaxToken token1, SyntaxToken token2)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool AreEquivalent(SyntaxNode node1, SyntaxNode node2)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
