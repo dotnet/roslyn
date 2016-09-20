@@ -2,8 +2,6 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -22,19 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As List(Of Match(Of AssignmentStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax))) As ObjectCreationExpressionSyntax
 
-            Dim statement = objectCreation.FirstAncestorOrSelf(Of StatementSyntax)
-
-            Dim openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken).
-                                          WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
-
-            Dim fieldInitializers = CreateFieldInitializers(matches)
-
-            Dim initializer = SyntaxFactory.ObjectMemberInitializer(fieldInitializers)
-
-            ' WithOpenBraceToken(openBrace)
+            Dim initializer = SyntaxFactory.ObjectMemberInitializer(
+                CreateFieldInitializers(matches))
 
             Return objectCreation.WithoutTrailingTrivia().
-                                  WithInitializer(initializer)
+                                  WithInitializer(initializer).
+                                  WithTrailingTrivia(objectCreation.GetTrailingTrivia())
         End Function
 
         Private Function CreateFieldInitializers(
