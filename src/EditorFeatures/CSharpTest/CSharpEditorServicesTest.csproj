@@ -371,6 +371,7 @@
     <Compile Include="SymbolId\SymbolKeyTestBase.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.cs" />
     <Compile Include="TodoComment\TodoCommentTests.cs" />
+    <Compile Include="UseObjectInitializer\UseObjectInitializerTests.cs" />
     <Compile Include="Utilities\CodeSnippets.cs" />
     <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
     <Compile Include="Utilities\Options.cs" />

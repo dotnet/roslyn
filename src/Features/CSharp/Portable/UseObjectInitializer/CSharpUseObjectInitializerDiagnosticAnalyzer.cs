@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             }
 
             List<Match> matches = null;
-
+            HashSet<string> seenNames = null;
             var statementIndex = containingBlock.Statements.IndexOf(_containingStatement);
             for (var i = statementIndex + 1; i < containingBlock.Statements.Count; i++)
             {
@@ -171,7 +171,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                 }
 
                 // found a match!
+                seenNames = seenNames ?? new HashSet<string>();
                 matches = matches ?? new List<Match>();
+
+                // If we see an assignment to the same property/field, we can't convert it
+                // to an initializer.
+                if (!seenNames.Add(leftMemberAccess.Name.Identifier.ValueText))
+                {
+                    break;
+                }
+
                 matches.Add(new Match(expressionStatement, leftMemberAccess, assignExpression.Right));
             }
 
