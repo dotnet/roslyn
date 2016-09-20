@@ -348,7 +348,7 @@ public static class TestExtension
             CompileAndVerify(source, expectedOutput: "GetAction 1");
         }
 
-        [Fact]
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorProp()
         {
             string source = @"
@@ -368,7 +368,7 @@ public class Program
             CompileAndVerify(source, expectedOutput: "12");
         }
 
-        [Fact]
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorWithBase01()
         {
             string source = @"
@@ -385,7 +385,7 @@ public class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [Fact]
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorWithBase02()
         {
             string source = @"
