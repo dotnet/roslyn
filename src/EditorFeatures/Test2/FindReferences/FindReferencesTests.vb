@@ -124,17 +124,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Sub OnDefinitionFound(definition As DefinitionItem)
+            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem) As Task
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
-            End Sub
 
-            Public Overrides Sub OnReferenceFound(reference As SourceReferenceItem)
+                Return SpecializedTasks.EmptyTask
+            End Function
+
+            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As Task
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock
-            End Sub
+
+                Return SpecializedTasks.EmptyTask
+            End Function
         End Class
 
         Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task

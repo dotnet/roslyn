@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDelegateWithConditionalAccess
 {
-    public class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
@@ -33,6 +33,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         if (v != null)
         {
             v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestOnIf()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestOnInvoke()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        if (v != null)
+        {
+            [||]v();
         }
     }
 }",
@@ -290,6 +344,37 @@ class C
         [||]if (this.E != null)
         {
             this.E(this, EventArgs.Empty);
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public event EventHandler E;
+    void M()
+    {
+        this.E?.Invoke(this, EventArgs.Empty);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestSimpleForm2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public event EventHandler E;
+    void M()
+    {
+        if (this.E != null)
+        {
+            [||]this.E(this, EventArgs.Empty);
         }
     }
 }",

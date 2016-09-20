@@ -7718,11 +7718,18 @@ class Test
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (7,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "w"),
+                //       using (StreamWriter w) // CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "w").WithLocation(7, 27),
                 // (12,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "x"),
+                //       using (StreamWriter x, y) // CS0210, CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "x").WithLocation(12, 27),
                 // (12,30): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "y"));
+                //       using (StreamWriter x, y) // CS0210, CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "y").WithLocation(12, 30),
+                // (9,10): error CS0165: Use of unassigned local variable 'w'
+                //          w.WriteLine("Hello there");
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "w").WithArguments("w").WithLocation(9, 10)
+                );
         }
 
         [Fact]
