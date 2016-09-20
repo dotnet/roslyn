@@ -26,33 +26,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
             Dim openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken).
                                           WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
-            Dim closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken).
-                                           WithLeadingTrivia(GetLeadingWhitespace(statement))
 
             Dim fieldInitializers = CreateFieldInitializers(matches)
 
-            Dim initializer = SyntaxFactory.ObjectMemberInitializer(fieldInitializers).
-                                            WithOpenBraceToken(openBrace)
-            '.
-            'WithCloseBraceToken(closeBrace)
+            Dim initializer = SyntaxFactory.ObjectMemberInitializer(fieldInitializers)
+
+            ' WithOpenBraceToken(openBrace)
 
             Return objectCreation.WithoutTrailingTrivia().
                                   WithInitializer(initializer)
-        End Function
-
-        Private Function GetLeadingWhitespace(statement As StatementSyntax) As SyntaxTriviaList
-            Dim triviaList = statement.GetLeadingTrivia()
-            Dim result = New List(Of SyntaxTrivia)
-            For i = triviaList.Count - 1 To 0 Step -1
-                Dim trivia = triviaList(i)
-                If trivia.Kind = SyntaxKind.WhitespaceTrivia Then
-                    result.Add(trivia)
-                Else
-                    Exit For
-                End If
-            Next
-
-            Return SyntaxFactory.TriviaList(result)
         End Function
 
         Private Function CreateFieldInitializers(
@@ -66,6 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 If i < matches.Count - 1 Then
                     rightValue = rightValue.WithoutTrailingTrivia()
                 End If
+
                 Dim initializer = SyntaxFactory.NamedFieldInitializer(
                     keyKeyword:=Nothing,
                     dotToken:=match.MemberAccessExpression.OperatorToken,
@@ -75,9 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
                 nodesAndTokens.Add(initializer)
                 If i < matches.Count - 1 Then
-                    Dim comma = SyntaxFactory.Token(SyntaxKind.CommaToken)
-                    '.
-                    'WithTrailingTrivia(match.Initializer.GetTrailingTrivia())
+                    Dim comma = SyntaxFactory.Token(SyntaxKind.CommaToken).
+                                              WithTrailingTrivia(match.Initializer.GetTrailingTrivia())
                     nodesAndTokens.Add(comma)
                 End If
             Next
