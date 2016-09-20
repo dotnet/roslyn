@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
@@ -105,6 +104,91 @@ class C
             i = 1
         };
         c.i = 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestComplexInitializer()
+        {
+            await TestAsync(
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        C[] array;
+
+        array[0] = [||]new C();
+        array[0].i = 1;
+        array[0].j = 2;
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        C[] array;
+
+        array[0] = new C()
+        {
+            i = 1,
+            j = 2
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestNotOnCompoundAssignment()
+        {
+            await TestAsync(
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        var c = [||]new C();
+        c.i = 1;
+        c.j += 1;
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        var c = new C()
+        {
+            i = 1
+        };
+        c.j += 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestMissingWithExistingInitializer()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        var c = [||]new C() { i = 1 };
+        c.j = 1;
     }
 }");
         }
