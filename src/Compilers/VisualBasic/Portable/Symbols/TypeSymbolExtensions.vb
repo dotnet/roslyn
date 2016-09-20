@@ -1322,6 +1322,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return (name.Length = length) AndAlso (String.Compare(name, 0, namespaceName, offset, length, comparison) = 0)
         End Function
 
+        <Extension>
+        Friend Function GetTypeRefWithAttributes(type As TypeSymbol, declaringCompilation As VisualBasicCompilation, typeRef As Cci.ITypeReference) As Cci.TypeReferenceWithAttributes
+            If type.ContainsTupleNames() Then
+                Dim attr = declaringCompilation.SynthesizeTupleNamesAttributeOpt(type)
+                If attr IsNot Nothing Then
+                    Return New Cci.TypeReferenceWithAttributes(
+                        typeRef,
+                        ImmutableArray.Create(Of Cci.ICustomAttribute)(attr))
+                End If
+            End If
+
+            Return New Cci.TypeReferenceWithAttributes(typeRef)
+        End Function
     End Module
 
 End Namespace

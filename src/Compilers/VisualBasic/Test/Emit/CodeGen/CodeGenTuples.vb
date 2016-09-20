@@ -6917,18 +6917,6 @@ End Module
 
             Dim vbexeVerifier = CompileAndVerify(vbCompilation,
                                                  expectedOutput:="
-2
-3
-4
-5
-6
-7
-0
-11
-0
-12
-0
-13
 1
 2
 3
@@ -6936,7 +6924,6 @@ End Module
 
             vbexeVerifier.VerifyDiagnostics()
         End Sub
-
 
         <Fact>
         Public Sub TupleNamesFromCS002()
