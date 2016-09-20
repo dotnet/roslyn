@@ -5,14 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -217,15 +214,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             this.AssertIsForeground();
 
-            lock (_gate)
+            if (_workspaceHosts.Any(hostState => hostState.Host == host))
             {
-                if (_workspaceHosts.Any(hostState => hostState.Host == host))
-                {
-                    throw new ArgumentException("The workspace host is already registered.", nameof(host));
-                }
-
-                _workspaceHosts.Add(new WorkspaceHostState(this, host));
+                throw new ArgumentException("The workspace host is already registered.", nameof(host));
             }
+
+            _workspaceHosts.Add(new WorkspaceHostState(this, host));
         }
 
         public void StartSendingEventsToWorkspaceHost(IVisualStudioWorkspaceHost host)
