@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             {
-                return e.Option.Feature == SimplificationOptions.PerLanguageFeatureName ||
-                       e.Option.Feature == SimplificationOptions.NonPerLanguageFeatureName ||
+                return e.Option.Feature == nameof(SimplificationOptions) ||
                        e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
                        e.Option == RuntimeOptions.FullSolutionAnalysis ||
                        e.Option == InternalDiagnosticsOptions.UseDiagnosticEngineV2 ||

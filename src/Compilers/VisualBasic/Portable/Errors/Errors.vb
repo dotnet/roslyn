@@ -1687,7 +1687,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_OptionMustBeAbsolutePath = 37257
 
-        ERR_TupleExplicitNamesOnAllMembersOrNone = 37258
+        ' available 37258
         ERR_TupleTooFewElements = 37259
         ERR_TupleReservedMemberNameAnyPosition = 37260
         ERR_TupleReservedMemberName = 37261

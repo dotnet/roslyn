@@ -453,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If containingType.SpecialType = SpecialType.System_Nullable_T Then
                 Return typeFromSignature Is containingType
             Else
-                Return typeFromSignature.GetNullableUnderlyingTypeOrSelf() Is containingType
+                Return typeFromSignature.GetNullableUnderlyingTypeOrSelf().GetTupleUnderlyingTypeOrSelf() = containingType.GetTupleUnderlyingTypeOrSelf()
             End If
         End Function
 

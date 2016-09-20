@@ -1,23 +1,26 @@
 {
-  "supports": { },
-  "dependencies": {
-    "Microsoft.VisualStudio.Designer.Interfaces": "1.1.4322",
-    "Microsoft.VisualStudio.ImageCatalog": "14.3.25407",
-    "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
-    "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319",
-    "Microsoft.VisualStudio.Shell.Interop.11.0": "11.0.61030",
-    "Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime": "12.1.30328",
-    "Microsoft.VisualStudio.TextManager.Interop.10.0": "10.0.30319",
-    "Microsoft.VisualStudio.TextManager.Interop.12.0": "12.0.30110",
-    "Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime": "12.1.30328",
-    "Microsoft.VisualStudio.SDK.EmbedInteropTypes": "14.1.2",
-    "Microsoft.VisualStudio.ManagedInterfaces": "8.0.50727",
-    "Microsoft.VisualStudio.WCFReference.Interop": "9.0.30729",
-    "Microsoft.VisualStudio.Data.Core": "9.0.21022",
-    "Microsoft.VisualStudio.Data.Services": "9.0.21022",
-    "Roslyn.Microsoft.VisualStudio.ExtensionManager": "0.0.4"
-  },
-  "frameworks": {
-    ".NETFramework,Version=v4.6": { }
-  }
+    "supports": { },
+    "dependencies": {
+        "Microsoft.VisualStudio.Designer.Interfaces": "1.1.4322",
+        "Microsoft.VisualStudio.ImageCatalog": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
+        "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319",
+        "Microsoft.VisualStudio.Shell.Interop.11.0": "11.0.61030",
+        "Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime": "12.1.30328",
+        "Microsoft.VisualStudio.TextManager.Interop.10.0": "10.0.30319",
+        "Microsoft.VisualStudio.TextManager.Interop.12.0": "12.0.30110",
+        "Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime": "12.1.30328",
+        "Microsoft.VisualStudio.SDK.EmbedInteropTypes": "14.1.2",
+        "Microsoft.VisualStudio.ManagedInterfaces": "8.0.50727",
+        "Microsoft.VisualStudio.WCFReference.Interop": "9.0.30729",
+        "Microsoft.VisualStudio.Data.Core": "9.0.21022",
+        "Microsoft.VisualStudio.Data.Services": "9.0.21022",
+        "Roslyn.Microsoft.VisualStudio.ExtensionManager": "0.0.4"
+    },
+    "frameworks": {
+        ".NETFramework,Version=v4.6": { }
+    }
 }

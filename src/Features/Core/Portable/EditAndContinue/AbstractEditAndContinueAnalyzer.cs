@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
+        internal abstract void ReportSemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics);
+
         /// <summary>
         /// Finds a member declaration node containing given active statement node.
         /// </summary>
@@ -2333,6 +2335,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 continue;
                             }
 
+                            ReportSemanticRudeEdits(oldModel, edit.OldNode, newModel, edit.NewNode, diagnostics);
+
                             oldSymbol = GetSymbolForEdit(oldModel, edit.OldNode, edit.Kind, editMap, cancellationToken);
                             Debug.Assert((newSymbol == null) == (oldSymbol == null));
 
@@ -3732,8 +3736,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void ReportStateMachineRudeEdits(
             Compilation oldCompilation,
-            UpdatedMemberInfo updatedInfo, 
-            ISymbol oldMember, 
+            UpdatedMemberInfo updatedInfo,
+            ISymbol oldMember,
             List<RudeEditDiagnostic> diagnostics)
         {
             if (!updatedInfo.OldHasStateMachineSuspensionPoint)

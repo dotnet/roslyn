@@ -331,6 +331,7 @@ namespace My
             {
                 ++i;
                 if (i is int q) continue;
+                void LocalFcn() => throw null;
                 break;
             }
             do

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class SolutionService
     {
+        public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
+
         // TODO: make this simple cache better
         // this simple cache hold onto the last solution created
         private ValueTuple<Checksum, Solution> _lastSolution;
@@ -37,12 +41,37 @@ namespace Microsoft.CodeAnalysis.Remote
             return solution;
         }
 
+        public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
+        {
+            // since option belong to workspace, we can't share solution
+
+            // create new solution
+            var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+            // set merged options
+            solution.Workspace.Options = MergeOptions(solution.Workspace.Options, optionSet);
+
+            // return new solution
+            return solution;
+        }
+
+        private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)
+        {
+            var newOptions = workspaceOptions;
+            foreach (var key in userOptions.GetChangedOptions(workspaceOptions))
+            {
+                newOptions = newOptions.WithChangedOption(key, userOptions.GetOption(key));
+            }
+
+            return newOptions;
+        }
+
         private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObject>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // TODO: Make these to do work concurrently
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices);
+            var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
             var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObjectInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();

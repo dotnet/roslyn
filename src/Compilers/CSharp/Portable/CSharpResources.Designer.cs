@@ -1565,7 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid operand for pattern match..
+        ///   Looks up a localized string similar to Invalid operand for pattern match; value required, but found &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadIsPatternExpression {
             get {
@@ -3334,6 +3334,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DllImportOnInvalidMethod {
             get {
                 return ResourceManager.GetString("ERR_DllImportOnInvalidMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error writing to XML documentation file: {0}.
+        /// </summary>
+        internal static string ERR_DocFileGen {
+            get {
+                return ResourceManager.GetString("ERR_DocFileGen", resourceCulture);
             }
         }
         
@@ -7406,15 +7415,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch expression must be a value; found {0}..
-        /// </summary>
-        internal static string ERR_PatternValueExpected {
-            get {
-                return ResourceManager.GetString("ERR_PatternValueExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An expression of type {0} cannot be handled by a pattern of type {1}..
         /// </summary>
         internal static string ERR_PatternWrongType {
@@ -8639,6 +8639,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The switch expression must be a value; found {0}..
+        /// </summary>
+        internal static string ERR_SwitchExpressionValueExpected {
+            get {
+                return ResourceManager.GetString("ERR_SwitchExpressionValueExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Control cannot fall out of switch from final case label (&apos;{0}&apos;).
         /// </summary>
         internal static string ERR_SwitchFallOut {
@@ -8756,6 +8765,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A throw expression is not allowed in this context..
+        /// </summary>
+        internal static string ERR_ThrowMisplaced {
+            get {
+                return ResourceManager.GetString("ERR_ThrowMisplaced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Catch clauses cannot follow the general catch clause of a try statement.
         /// </summary>
         internal static string ERR_TooManyCatches {
@@ -8815,15 +8833,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TupleElementNamesAttributeMissing {
             get {
                 return ResourceManager.GetString("ERR_TupleElementNamesAttributeMissing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tuple member names must all be provided, if any one is provided..
-        /// </summary>
-        internal static string ERR_TupleExplicitNamesOnAllMembersOrNone {
-            get {
-                return ResourceManager.GetString("ERR_TupleExplicitNamesOnAllMembersOrNone", resourceCulture);
             }
         }
         
@@ -10022,6 +10031,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureSwitchOnBool {
             get {
                 return ResourceManager.GetString("IDS_FeatureSwitchOnBool", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to throw expression.
+        /// </summary>
+        internal static string IDS_FeatureThrowExpression {
+            get {
+                return ResourceManager.GetString("IDS_FeatureThrowExpression", resourceCulture);
             }
         }
         

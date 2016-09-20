@@ -285,10 +285,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: Either S0 or T0 is the class or struct type in which the operator
             // SPEC: declaration takes place.
 
-            if (source0 != this.ContainingType && target0 != this.ContainingType &&
+            if (source0.TupleUnderlyingTypeOrSelf() != this.ContainingType && target0.TupleUnderlyingTypeOrSelf() != this.ContainingType &&
                 // allow conversion between T and Nullable<T> in declaration of Nullable<T>
-                source.TupleUnderlyingTypeOrSelf() != this.ContainingType &&
-                target.TupleUnderlyingTypeOrSelf() != this.ContainingType)
+                source != this.ContainingType && target != this.ContainingType)
             {
                 // CS0556: User-defined conversion must convert to or from the enclosing type
                 diagnostics.Add(ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);

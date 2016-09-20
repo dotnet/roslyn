@@ -911,5 +911,51 @@ goto Label;");
                 // error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic"));
         }
+
+        [Fact]
+        [WorkItem(13590, "https://github.com/dotnet/roslyn/issues/13590")]
+        public void FixedBuffer_01()
+        {
+            string source =
+@"fixed int x[3];
+";
+            var tree = Parse(source, options: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+
+            compilation.VerifyDiagnostics(
+                // (1,11): error CS1642: Fixed size buffer fields may only be members of structs
+                // fixed int x[3];
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "x").WithLocation(1, 11),
+                // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed int x[3];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[3]").WithLocation(1, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13590, "https://github.com/dotnet/roslyn/issues/13590")]
+        public void FixedBuffer_02()
+        {
+            string source =
+@"fixed var x[3] = 1;
+";
+            var tree = Parse(source, options: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+
+            compilation.VerifyDiagnostics(
+                // (1,16): error CS1003: Syntax error, ',' expected
+                // fixed var x[3] = 1;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 16),
+                // (1,11): error CS1642: Fixed size buffer fields may only be members of structs
+                // fixed var x[3] = 1;
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "x").WithLocation(1, 11),
+                // (1,7): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                // fixed var x[3] = 1;
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "var").WithLocation(1, 7),
+                // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed var x[3] = 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[3]").WithLocation(1, 11)
+                );
+        }
     }
 }

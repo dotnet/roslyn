@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public bool LogAnalyzerExecutionTime;
         public Guid ProjectIdGuid;
         public string ProjectIdDebugName;
+        public byte[] OptionSetChecksumBytes;
         public byte[][] HostAnalyzerChecksumsByteArray;
         public string[] AnalyzerIds;
 
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             ProjectId projectId,
+            byte[] optionSetChecksum,
             ImmutableArray<byte[]> hostAnalyzerChecksums,
             string[] analyzerIds)
         {
@@ -37,11 +39,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             ProjectIdGuid = projectId.Id;
             ProjectIdDebugName = projectId.DebugName;
 
+            OptionSetChecksumBytes = optionSetChecksum;
             HostAnalyzerChecksumsByteArray = hostAnalyzerChecksums.ToArray();
             AnalyzerIds = analyzerIds;
         }
 
         public ProjectId GetProjectId() => ProjectId.CreateFromSerialized(ProjectIdGuid, ProjectIdDebugName);
         public IEnumerable<Checksum> GetHostAnalyzerChecksums() => HostAnalyzerChecksumsByteArray.Select(b => new Checksum(b));
+        public Checksum GetOptionSetChecksum() => new Checksum(OptionSetChecksumBytes);
     }
 }

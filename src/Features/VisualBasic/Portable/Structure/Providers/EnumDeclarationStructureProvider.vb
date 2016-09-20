@@ -16,8 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(enumDeclaration.Parent, EnumBlockSyntax)
             If Not block?.EndEnumStatement.IsMissing Then
-                spans.Add(
-                    CreateRegionFromBlock(block, bannerNode:=enumDeclaration, autoCollapse:=True))
+                spans.Add(CreateRegionFromBlock(
+                    block, bannerNode:=enumDeclaration, autoCollapse:=True,
+                    type:=BlockTypes.Enum, isCollapsible:=True))
 
                 CollectCommentsRegions(block.EndEnumStatement, spans)
             End If

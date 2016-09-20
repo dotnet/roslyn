@@ -77,6 +77,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Return the variable designation of an out declaration argument expression.
+        /// </summary>
+        internal static SingleVariableDesignationSyntax VariableDesignation(this DeclarationExpressionSyntax self)
+        {
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
+            return (SingleVariableDesignationSyntax)component.Designation;
+        }
+
+        /// <summary>
         /// Return the identifier of an out declaration argument expression.
         /// </summary>
         internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)

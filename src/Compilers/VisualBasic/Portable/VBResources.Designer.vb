@@ -10380,15 +10380,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Tuple member names must all be provided, if any one is provided..
-        '''</summary>
-        Friend ReadOnly Property ERR_TupleExplicitNamesOnAllMembersOrNone() As String
-            Get
-                Return ResourceManager.GetString("ERR_TupleExplicitNamesOnAllMembersOrNone", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Tuple member name &apos;{0}&apos; is only allowed at position {1}..
         '''</summary>
         Friend ReadOnly Property ERR_TupleReservedMemberName() As String

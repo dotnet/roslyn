@@ -90,10 +90,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             using (writer)
             {
-                var compiler = new DocumentationCommentCompiler(assemblyName ?? compilation.SourceAssembly.Name, compilation, writer, filterTree, filterSpanWithinTree,
-                    processIncludes: true, isForSingleSymbol: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
-                compiler.Visit(compilation.SourceAssembly.GlobalNamespace);
-                Debug.Assert(compiler._indentDepth == 0);
+                try
+                {
+                    var compiler = new DocumentationCommentCompiler(assemblyName ?? compilation.SourceAssembly.Name, compilation, writer, filterTree, filterSpanWithinTree,
+                        processIncludes: true, isForSingleSymbol: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
+                    compiler.Visit(compilation.SourceAssembly.GlobalNamespace);
+                    Debug.Assert(compiler._indentDepth == 0);
+                    writer?.Flush();
+                }
+                catch (Exception e)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DocFileGen, Location.None, e.Message);
+                }
             }
 
             if (filterTree != null)

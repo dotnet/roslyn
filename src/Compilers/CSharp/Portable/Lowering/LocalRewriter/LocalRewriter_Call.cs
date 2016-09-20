@@ -328,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // expression trees rewrite this later.
                                 // it is a kind of user defined conversions on IntPtr and in some cases can fail
                                 case ConversionKind.IntPtr:
+                                case ConversionKind.ImplicitThrow:
                                     return false;
 
                                 default:
