@@ -11207,7 +11207,7 @@ tryAgain:
                     refOrOutOrParams = this.EatToken();
                 }
 
-                paramType = this.ParseType();
+                paramType = this.ParseType(ParseTypeMode.Parameter);
             }
 
             paramName = this.ParseIdentifierToken();
