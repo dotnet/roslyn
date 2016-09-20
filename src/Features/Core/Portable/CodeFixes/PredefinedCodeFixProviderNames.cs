@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddNew = "Add new keyword to member";
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
+        public const string UseObjectInitializer = nameof(UseObjectInitializer);
         public const string PreferFrameworkType = nameof(PreferFrameworkType);
     }
 }

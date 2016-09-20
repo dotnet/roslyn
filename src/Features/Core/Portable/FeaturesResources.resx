@@ -1067,4 +1067,7 @@ This version used in: {2}</value>
   <data name="Install_package_0" xml:space="preserve">
     <value>Install package '{0}'</value>
   </data>
+  <data name="Object_initialization_can_be_simplified" xml:space="preserve">
+    <value>Object initialization can be simplified</value>
+  </data>
 </root>

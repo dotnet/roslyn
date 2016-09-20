@@ -652,6 +652,7 @@
     <Compile Include="Common\SymbolDisplayPartKindTags.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyCodeFixProvider.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
+    <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
   </ItemGroup>

@@ -55,5 +55,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferThrowExpression),
             defaultValue: trueWithSuggestionEnforcement,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferThrowExpression"));
+
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferObjectInitializer = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferObjectInitializer),
+            defaultValue: trueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer"));
     }
 }
