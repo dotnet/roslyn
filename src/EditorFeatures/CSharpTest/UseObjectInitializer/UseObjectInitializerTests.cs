@@ -237,5 +237,38 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestTrivia1()
+        {
+            await TestAsync(
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        var c = [||]new C();
+        c.i = 1; // Foo
+        c.j = 2; // Bar
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        var c = new C()
+        {
+            i = 1, // Foo
+            j = 2 // Bar
+        };
+    }
+}",
+compareTokens: false);
+        }
     }
 }

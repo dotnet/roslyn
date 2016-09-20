@@ -37,19 +37,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             List<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
         {
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
-            foreach (var match in matches)
+            for (int i = 0; i < matches.Count; i++)
             {
+                var match = matches[i];
                 var expressionStatement = match.Statement;
                 var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
 
                 var newAssignment = assignment.WithLeft(
                     match.MemberAccessExpression.Name.WithLeadingTrivia(match.MemberAccessExpression.GetLeadingTrivia()));
 
-                nodesAndTokens.Add(newAssignment);
-                var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken)
-                    .WithTriviaFrom(expressionStatement.SemicolonToken);
+                if (i < matches.Count - 1)
+                {
+                    nodesAndTokens.Add(newAssignment);
+                    var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken)
+                        .WithTriviaFrom(expressionStatement.SemicolonToken);
 
-                nodesAndTokens.Add(commaToken);
+                    nodesAndTokens.Add(commaToken);
+                }
+                else
+                {
+                    newAssignment = newAssignment.WithTrailingTrivia(
+                        expressionStatement.GetTrailingTrivia());
+                    nodesAndTokens.Add(newAssignment);
+                }
             }
 
             return SyntaxFactory.SeparatedList<ExpressionSyntax>(nodesAndTokens);
