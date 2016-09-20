@@ -415,8 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var declarations = statement.DescendantNodes()
                     .Where(n => n.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.DeclarationPattern));
 
-                var semanticModel = this.SemanticDocument.SemanticModel;
-
                 foreach (var node in declarations)
                 {
                     switch (node.Kind())
@@ -438,7 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                             var name = designation.Identifier.ValueText;
                             if (variablesToRemove.HasSyntaxAnnotation(designation))
                             {
-                                replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier));
+                                replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)
+                                    .WithLeadingTrivia(variableComponent.Type.GetTrailingTrivia()));
                             }
 
                             break;
