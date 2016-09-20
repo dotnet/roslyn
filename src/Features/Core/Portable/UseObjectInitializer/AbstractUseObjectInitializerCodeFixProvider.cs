@@ -59,10 +59,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            editor.ReplaceNode(
-                objectCreation, 
-                GetNewObjectCreation(options, objectCreation, matches));
+            var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+            var newStatement = statement.ReplaceNode(
+                objectCreation,
+                GetNewObjectCreation(objectCreation, matches)).WithAdditionalAnnotations(Formatter.Annotation);
+
+            editor.ReplaceNode(statement, newStatement);
             foreach (var match in matches)
             {
                 editor.RemoveNode(match.Statement);
@@ -73,7 +75,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
-            DocumentOptionSet options,
             TObjectCreationExpressionSyntax objectCreation,
             List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches);
 

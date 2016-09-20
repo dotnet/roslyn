@@ -19,7 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             VariableDeclaratorSyntax)
 
         Protected Overrides Function GetNewObjectCreation(
-                options As DocumentOptionSet,
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As List(Of Match(Of AssignmentStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax))) As ObjectCreationExpressionSyntax
 
@@ -30,15 +29,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             Dim closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken).
                                            WithLeadingTrivia(GetLeadingWhitespace(statement))
 
-            Dim indentation = options.GetOption(FormattingOptions.IndentationSize).CreateIndentationString(
-                options.GetOption(FormattingOptions.UseTabs),
-                options.GetOption(FormattingOptions.TabSize))
-            Dim indentationTrivia = SyntaxFactory.WhitespaceTrivia(indentation)
-            Dim fieldInitializers = CreateFieldInitializers(matches, indentationTrivia)
+            Dim fieldInitializers = CreateFieldInitializers(matches)
 
             Dim initializer = SyntaxFactory.ObjectMemberInitializer(fieldInitializers).
-                                            WithOpenBraceToken(openBrace).
-                                            WithCloseBraceToken(closeBrace)
+                                            WithOpenBraceToken(openBrace)
+            '.
+            'WithCloseBraceToken(closeBrace)
 
             Return objectCreation.WithoutTrailingTrivia().
                                   WithInitializer(initializer)
@@ -60,8 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         End Function
 
         Private Function CreateFieldInitializers(
-                matches As List(Of Match(Of AssignmentStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax)),
-                indentation As SyntaxTrivia) As SeparatedSyntaxList(Of FieldInitializerSyntax)
+                matches As List(Of Match(Of AssignmentStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
             Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
 
             For i = 0 To matches.Count - 1
@@ -76,63 +71,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                     dotToken:=match.MemberAccessExpression.OperatorToken,
                     name:=DirectCast(match.MemberAccessExpression.Name, IdentifierNameSyntax),
                     equalsToken:=match.Statement.OperatorToken,
-                    expression:=rightValue).WithLeadingTrivia(match.Statement.GetLeadingTrivia())
-
-                initializer = Indent(initializer, indentation)
+                    expression:=rightValue).WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
 
                 nodesAndTokens.Add(initializer)
                 If i < matches.Count - 1 Then
-                    Dim comma = SyntaxFactory.Token(SyntaxKind.CommaToken).
-                                              WithTrailingTrivia(match.Initializer.GetTrailingTrivia())
+                    Dim comma = SyntaxFactory.Token(SyntaxKind.CommaToken)
+                    '.
+                    'WithTrailingTrivia(match.Initializer.GetTrailingTrivia())
                     nodesAndTokens.Add(comma)
                 End If
             Next
 
             Return SyntaxFactory.SeparatedList(Of FieldInitializerSyntax)(nodesAndTokens)
         End Function
-
-        Private Function Indent(initializer As NamedFieldInitializerSyntax, indentation As SyntaxTrivia) As NamedFieldInitializerSyntax
-            Dim rewriter = New IdentationRewriter(indentation)
-            Return DirectCast(rewriter.Visit(initializer), NamedFieldInitializerSyntax)
-        End Function
-
-        Private Class IdentationRewriter
-            Inherits VisualBasicSyntaxRewriter
-
-            Private ReadOnly _indentation As SyntaxTrivia
-            Private _seenNewLine As Boolean = True
-
-            Public Sub New(indentation As SyntaxTrivia)
-                _indentation = indentation
-            End Sub
-
-            Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
-                If token.Kind = SyntaxKind.None Then
-                    Return token
-                End If
-
-                Dim result = token
-                If _seenNewLine Then
-                    result = IndentToken(token)
-                End If
-                _seenNewLine = token.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia)
-                Return result
-            End Function
-
-            Private Function IndentToken(token As SyntaxToken) As SyntaxToken
-                Dim allTrivia = New List(Of SyntaxTrivia)
-
-                For Each trivia In token.LeadingTrivia
-                    If _seenNewLine Then
-                        allTrivia.Add(_indentation)
-                    End If
-
-                    allTrivia.Add(trivia)
-                    _seenNewLine = trivia.Kind = SyntaxKind.WhitespaceTrivia
-                Next
-
-                Return token.WithLeadingTrivia(SyntaxFactory.TriviaList(allTrivia))
-            End Function
-        End Class
     End Class
 End Namespace

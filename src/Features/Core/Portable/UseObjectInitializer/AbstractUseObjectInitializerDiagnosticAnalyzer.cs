@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(s_descriptor, s_unnecessaryWithoutSuggestionDescriptor, s_unnecessaryWithSuggestionDescriptor);
 
+        protected abstract bool FadeOutOperatorToken { get; }
+
         public bool OpenFileOnly(Workspace workspace) => false;
 
         private static DiagnosticDescriptor CreateDescriptor(string id, DiagnosticSeverity severity, params string[] customTags)
@@ -94,9 +96,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             foreach (var match in matches)
             {
+                var end = this.FadeOutOperatorToken
+                    ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
+                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression).Span.End;
+
                 var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
-                    match.MemberAccessExpression.SpanStart, 
-                    syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End));
+                    match.MemberAccessExpression.SpanStart, end));
 
                 context.ReportDiagnostic(Diagnostic.Create(
                     s_unnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));

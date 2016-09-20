@@ -17,6 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             AssignmentStatementSyntax,
             VariableDeclaratorSyntax)
 
+        Protected Overrides ReadOnly Property FadeOutOperatorToken As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Protected Overrides Function GetObjectCreationSyntaxKind() As SyntaxKind
             Return SyntaxKind.ObjectCreationExpression
         End Function

@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             VariableDeclaratorSyntax>
     {
         protected override ObjectCreationExpressionSyntax GetNewObjectCreation(
-            DocumentOptionSet options,
             ObjectCreationExpressionSyntax objectCreation,
             List<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
         {
@@ -31,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                 SyntaxKind.ObjectInitializerExpression,
                 CreateExpressions(matches)).WithOpenBraceToken(openBrace);
 
-            return objectCreation.WithInitializer(initializer)
-                                 .WithAdditionalAnnotations(Formatter.Annotation);
+            return objectCreation.WithInitializer(initializer);
         }
 
         private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
