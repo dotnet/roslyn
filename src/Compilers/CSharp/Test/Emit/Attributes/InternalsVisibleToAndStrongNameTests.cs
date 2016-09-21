@@ -1019,9 +1019,8 @@ public class C
         public void MaxSizeKey()
         {
             var pubKey = TestResources.General.snMaxSizePublicKeyString;
-            const string pubKeyToken = "1540923db30520b2";
-            var pubKeyTokenBytes = AssemblyIdentity.CalculatePublicKeyToken(
-                ImmutableArray.Create(TestResources.General.snMaxSizePublicKey));
+            string pubKeyToken = "1540923db30520b2";
+            var pubKeyTokenBytes = new byte[] { 0x15, 0x40, 0x92, 0x3d, 0xb3, 0x05, 0x20, 0xb2 };
 
             var comp = CreateCompilationWithMscorlib($@"
 using System;
@@ -1047,14 +1046,15 @@ internal class C
             Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey);
             Assert.Equal<byte>(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken);
 
-            var comp2 = CreateCompilationWithMscorlib(@"
+            var src = @"
 class D
 {
     public static void Main()
     {
         C.M();
     }
-}", 
+}";
+            var comp2 = CreateCompilationWithMscorlib(src, 
 references: new[] { comp.ToMetadataReference() },
 assemblyName: "MaxSizeComp2",
 options: TestOptions.ReleaseExe
@@ -1065,14 +1065,7 @@ options: TestOptions.ReleaseExe
             Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey);
             Assert.Equal<byte>(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken);
 
-            var comp3 = CreateCompilationWithMscorlib(@"
-class D
-{
-    public static void Main()
-    {
-        C.M();
-    }
-}", 
+            var comp3 = CreateCompilationWithMscorlib(src, 
 references: new[] { comp.EmitToImageReference() },
 assemblyName: "MaxSizeComp2",
 options: TestOptions.ReleaseExe
