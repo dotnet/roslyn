@@ -1261,7 +1261,7 @@ unsafe struct Struct1
 
 
         [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
-        public void FooBar()
+        public void FixedFieldAccessInsideNameOf()
         {
             var source =
 @"
