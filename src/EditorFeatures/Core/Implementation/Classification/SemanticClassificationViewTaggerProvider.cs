@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -94,13 +95,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
             var document = spanToTag.Document;
-            var classificationService = document?.Project.LanguageServices.GetService<IEditorClassificationService>();
-
-            if (classificationService == null)
+            if (document == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
+            var classificationService = ClassificationService.GetService(document);
             return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }

@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
     Friend Class NameSyntaxClassifier
-        Inherits AbstractSyntaxClassifier
+        Inherits AbstractSemanticClassifier
 
         Public Overrides ReadOnly Property SyntaxNodeTypes As IEnumerable(Of Type)
             Get

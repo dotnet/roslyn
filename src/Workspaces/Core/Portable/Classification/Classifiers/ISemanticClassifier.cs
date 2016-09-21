@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {
-    internal interface ISyntaxClassifier
+    internal interface ISemanticClassifier
     {
         /// <summary>
         /// The syntax node types this classifier is able to classify

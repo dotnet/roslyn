@@ -33,21 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                var service = document.GetLanguageService<IClassificationService>();
-                var classifiers = service.GetDefaultSyntaxClassifiers();
-                var extensionManager = workspace.Services.GetService<IExtensionManager>();
-
-                var results = new List<ClassifiedSpan>();
-                await service.AddSemanticClassificationsAsync(document, textSpan,
-                    extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
-                    extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    results, CancellationToken.None);
-
-                return results;
+                var document = workspace.CurrentSolution.Projects.First().Documents.First();
+                var service = ClassificationService.GetService(document);
+                return await service.GetSemanticClassificationsAsync(document, textSpan);
             }
         }
 

@@ -9,27 +9,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal partial class AbstractClassificationService
+    internal partial class CommonClassificationProvider
     {
-        private struct Worker
+        private struct SemanticClassificationWorker
         {
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
-            private readonly List<ClassifiedSpan> _list;
+            private readonly ClassificationContext _context;
             private readonly CancellationToken _cancellationToken;
-            private readonly Func<SyntaxNode, List<ISyntaxClassifier>> _getNodeClassifiers;
-            private readonly Func<SyntaxToken, List<ISyntaxClassifier>> _getTokenClassifiers;
-            private readonly HashSet<ClassifiedSpan> _set;
+            private readonly Func<SyntaxNode, List<ISemanticClassifier>> _getNodeClassifiers;
+            private readonly Func<SyntaxToken, List<ISemanticClassifier>> _getTokenClassifiers;
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
 
-            private Worker(
+            private SemanticClassificationWorker(
                 Workspace workspace,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                List<ClassifiedSpan> list,
-                Func<SyntaxNode, List<ISyntaxClassifier>> getNodeClassifiers,
-                Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers,
+                ClassificationContext context,
+                Func<SyntaxNode, List<ISemanticClassifier>> getNodeClassifiers,
+                Func<SyntaxToken, List<ISemanticClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
             {
                 _getNodeClassifiers = getNodeClassifiers;
@@ -37,11 +36,10 @@ namespace Microsoft.CodeAnalysis.Classification
                 _semanticModel = semanticModel;
                 _syntaxTree = semanticModel.SyntaxTree;
                 _textSpan = textSpan;
-                _list = list;
+                _context = context;
                 _cancellationToken = cancellationToken;
 
                 // get one from pool
-                _set = SharedPools.Default<HashSet<ClassifiedSpan>>().AllocateAndClear();
                 _pendingNodes = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
             }
 
@@ -49,12 +47,12 @@ namespace Microsoft.CodeAnalysis.Classification
                 Workspace workspace,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                List<ClassifiedSpan> list,
-                Func<SyntaxNode, List<ISyntaxClassifier>> getNodeClassifiers,
-                Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers,
+                ClassificationContext context,
+                Func<SyntaxNode, List<ISemanticClassifier>> getNodeClassifiers,
+                Func<SyntaxToken, List<ISemanticClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
             {
-                var worker = new Worker(workspace, semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, cancellationToken);
+                var worker = new SemanticClassificationWorker(workspace, semanticModel, textSpan, context, getNodeClassifiers, getTokenClassifiers, cancellationToken);
 
                 try
                 {
@@ -64,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 finally
                 {
                     // release collections to the pool
-                    SharedPools.Default<HashSet<ClassifiedSpan>>().ClearAndFree(worker._set);
                     SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(worker._pendingNodes);
                 }
             }
@@ -73,12 +70,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 if (textSpan.Length > 0 && textSpan.OverlapsWith(_textSpan))
                 {
-                    var tuple = new ClassifiedSpan(type, textSpan);
-                    if (!_set.Contains(tuple))
-                    {
-                        _list.Add(tuple);
-                        _set.Add(tuple);
-                    }
+                    _context.AddClassification(new ClassifiedSpan(type, textSpan));
                 }
             }
 

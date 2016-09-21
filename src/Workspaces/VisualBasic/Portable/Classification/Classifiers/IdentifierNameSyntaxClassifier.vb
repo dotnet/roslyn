@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
     Friend Class IdentifierNameSyntaxClassifier
-        Inherits AbstractSyntaxClassifier
+        Inherits AbstractSemanticClassifier
 
         Private Const s_awaitText = "Await"
 

@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal class NameSyntaxClassifier : AbstractSyntaxClassifier
+    internal class NameSyntaxClassifier : AbstractSemanticClassifier
     {
         public override IEnumerable<ClassifiedSpan> ClassifyNode(
             SyntaxNode syntax,

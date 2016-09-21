@@ -64,23 +64,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-        <ExportLanguageService(GetType(IEditorClassificationService), "NoCompilation"), [Shared]>
+        <ExportLanguageService(GetType(ClassificationService), "NoCompilation"), [Shared]>
         Private Class NoCompilationEditorClassificationService
-            Implements IEditorClassificationService
+            Inherits ClassificationService
 
-            Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IEditorClassificationService.AddLexicalClassifications
-            End Sub
-
-            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSemanticClassificationsAsync
-                Return SpecializedTasks.EmptyTask
-            End Function
-
-            Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSyntacticClassificationsAsync
-                Return SpecializedTasks.EmptyTask
-            End Function
-
-            Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IEditorClassificationService.AdjustStaleClassification
-            End Function
         End Class
     End Class
 End Namespace

@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService,
+            ClassificationService classificationService,
             ClassificationTypeMap typeMap)
         {
             var document = spanToTag.Document;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private static async Task<bool> TryClassifyContainingMemberSpan(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService,
+            ClassificationService classificationService,
             ClassificationTypeMap typeMap)
         {
             var range = context.TextChangeRange;
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
 
         private static async Task ClassifySpansAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
+            ClassificationService classificationService, ClassificationTypeMap typeMap)
         {
             try
             {
@@ -120,8 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                    await classificationService.AddSemanticClassificationsAsync(
-                        document, snapshotSpan.Span.ToTextSpan(), classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    classifiedSpans.AddRange(await classificationService.GetSemanticClassificationsAsync(
+                        document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false));
 
                     ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);

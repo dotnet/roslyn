@@ -21,15 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: options))
             {
-                var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
-                var tree = await document.GetSyntaxTreeAsync();
-
-                var service = document.GetLanguageService<IClassificationService>();
-                var result = new List<ClassifiedSpan>();
-                service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None);
-
-                return result;
+                var service = ClassificationService.GetService(document);
+                return await service.GetSyntacticClassificationsAsync(document, textSpan);
             }
         }
 

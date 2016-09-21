@@ -112,10 +112,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Select
         End Function
 
-        Friend Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Friend Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, context As ClassificationContext, cancellationToken As CancellationToken)
             Dim text2 = text.ToString(textSpan)
             Dim tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition:=textSpan.Start)
-            Worker.CollectClassifiedSpans(tokens, textSpan, result, cancellationToken)
+            SyntacticClassifier.CollectClassifiedSpans(tokens, textSpan, context, cancellationToken)
         End Sub
 
         Friend Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan

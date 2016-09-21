@@ -6,6 +6,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
+    /// <summary>
+    /// The classification of a span of text.
+    /// </summary>
     public struct ClassifiedSpan : IEquatable<ClassifiedSpan>
     {
         public string ClassificationType { get; }

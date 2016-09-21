@@ -22,23 +22,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     /// artifacts T T is normally either ClassificationSpan or a Tuple (for testing purposes) 
     /// and constructed via provided factory.
     /// </summary>
-    internal partial class Worker
+    internal partial class SyntacticClassifier
     {
         private readonly TextSpan _textSpan;
-        private readonly List<ClassifiedSpan> _result;
+        private readonly ClassificationContext _context;
         private readonly CancellationToken _cancellationToken;
 
-        private Worker(TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        private SyntacticClassifier(TextSpan textSpan, ClassificationContext context, CancellationToken cancellationToken)
         {
-            _result = result;
+            _context = context;
             _textSpan = textSpan;
             _cancellationToken = cancellationToken;
         }
 
         internal static void CollectClassifiedSpans(
-            IEnumerable<SyntaxToken> tokens, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+            IEnumerable<SyntaxToken> tokens, TextSpan textSpan, ClassificationContext context, CancellationToken cancellationToken)
         {
-            var worker = new Worker(textSpan, result, cancellationToken);
+            var worker = new SyntacticClassifier(textSpan, context, cancellationToken);
             foreach (var tk in tokens)
             {
                 worker.ClassifyToken(tk);
@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         internal static void CollectClassifiedSpans(SyntaxNode
-            node, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+            node, TextSpan textSpan, ClassificationContext context, CancellationToken cancellationToken)
         {
-            var worker = new Worker(textSpan, result, cancellationToken);
+            var worker = new SyntacticClassifier(textSpan, context, cancellationToken);
             worker.ClassifyNode(node);
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
             if (ShouldAddSpan(span))
             {
-                _result.Add(new ClassifiedSpan(type, span));
+	        _context.AddClassification(new ClassifiedSpan(type, span));
             }
         }
 

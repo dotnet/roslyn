@@ -1,146 +1,78 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
+    /// <summary>
+    /// The <see cref="Classifier"/> provides language classifications for ranges of text.
+    /// </summary>
     public static class Classifier
     {
+        /// <summary>
+        /// Gets language classifications for a range of the document corresponding to the specified text span.
+        /// </summary>
         public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var semanticModel = await document.GetSemanticModelForSpanAsync(textSpan, cancellationToken).ConfigureAwait(false);
-            return GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
+            var service = ClassificationService.GetService(document);
+            if (service != null)
+            {
+                var syntacticClassifications = await service.GetSyntacticClassificationsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                var semanticClassifications = await service.GetSemanticClassificationsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                return Merge(textSpan, syntacticClassifications, semanticClassifications);
+            }
+            else
+            {
+                return SpecializedCollections.EmptyEnumerable<ClassifiedSpan>();
+            }
         }
 
+        /// <summary>
+        /// Gets language classifications for a range of the document corresponding to the specified text span,
+        /// given a specific semantic model.
+        /// </summary>
         public static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
             SemanticModel semanticModel,
             TextSpan textSpan,
             Workspace workspace,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IClassificationService>();
-
-            var syntaxClassifiers = service.GetDefaultSyntaxClassifiers();
-
-            var extensionManager = workspace.Services.GetService<IExtensionManager>();
-            var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(syntaxClassifiers, c => c.SyntaxNodeTypes);
-            var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(syntaxClassifiers, c => c.SyntaxTokenKinds);
-
-            var syntacticClassifications = new List<ClassifiedSpan>();
-            var semanticClassifications = new List<ClassifiedSpan>();
-
-            service.AddSyntacticClassifications(semanticModel.SyntaxTree, textSpan, syntacticClassifications, cancellationToken);
-            service.AddSemanticClassifications(semanticModel, textSpan, workspace, getNodeClassifiers, getTokenClassifiers, semanticClassifications, cancellationToken);
-
-            var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
-            var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
-
-            allClassifications.AddRange(syntacticClassifications.Where(
-                s => s.TextSpan.OverlapsWith(textSpan) && !semanticSet.Contains(s.TextSpan)));
-            allClassifications.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
-
-            return allClassifications;
-        }
-
-        internal static async Task<List<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
-            Document document,
-            TextSpan textSpan,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
- 
-            return await GetClassifiedSymbolDisplayPartsAsync(
-                semanticModel, textSpan,
-                document.Project.Solution.Workspace,
-                cancellationToken).ConfigureAwait(false);
-        }
- 
-        internal static async Task<List<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
-            SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var classifiedSpans = GetClassifiedSpans(semanticModel, textSpan, workspace, cancellationToken);
-            var sourceText = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            return ConvertClassificationsToParts(sourceText, textSpan.Start, classifiedSpans);
-        }
- 
-        internal static List<SymbolDisplayPart> ConvertClassificationsToParts(
-            SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans)
-        {
-            var parts = new List<SymbolDisplayPart>();
- 
-            foreach (var span in classifiedSpans)
+            var service = ClassificationService.GetService(workspace, semanticModel.Language) as CommonClassificationService;
+            if (service != null)
             {
-                // If there is space between this span and the last one, then add a space.
-                if (startPosition != span.TextSpan.Start)
-                {
-                    parts.AddRange(Space());
-                }
- 
-                var kind = GetClassificationKind(span.ClassificationType);
-                if (kind != null)
-                {
-                    parts.Add(new SymbolDisplayPart(kind.Value, null, sourceText.ToString(span.TextSpan)));
-
-                    startPosition = span.TextSpan.End;
-                }
+                var syntacticClassifications = service.GetSyntacticClassifications(semanticModel.SyntaxTree, textSpan, workspace, cancellationToken);
+                var semanticClassifications = service.GetSemanticClassifications(semanticModel, textSpan, workspace, cancellationToken);
+                return Merge(textSpan, syntacticClassifications, semanticClassifications);
             }
- 
-            return parts;
+            else
+            {
+                return SpecializedCollections.EmptyEnumerable<ClassifiedSpan>();
+            }
         }
 
-        private static IEnumerable<SymbolDisplayPart> Space(int count = 1)
+        private static ImmutableArray<ClassifiedSpan> Merge(TextSpan textSpan, ImmutableArray<ClassifiedSpan> syntacticClassifications, ImmutableArray<ClassifiedSpan> semanticClassifications)
         {
-            yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
-        }
- 
-        private static SymbolDisplayPartKind? GetClassificationKind(string type)
-        {
-            switch (type)
+            var list = SharedPools.Default<List<ClassifiedSpan>>().Allocate();
+            try
             {
-                default:
-                    return null;
-                case ClassificationTypeNames.Identifier:
-                    return SymbolDisplayPartKind.Text;
-                case ClassificationTypeNames.Keyword:
-                    return SymbolDisplayPartKind.Keyword;
-                case ClassificationTypeNames.NumericLiteral:
-                    return SymbolDisplayPartKind.NumericLiteral;
-                case ClassificationTypeNames.StringLiteral:
-                    return SymbolDisplayPartKind.StringLiteral;
-                case ClassificationTypeNames.WhiteSpace:
-                    return SymbolDisplayPartKind.Space;
-                case ClassificationTypeNames.Operator:
-                    return SymbolDisplayPartKind.Operator;
-                case ClassificationTypeNames.Punctuation:
-                    return SymbolDisplayPartKind.Punctuation;
-                case ClassificationTypeNames.ClassName:
-                    return SymbolDisplayPartKind.ClassName;
-                case ClassificationTypeNames.StructName:
-                    return SymbolDisplayPartKind.StructName;
-                case ClassificationTypeNames.InterfaceName:
-                    return SymbolDisplayPartKind.InterfaceName;
-                case ClassificationTypeNames.DelegateName:
-                    return SymbolDisplayPartKind.DelegateName;
-                case ClassificationTypeNames.EnumName:
-                    return SymbolDisplayPartKind.EnumName;
-                case ClassificationTypeNames.TypeParameterName:
-                    return SymbolDisplayPartKind.TypeParameterName;
-                case ClassificationTypeNames.ModuleName:
-                    return SymbolDisplayPartKind.ModuleName;
-                case ClassificationTypeNames.VerbatimStringLiteral:
-                    return SymbolDisplayPartKind.StringLiteral;
+                list.AddRange(semanticClassifications.Where(cs => cs.TextSpan.OverlapsWith(textSpan)));
+                var semanticSet = semanticClassifications.Select(cs => cs.TextSpan).ToImmutableHashSet();
+                list.AddRange(syntacticClassifications.Where(cs => cs.TextSpan.OverlapsWith(textSpan) && !semanticSet.Contains(cs.TextSpan)));
+                list.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
+                return list.ToImmutableArray();
+            }
+            finally
+            {
+                SharedPools.Default<List<ClassifiedSpan>>().ClearAndFree(list);
             }
         }
     }

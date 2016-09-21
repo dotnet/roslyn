@@ -287,12 +287,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, ClassificationContext context, CancellationToken cancellationToken)
         {
             var text2 = text.ToString(textSpan);
             var tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition: textSpan.Start);
 
-            Worker.CollectClassifiedSpans(tokens, textSpan, result, cancellationToken);
+            SyntacticClassifier.CollectClassifiedSpans(tokens, textSpan, context, cancellationToken);
         }
 
         internal static ClassifiedSpan AdjustStaleClassification(SourceText rawText, ClassifiedSpan classifiedSpan)

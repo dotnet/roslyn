@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -336,11 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForReferenceAsync(
                 Document document, TextSpan referenceSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
             {
-                var classificationService = document.GetLanguageService<IEditorClassificationService>();
-                if (classificationService == null)
-                {
-                    return new ClassifiedSpansAndHighlightSpan(ImmutableArray<ClassifiedSpan>.Empty, new TextSpan());
-                }
+                var classificationService = ClassificationService.GetService(document);
 
                 // Call out to the individual language to classify the chunk of text around the
                 // reference. We'll get both the syntactic and semantic spans for this region.
@@ -354,10 +351,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                await classificationService.AddSyntacticClassificationsAsync(
-                    document, widenedSpan, syntaxSpans, cancellationToken).ConfigureAwait(false);
-                await classificationService.AddSemanticClassificationsAsync(
-                    document, widenedSpan, semanticSpans, cancellationToken).ConfigureAwait(false);
+                syntaxSpans.AddRange(
+                    await classificationService.GetSyntacticClassificationsAsync(document, widenedSpan, cancellationToken).ConfigureAwait(false));
+
+                semanticSpans.AddRange(
+                    await classificationService.GetSemanticClassificationsAsync(document, widenedSpan, cancellationToken).ConfigureAwait(false));
 
                 var classifiedSpans = MergeClassifiedSpans(
                     syntaxSpans, semanticSpans, widenedSpan, sourceText);

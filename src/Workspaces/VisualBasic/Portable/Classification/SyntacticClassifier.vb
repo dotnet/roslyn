@@ -6,24 +6,24 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    Partial Friend Class Worker
-        Private ReadOnly _list As List(Of ClassifiedSpan)
+    Partial Friend Class SyntacticClassifier
+        Private ReadOnly _context As ClassificationContext
         Private ReadOnly _textSpan As TextSpan
         Private ReadOnly _docCommentClassifier As DocumentationCommentClassifier
         Private ReadOnly _xmlClassifier As XmlClassifier
         Private ReadOnly _cancellationToken As CancellationToken
 
-        Private Sub New(textSpan As TextSpan, list As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Private Sub New(textSpan As TextSpan, context As ClassificationContext, cancellationToken As CancellationToken)
             _textSpan = textSpan
-            _list = list
+            _context = context
             _docCommentClassifier = New DocumentationCommentClassifier(Me)
             _xmlClassifier = New XmlClassifier(Me)
             _cancellationToken = cancellationToken
         End Sub
 
         Friend Shared Sub CollectClassifiedSpans(
-            tokens As IEnumerable(Of SyntaxToken), textSpan As TextSpan, list As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Dim worker = New Worker(textSpan, list, cancellationToken)
+            tokens As IEnumerable(Of SyntaxToken), textSpan As TextSpan, context As ClassificationContext, cancellationToken As CancellationToken)
+            Dim worker = New SyntacticClassifier(textSpan, context, cancellationToken)
 
             For Each token In tokens
                 worker.ClassifyToken(token)
@@ -31,13 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Sub
 
         Friend Shared Sub CollectClassifiedSpans(
-            node As SyntaxNode, textSpan As TextSpan, list As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Dim worker = New Worker(textSpan, list, cancellationToken)
+            node As SyntaxNode, textSpan As TextSpan, context As ClassificationContext, cancellationToken As CancellationToken)
+            Dim worker = New SyntacticClassifier(textSpan, context, cancellationToken)
             worker.ClassifyNode(node)
         End Sub
 
         Private Sub AddClassification(textSpan As TextSpan, classificationType As String)
-            _list.Add(New ClassifiedSpan(classificationType, textSpan))
+            _context.AddClassification(New ClassifiedSpan(classificationType, textSpan))
         End Sub
 
         Private Sub AddClassification(token As SyntaxToken, classificationType As String)

@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal class UsingDirectiveSyntaxClassifier : AbstractSyntaxClassifier
+    internal class UsingDirectiveSyntaxClassifier : AbstractSemanticClassifier
     {
         public override IEnumerable<ClassifiedSpan> ClassifyNode(
             SyntaxNode syntax,

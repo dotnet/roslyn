@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal class SyntaxTokenClassifier : AbstractSyntaxClassifier
+    internal class SyntaxTokenClassifier : AbstractSemanticClassifier
     {
         public override IEnumerable<int> SyntaxTokenKinds
         {

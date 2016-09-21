@@ -241,19 +241,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         var languageServices = _workspace.Services.GetLanguageServices(firstSpan.Snapshot.ContentType);
                         if (languageServices != null)
                         {
-                            var classificationService = languageServices.GetService<IEditorClassificationService>();
+                            var classificationService = ClassificationService.GetService(_workspace, languageServices.Language);
+                            var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                            if (classificationService != null)
+                            foreach (var span in spans)
                             {
-                                var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-
-                                foreach (var span in spans)
-                                {
-                                    AddClassifiedSpans(classificationService, span, classifiedSpans);
-                                }
-
-                                return ClassificationUtilities.ConvertAndReturnList(_typeMap, spans[0].Snapshot, classifiedSpans);
+                                AddClassifiedSpans(classificationService, span, classifiedSpans);
                             }
+
+                            return ClassificationUtilities.ConvertAndReturnList(_typeMap, spans[0].Snapshot, classifiedSpans);
                         }
                     }
 
@@ -261,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private void AddClassifiedSpans(IEditorClassificationService classificationService, SnapshotSpan span, List<ClassifiedSpan> classifiedSpans)
+            private void AddClassifiedSpans(ClassificationService classificationService, SnapshotSpan span, List<ClassifiedSpan> classifiedSpans)
             {
                 // First, get the tree and snapshot that we'll be operating over.  
                 // From this point on we'll do all operations over these values.
@@ -298,15 +294,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             private void AddClassifiedSpansForCurrentTree(
-                IEditorClassificationService classificationService, SnapshotSpan span, Document document, List<ClassifiedSpan> classifiedSpans)
+                ClassificationService classificationService, SnapshotSpan span, Document document, List<ClassifiedSpan> classifiedSpans)
             {
                 List<ClassifiedSpan> tempList;
                 if (!_lastLineCache.TryUseCache(span, out tempList))
                 {
                     tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                    classificationService.AddSyntacticClassificationsAsync(
-                        document, span.Span.ToTextSpan(), tempList, CancellationToken.None).Wait(CancellationToken.None);
+                    tempList.AddRange(
+                        classificationService.GetSyntacticClassificationsAsync(
+                            document, span.Span.ToTextSpan(), CancellationToken.None).WaitAndGetResult(CancellationToken.None));
 
                     _lastLineCache.Update(span, tempList);
                 }
@@ -318,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             private void AddClassifiedSpansForPreviousTree(
-                IEditorClassificationService classificationService, SnapshotSpan span, ITextSnapshot lastSnapshot, Document lastDocument, List<ClassifiedSpan> classifiedSpans)
+                ClassificationService classificationService, SnapshotSpan span, ITextSnapshot lastSnapshot, Document lastDocument, List<ClassifiedSpan> classifiedSpans)
             {
                 // Slightly more complicated case.  They're asking for the classifications for a
                 // different snapshot than what we have a parse tree for.  So we first translate the span
@@ -375,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     // 3) The classifications may be incorrect due to changes in the text.  For example,
                     //    if "clss" becomes "class", then we want to changes the classification from
                     //    'identifier' to 'keyword'.
-                    currentClassifiedSpan = classificationService.AdjustStaleClassification(currentText, currentClassifiedSpan);
+                    currentClassifiedSpan = classificationService.AdjustClassification(currentText, currentClassifiedSpan);
 
                     classifiedSpans.Add(currentClassifiedSpan);
                 }
@@ -383,10 +380,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 ClassificationUtilities.ReturnClassifiedSpanList(tempList);
             }
 
-            private void AddClassifiedSpansForTokens(IEditorClassificationService classificationService, SnapshotSpan span, List<ClassifiedSpan> classifiedSpans)
+            private void AddClassifiedSpansForTokens(ClassificationService classificationService, SnapshotSpan span, List<ClassifiedSpan> classifiedSpans)
             {
-                classificationService.AddLexicalClassifications(
-                    span.Snapshot.AsText(), span.Span.ToTextSpan(), classifiedSpans, CancellationToken.None);
+                classifiedSpans.AddRange(
+                    classificationService.GetLexicalClassifications(
+                        span.Snapshot.AsText(), span.Span.ToTextSpan(), CancellationToken.None));
             }
 
             private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs args)

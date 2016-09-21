@@ -5,8 +5,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -686,6 +688,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private IEnumerable<SymbolDisplayPart> TypeParameterName(string text)
             {
                 return Part(SymbolDisplayPartKind.TypeParameterName, text);
+            }
+
+            protected static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
+                SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
+                bool insertSourceTextInGaps = false,
+                CancellationToken cancellationToken = default(CancellationToken))
+            {
+                var classifiedSpans = Classifier.GetClassifiedSpans(semanticModel, textSpan, workspace, cancellationToken);
+                var sourceText = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                return SymbolDisplayClassificationHelper.ConvertClassifications(sourceText, textSpan.Start, classifiedSpans, insertSourceTextInGaps);
             }
         }
     }

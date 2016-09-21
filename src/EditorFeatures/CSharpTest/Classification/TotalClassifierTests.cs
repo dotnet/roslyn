@@ -24,20 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+                var service = ClassificationService.GetService(document);
 
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                var service = document.GetLanguageService<IClassificationService>();
-                var classifiers = service.GetDefaultSyntaxClassifiers();
-                var extensionManager = workspace.Services.GetService<IExtensionManager>();
-
-                var semanticClassifications = new List<ClassifiedSpan>();
-                var syntacticClassifications = new List<ClassifiedSpan>();
-                await service.AddSemanticClassificationsAsync(document, textSpan,
-                    extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
-                    extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    semanticClassifications, CancellationToken.None);
-                service.AddSyntacticClassifications(syntaxTree, textSpan, syntacticClassifications, CancellationToken.None);
+                var syntacticClassifications = await service.GetSyntacticClassificationsAsync(document, textSpan);
+                var semanticClassifications = await service.GetSemanticClassificationsAsync(document, textSpan);
 
                 var classificationsSpans = new HashSet<TextSpan>();
 
