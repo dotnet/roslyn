@@ -22,9 +22,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
+        Private ReadOnly _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
+
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
+
+        Public Sub New(Optional testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode) = Nothing)
+            _testSpeculativeNodeCallbackOpt = testSpeculativeNodeCallbackOpt
+        End Sub
 
         Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Dim document = context.Document
@@ -41,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' To get a Speculative SemanticModel (which is much faster), we need to 
             ' walk up to the node the DocumentationTrivia is attached to.
             Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
+            _testSpeculativeNodeCallbackOpt?.Invoke(parentNode)
             If parentNode Is Nothing Then
                 Return
             End If
