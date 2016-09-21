@@ -31,7 +31,30 @@ Class C
     Sub M()
         Dim c = New C() With {
             .i = 1
-        End Sub
+        }
+    End Sub
+End Class",
+compareTokens:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestOnVariableDeclarator2() As Task
+            Await TestAsync(
+"
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim c As [||]New C()
+        c.i = 1
+    End Sub
+End Class",
+"
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim c As New C() With {
+            .i = 1
+        }
     End Sub
 End Class",
 compareTokens:=False)
@@ -57,7 +80,6 @@ Class C
         c = New C() With {
             .i = 1
         }
-        End Sub
     End Sub
 End Class",
 compareTokens:=False)
@@ -79,7 +101,7 @@ End Class",
 Class C
     Dim i As Integer
     Sub M()
-        var c = New C() With {
+        Dim c = New C() With {
             .i = 1
         }
         c.i = 2
@@ -134,14 +156,13 @@ Class C
 End Class",
 "
 Class C
-{
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        var c = New C() With {
+        Dim c = New C() With {
             .i = 1
         }
-        c.j += 1;
+        c.j += 1
     End Sub
 End Class",
 compareTokens:=False)
@@ -213,8 +234,8 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = [||]New C()
-        c.i = 1 ' // Foo
-        c.j = 2 ' // Bar
+        c.i = 1 ' Foo
+        c.j = 2 ' Bar
     End Sub
 End Class",
 "
@@ -224,10 +245,9 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = New C() With {
-            i = 1, ' Foo
-            j = 2 ' Bar
+            .i = 1, ' Foo
+            .j = 2 ' Bar
             }
-        End Sub
     End Sub
 End Class",
 compareTokens:=False)
