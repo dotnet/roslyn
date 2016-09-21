@@ -187,6 +187,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ICommandLineParserService CommandLineParserService { get; }
 
+        /// <summary>
+        /// The <see cref="IVsHierarchy"/> for this project.  NOTE: May be null in Deferred Project Load cases.
+        /// </summary>
         public IVsHierarchy Hierarchy { get; }
 
         /// <summary>

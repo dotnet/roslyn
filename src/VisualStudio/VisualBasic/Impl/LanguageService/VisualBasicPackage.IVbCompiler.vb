@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -22,13 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Function CreateProject(wszName As String, punkProject As Object, pProjHier As IVsHierarchy, pVbCompilerHost As IVbCompilerHost) As IVbCompilerProject Implements IVbCompiler.CreateProject
             Dim hostDiagnosticUpdateSource = ComponentModel.GetService(Of HostDiagnosticUpdateSource)()
 
-            Dim projectFilename = AbstractLegacyProject.GetProjectFilePath(pProjHier)
-            Dim projectId = Workspace.ProjectTracker.GetOrCreateProjectIdForPath(projectFilename, wszName)
-
-            If Workspace.Services.GetService(Of IDeferredProjectWorkspaceService)?.IsDeferredProjectLoadEnabled Then
-                Dim existingProject = Workspace.ProjectTracker.GetProject(projectId)
-                existingProject?.Disconnect()
-            End If
+            Workspace.ProjectTracker.TryDisconnectExistingDeferredProject(pProjHier, wszName)
 
             Return New VisualBasicProjectShimWithServices(
                 Workspace.ProjectTracker,

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -566,6 +569,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         _projectsByBinPath[filePath] = projects.Remove(project);
                     }
                 }
+            }
+        }
+
+        internal void TryDisconnectExistingDeferredProject(IVsHierarchy hierarchy, string projectName)
+        {
+            var projectPath = AbstractLegacyProject.GetProjectFilePath(hierarchy);
+            var projectId = GetOrCreateProjectIdForPath(projectPath, projectName);
+
+            // If we created a project for this while in deferred project load mode, let's close it
+            // now that we're being asked to make a "real" project for it, so that we'll prefer the
+            // "real" project
+            if (_workspaceServices.GetService<IDeferredProjectWorkspaceService>()?.IsDeferredProjectLoadEnabled == true)
+            {
+                var existingProject = GetProject(projectId);
+                Debug.Assert(existingProject is IWorkspaceProjectContext);
+                existingProject?.Disconnect();
             }
         }
     }

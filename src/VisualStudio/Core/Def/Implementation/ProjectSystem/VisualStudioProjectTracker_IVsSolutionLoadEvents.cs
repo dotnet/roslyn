@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.S_OK;
         }
 
-        private async Task LoadSolutionFromMSBuild(
+        private async Task LoadSolutionFromMSBuildAsync(
             IDeferredProjectWorkspaceService deferredProjectWorkspaceService,
             CancellationToken cancellationToken)
         {
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             InitializeOutputPane();
 
             // Continue on the UI thread for these operations, since we are touching the VisualStudioWorkspace, etc.
-            await LoadSolutionInBackground(deferredProjectWorkspaceService, cancellationToken).ConfigureAwait(true);
+            await PopulateWorkspaceFromDeferredProjectInfoAsync(deferredProjectWorkspaceService, cancellationToken).ConfigureAwait(true);
         }
 
         [Conditional("DEBUG")]
@@ -95,15 +95,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
+            // In Non-DPL scenarios, this indicates that ASL is complete, and we should push any
+            // remaining information we have to the Workspace.  If DPL is enabled, this is never
+            // called.
             FinishLoad();
 
             return VSConstants.S_OK;
         }
 
-        private async Task LoadSolutionInBackground(
+        private async Task PopulateWorkspaceFromDeferredProjectInfoAsync(
             IDeferredProjectWorkspaceService deferredProjectWorkspaceService,
             CancellationToken cancellationToken)
         {
+            // NOTE: We need to check cancellationToken after each await, in case the user has
+            // already closed the solution.
             AssertIsForeground();
 
             var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
@@ -129,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var projectFilename in projectInfos.Keys)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                CreateProjectFromArgumentsAndReferences(
+                GetOrCreateProjectFromArgumentsAndReferences(
                     workspaceProjectContextFactory,
                     projectFilename,
                     projectInfos,
@@ -145,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static ImmutableDictionary<string, string> BuildTargetPathMap(IReadOnlyDictionary<string, DeferredProjectInformation> projectInfos)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in projectInfos)
             {
                 var targetPath = item.Value.TargetPath;
@@ -153,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     if (!builder.ContainsKey(targetPath))
                     {
-                        builder[item.Value.TargetPath] = item.Key;
+                        builder[targetPath] = item.Key;
                     }
                     else
                     {
@@ -170,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _pane?.OutputString(message + Environment.NewLine);
         }
 
-        private IWorkspaceProjectContext CreateProjectFromArgumentsAndReferences(
+        private AbstractProject GetOrCreateProjectFromArgumentsAndReferences(
             IWorkspaceProjectContextFactory workspaceProjectContextFactory,
             string projectFilename,
             IReadOnlyDictionary<string, DeferredProjectInformation> allProjectInfos,
@@ -185,6 +190,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DeferredProjectInformation projectInfo;
             if (!allProjectInfos.TryGetValue(projectFilename, out projectInfo))
             {
+                // This could happen if we were called recursively about a dangling P2P reference
+                // that isn't actually in the solution.
                 return null;
             }
 
@@ -200,10 +207,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var projectName = Path.GetFileNameWithoutExtension(projectFilename);
             var projectId = GetOrCreateProjectIdForPath(projectFilename, projectName);
 
+            // See if we've already created this project and we're now in a recursive call to
+            // hook up a P2P ref.
             AbstractProject project;
             if (_projectMap.TryGetValue(projectId, out project))
             {
-                return project as IWorkspaceProjectContext;
+                return project;
             }
 
             OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
@@ -230,13 +239,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var addedProjectReferences = new HashSet<string>();
-            foreach (var projectReference in projectInfo.ProjectReferences)
+            foreach (var projectReferencePath in projectInfo.ReferencedProjectFilePaths)
             {
-                var projectReferencePath = projectReference.Substring("/ProjectReference:".Length);
                 var referencedProject = ImmutableProjects.SingleOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, projectReferencePath));
                 if (referencedProject == null)
                 {
-                    referencedProject = (AbstractProject)CreateProjectFromArgumentsAndReferences(
+                    referencedProject = GetOrCreateProjectFromArgumentsAndReferences(
                         workspaceProjectContextFactory,
                         projectReferencePath,
                         allProjectInfos,
@@ -246,6 +254,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var referencedProjectContext = referencedProject as IWorkspaceProjectContext;
                 if (referencedProjectContext != null)
                 {
+                    // TODO: Can we get the properties from corresponding metadata reference in
+                    // commandLineArguments?
                     addedProjectReferences.Add(projectReferencePath);
                     projectContext.AddProjectReference(
                         referencedProjectContext,
@@ -267,6 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 else
                 {
                     // We don't know how to create this project.  Another language or something?
+                    OutputToOutputWindow($"Failed to create a project for '{projectReferencePath}'.");
                 }
             }
 
@@ -288,7 +299,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectContext.AddAnalyzerReference(reference.FilePath);
             }
 
-            return projectContext;
+            return (AbstractProject)projectContext;
         }
 
         private static string GetLanguageOfProject(string projectFilename)

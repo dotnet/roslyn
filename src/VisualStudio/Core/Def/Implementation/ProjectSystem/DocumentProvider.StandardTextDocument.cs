@@ -45,6 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public event EventHandler<bool> Opened;
             public event EventHandler<bool> Closing;
 
+            /// <summary>
+            /// Creates a <see cref="StandardTextDocument"/>.
+            /// <para>Note: getFolderNames maps from a VSITEMID to the folders this document should be contained in.</para>
+            /// </summary>
             public StandardTextDocument(
                 DocumentProvider documentProvider,
                 IVisualStudioHostProject project,

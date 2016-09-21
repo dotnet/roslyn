@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
             _solution7 = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
         }
 
-        public bool IsDeferredProjectLoadEnabled => _solution7?.IsSolutionLoadDeferred() ?? false;
+        public bool IsDeferredProjectLoadEnabled => _solution7?.IsSolutionLoadDeferred() == true;
 
         public async Task<IReadOnlyDictionary<string, DeferredProjectInformation>> GetDeferredProjectInfoForConfigurationAsync(
             string solutionConfiguration,
@@ -38,13 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
             var commandLineInfos = await _solutionWorkspaceService.GetManagedCommandLineInfoAsync(
                 solutionConfiguration, cancellationToken).ConfigureAwait(false);
 
+            // NOTE: Anycode gives us the project references as if they were command line arguments with
+            // "/ProjectReference:" prepended.  Strip that off here.
             var result = ImmutableDictionary.CreateRange(
                 commandLineInfos.Select(kvp => KeyValuePair.Create(
                     kvp.Key,
                     new DeferredProjectInformation(
                         kvp.Value.TargetPath,
                         kvp.Value.CommandLineArgs,
-                        kvp.Value.ProjectReferences))));
+                        kvp.Value.ProjectReferences.Select(p => p.Substring("/ProjectReference:".Length)).ToImmutableArray()))));
             return result;
         }
     }

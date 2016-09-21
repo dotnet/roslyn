@@ -24,9 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
-            if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled ?? false)
+            if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled == true)
             {
-                LoadSolutionFromMSBuild(deferredProjectWorkspaceService, _solutionParsingCancellationTokenSource.Token).FireAndForget();
+                LoadSolutionFromMSBuildAsync(deferredProjectWorkspaceService, _solutionParsingCancellationTokenSource.Token).FireAndForget();
             }
 
             return VSConstants.S_OK;
@@ -69,6 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _solutionLoadComplete = false;
+
+            // Cancel any background solution parsing. NOTE: This means that that work needs to
+            // check the token periodically, and whenever resuming from an "await"
             _solutionParsingCancellationTokenSource.Cancel();
             _solutionParsingCancellationTokenSource = new CancellationTokenSource();
 
@@ -80,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
-            if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled ?? false)
+            if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled == true)
             {
                 // Copy to avoid modifying the collection while enumerating
                 var loadedProjects = ImmutableProjects.ToList();
