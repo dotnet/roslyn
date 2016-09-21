@@ -18,10 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             var projectName = Path.GetFileName(projectRoot.GetFullProjectName()); // GetFullProjectName returns the path to the project file w/o the extension?
             var projectFilename = AbstractLegacyProject.GetProjectFilePath(hierarchy);
-
             var projectId = Workspace.ProjectTracker.GetOrCreateProjectIdForPath(projectFilename, projectName);
-            var existingProject = Workspace.ProjectTracker.GetProject(projectId);
-            existingProject?.Disconnect();
+
+            if (Workspace.Services.GetService<IDeferredProjectWorkspaceService>()?.IsDeferredProjectLoadEnabled ?? false)
+            {
+                var existingProject = Workspace.ProjectTracker.GetProject(projectId);
+                existingProject?.Disconnect();
+            }
 
             var project = new CSharpProjectShimWithServices(
                 projectRoot,

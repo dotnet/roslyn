@@ -10,9 +10,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -40,6 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             CancellationToken cancellationToken)
         {
             AssertIsForeground();
+            InitializeOutputPane();
+
+            // Continue on the UI thread for these operations, since we are touching the VisualStudioWorkspace, etc.
+            await LoadSolutionInBackground(deferredProjectWorkspaceService, cancellationToken).ConfigureAwait(true);
+        }
+
+        [Conditional("DEBUG")]
+        private void InitializeOutputPane()
+        {
             var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
             var paneGuid = new Guid("07aaa8e9-d776-47d6-a1be-5ce00332d74d");
             if (ErrorHandler.Succeeded(outputWindow.CreatePane(ref paneGuid, "Roslyn DPL Status", fInitVisible: 1, fClearWithSolution: 1)) &&
@@ -47,9 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _pane.Activate();
             }
-
-            // Continue on the UI thread for these operations, since we are touching the VisualStudioWorkspace, etc.
-            await LoadSolutionInBackground(deferredProjectWorkspaceService, cancellationToken).ConfigureAwait(true);
         }
 
         int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
@@ -90,15 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
         {
             AssertIsForeground();
-            // TODO: Not called in DPL scenarios?
-            //if (_deferredProjectLoadIsEnabled )
-            //{
-            //    LoadSolutionInBackground();
-            //}
-            //else
-            //{
-                FinishLoad();
-            //}
+
+            FinishLoad();
 
             return VSConstants.S_OK;
         }
@@ -115,8 +112,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
             var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte.Solution.SolutionBuild.ActiveConfiguration;
 
-            var start = DateTimeOffset.UtcNow;
             OutputToOutputWindow($"Getting project information - start");
+            var start = DateTimeOffset.UtcNow;
             // Capture the context so that we come back on the UI thread, and do the actual project creation there.
             var projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
                 $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
@@ -127,6 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
 
             OutputToOutputWindow($"Creating projects - start");
+            start = DateTimeOffset.UtcNow;
             var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
             foreach (var projectFilename in projectInfos.Keys)
             {
@@ -166,12 +164,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return builder.ToImmutable();
         }
 
+        [Conditional("DEBUG")]
         private void OutputToOutputWindow(string message)
         {
-            if (_pane != null)
-            {
-                _pane.OutputString(message + Environment.NewLine);
-            }
+            _pane?.OutputString(message + Environment.NewLine);
         }
 
         private IWorkspaceProjectContext CreateProjectFromArgumentsAndReferences(
@@ -192,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            var commandLineParser = _workspace.Services.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
+            var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
             var projectDirectory = Path.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
                 projectInfo.CommandLineArguments,
@@ -323,6 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
         {
             var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+
             return componentModel.GetService<AnalyzerDependencyCheckingService>();
         }
     }

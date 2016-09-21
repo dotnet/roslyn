@@ -24,8 +24,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
             Dim projectFilename = AbstractLegacyProject.GetProjectFilePath(pProjHier)
             Dim projectId = Workspace.ProjectTracker.GetOrCreateProjectIdForPath(projectFilename, wszName)
-            Dim existingProject = Workspace.ProjectTracker.GetProject(projectId)
-            existingProject?.Disconnect()
+
+            If Workspace.Services.GetService(Of IDeferredProjectWorkspaceService)?.IsDeferredProjectLoadEnabled Then
+                Dim existingProject = Workspace.ProjectTracker.GetProject(projectId)
+                existingProject?.Disconnect()
+            End If
 
             Return New VisualBasicProjectShimWithServices(
                 Workspace.ProjectTracker,

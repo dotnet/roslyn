@@ -21,7 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            var deferredProjectWorkspaceService = _workspace.Services.GetService<IDeferredProjectWorkspaceService>();
+            AssertIsForeground();
+
+            var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
             if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled ?? false)
             {
                 LoadSolutionFromMSBuild(deferredProjectWorkspaceService, _solutionParsingCancellationTokenSource.Token).FireAndForget();
@@ -77,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var deferredProjectWorkspaceService = _workspace.Services.GetService<IDeferredProjectWorkspaceService>();
+            var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
             if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled ?? false)
             {
                 // Copy to avoid modifying the collection while enumerating
