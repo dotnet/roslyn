@@ -56,6 +56,9 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
+      <Link>Utilities\LambdaUtilities.vb</Link>
+    </Compile>
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionService.Rewriter.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionService.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionServiceFactory.vb" />
@@ -211,6 +214,10 @@
     <Compile Include="Simplification\VisualBasicSimplificationService.vb" />
     <Compile Include="Simplification\VisualBasicVariableDeclaratorReducer.Rewriter.vb" />
     <Compile Include="Simplification\VisualBasicVariableDeclaratorReducer.vb" />
+    <Compile Include="SyntaxDifferencing\StatementSyntaxComparer.vb" />
+    <Compile Include="SyntaxDifferencing\SyntaxComparer.vb" />
+    <Compile Include="SyntaxDifferencing\TopSyntaxComparer.vb" />
+    <Compile Include="SyntaxDifferencing\VisualBasicSyntaxDifferenceService.vb" />
     <Compile Include="Utilities\DirectiveSyntaxEqualityComparer.vb" />
     <Compile Include="Utilities\DirectiveWalker.vb" />
     <Compile Include="Utilities\ImportsClauseComparer.vb" />

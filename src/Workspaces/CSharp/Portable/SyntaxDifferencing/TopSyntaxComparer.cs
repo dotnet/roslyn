@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
+namespace Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing
 {
     internal sealed class TopSyntaxComparer : SyntaxComparer
     {

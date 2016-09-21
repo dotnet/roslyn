@@ -5,8 +5,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.Text
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
-
+Namespace Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing
     Friend MustInherit Class SyntaxComparer
         Inherits TreeComparer(Of SyntaxNode)
 

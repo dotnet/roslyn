@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Reverse = reverseMap;
         }
 
-        public static BidirectionalMap<T> FromMatch(Match<T> match)
+        public static BidirectionalMap<SyntaxNode> FromMatch(Match<SyntaxNode> match)
         {
-            return new BidirectionalMap<T>(match.Matches, match.ReverseMatches);
+            return new BidirectionalMap<SyntaxNode>(match.Matches, match.ReverseMatches);
         }
 
         public bool IsDefaultOrEmpty => Forward == null || Forward.Count == 0;

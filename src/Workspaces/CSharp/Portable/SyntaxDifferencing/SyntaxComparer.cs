@@ -6,7 +6,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
+namespace Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing
 {
     internal abstract class SyntaxComparer : TreeComparer<SyntaxNode>
     {

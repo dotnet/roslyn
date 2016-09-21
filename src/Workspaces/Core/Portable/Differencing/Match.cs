@@ -24,7 +24,10 @@ namespace Microsoft.CodeAnalysis.Differencing
         private readonly Dictionary<TNode, TNode> _oneToTwo;
         private readonly Dictionary<TNode, TNode> _twoToOne;
 
-        internal Match(TNode root1, TNode root2, TreeComparer<TNode> comparer, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
+        internal Match(
+            TNode root1, TNode root2,
+            TreeComparer<TNode> comparer,
+            IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
         {
             _root1 = root1;
             _root2 = root2;
@@ -317,64 +320,29 @@ namespace Microsoft.CodeAnalysis.Differencing
             return TryGetPartnerInTree2(node1, out partner2) && node2.Equals(partner2);
         }
 
-        public TreeComparer<TNode> Comparer
-        {
-            get
-            {
-                return _comparer;
-            }
-        }
+        public TreeComparer<TNode> Comparer => _comparer;
 
-        public TNode OldRoot
-        {
-            get
-            {
-                return _root1;
-            }
-        }
+        public TNode OldRoot => _root1;
 
-        public TNode NewRoot
-        {
-            get
-            {
-                return _root2;
-            }
-        }
+        public TNode NewRoot => _root2;
 
-        public IReadOnlyDictionary<TNode, TNode> Matches
-        {
-            get
-            {
-                return new ReadOnlyDictionary<TNode, TNode>(_oneToTwo);
-            }
-        }
+        public IReadOnlyDictionary<TNode, TNode> Matches 
+            => new ReadOnlyDictionary<TNode, TNode>(_oneToTwo);
 
         public IReadOnlyDictionary<TNode, TNode> ReverseMatches
-        {
-            get
-            {
-                return new ReadOnlyDictionary<TNode, TNode>(_twoToOne);
-            }
-        }
+            => new ReadOnlyDictionary<TNode, TNode>(_twoToOne);
 
-        public bool TryGetNewNode(TNode oldNode, out TNode newNode)
-        {
-            return _oneToTwo.TryGetValue(oldNode, out newNode);
-        }
+        public bool TryGetNewNode(TNode oldNode, out TNode newNode) 
+            => _oneToTwo.TryGetValue(oldNode, out newNode);
 
         public bool TryGetOldNode(TNode newNode, out TNode oldNode)
-        {
-            return _twoToOne.TryGetValue(newNode, out oldNode);
-        }
+            => _twoToOne.TryGetValue(newNode, out oldNode);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform <see cref="OldRoot"/> subtree 
         /// to <see cref="NewRoot"/> subtree.
         /// </summary>
-        public EditScript<TNode> GetTreeEdits()
-        {
-            return new EditScript<TNode>(this);
-        }
+        public EditScript<TNode> GetTreeEdits() => new EditScript<TNode>(this);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform a sequence of nodes <paramref name="oldNodes"/>

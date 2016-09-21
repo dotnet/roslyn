@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// <summary>
     /// Represents an edit operation on a tree or a sequence of nodes.
     /// </summary>
-    /// <typeparam name="TNode">Tree node.</typeparam>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct Edit<TNode> : IEquatable<Edit<TNode>>
     {
@@ -18,7 +17,11 @@ namespace Microsoft.CodeAnalysis.Differencing
         private readonly TNode _oldNode;
         private readonly TNode _newNode;
 
-        internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
+        internal Edit(
+            EditKind kind,
+            TreeComparer<TNode> comparer,
+            TNode oldNode,
+            TNode newNode)
         {
             Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) == (kind == EditKind.Insert));
             Debug.Assert((newNode == null || newNode.Equals(default(TNode))) == (kind == EditKind.Delete));
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             _newNode = newNode;
         }
 
-        public EditKind Kind { get { return _kind; } }
+        public EditKind Kind => _kind;
 
         /// <summary>
         /// Insert: 
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Move, Update: 
         /// Node in the old tree/sequence.
         /// </summary>
-        public TNode OldNode { get { return _oldNode; } }
+        public TNode OldNode => _oldNode;
 
         /// <summary>
         /// Insert: 
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Move, Update:
         /// Node in the new tree/sequence.
         /// </summary>
-        public TNode NewNode { get { return _newNode; } }
+        public TNode NewNode => _newNode;
 
         public override bool Equals(object obj)
         {

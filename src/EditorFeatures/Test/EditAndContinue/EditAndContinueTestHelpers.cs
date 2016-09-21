@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -414,7 +413,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
     internal static class EditScriptTestUtils
     {
-        public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
+        public static void VerifyEdits(this EditScript<SyntaxNode> actual, params string[] expected)
         {
             AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n");
         }

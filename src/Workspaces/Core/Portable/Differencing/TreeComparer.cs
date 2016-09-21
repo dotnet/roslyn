@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// <remarks>
     /// Subclasses define relationships among tree nodes, and parameters to the differencing algorithm.
     /// </remarks>
-    /// <typeparam name="TNode">Tree node.</typeparam>
     public abstract class TreeComparer<TNode>
     {
         protected TreeComparer()

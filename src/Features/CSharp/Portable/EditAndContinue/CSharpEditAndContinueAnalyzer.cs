@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -516,10 +517,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 Debug.Assert(newBody.IsKind(SyntaxKind.Block));
                 Debug.Assert(newBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration));
 
-                return StatementSyntaxComparer.Default.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
+                return StatementSyntaxComparer.Instance.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
             }
 
-            return StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody, knownMatches);
+            return StatementSyntaxComparer.Instance.ComputeMatch(oldBody, newBody, knownMatches);
         }
 
         protected override bool TryMatchActiveStatement(

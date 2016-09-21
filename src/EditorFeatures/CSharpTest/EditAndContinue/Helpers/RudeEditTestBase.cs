@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch);
         }
 
-        public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
+        internal static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
         {
             return EditAndContinueTestHelpers.ToMatchingPairs(match);
         }

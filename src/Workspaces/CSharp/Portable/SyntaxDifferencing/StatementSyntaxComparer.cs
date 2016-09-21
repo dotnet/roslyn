@@ -6,11 +6,11 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
+namespace Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing
 {
     internal sealed class StatementSyntaxComparer : SyntaxComparer
     {
-        internal static readonly StatementSyntaxComparer Default = new StatementSyntaxComparer();
+        internal static readonly StatementSyntaxComparer Instance = new StatementSyntaxComparer();
 
         private readonly SyntaxNode _oldRootChild;
         private readonly SyntaxNode _newRootChild;

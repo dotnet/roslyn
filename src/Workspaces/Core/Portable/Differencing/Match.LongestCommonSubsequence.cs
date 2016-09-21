@@ -17,12 +17,16 @@ namespace Microsoft.CodeAnalysis.Differencing
                 _match = match;
             }
 
-            protected override bool ItemsEqual(IReadOnlyList<TNode> oldSequence, int oldIndex, IReadOnlyList<TNode> newSequence, int newIndex)
+            protected override bool ItemsEqual(
+                IReadOnlyList<TNode> oldSequence, int oldIndex, 
+                IReadOnlyList<TNode> newSequence, int newIndex)
             {
                 return _match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
             }
 
-            internal Dictionary<TNode, TNode> GetMatchingNodes(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
+            internal Dictionary<TNode, TNode> GetMatchingNodes(
+                IReadOnlyList<TNode> oldNodes,
+                IReadOnlyList<TNode> newNodes)
             {
                 var result = new Dictionary<TNode, TNode>();
 
@@ -34,7 +38,9 @@ namespace Microsoft.CodeAnalysis.Differencing
                 return result;
             }
 
-            internal IEnumerable<Edit<TNode>> GetEdits(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
+            internal IEnumerable<Edit<TNode>> GetEdits(
+                IReadOnlyList<TNode> oldNodes,
+                IReadOnlyList<TNode> newNodes)
             {
                 foreach (var edit in GetEdits(oldNodes, oldNodes.Count, newNodes, newNodes.Count))
                 {

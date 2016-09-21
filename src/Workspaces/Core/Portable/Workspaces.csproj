@@ -468,6 +468,9 @@
     <Compile Include="Editing\TypeConstraintKind.cs" />
     <Compile Include="CodeGeneration\TypeGenerator.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringContext.cs" />
+    <Compile Include="SyntaxDifferencing\SyntaxEdit.cs" />
+    <Compile Include="SyntaxDifferencing\SyntaxEditKind.cs" />
+    <Compile Include="SyntaxDifferencing\SyntaxMatch.cs" />
     <Compile Include="Differencing\LongestCommonImmutableArraySubsequence.cs" />
     <Compile Include="Differencing\SequenceEdit.cs" />
     <Compile Include="ExtensionManager\IErrorReportingService.cs" />
@@ -509,6 +512,7 @@
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
     <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
+    <Compile Include="SyntaxDifferencing\SyntaxDifferenceService.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
