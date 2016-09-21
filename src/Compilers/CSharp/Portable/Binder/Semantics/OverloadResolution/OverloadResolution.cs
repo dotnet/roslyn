@@ -1227,28 +1227,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
 
                 bool okToDowngradeToNeither;
-                BetterResult r;
-
-                if (argumentKind == BoundKind.OutVariablePendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
-                {
-                    // If argument is an out variable that needs type inference,
-                    // neither candidate is better in this argument.
-                    r = BetterResult.Neither;
-                    okToDowngradeToNeither = false;
-                }
-                else
-                {
-                    r = BetterConversionFromExpression(arguments[i],
-                                                       type1,
-                                                       m1.Result.ConversionForArg(i),
-                                                       refKind1,
-                                                       type2,
-                                                       m2.Result.ConversionForArg(i),
-                                                       refKind2,
-                                                       considerRefKinds,
-                                                       ref useSiteDiagnostics,
-                                                       out okToDowngradeToNeither);
-                }
+                var r = BetterConversionFromExpression(arguments[i],
+                                                    type1,
+                                                    m1.Result.ConversionForArg(i),
+                                                    refKind1,
+                                                    type2,
+                                                    m2.Result.ConversionForArg(i),
+                                                    refKind2,
+                                                    considerRefKinds,
+                                                    ref useSiteDiagnostics,
+                                                    out okToDowngradeToNeither);
 
                 var type1Normalized = type1.NormalizeTaskTypes(Compilation);
                 var type2Normalized = type2.NormalizeTaskTypes(Compilation);
@@ -1748,11 +1736,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             okToDowngradeToNeither = false;
 
-            if (considerRefKinds)
+            var argumentKind = node.Kind;
+            if (considerRefKinds || argumentKind == BoundKind.OutVariablePendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
             {
                 // We may need to consider the ref kinds of the parameters while determining the better conversion from the given expression to the respective parameter types.
                 // This is needed for the omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method within a COM imported type.
                 // We can reach here only if we had at least one ref omitted argument for the given call, which must be a call to a method within a COM imported type.
+                // It is also needed for 'out var' arguments.
 
                 // Algorithm for determining the better conversion from expression when ref kinds need to be considered is NOT provided in the C# language specification,
                 // see section 7.5.3.3 'Better Conversion From Expression'.
@@ -1766,9 +1756,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    gets considered while classifying conversions between parameter types when computing better conversion target in the native compiler.
                 // NOTE:    Roslyn correctly follows the specification and ref kinds are not considered while classifying conversions between types, see method BetterConversionTarget.
 
-                Debug.Assert(refKind1 == RefKind.None || refKind1 == RefKind.Ref);
-                Debug.Assert(refKind2 == RefKind.None || refKind2 == RefKind.Ref);
-
                 if (refKind1 != refKind2)
                 {
                     if (refKind1 == RefKind.None)
@@ -1780,7 +1767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return conv2.Kind == ConversionKind.Identity ? BetterResult.Right : BetterResult.Neither;
                     }
                 }
-                else if (refKind1 == RefKind.Ref)
+                else if (refKind1 != RefKind.None)
                 {
                     return BetterResult.Neither;
                 }
