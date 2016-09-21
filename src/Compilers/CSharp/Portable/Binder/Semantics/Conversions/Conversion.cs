@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
+        internal static Conversion DefaultLiteral => new Conversion(ConversionKind.DefaultLiteral);
         internal static Conversion NullToPointer => new Conversion(ConversionKind.NullToPointer);
         internal static Conversion PointerToVoid => new Conversion(ConversionKind.PointerToVoid);
         internal static Conversion PointerToPointer => new Conversion(ConversionKind.PointerToPointer);

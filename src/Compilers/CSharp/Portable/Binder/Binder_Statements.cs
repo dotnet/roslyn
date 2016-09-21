@@ -2692,10 +2692,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected void GenerateImplicitConversionError(
-            DiagnosticBag diagnostics, 
+            DiagnosticBag diagnostics,
             SyntaxNode syntax,
-            Conversion conversion, 
-            BoundExpression operand, 
+            Conversion conversion,
+            BoundExpression operand,
             TypeSymbol targetType)
         {
             Debug.Assert(operand != null);
@@ -2724,7 +2724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If target is a tuple or compatible type with the same number of elements,
                 // report errors for tuple arguments that failed to convert, which would be more useful.
-                if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) && 
+                if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
                     targetElementTypes.Length == tuple.Arguments.Length)
                 {
                     GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
@@ -2747,7 +2747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, operand.ConstantValue);
                 return;
             }
-            
+
             if (operand.IsLiteralNull())
             {
                 if (targetType.TypeKind == TypeKind.TypeParameter)
@@ -2797,8 +2797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void GenerateImplicitConversionErrorsForTupleLiteralArguments(
-            DiagnosticBag diagnostics, 
-            ImmutableArray<BoundExpression> tupleArguments, 
+            DiagnosticBag diagnostics,
+            ImmutableArray<BoundExpression> tupleArguments,
             ImmutableArray<TypeSymbol> targetElementTypes)
         {
             var argLength = tupleArguments.Length;
@@ -2808,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // By the time we get here we have done analysis and know we have failed the cast in general, and diagnostics collected in the process is already in the bag. 
             // The only thing left is to form a diagnostics about the actually failing conversion(s).
             // This whole method does not itself collect any usesite diagnostics. Its only purpose is to produce an error better than "conversion failed here"           
-            HashSet <DiagnosticInfo> usDiagsUnused = null;
+            HashSet<DiagnosticInfo> usDiagsUnused = null;
 
             for (int i = 0; i < targetElementTypes.Length; i++)
             {
@@ -3529,7 +3529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.WRN_FilterIsConstant, filter.FilterExpression);
             }
-            
+
             return boundFilter;
         }
 

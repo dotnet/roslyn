@@ -9855,6 +9855,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to target-typed default operator.
+        /// </summary>
+        internal static string IDS_FeatureDefaultLiteral {
+            get {
+                return ResourceManager.GetString("IDS_FeatureDefaultLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to dictionary initializer.
         /// </summary>
         internal static string IDS_FeatureDictionaryInitializer {

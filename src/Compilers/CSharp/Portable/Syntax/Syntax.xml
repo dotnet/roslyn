@@ -918,6 +918,21 @@
       <summary>Creates a DefaultExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="DefaultLiteralSyntax" Base="ExpressionSyntax">
+    <Kind Name="DefaultLiteral"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="DefaultKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the DefaultKeyword.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a default literal.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a DefaultLiteralSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="TypeOfExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="TypeOfExpression"/>
     <Field Name="Keyword" Type="SyntaxToken">

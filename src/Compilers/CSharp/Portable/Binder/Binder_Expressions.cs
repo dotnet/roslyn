@@ -552,6 +552,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DefaultExpression:
                     return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.DefaultLiteral:
+                    return new BoundDefaultOperator((DefaultLiteralSyntax)node);
+
                 case SyntaxKind.TypeOfExpression:
                     return BindTypeOf((TypeOfExpressionSyntax)node, diagnostics);
 
@@ -1847,6 +1850,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, syntax.Location, targetType);
                 return;
             }
+
+            // PROTOTYPE(default) SHould handle default literal here?
 
             if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
             {
@@ -5030,7 +5035,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // No member accesses on void
             if ((object)leftType != null && leftType.SpecialType == SpecialType.System_Void)
             {
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), leftType);
+                diagnostics.Add(ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), SyntaxFacts.GetText(operatorToken.Kind()), leftType);
+                return BadExpression(node, boundLeft);
+            }
+
+            // PROTOTYPE(default) unify with case above
+            // No member accesses on default
+            if (boundLeft.IsLiteralDefault())
+            {
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), "default");
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
                 return BadExpression(node, boundLeft);
             }
@@ -5040,8 +5053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)leftType == null);
 
                 var msgId = ((UnboundLambda)boundLeft).MessageID;
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
-                diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
+                diagnostics.Add(ErrorCode.ERR_BadUnaryOp, node.Location, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
                 return BadExpression(node, boundLeft);
             }
 

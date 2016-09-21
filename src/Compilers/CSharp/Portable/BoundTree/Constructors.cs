@@ -525,8 +525,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundDefaultOperator
     {
-        public BoundDefaultOperator(SyntaxNode syntax, TypeSymbol type)
-            : this(syntax, type.GetDefaultValue(), type)
+        public BoundDefaultOperator(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, type.GetDefaultValue(), type, hasErrors)
+        {
+        }
+
+        public BoundDefaultOperator(SyntaxNode syntax)
+          : this(syntax, constantValueOpt: null, type: null, hasErrors: false)
         {
         }
     }
