@@ -1968,15 +1968,15 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
@@ -2006,15 +2006,15 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
@@ -2173,15 +2173,15 @@ Deconstructing (1, hello)
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
@@ -2242,7 +2242,7 @@ Deconstructing (1, hello)
             return (decl.Parent as TypedVariableComponentSyntax)?.Type;
         }
 
-        private static SingleVariableDesignationSyntax GetDeconstructionLocal(SyntaxTree tree, string name)
+        private static SingleVariableDesignationSyntax GetDeconstructionVariable(SyntaxTree tree, string name)
         {
             return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
         }
@@ -2289,11 +2289,11 @@ class var
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
@@ -2334,19 +2334,19 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
 
-                var x4 = GetDeconstructionLocal(tree, "x4");
+                var x4 = GetDeconstructionVariable(tree, "x4");
                 var x4Ref = GetReference(tree, "x4");
                 VerifyModelForDeconstructionLocal(model, x4, x4Ref);
 
@@ -2391,11 +2391,11 @@ class D
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
@@ -2441,11 +2441,11 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 4);
                 VerifyModelForDeconstructionFor(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReferences(tree, "x2", 3);
                 VerifyModelForDeconstructionFor(model, x2, x2Ref);
 
@@ -2486,11 +2486,11 @@ class var
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 3);
                 VerifyModelForDeconstructionFor(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionFor(model, x2, x2Ref);
 
@@ -2532,11 +2532,11 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 3);
                 VerifyModelForDeconstructionFor(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionFor(model, x2, x2Ref);
 
@@ -2581,11 +2581,11 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
@@ -2668,13 +2668,13 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 var symbol = model.GetDeclaredSymbol(x1);
 
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
@@ -2770,11 +2770,11 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
@@ -2884,11 +2884,11 @@ static class Extension
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
@@ -2967,23 +2967,23 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionForeach(model, x3, x3Ref);
 
-                var x4 = GetDeconstructionLocal(tree, "x4");
+                var x4 = GetDeconstructionVariable(tree, "x4");
                 var x4Ref = GetReference(tree, "x4");
                 VerifyModelForDeconstructionForeach(model, x4, x4Ref);
 
-                var x5 = GetDeconstructionLocal(tree, "x5");
+                var x5 = GetDeconstructionVariable(tree, "x5");
                 var x5Ref = GetReference(tree, "x5");
                 VerifyModelForDeconstructionForeach(model, x5, x5Ref);
 
@@ -3094,15 +3094,15 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionForeach(model, x3, x3Ref);
 
@@ -3437,7 +3437,77 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        // TODO: test an embedded statement when a field of the same name exists
+        [Fact]
+        public void FieldAndLocalWithSameName()
+        {
+            string source = @"
+class C
+{
+    public int x = 3;
+    static void Main()
+    {
+        new C().M();
+    }
+    void M()
+    {
+        var (x, y) = (1, 2);
+        System.Console.Write($""{x} {y} {this.x}"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoGlobalDeconstructionUnlessScript()
+        {
+            string source = @"
+class C
+{
+    var (x, y) = (1, 2);
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,2): error CS1520: Method must have a return type
+                // {
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "").WithLocation(3, 2),
+                // (4,11): error CS1001: Identifier expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(4, 11),
+                // (4,14): error CS1001: Identifier expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 14),
+                // (4,16): error CS1002: ; expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(4, 16),
+                // (4,16): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 16),
+                // (4,18): error CS8124: Tuple must contain at least two elements.
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(").WithLocation(4, 18),
+                // (4,19): error CS1031: Type expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(4, 19),
+                // (4,19): error CS1026: ) expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(4, 19),
+                // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
+                // (4,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(4, 10),
+                // (4,13): error CS0246: The type or namespace name 'y' could not be found (are you missing a using directive or an assembly reference?)
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(4, 13),
+                // (4,5): error CS0501: 'C.var(x, y)' must declare a body because it is not marked abstract, extern, or partial
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.var(x, y)").WithLocation(4, 5)
+                );
+        }
 
         [Fact]
         public void SimpleDeconstructionInScript()
@@ -3547,7 +3617,6 @@ System.Console.Write($""{x} {y}"");
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42");
-            // TODO: verify semantic model
         }
 
         [Fact]
@@ -3555,34 +3624,62 @@ System.Console.Write($""{x} {y}"");
         {
             var source =
 @"
-var (x, (y, z)) = (""hello"", (42, 43));
-System.Console.Write($""{x} {y} {z}"");
+var (x1, (x2, x3)) = (""hello"", (42, 43));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Symbol = model.GetDeclaredSymbol(x1);
+                Assert.Equal("System.String Script.x1", x1Symbol.ToTestDisplayString());
+                Assert.Equal("Field", x1Symbol.Kind.ToString());
+                var x1Field = (FieldSymbol)x1Symbol;
+                Assert.Equal("System.String", x1Field.Type.ToTestDisplayString());
+                Assert.Equal("Private", x1Field.DeclaredAccessibility.ToString());
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Symbol = model.GetDeclaredSymbol(x2);
+                Assert.Equal("System.Int32 Script.x2", x2Symbol.ToTestDisplayString());
+                Assert.Equal("Field", x2Symbol.Kind.ToString());
+                var x2Field = (FieldSymbol)x2Symbol;
+                Assert.Equal("System.Int32", x2Field.Type.ToTestDisplayString());
+                Assert.Equal("Private", x2Field.DeclaredAccessibility.ToString());
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43", sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void EvaluationOrderForDeconstructionInScript()
+        {
+            var source =
+    @"
+(int, int) M(out int x) { x = 1; return (2, 3); }
+var (x2, x3) = M(out var x1);
+System.Console.Write($""{x1} {x2} {x3}"");
 ";
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43");
-            // TODO: verify semantic model
-        }
-
-        [Fact]
-        public void InScript2()
-        {
-            var source =
-@"
-var x = 1;
-System.Console.Write($""{x}"");
-";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "1");
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2 3");
             verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      101 (0x65)
-  .maxstack  2
+  // Code size      182 (0xb6)
+  .maxstack  4
   .locals init (int V_0,
                 object V_1,
-                System.Exception V_2)
+                int V_2,
+                int V_3,
+                System.Exception V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int <<Initialize>>d__0.<>1__state""
   IL_0006:  stloc.0
@@ -3590,42 +3687,65 @@ System.Console.Write($""{x}"");
   {
     IL_0007:  ldarg.0
     IL_0008:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_000d:  ldc.i4.1
-    IL_000e:  stfld      ""int x""
-    IL_0013:  ldstr      ""{0}""
-    IL_0018:  ldarg.0
-    IL_0019:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_001e:  ldfld      ""int x""
-    IL_0023:  box        ""int""
-    IL_0028:  call       ""string string.Format(string, object)""
-    IL_002d:  call       ""void System.Console.Write(string)""
-    IL_0032:  nop
-    IL_0033:  ldnull
-    IL_0034:  stloc.1
-    IL_0035:  leave.s    IL_004f
+    IL_000d:  ldarg.0
+    IL_000e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0013:  ldflda     ""int x1""
+    IL_0018:  callvirt   ""(int, int) M(out int)""
+    IL_001d:  dup
+    IL_001e:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_0023:  stloc.2
+    IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_0029:  stloc.3
+    IL_002a:  ldarg.0
+    IL_002b:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0030:  ldloc.2
+    IL_0031:  stfld      ""int x2""
+    IL_0036:  ldarg.0
+    IL_0037:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_003c:  ldloc.3
+    IL_003d:  stfld      ""int x3""
+    IL_0042:  ldstr      ""{0} {1} {2}""
+    IL_0047:  ldarg.0
+    IL_0048:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_004d:  ldfld      ""int x1""
+    IL_0052:  box        ""int""
+    IL_0057:  ldarg.0
+    IL_0058:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_005d:  ldfld      ""int x2""
+    IL_0062:  box        ""int""
+    IL_0067:  ldarg.0
+    IL_0068:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_006d:  ldfld      ""int x3""
+    IL_0072:  box        ""int""
+    IL_0077:  call       ""string string.Format(string, object, object, object)""
+    IL_007c:  call       ""void System.Console.Write(string)""
+    IL_0081:  nop
+    IL_0082:  ldnull
+    IL_0083:  stloc.1
+    IL_0084:  leave.s    IL_00a0
   }
   catch System.Exception
   {
-    IL_0037:  stloc.2
-    IL_0038:  ldarg.0
-    IL_0039:  ldc.i4.s   -2
-    IL_003b:  stfld      ""int <<Initialize>>d__0.<>1__state""
-    IL_0040:  ldarg.0
-    IL_0041:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-    IL_0046:  ldloc.2
-    IL_0047:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
-    IL_004c:  nop
-    IL_004d:  leave.s    IL_0064
+    IL_0086:  stloc.s    V_4
+    IL_0088:  ldarg.0
+    IL_0089:  ldc.i4.s   -2
+    IL_008b:  stfld      ""int <<Initialize>>d__0.<>1__state""
+    IL_0090:  ldarg.0
+    IL_0091:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+    IL_0096:  ldloc.s    V_4
+    IL_0098:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_009d:  nop
+    IL_009e:  leave.s    IL_00b5
   }
-  IL_004f:  ldarg.0
-  IL_0050:  ldc.i4.s   -2
-  IL_0052:  stfld      ""int <<Initialize>>d__0.<>1__state""
-  IL_0057:  ldarg.0
-  IL_0058:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_005d:  ldloc.1
-  IL_005e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
-  IL_0063:  nop
-  IL_0064:  ret
+  IL_00a0:  ldarg.0
+  IL_00a1:  ldc.i4.s   -2
+  IL_00a3:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_00ae:  ldloc.1
+  IL_00af:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_00b4:  nop
+  IL_00b5:  ret
 }
 ");
         }

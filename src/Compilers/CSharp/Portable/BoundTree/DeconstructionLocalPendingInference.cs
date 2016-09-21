@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // TODO: rename file
+    // TODO: I will rename the file last thing, after code review
     internal partial class DeconstructionVariablePendingInference
     {
         public BoundExpression SetInferredType(TypeSymbol type, bool success)
