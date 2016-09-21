@@ -956,7 +956,7 @@ End Class
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey)
         Assert.Equal(Of Byte)(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken)
 
-        Dim comp2 = CreateCompilationWithMscorlib(
+        Dim src =
 <compilation name="MaxSizeComp2">
     <file name="c.vb">
 Class D
@@ -965,23 +965,16 @@ Class D
     End Sub
 End Class
     </file>
-</compilation>, references:={comp.ToMetadataReference()},
+</compilation>
+
+        Dim comp2 = CreateCompilationWithMscorlib(src, references:={comp.ToMetadataReference()},
 options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultProvider))
 
         CompileAndVerify(comp2, expectedOutput:="Called M")
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey)
         Assert.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
 
-        Dim comp3 = CreateCompilationWithMscorlib(
-<compilation name="MaxSizeComp2">
-    <file name="c.vb">
-Class D
-    Public Shared Sub Main()
-        C.M()
-    End Sub
-End Class
-    </file>
-</compilation>, references:={comp.EmitToImageReference()},
+        Dim comp3 = CreateCompilationWithMscorlib(src, references:={comp.EmitToImageReference()},
 options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultProvider))
 
         CompileAndVerify(comp3, expectedOutput:="Called M")

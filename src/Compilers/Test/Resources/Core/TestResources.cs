@@ -259,7 +259,6 @@ namespace TestResources
         private static byte[] s_snMaxSizePublicKey;
         public static byte[] snMaxSizePublicKey => ResourceLoader.GetOrCreateResource(ref s_snMaxSizePublicKey, "SymbolsTests.snMaxSizePublicKey.snk");
 
-        public static string snMaxSizePublicKeyToken => "1540923db30520b2";
         public static string snMaxSizePublicKeyString => "002400000480000014080000060200000024000052534131004000000100010079bb5332224912" +
 "5411d2b44dd63b137e1b452899a7e7f626917328ff9e25c728e3e3b503ba34deab31d1f1ae1558" +
 "8c4bda69eccea5b13e4a4e10b39fc2fd9f05d1ba728beb8365bad6b6da9adc653836d3ff12b9a6" +
