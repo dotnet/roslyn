@@ -1189,6 +1189,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End Get
         End Property
+
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+
+            If Me.Type.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
+            End If
+        End Sub
     End Class
 End Namespace
 

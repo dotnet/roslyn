@@ -301,10 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, customModifiersCount: 0));
             }
 
-            if (Type.ContainsTuple())
+            if (Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(Type));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 

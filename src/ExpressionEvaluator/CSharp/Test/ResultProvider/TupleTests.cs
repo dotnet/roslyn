@@ -5,8 +5,11 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
+using System;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
@@ -937,6 +940,59 @@ class async
                 Verify(children,
                     EvalResult("Item1", "null", "async", "(((@async, @namespace.@struct))o._f).Item1"),
                     EvalResult("Item2", "{namespace.struct}", "namespace.struct", "(((@async, @namespace.@struct))o._f).Item2"));
+            }
+        }
+
+        [WorkItem(13715, "https://github.com/dotnet/roslyn/issues/13715")]
+        [Fact]
+        public void OtherPayload()
+        {
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(GenerateTupleAssembly())));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("System.ValueTuple`2", typeof(int), typeof(int));
+                var value = type.Instantiate(new object[] { 1, 2, });
+
+                // Empty custom type info id.
+                var typeInfo = DkmClrCustomTypeInfo.Create(Guid.Empty, new ReadOnlyCollection<byte>(new byte[0]));
+                var evalResult = FormatResult("o", "o", value, declaredType: type, declaredTypeInfo: typeInfo);
+                Verify(evalResult,
+                    EvalResult("o", "(1, 2)", "(int, int)", "o", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", "o.Item1"),
+                    EvalResult("Item2", "2", "int", "o.Item2"));
+
+                // Empty custom type info id, no payload.
+                typeInfo = DkmClrCustomTypeInfo.Create(Guid.Empty, null);
+                evalResult = FormatResult("o", "o", value, declaredType: type, declaredTypeInfo: typeInfo);
+                Verify(evalResult,
+                    EvalResult("o", "(1, 2)", "(int, int)", "o", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", "o.Item1"),
+                    EvalResult("Item2", "2", "int", "o.Item2"));
+
+                // Unrecognized custom type info id.
+                var typeInfoId = Guid.Parse("C19D170F-83EE-409D-A61B-6A4501929A5A");
+                typeInfo = DkmClrCustomTypeInfo.Create(typeInfoId, new ReadOnlyCollection<byte>(new byte[] { 0xf0, 0x0f }));
+                evalResult = FormatResult("o", "o", value, declaredType: type, declaredTypeInfo: typeInfo);
+                Verify(evalResult,
+                    EvalResult("o", "(1, 2)", "(int, int)", "o", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", "o.Item1"),
+                    EvalResult("Item2", "2", "int", "o.Item2"));
+
+                // Unrecognized custom type info id, no payload.
+                typeInfo = DkmClrCustomTypeInfo.Create(typeInfoId, null);
+                evalResult = FormatResult("o", "o", value, declaredType: type, declaredTypeInfo: typeInfo);
+                Verify(evalResult,
+                    EvalResult("o", "(1, 2)", "(int, int)", "o", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", "o.Item1"),
+                    EvalResult("Item2", "2", "int", "o.Item2"));
             }
         }
 

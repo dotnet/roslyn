@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal SynthesizedAttributeData SynthesizeTupleNamesAttributeOpt(TypeSymbol type)
+        internal SynthesizedAttributeData SynthesizeTupleNamesAttribute(TypeSymbol type)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(type.ContainsTuple());
@@ -508,11 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)stringType != null);
             var names = TupleNamesEncoder.Encode(type, stringType);
 
-            // If there are no names, elide the attribute entirely
-            if (names.IsDefault)
-            {
-                return null;
-            }
+            Debug.Assert(!names.IsDefault, "should not need the attribute when no tuple names");
 
             var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, stringType, customModifiers: ImmutableArray<CustomModifier>.Empty);
             var args = ImmutableArray.Create(new TypedConstant(stringArray, names));

@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantHaveWin32ResAndIcon = 1565,
         ERR_CantReadResource = 1566,
         //ERR_AutoResGen = 1567,
-        //ERR_DocFileGen = 1569,
+        ERR_DocFileGen = 1569,
         WRN_XMLParseError = 1570,
         WRN_DuplicateParamTag = 1571,
         WRN_UnmatchedParamTag = 1572,
@@ -1354,9 +1354,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Available = 8112, 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
+        ERR_ThrowMisplaced = 8115,
         ERR_PatternNullableType = 8116,
         ERR_BadIsPatternExpression = 8117,
-        ERR_PatternValueExpected = 8119,
+        ERR_SwitchExpressionValueExpected = 8119,
         ERR_PatternIsSubsumed = 8120,
         ERR_PatternWrongType = 8121,
         ERR_ExpressionTreeContainsIsMatch = 8122,

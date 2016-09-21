@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.QualifyMemberAccess
     Friend NotInheritable Class VisualBasicQualifyMemberAccessDiagnosticAnalyzer
         Inherits QualifyMemberAccessDiagnosticAnalyzerBase(Of SyntaxKind)
 
+        Protected Overrides Function GetLanguageName() As String
+            Return LanguageNames.VisualBasic
+        End Function
+
         Protected Overrides Function IsAlreadyQualifiedMemberAccess(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.MeExpression)
         End Function

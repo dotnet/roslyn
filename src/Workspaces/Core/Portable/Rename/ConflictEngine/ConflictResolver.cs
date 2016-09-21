@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         internal static async Task AddDeclarationConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
-            IEnumerable<ISymbol> referencedSymbols,
+            IEnumerable<SymbolAndProjectId> referencedSymbols,
             ConflictResolution conflictResolution,
             IDictionary<Location, Location> reverseMappedLocations,
             CancellationToken cancellationToken)

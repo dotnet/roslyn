@@ -2381,7 +2381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Dim compilation = Me.DeclaringCompilation
@@ -2437,6 +2437,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         WellKnownMember.System_Runtime_InteropServices_ComSourceInterfacesAttribute__ctorString,
                         ImmutableArray.Create(
                             New TypedConstant(GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, eventInterfaceName))))
+                End If
+            End If
+
+            Dim baseType As NamedTypeSymbol = Me.BaseTypeNoUseSiteDiagnostics
+            If baseType IsNot Nothing Then
+                If baseType.ContainsTupleNames() Then
+                    AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(baseType))
                 End If
             End If
         End Sub

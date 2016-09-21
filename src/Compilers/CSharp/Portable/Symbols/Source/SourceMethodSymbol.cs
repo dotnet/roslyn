@@ -957,10 +957,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
             }
 
-            if (ReturnType.ContainsTuple())
+            if (ReturnType.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(ReturnType));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(ReturnType));
             }
         }
 

@@ -278,6 +278,8 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />

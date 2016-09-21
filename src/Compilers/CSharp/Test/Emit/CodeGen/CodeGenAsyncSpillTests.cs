@@ -2934,5 +2934,76 @@ class C
 ";
             CompileAndVerify(source, expected);
         }
+
+
+
+        [Fact]
+        [WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")]
+        public void MethodGroupConversionNoSpill()
+        {
+            string source = @"
+using System.Threading.Tasks;
+using System;
+
+public class AsyncBug {
+    public static void Main() 
+    {
+        Boom().GetAwaiter().GetResult();
+    }
+    public static async Task Boom()
+    {
+        Func<Type> f = (await Task.FromResult(1)).GetType;
+        Console.WriteLine(f());
+    }
+}
+";
+
+            var v = CompileAndVerify(source, "System.Int32");
+        }
+        [Fact]
+
+        [WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")]
+        public void MethodGroupConversionWithSpill()
+        {
+            string source = @"
+using System.Threading.Tasks;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+namespace AsyncBug
+{
+    class Program
+    {
+        private class SomeClass
+        {
+            public bool Method(int value)
+            {
+                return value % 2 == 0;
+            }
+        }
+
+        private async Task<SomeClass> Danger()
+        {
+            await Task.Yield();
+            return new SomeClass();
+        }
+
+        private async Task<IEnumerable<bool>> Killer()
+        {
+            return (new int[] {1, 2, 3, 4, 5}).Select((await Danger()).Method);
+        }
+
+        static void Main(string[] args)
+        {
+            foreach (var b in new Program().Killer().GetAwaiter().GetResult()) {
+                Console.WriteLine(b);
+            }
+        }
+    }
+}
+";
+            var expected = new bool[] { false, true, false, true, false }.Aggregate("", (str, next) => str += $"{next}{Environment.NewLine}");
+            var v = CompileAndVerify(source, expected);
+        }
     }
 }

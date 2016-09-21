@@ -131,6 +131,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute())
+
+            If Type.ContainsTupleNames() AndAlso
+                compilation.HasTupleNamesAttributes AndAlso
+                compilation.CanEmitSpecialType(SpecialType.System_String) Then
+
+                AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Type))
+            End If
         End Sub
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean

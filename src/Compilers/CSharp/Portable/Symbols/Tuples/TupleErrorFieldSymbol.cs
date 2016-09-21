@@ -16,8 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _type;
 
         /// <summary>
-        /// If this field represents a tuple element (including the name match), 
-        /// id is an index of the element (zero-based).
+        /// If this field represents a tuple element with index X
+        ///  2X      if this field represents Default-named element
+        ///  2X + 1  if this field represents Friendly-named element
         /// Otherwise, (-1 - [index in members array]);
         /// </summary>
         private readonly int _tupleElementIndex;
@@ -25,7 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Location> _locations;
         private readonly DiagnosticInfo _useSiteDiagnosticInfo;
 
-        public TupleErrorFieldSymbol(NamedTypeSymbol container, string name, int tupleElementIndex, Location location, TypeSymbol type, DiagnosticInfo useSiteDiagnosticInfo)
+        // default tuple elements like Item1 or Item20 could be provided by the user or
+        // otherwise implicitly declared by compiler
+        private readonly bool _isImplicitlyDeclared;
+
+        public TupleErrorFieldSymbol(NamedTypeSymbol container, string name, int tupleElementIndex, Location location, TypeSymbol type, DiagnosticInfo useSiteDiagnosticInfo, bool isImplicitlyDeclared)
             : base(container, name, isPublic:true, isReadOnly:false, isStatic:false)
         {
             Debug.Assert(name != null);
@@ -33,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _useSiteDiagnosticInfo = useSiteDiagnosticInfo;
             _tupleElementIndex = tupleElementIndex;
+            _isImplicitlyDeclared = isImplicitlyDeclared;
         }
 
         public override bool IsTupleField
@@ -44,15 +50,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this field represents a tuple element (including the name match), 
-        /// id is an index of the element (zero-based).
-        /// Otherwise, (-1 - [index in members array]);
+        /// If this is a field representing a tuple element,
+        /// returns the index of the element (zero-based).
+        /// Otherwise returns -1
         /// </summary>
         public override int TupleElementIndex
         {
             get
             {
-                return _tupleElementIndex;
+                if (_tupleElementIndex < 0)
+                {
+                    return -1;
+                }
+
+                return _tupleElementIndex >> 1;
+            }
+        }
+
+        public override bool IsDefaultTupleElement
+        {
+            get
+            {
+                // not negative and even
+                return (_tupleElementIndex & ((1 << 31) | 1)) == 0;
             }
         }
 
@@ -77,7 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
+                return _isImplicitlyDeclared ?
+                    ImmutableArray<SyntaxReference>.Empty :
+                    GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
             }
         }
 
@@ -85,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return false;
+                return _isImplicitlyDeclared;
             }
         }
 
@@ -126,8 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
-                ContainingType == other.ContainingType &&
-                Name == other.Name;
+                ContainingType == other.ContainingType;
         }
     }
 }

@@ -10,8 +10,9 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -22,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
+            private readonly IEditorOptions _globalEditorOptions;
 
             private readonly object _gate;
 
@@ -29,13 +31,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private CancellationTokenSource _shutdownCancellationTokenSource;
             private Task<RemoteHostClient> _instanceTask;
 
-            public RemoteHostClientService(Workspace workspace, IDiagnosticAnalyzerService analyzerService) :
+            public RemoteHostClientService(
+                Workspace workspace,
+                IDiagnosticAnalyzerService analyzerService,
+                IEditorOptions globalEditorOptions) :
                 base()
             {
                 _gate = new object();
 
                 _workspace = workspace;
                 _analyzerService = analyzerService;
+                _globalEditorOptions = globalEditorOptions;
             }
 
             public Workspace Workspace => _workspace;
@@ -107,7 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     try
                     {
                         instanceTask.Wait(_shutdownCancellationTokenSource.Token);
-                        instanceTask.Result.Shutdown();
+
+                        // result can be null if service hub failed to launch
+                        instanceTask.Result?.Shutdown();
                     }
                     catch (OperationCanceledException)
                     {
@@ -145,6 +153,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
                 var instance = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (instance == null)
+                {
+                    return null;
+                }
+
                 instance.ConnectionChanged += OnConnectionChanged;
 
                 return instance;
@@ -206,35 +219,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return true;
                 }
 
-                if (TestImpactEnabled())
+                if (DynamicAnalysisEnabled())
                 {
                     return true;
                 }
 
-                // TODO: add check for code lens.
+                if (CodeLenEnabled())
+                {
+                    return true;
+                }
+
                 return false;
             }
 
-            private bool TestImpactEnabled()
+            private bool DynamicAnalysisEnabled()
             {
-                const string TestImpactPath = @"CodeAnalysis\TestImpact\IsGloballyEnabled";
-                const string KeyName = "Value";
+                const string dynamicAnalysisPackageGuid = "3EADAB3E-2035-4513-8C13-FBA84414A16C";
 
                 // TODO: think about how to get rid of this code. since we don't want any code that require foreground
                 //       thread to run
                 AssertIsForeground();
 
-                var shellSettingsManager = new ShellSettingsManager(Shell.ServiceProvider.GlobalProvider);
-                var writeableSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-
-                if (writeableSettingsStore.PropertyExists(TestImpactPath, KeyName))
-                {
-                    return writeableSettingsStore.GetBoolean(TestImpactPath, KeyName);
-                }
-                else
+                var guid = new Guid(dynamicAnalysisPackageGuid);
+                var shell = (IVsShell)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsShell));
+                if (shell == null)
                 {
                     return false;
                 }
+
+                int installed;
+                if (ErrorHandler.Failed(shell.IsPackageInstalled(ref guid, out installed)))
+                {
+                    return false;
+                }
+
+                return installed != 0;
+            }
+
+            private bool CodeLenEnabled()
+            {
+                return _globalEditorOptions.GetOptionValue(CodeLensOptions.IsCodeLensEnabledOptionKey);
             }
         }
     }

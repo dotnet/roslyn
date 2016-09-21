@@ -5382,9 +5382,6 @@
   <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
     <value>Tuple member names must be unique.</value>
   </data>
-  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
-    <value>Tuple member names must all be provided, if any one is provided.</value>
-  </data>
   <data name="ERR_TupleReservedMemberName" xml:space="preserve">
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
@@ -5402,5 +5399,8 @@
   </data>
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
+  </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
   </data>
 </root>

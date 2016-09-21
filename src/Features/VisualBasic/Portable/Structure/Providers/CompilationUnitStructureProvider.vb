@@ -15,7 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim regions As New List(Of BlockSpan)
 
             CollectCommentsRegions(compilationUnit, spans)
-            spans.Add(CreateRegion(compilationUnit.Imports, bannerText:="Imports" & SpaceEllipsis, autoCollapse:=True))
+            spans.Add(CreateRegion(
+                compilationUnit.Imports, bannerText:="Imports" & SpaceEllipsis,
+                autoCollapse:=True, type:=BlockTypes.Nonstructural, isCollapsible:=True))
             CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
         End Sub
 

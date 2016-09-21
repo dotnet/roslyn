@@ -1,19 +1,19 @@
 ﻿{
-  "dependencies": {
-    "xunit.console.netcore": "1.0.2-prerelease-00104"
-  },
-  "frameworks": {
-    // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
-    "netstandard1.6": {
-      "imports": [ "portable-net452", "dotnet" ]
+    "dependencies": {
+        "xunit.console.netcore": "1.0.2-prerelease-00104"
     },
-    "NETCoreApp1.0": {
-      "imports": [ "portable-net452", "dotnet" ]
+    "frameworks": {
+        // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
+        "netstandard1.6": {
+            "imports": [ "portable-net452", "dotnet" ]
+        },
+        "NETCoreApp1.0": {
+            "imports": [ "portable-net452", "dotnet" ]
+        }
+    },
+    "runtimes": {
+        "win7-x64": { },
+        "ubuntu.14.04-x64": { },
+        "osx.10.10-x64": { }
     }
-  },
-  "runtimes": {
-    "win7-x64": { },
-    "ubuntu.14.04-x64": { },
-    "osx.10.10-x64": {}
-  }
 }

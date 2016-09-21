@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Anonymous type being translated
             If namedTypeSymbol.IsAnonymousType Then
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol)
-            ElseIf (namedTypeSymbol.IsTupleType) Then
+            ElseIf namedTypeSymbol.IsTupleType Then
                 Debug.Assert(Not needDeclaration)
                 namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType
             End If
@@ -232,10 +232,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Optional needDeclaration As Boolean = False
         ) As Microsoft.Cci.IFieldReference
             Debug.Assert(fieldSymbol Is fieldSymbol.OriginalDefinition OrElse
-                                            Not fieldSymbol.Equals(fieldSymbol.OriginalDefinition))
-            If fieldSymbol.IsTupleField Then
-                fieldSymbol = fieldSymbol.TupleUnderlyingField
-            End If
+                         Not fieldSymbol.Equals(fieldSymbol.OriginalDefinition))
+            Debug.Assert(Not fieldSymbol.IsTupleField, "tuple fields should be rewritten to underlying by now")
 
             Me.ProcessReferencedSymbol(fieldSymbol)
 
@@ -339,11 +337,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Method of anonymous type being translated
             If container.IsAnonymousType Then
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol)
-            End If
 
-            If methodSymbol.IsTupleMethod Then
+            ElseIf methodSymbol.IsTupleMethod Then
+                Debug.Assert(Not needDeclaration)
+                Debug.Assert(container.IsTupleType)
+                container = container.TupleUnderlyingType
                 methodSymbol = methodSymbol.TupleUnderlyingMethod
             End If
+
+            Debug.Assert(Not container.IsTupleType)
 
             Me.ProcessReferencedSymbol(methodSymbol)
 
