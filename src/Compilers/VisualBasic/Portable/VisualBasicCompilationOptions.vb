@@ -1231,22 +1231,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function CommonWithCheckOverflow(checkOverflow As Boolean) As CompilationOptions
             Return WithOverflowChecks(checkOverflow)
         End Function
-
-        ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with a different warning level specified.
-        ''' </summary>
-        ''' <param name="value">The warning level setting. </param>        
-        ''' <returns>A new instance of VisualBasicCompilationOptions, if the warning level is different; otherwise current instance.</returns>        
-        Public Shadows Function WithWarningLevel(value As Integer) As VisualBasicCompilationOptions
-            If value = Me.WarningLevel Then
-                Return Me
-            End If
-
-            Return New VisualBasicCompilationOptions(Me) With {.WarningLevel = value}
-        End Function
-
-        Protected Overrides Function CommonWithWarningLevel(warningLevel As Integer) As CompilationOptions
-            Return WithWarningLevel(warningLevel)
-        End Function
     End Class
 End Namespace

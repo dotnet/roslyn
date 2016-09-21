@@ -35,7 +35,6 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax.WithOpenParenToken(ope
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TupleElement = 790 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TupleExpression = 788 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TupleType = 789 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithWarningLevel(value As Integer) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).VisitTupleElement(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax) -> TResult
 Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).VisitTupleExpression(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax) -> TResult
 Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).VisitTupleType(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax) -> TResult

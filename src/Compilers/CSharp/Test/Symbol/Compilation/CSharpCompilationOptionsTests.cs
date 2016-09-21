@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestHiddenProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
             TestHiddenProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
             TestHiddenProperty((old, value) => old.WithGeneralDiagnosticOption(value), opt => opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress);
-            TestHiddenProperty((old, value) => old.WithWarningLevel(value), opt => opt.WarningLevel, 3);
 
             TestHiddenProperty((old, value) => old.WithSpecificDiagnosticOptions(value), opt => opt.SpecificDiagnosticOptions,
                 new Dictionary<string, ReportDiagnostic> { { "CS0001", ReportDiagnostic.Error } }.ToImmutableDictionary());

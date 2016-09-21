@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { ReportSuppressedDiagnostics = reportSuppressedDiagnostics };
         }
 
-        public new CSharpCompilationOptions WithWarningLevel(int warningLevel)
+        public CSharpCompilationOptions WithWarningLevel(int warningLevel)
         {
             if (warningLevel == this.WarningLevel)
             {
@@ -672,11 +672,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompilationOptions CommonWithCheckOverflow(bool checkOverflow)
         {
             return WithOverflowChecks(checkOverflow);
-        }
-
-        protected override CompilationOptions CommonWithWarningLevel(int warningLevel)
-        {
-            return WithWarningLevel(warningLevel);
         }
 
         // 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH

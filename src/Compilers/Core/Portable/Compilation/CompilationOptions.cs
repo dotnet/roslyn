@@ -507,11 +507,6 @@ namespace Microsoft.CodeAnalysis
             return CommonWithCheckOverflow(checkOverflow);
         }
 
-        public CompilationOptions WithWarningLevel(int warningLevel)
-        {
-            return CommonWithWarningLevel(warningLevel);
-        }
-
         protected abstract CompilationOptions CommonWithConcurrentBuild(bool concurrent);
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
@@ -535,7 +530,6 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
         protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
         protected abstract CompilationOptions CommonWithCheckOverflow(bool checkOverflow);
-        protected abstract CompilationOptions CommonWithWarningLevel(int warningLevel);
 
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
