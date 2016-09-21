@@ -2410,8 +2410,8 @@ tryAgain:
                 if (deconstruction != null)
                 {
                     var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                    // TODO: is that the best way to handle mods?
-                    return _syntaxFactory.GlobalStatement(_syntaxFactory.DeconstructionDeclarationStatement(new SyntaxList<SyntaxToken>(), deconstruction, semicolon));
+                    return _syntaxFactory.GlobalStatement(_syntaxFactory.DeconstructionDeclarationStatement(
+                        new SyntaxList<SyntaxToken>(), deconstruction, semicolon));
                 }
 
                 // Everything that's left -- methods, fields, properties, 

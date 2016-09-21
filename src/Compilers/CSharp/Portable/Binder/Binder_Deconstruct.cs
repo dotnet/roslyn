@@ -632,7 +632,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Each local or field is either a simple local or field access (when its type is known) or a deconstruction variable pending inference.
         /// The caller is responsible for releasing the nested ArrayBuilders.
         /// </summary>
-        private DeconstructionVariable BindDeconstructionDeclarationVariables(VariableComponentSyntax node, DiagnosticBag diagnostics)
+        private DeconstructionVariable BindDeconstructionDeclarationVariables(
+            VariableComponentSyntax node,
+            DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
@@ -656,7 +658,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DeconstructionVariable BindDeconstructionDeclarationVariables(TypeSyntax type, VariableDesignationSyntax node, DiagnosticBag diagnostics)
+        private DeconstructionVariable BindDeconstructionDeclarationVariables(
+            TypeSyntax type,
+            VariableDesignationSyntax node,
+            DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
@@ -681,12 +686,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// In embedded statements, returns a BoundLocal when the type was explicit, otherwise a DeconstructionLocalPendingInference.
-        /// In global statements, returns a BoundFieldAccess when the type was explicit, otherwise a DeconstructionLocalPendingInference.
+        /// In embedded statements, returns a BoundLocal when the type was explicit,
+        /// otherwise a DeconstructionLocalPendingInference.
+        /// In global statements, returns a BoundFieldAccess when the type was explicit,
+        /// otherwise a DeconstructionLocalPendingInference.
         /// </summary>
-        private BoundExpression BindDeconstructionDeclarationVariable(TypeSyntax typeSyntax, SingleVariableDesignationSyntax designation, DiagnosticBag diagnostics)
+        private BoundExpression BindDeconstructionDeclarationVariable(
+            TypeSyntax typeSyntax,
+            SingleVariableDesignationSyntax designation,
+            DiagnosticBag diagnostics)
         {
-            var localSymbol = LookupLocal(designation.Identifier);
+            SourceLocalSymbol localSymbol = LookupLocal(designation.Identifier);
 
             bool hasErrors = false;
             bool isVar;
@@ -700,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // An explicit type can only be provided next to the variable
                     Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);
-                    hasErrors |= true;
+                    hasErrors = true;
                 }
             }
 
@@ -729,13 +739,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
-            BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false, wasCompilerGenerated: true);
+            BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,
+                                            wasCompilerGenerated: true);
+
             if (!isVar)
             {
                 TypeSymbol fieldType = field.GetFieldType(this.FieldsBeingBound);
                 return new BoundFieldAccess(designation,
                                             receiver,
-                                            field, null, LookupResultKind.Viable, fieldType, hasErrors);
+                                            field,
+                                            constantValueOpt: null,
+                                            resultKind: LookupResultKind.Viable,
+                                            type: fieldType,
+                                            hasErrors: hasErrors);
             }
 
             return new DeconstructionVariablePendingInference(designation, field, receiver);

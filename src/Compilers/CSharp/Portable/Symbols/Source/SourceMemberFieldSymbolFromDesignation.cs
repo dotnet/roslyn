@@ -36,10 +36,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 || nodeToBind is ExpressionSyntax
                 || nodeToBind is VariableComponentAssignmentSyntax);
 
-            var typeSyntax = ((TypedVariableComponentSyntax)designation.Parent).Type;
+            TypeSyntax typeSyntax = FindClosestType(designation);
+
             return typeSyntax.IsVar
                 ? new SourceMemberFieldSymbolFromDesignationWithEnclosingContext(containingType, designation, modifiers, containingFieldOpt, nodeToBind)
                 : new SourceMemberFieldSymbolFromDesignation(containingType, designation, modifiers);
+        }
+
+        private static TypeSyntax FindClosestType(SingleVariableDesignationSyntax designation)
+        {
+            CSharpSyntaxNode parent = designation;
+
+            do
+            {
+                parent = parent.Parent;
+            }
+            while (parent.Kind() != SyntaxKind.TypedVariableComponent || ((TypedVariableComponentSyntax)parent).Type == null);
+
+            return ((TypedVariableComponentSyntax)parent).Type;
         }
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
@@ -62,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ((TypedVariableComponentSyntax)VariableDesignation.Parent).Type;
+                return FindClosestType(VariableDesignation);
             }
         }
 
@@ -215,7 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.VariableComponentAssignment:
                         var deconstruction = (VariableComponentAssignmentSyntax)nodeToBind;
-                        binder.BindDeconstructionDeclaration(deconstruction, deconstruction.VariableComponent, deconstruction.Value, diagnostics);
+
+                        binder.BindDeconstructionDeclaration(deconstruction, deconstruction.VariableComponent,
+                            deconstruction.Value, diagnostics);
+
                         break;
 
                     default:
