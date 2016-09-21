@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             nameof(RoslynFindReferencesTableDataSourceSourceTypeIdentifier);
 
         private readonly IServiceProvider _serviceProvider;
-        private readonly IAsynchronousOperationListener _asyncListener;
 
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
@@ -49,8 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             ITextEditorFactoryService textEditorFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             ClassificationTypeMap typeMap,
-            IEditorFormatMapService formatMapService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IEditorFormatMapService formatMapService)
         {
             _serviceProvider = serviceProvider;
             _textBufferFactoryService = textBufferFactoryService;
@@ -61,9 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             _textEditorFactoryService = textEditorFactoryService;
             _typeMap = typeMap;
             _formatMapService = formatMapService;
-
-            _asyncListener = new AggregateAsynchronousOperationListener(
-                asyncListeners, FeatureAttribute.ReferenceHighlighting);
 
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
         }

@@ -1867,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(expr.Syntax.Kind() != SyntaxKind.Argument || valueKind == BindValueKind.RefOrOut);
                     break;
 
-                case BoundKind.OutVarLocalPendingInference:
+                case BoundKind.OutVariablePendingInference:
                 case BoundKind.OutDeconstructVarPendingInference:
                     Debug.Assert(valueKind == BindValueKind.RefOrOut);
                     return expr;
@@ -3575,10 +3575,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If the return type is void then the expression is required to be a legal
                     // statement expression.
 
-                    Debug.Assert(expressionSyntax != null || !IsValidStatementExpression(expression.Syntax, expression));
+                    Debug.Assert(expressionSyntax != null || !IsValidExpressionBody(expressionSyntax, expression));
 
                     bool errors = false;
-                    if (expressionSyntax == null || !IsValidStatementExpression(expressionSyntax, expression))
+                    if (expressionSyntax == null || !IsValidExpressionBody(expressionSyntax, expression))
                     {
                         Error(diagnostics, ErrorCode.ERR_IllegalStatement, syntax);
                         errors = true;
@@ -3607,6 +3607,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Need to attach the tree for when we generate sequence points.
             return new BoundBlock(node, locals, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
+        }
+
+        private static bool IsValidExpressionBody(SyntaxNode expressionSyntax, BoundExpression expression)
+        {
+            return IsValidStatementExpression(expressionSyntax, expression) || expressionSyntax.Kind() == SyntaxKind.ThrowExpression;
         }
 
         /// <summary>

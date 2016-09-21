@@ -65,7 +65,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReadOnlyCollection<byte> dynamicFlags;
             ReadOnlyCollection<string> tupleElementNames;
             CustomTypeInfo.Decode(typeInfo.PayloadTypeId, typeInfo.Payload, out dynamicFlags, out tupleElementNames);
-            Debug.Assert(dynamicFlags != null || tupleElementNames != null);
+            if (dynamicFlags == null && tupleElementNames == null)
+            {
+                return s_empty;
+            }
 
             var typeDefinition = type.GetGenericTypeDefinition();
             Debug.Assert(typeDefinition != null);

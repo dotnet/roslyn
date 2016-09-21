@@ -16,8 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(eventDeclaration.Parent, EventBlockSyntax)
             If Not block?.EndEventStatement.IsMissing Then
-                spans.Add(
-                    CreateRegionFromBlock(block, bannerNode:=eventDeclaration, autoCollapse:=True))
+                spans.Add(CreateRegionFromBlock(
+                    block, bannerNode:=eventDeclaration, autoCollapse:=True,
+                    type:=BlockTypes.Event, isCollapsible:=True))
 
                 CollectCommentsRegions(block.EndEventStatement, spans)
             End If

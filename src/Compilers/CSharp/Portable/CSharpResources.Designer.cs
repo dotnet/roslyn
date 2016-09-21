@@ -3338,6 +3338,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error writing to XML documentation file: {0}.
+        /// </summary>
+        internal static string ERR_DocFileGen {
+            get {
+                return ResourceManager.GetString("ERR_DocFileGen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; does not implement &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_DoesntImplementAwaitInterface {
@@ -8747,6 +8756,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A throw expression is not allowed in this context..
+        /// </summary>
+        internal static string ERR_ThrowMisplaced {
+            get {
+                return ResourceManager.GetString("ERR_ThrowMisplaced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Catch clauses cannot follow the general catch clause of a try statement.
         /// </summary>
         internal static string ERR_TooManyCatches {
@@ -8806,15 +8824,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TupleElementNamesAttributeMissing {
             get {
                 return ResourceManager.GetString("ERR_TupleElementNamesAttributeMissing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tuple member names must all be provided, if any one is provided..
-        /// </summary>
-        internal static string ERR_TupleExplicitNamesOnAllMembersOrNone {
-            get {
-                return ResourceManager.GetString("ERR_TupleExplicitNamesOnAllMembersOrNone", resourceCulture);
             }
         }
         
@@ -9995,6 +10004,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureSwitchOnBool {
             get {
                 return ResourceManager.GetString("IDS_FeatureSwitchOnBool", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to throw expression.
+        /// </summary>
+        internal static string IDS_FeatureThrowExpression {
+            get {
+                return ResourceManager.GetString("IDS_FeatureThrowExpression", resourceCulture);
             }
         }
         

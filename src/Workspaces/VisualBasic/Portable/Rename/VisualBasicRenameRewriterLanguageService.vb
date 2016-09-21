@@ -648,7 +648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             replacementText As String,
             renamedSymbol As ISymbol,
             renameSymbol As ISymbol,
-            referencedSymbols As IEnumerable(Of ISymbol),
+            referencedSymbols As IEnumerable(Of SymbolAndProjectId),
             baseSolution As Solution,
             newSolution As Solution,
             reverseMappedLocations As IDictionary(Of Location, Location),
@@ -705,9 +705,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         .Select(Function(loc) reverseMappedLocations(loc)))
 
             ElseIf renamedSymbol.Kind = SymbolKind.Property Then
-                ConflictResolver.AddConflictingParametersOfProperties(referencedSymbols.Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
-                                                 renamedSymbol.Name,
-                                                 conflicts)
+                ConflictResolver.AddConflictingParametersOfProperties(
+                    referencedSymbols.Select(Function(s) s.Symbol).Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
+                    renamedSymbol.Name,
+                    conflicts)
 
             ElseIf renamedSymbol.Kind = SymbolKind.TypeParameter Then
                 For Each location In renamedSymbol.Locations

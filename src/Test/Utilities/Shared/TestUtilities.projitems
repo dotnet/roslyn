@@ -44,7 +44,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FX\CultureHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\DirectoryHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EncodingUtilities.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FX\EnsureEnglishCulture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\EnsureInvariantCulture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EnsureEnglishUICulture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EventWaiter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\ImmutableArrayTestExtensions.cs" />

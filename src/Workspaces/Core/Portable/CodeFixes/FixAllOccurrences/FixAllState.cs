@@ -166,6 +166,40 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 .Select(d => d.Id);
         }
 
+        internal string GetDefaultFixAllTitle()
+        {
+            var diagnosticIds = this.DiagnosticIds;
+            string diagnosticId;
+            if (diagnosticIds.Count() == 1)
+            {
+                diagnosticId = diagnosticIds.Single();
+            }
+            else
+            {
+                diagnosticId = string.Join(",", diagnosticIds.ToArray());
+            }
+
+            switch (this.Scope)
+            {
+                case FixAllScope.Custom:
+                    return string.Format(WorkspacesResources.Fix_all_0, diagnosticId);
+
+                case FixAllScope.Document:
+                    var document = this.Document;
+                    return string.Format(WorkspacesResources.Fix_all_0_in_1, diagnosticId, document.Name);
+
+                case FixAllScope.Project:
+                    var project = this.Project;
+                    return string.Format(WorkspacesResources.Fix_all_0_in_1, diagnosticId, project.Name);
+
+                case FixAllScope.Solution:
+                    return string.Format(WorkspacesResources.Fix_all_0_in_Solution, diagnosticId);
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+        }
+
         #region FixMultiple
 
         internal static FixAllState Create(

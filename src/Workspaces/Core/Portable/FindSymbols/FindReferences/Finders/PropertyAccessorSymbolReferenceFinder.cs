@@ -16,13 +16,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.MethodKind.IsPropertyAccessor();
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(IMethodSymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            CancellationToken cancellationToken)
         {
-            var result = await base.DetermineCascadedSymbolsAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
+            var result = await base.DetermineCascadedSymbolsAsync(
+                symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
 
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol.AssociatedSymbol != null)
             {
-                result = result.Concat(symbol.AssociatedSymbol);
+                result = result.Concat(symbolAndProjectId.WithSymbol(symbol.AssociatedSymbol));
             }
 
             return result;

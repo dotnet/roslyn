@@ -120,6 +120,9 @@
   <data name="IDS_NULL" xml:space="preserve">
     <value>&lt;null&gt;</value>
   </data>
+  <data name="IDS_ThrowExpression" xml:space="preserve">
+    <value>&lt;throw expression&gt;</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -209,6 +212,9 @@
   </data>
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
+  </data>
+  <data name="IDS_FeatureThrowExpression" xml:space="preserve">
+    <value>throw expression</value>
   </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
@@ -2502,6 +2508,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_CantReadResource" xml:space="preserve">
     <value>Error reading resource '{0}' -- '{1}'</value>
+  </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
   </data>
   <data name="WRN_XMLParseError" xml:space="preserve">
     <value>XML comment has badly formed XML -- '{0}'</value>
@@ -4845,9 +4854,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
     <value>Tuple member names must be unique.</value>
   </data>
-  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
-    <value>Tuple member names must all be provided, if any one is provided.</value>
-  </data>
   <data name="ERR_TupleReservedMemberName" xml:space="preserve">
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
@@ -4952,5 +4958,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
     <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
+  </data>
+  <data name="ERR_ThrowMisplaced" xml:space="preserve">
+    <value>A throw expression is not allowed in this context.</value>
   </data>
 </root>
