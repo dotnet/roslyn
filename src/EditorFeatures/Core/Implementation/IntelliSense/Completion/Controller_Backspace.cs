@@ -114,10 +114,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private bool CaretHasLeftDefaultTrackingSpan(int caretPoint, Document document)
         {
+            var completionService = GetCompletionService();
+            if (completionService == null)
+            {
+                // SubjectBuffer no longer even has a workspace mapping
+                return true;
+            }
+
             // We haven't finished computing the model, but we may need to dismiss.
             // Get the context span and see if we're outside it.
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var contextSpan = GetCompletionService().GetDefaultCompletionListSpan(text, caretPoint);
+            var contextSpan = completionService.GetDefaultCompletionListSpan(text, caretPoint);
             var newCaretPoint = GetCaretPointInViewBuffer();
             return !contextSpan.IntersectsWith(new TextSpan(newCaretPoint, 0));
         }
