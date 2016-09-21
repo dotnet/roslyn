@@ -2267,5 +2267,18 @@ namespace WB.Core.SharedKernels.DataCollection.Generated
             Assert.NotNull(root);
             Assert.Equal(SyntaxKind.CompilationUnit, root.Kind());
         }
+
+        [Fact]
+        public void TestTargetTypedDefault()
+        {
+            var text = "default";
+            var expr = this.ParseExpression(text, TestOptions.ExperimentalParseOptions);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.DefaultLiteral, expr.Kind());
+            Assert.False(((DefaultLiteralSyntax)expr).Keyword.IsMissing);
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+        }
     }
 }

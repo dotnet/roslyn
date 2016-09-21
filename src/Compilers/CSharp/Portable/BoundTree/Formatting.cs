@@ -119,4 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { throw ExceptionUtilities.Unreachable; }
         }
     }
+
+    internal partial class BoundDefaultOperator
+    {
+        public override object Display
+        {
+            get { return (object)this.Type ?? "default"; }
+        }
+    }
 }

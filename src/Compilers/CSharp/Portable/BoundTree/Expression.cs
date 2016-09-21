@@ -1967,7 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-    
+
     internal partial class BoundSourceDocumentIndex
     {
         protected override OperationKind ExpressionKind => OperationKind.None;

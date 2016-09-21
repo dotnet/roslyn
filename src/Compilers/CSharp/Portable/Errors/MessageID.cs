@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureOutVar = MessageBase + 12713,
 
         IDS_FeatureIOperation = MessageBase + 12714,
+        IDS_FeatureDefaultLiteral = MessageBase + 12715,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -167,6 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case MessageID.IDS_FeatureIOperation:
                     return "IOperation";
+                case MessageID.IDS_FeatureDefaultLiteral:
+                    return "defaultLiteral";
                 default:
                     return null;
             }
