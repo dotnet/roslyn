@@ -9,7 +9,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class VisualBasicCompilationOptionsTests
         Inherits BasicTestBase
-                
+
         ''' <summary>
         ''' Using an instance of <see cref="VisualBasicCompilationOptions"/>, tests a property in <see cref="CompilationOptions"/> , even it is hidden by <see cref="VisualBasicCompilationOptions"/>.
         ''' </summary>
@@ -124,6 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithSourceReferenceResolver(value), Function(opt) opt.SourceReferenceResolver, New SourceFileResolver(ImmutableArray(Of String).Empty, Nothing))
             TestProperty(Function(old, value) old.WithMetadataReferenceResolver(value), Function(opt) opt.MetadataReferenceResolver, New TestMetadataReferenceResolver())
             TestProperty(Function(old, value) old.WithAssemblyIdentityComparer(value), Function(opt) opt.AssemblyIdentityComparer, New DesktopAssemblyIdentityComparer(New AssemblyPortabilityPolicy()))
+            TestProperty(Function(old, value) old.WithStrongNameProvider(value), Function(opt) opt.StrongNameProvider, New DesktopStrongNameProvider())
             TestProperty(Function(old, value) old.WithWarningLevel(value), Function(opt) opt.WarningLevel, 3)
         End Sub
 
