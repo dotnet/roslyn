@@ -3773,5 +3773,76 @@ System.Console.Write($""{x1} {x2} {x3}"");
 }
 ");
         }
+
+        [Fact]
+        public void DeconstructionForEachInScript()
+        {
+            var source =
+@"
+foreach ((string x1, var (x2, x3)) in new[] { (""hello"", (42, ""world"")) })
+{
+    System.Console.Write($""{x1} {x2} {x3}"");
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Symbol = model.GetDeclaredSymbol(x1);
+                Assert.Equal("System.String x1", x1Symbol.ToTestDisplayString());
+                Assert.Equal("Local", x1Symbol.Kind.ToString());
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Symbol = model.GetDeclaredSymbol(x2);
+                Assert.Equal("System.Int32 x2", x2Symbol.ToTestDisplayString());
+                Assert.Equal("Local", x2Symbol.Kind.ToString());
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void DeconstructionInForLoopInScript()
+        {
+            var source =
+@"
+for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
+{
+    System.Console.Write($""{x1} {x2} {x3}"");
+    break;
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Symbol = model.GetDeclaredSymbol(x1);
+                Assert.Equal("System.String x1", x1Symbol.ToTestDisplayString());
+                Assert.Equal("Local", x1Symbol.Kind.ToString());
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Symbol = model.GetDeclaredSymbol(x2);
+                Assert.Equal("System.Int32 x2", x2Symbol.ToTestDisplayString());
+                Assert.Equal("Local", x2Symbol.Kind.ToString());
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
+        }
     }
 }
