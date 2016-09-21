@@ -78,8 +78,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             TObjectCreationExpressionSyntax objectCreation,
             List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches);
 
-        // protected abstract SyntaxNode AddTrivia(SyntaxNode syntaxNode);
-
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
@@ -89,4 +87,3 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
     }
 }
-
