@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
         {
-            Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
+            Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator
+                || nodeToBind is ExpressionSyntax
+                || nodeToBind is VariableComponentAssignmentSyntax);
+
             var typeSyntax = ((TypedVariableComponentSyntax)designation.Parent).Type;
             return typeSyntax.IsVar
                 ? new SourceMemberFieldSymbolFromDesignationWithEnclosingContext(containingType, designation, modifiers, containingFieldOpt, nodeToBind)
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (SingleVariableDesignationSyntax)this.SyntaxNode;
             }
         }
-        
+
         protected override TypeSyntax TypeSyntax
         {
             get
@@ -179,7 +182,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxNode nodeToBind)
                 : base(containingType, designation, modifiers)
             {
-                Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
+                Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator
+                    || nodeToBind is ExpressionSyntax
+                    || nodeToBind is VariableComponentAssignmentSyntax);
+
                 _containingFieldOpt = containingFieldOpt;
                 _nodeToBind = nodeToBind.GetReference();
             }
@@ -205,6 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // int x, y[out var Z, 1 is int I];
                         // for (int x, y[out var Z, 1 is int I]; ;) {}
                         binder.BindDeclaratorArguments((VariableDeclaratorSyntax)nodeToBind, diagnostics);
+                        break;
+
+                    case SyntaxKind.VariableComponentAssignment:
+                        var deconstruction = (VariableComponentAssignmentSyntax)nodeToBind;
+                        binder.BindDeconstructionDeclaration(deconstruction, deconstruction.VariableComponent, deconstruction.Value, diagnostics);
                         break;
 
                     default:

@@ -3000,7 +3000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This node represents a deconstruction local.
     /// It is only used temporarily during initial binding.
     /// </summary>
-    internal partial class DeconstructionLocalPendingInference
+    internal partial class DeconstructionVariablePendingInference
     {
         public override void Accept(OperationVisitor visitor)
         {

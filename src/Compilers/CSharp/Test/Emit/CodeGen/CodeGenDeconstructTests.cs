@@ -3535,7 +3535,22 @@ System.Console.Write($""{x} {y} {z}"");
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43");
         }
-         
+
+        [Fact]
+        public void VarDeconstructionInScript()
+        {
+            var source =
+@"
+(var x, var y) = (""hello"", 42);
+System.Console.Write($""{x} {y}"");
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42");
+            // TODO: verify semantic model
+        }
+
         [Fact]
         public void InScript2()
         {

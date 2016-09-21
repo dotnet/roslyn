@@ -226,9 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < matchCount; i++)
             {
                 var variable = variables[i];
-                if (!variable.HasNestedVariables && variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
+                if (!variable.HasNestedVariables && variable.Single.Kind == BoundKind.DeconstructionVariablePendingInference)
                 {
-                    BoundLocal local = ((DeconstructionLocalPendingInference)variable.Single).SetInferredType(foundTypes[i], success: true);
+                    BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).SetInferredType(foundTypes[i], success: true);
                     variables[i] = new DeconstructionVariable(local, local.Syntax);
                 }
             }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void FailRemainingInferences(ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics)
         {
-            var count = variables.Count;
+            int count = variables.Count;
             for (int i = 0; i < count; i++)
             {
                 var variable = variables[i];
@@ -249,9 +249,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
+                    if (variable.Single.Kind == BoundKind.DeconstructionVariablePendingInference)
                     {
-                        var local = ((DeconstructionLocalPendingInference)variable.Single).FailInference(this);
+                        BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this);
                         variables[i] = new DeconstructionVariable(local, local.Syntax);
                     }
                 }
@@ -688,32 +688,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var localSymbol = LookupLocal(designation.Identifier);
 
+            bool hasErrors = false;
+            bool isVar;
+            bool isConst = false;
+            AliasSymbol alias;
+            TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+
+            if (!isVar)
+            {
+                if (designation.Parent.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+                {
+                    // An explicit type can only be provided next to the variable
+                    Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);
+                    hasErrors |= true;
+                }
+            }
+
             // is this a local?
             if (localSymbol != null)
             {
                 // Check for variable declaration errors.
                 // Use the binder that owns the scope for the local because this (the current) binder
                 // might own nested scope.
-                bool hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
-
-                bool isVar;
-                bool isConst = false;
-                AliasSymbol alias;
-                TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+                hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
                 if (!isVar)
                 {
-                    if (designation.Parent.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
-                    {
-                        // An explicit type can only be provided next to the variable
-                        Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);
-                        hasErrors = true;
-                    }
-
                     return new BoundLocal(designation, localSymbol, constantValueOpt: null, type: declType, hasErrors: hasErrors);
                 }
 
-                return new DeconstructionLocalPendingInference(designation, localSymbol);
+                return new DeconstructionVariablePendingInference(designation, localSymbol, receiverOpt: null);
             }
 
             // Is this a field?
@@ -725,13 +729,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
-            // TODO: handle var case
-            // TODO: rename  DeconstructionLocalPendingInference
             BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false, wasCompilerGenerated: true);
-            TypeSymbol fieldType = field.GetFieldType(this.FieldsBeingBound);
-            return new BoundFieldAccess(designation,
-                                        receiver,
-                                        field, null, LookupResultKind.Viable, fieldType);
+            if (!isVar)
+            {
+                TypeSymbol fieldType = field.GetFieldType(this.FieldsBeingBound);
+                return new BoundFieldAccess(designation,
+                                            receiver,
+                                            field, null, LookupResultKind.Viable, fieldType, hasErrors);
+            }
+
+            return new DeconstructionVariablePendingInference(designation, field, receiver);
         }
     }
 }

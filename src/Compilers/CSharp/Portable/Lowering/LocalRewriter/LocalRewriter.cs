@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override BoundNode VisitDeconstructionLocalPendingInference(DeconstructionLocalPendingInference node)
+        public override BoundNode VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
         {
             // DeconstructionLocalPendingInference nodes are only used within initial binding, but don't survive past that stage
             throw ExceptionUtilities.Unreachable;
