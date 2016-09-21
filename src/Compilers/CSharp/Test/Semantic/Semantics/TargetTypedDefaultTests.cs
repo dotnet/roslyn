@@ -201,6 +201,9 @@ class C
     static void Main()
     {
         default.ToString();
+        default[0].ToString();
+        System.Console.Write(nameof(default));
+        throw default;
     }
 }
 ";
@@ -208,7 +211,16 @@ class C
             comp.VerifyDiagnostics(
                 // (6,16): error CS0023: Operator '.' cannot be applied to operand of type 'default'
                 //         default.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(6, 16),
+                // (7,9): error CS0021: Cannot apply indexing with [] to an expression of type 'default'
+                //         default[0].ToString();
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "default[0]").WithArguments("default").WithLocation(7, 9),
+                // (8,37): error CS8081: Expression does not have a name.
+                //         System.Console.Write(nameof(default));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "default").WithLocation(8, 37),
+                // (9,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         throw default;
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "default").WithLocation(9, 15)
                 );
         }
 
@@ -343,7 +355,7 @@ class C
         }
 
         [Fact]
-        public void ReturnRefType()
+        public void ReturnNullableType()
         {
             string source = @"
 class C
@@ -355,8 +367,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
-            comp.VerifyDiagnostics(
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact(Skip = "PROTOTYPE(default)")]

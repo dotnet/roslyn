@@ -4848,8 +4848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)leftType == null);
 
                 var msgId = ((UnboundLambda)boundLeft).MessageID;
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
-                diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
+                diagnostics.Add(ErrorCode.ERR_BadUnaryOp, node.Location, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
                 return BadExpression(node, boundLeft);
             }
 
