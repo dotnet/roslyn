@@ -2892,7 +2892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if (IsScriptClass)
                                 {
                                     // also gather expression-declared variables from the bracketed argument lists and the initializers
-                                    ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers, variable, this, 
+                                    ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers, variable, this,
                                                             DeclarationModifiers.Private | (modifiers & DeclarationModifiers.Static),
                                                             fieldSymbol);
                                 }
@@ -3149,12 +3149,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 switch (innerStatement.Kind())
                                 {
                                     case SyntaxKind.DeconstructionDeclarationStatement:
+                                        var assignment = ((DeconstructionDeclarationStatementSyntax)innerStatement).Assignment;
+
+                                        CollectFieldsFromGlobalDeconstruction(builder.NonTypeNonIndexerMembers,
+                                            assignment.VariableComponent,
+                                            this);
+
                                         ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers,
-                                                  ((DeconstructionDeclarationStatementSyntax)innerStatement).Assignment.Value,
-                                                  this,
-                                                  DeclarationModifiers.Private,
-                                                  containingFieldOpt: null);
-                                        break; 
+                                            assignment.Value,
+                                            this,
+                                            DeclarationModifiers.Private,
+                                            containingFieldOpt: null);
+                                        break;
 
                                     case SyntaxKind.LocalDeclarationStatement:
                                         // We shouldn't reach this place, but field declarations preceded with a label end up here.
@@ -3205,6 +3211,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddInitializers(builder.InstanceInitializers, instanceInitializers);
             AddInitializers(builder.StaticInitializers, staticInitializers);
+        }
+
+        private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableComponentSyntax variableComponent,
+            SourceMemberContainerTypeSymbol containingType)
+        {
+            switch (variableComponent.Kind())
+            {
+                case SyntaxKind.TypedVariableComponent:
+                    CollectFieldsFromGlobalDeconstruction(
+                        builder,
+                        ((TypedVariableComponentSyntax)variableComponent).Designation,
+                        containingType);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    foreach (var variable in ((ParenthesizedVariableComponentSyntax)variableComponent).Variables)
+                    {
+                        CollectFieldsFromGlobalDeconstruction(builder, variable, containingType);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(variableComponent.Kind());
+            }
+        }
+
+        private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableDesignationSyntax designation,
+            SourceMemberContainerTypeSymbol containingType)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    builder.Add(new SourceMemberFieldSymbolFromDesignation(
+                        containingType,
+                        (SingleVariableDesignationSyntax)designation,
+                        DeclarationModifiers.Private));
+
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    foreach (var variable in ((ParenthesizedVariableDesignationSyntax)designation).Variables)
+                    {
+                       CollectFieldsFromGlobalDeconstruction(builder, variable, containingType);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
         }
 
         private static bool IsGlobalCodeAllowed(CSharpSyntaxNode parent)
