@@ -182,8 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
             Debug.Assert((object)currentFrame != null);
-            var sourceAssembly = compilation.SourceAssembly;
-            var symbolProvider = new CSharpEESymbolProvider(sourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
+            var symbolProvider = new CSharpEESymbolProvider(compilation.SourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
 
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
             var localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle);

@@ -698,10 +698,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return names
             End Function
 
-            Private Shared Function TryGetNames(type As TypeSymbol, namesBuilder As ArrayBuilder(Of String)) As Boolean
+            Friend Shared Function TryGetNames(type As TypeSymbol, namesBuilder As ArrayBuilder(Of String)) As Boolean
                 type.VisitType(Function(t As TypeSymbol, builder As ArrayBuilder(Of String)) AddNames(t, builder), namesBuilder)
-                Debug.Assert(namesBuilder.Any())
-
                 Return namesBuilder.Any(Function(name) name IsNot Nothing)
             End Function
 

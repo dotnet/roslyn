@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var peModule = (PEModuleSymbol)peMethod.ContainingModule;
 
             var symReader = runtime.Modules.Single(mi => mi.ModuleVersionId == peModule.Module.GetModuleVersionIdOrThrow()).SymReader;
-            var symbolProvider = new CSharpEESymbolProvider((SourceAssemblySymbol)peCompilation.Assembly, peModule, peMethod);
+            var symbolProvider = new CSharpEESymbolProvider(peCompilation.SourceAssembly, peModule, peMethod);
 
             return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
         }

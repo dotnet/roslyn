@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class EEAssemblyBuilder
         Inherits PEAssemblyBuilderBase
 
-        Private ReadOnly _methods As ImmutableArray(Of MethodSymbol)
+        Friend ReadOnly Methods As ImmutableArray(Of MethodSymbol)
 
         Friend Sub New(
             sourceAssembly As SourceAssemblySymbol,
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 manifestResources:=SpecializedCollections.EmptyEnumerable(Of ResourceDescription)(),
                 additionalTypes:=additionalTypes)
 
-            _methods = methods
+            Me.Methods = methods
 
             If testData IsNot Nothing Then
                 SetMethodTestData(testData.Methods)
@@ -74,12 +74,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Dim method = TryCast(symbol, EEMethodSymbol)
-            If method IsNot Nothing AndAlso _methods.Contains(method) Then
+            If method IsNot Nothing AndAlso Methods.Contains(method) Then
                 Dim defs = GetLocalDefinitions(method.Locals)
                 Return New SlotAllocator(defs)
             End If
 
-            Debug.Assert(Not _methods.Contains(symbol))
+            Debug.Assert(Not Methods.Contains(symbol))
             Return Nothing
         End Function
 
