@@ -436,8 +436,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                             var name = designation.Identifier.ValueText;
                             if (variablesToRemove.HasSyntaxAnnotation(designation))
                             {
+                                var newLeadingTrivia = new SyntaxTriviaList();
+                                newLeadingTrivia = newLeadingTrivia.AddRange(variableComponent.Type.GetLeadingTrivia());
+                                newLeadingTrivia = newLeadingTrivia.AddRange(variableComponent.Type.GetTrailingTrivia());
+                                newLeadingTrivia = newLeadingTrivia.AddRange(designation.GetLeadingTrivia());
+
                                 replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)
-                                    .WithLeadingTrivia(variableComponent.Type.GetTrailingTrivia()));
+                                    .WithLeadingTrivia(newLeadingTrivia));
                             }
 
                             break;
