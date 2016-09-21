@@ -2406,12 +2406,15 @@ tryAgain:
                     }
                 }
 
-                var deconstruction = ParseDeconstructionDeclarationAssignment();
-                if (deconstruction != null)
+                if (acceptStatement)
                 {
-                    var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                    return _syntaxFactory.GlobalStatement(_syntaxFactory.DeconstructionDeclarationStatement(
-                        new SyntaxList<SyntaxToken>(), deconstruction, semicolon));
+                    var deconstruction = ParseDeconstructionDeclarationAssignment();
+                    if (deconstruction != null)
+                    {
+                        var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+                        return _syntaxFactory.GlobalStatement(_syntaxFactory.DeconstructionDeclarationStatement(
+                            new SyntaxList<SyntaxToken>(), deconstruction, semicolon));
+                    }
                 }
 
                 // Everything that's left -- methods, fields, properties, 
