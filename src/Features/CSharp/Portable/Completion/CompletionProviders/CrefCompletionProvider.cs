@@ -15,10 +15,11 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class CrefCompletionProvider : CommonCompletionProvider
+    internal sealed class CrefCompletionProvider : CommonCompletionProvider
     {
         public static readonly SymbolDisplayFormat QualifiedCrefFormat =
             new SymbolDisplayFormat(
@@ -39,6 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        private readonly Action<SyntaxNode> _testSpeculativeNodeCallbackOpt;
+
+        public CrefCompletionProvider(Action<SyntaxNode> testSpeculativeNodeCallbackOpt = null)
+        {
+            _testSpeculativeNodeCallbackOpt = testSpeculativeNodeCallbackOpt;
+        }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -64,12 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // To get a Speculative SemanticModel (which is much faster), we need to 
             // walk up to the node the DocumentationTrivia is attached to.
             var parentNode = token.Parent.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>()?.ParentTrivia.Token.Parent;
+            _testSpeculativeNodeCallbackOpt?.Invoke(parentNode);
             if (parentNode == null)
             {
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForNodeAsync(
+                parentNode, cancellationToken).ConfigureAwait(false);
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken);
 
