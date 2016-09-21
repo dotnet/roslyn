@@ -84,8 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return InCref && !this.Flags.Includes(BinderFlags.CrefParameterOrReturnType); }
         }
 
-        protected virtual bool IsBindingNameOf => false;
-
         /// <summary>
         /// Returns true if the node is in a position where an unbound type
         /// such as (C&lt;,&gt;) is allowed.
@@ -5666,7 +5664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = this.CheckInstanceOrStatic(node, receiver, fieldSymbol, ref resultKind, diagnostics);
             }
 
-            if (!hasError && fieldSymbol.IsFixed && !IsBindingNameOf) 
+            var notInsideNameOf = EnclosingNameofArgument == null;
+            if (!hasError && fieldSymbol.IsFixed && notInsideNameOf)
             {
                 TypeSymbol receiverType = receiver.Type;
                 hasError =

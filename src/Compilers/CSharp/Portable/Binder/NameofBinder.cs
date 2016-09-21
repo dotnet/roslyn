@@ -12,7 +12,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override SyntaxNode EnclosingNameofArgument => _nameofArgument;
-
-        protected override bool IsBindingNameOf => true;
     }
 }
