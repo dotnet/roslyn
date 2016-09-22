@@ -2237,6 +2237,25 @@ Deconstructing (1, hello)
             }
         }
 
+        private static void VerifyModelForDeconstructionField(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            var field = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(decl.Identifier.ValueText, field.Name);
+            Assert.Equal(SymbolKind.Field, ((FieldSymbol)field).Kind);
+            Assert.Same(field, model.GetDeclaredSymbol((SyntaxNode)decl));
+            Assert.Same(field, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
+            Assert.Equal(Accessibility.Private, field.DeclaredAccessibility);
+            Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+
+            foreach (var reference in references)
+            {
+                Assert.Same(field, model.GetSymbolInfo(reference).Symbol);
+                Assert.Same(field, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
+                Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
+                Assert.Equal(field.Type, model.GetTypeInfo(reference).Type);
+            }
+        }
+
         private static TypeSyntax GetTypeSyntax(SingleVariableDesignationSyntax decl)
         {
             return (decl.Parent as TypedVariableComponentSyntax)?.Type;
@@ -3507,6 +3526,9 @@ class C
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.var(x, y)").WithLocation(4, 5)
                 );
+
+            var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
+            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.DeconstructionDeclarationStatement));
         }
 
         [Fact]
@@ -3517,10 +3539,43 @@ class C
 (string x, int y) = (""hello"", 42);
 System.Console.Write($""{x} {y}"");
 ";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x = GetDeconstructionVariable(tree, "x");
+                var xSymbol = model.GetDeclaredSymbol(x);
+                var xRef = GetReference(tree, "x");
+                Assert.Equal("System.String Script.x", xSymbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, x, xRef);
+
+                var y = GetDeconstructionVariable(tree, "y");
+                var ySymbol = model.GetDeclaredSymbol(y);
+                var yRef = GetReference(tree, "y");
+                Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, y, yRef);
+
+                // extra checks on x
+                var xType = GetTypeSyntax(x);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(xType).Symbol.Kind);
+                Assert.Equal("string", model.GetSymbolInfo(xType).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(xType));
+
+                // extra checks on y
+                var yType = GetTypeSyntax(y);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(yType).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(yType).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(yType));
+            };
+
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42");
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42", sourceSymbolValidator: validator);
             verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      151 (0x97)
@@ -3613,6 +3668,9 @@ System.Console.Write($""{x} {y}"");
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
                 );
+
+            var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
+            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.DeconstructionDeclarationStatement));
         }
 
         [Fact]
@@ -3648,7 +3706,7 @@ System.Console.Write($""{x} {y}"");
         {
             var source =
 @"
-var (x1, (x2, x3)) = (""hello"", (42, 43));
+(var x1, var (x2, x3)) = (""hello"", (42, 43));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
@@ -3661,19 +3719,25 @@ System.Console.Write($""{x1} {x2} {x3}"");
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Symbol = model.GetDeclaredSymbol(x1);
+                var x1Ref = GetReference(tree, "x1");
                 Assert.Equal("System.String Script.x1", x1Symbol.ToTestDisplayString());
-                Assert.Equal("Field", x1Symbol.Kind.ToString());
-                var x1Field = (FieldSymbol)x1Symbol;
-                Assert.Equal("System.String", x1Field.Type.ToTestDisplayString());
-                Assert.Equal("Private", x1Field.DeclaredAccessibility.ToString());
+                VerifyModelForDeconstructionField(model, x1, x1Ref);
 
                 var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Symbol = model.GetDeclaredSymbol(x2);
+                var x2Ref = GetReference(tree, "x2");
                 Assert.Equal("System.Int32 Script.x2", x2Symbol.ToTestDisplayString());
-                Assert.Equal("Field", x2Symbol.Kind.ToString());
-                var x2Field = (FieldSymbol)x2Symbol;
-                Assert.Equal("System.Int32", x2Field.Type.ToTestDisplayString());
-                Assert.Equal("Private", x2Field.DeclaredAccessibility.ToString());
+                VerifyModelForDeconstructionField(model, x2, x2Ref);
+
+                // extra checks on x1
+                var x1Type = GetTypeSyntax(x1);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+                Assert.Equal("string", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(x1Type));
+
+                var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
+                Assert.Equal("var", x23Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
             };
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
@@ -3795,12 +3859,12 @@ foreach ((string x1, var (x2, x3)) in new[] { (""hello"", (42, ""world"")) })
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Symbol = model.GetDeclaredSymbol(x1);
                 Assert.Equal("System.String x1", x1Symbol.ToTestDisplayString());
-                Assert.Equal("Local", x1Symbol.Kind.ToString());
+                Assert.Equal(SymbolKind.Local, x1Symbol.Kind);
 
                 var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Symbol = model.GetDeclaredSymbol(x2);
                 Assert.Equal("System.Int32 x2", x2Symbol.ToTestDisplayString());
-                Assert.Equal("Local", x2Symbol.Kind.ToString());
+                Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
             };
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
@@ -3831,12 +3895,12 @@ for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Symbol = model.GetDeclaredSymbol(x1);
                 Assert.Equal("System.String x1", x1Symbol.ToTestDisplayString());
-                Assert.Equal("Local", x1Symbol.Kind.ToString());
+                Assert.Equal(SymbolKind.Local   , x1Symbol.Kind);
 
                 var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Symbol = model.GetDeclaredSymbol(x2);
                 Assert.Equal("System.Int32 x2", x2Symbol.ToTestDisplayString());
-                Assert.Equal("Local", x2Symbol.Kind.ToString());
+                Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
             };
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
@@ -3844,5 +3908,128 @@ for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
         }
+
+        [Fact]
+        public void DeconstructionInCSharp6Script()
+        {
+            var source =
+@"
+var (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x, y)").WithArguments("tuples", "7").WithLocation(2, 1),
+                // (2,14): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        public void InvalidDeconstructionInScript()
+        {
+            var source =
+@"
+int (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (2,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // int (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x").WithLocation(2, 6),
+                // (2,9): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // int (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "y").WithLocation(2, 9)
+                );
+        }
+
+        [Fact]
+        public void NameConflictInDeconstructionInScript()
+        {
+            var source =
+@"
+int x;
+var (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,6): error CS0102: The type 'Script' already contains a definition for 'x'
+                // var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x").WithArguments("Script", "x").WithLocation(3, 6)
+                );
+        }
+
+        [Fact]
+        public void NameConflictInDeconstructionInScript2()
+        {
+            var source =
+@"
+var (x, y) = (1, 2);
+var (z, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS0102: The type 'Script' already contains a definition for 'y'
+                // var (z, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "y").WithArguments("Script", "y").WithLocation(3, 9)
+                );
+        }
+
+        [Fact]
+        public void UnassignedUsedInDeconstructionInScript()
+        {
+            var source =
+@"
+System.Console.Write(x);
+var (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void FailedInferenceInDeconstructionInScript()
+        {
+            var source =
+@"
+var (x, y) = (1, null);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS8130: The type information on the left-hand-side 'y' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "var (x, y) = (1, null);").WithArguments("y", "null").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void FailedCircularInferenceInDeconstructionInScript()
+        {
+            var source =
+@"
+var (x, y) = (y, x);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS7019: Type of 'y' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x, y) = (y, x);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "y").WithArguments("y").WithLocation(2, 9),
+                // (2,6): error CS7019: Type of 'x' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x, y) = (y, x);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x").WithArguments("x").WithLocation(2, 6)
+                );
+        }
+
     }
 }

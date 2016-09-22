@@ -19,41 +19,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceMemberFieldSymbolFromDesignation(
             SourceMemberContainerTypeSymbol containingType,
             SingleVariableDesignationSyntax designation,
+            TypeSyntax typeSyntax,
             DeclarationModifiers modifiers)
             : base(containingType, modifiers, designation.Identifier.ValueText, designation.GetReference(), designation.Identifier.GetLocation())
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
+            TypeSyntax = typeSyntax;
         }
 
         internal static SourceMemberFieldSymbolFromDesignation Create(
                 SourceMemberContainerTypeSymbol containingType,
                 SingleVariableDesignationSyntax designation,
+                TypeSyntax typeSyntax,
                 DeclarationModifiers modifiers,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
         {
             Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator
                 || nodeToBind is ExpressionSyntax
-                || nodeToBind is VariableComponentAssignmentSyntax);
-
-            TypeSyntax typeSyntax = FindClosestType(designation);
+                || nodeToBind.Kind() == SyntaxKind.VariableComponentAssignment);
 
             return typeSyntax.IsVar
-                ? new SourceMemberFieldSymbolFromDesignationWithEnclosingContext(containingType, designation, modifiers, containingFieldOpt, nodeToBind)
-                : new SourceMemberFieldSymbolFromDesignation(containingType, designation, modifiers);
-        }
-
-        private static TypeSyntax FindClosestType(SingleVariableDesignationSyntax designation)
-        {
-            CSharpSyntaxNode parent = designation;
-
-            do
-            {
-                parent = parent.Parent;
-            }
-            while (parent.Kind() != SyntaxKind.TypedVariableComponent || ((TypedVariableComponentSyntax)parent).Type == null);
-
-            return ((TypedVariableComponentSyntax)parent).Type;
+                ? new SourceMemberFieldSymbolFromDesignationWithEnclosingContext(containingType, designation, typeSyntax, modifiers, containingFieldOpt, nodeToBind)
+                : new SourceMemberFieldSymbolFromDesignation(containingType, designation, typeSyntax, modifiers);
         }
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
@@ -74,10 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeSyntax TypeSyntax
         {
-            get
-            {
-                return FindClosestType(VariableDesignation);
-            }
+            get;
         }
 
         protected override SyntaxTokenList ModifiersTokenList
@@ -187,18 +172,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly FieldSymbol _containingFieldOpt;
             private readonly SyntaxReference _nodeToBind;
 
-
             internal SourceMemberFieldSymbolFromDesignationWithEnclosingContext(
                 SourceMemberContainerTypeSymbol containingType,
                 SingleVariableDesignationSyntax designation,
+                TypeSyntax typeSyntax,
                 DeclarationModifiers modifiers,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
-                : base(containingType, designation, modifiers)
+                : base(containingType, designation, typeSyntax, modifiers)
             {
                 Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator
                     || nodeToBind is ExpressionSyntax
-                    || nodeToBind is VariableComponentAssignmentSyntax);
+                    || nodeToBind.Kind() == SyntaxKind.VariableComponentAssignment);
 
                 _containingFieldOpt = containingFieldOpt;
                 _nodeToBind = nodeToBind.GetReference();

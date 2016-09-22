@@ -3153,7 +3153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                         CollectFieldsFromGlobalDeconstruction(builder.NonTypeNonIndexerMembers,
                                             assignment.VariableComponent,
-                                            this,
                                             assignment);
 
                                         ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers,
@@ -3215,22 +3214,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableComponentSyntax variableComponent,
-            SourceMemberContainerTypeSymbol containingType, VariableComponentAssignmentSyntax assignment)
+            VariableComponentAssignmentSyntax assignment)
         {
             switch (variableComponent.Kind())
             {
                 case SyntaxKind.TypedVariableComponent:
+                    var typed = (TypedVariableComponentSyntax)variableComponent;
                     CollectFieldsFromGlobalDeconstruction(
                         builder,
-                        ((TypedVariableComponentSyntax)variableComponent).Designation,
-                        containingType,
+                        typed.Designation,
+                        typed.Type,
                         assignment);
                     break;
 
                 case SyntaxKind.ParenthesizedVariableComponent:
                     foreach (VariableComponentSyntax variable in ((ParenthesizedVariableComponentSyntax)variableComponent).Variables)
                     {
-                        CollectFieldsFromGlobalDeconstruction(builder, variable, containingType, assignment);
+                        CollectFieldsFromGlobalDeconstruction(builder, variable, assignment);
                     }
                     break;
 
@@ -3240,13 +3240,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableDesignationSyntax designation,
-            SourceMemberContainerTypeSymbol containingType, VariableComponentAssignmentSyntax assignment)
+            TypeSyntax type, VariableComponentAssignmentSyntax assignment)
         {
             switch (designation.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
-                    var field = SourceMemberFieldSymbolFromDesignation.Create(containingType, (SingleVariableDesignationSyntax)designation,
-                        DeclarationModifiers.Private, null, assignment);
+                    var field = SourceMemberFieldSymbolFromDesignation.Create(this, (SingleVariableDesignationSyntax)designation,
+                        type, DeclarationModifiers.Private, null, assignment);
 
                     builder.Add(field);
 
@@ -3255,7 +3255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     foreach (VariableDesignationSyntax variable in ((ParenthesizedVariableDesignationSyntax)designation).Variables)
                     {
-                        CollectFieldsFromGlobalDeconstruction(builder, variable, containingType, assignment);
+                        CollectFieldsFromGlobalDeconstruction(builder, variable, type, assignment);
                     }
                     break;
 
