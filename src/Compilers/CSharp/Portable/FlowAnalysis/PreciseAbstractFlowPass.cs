@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void VisitLvalue(BoundExpression node)
         {
             if (_trackRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
-            switch (node.Kind)
+            switch (node?.Kind)
             {
                 case BoundKind.Parameter:
                     VisitLvalueParameter((BoundParameter)node);
@@ -1693,13 +1693,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitFieldAccessInternal(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
         {
-            if (receiverOpt == null)
-            {
-                // VisitLvalue and VisitRValue don't accept null arguments, and if receiverOpt is null
-                // then there's nothing left to visit anyway.
-                return;
-            }
-
             if (MayRequireTracking(receiverOpt, fieldSymbol) || (object)fieldSymbol != null && fieldSymbol.IsFixed)
             {
                 VisitLvalue(receiverOpt);
