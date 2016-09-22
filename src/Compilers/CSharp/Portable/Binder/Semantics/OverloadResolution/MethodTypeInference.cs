@@ -2538,12 +2538,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second, TypeSymbol target, AssemblySymbol corLibrary)
         {
-            if (!target.ContainsTuple() ||
-                first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
+            if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
                 !target.ContainsTupleNames())
             {
                 return target;
             }
+
+            Debug.Assert(target.ContainsTuple());
 
             ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
             ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);

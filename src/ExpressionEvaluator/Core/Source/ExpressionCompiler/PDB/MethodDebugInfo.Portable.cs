@@ -6,6 +6,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -16,7 +17,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             string defaultNamespace;
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes;
-            ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocals;
+            ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap;
+            ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap;
             ImmutableArray<ImmutableArray<ImportRecord>> importGroups;
             ImmutableArray<ExternAliasRecord> externAliases;
             ImmutableArray<string> localVariableNames;
@@ -25,14 +27,27 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.EntityHandle(methodToken);
 
-            ReadLocalScopeInformation(reader, methodHandle, ilOffset, symbolProvider, isVisualBasicMethod, out importGroups, out externAliases, out localVariableNames, out dynamicLocals, out localConstants, out reuseSpan);
+            ReadLocalScopeInformation(
+                reader,
+                methodHandle,
+                ilOffset,
+                symbolProvider,
+                isVisualBasicMethod,
+                out importGroups,
+                out externAliases,
+                out localVariableNames,
+                out dynamicLocalMap,
+                out tupleLocalMap,
+                out localConstants,
+                out reuseSpan);
             ReadMethodCustomDebugInformation(reader, methodHandle, out hoistedLocalScopes, out defaultNamespace);
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,
                 importGroups,
                 externAliases,
-                dynamicLocals,
+                dynamicLocalMap,
+                tupleLocalMap,
                 defaultNamespace,
                 localVariableNames,
                 localConstants,
@@ -48,7 +63,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out ImmutableArray<ImmutableArray<ImportRecord>> importGroups,
             out ImmutableArray<ExternAliasRecord> externAliases,
             out ImmutableArray<string> localVariableNames,
-            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocals,
+            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
+            out ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap,
             out ImmutableArray<TLocalSymbol> localConstants,
             out ILSpan reuseSpan)
         {
@@ -56,6 +72,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var localConstantsBuilder = ArrayBuilder<TLocalSymbol>.GetInstance();
 
             ImmutableDictionary<int, ImmutableArray<bool>>.Builder lazyDynamicLocalsBuilder = null;
+            ImmutableDictionary<int, ImmutableArray<string>>.Builder lazyTupleLocalsBuilder = null;
 
             var innerMostImportScope = default(ImportScopeHandle);
             uint reuseSpanStart = 0;
@@ -105,6 +122,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 lazyDynamicLocalsBuilder = lazyDynamicLocalsBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
                                 lazyDynamicLocalsBuilder[variable.Index] = dynamicFlags;
                             }
+
+                            var tupleElementNames = ReadTupleCustomDebugInformation(reader, variableHandle);
+                            if (!tupleElementNames.IsDefault)
+                            {
+                                lazyTupleLocalsBuilder = lazyTupleLocalsBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<string>>();
+                                lazyTupleLocalsBuilder[variable.Index] = tupleElementNames;
+                            }
                         }
 
                         // constants (from all contained scopes):
@@ -117,8 +141,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             var sigReader = reader.GetBlobReader(constant.Signature);
                             symbolProvider.DecodeLocalConstant(ref sigReader, out typeSymbol, out value);
 
+                            var name = reader.GetString(constant.Name);
                             var dynamicFlags = ReadDynamicCustomDebugInformation(reader, constantHandle);
-                            localConstantsBuilder.Add(symbolProvider.GetLocalConstant(reader.GetString(constant.Name), typeSymbol, value, dynamicFlags));
+                            var tupleElementNames = ReadTupleCustomDebugInformation(reader, constantHandle);
+                            localConstantsBuilder.Add(symbolProvider.GetLocalConstant(name, typeSymbol, value, dynamicFlags, tupleElementNames));
                         }
                     }
                     catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
@@ -131,7 +157,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 localVariableNames = localVariableNamesBuilder.ToImmutableAndFree();
                 localConstants = localConstantsBuilder.ToImmutableAndFree();
-                dynamicLocals = lazyDynamicLocalsBuilder?.ToImmutable();
+                dynamicLocalMap = lazyDynamicLocalsBuilder?.ToImmutable();
+                tupleLocalMap = lazyTupleLocalsBuilder?.ToImmutable();
                 reuseSpan = new ILSpan(reuseSpanStart, reuseSpanEnd);
             }
 
@@ -157,6 +184,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static string ReadUtf8String(MetadataReader reader, BlobHandle handle)
         {
             var bytes = reader.GetBlobBytes(handle);
+            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+        }
+
+        /// <summary>
+        /// Read UTF8 string with null terminator.
+        /// </summary>
+        private static string ReadUtf8String(ref BlobReader reader)
+        {
+            var builder = ArrayBuilder<byte>.GetInstance();
+            while (true)
+            {
+                var b = reader.ReadByte();
+                if (b == 0)
+                {
+                    break;
+                }
+                builder.Add(b);
+            }
+            var bytes = builder.ToArrayAndFree();
             return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
 
@@ -262,65 +308,65 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes,
             out string defaultNamespace)
         {
-            hoistedLocalScopes = ImmutableArray<HoistedLocalScopeRecord>.Empty;
+            CustomDebugInformation info;
 
-            foreach (var infoHandle in reader.GetCustomDebugInformation(methodHandle))
-            {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes)
-                {
-                    // only single CDIof this kind is allowed on a method:
-                    if (!hoistedLocalScopes.IsEmpty)
-                    {
-                        throw new BadImageFormatException();
-                    }
-
-                    hoistedLocalScopes = DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value));
-                }
-            }
+            hoistedLocalScopes = TryGetCustomDebugInformation(reader, methodHandle, PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes, out info) ?
+                DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value)) :
+                ImmutableArray<HoistedLocalScopeRecord>.Empty;
 
             // TODO: consider looking this up once per module (not for every method)
-            defaultNamespace = null;
-            foreach (var infoHandle in reader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
-            {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == PortableCustomDebugInfoKinds.DefaultNamespace)
-                {
-                    // only single CDI of this kind is allowed on the module:
-                    if (defaultNamespace != null)
-                    {
-                        throw new BadImageFormatException();
-                    }
-
-                    var valueReader = reader.GetBlobReader(info.Value);
-                    defaultNamespace = valueReader.ReadUTF8(valueReader.Length);
-                }
-            }
-
+            defaultNamespace = TryGetCustomDebugInformation(reader, EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.DefaultNamespace, out info) ?
+                DecodeDefaultNamespace(reader.GetBlobReader(info.Value)) :
+                null;
             defaultNamespace = defaultNamespace ?? "";
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
         private static ImmutableArray<bool> ReadDynamicCustomDebugInformation(MetadataReader reader, EntityHandle variableOrConstantHandle)
         {
-            foreach (var infoHandle in reader.GetCustomDebugInformation(variableOrConstantHandle))
+            CustomDebugInformation info;
+            if (TryGetCustomDebugInformation(reader, variableOrConstantHandle, PortableCustomDebugInfoKinds.DynamicLocalVariables, out info))
             {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == PortableCustomDebugInfoKinds.DynamicLocalVariables)
-                {
-                    return DecodeDynamicFlags(reader.GetBlobReader(info.Value));
-                }
+                return DecodeDynamicFlags(reader.GetBlobReader(info.Value));
             }
-
             return default(ImmutableArray<bool>);
         }
 
-        // internal for testing
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
-        internal static ImmutableArray<bool> DecodeDynamicFlags(BlobReader reader)
+        private static ImmutableArray<string> ReadTupleCustomDebugInformation(MetadataReader reader, EntityHandle variableOrConstantHandle)
+        {
+            CustomDebugInformation info;
+            if (TryGetCustomDebugInformation(reader, variableOrConstantHandle, PortableCustomDebugInfoKinds.TupleElementNames, out info))
+            {
+                return DecodeTupleElementNames(reader.GetBlobReader(info.Value));
+            }
+            return default(ImmutableArray<string>);
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
+        {
+            bool foundAny = false;
+            customDebugInfo = default(CustomDebugInformation);
+            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
+            {
+                var info = reader.GetCustomDebugInformation(infoHandle);
+                var id = reader.GetGuid(info.Kind);
+                if (id == kind)
+                {
+                    if (foundAny)
+                    {
+                        throw new BadImageFormatException();
+                    }
+                    customDebugInfo = info;
+                    foundAny = true;
+                }
+            }
+            return foundAny;
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static ImmutableArray<bool> DecodeDynamicFlags(BlobReader reader)
         {
             var builder = ImmutableArray.CreateBuilder<bool>(reader.Length * 8);
 
@@ -334,6 +380,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return builder.MoveToImmutable();
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static ImmutableArray<string> DecodeTupleElementNames(BlobReader reader)
+        {
+            var builder = ArrayBuilder<string>.GetInstance();
+            while (reader.RemainingBytes > 0)
+            {
+                var value = ReadUtf8String(ref reader);
+                builder.Add(value.Length == 0 ? null : value);
+            }
+            return builder.ToImmutableAndFree();
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
@@ -351,6 +409,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             while (reader.RemainingBytes > 0);
 
             return result.ToImmutableAndFree();
+        }
+
+        private static string DecodeDefaultNamespace(BlobReader reader)
+        {
+            return reader.ReadUTF8(reader.Length);
         }
     }
 }

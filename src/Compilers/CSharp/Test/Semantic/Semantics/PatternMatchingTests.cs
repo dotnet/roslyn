@@ -172,7 +172,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"expression 1 is not String
@@ -299,7 +299,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"No for 1
@@ -335,7 +335,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
 #if ALLOW_IN_FIELD_INITIALIZER
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -384,7 +384,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -420,7 +420,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -458,7 +458,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -532,7 +532,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -585,7 +585,7 @@ public struct X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"one
@@ -7080,15 +7080,21 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (12,43): error CS0128: A local variable named 'x1' is already defined in this scope
-    //         using (var x1 = Dummy(true is var x1, x1))
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 43),
-    // (12,47): error CS0841: Cannot use local variable 'x1' before it is declared
-    //         using (var x1 = Dummy(true is var x1, x1))
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 47),
-    // (20,58): error CS0128: A local variable named 'x2' is already defined in this scope
-    //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 58)
+                // (12,43): error CS0128: A local variable named 'x1' is already defined in this scope
+                //         using (var x1 = Dummy(true is var x1, x1))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 43),
+                // (12,47): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         using (var x1 = Dummy(true is var x1, x1))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 47),
+                // (12,47): error CS0165: Use of unassigned local variable 'x1'
+                //         using (var x1 = Dummy(true is var x1, x1))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 47),
+                // (20,58): error CS0128: A local variable named 'x2' is already defined in this scope
+                //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 58),
+                // (20,62): error CS0165: Use of unassigned local variable 'x2'
+                //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 62)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -14705,6 +14711,367 @@ public class Program
                 // (6,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is Program) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", "(int, <null>)").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void ThrowExpressionForParameterValidation()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        foreach (var s in new[] { ""0123"", ""foo"" })
+        {
+            Console.Write(s + "" "");
+            try
+            {
+                Console.WriteLine(Ver(s));
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine(""throws"");
+            }
+        }
+    }
+    static int Ver(string s)
+    {
+        var result = int.TryParse(s, out int k) ? k : throw new ArgumentException(nameof(s));
+        return k; // definitely assigned!
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"0123 123
+foo throws");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M(1));
+        try
+        {
+            Console.WriteLine(M(null));
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""thrown"");
+        }
+    }
+    static int M(int? data)
+    {
+        return data ?? throw null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"1
+thrown");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M(1));
+        try
+        {
+            Console.WriteLine(M(null));
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""thrown"");
+        }
+    }
+    static string M(object data)
+    {
+        return data?.ToString() ?? throw null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"1
+thrown");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable03()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MainAsync().Wait();
+    }
+    static async Task MainAsync()
+    {
+        foreach (var i in new[] { 1, 2 })
+        {
+            try
+            {
+                var used = (await Foo(i))?.ToString() ?? throw await Bar(i);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(""thrown "" + ex.Message);
+            }
+        }
+    }
+    static async Task<object> Foo(int i)
+    {
+        await Task.Yield();
+        return (i == 1) ? i : (object)null;
+    }
+    static async Task<Exception> Bar(int i)
+    {
+        await Task.Yield();
+        Console.WriteLine(""making exception "" + i);
+        return new Exception(i.ToString());
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
+                references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"making exception 2
+thrown 2");
+        }
+
+        [Fact]
+        public void ThrowExpressionPrecedence01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Exception ex = null;
+        try
+        {
+            // The ?? operator is right-associative, even under 'throw'
+            ex = ex ?? throw ex ?? throw new ArgumentException(""blue"");
+        }
+        catch (ArgumentException x)
+        {
+            Console.WriteLine(x.Message);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"blue");
+        }
+
+        [Fact]
+        public void ThrowExpressionPrecedence02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MyException ex = null;
+        try
+        {
+            // Throw expression binds looser than +
+            ex = ex ?? throw ex + 1;
+        }
+        catch (MyException x)
+        {
+            Console.WriteLine(x.Message);
+        }
+    }
+}
+class MyException : Exception
+{
+    public MyException(string message) : base(message) {}
+    public static MyException operator +(MyException left, int right)
+    {
+        return new MyException(""green"");
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"green");
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void IsPatternPrecedence()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    const bool B = true;
+    const int One = 1;
+
+    public static void Main(string[] args)
+    {
+        object a = null;
+        B c = null;
+        Console.WriteLine(a is B & c); // prints 5 (correct)
+        Console.WriteLine(a is B > c); // prints 6 (correct)
+        Console.WriteLine(a is B < c); // was syntax error but should print 7
+        Console.WriteLine(3 is One + 2); // should print True
+        Console.WriteLine(One + 2 is 3); // should print True
+    }
+}
+
+class B
+{
+    public static int operator &(bool left, B right) => 5;
+    public static int operator >(bool left, B right) => 6;
+    public static int operator <(bool left, B right) => 7;
+    public static int operator +(bool left, B right) => 8;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
+                parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                //         Console.WriteLine(3 is One + 2); // should print True
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7").WithLocation(15, 27),
+                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                //         Console.WriteLine(One + 2 is 3); // should print True
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7").WithLocation(16, 27)
+                );
+            var expectedOutput =
+@"5
+6
+7
+True
+True";
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void IsPatternPrecedence02()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        foreach (object A in new[] { null, new B<C,D>() })
+        {
+            // pass one argument, a pattern-matching operation
+            M(A is B < C, D > E);
+            switch (A)
+            {
+                case B < C, D > F:
+                    Console.WriteLine(""yes"");
+                    break;
+                default:
+                    Console.WriteLine(""no"");
+                    break;
+            }
+        }
+    }
+    static void M(object o)
+    {
+        Console.WriteLine(o);
+    }
+}
+
+class B<C,D>
+{
+}
+class C {}
+class D {}
+";
+            var expectedOutput =
+@"False
+no
+True
+yes";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void IsPatternPrecedence03()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        object A = new B<C, D>();
+        Console.WriteLine(A is B < C, D > E);
+        Console.WriteLine(A as B < C, D > ?? string.Empty);
+    }
+}
+
+class B<C,D>
+{
+    public static implicit operator string(B<C,D> b) => nameof(B<C,D>);
+}
+class C {}
+class D {}
+";
+            var expectedOutput =
+@"True
+B";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            SyntaxFactory.ParseExpression("A is B < C, D > E").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("A as B < C, D > E").GetDiagnostics().Verify(
+                // (1,1): error CS1073: Unexpected token 'E'
+                // A as B < C, D > E
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "A as B < C, D >").WithArguments("E").WithLocation(1, 1)
+                );
+
+            SyntaxFactory.ParseExpression("A as B < C, D > ?? string.Empty").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("A is B < C, D > ?? string.Empty").GetDiagnostics().Verify(
+                // (1,1): error CS1073: Unexpected token ','
+                // A is B < C, D > ?? string.Empty
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "A is B < C").WithArguments(",").WithLocation(1, 1)
                 );
         }
     }

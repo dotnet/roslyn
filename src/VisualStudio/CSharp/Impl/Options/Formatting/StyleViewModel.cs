@@ -225,6 +225,54 @@ class C{
 //]
     }
 }";
+
+        private static readonly string s_preferThrowExpression = @"
+using System;
+
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+//[
+        // Prefer:
+        this.s = s ?? throw new ArgumentNullException(nameof(s));
+
+        // Over:
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+
+        this.s = s;
+//]
+    }
+}
+";
+
+        private static readonly string s_preferConditionalDelegateCall = @"
+using System;
+
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+//[
+        // Prefer:
+        func?.Invoke(args);
+
+        // Over:
+        if (func != null)
+        {
+            func(args);
+        }
+//]
+    }
+}
+";
         #endregion
 
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
@@ -235,6 +283,7 @@ class C{
             var qualifyGroupTitle = CSharpVSResources.this_preferences_colon;
             var predefinedTypesGroupTitle = CSharpVSResources.predefined_type_preferences_colon;
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
+            var nullCheckingTitle = CSharpVSResources.null_checking_colon;
 
             var qualifyMemberAccessPreferences = new List<CodeStylePreference>
             {
@@ -265,6 +314,9 @@ class C{
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CSharpVSResources.For_built_in_types, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.When_variable_type_is_apparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
+
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, s_preferThrowExpression, s_preferThrowExpression, this, optionSet, nullCheckingTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingTitle));
         }
     }
 }

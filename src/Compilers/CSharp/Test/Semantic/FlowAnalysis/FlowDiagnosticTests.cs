@@ -2457,5 +2457,50 @@ class Derived2 : Base
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "k").WithArguments("k").WithLocation(10, 20)
                 );
         }
+
+        [WorkItem(9581, "https://github.com/dotnet/roslyn/issues/9581")]
+        [Fact]
+        public void UsingSelfAssignment()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        using (System.IDisposable x = x)
+        {
+        }
+    }
+}";
+            CSharpCompilation comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (5,39): error CS0165: Use of unassigned local variable 'x'
+                //         using (System.IDisposable x = x)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(5, 39)
+                );
+        }
+
+        [Fact]
+        public void UsingAssignment()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        using (System.IDisposable x = null)
+        {
+            System.Console.WriteLine(x.ToString());
+        }
+        using (System.IDisposable x = null, y = x)
+        {
+            System.Console.WriteLine(y.ToString());
+        }
+    }
+}";
+            CSharpCompilation comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                );
+        }
     }
 }

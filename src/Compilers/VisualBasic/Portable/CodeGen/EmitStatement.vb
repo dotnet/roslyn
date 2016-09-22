@@ -1255,7 +1255,12 @@ OtherExpressions:
 
             If local.HasConstantValue Then
                 Dim compileTimeValue As MetadataConstant = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics)
-                Dim localConstantDef = New LocalConstantDefinition(local.Name, If(local.Locations.FirstOrDefault(), Location.None), compileTimeValue)
+                Dim localConstantDef = New LocalConstantDefinition(
+                    local.Name,
+                    If(local.Locations.FirstOrDefault(), Location.None),
+                    compileTimeValue,
+                    dynamicTransformFlags:=Nothing,
+                    tupleElementNames:=Nothing)
                 ' Reference in the scope for debugging purpose
                 _builder.AddLocalConstantToScope(localConstantDef)
                 Return Nothing
@@ -1285,8 +1290,8 @@ OtherExpressions:
                 id:=localId,
                 pdbAttributes:=synthesizedKind.PdbAttributes(),
                 constraints:=constraints,
-                isDynamic:=False,
                 dynamicTransformFlags:=Nothing,
+                tupleElementNames:=Nothing,
                 isSlotReusable:=synthesizedKind.IsSlotReusable(_ilEmitStyle <> ILEmitStyle.Release))
 
             ' If named, add it to the local debug scope.
@@ -1438,16 +1443,16 @@ OtherExpressions:
         Private Sub DefineUserDefinedStateMachineHoistedLocal(field As StateMachineFieldSymbol)
             Debug.Assert(field.SlotIndex >= 0)
             Dim fakePdbOnlyLocal = New LocalDefinition(
-                        symbolOpt:=Nothing,
-                        nameOpt:=field.Name,
-                        type:=Nothing,
-                        slot:=field.SlotIndex,
-                        synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
-                        id:=Nothing,
-                        pdbAttributes:=LocalVariableAttributes.None,
-                        constraints:=LocalSlotConstraints.None,
-                        isDynamic:=False,
-                        dynamicTransformFlags:=Nothing)
+                symbolOpt:=Nothing,
+                nameOpt:=field.Name,
+                type:=Nothing,
+                slot:=field.SlotIndex,
+                synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
+                id:=Nothing,
+                pdbAttributes:=LocalVariableAttributes.None,
+                constraints:=LocalSlotConstraints.None,
+                dynamicTransformFlags:=Nothing,
+                tupleElementNames:=Nothing)
             _builder.AddLocalToScope(fakePdbOnlyLocal)
         End Sub
 

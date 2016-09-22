@@ -14330,9 +14330,15 @@ public class X
                 // (12,63): error CS0841: Cannot use local variable 'x1' before it is declared
                 //         using (var x1 = Dummy(TakeOutParam(true, out var x1), x1))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 63),
+                // (12,63): error CS0165: Use of unassigned local variable 'x1'
+                //         using (var x1 = Dummy(TakeOutParam(true, out var x1), x1))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 63),
                 // (20,73): error CS0128: A local variable named 'x2' is already defined in this scope
                 //         using (System.IDisposable x2 = Dummy(TakeOutParam(true, out var x2), x2))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73)
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73),
+                // (20,78): error CS0165: Use of unassigned local variable 'x2'
+                //         using (System.IDisposable x2 = Dummy(TakeOutParam(true, out var x2), x2))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 78)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -17790,9 +17796,9 @@ public class Cls
                 // (8,23): error CS0103: The name 'x3' does not exist in the current context
                 //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(8, 23),
-                // (7,9): error CS0177: The out parameter 'x2' must be assigned to before control leaves the current method
+                // (7,13): error CS0177: The out parameter 'x2' must be assigned to before control leaves the current method
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "int b(out var x2) ").WithArguments("x2").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "b").WithArguments("x2").WithLocation(7, 13),
                 // (6,25): warning CS0219: The variable 'a' is assigned but its value is never used
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 25),
@@ -20229,7 +20235,13 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
+        }
+
+        private static void AssertNoGlobalStatements(SyntaxTree tree)
+        {
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
         [Fact]
@@ -20348,6 +20360,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -20535,6 +20548,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -20674,6 +20688,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -20898,6 +20913,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21030,6 +21046,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21151,6 +21168,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21273,6 +21291,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21439,6 +21458,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21562,6 +21582,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21702,6 +21723,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21863,6 +21885,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22049,6 +22072,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22188,6 +22212,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22423,6 +22448,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22563,6 +22589,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22797,6 +22824,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22936,6 +22964,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23199,6 +23228,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23329,6 +23359,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23460,6 +23491,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -24085,6 +24117,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -24240,6 +24273,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -26588,14 +26622,17 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
+            Assert.True(b.Type.IsErrorType());
+
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var b = H.TakeOutParam(out var x1, a);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "b").WithArguments("b").WithLocation(4, 5)
                 );
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
@@ -26623,14 +26660,17 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
+            Assert.True(b.Type.IsErrorType());
+
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var b = a;
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "b").WithArguments("b").WithLocation(4, 5)
                 );
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
@@ -26658,14 +26698,17 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var a = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "a").Single());
+            Assert.True(a.Type.IsErrorType());
+
             compilation.VerifyDiagnostics(
                 // (3,5): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var a = x1;
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a").WithLocation(3, 5)
                 );
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
@@ -26708,12 +26751,6 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            compilation.VerifyDiagnostics(
-                // (3,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
-                // var a = H.TakeOutParam(out var x1, b);
-                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 32)
-                );
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -26722,6 +26759,12 @@ class H
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
             Assert.True(x1.Type.IsErrorType());
+
+            compilation.VerifyDiagnostics(
+                // (3,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var a = H.TakeOutParam(out var x1, b);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 32)
+                );
 
             compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             tree = compilation.SyntaxTrees.Single();

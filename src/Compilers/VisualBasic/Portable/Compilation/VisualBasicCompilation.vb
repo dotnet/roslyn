@@ -1829,6 +1829,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ArrayTypeSymbol.CreateVBArray(elementType, Nothing, rank, Me)
         End Function
 
+        Friend ReadOnly Property HasTupleNamesAttributes As Boolean
+            Get
+                Return GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames) IsNot Nothing
+            End Get
+        End Property
+
+        Friend Function CanEmitSpecialType(type As SpecialType) As Boolean
+            Dim typeSymbol = GetSpecialType(type)
+            Dim diagnostic = typeSymbol.GetUseSiteErrorInfo
+            Return diagnostic Is Nothing OrElse diagnostic.Severity <> DiagnosticSeverity.Error
+        End Function
+
 #End Region
 
 #Region "Binding"
