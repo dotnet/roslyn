@@ -1,18 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Linq;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
     /// <summary>
     /// Contains tests for expression-bodied members in the semantic model.
     /// </summary>
+    [CompilerTrait(CompilerFeature.ExpressionBody)]
     public class ExpressionBodiedMemberTests : SemanticModelTestBase
     {
         [Fact]
@@ -346,7 +348,7 @@ public static class TestExtension
             CompileAndVerify(source, expectedOutput: "GetAction 1");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13691")]
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorProp()
         {
             string source = @"
@@ -366,7 +368,7 @@ public class Program
             CompileAndVerify(source, expectedOutput: "12");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13691")]
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorWithBase01()
         {
             string source = @"
@@ -383,14 +385,14 @@ public class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13691")]
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorWithBase02()
         {
             string source = @"
 using System;
 public class Base
 {
-    Base(int i) { Console.Write(i); }
+    public Base(int i) { Console.Write(i); }
 }
 public class Program : Base
 {
@@ -950,6 +952,32 @@ public class D
                 Assert.Equal($"{i}", nodes[i].ToString());
                 Assert.Equal($"System.Int32 y{i}", model.LookupSymbols(nodes[i].SpanStart, name: $"y{i}").Single().ToTestDisplayString());
             }
+        }
+
+        [Fact, WorkItem(13578, "https://github.com/dotnet/roslyn/issues/13578")]
+        public void ExpressionBodiesNotSupported()
+        {
+            var source = @"
+using System;
+public class C
+{
+    C() => Console.WriteLine(1);
+    ~C() => Console.WriteLine(2);
+    int P { set => Console.WriteLine(value); }
+}
+";
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (5,9): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6.  Please use language version 7 or greater.
+                //     C() => Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(1)").WithArguments("expression body constructor and destructor", "7").WithLocation(5, 9),
+                // (6,10): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6.  Please use language version 7 or greater.
+                //     ~C() => Console.WriteLine(2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(2)").WithArguments("expression body constructor and destructor", "7").WithLocation(6, 10),
+                // (7,17): error CS8059: Feature 'expression body property accessor' is not available in C# 6.  Please use language version 7 or greater.
+                //     int P { set => Console.WriteLine(value); }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(value)").WithArguments("expression body property accessor", "7").WithLocation(7, 17)
+                );
         }
     }
 }
