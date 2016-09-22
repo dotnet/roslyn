@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.Options
         event EventHandler<OptionChangedEventArgs> OptionChanged;
 
         void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider);
-        Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
+        
+        /// <summary>
+        /// Returns the <see cref="OptionSet"/> that applies to a specific document, given that document and the global options.
+        /// </summary>
+        Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
     }
 }

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            public async Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+            public async Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 ImmutableArray<IDocumentOptionsProvider> documentOptionsProviders;
 

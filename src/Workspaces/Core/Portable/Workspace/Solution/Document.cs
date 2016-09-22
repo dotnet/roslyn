@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis
                 var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
                 {
                     var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-                    var optionSet = await optionsService.GetAmendedOptionSetForDocumentAsync(this, Project.Solution.Options, c).ConfigureAwait(false);
+                    var optionSet = await optionsService.GetUpdatedOptionSetForDocumentAsync(this, Project.Solution.Options, c).ConfigureAwait(false);
                     return new DocumentOptionSet(optionSet, Project.Language);
                 }, cacheResult: true);
 

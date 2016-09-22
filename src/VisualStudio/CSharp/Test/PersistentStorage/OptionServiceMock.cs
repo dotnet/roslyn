@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+        public Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
