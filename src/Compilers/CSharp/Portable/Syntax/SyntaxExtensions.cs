@@ -214,12 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(typeNode) && IsInContextWhichNeedsDynamicAttribute(typeNode);
         }
 
-        internal static bool IsTypeInContextWhichNeedsTupleNamesAttribute(this TupleTypeSyntax syntax)
-        {
-            Debug.Assert(syntax != null);
-            return SyntaxFacts.IsInTypeOnlyContext(syntax) && IsInContextWhichNeedsTupleNamesAttribute(syntax);
-        }
-
         internal static SyntaxNode SkipParens(this SyntaxNode expression)
         {
             while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
@@ -260,45 +254,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return node.Parent != null && IsInContextWhichNeedsDynamicAttribute(node.Parent);
             }
-        }
-
-        private static bool IsInContextWhichNeedsTupleNamesAttribute(CSharpSyntaxNode node)
-        {
-            Debug.Assert(node != null);
-
-            var current = node;
-            do
-            {
-                switch (current.Kind())
-                {
-                    case SyntaxKind.Parameter:
-                    case SyntaxKind.FieldDeclaration:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                    case SyntaxKind.EventDeclaration:
-                    case SyntaxKind.EventFieldDeclaration:
-                    case SyntaxKind.BaseList:
-                    case SyntaxKind.SimpleBaseType:
-                    case SyntaxKind.TypeParameterConstraintClause:
-                        return true;
-
-                    case SyntaxKind.Block:
-                    case SyntaxKind.VariableDeclarator:
-                    case SyntaxKind.Attribute:
-                    case SyntaxKind.EqualsValueClause:
-                        return false;
-
-                    default:
-                        break;
-                }
-                current = current.Parent;
-            } while (current != null);
-
-            return false;
         }
 
         public static IndexerDeclarationSyntax Update(

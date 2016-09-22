@@ -160,9 +160,11 @@ class C
             var ref0 = comp.EmitToImageReference();
             comp = CreateCompilation(source1,
                 references: s_attributeRefs.Concat(new[] { ref0 }));
-            comp.VerifyDiagnostics();
-            // Make sure we emit without errors when System.String is missing.
-            CompileAndVerify(comp, verify: false);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0518: Predefined type 'System.String' is not defined or imported
+                //         D<(int x, int y)> d = o => { };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x, int y)").WithArguments("System.String").WithLocation(6, 11)
+                );
         }
 
         [Fact]
