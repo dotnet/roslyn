@@ -395,6 +395,58 @@ public class C
 </symbols>");
         }
 
+        [Fact, WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
+        public void SuppressTupleElementNamesCDIForWinRT()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+        (int A, int B) o = (1, 2);
+    }
+}";
+
+            var debug = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef }, options: TestOptions.DebugWinMD);
+            debug.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""35"" />
+        <entry offset=""0x9"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xa"">
+        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+
+            var release = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef }, options: TestOptions.ReleaseWinMD);
+            release.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         [Fact]
         public void DuplicateDocuments()
         {
