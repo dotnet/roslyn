@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
 
@@ -1759,6 +1760,258 @@ End Class
   IL_001b:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_01()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click as System.Action
+
+    Sub Raise()
+	    RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1
+
+	Protected WithEvents Button1 As New Button()
+
+	Private Sub Button1_Click() Handles Button1.Click
+		System.Console.WriteLine(1)
+	End Sub
+
+    Overridable sub Test()
+    End Sub
+
+End Class
+
+Public Class MainBase2
+	Inherits MainBase1
+
+	Private Sub Button1_Click() Handles Button1.Click
+		System.Console.WriteLine(2)
+	End Sub
+
+    Overrides sub Test()
+    End Sub
+End Class
+
+Public Class MainBase3
+	Inherits MainBase2
+
+	Private Sub Button1_Click() Handles Button1.Click
+		System.Console.WriteLine(3)
+	End Sub
+
+    Overrides sub Test()
+    End Sub
+End Class
+
+Public Class Main
+	Inherits MainBase3
+
+	Private Sub Button1_Click() Handles Button1.Click
+		System.Console.WriteLine("4")
+	End Sub
+
+	Shared Sub Main()
+		Dim m = New Main()
+		m.Button1.Raise()
+	End Sub
+
+    Overrides sub Test()
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim main As NamedTypeSymbol = compilation.GetTypeByMetadataName("Main")
+            Dim test4 = main.GetMember(Of MethodSymbol)("Test")
+            Dim test3 = test4.OverriddenMethod
+            Dim test2 = test3.OverriddenMethod
+            Dim test1 = test2.OverriddenMethod
+
+            Assert.Equal("Sub Main.Test()", test4.ToTestDisplayString())
+            Assert.Equal("Sub MainBase3.Test()", test3.ToTestDisplayString())
+            Assert.Equal("Sub MainBase2.Test()", test2.ToTestDisplayString())
+            Assert.Equal("Sub MainBase1.Test()", test1.ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:=
+"1
+2
+3
+4")
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_02()
+
+            Dim source1 =
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click as System.Action
+
+    Sub Raise()
+	    RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1
+
+	Protected WithEvents Button1 As New Button()
+
+	Private Sub Button1_Click() Handles Button1.Click
+		System.Console.WriteLine(1)
+	End Sub
+End Class
+
+Public Class MainBase2
+	Inherits MainBase1
+
+	Private Sub Button1_Click() Handles Button1.Click
+		System.Console.WriteLine(2)
+	End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb">
+Public Class MainBase3
+	Inherits MainBase2
+
+	Private Sub Button1_Click() Handles Button1.Click
+		System.Console.WriteLine(3)
+	End Sub
+End Class
+
+Public Class Main
+	Inherits MainBase3
+
+	Private Sub Button1_Click() Handles Button1.Click
+		System.Console.WriteLine("4")
+	End Sub
+
+	Shared Sub Main()
+		Dim m = New Main()
+		m.Button1.Raise()
+	End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation2, expectedOutput:=
+"1
+2
+3
+4")
+
+            compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation2, expectedOutput:=
+"1
+2
+3
+4")
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_03()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.ComponentModel
+
+Public Class EventSource
+    Public Event MyEvent()
+    Sub test()
+        RaiseEvent MyEvent()
+    End Sub
+End Class
+
+
+Public Class OuterClass
+
+    Private SubObject As New EventSource
+
+    &lt;DesignOnly(True)>
+    &lt;DesignerSerializationVisibility(DesignerSerializationVisibility.Content)>
+    Public Property SomeProperty() As EventSource
+        Get
+            Return SubObject
+        End Get
+        Set(value As EventSource)
+
+        End Set
+    End Property
+
+
+    Sub Test()
+        SubObject.test()
+    End Sub
+End Class
+
+
+Public Class MainBase1
+
+    Public WithEvents Button1 As New OuterClass()
+
+    Private Sub Button1_Click() Handles Button1.SomeProperty.MyEvent
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Public Class MainBase2
+    Inherits MainBase1
+
+    Private Sub Button1_Click() Handles Button1.SomeProperty.MyEvent
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+
+Public Class MainBase3
+    Inherits MainBase2
+
+    Private Sub Button1_Click() Handles Button1.SomeProperty.MyEvent
+        System.Console.WriteLine(3)
+    End Sub
+End Class
+
+Public Class Main
+    Inherits MainBase3
+
+    Private Sub Button1_Click() Handles Button1.SomeProperty.MyEvent
+        System.Console.WriteLine("4")
+    End Sub
+End Class
+
+Module Module1
+    Sub Main()
+        Dim m = New Main()
+        m.Button1.Test()
+    End Sub
+End Module
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:=
+"1
+2
+3
+4")
         End Sub
     End Class
 End Namespace
