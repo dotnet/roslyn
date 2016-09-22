@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -130,8 +131,16 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 if (_codingConventionSnapshot.TryGetConventionValue(editorConfigPersistence.KeyName, out value))
                 {
-                    value = editorConfigPersistence.ParseValue(value.ToString(), option.Option.Type);
-                    return true;
+                    try
+                    {
+                        value = editorConfigPersistence.ParseValue(value.ToString(), option.Option.Type);
+                        return true;
+                    }
+                    catch (Exception)
+                    {
+                        // TODO: report this somewhere?
+                        return false;
+                    }
                 }
                 else
                 {
