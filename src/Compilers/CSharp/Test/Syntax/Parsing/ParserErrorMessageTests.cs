@@ -3452,6 +3452,7 @@ class MyClass {
         }
 
         // TODO: extra error CS1001
+
         [Fact]
         public void CS1536ERR_NoVoidParameter()
         {
@@ -3469,6 +3470,23 @@ class Test
     // (4,25): error CS1001: Identifier expected
     //     public void foo(void){}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
+        }
+
+        [Fact]
+        public void CS1536ERR_NoVoidParameter_02()
+        {
+            var test = @"
+class Test
+{
+    object o = (ref void x) => {};
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS1536: Invalid parameter type 'void'
+                //     object o = (ref void x) => {};
+                Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(4, 21)
+                );
         }
 
         [Fact]

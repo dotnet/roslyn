@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
             Dim localNames = GetActualLocalNames(debugInfo.LocalVariableNames, inScopeHoistedLocalNames)
-            MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing)
+            MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing, debugInfo.TupleLocalMap)
             Dim inScopeHoistedLocals = New VisualBasicInScopeHoistedLocalsByName(inScopeHoistedLocalNames)
 
             GetStaticLocals(localsBuilder, currentFrame, methodHandle, metadataDecoder)
@@ -344,7 +344,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 importRecordGroups:=importRecordGroups,
                 defaultNamespaceName:="",
                 externAliasRecords:=ImmutableArray(Of ExternAliasRecord).Empty,
-                dynamicLocalMap:=ImmutableDictionary(Of Integer, ImmutableArray(Of Boolean)).Empty,
+                dynamicLocalMap:=Nothing,
+                tupleLocalMap:=Nothing,
                 localVariableNames:=ImmutableArray(Of String).Empty,
                 localConstants:=ImmutableArray(Of LocalSymbol).Empty,
                 reuseSpan:=Nothing)

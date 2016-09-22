@@ -1307,6 +1307,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ThrowStatement(SyntaxNode expression = null);
 
         /// <summary>
+        /// Creates an expression that can be used to throw an exception.
+        /// </summary>
+        public abstract SyntaxNode ThrowExpression(SyntaxNode expression);
+
+        /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public abstract SyntaxNode LocalDeclarationStatement(SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);

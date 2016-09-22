@@ -15,6 +15,39 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
     {
+        private struct LocalNameAndScope : IEquatable<LocalNameAndScope>
+        {
+            internal readonly string LocalName;
+            internal readonly int ScopeStart;
+            internal readonly int ScopeEnd;
+
+            internal LocalNameAndScope(string localName, int scopeStart, int scopeEnd)
+            {
+                LocalName = localName;
+                ScopeStart = scopeStart;
+                ScopeEnd = scopeEnd;
+            }
+
+            public bool Equals(LocalNameAndScope other)
+            {
+                return ScopeStart == other.ScopeStart &&
+                    ScopeEnd == other.ScopeEnd &&
+                    string.Equals(LocalName, other.LocalName, StringComparison.Ordinal);
+            }
+
+            public override bool Equals(object obj)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(
+                    Hash.Combine(ScopeStart, ScopeEnd),
+                    LocalName.GetHashCode());
+            }
+        }
+
         public unsafe static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader3 symReader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProviderOpt, // TODO: only null in DTEE case where we looking for default namesapace
@@ -64,6 +97,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ImmutableArray<ExternAliasRecord> externAliasRecords;
                 ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap;
                 ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap;
+                ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap;
+                ImmutableDictionary<LocalNameAndScope, ImmutableArray<string>> tupleLocalConstantMap;
                 string defaultNamespaceName;
 
                 var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
@@ -85,6 +120,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     externAliasRecords = ImmutableArray<ExternAliasRecord>.Empty;
                     dynamicLocalMap = null;
                     dynamicLocalConstantMap = null;
+                    tupleLocalMap = null;
+                    tupleLocalConstantMap = null;
                 }
                 else
                 {
@@ -105,7 +142,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         allScopes,
                         out hoistedLocalScopeRecords,
                         out dynamicLocalMap,
-                        out dynamicLocalConstantMap);
+                        out dynamicLocalConstantMap,
+                        out tupleLocalMap,
+                        out tupleLocalConstantMap);
 
                     defaultNamespaceName = "";
                 }
@@ -113,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var constantsBuilder = ArrayBuilder<TLocalSymbol>.GetInstance();
                 if (symbolProviderOpt != null) // TODO
                 {
-                    GetConstants(constantsBuilder, symbolProviderOpt, containingScopes, dynamicLocalConstantMap);
+                    GetConstants(constantsBuilder, symbolProviderOpt, containingScopes, dynamicLocalConstantMap, tupleLocalConstantMap);
                 }
 
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
@@ -123,6 +162,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     importRecordGroups,
                     externAliasRecords,
                     dynamicLocalMap,
+                    tupleLocalMap,
                     defaultNamespaceName,
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
@@ -308,11 +348,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             IEnumerable<ISymUnmanagedScope> scopes,
             out ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
             out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
-            out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap)
+            out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap,
+            out ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap,
+            out ImmutableDictionary<LocalNameAndScope, ImmutableArray<string>> tupleLocalConstantMap)
         {
             hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
-            dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
-            dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
+            dynamicLocalMap = null;
+            dynamicLocalConstantMap = null;
+            tupleLocalMap = null;
+            tupleLocalConstantMap = null;
 
             byte[] customDebugInfoBytes = reader.GetCustomDebugInfoBytes(methodToken, methodVersion);
             if (customDebugInfoBytes == null)
@@ -329,24 +373,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             GetCSharpDynamicLocalInfo(
                 customDebugInfoBytes,
-                methodToken,
-                methodVersion,
                 scopes,
                 out dynamicLocalMap,
                 out dynamicLocalConstantMap);
+
+            GetTupleElementNamesLocalInfo(
+                customDebugInfoBytes,
+                out tupleLocalMap,
+                out tupleLocalConstantMap);
         }
 
         /// <exception cref="InvalidOperationException">Bad data.</exception>
         private static void GetCSharpDynamicLocalInfo(
             byte[] customDebugInfo,
-            int methodToken,
-            int methodVersion,
             IEnumerable<ISymUnmanagedScope> scopes,
             out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
             out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap)
         {
-            dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
-            dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
+            dynamicLocalMap = null;
+            dynamicLocalConstantMap = null;
 
             var record = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.DynamicLocals);
             if (record.IsDefault)
@@ -354,25 +399,37 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return;
             }
 
+            var localKindsByName = PooledDictionary<string, LocalKind>.GetInstance();
+            GetLocalKindByName(localKindsByName, scopes);
+
             ImmutableDictionary<int, ImmutableArray<bool>>.Builder localBuilder = null;
             ImmutableDictionary<string, ImmutableArray<bool>>.Builder constantBuilder = null;
 
-            var dynamicLocals = RemoveAmbiguousLocals(CustomDebugInfoReader.DecodeDynamicLocalsRecord(record), scopes);
+            var dynamicLocals = CustomDebugInfoReader.DecodeDynamicLocalsRecord(record);
             foreach (var dynamicLocal in dynamicLocals)
             {
                 int slot = dynamicLocal.SlotId;
                 var flags = GetFlags(dynamicLocal);
-                if (slot < 0)
+                if (slot == 0)
                 {
-                    constantBuilder = constantBuilder ?? ImmutableDictionary.CreateBuilder<string, ImmutableArray<bool>>();
-                    constantBuilder[dynamicLocal.Name] = flags;
+                    LocalKind kind;
+                    var name = dynamicLocal.LocalName;
+                    localKindsByName.TryGetValue(name, out kind);
+                    switch (kind)
+                    {
+                        case LocalKind.DuplicateName:
+                            // Drop locals with ambiguous names.
+                            continue;
+                        case LocalKind.ConstantName:
+                            constantBuilder = constantBuilder ?? ImmutableDictionary.CreateBuilder<string, ImmutableArray<bool>>();
+                            constantBuilder[name] = flags;
+                            continue;
+                    }
                 }
-                else
-                {
-                    localBuilder = localBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
-                    localBuilder[slot] = flags;
-                }
+                localBuilder = localBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
+                localBuilder[slot] = flags;
             }
+
 
             if (localBuilder != null)
             {
@@ -383,6 +440,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 dynamicLocalConstantMap = constantBuilder.ToImmutable();
             }
+
+            localKindsByName.Free();
         }
 
         private static ImmutableArray<bool> GetFlags(DynamicLocalInfo bucket)
@@ -397,28 +456,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return builder.ToImmutableAndFree();
         }
 
+        private enum LocalKind { DuplicateName, VariableName, ConstantName }
+
         /// <summary>
         /// Dynamic CDI encodes slot id and name for each dynamic local variable, but only name for a constant. 
         /// Constants have slot id set to 0. As a result there is a potential for ambiguity. If a variable in a slot 0
         /// and a constant defined anywhere in the method body have the same name we can't say which one 
         /// the dynamic flags belong to (if there is a dynamic record for at least one of them).
         /// 
-        /// This method removes ambiguous dynamic records.
+        /// This method returns the local kind (variable, constant, or duplicate) based on name.
         /// </summary>
-        private static ImmutableArray<DynamicLocalInfo> RemoveAmbiguousLocals(
-            ImmutableArray<DynamicLocalInfo> dynamicLocals,
-            IEnumerable<ISymUnmanagedScope> scopes)
+        private static void GetLocalKindByName(Dictionary<string, LocalKind> localNames, IEnumerable<ISymUnmanagedScope> scopes)
         {
-            const byte DuplicateName = 0;
-            const byte VariableName = 1;
-            const byte ConstantName = 2;
+            Debug.Assert(localNames.Count == 0);
 
-            var localNames = PooledDictionary<string, byte>.GetInstance();
-
-            var firstLocal = scopes.SelectMany(scope => scope.GetLocals()).FirstOrDefault(variable => variable.GetSlot() == 0);
-            if (firstLocal != null)
+            var localSlot0 = scopes.SelectMany(scope => scope.GetLocals()).FirstOrDefault(variable => variable.GetSlot() == 0);
+            if (localSlot0 != null)
             {
-                localNames.Add(firstLocal.GetName(), VariableName);
+                localNames.Add(localSlot0.GetName(), LocalKind.VariableName);
             }
 
             foreach (var scope in scopes)
@@ -426,36 +481,55 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 foreach (var constant in scope.GetConstants())
                 {
                     string name = constant.GetName();
-                    localNames[name] = localNames.ContainsKey(name) ? DuplicateName : ConstantName;
+                    localNames[name] = localNames.ContainsKey(name) ? LocalKind.DuplicateName : LocalKind.ConstantName;
                 }
             }
+        }
 
-            var builder = ArrayBuilder<DynamicLocalInfo>.GetInstance();
-            foreach (var dynamicLocal in dynamicLocals)
+        private static void GetTupleElementNamesLocalInfo(
+            byte[] customDebugInfo,
+            out ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap,
+            out ImmutableDictionary<LocalNameAndScope, ImmutableArray<string>> tupleLocalConstantMap)
+        {
+            tupleLocalMap = null;
+            tupleLocalConstantMap = null;
+
+            var record = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.TupleElementNames);
+            if (record.IsDefault)
             {
-                int slot = dynamicLocal.SlotId;
-                var name = dynamicLocal.Name;
-                if (slot == 0)
-                {
-                    byte localOrConstant;
-                    localNames.TryGetValue(name, out localOrConstant);
-                    if (localOrConstant == DuplicateName)
-                    {
-                        continue;
-                    }
-
-                    if (localOrConstant == ConstantName)
-                    {
-                        slot = -1;
-                    }
-                }
-
-                builder.Add(new DynamicLocalInfo(dynamicLocal.FlagCount, dynamicLocal.Flags, slot, name));
+                return;
             }
 
-            var result = builder.ToImmutableAndFree();
-            localNames.Free();
-            return result;
+            ImmutableDictionary<int, ImmutableArray<string>>.Builder localBuilder = null;
+            ImmutableDictionary<LocalNameAndScope, ImmutableArray<string>>.Builder constantBuilder = null;
+
+            var tuples = CustomDebugInfoReader.DecodeTupleElementNamesRecord(record);
+            foreach (var tuple in tuples)
+            {
+                var slotIndex = tuple.SlotIndex;
+                var elementNames = tuple.ElementNames;
+                if (slotIndex < 0)
+                {
+                    constantBuilder = constantBuilder ?? ImmutableDictionary.CreateBuilder<LocalNameAndScope, ImmutableArray<string>>();
+                    var localAndScope = new LocalNameAndScope(tuple.LocalName, tuple.ScopeStart, tuple.ScopeEnd);
+                    constantBuilder[localAndScope] = elementNames;
+                }
+                else
+                {
+                    localBuilder = localBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<string>>();
+                    localBuilder[slotIndex] = elementNames;
+                }
+            }
+
+            if (localBuilder != null)
+            {
+                tupleLocalMap = localBuilder.ToImmutable();
+            }
+
+            if (constantBuilder != null)
+            {
+                tupleLocalConstantMap = constantBuilder.ToImmutable();
+            }
         }
 
         private static void ReadVisualBasicImportsDebugInfo(
@@ -574,11 +648,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 scopes.Select(scope => new ILSpan((uint)scope.GetStartOffset(), (uint)(scope.GetEndOffset() + (isEndInclusive ? 1 : 0)))));
         }
 
-        public static void GetConstants(
+        private static void GetConstants(
             ArrayBuilder<TLocalSymbol> builder,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             ArrayBuilder<ISymUnmanagedScope> scopes,
-            ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMapOpt)
+            ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMapOpt,
+            ImmutableDictionary<LocalNameAndScope, ImmutableArray<string>> tupleLocalConstantMapOpt)
         {
             foreach (var scope in scopes)
             {
@@ -613,9 +688,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
 
                     var dynamicFlags = default(ImmutableArray<bool>);
-                    dynamicLocalConstantMapOpt?.TryGetValue(name, out dynamicFlags);
+                    if (dynamicLocalConstantMapOpt != null)
+                    {
+                        dynamicLocalConstantMapOpt.TryGetValue(name, out dynamicFlags);
+                    }
 
-                    builder.Add(symbolProvider.GetLocalConstant(name, type, constantValue, dynamicFlags));
+                    var tupleElementNames = default(ImmutableArray<string>);
+                    if (tupleLocalConstantMapOpt != null)
+                    {
+                        int scopeStart = scope.GetStartOffset();
+                        int scopeEnd = scope.GetEndOffset();
+                        tupleLocalConstantMapOpt.TryGetValue(new LocalNameAndScope(name, scopeStart, scopeEnd), out tupleElementNames);
+                    }
+
+                    builder.Add(symbolProvider.GetLocalConstant(name, type, constantValue, dynamicFlags, tupleElementNames));
                 }
             }
         }
@@ -631,7 +717,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             ImmutableArray<string> names,
             ImmutableArray<LocalInfo<TTypeSymbol>> localInfo,
-            ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMapOpt)
+            ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMapOpt,
+            ImmutableDictionary<int, ImmutableArray<string>> tupleLocalConstantMapOpt)
         {
             if (localInfo.Length == 0)
             {
@@ -653,7 +740,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var dynamicFlags = default(ImmutableArray<bool>);
                 dynamicLocalMapOpt?.TryGetValue(i, out dynamicFlags);
 
-                builder.Add(symbolProvider.GetLocalVariable(name, i, localInfo[i], dynamicFlags));
+                var tupleElementNames = default(ImmutableArray<string>);
+                tupleLocalConstantMapOpt?.TryGetValue(i, out tupleElementNames);
+
+                builder.Add(symbolProvider.GetLocalVariable(name, i, localInfo[i], dynamicFlags, tupleElementNames));
             }
         }
     }

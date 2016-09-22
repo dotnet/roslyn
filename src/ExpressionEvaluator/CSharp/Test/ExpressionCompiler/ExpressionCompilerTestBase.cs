@@ -357,5 +357,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
         }
+
+        internal static SynthesizedAttributeData GetDynamicAttributeIfAny(IMethodSymbol method)
+        {
+            return GetAttributeIfAny(method, "System.Runtime.CompilerServices.DynamicAttribute");
+        }
+
+        internal static SynthesizedAttributeData GetTupleElementNamesAttributeIfAny(IMethodSymbol method)
+        {
+            return GetAttributeIfAny(method, "System.Runtime.CompilerServices.TupleElementNamesAttribute");
+        }
+
+        internal static SynthesizedAttributeData GetAttributeIfAny(IMethodSymbol method, string typeName)
+        {
+            return method.GetSynthesizedAttributes(forReturnType: true).
+                Where(a => a.AttributeClass.ToTestDisplayString() == typeName).
+                SingleOrDefault();
+        }
     }
 }
