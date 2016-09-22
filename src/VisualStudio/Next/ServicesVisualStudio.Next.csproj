@@ -110,6 +110,7 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
+    <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSession.cs" />
@@ -129,5 +130,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
