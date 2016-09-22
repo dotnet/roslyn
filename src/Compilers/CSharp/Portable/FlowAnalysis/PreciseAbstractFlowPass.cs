@@ -1693,10 +1693,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitFieldAccessInternal(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
         {
-            // VisitLvalue and VisitRValue don't accept null arguments, and if receiverOpt is null
-            // then there's nothing left to visit anyway.
             if (receiverOpt == null)
             {
+                // VisitLvalue and VisitRValue don't accept null arguments, and if receiverOpt is null
+                // then there's nothing left to visit anyway.
                 return;
             }
 
