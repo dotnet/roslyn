@@ -61,5 +61,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferObjectInitializer),
             defaultValue: trueWithSuggestionEnforcement,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer"));
+
+        internal static readonly PerLanguageOption<bool> PreferObjectInitializer_FadeOutCode = new PerLanguageOption<bool>(
+            nameof(CodeStyleOptions),
+            nameof(PreferObjectInitializer_FadeOutCode),
+            defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer"));
+
     }
 }

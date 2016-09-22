@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
@@ -64,15 +65,16 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
+            var language = objectCreationExpression.Language;
+
             var optionSet = context.Options.GetOptionSet();
-            var option = optionSet.GetOption(CodeStyleOptions.PreferObjectInitializer, LanguageNames.CSharp);
+            var option = optionSet.GetOption(CodeStyleOptions.PreferObjectInitializer, language);
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
                 return;
             }
-
-            var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
 
             var syntaxFacts = GetSyntaxFactsService();
             var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclarator>(
@@ -92,7 +94,25 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 
-            var syntaxTree = objectCreationExpression.SyntaxTree;
+            FadeOutCode(context, optionSet, matches, locations);
+        }
+
+        private void FadeOutCode(
+            SyntaxNodeAnalysisContext context,
+            OptionSet optionSet,
+            List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches,
+            ImmutableArray<Location> locations)
+        {
+            var syntaxTree = context.Node.SyntaxTree;
+
+            var fadeOutCode = optionSet.GetOption(
+                CodeStyleOptions.PreferObjectInitializer_FadeOutCode, context.Node.Language);
+            if (!fadeOutCode)
+            {
+                return;
+            }
+
+            var syntaxFacts = GetSyntaxFactsService();
 
             foreach (var match in matches)
             {
