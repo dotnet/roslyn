@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
 
@@ -1759,6 +1760,845 @@ End Class
   IL_001b:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_01()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click As System.Action
+
+    Sub Raise()
+        RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1
+
+    Protected WithEvents Button1 As New Button()
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Public Class MainBase2
+    Inherits MainBase1
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+
+Public Class MainBase3
+    Inherits MainBase2
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(3)
+    End Sub
+End Class
+
+Public Class Main
+    Inherits MainBase3
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine("4")
+    End Sub
+
+    Shared Sub Main()
+        Dim m = New Main()
+        m.Button1.Raise()
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+"1
+2
+3
+4")
+
+            verifier.VerifyIL("MainBase2.set_Button1", <![CDATA[
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.Action V_0,
+                Button V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      "Sub MainBase2.Button1_Click()"
+  IL_0007:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_000c:  stloc.0
+  IL_000d:  ldarg.0
+  IL_000e:  call       "Function MainBase1.get_Button1() As Button"
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  brfalse.s  IL_001e
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.0
+  IL_0019:  callvirt   "Sub Button.remove_Click(System.Action)"
+  IL_001e:  ldarg.0
+  IL_001f:  ldarg.1
+  IL_0020:  call       "Sub MainBase1.set_Button1(Button)"
+  IL_0025:  ldarg.0
+  IL_0026:  call       "Function MainBase1.get_Button1() As Button"
+  IL_002b:  stloc.1
+  IL_002c:  ldloc.1
+  IL_002d:  brfalse.s  IL_0036
+  IL_002f:  ldloc.1
+  IL_0030:  ldloc.0
+  IL_0031:  callvirt   "Sub Button.add_Click(System.Action)"
+  IL_0036:  ret
+}
+]]>)
+
+            verifier.VerifyIL("MainBase3.set_Button1", <![CDATA[
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.Action V_0,
+                Button V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      "Sub MainBase3.Button1_Click()"
+  IL_0007:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_000c:  stloc.0
+  IL_000d:  ldarg.0
+  IL_000e:  call       "Function MainBase2.get_Button1() As Button"
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  brfalse.s  IL_001e
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.0
+  IL_0019:  callvirt   "Sub Button.remove_Click(System.Action)"
+  IL_001e:  ldarg.0
+  IL_001f:  ldarg.1
+  IL_0020:  call       "Sub MainBase2.set_Button1(Button)"
+  IL_0025:  ldarg.0
+  IL_0026:  call       "Function MainBase2.get_Button1() As Button"
+  IL_002b:  stloc.1
+  IL_002c:  ldloc.1
+  IL_002d:  brfalse.s  IL_0036
+  IL_002f:  ldloc.1
+  IL_0030:  ldloc.0
+  IL_0031:  callvirt   "Sub Button.add_Click(System.Action)"
+  IL_0036:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Main.set_Button1", <![CDATA[
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.Action V_0,
+                Button V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      "Sub Main.Button1_Click()"
+  IL_0007:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_000c:  stloc.0
+  IL_000d:  ldarg.0
+  IL_000e:  call       "Function MainBase3.get_Button1() As Button"
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  brfalse.s  IL_001e
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.0
+  IL_0019:  callvirt   "Sub Button.remove_Click(System.Action)"
+  IL_001e:  ldarg.0
+  IL_001f:  ldarg.1
+  IL_0020:  call       "Sub MainBase3.set_Button1(Button)"
+  IL_0025:  ldarg.0
+  IL_0026:  call       "Function MainBase3.get_Button1() As Button"
+  IL_002b:  stloc.1
+  IL_002c:  ldloc.1
+  IL_002d:  brfalse.s  IL_0036
+  IL_002f:  ldloc.1
+  IL_0030:  ldloc.0
+  IL_0031:  callvirt   "Sub Button.add_Click(System.Action)"
+  IL_0036:  ret
+}
+]]>)
+            verifier.VerifyIL("MainBase2.get_Button1", <![CDATA[
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Button V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function MainBase1.get_Button1() As Button"
+  IL_0006:  ret
+}
+]]>)
+            verifier.VerifyIL("MainBase3.get_Button1", <![CDATA[
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Button V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function MainBase2.get_Button1() As Button"
+  IL_0006:  ret
+}
+]]>)
+            verifier.VerifyIL("Main.get_Button1", <![CDATA[
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Button V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function MainBase3.get_Button1() As Button"
+  IL_0006:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_02()
+
+            Dim source1 =
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click As System.Action
+
+    Sub Raise()
+        RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1
+
+    Protected WithEvents Button1 As New Button()
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Public Class MainBase2
+    Inherits MainBase1
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb">
+Public Class MainBase3
+    Inherits MainBase2
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(3)
+    End Sub
+End Class
+
+Public Class Main
+    Inherits MainBase3
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine("4")
+    End Sub
+
+    Shared Sub Main()
+        Dim m = New Main()
+        m.Button1.Raise()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation2, expectedOutput:=
+"1
+2
+3
+4")
+
+            compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation2, expectedOutput:=
+"1
+2
+3
+4")
+
+            compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation2, expectedOutput:=
+"1
+2
+3
+4")
+        End Sub
+
+        <Fact>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_03()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.ComponentModel
+
+Public Class EventSource
+    Public Event MyEvent()
+    Sub test()
+        RaiseEvent MyEvent()
+    End Sub
+End Class
+
+
+Public Class OuterClass
+
+    Private SubObject As New EventSource
+
+    &lt;DesignOnly(True)>
+    &lt;DesignerSerializationVisibility(DesignerSerializationVisibility.Content)>
+    Public Property SomeProperty() As EventSource
+        Get
+            Return SubObject
+        End Get
+        Set(value As EventSource)
+
+        End Set
+    End Property
+
+
+    Sub Test()
+        SubObject.test()
+    End Sub
+End Class
+
+
+Public Class MainBase1
+
+    Public WithEvents Button1 As New OuterClass()
+
+    Private Sub Button1_Click() Handles Button1.SomeProperty.MyEvent
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Public Class MainBase2
+    Inherits MainBase1
+
+    Private Sub Button1_Click() Handles Button1.SomeProperty.MyEvent
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+
+Public Class MainBase3
+    Inherits MainBase2
+
+    Private Sub Button1_Click() Handles Button1.SomeProperty.MyEvent
+        System.Console.WriteLine(3)
+    End Sub
+End Class
+
+Public Class Main
+    Inherits MainBase3
+
+    Private Sub Button1_Click() Handles Button1.SomeProperty.MyEvent
+        System.Console.WriteLine("4")
+    End Sub
+End Class
+
+Module Module1
+    Sub Main()
+        Dim m = New Main()
+        m.Button1.Test()
+    End Sub
+End Module
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:=
+"1
+2
+3
+4")
+        End Sub
+
+        <Fact>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_04()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click As System.Action
+
+    Sub Raise()
+        RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1
+
+    Protected WithEvents Button1 As New Button()
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Public Class MainBase2
+    Inherits MainBase1
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+
+Public Class MainBase3
+    Inherits MainBase2
+
+    Protected Overrides Property Button1 As Button
+        Get
+            Return MyBase.Button1
+        End Get
+        Set
+            System.Console.WriteLine("3")
+            MyBase.Button1 = Value
+        End Set
+    End Property
+End Class
+
+Public Class Main
+    Inherits MainBase3
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine("4")
+    End Sub
+
+    Shared Sub Main()
+        Dim m = New Main()
+        m.Button1.Raise()
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30284: property 'Button1' cannot be declared 'Overrides' because it does not override a property in a base class.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC40004: property 'Button1' conflicts with WithEvents variable 'Button1' in the base class 'MainBase1' and should be declared 'Shadows'.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
+    Private Sub Button1_Click() Handles Button1.Click
+                                        ~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_05()
+
+            Dim source1 =
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click As System.Action
+
+    Sub Raise()
+        RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1
+
+    Protected WithEvents Button1 As New Button()
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Public Class MainBase2
+    Inherits MainBase1
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb">
+Public Class MainBase3
+    Inherits MainBase2
+
+    Protected Overrides Property Button1 As Button
+        Get
+            Return MyBase.Button1
+        End Get
+        Set
+            System.Console.WriteLine("3")
+            MyBase.Button1 = Value
+        End Set
+    End Property
+End Class
+
+Public Class Main
+    Inherits MainBase3
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine("4")
+    End Sub
+
+    Shared Sub Main()
+        Dim m = New Main()
+        m.Button1.Raise()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+
+            compilation2.AssertTheseDiagnostics(
+<expected>
+BC30284: property 'Button1' cannot be declared 'Overrides' because it does not override a property in a base class.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC40004: property 'Button1' conflicts with WithEvents variable 'Button1' in the base class 'MainBase2' and should be declared 'Shadows'.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
+    Private Sub Button1_Click() Handles Button1.Click
+                                        ~~~~~~~
+</expected>)
+
+            compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            Dim expected =
+<expected>
+BC30284: property 'Button1' cannot be declared 'Overrides' because it does not override a property in a base class.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC40004: property 'Button1' conflicts with WithEvents variable 'Button1' in the base class 'MainBase1' and should be declared 'Shadows'.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
+    Private Sub Button1_Click() Handles Button1.Click
+                                        ~~~~~~~
+</expected>
+            compilation2.AssertTheseDiagnostics(expected)
+
+            compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            compilation2.AssertTheseDiagnostics(expected)
+        End Sub
+
+        <Fact>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_06()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click As System.Action
+
+    Sub Raise()
+        RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1
+
+    Protected WithEvents Button1 As New Button()
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Public Class MainBase3
+    Inherits MainBase1
+
+    Protected Overrides Property Button1 As Button
+        Get
+            Return MyBase.Button1
+        End Get
+        Set
+            System.Console.WriteLine("3")
+            MyBase.Button1 = Value
+        End Set
+    End Property
+End Class
+
+Public Class Main
+    Inherits MainBase3
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine("4")
+    End Sub
+
+    Shared Sub Main()
+        Dim m = New Main()
+        m.Button1.Raise()
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30284: property 'Button1' cannot be declared 'Overrides' because it does not override a property in a base class.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC40004: property 'Button1' conflicts with WithEvents variable 'Button1' in the base class 'MainBase1' and should be declared 'Shadows'.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
+    Private Sub Button1_Click() Handles Button1.Click
+                                        ~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_07()
+
+            Dim source1 =
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click As System.Action
+
+    Sub Raise()
+        RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1
+
+    Protected WithEvents Button1 As New Button()
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb">
+Public Class MainBase3
+    Inherits MainBase1
+
+    Protected Overrides Property Button1 As Button
+        Get
+            Return MyBase.Button1
+        End Get
+        Set
+            System.Console.WriteLine("3")
+            MyBase.Button1 = Value
+        End Set
+    End Property
+End Class
+
+Public Class Main
+    Inherits MainBase3
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine("4")
+    End Sub
+
+    Shared Sub Main()
+        Dim m = New Main()
+        m.Button1.Raise()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+            Dim expected =
+<expected>
+BC30284: property 'Button1' cannot be declared 'Overrides' because it does not override a property in a base class.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC40004: property 'Button1' conflicts with WithEvents variable 'Button1' in the base class 'MainBase1' and should be declared 'Shadows'.
+    Protected Overrides Property Button1 As Button
+                                 ~~~~~~~
+BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
+    Private Sub Button1_Click() Handles Button1.Click
+                                        ~~~~~~~
+</expected>
+
+            compilation2.AssertTheseDiagnostics(expected)
+
+            compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            compilation2.AssertTheseDiagnostics(expected)
+
+            compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            compilation2.AssertTheseDiagnostics(expected)
+        End Sub
+
+        <Fact>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        Public Sub HandlesOnMultipleLevels_08()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click As System.Action
+
+    Sub Raise()
+        RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1(Of T1)
+
+    Protected WithEvents Button1 As New Button()
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Public Class MainBase2(Of T2)
+    Inherits MainBase1(Of MainBase2(Of T2))
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+
+Public Class MainBase3(Of T3)
+    Inherits MainBase2(Of MainBase3(Of T3))
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(3)
+    End Sub
+End Class
+
+Public Class Main(Of T4)
+    Inherits MainBase3(Of Main(Of T4))
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine("4")
+    End Sub
+
+    Shared Sub Test()
+        Dim m = New Main(Of T4)()
+        m.Button1.Raise()
+    End Sub
+End Class
+
+Public Class Main
+    Shared Sub Main()
+        Global.Main(Of Integer).Test()
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+"1
+2
+3
+4")
+        End Sub
+
+        <Fact>
+        <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
+        <WorkItem(14104, "https://github.com/dotnet/roslyn/issues/14104")>
+        <CompilerTrait(CompilerFeature.Tuples)>
+        Public Sub HandlesOnMultipleLevels_09()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Button
+    Event Click As System.Action
+
+    Sub Raise()
+        RaiseEvent Click()
+    End Sub
+End Class
+
+Public Class MainBase1
+
+    Protected WithEvents Button1 As New Button()
+
+    Private Sub Button1_Click() Handles Button1.Click
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Namespace System
+    Public Class ValueTuple(Of T1, T2)
+        Inherits MainBase1
+
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+
+        Public Sub New()
+        End Sub
+
+        Private Sub Button1_Click() Handles Button1.Click
+            System.Console.WriteLine(2)
+        End Sub
+    End Class
+End Namespace
+
+Public Class Main
+    Inherits System.ValueTuple(Of Integer, Integer)
+
+    Private Sub Button1_Click() Handles Button1.Click ' 3
+        System.Console.WriteLine("3")
+    End Sub
+
+    Shared Sub Main()
+        Dim m = New Main()
+        m.Button1.Raise()
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+#If Not ISSUE_14104_IS_FIXED Then
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30299: 'Main' cannot inherit from class '' because '' is declared 'NotInheritable'.
+    Inherits System.ValueTuple(Of Integer, Integer)
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
+    Private Sub Button1_Click() Handles Button1.Click ' 3
+                                        ~~~~~~~
+BC30456: 'Button1' is not a member of 'Main'.
+        m.Button1.Raise()
+        ~~~~~~~~~
+</expected>)
+#Else
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+"1
+2
+3")
+#End If
         End Sub
     End Class
 End Namespace
