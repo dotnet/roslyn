@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal static class RemoteHostOptions
     {
         [ExportOption]
-        public static readonly Option<bool> RemoteHost = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHost), defaultValue: false,
+        public static readonly Option<bool> RemoteHost = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHost), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RemoteHost)));
 
         [ExportOption]

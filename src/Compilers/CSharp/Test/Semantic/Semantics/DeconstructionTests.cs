@@ -2410,5 +2410,49 @@ class C1
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (x, y) = (1, 2);").WithLocation(7, 13)
                 );
         }
+
+        [Fact]
+        public void DeconstructObsoleteWarning()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+       (int y1, int y2) = new C();
+    }
+    [System.Obsolete()]
+    void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,27): warning CS0612: 'C.Deconstruct(out int, out int)' is obsolete
+                //        (int y1, int y2) = new C();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.Deconstruct(out int, out int)").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        public void DeconstructObsoleteError()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+       (int y1, int y2) = new C();
+    }
+    [System.Obsolete(""Deprecated"", error: true)]
+    void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS0619: 'C.Deconstruct(out int, out int)' is obsolete: 'Deprecated'
+                //        (int y1, int y2) = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.Deconstruct(out int, out int)", "Deprecated").WithLocation(6, 27)
+                );
+        }
     }
 }

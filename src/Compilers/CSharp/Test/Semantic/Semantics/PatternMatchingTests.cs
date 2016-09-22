@@ -172,7 +172,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"expression 1 is not String
@@ -299,7 +299,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"No for 1
@@ -335,7 +335,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
 #if ALLOW_IN_FIELD_INITIALIZER
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -384,7 +384,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -420,7 +420,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -458,7 +458,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -532,7 +532,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"False for 1
@@ -585,7 +585,7 @@ public struct X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            using (new EnsureEnglishCulture())
+            using (new EnsureInvariantCulture())
             {
                 var expectedOutput =
 @"one
@@ -14712,6 +14712,224 @@ public class Program
                 //         if ((1, null) is Program) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", "(int, <null>)").WithLocation(6, 13)
                 );
+        }
+
+        [Fact]
+        public void ThrowExpressionForParameterValidation()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        foreach (var s in new[] { ""0123"", ""foo"" })
+        {
+            Console.Write(s + "" "");
+            try
+            {
+                Console.WriteLine(Ver(s));
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine(""throws"");
+            }
+        }
+    }
+    static int Ver(string s)
+    {
+        var result = int.TryParse(s, out int k) ? k : throw new ArgumentException(nameof(s));
+        return k; // definitely assigned!
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"0123 123
+foo throws");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M(1));
+        try
+        {
+            Console.WriteLine(M(null));
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""thrown"");
+        }
+    }
+    static int M(int? data)
+    {
+        return data ?? throw null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"1
+thrown");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M(1));
+        try
+        {
+            Console.WriteLine(M(null));
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""thrown"");
+        }
+    }
+    static string M(object data)
+    {
+        return data?.ToString() ?? throw null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"1
+thrown");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable03()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MainAsync().Wait();
+    }
+    static async Task MainAsync()
+    {
+        foreach (var i in new[] { 1, 2 })
+        {
+            try
+            {
+                var used = (await Foo(i))?.ToString() ?? throw await Bar(i);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(""thrown "" + ex.Message);
+            }
+        }
+    }
+    static async Task<object> Foo(int i)
+    {
+        await Task.Yield();
+        return (i == 1) ? i : (object)null;
+    }
+    static async Task<Exception> Bar(int i)
+    {
+        await Task.Yield();
+        Console.WriteLine(""making exception "" + i);
+        return new Exception(i.ToString());
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
+                references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"making exception 2
+thrown 2");
+        }
+
+        [Fact]
+        public void ThrowExpressionPrecedence01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Exception ex = null;
+        try
+        {
+            // The ?? operator is right-associative, even under 'throw'
+            ex = ex ?? throw ex ?? throw new ArgumentException(""blue"");
+        }
+        catch (ArgumentException x)
+        {
+            Console.WriteLine(x.Message);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"blue");
+        }
+
+        [Fact]
+        public void ThrowExpressionPrecedence02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MyException ex = null;
+        try
+        {
+            // Throw expression binds looser than +
+            ex = ex ?? throw ex + 1;
+        }
+        catch (MyException x)
+        {
+            Console.WriteLine(x.Message);
+        }
+    }
+}
+class MyException : Exception
+{
+    public MyException(string message) : base(message) {}
+    public static MyException operator +(MyException left, int right)
+    {
+        return new MyException(""green"");
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"green");
         }
     }
 }

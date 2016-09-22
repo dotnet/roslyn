@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         private const string SolutionCrawler = nameof(SolutionCrawler);
 
         [Fact]
-        public void RegisterService()
+        public async Task RegisterService()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 // register and unregister workspace to the service
                 registrationService.Register(workspace);
                 registrationService.Unregister(workspace);
+
+                // make sure we wait for all waiter. the test wrongly assumed there won't be
+                // any pending async event which is implementation detail when creating workspace
+                // and changing options.
+                await WaitWaiterAsync(workspace.ExportProvider);
             }
         }
 

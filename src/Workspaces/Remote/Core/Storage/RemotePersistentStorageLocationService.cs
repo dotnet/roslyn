@@ -33,8 +33,20 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
         {
             lock (_gate)
             {
-                // Store the esent database in a different location for the out of proc server.
-                _idToStorageLocation[id] = Path.Combine(storageLocation, "Server");
+                // We can get null when the solution has no corresponding file location
+                // in the host process.  This is not abnormal and can come around for
+                // many reasons.  In that case, we simply do not store a storage location
+                // for this solution, indicating to all remote consumers that persistent
+                // storage is not available for this solution.
+                if (storageLocation == null)
+                {
+                    _idToStorageLocation.Remove(id);
+                }
+                else
+                {
+                    // Store the esent database in a different location for the out of proc server.
+                    _idToStorageLocation[id] = Path.Combine(storageLocation, "Server");
+                }
             }
         }
     }

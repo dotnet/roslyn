@@ -941,6 +941,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Throw(Null(Compilation.GetWellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Exception)));
         }
 
+        public BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)
+        {
+            return new BoundThrowExpression(thrown.Syntax, thrown, type) { WasCompilerGenerated = true };
+        }
+
         public BoundExpression Null(TypeSymbol type)
         {
             BoundExpression nullLiteral = new BoundLiteral(Syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
