@@ -194,6 +194,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         public async Task FindReferencesAsync(
             Document document, int position, FindReferencesContext context)
         {
+            // NOTE: All ConFigureAwaits in this method need to pass 'true' so that
+            // we return to the caller's context.  that's so the call to 
+            // CallThirdPartyExtensionsAsync will happen on the UI thread.  We need
+            // this to maintain the threading guarantee we had around that method
+            // from pre-Roslyn days.
+            var findReferencesProgress = await FindReferencesWorkerAsync(
+                document, position, context).ConfigureAwait(true);
+            if (findReferencesProgress == null)
+            {
+                return;
+            }
+
+            // After the FAR engine is done call into any third party extensions to see
+            // if they want to add results.
+            await findReferencesProgress.CallThirdPartyExtensionsAsync().ConfigureAwait(true);
+        }
+
+        private async Task<ProgressAdapter> FindReferencesWorkerAsync(
+            Document document, int position, FindReferencesContext context)
+        {
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -202,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 document, position, cancellationToken).ConfigureAwait(false);
             if (symbolAndProject == null)
             {
-                return;
+                return null;
             }
 
             var symbol = symbolAndProject.Item1;
@@ -217,20 +237,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
-            //
-            // Note: we pass along ConfigureAwait(true) because we need to come back
-            // to the UI thread.  There's more work we need to do once the FAR engine
-            // is done.
             await SymbolFinder.FindReferencesAsync(
                 SymbolAndProjectId.Create(symbol, project.Id),
                 project.Solution,
                 progressAdapter,
                 documents: null,
-                cancellationToken: cancellationToken).ConfigureAwait(true);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            // After the FAR engine is done call into any third party extensions to see
-            // if they want to add results.
-            await progressAdapter.CallThirdPartyExtensionsAsync().ConfigureAwait(true);
+            return progressAdapter;
         }
     }
 }
