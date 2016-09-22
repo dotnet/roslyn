@@ -1005,5 +1005,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' of https://github.com/dotnet/roslyn/issues/14104
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
+
+        Friend Shared Sub ReportNamesMismatchesIfAny(destination As TypeSymbol, literal As BoundTupleLiteral, diagnostics As DiagnosticBag)
+            Dim sourceNames = literal.ArgumentNamesOpt
+
+            If sourceNames.IsDefault Then
+                Return
+            End If
+
+            Dim destinationNames As ImmutableArray(Of String) = destination.TupleElementNames
+            Dim sourceLength As Integer = sourceNames.Length
+            Dim allMissing As Boolean = destinationNames.IsDefault
+            Debug.Assert(allMissing OrElse destinationNames.Length = sourceLength)
+
+            For i = 0 To sourceLength - 1
+                Dim sourceName = sourceNames(i)
+                If sourceName IsNot Nothing AndAlso (allMissing OrElse String.CompareOrdinal(destinationNames(i), sourceName) <> 0) Then
+                    diagnostics.Add(ERRID.WRN_TupleLiteralNameMismatch, literal.Arguments(i).Syntax.Parent.Location, sourceName, destination)
+                End If
+            Next
+        End Sub
+
     End Class
 End Namespace

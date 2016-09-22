@@ -8978,7 +8978,54 @@ False
             Dim consumer2 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
             CompileAndVerify(consumer2, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
+
+        <Fact>
+        Public Sub TupleConversion01()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb"><![CDATA[
+
+Module C
+    Sub Main()
+        Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
+        Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
+        Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
+    End Sub
+End Module
+
+]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            ' REVIEW TODO no conversion error on x2 or x3
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+        Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
+                                                             ~~~~
+BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+        Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
+                                                                   ~~~~
+BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+        Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
+                                                         ~~~~
+BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+        Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
+                                                               ~~~~
+BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+        Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
+                                                             ~~~~
+BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+        Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
+                                                                   ~~~~~~~
+</errors>)
+
+        End Sub
+
+
+
     End Class
+
 
 End Namespace
 
