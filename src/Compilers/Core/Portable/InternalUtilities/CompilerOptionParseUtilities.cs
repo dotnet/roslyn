@@ -20,13 +20,7 @@ namespace Roslyn.Utilities
             }
 
             var all = features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            var list = new List<string>(capacity: all.Length);
-            foreach (var feature in all)
-            {
-                list.Add(feature);
-            }
-
-            return list;
+            return all;
         }
 
         public static ImmutableDictionary<string, string> ParseFeatures(List<string> values)
