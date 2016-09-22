@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string PreferFrameworkTypeInMemberAccessDiagnosticId = "IDE0015";
         public const string UseThrowExpressionDiagnosticId = "IDE0016";
 
+        public const string UseObjectInitializerDiagnosticId = "IDE0017";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

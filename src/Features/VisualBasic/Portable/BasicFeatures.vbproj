@@ -424,6 +424,8 @@
     <Compile Include="SignatureHelp\RaiseEventStatementSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\SignatureHelpUtilities.vb" />
     <Compile Include="SolutionCrawler\VisualBasicDocumentDifferenceService.vb" />
+    <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerCodeFixProvider.vb" />
+    <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="VBFeaturesResources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -418,6 +418,8 @@
     <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider_NormalType.cs" />
     <Compile Include="SignatureHelp\SignatureHelpUtilities.cs" />
     <Compile Include="SolutionCrawler\CSharpDocumentDifferenceService.cs" />
+    <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
+    <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerDiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CSharpFeaturesResources.resx">
