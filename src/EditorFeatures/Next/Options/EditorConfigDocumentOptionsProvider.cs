@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 if (_codingConventionSnapshot.TryGetConventionValue(editorConfigPersistence.KeyName, out value))
                 {
-                    value = editorConfigPersistence.ParseFunction(value.ToString());
+                    value = editorConfigPersistence.ParseValue(value.ToString(), option.Option.Type);
                     return true;
                 }
                 else

@@ -10,12 +10,38 @@ namespace Microsoft.CodeAnalysis.Options
     internal sealed class EditorConfigStorageLocation : OptionStorageLocation
     {
         public string KeyName { get; }
-        public Func<string, object> ParseFunction { get; }
 
-        public EditorConfigStorageLocation(string keyName, Func<string, object> parseFunction)
+        private Func<string, Type, object> _parseValue;
+
+        public object ParseValue(string s, Type type) => _parseValue(s, type);
+
+        public EditorConfigStorageLocation(string keyName)
         {
             KeyName = keyName;
-            ParseFunction = parseFunction;
+
+            _parseValue = (s, type) =>
+            {
+                if (type == typeof(int))
+                {
+                    return int.Parse(s);
+                }
+                else if (type == typeof(bool))
+                {
+                    return bool.Parse(s);
+                }
+                else
+                {
+                    throw new NotSupportedException(WorkspacesResources.Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function);
+                }
+            };
+        }
+
+        public EditorConfigStorageLocation(string keyName, Func<string, object> parseValue)
+        {
+            KeyName = keyName;
+
+            // If we're explicitly given a parsing function we can throw away the type when parsing
+            _parseValue = (s, type) => parseValue(s);
         }
     }
 }

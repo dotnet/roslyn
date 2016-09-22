@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<int> TabSize { get; } = new PerLanguageOption<int>(nameof(FormattingOptions), nameof(TabSize), defaultValue: 4,
-            storageLocations: new EditorConfigStorageLocation("tab_width", s => int.Parse(s)));
+            storageLocations: new EditorConfigStorageLocation("tab_width"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<int> IndentationSize { get; } = new PerLanguageOption<int>(nameof(FormattingOptions), nameof(IndentationSize), defaultValue: 4,
-            storageLocations: new EditorConfigStorageLocation("indent_size", s => int.Parse(s)));
+            storageLocations: new EditorConfigStorageLocation("indent_size"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<IndentStyle> SmartIndent { get; } = new PerLanguageOption<IndentStyle>(nameof(FormattingOptions), nameof(SmartIndent), defaultValue: IndentStyle.Smart);
