@@ -244,6 +244,132 @@ End Module
         End Sub
 
         <Fact()>
+        <WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")>
+        Public Sub Simple_Test_ManyLocals()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+        DoItAsync().Wait()
+    End Sub
+
+    public async Function DoItAsync() as Task
+        Dim var1 = 0
+        Dim var2 = 0
+        Dim var3 = 0
+        Dim var4 = 0
+        Dim var5 = 0
+        Dim var6 = 0
+        Dim var7 = 0
+        Dim var8 = 0
+        Dim var9 = 0
+        Dim var10 = 0
+        Dim var11 = 0
+        Dim var12 = 0
+        Dim var13 = 0
+        Dim var14 = 0
+        Dim var15 = 0
+        Dim var16 = 0
+        Dim var17 = 0
+        Dim var18 = 0
+        Dim var19 = 0
+        Dim var20 = 0
+        Dim var21 = 0
+        Dim var22 = 0
+        Dim var23 = 0
+        Dim var24 = 0
+        Dim var25 = 0
+        Dim var26 = 0
+        Dim var27 = 0
+        Dim var28 = 0
+        Dim var29 = 0
+        Dim var30 = 0
+        Dim var31 = 0
+
+        Dim s as string
+        if true
+            s = "a"
+            await Task.Yield()
+        else
+            s = "b"
+        end if
+
+        Console.WriteLine(if(s , "null"))  ' should be "a" always, somehow is "null"
+    end Function 
+End Module
+    </file>
+</compilation>, useLatestFramework:=True, options:=TestOptions.DebugExe, expectedOutput:="a")
+        End Sub
+
+        <Fact()>
+        <WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")>
+        Public Sub Simple_Test_ManyLocals_Rel()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+        DoItAsync().Wait()
+    End Sub
+
+    public async Function DoItAsync() as Task
+        Dim var1 = 0
+        Dim var2 = 0
+        Dim var3 = 0
+        Dim var4 = 0
+        Dim var5 = 0
+        Dim var6 = 0
+        Dim var7 = 0
+        Dim var8 = 0
+        Dim var9 = 0
+        Dim var10 = 0
+        Dim var11 = 0
+        Dim var12 = 0
+        Dim var13 = 0
+        Dim var14 = 0
+        Dim var15 = 0
+        Dim var16 = 0
+        Dim var17 = 0
+        Dim var18 = 0
+        Dim var19 = 0
+        Dim var20 = 0
+        Dim var21 = 0
+        Dim var22 = 0
+        Dim var23 = 0
+        Dim var24 = 0
+        Dim var25 = 0
+        Dim var26 = 0
+        Dim var27 = 0
+        Dim var28 = 0
+        Dim var29 = 0
+        Dim var30 = 0
+        Dim var31 = 0
+
+        Dim s as string
+        if true
+            s = "a"
+            await Task.Yield()
+        else
+            s = "b"
+        end if
+
+        Console.WriteLine(if(s , "null"))  ' should be "a" always, somehow is "null"
+    end Function 
+End Module
+    </file>
+</compilation>, useLatestFramework:=True, options:=TestOptions.ReleaseExe, expectedOutput:="a")
+        End Sub
+
+        <Fact()>
         Public Sub Simple_Task()
             CompileAndVerify(
 <compilation>

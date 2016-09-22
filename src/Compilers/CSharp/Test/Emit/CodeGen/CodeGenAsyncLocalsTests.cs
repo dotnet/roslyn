@@ -75,6 +75,80 @@ class Test
         }
 
         [Fact]
+        [WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")]
+        public void AsyncWithLotsLocals()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main()
+        {
+            DoItAsync().Wait();
+        }
+
+        public static async Task DoItAsync()
+        {
+            var var1 = 0;
+            var var2 = 0;
+            var var3 = 0;
+            var var4 = 0;
+            var var5 = 0;
+            var var6 = 0;
+            var var7 = 0;
+            var var8 = 0;
+            var var9 = 0;
+            var var10 = 0;
+            var var11 = 0;
+            var var12 = 0;
+            var var13 = 0;
+            var var14 = 0;
+            var var15 = 0;
+            var var16 = 0;
+            var var17 = 0;
+            var var18 = 0;
+            var var19 = 0;
+            var var20 = 0;
+            var var21 = 0;
+            var var22 = 0;
+            var var23 = 0;
+            var var24 = 0;
+            var var25 = 0;
+            var var26 = 0;
+            var var27 = 0;
+            var var28 = 0;
+            var var29 = 0;
+            var var30 = 0;
+            var var31 = 0;
+
+            string s;
+            if (true)
+            {
+                s = ""a"";
+                await Task.Yield();
+            }
+            else
+            {
+                s = ""b"";
+            }
+
+            Console.WriteLine(s ?? ""null"");  // should be ""a"" always, somehow is ""null""
+        }
+    }
+}";
+            var expected = @"
+a
+";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expected);
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expected);
+
+        }
+
+        [Fact]
         public void AsyncWithParam()
         {
             var source = @"
