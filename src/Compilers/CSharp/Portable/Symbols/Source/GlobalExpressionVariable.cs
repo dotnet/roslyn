@@ -12,64 +12,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents expression variables declared in a global statement.
     /// </summary>
-    internal class SourceMemberFieldSymbolFromDesignation : SourceMemberFieldSymbol
+    internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
         private TypeSymbol _lazyType;
+        private readonly TypeSyntax _typeSyntax;
 
-        internal SourceMemberFieldSymbolFromDesignation(
+        internal GlobalExpressionVariable(
             SourceMemberContainerTypeSymbol containingType,
-            SingleVariableDesignationSyntax designation,
-            DeclarationModifiers modifiers)
-            : base(containingType, modifiers, designation.Identifier.ValueText, designation.GetReference(), designation.Identifier.GetLocation())
+            DeclarationModifiers modifiers,
+            TypeSyntax typeSyntax,
+            string name,
+            SyntaxReference syntax,
+            Location location)
+            : base(containingType, modifiers, name, syntax, location)
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
+            this._typeSyntax = typeSyntax;
         }
 
-        internal static SourceMemberFieldSymbolFromDesignation Create(
+        internal static GlobalExpressionVariable Create(
                 SourceMemberContainerTypeSymbol containingType,
-                SingleVariableDesignationSyntax designation,
+                TypeSyntax typeSyntax,
                 DeclarationModifiers modifiers,
+                string name,
+                SyntaxNode syntax,
+                Location location,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
         {
             Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
-            var typeSyntax = ((TypedVariableComponentSyntax)designation.Parent).Type;
+            var syntaxReference = syntax.GetReference();
             return typeSyntax.IsVar
-                ? new SourceMemberFieldSymbolFromDesignationWithEnclosingContext(containingType, designation, modifiers, containingFieldOpt, nodeToBind)
-                : new SourceMemberFieldSymbolFromDesignation(containingType, designation, modifiers);
+                ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
+                : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
         }
 
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-        {
-            get
-            {
-                return default(SyntaxList<AttributeListSyntax>);
-            }
-        }
-
-        public SingleVariableDesignationSyntax VariableDesignation
-        {
-            get
-            {
-                return (SingleVariableDesignationSyntax)this.SyntaxNode;
-            }
-        }
-        
-        protected override TypeSyntax TypeSyntax
-        {
-            get
-            {
-                return ((TypedVariableComponentSyntax)VariableDesignation.Parent).Type;
-            }
-        }
-
-        protected override SyntaxTokenList ModifiersTokenList
-        {
-            get
-            {
-                return default(SyntaxTokenList);
-            }
-        }
+        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
+        protected override TypeSyntax TypeSyntax => this._typeSyntax;
+        protected override SyntaxTokenList ModifiersTokenList => default(SyntaxTokenList);
+        public override bool HasInitializer => false;
+        protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics) => null;
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
@@ -80,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyType;
             }
 
-            var designation = VariableDesignation;
             var typeSyntax = TypeSyntax;
 
             var compilation = this.DeclaringCompilation;
@@ -152,32 +133,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
-        {
-            return null;
-        }
-
-        public override bool HasInitializer
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        private class SourceMemberFieldSymbolFromDesignationWithEnclosingContext : SourceMemberFieldSymbolFromDesignation
+        private class InferrableGlobalExpressionVariable : GlobalExpressionVariable
         {
             private readonly FieldSymbol _containingFieldOpt;
             private readonly SyntaxReference _nodeToBind;
 
-
-            internal SourceMemberFieldSymbolFromDesignationWithEnclosingContext(
+            internal InferrableGlobalExpressionVariable(
                 SourceMemberContainerTypeSymbol containingType,
-                SingleVariableDesignationSyntax designation,
                 DeclarationModifiers modifiers,
+                TypeSyntax typeSyntax,
+                string name,
+                SyntaxReference syntax,
+                Location location,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
-                : base(containingType, designation, modifiers)
+                : base(containingType, modifiers, typeSyntax, name, syntax, location)
             {
                 Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
                 _containingFieldOpt = containingFieldOpt;

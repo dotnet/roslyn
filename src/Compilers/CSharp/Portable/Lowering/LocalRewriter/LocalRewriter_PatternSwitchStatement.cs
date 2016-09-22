@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private void AddBindings(ArrayBuilder<BoundStatement> sectionBuilder, ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>> bindings)
+            private void AddBindings(ArrayBuilder<BoundStatement> sectionBuilder, ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> bindings)
             {
                 if (bindings.IsDefaultOrEmpty)
                 {
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var source = kv.Key;
                     var dest = kv.Value;
-                    sectionBuilder.Add(_factory.Assignment(_factory.Local(dest), source));
+                    sectionBuilder.Add(_factory.Assignment(dest, source));
                 }
             }
 

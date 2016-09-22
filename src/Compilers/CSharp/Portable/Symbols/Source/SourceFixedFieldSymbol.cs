@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
                     int size = 0;
 
-                    VariableDeclaratorSyntax declarator = this.VariableDeclaratorNode;
+                    VariableDeclaratorSyntax declarator = (VariableDeclaratorSyntax)this.SyntaxNode;
 
                     if (declarator.ArgumentList == null)
                     {
