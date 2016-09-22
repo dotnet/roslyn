@@ -14,7 +14,10 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         // TODO: probably need to split this to private and public services
         public static readonly HostServices HostServices = MefHostServices.Create(
-            MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+            MefHostServices.DefaultAssemblies
+                .Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly)
+                .Add(typeof(CSharp.CodeLens.CSharpCodeLensDisplayInfoService).Assembly)
+                .Add(typeof(VisualBasic.CodeLens.VisualBasicDisplayInfoService).Assembly));
 
         public static readonly AssetService AssetService = new AssetService();
         public static readonly SolutionService SolutionService = new SolutionService();
