@@ -1294,5 +1294,37 @@ class EntryPoint
             var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        public void FixedFieldAccessFromInnerClass()
+        {
+            var source =
+@"
+using System;
+
+public struct MyType
+{
+  public static class Inner
+  {
+     public static string a = nameof(normalField);
+     public static string b = nameof(fixedField);
+  }
+
+  public int normalField;
+  public unsafe fixed short fixedField[6];
+}
+
+class EntryPoint
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(MyType.Inner.a + "" "");
+        Console.Write(MyType.Inner.b);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
+        }
     }
 }
