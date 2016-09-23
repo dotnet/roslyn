@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// In embedded statements, returns a BoundLocal when the type was explicit.
         /// In global statements, returns a BoundFieldAccess when the type was explicit.
-        /// Otherwise returns a DeconstructionLocalPendingInference when the type is implicit.
+        /// Otherwise returns a DeconstructionVariablePendingInference when the type is implicit.
         /// </summary>
         private BoundExpression BindDeconstructionDeclarationVariable(
             TypeSyntax typeSyntax,
