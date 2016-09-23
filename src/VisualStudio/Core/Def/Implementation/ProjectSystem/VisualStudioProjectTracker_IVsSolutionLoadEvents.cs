@@ -119,12 +119,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             OutputToOutputWindow($"Getting project information - start");
             var start = DateTimeOffset.UtcNow;
-            // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-            var projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
-                $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
-                cancellationToken).ConfigureAwait(true);
-            AssertIsForeground();
 
+            var projectInfos = SpecializedCollections.EmptyReadOnlyDictionary<string, DeferredProjectInformation>();
+
+            // Note that `solutionConfig` may be null. For example: if the solution doesn't actually
+            // contain any projects.
+            if (solutionConfig != null)
+            {
+                // Capture the context so that we come back on the UI thread, and do the actual project creation there.
+                projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
+                    $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
+                    cancellationToken).ConfigureAwait(true);
+            }
+
+            AssertIsForeground();
             cancellationToken.ThrowIfCancellationRequested();
             OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
 
