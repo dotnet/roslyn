@@ -7526,5 +7526,40 @@ End Module
             Await VerifyItemExistsAsync(text, "A")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TupleElements() As Task
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim t = (Alice:=1, 2, 3, 4, 5, 6, 7, 8, Bob:=9)
+        t.$$
+    End Sub
+End Module
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)
+        Public Dim Rest As TRest
+
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, rest As TRest)
+        End Sub
+    End Structure
+End Namespace
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(text, "Alice")
+            Await VerifyItemExistsAsync(text, "Item2")
+            Await VerifyItemExistsAsync(text, "Item8")
+            Await VerifyItemExistsAsync(text, "Bob")
+
+            Await VerifyItemIsAbsentAsync(text, "Item1")
+            Await VerifyItemIsAbsentAsync(text, "Item9")
+            Await VerifyItemIsAbsentAsync(text, "Rest")
+        End Function
+
     End Class
 End Namespace

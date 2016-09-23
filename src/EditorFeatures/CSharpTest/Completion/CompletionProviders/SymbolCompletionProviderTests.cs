@@ -8854,5 +8854,33 @@ class C
 }";
             await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElements()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        var t = (Alice: 1, 2, 3, 4, 5, 6, 7, 8, Bob: 9);
+        t.$$
     }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs;
+
+            await VerifyItemExistsAsync(markup, "Alice");
+            await VerifyItemExistsAsync(markup, "Bob");
+            await VerifyItemExistsAsync(markup, "CompareTo");
+            await VerifyItemExistsAsync(markup, "Equals");
+            await VerifyItemExistsAsync(markup, "GetHashCode");
+            await VerifyItemExistsAsync(markup, "GetType");
+            await VerifyItemExistsAsync(markup, "Item2");
+            await VerifyItemExistsAsync(markup, "Item8");
+            await VerifyItemExistsAsync(markup, "ToString");
+
+            await VerifyItemIsAbsentAsync(markup, "Item1");
+            await VerifyItemIsAbsentAsync(markup, "Item9");
+            await VerifyItemIsAbsentAsync(markup, "Rest");
+        }
+     }
 }

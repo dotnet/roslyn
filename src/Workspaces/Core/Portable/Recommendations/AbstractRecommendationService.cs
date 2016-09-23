@@ -71,6 +71,38 @@ namespace Microsoft.CodeAnalysis.Recommendations
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
         }
 
+        /// <summary>
+        /// If container is a tuple type, any of its tuple element which has a friendly name will cause
+        /// the suppression of the corresponding default name (ItemN).
+        /// In that case, Rest is also removed.
+        /// </summary>
+        protected static IEnumerable<ISymbol> SuppressDefaultTupleElements(INamespaceOrTypeSymbol container,
+            IEnumerable<ISymbol> symbols)
+        {
+            if (!container.IsType)
+            {
+                return symbols;
+            }
+
+            var type = (ITypeSymbol)container;
+            if (!type.IsTupleType)
+            {
+                return symbols;
+            }
+
+            var tuple = (INamedTypeSymbol)type;
+            var elementNames = tuple.TupleElementNames;
+            if (elementNames.IsDefault)
+            {
+                return symbols;
+            }
+
+            var fieldsToRemove = elementNames.Select((n, i) => elementNames[i] != null ? "Item" + (i + 1) : null)
+                .Where(n => n != null).Concat("Rest");
+
+            return symbols.Where(s => s.Kind != SymbolKind.Field || !fieldsToRemove.Contains(s.Name));
+        }
+
         private sealed class ShouldIncludeSymbolContext
         {
             private readonly SyntaxContext _context;

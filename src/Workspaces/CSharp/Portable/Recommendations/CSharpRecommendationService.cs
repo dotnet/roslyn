@@ -534,7 +534,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 ? context.SemanticModel.LookupBaseMembers(position)
                 : excludeInstance
                     ? context.SemanticModel.LookupStaticMembers(position, container)
-                    : context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods: true);
+                    : SuppressDefaultTupleElements(container,
+                        context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods: true));
 
             // If we're showing instance members, don't include nested types
             return excludeStatic
