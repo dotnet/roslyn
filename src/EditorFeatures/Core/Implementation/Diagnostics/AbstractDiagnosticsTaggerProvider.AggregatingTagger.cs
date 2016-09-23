@@ -6,11 +6,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -28,6 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private int _refCount;
             private bool _disposed;
+
+            /// <summary>
+            /// The current Document that our <see cref="_subjectBuffer"/> is associated with.
+            /// If our buffer becomes associated with another document, we will clear out any
+            /// cached diagnostic information we've collected so far as it's no longer valid.
+            /// </summary>
             private DocumentId _currentDocumentId;
 
             private readonly Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>> _idToProviderAndTagger = new Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>>();
