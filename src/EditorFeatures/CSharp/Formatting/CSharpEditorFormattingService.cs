@@ -28,12 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
     [ExportLanguageService(typeof(IEditorFormattingService), LanguageNames.CSharp), Shared]
     internal partial class CSharpEditorFormattingService : IEditorFormattingService
     {
-        private readonly ImmutableHashSet<char> _supportedChars;
+        // All the characters that might potentially trigger formatting when typed
+        private readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
         public CSharpEditorFormattingService()
         {
-            // add all auto formatting trigger to supported char
-            _supportedChars = ImmutableHashSet.CreateRange<char>(";{}#nte:)");
         }
 
         public bool SupportsFormatDocument { get { return true; } }
@@ -259,6 +258,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         private bool ValidSingleOrMultiCharactersTokenKind(char typedChar, SyntaxKind kind)
         {
+            // We'll autoformat on n, t, e, only if they are the last character of the below
+            // keywords.  
             switch (typedChar)
             {
                 case ('n'):
