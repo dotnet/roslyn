@@ -28,12 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private int _refCount;
             private bool _disposed;
+            private DocumentId _currentDocumentId;
 
             private readonly Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>> _idToProviderAndTagger = new Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>>();
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
-
-            private readonly CancellationTokenSource _initialDiagnosticsCancellationSource = new CancellationTokenSource();
 
             public AggregatingTagger(
                 AbstractDiagnosticsTaggerProvider<TTag> owner,
@@ -48,32 +47,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // from the owner of that diagnostic update.
                 _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
-                // Kick off a background task to collect the initial set of diagnostics.
-                var cancellationToken = _initialDiagnosticsCancellationSource.Token;
-                var asyncToken = _owner._listener.BeginAsyncOperation(GetType() + ".GetInitialDiagnostics");
-                var task = Task.Run(() => GetInitialDiagnostics(cancellationToken), cancellationToken);
-                task.CompletesAsyncOperation(asyncToken);
+                // get teh initial set of diagnostics from the service.  Do this now (without
+                // kicking off a task) to prevent race conditions.  We don't want to get an 
+                // event from the diagnostic service that we then override with the set of
+                // diagnostics we get when we call GetInitialDiagnostics
+                GetInitialDiagnostics();
             }
 
-            private void GetInitialDiagnostics(CancellationToken cancellationToken)
+            private void GetInitialDiagnostics()
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                this.AssertIsForeground();
 
                 // Also, collect the initial set of diagnostics to show.
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+                _currentDocumentId = document?.Id;
+
                 if (document != null)
                 {
                     var project = document.Project;
                     var workspace = project.Solution.Workspace;
-                    foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
+                    foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, CancellationToken.None))
                     {
-                        var diagnostics = AdjustInitialDiagnostics(project.Solution, updateArgs, cancellationToken);
+                        var diagnostics = AdjustInitialDiagnostics(project.Solution, updateArgs, CancellationToken.None);
                         if (diagnostics.Length == 0)
                         {
                             continue;
                         }
 
-                        OnDiagnosticsUpdated(
+                        OnDiagnosticsUpdatedOnForeground(
                             DiagnosticsUpdatedArgs.DiagnosticsCreated(
                                 updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics));
                     }
@@ -133,7 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                     // Stop listening to diagnostic changes from the diagnostic service.
                     _owner._diagnosticService.DiagnosticsUpdated -= OnDiagnosticsUpdated;
-                    _initialDiagnosticsCancellationSource.Cancel();
 
                     // Disconnect us from our underlying taggers and make sure they're
                     // released as well.
@@ -174,15 +174,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e)
             {
+                if (this.IsForeground())
+                {
+                    OnDiagnosticsUpdatedOnForeground(e);
+                }
+                else
+                {
+                    RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e));
+                }
+            }
+
+            private void OnDiagnosticsUpdatedOnForeground(DiagnosticsUpdatedArgs e)
+            {
+                this.AssertIsForeground();
+
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
                 var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+                if (ourDocument?.Id != _currentDocumentId)
+                {
+                    // Our buffer has started tracking some other document entirely.
+                    // We have to clear out all of the diagnostics we have currently stored.
+                    RemoveAllCachedDiagnostics();
+                }
+
+                // Now see if the document we're tracking corresponds to the diagnostics
+                // we're hearing about.  If not, just ignore them.
                 if (ourDocument == null ||
                     ourDocument.Project.Solution.Workspace != e.Workspace ||
                     ourDocument.Id != e.DocumentId)
                 {
                     return;
                 }
+
+                // We're hearing about diagnostics for our document.  We may be hearing
+                // about new diagnostics coming, or existing diagnostics being cleared
+                // out.
 
                 // First see if this is a document/project removal.  If so, clear out any state we
                 // have associated with any analyzers we have for that document/project.
@@ -241,47 +268,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
                 }
 
-                if (this.IsForeground())
-                {
-                    OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
-                }
-                else
-                {
-                    RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot));
-                }
+                OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
             }
 
             private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)
             {
+                this.AssertIsForeground();
+
                 if (e.Kind != DiagnosticsUpdatedKind.DiagnosticsRemoved)
                 {
                     // Wasn't a removal.  We don't need to do anything here.
                     return;
                 }
 
-                if (this.IsForeground())
-                {
-                    ProcessDocumentOrProjectRemovalOnForeground(e);
-                }
-                else
-                {
-                    RegisterNotification(() => ProcessDocumentOrProjectRemovalOnForeground(e));
-                }
-            }
-
-            private void ProcessDocumentOrProjectRemovalOnForeground(DiagnosticsUpdatedArgs e)
-            {
                 // See if we're being told about diagnostics going away because a document/project
                 // was removed.  If so, clear out any diagnostics we have associated with this
                 // diagnostic source ID and notify any listeners that 
 
-                this.AssertIsForeground();
                 if (_disposed)
                 {
                     return;
                 }
 
-                var id = e.Id;
+                RemoveCachedDiagnostics(e.Id);
+            }
+
+            private void RemoveAllCachedDiagnostics()
+            {
+                this.AssertIsForeground();
+
+                // Make a copy of all the IDs so that we don't change a collection as we're
+                // iterating over it.
+                var ids = _idToProviderAndTagger.Keys.ToArray();
+                foreach (var id in ids)
+                {
+                    RemoveCachedDiagnostics(id);
+                }
+            }
+
+            private void RemoveCachedDiagnostics(object id)
+            {
+                this.AssertIsForeground();
+
                 ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
                 if (!_idToProviderAndTagger.TryGetValue(id, out providerAndTagger))
                 {
