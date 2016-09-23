@@ -1966,17 +1966,28 @@ End Module
 Module Module1
     Sub Main()
         ' signed
-        Dim a As Short = &B101
-        Dim b As Integer = &B00100100
-        Dim c As Long = &B001001100110
+        Dim a As SByte = &B0111
+        Dim b As Short = &B0101
+        Dim c As Integer = &B00100100
+        Dim d As Long = &B001001100110
 
-        Dim d As UShort = &B00100
-        Dim e As UInteger = &B001001100110
-        Dim f As ULong = &B001001100110
+        ' unsigned
+        Dim e As UShort = &B01011
+        Dim f As UShort = &B00100
+        Dim g As UInteger = &B001001100110
+        Dim h As ULong = &B001001100110
 
-        Dim g As Short = -&B101
-        Dim h As Integer = -&B00100100
-        Dim i As Long = -&B001001100110
+        ' negative
+        Dim i As SByte = -&B0111
+        Dim j As Short = -&B00101
+        Dim k As Integer = -&B00100100
+        Dim l As Long = -&B001001100110
+
+        ' negative literal
+        Dim m As SByte = &B10000001
+        Dim n As Short = &B1000000000000001
+        Dim o As Integer = &B10000000000000000000000000000001
+        Dim p As Long = &B1000000000000000000000000000000000000000000000000000000000000001
     End Sub
 End Module
 |]";
@@ -1985,17 +1996,28 @@ End Module
 Module Module1
     Sub Main()
         ' signed
-        Dim a As Short = &B101
-        Dim b As Integer = &B100100
-        Dim c As Long = &B1001100110
+        Dim a As SByte = &B111
+        Dim b As Short = &B101
+        Dim c As Integer = &B100100
+        Dim d As Long = &B1001100110
 
-        Dim d As UShort = &B100
-        Dim e As UInteger = &B1001100110
-        Dim f As ULong = &B1001100110
+        ' unsigned
+        Dim e As UShort = &B1011
+        Dim f As UShort = &B100
+        Dim g As UInteger = &B1001100110
+        Dim h As ULong = &B1001100110
 
-        Dim g As Short = -&B101
-        Dim h As Integer = -&B100100
-        Dim i As Long = -&B1001100110
+        ' negative
+        Dim i As SByte = -&B111
+        Dim j As Short = -&B101
+        Dim k As Integer = -&B100100
+        Dim l As Long = -&B1001100110
+
+        ' negative literal
+        Dim m As SByte = &B10000001
+        Dim n As Short = &B1000000000000001
+        Dim o As Integer = &B10000000000000000000000000000001
+        Dim p As Long = &B1000000000000000000000000000000000000000000000000000000000000001
     End Sub
 End Module
 ";
