@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.Remote.Arguments
             return new SerializableTaggedText { Tag = taggedText.Tag, Text = taggedText.Text };
         }
 
+        internal static SerializableTaggedText[] Dehydrate(ImmutableArray<TaggedText> displayTaggedParts)
+        {
+            return displayTaggedParts.Select(Dehydrate).ToArray();
+        }
+
         public TaggedText Rehydrate()
         {
             return new TaggedText(Tag, Text);
@@ -107,6 +112,21 @@ namespace Microsoft.CodeAnalysis.Remote.Arguments
         public string Summary;
 
         public SerializableNavigableItem NavigableItem;
+
+        internal static SerializableNavigateToSearchResult Dehydrate(INavigateToSearchResult result)
+        {
+            return new SerializableNavigateToSearchResult
+            {
+                AdditionalInformation = result.AdditionalInformation,
+                Kind = result.Kind,
+                MatchKind = result.MatchKind,
+                IsCaseSensitive = result.IsCaseSensitive,
+                Name = result.Name,
+                SecondarySort = result.SecondarySort,
+                Summary = result.Summary,
+                NavigableItem = SerializableNavigableItem.Dehydrate(result.NavigableItem)
+            };
+        }
 
         internal INavigateToSearchResult Rehydrate(Solution solution)
         {
@@ -155,6 +175,25 @@ namespace Microsoft.CodeAnalysis.Remote.Arguments
         public SerializableTextSpan SourceSpan;
 
         SerializableNavigableItem[] ChildItems;
+
+        public static SerializableNavigableItem Dehydrate(INavigableItem item)
+        {
+            return new SerializableNavigableItem
+            {
+                Glyph = item.Glyph,
+                DisplayTaggedParts = SerializableTaggedText.Dehydrate(item.DisplayTaggedParts),
+                DisplayFileLocation = item.DisplayFileLocation,
+                IsImplicitlyDeclared = item.IsImplicitlyDeclared,
+                Document = SerializableDocumentId.Dehydrate(item.Document),
+                SourceSpan = SerializableTextSpan.Dehydrate(item.SourceSpan),
+                ChildItems = SerializableNavigableItem.Dehydrate(item.ChildItems)
+            };
+        }
+
+        private static SerializableNavigableItem[] Dehydrate(ImmutableArray<INavigableItem> childItems)
+        {
+            return childItems.Select(Dehydrate).ToArray();
+        }
 
         public INavigableItem Rehydrate(Solution solution)
         {
