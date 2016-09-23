@@ -52,34 +52,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            internal void Search()
+            internal async void Search()
             {
-                var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, _cancellationToken);
-                var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
+                try
+                {
+                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, _cancellationToken))
+                    using (var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search"))
+                    {
+                        _progress.AddItems(_solution.Projects.Count());
 
-                _progress.AddItems(_solution.Projects.Count());
+                        // Search each project with an independent threadpool task.
+                        var searchTasks = _solution.Projects.Select(
+                            p => Task.Run(() => SearchAsync(p))).ToArray();
 
-                // make sure we run actual search from other thread. and let this thread return to caller as soon as possible.
-                var dummy = Task.Run(() => Search(navigateToSearch, asyncToken), _cancellationToken);
-            }
-
-            private void Search(IDisposable navigateToSearch, IAsyncToken asyncToken)
-            {
-                var searchTasks = _solution.Projects.Select(SearchAsync).ToArray();
-                var whenAllTask = Task.WhenAll(searchTasks);
-
-                // NOTE(cyrusn) This SafeContinueWith is *not* cancellable.  We must dispose of the notifier
-                // in order for tests to work property.  Also, if we don't notify the callback that we're
-                // done then the UI will never stop displaying the progress bar.
-                whenAllTask.SafeContinueWith(_ =>
+                        await Task.WhenAll(searchTasks).ConfigureAwait(false);
+                    }
+                }
+                finally
                 {
                     _callback.Done();
-                    navigateToSearch.Dispose();
-                    asyncToken.Dispose();
-                },
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
+                }
             }
 
             private async Task SearchAsync(Project project)
