@@ -926,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 removeSet.Add(tree)
             Next
 
-            Debug.Assert(Not removeSet.IsEmpty())
+            Debug.Assert(removeSet.Count > 0)
 
             ' We're going to have to revise the ordinals of all
             ' trees after the first one removed, so just build

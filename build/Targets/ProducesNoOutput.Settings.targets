@@ -19,8 +19,7 @@
 
   <PropertyGroup Condition="'$(IsPortable)' == 'true'">
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>    
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsPortable)' != 'true'">

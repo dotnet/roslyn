@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {

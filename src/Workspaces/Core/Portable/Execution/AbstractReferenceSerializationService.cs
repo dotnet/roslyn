@@ -457,10 +457,13 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             PinnedObject pinnedObject;
+            ArraySegment<byte> buffer;
             var memory = stream as MemoryStream;
-            if (memory != null && PortableShim.MemoryStream.GetBuffer != null)
+            if (memory != null &&
+                memory.TryGetBuffer(out buffer) &&
+                buffer.Offset == 0)
             {
-                pinnedObject = new PinnedObject((byte[])PortableShim.MemoryStream.GetBuffer.Invoke(memory, null), length);
+                pinnedObject = new PinnedObject(buffer.Array, buffer.Count);
             }
             else
             {

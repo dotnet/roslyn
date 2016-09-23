@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
-                    using (var appConfigStream = PortableShim.FileStream.Create(appConfigPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read))
+                    using (var appConfigStream = new FileStream(appConfigPath, FileMode.Open, FileAccess.Read))
                     {
                         assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
                     }
