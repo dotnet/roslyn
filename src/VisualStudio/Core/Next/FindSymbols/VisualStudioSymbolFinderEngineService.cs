@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServices.Remote;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
 {
     [ExportWorkspaceService(typeof(ISymbolFinderEngineService), ServiceLayer.Host), Shared]
-    internal class VisualStudioSymbolFinderEngineService : ISymbolFinderEngineService
+    internal partial class VisualStudioSymbolFinderEngineService : ISymbolFinderEngineService
     {
         public async Task FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, 
@@ -58,6 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
                 return;
             }
 
+            // Create a callback that we can pass to the server process to hear about the 
+            // results as it finds them.  When we hear about results we'll forward them to
+            // the 'progress' parameter which will then upate the UI.
             var serverCallback = new ServerCallback(solution, progress, cancellationToken);
 
             using (var session = await client.CreateCodeAnalysisServiceSessionAsync(
@@ -67,57 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
                     WellKnownServiceHubServices.CodeAnalysisService_FindReferencesAsync,
                     SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
                     documents?.Select(SerializableDocumentId.Dehydrate).ToArray()).ConfigureAwait(false);
-            }
-        }
-
-        private class ServerCallback
-        {
-            private readonly Solution _solution;
-            private readonly IStreamingFindReferencesProgress _progress;
-            private readonly CancellationToken _cancellationToken;
-
-            public ServerCallback(
-                Solution solution, 
-                IStreamingFindReferencesProgress progress,
-                CancellationToken cancellationToken)
-            {
-                _solution = solution;
-                _progress = progress;
-                _cancellationToken = cancellationToken;
-            }
-
-            public Task OnStartedAsync() => _progress.OnStartedAsync();
-            public Task OnCompletedAsync() => _progress.OnCompletedAsync();
-            public Task ReportProgressAsync(int current, int maximum) => _progress.ReportProgressAsync(current, maximum);
-
-            public Task OnFindInDocumentStartedAsync(SerializableDocumentId documentId)
-            {
-                var document = _solution.GetDocument(documentId.Rehydrate());
-                return _progress.OnFindInDocumentStartedAsync(document);
-            }
-
-            public Task OnFindInDocumentCompletedAsync(SerializableDocumentId documentId)
-            {
-                var document = _solution.GetDocument(documentId.Rehydrate());
-                return _progress.OnFindInDocumentCompletedAsync(document);
-            }
-
-            public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
-            {
-                var symbolAndProjectId = await definition.RehydrateAsync(
-                    _solution, _cancellationToken).ConfigureAwait(false);
-                await _progress.OnDefinitionFoundAsync(symbolAndProjectId).ConfigureAwait(false);
-            }
-
-            public async Task OnReferenceFoundAsync(
-                SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
-            {
-                var symbolAndProjectId = await definition.RehydrateAsync(
-                    _solution, _cancellationToken).ConfigureAwait(false);
-                var referenceLocation = await reference.RehydrateAsync(
-                    _solution, _cancellationToken).ConfigureAwait(false);
-
-                await _progress.OnReferenceFoundAsync(symbolAndProjectId, referenceLocation).ConfigureAwait(false);
             }
         }
     }

@@ -124,6 +124,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ServicesVisualStudioNextResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="FindSymbols\VisualStudioSymbolFinderEngineService.ServerCallback.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ServicesVisualStudioNextResources.resx">
