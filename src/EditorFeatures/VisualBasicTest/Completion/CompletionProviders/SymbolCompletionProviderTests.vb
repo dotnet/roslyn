@@ -7532,7 +7532,7 @@ End Module
 <code><![CDATA[
 Module Module1
     Sub Main()
-        Dim t = (Alice:=1, 2, 3, 4, 5, 6, 7, 8, Bob:=9)
+        Dim t = (Alice:=1, Item2:=2, ITEM3:=3, 4, 5, 6, 7, 8, Bob:=9)
         t.$$
     End Sub
 End Module
@@ -7547,14 +7547,36 @@ Namespace System
 
         Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, rest As TRest)
         End Sub
+
+        Public Overrides Function ToString() As String
+            Return ""
+        End Function
+
+        Public Overrides Function GetHashCode As Integer
+            Return 0
+        End Function
+
+        Public Overrides Function CompareTo(value As Object) As Integer
+            Return 0
+        End Function
+
+        Public Overrides Function GetType As Type
+            Return Nothing
+        End Function
     End Structure
 End Namespace
 ]]></code>.Value
 
             Await VerifyItemExistsAsync(text, "Alice")
-            Await VerifyItemExistsAsync(text, "Item2")
-            Await VerifyItemExistsAsync(text, "Item8")
             Await VerifyItemExistsAsync(text, "Bob")
+            Await VerifyItemExistsAsync(text, "CompareTo")
+            Await VerifyItemExistsAsync(text, "Equals")
+            Await VerifyItemExistsAsync(text, "GetHashCode")
+            Await VerifyItemExistsAsync(text, "GetType")
+            Await VerifyItemExistsAsync(text, "Item2")
+            Await VerifyItemExistsAsync(text, "Item3")
+            Await VerifyItemExistsAsync(text, "Item8")
+            Await VerifyItemExistsAsync(text, "ToString")
 
             Await VerifyItemIsAbsentAsync(text, "Item1")
             Await VerifyItemIsAbsentAsync(text, "Item9")

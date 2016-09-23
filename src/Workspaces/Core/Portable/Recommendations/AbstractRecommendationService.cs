@@ -97,10 +97,17 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 return symbols;
             }
 
-            var fieldsToRemove = elementNames.Select((n, i) => elementNames[i] != null ? "Item" + (i + 1) : null)
+            // TODO This should be revised once we have a good public API for tuple fields
+            // See https://github.com/dotnet/roslyn/issues/13229
+            var fieldsToRemove = elementNames.Select((n, i) => IsFriendlyName(i, elementNames[i]) ? "Item" + (i + 1) : null)
                 .Where(n => n != null).Concat("Rest");
 
-            return symbols.Where(s => s.Kind != SymbolKind.Field || !fieldsToRemove.Contains(s.Name));
+            return symbols.Where(s => s.Kind != SymbolKind.Field || elementNames.Contains(s.Name) || !fieldsToRemove.Contains(s.Name));
+        }
+
+        private static bool IsFriendlyName(int i, string elementName)
+        {
+            return elementName != null && string.Compare(elementName, "Item" + (i + 1), StringComparison.OrdinalIgnoreCase) != 0;
         }
 
         private sealed class ShouldIncludeSymbolContext

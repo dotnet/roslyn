@@ -8863,7 +8863,7 @@ class C
 {
     void foo()
     {
-        var t = (Alice: 1, 2, 3, 4, 5, 6, 7, 8, Bob: 9);
+        var t = (Alice: 1, Item2: 2, ITEM3: 3, 4, 5, 6, 7, 8, Bob: 9);
         t.$$
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs;
@@ -8875,12 +8875,17 @@ class C
             await VerifyItemExistsAsync(markup, "GetHashCode");
             await VerifyItemExistsAsync(markup, "GetType");
             await VerifyItemExistsAsync(markup, "Item2");
+            await VerifyItemExistsAsync(markup, "ITEM3");
             await VerifyItemExistsAsync(markup, "Item8");
             await VerifyItemExistsAsync(markup, "ToString");
 
             await VerifyItemIsAbsentAsync(markup, "Item1");
             await VerifyItemIsAbsentAsync(markup, "Item9");
             await VerifyItemIsAbsentAsync(markup, "Rest");
+
+            // TODO fix once we have a good public API for tuple elements
+            // See https://github.com/dotnet/roslyn/issues/13229
+            await VerifyItemExistsAsync(markup, "Item3");
         }
-     }
+    }
 }
