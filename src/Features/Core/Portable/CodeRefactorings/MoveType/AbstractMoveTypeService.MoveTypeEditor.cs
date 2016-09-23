@@ -78,7 +78,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var projectToBeUpdated = SemanticDocument.Document.Project;
                 var documentEditor = await DocumentEditor.CreateAsync(SemanticDocument.Document, CancellationToken).ConfigureAwait(false);
 
-                AddPartialModifiersToTypeChain(documentEditor);
+                // Make the type chain above this new type partial.  Also, remove any 
+                // attributes from the containing partial types.  We don't want to create
+                // duplicate attributes on things.
+                AddPartialModifiersToTypeChain(documentEditor, removeAttributes: true);
 
                 // remove things that are not being moved, from the forked document.
                 var membersToRemove = GetMembersToRemove(root);
@@ -112,7 +115,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
                 var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, CancellationToken).ConfigureAwait(false);
 
-                AddPartialModifiersToTypeChain(documentEditor);
+                // Make the type chain above the type we're moving 'partial'.  
+                // However, keep all the attributes on these types as theses are the 
+                // original attributes and we don't want to mess with them. 
+                AddPartialModifiersToTypeChain(documentEditor, removeAttributes: false);
                 documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepNoTrivia);
 
                 var updatedDocument = documentEditor.GetChangedDocument();
@@ -168,8 +174,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// <summary>
             /// if a nested type is being moved, this ensures its containing type is partial.
             /// </summary>
-            /// <param name="documentEditor">document editor for the new document being created</param>
-            private void AddPartialModifiersToTypeChain(DocumentEditor documentEditor)
+            private void AddPartialModifiersToTypeChain(
+                DocumentEditor documentEditor, bool removeAttributes)
             {
                 var semanticFacts = State.SemanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var typeChain = State.TypeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
@@ -180,6 +186,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {
                         documentEditor.SetModifiers(node, DeclarationModifiers.Partial);
+                    }
+
+                    if (removeAttributes)
+                    {
+                        documentEditor.RemoveAllAttributes(node);
                     }
                 }
             }
