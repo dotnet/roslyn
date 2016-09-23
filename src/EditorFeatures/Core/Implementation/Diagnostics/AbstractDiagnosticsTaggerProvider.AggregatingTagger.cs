@@ -163,6 +163,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
             }
 
+            private void DisconnectFromTagger(IAccurateTagger<TTag> tagger)
+            {
+                this.AssertIsForeground();
+
+                tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
+                var disposable = tagger as IDisposable;
+                if (disposable != null)
+                {
+                    disposable.Dispose();
+                }
+            }
+
             private void DisconnectFromAllTaggers()
             {
                 this.AssertIsForeground();
@@ -175,18 +187,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
 
                 _idToProviderAndTagger.Clear();
-            }
-
-            private void DisconnectFromTagger(IAccurateTagger<TTag> tagger)
-            {
-                this.AssertIsForeground();
-
-                tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
-                var disposable = tagger as IDisposable;
-                if (disposable != null)
-                {
-                    disposable.Dispose();
-                }
             }
 
             private void RegisterNotification(Action action)
