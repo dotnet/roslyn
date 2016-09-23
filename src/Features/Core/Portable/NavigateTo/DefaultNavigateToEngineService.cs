@@ -10,11 +10,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Navigation;
+using Microsoft.CodeAnalysis.Navigation;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo
 {
     [ExportWorkspaceService(typeof(INavigateToEngineService), layer: ServiceLayer.Default), Shared]
     internal partial class DefaultNavigateToEngineService : INavigateToEngineService
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
         }
 
-        private static MatchKind GetNavigateToMatchKind(bool containsDots, IEnumerable<PatternMatch> matchResult)
+        private static NavigateToMatchKind GetNavigateToMatchKind(bool containsDots, IEnumerable<PatternMatch> matchResult)
         {
             // NOTE(cyrusn): Unfortunately, the editor owns how sorting of NavigateToItems works,
             // and they only provide four buckets for sorting items before they sort by the name
@@ -180,11 +179,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     switch (lastResult.Value.Kind)
                     {
                         case PatternMatchKind.Exact:
-                            return MatchKind.Exact;
+                            return NavigateToMatchKind.Exact;
                         case PatternMatchKind.Prefix:
-                            return MatchKind.Prefix;
+                            return NavigateToMatchKind.Prefix;
                         case PatternMatchKind.Substring:
-                            return MatchKind.Substring;
+                            return NavigateToMatchKind.Substring;
                     }
                 }
             }
@@ -196,21 +195,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 // we make the result as good as any constituent part.
                 if (matchResult.Any(r => r.Kind == PatternMatchKind.Exact))
                 {
-                    return MatchKind.Exact;
+                    return NavigateToMatchKind.Exact;
                 }
 
                 if (matchResult.Any(r => r.Kind == PatternMatchKind.Prefix))
                 {
-                    return MatchKind.Prefix;
+                    return NavigateToMatchKind.Prefix;
                 }
 
                 if (matchResult.Any(r => r.Kind == PatternMatchKind.Substring))
                 {
-                    return MatchKind.Substring;
+                    return NavigateToMatchKind.Substring;
                 }
             }
 
-            return MatchKind.Regular;
+            return NavigateToMatchKind.Regular;
         }
     }
 }

@@ -335,6 +335,7 @@
     <Compile Include="MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceService.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceServiceFactory.cs" />
+    <Compile Include="NavigateTo\CSharpNavigateToSearchService.cs" />
     <Compile Include="OrganizeImports\CSharpOrganizeImportsService.cs" />
     <Compile Include="OrganizeImports\CSharpOrganizeImportsService.Rewriter.cs" />
     <Compile Include="Organizing\CSharpOrganizingService.cs" />

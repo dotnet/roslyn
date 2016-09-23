@@ -2050,6 +2050,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to project.
+        /// </summary>
+        internal static string project_lower_case {
+            get {
+                return ResourceManager.GetString("project_lower_case", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         internal static string Properties {
@@ -2556,6 +2565,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string TODO_colon_set_large_fields_to_null {
             get {
                 return ResourceManager.GetString("TODO_colon_set_large_fields_to_null", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type .
+        /// </summary>
+        internal static string type {
+            get {
+                return ResourceManager.GetString("type", resourceCulture);
             }
         }
         

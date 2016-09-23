@@ -5,10 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
@@ -126,10 +126,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     GetNavigateToLanguage(project.Language),
                     result.SecondarySort,
                     result,
-                    result.MatchKind,
+                    GetMatchKind(result.MatchKind),
                     result.IsCaseSensitive,
                     _displayFactory);
                 _callback.AddItem(navigateToItem);
+            }
+
+            private MatchKind GetMatchKind(NavigateToMatchKind matchKind)
+            {
+                switch (matchKind)
+                {
+                    case NavigateToMatchKind.Exact: return MatchKind.Exact;
+                    case NavigateToMatchKind.Prefix: return MatchKind.Prefix;
+                    case NavigateToMatchKind.Substring: return MatchKind.Substring;
+                    case NavigateToMatchKind.Regular: return MatchKind.Regular;
+                    default: return MatchKind.None;
+                }
             }
 
             /// <summary>

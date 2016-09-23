@@ -188,7 +188,6 @@
     <Compile Include="CommandState.cs" />
     <Compile Include="ContentTypeLanguageMetadata.cs" />
     <Compile Include="ContentTypeNames.cs" />
-    <Compile Include="Implementation\NavigateTo\RoslynSearch\DefaultNavigateToEngineService.cs" />
     <Compile Include="DocumentSnapshotSpan.cs" />
     <Compile Include="EditorFeaturesResources.Designer.cs">
       <DependentUpon>EditorFeaturesResources.resx</DependentUpon>
@@ -226,9 +225,6 @@
     <Compile Include="Extensibility\NavigationBar\NavigationBarActionlessItem.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarPresentedItem.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarSymbolItem.cs" />
-    <Compile Include="Extensibility\Navigation\INavigableItem.cs" />
-    <Compile Include="Extensibility\Navigation\NavigableItemFactory.cs" />
-    <Compile Include="Extensibility\Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Extensibility\NavigationBar\INavigationBarController.cs" />
     <Compile Include="Extensibility\NavigationBar\INavigationBarControllerFactoryService.cs" />
     <Compile Include="Extensibility\NavigationBar\INavigationBarItemService.cs" />
@@ -238,7 +234,6 @@
     <Compile Include="Extensibility\NavigationBar\NavigationBarItemSelectedEventArgs.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarProjectItem.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarSelectedItems.cs" />
-    <Compile Include="Extensibility\Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="Extensibility\Peek\IPeekableItemFactory.cs" />
     <Compile Include="Extensibility\QuickInfo\ExportQuickInfoProviderAttribute.cs" />
     <Compile Include="Extensibility\QuickInfo\IDeferredQuickInfoContent.cs" />
@@ -282,7 +277,6 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
-    <Compile Include="Implementation\NavigateTo\RoslynSearch\INavigateToEngineService.cs" />
     <Compile Include="Implementation\NavigateTo\INavigateToOptionsService.cs" />
     <Compile Include="Implementation\Structure\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.cs" />
@@ -546,13 +540,9 @@
     <Compile Include="Implementation\MetadataAsSource\MetadataAsSourceGeneratedFileInfo.cs" />
     <Compile Include="Implementation\MetadataAsSource\MetadataAsSourceWorkspace.cs" />
     <Compile Include="Implementation\MetadataAsSource\SymbolMappingServiceFactory.cs" />
-    <Compile Include="Implementation\NavigateTo\RoslynSearch\AbstractNavigateToSearchService.cs" />
-    <Compile Include="Implementation\NavigateTo\RoslynSearch\DefaultNavigateToEngineService.SearchResult.cs" />
     <Compile Include="Implementation\NavigateTo\DefaultNavigateToPreviewService.cs" />
     <Compile Include="Implementation\NavigateTo\DefaultNavigateToPreviewServiceFactory.cs" />
     <Compile Include="Implementation\NavigateTo\INavigateToPreviewService.cs" />
-    <Compile Include="Implementation\NavigateTo\INavigateToSearchResult.cs" />
-    <Compile Include="Implementation\NavigateTo\INavigateToSearchService.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToIconFactory.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.ItemDisplayFactory.cs" />
@@ -795,6 +785,9 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Extensibility\Navigation\" />
+    <Folder Include="Implementation\NavigateTo\RoslynSearch\" />
+  </ItemGroup>
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
