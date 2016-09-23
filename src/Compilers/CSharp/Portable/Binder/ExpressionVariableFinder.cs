@@ -387,9 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Symbol MakeOutVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind)
         {
-            var single = node.VariableDesignation();
-
-            return SourceMemberFieldSymbolFromDesignation.Create(_containingType, single, ((TypedVariableComponentSyntax)single.Parent).Type,
+            return SourceMemberFieldSymbolFromDesignation.Create(_containingType, node.VariableDesignation(), node.Type(),
                 _modifiers, _containingFieldOpt, nodeToBind);
         }
 

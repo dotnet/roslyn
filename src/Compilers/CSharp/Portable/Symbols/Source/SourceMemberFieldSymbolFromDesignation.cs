@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class SourceMemberFieldSymbolFromDesignation : SourceMemberFieldSymbol
     {
         private TypeSymbol _lazyType;
+        private SyntaxReference _typeSyntax;
 
         internal SourceMemberFieldSymbolFromDesignation(
             SourceMemberContainerTypeSymbol containingType,
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, modifiers, designation.Identifier.ValueText, designation.GetReference(), designation.Identifier.GetLocation())
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
-            TypeSyntax = typeSyntax;
+            _typeSyntax = typeSyntax.GetReference();
         }
 
         internal static SourceMemberFieldSymbolFromDesignation Create(
@@ -60,10 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override TypeSyntax TypeSyntax
-        {
-            get;
-        }
+        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntax.GetSyntax();
 
         protected override SyntaxTokenList ModifiersTokenList
         {

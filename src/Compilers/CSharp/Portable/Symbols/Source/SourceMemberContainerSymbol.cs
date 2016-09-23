@@ -3214,7 +3214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableComponentSyntax variableComponent,
-            VariableComponentAssignmentSyntax assignment)
+                        VariableComponentAssignmentSyntax assignment)
         {
             switch (variableComponent.Kind())
             {
@@ -3240,7 +3240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableDesignationSyntax designation,
-            TypeSyntax type, VariableComponentAssignmentSyntax assignment)
+                        TypeSyntax type, VariableComponentAssignmentSyntax assignment)
         {
             switch (designation.Kind())
             {
