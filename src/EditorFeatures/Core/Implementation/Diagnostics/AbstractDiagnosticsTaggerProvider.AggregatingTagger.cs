@@ -79,24 +79,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 this.AssertIsBackground();
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (document == null)
+                if (document != null)
                 {
-                    return;
-                }
-
-                var project = document.Project;
-                var workspace = project.Solution.Workspace;
-                foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
-                {
-                    var diagnostics = AdjustInitialDiagnostics(project.Solution, updateArgs, cancellationToken);
-                    if (diagnostics.Length == 0)
+                    var project = document.Project;
+                    var workspace = project.Solution.Workspace;
+                    foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
                     {
-                        continue;
-                    }
+                        var diagnostics = AdjustInitialDiagnostics(project.Solution, updateArgs, cancellationToken);
+                        if (diagnostics.Length == 0)
+                        {
+                            continue;
+                        }
 
-                    OnDiagnosticsUpdatedOnBackground(
-                        DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                            updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics));
+                        OnDiagnosticsUpdatedOnBackground(
+                            DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                                updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics));
+                    }
                 }
             }
 
