@@ -7573,9 +7573,9 @@ End Namespace
             Await VerifyItemExistsAsync(text, "Equals")
             Await VerifyItemExistsAsync(text, "GetHashCode")
             Await VerifyItemExistsAsync(text, "GetType")
-            Await VerifyItemExistsAsync(text, "Item2")
-            Await VerifyItemExistsAsync(text, "Item3")
-            Await VerifyItemExistsAsync(text, "Item8")
+            For index = 2 To 8
+                Await VerifyItemExistsAsync(text, "Item" + index.ToString())
+            Next
             Await VerifyItemExistsAsync(text, "ToString")
 
             Await VerifyItemIsAbsentAsync(text, "Item1")
