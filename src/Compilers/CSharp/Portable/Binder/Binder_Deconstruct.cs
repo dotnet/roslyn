@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The produces a deconstruction step with no Deconstruct method since the tuple already has distinct elements.
         /// </summary>
-        private static BoundDeconstructionDeconstructStep MakeTupleDeconstructStep(
+        private BoundDeconstructionDeconstructStep MakeTupleDeconstructStep(
                                                         BoundDeconstructValuePlaceholder targetPlaceholder,
                                                         CSharpSyntaxNode syntax,
                                                         DiagnosticBag diagnostics,
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetPlaceholder.Type.IsTupleType);
 
             var tupleTypes = targetPlaceholder.Type.TupleElementTypes;
-            SetInferredTypes(variables, tupleTypes);
+            SetInferredTypes(variables, tupleTypes, diagnostics);
 
             if (variables.Count != tupleTypes.Length)
             {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            SetInferredTypes(variables, outPlaceholders.SelectAsArray(p => p.Type));
+            SetInferredTypes(variables, outPlaceholders.SelectAsArray(p => p.Type), diagnostics);
 
             return new BoundDeconstructionDeconstructStep(syntax, deconstructInvocation, targetPlaceholder, outPlaceholders);
         }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Inform the variables about found types.
         /// </summary>
-        private static void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes)
+        private void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes, DiagnosticBag diagnostics)
         {
             var matchCount = Math.Min(variables.Count, foundTypes.Length);
             for (int i = 0; i < matchCount; i++)
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variable = variables[i];
                 if (!variable.HasNestedVariables && variable.Single.Kind == BoundKind.DeconstructionVariablePendingInference)
                 {
-                    BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).SetInferredType(foundTypes[i], success: true);
+                    BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).SetInferredType(foundTypes[i], this, diagnostics);
                     variables[i] = new DeconstructionVariable(local, local.Syntax);
                 }
             }
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (variable.Single.Kind == BoundKind.DeconstructionVariablePendingInference)
                     {
-                        BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this);
+                        BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, diagnostics);
                         variables[i] = new DeconstructionVariable(local, local.Syntax);
                     }
                 }
@@ -408,11 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // typed-variable on the left
                             mergedType = variable.Single.Type;
-                        }
-                        else if ((object)mergedType == null)
-                        {
-                            // typeless-variable on the left and typeless-element on the right
-                            Error(diagnostics, ErrorCode.ERR_DeconstructCouldNotInferMergedType, syntax, variable.Syntax, element.Syntax);
                         }
                     }
                 }

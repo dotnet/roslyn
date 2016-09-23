@@ -3246,7 +3246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SyntaxKind.SingleVariableDesignation:
                     var field = SourceMemberFieldSymbolFromDesignation.Create(this, (SingleVariableDesignationSyntax)designation,
-                        type, DeclarationModifiers.Private, null, assignment);
+                                                                        type, DeclarationModifiers.Private, null, assignment);
 
                     builder.Add(field);
 

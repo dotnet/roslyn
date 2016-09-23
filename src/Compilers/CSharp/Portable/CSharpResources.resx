@@ -4908,6 +4908,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed out variable '{0}'.</value>
   </data>
+  <data name="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed deconstruction variable '{0}'.</value>
+  </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
   </data>
@@ -4934,9 +4937,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExplicitTupleElementNames" xml:space="preserve">
     <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
-  </data>
-  <data name="ERR_DeconstructCouldNotInferMergedType" xml:space="preserve">
-    <value>The type information on the left-hand-side '{0}' and right-hand-side '{1}' of the deconstruction was insufficient to infer a merged type.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">
     <value>An expression tree may not contain an out argument variable declaration.</value>

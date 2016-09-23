@@ -1371,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleDuplicateMemberName = 8127,
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8128,
         ERR_MissingDeconstruct = 8129,
-        ERR_DeconstructCouldNotInferMergedType = 8130,
+        ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable = 8130,
         ERR_DeconstructRequiresExpression = 8131,
         ERR_DeconstructWrongCardinality = 8132,
         ERR_CannotDeconstructDynamic = 8133,

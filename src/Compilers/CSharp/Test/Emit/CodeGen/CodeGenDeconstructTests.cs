@@ -4102,12 +4102,22 @@ var (x, y) = (1, null);
 ";
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
-            comp.GetDeclarationDiagnostics().Verify();
+            comp.GetDeclarationDiagnostics().Verify(
+                // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(2, 6),
+                // (2,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(2, 9)
+                );
 
             comp.VerifyDiagnostics(
-                // (2,1): error CS8130: The type information on the left-hand-side 'y' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
                 // var (x, y) = (1, null);
-                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "var (x, y) = (1, null);").WithArguments("y", "null").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(2, 6),
+                // (2,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(2, 9)
                 );
 
             var tree = comp.SyntaxTrees.First();
