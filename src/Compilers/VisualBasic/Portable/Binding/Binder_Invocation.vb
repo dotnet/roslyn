@@ -2,12 +2,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -1638,8 +1635,8 @@ ProduceBoundNode:
         ''' <summary>
         '''Figure out the set of best candidates in the following preference order:
         '''  1) Applicable
-        '''  2) TypeInferenceFailed
-        '''  3) ArgumentMismatch, GenericConstraintsViolated
+        '''  2) ArgumentMismatch, GenericConstraintsViolated
+        '''  3) TypeInferenceFailed
         '''  4) ArgumentCountMismatch
         '''  5) BadGenericArity
         '''  6) Ambiguous
@@ -1669,9 +1666,9 @@ ProduceBoundNode:
             Dim preference(OverloadResolution.CandidateAnalysisResultState.Count - 1) As Integer
 
             preference(Applicable) = 1
-            preference(TypeInferenceFailed) = 2
-            preference(ArgumentMismatch) = 3
-            preference(GenericConstraintsViolated) = 3
+            preference(ArgumentMismatch) = 2
+            preference(GenericConstraintsViolated) = 2
+            preference(TypeInferenceFailed) = 3
             preference(ArgumentCountMismatch) = 4
             preference(BadGenericArity) = 5
             preference(Ambiguous) = 6

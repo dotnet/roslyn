@@ -9,9 +9,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports System.Collections.Immutable
 Imports System.Diagnostics
-Imports Roslyn.Utilities
-Imports System.Runtime.InteropServices
 Imports System.Reflection.Metadata
+Imports System.Runtime.InteropServices
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
@@ -110,8 +110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 id:=Nothing,
                 pdbAttributes:=LocalVariableAttributes.None,
                 constraints:=constraints,
-                isDynamic:=False,
-                dynamicTransformFlags:=ImmutableArray(Of TypedConstant).Empty)
+                dynamicTransformFlags:=ImmutableArray(Of TypedConstant).Empty,
+                tupleElementNames:=ImmutableArray(Of TypedConstant).Empty)
         End Function
 
         Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
@@ -141,8 +141,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 id As LocalDebugId,
                 pdbAttributes As LocalVariableAttributes,
                 constraints As LocalSlotConstraints,
-                isDynamic As Boolean,
-                dynamicTransformFlags As ImmutableArray(Of TypedConstant)) As LocalDefinition
+                dynamicTransformFlags As ImmutableArray(Of TypedConstant),
+                tupleElementNames As ImmutableArray(Of TypedConstant)) As LocalDefinition
 
                 Dim local = TryCast(symbol, EELocalSymbol)
                 If local Is Nothing Then

@@ -310,6 +310,8 @@
     <Compile Include="Organizing\OrganizeModifiersTests.cs" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.cs" />
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
+    <Compile Include="UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
+    <Compile Include="UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="Structure\AbstractCSharpSyntaxNodeStructureTests.cs" />
     <Compile Include="Structure\AbstractCSharpSyntaxTriviaStructureTests.cs" />
     <Compile Include="Structure\AccessorDeclarationStructureTests.cs" />
@@ -371,6 +373,7 @@
     <Compile Include="SymbolId\SymbolKeyTestBase.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.cs" />
     <Compile Include="TodoComment\TodoCommentTests.cs" />
+    <Compile Include="UseObjectInitializer\UseObjectInitializerTests.cs" />
     <Compile Include="Utilities\CodeSnippets.cs" />
     <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
     <Compile Include="Utilities\Options.cs" />

@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If attributeSyntax.SyntaxTree.IsMyTemplate Then
                         defaultInstances = If(attributeData.GetConstructorArgument(Of String)(3, Microsoft.CodeAnalysis.SpecialType.System_String), "").Split(separatorComma, StringSplitOptions.None)
                     Else
-                        defaultInstances = SpecializedCollections.EmptyArray(Of String)()
+                        defaultInstances = Array.Empty(Of String)()
                     End If
 
                     ' Types matching each name in baseTypeNames will be grouped together in the builder below and groups will be separated by Nothing item.

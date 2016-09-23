@@ -1961,5 +1961,52 @@ End Sub
 
             Assert.Throws(Of InvalidOperationException)(Function() CreateSubmission("?a + 1", previous:=s0))
         End Sub
+
+        <Fact>
+        <WorkItem(13925, "https://github.com/dotnet/roslyn/issues/13925")>
+        Public Sub RemoveAllSyntaxTreesAndEmbeddedTrees_01()
+            Dim compilation1 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Public Module C  
+    Sub Main()
+        System.Console.WriteLine(1)
+    End Sub
+End Module
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True), references:={SystemRef})
+
+            compilation1.VerifyDiagnostics()
+
+            Dim compilation2 = compilation1.RemoveAllSyntaxTrees()
+            compilation2 = compilation2.AddSyntaxTrees(compilation1.SyntaxTrees)
+
+            compilation2.VerifyDiagnostics()
+            CompileAndVerify(compilation2, expectedOutput:="1")
+        End Sub
+
+        <Fact>
+        <WorkItem(13925, "https://github.com/dotnet/roslyn/issues/13925")>
+        Public Sub RemoveAllSyntaxTreesAndEmbeddedTrees_02()
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Module C  
+    Sub Main()
+        System.Console.WriteLine(1)
+    End Sub
+End Module
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True))
+
+            compilation1.VerifyDiagnostics()
+
+            Dim compilation2 = compilation1.RemoveAllSyntaxTrees()
+            compilation2 = compilation2.AddSyntaxTrees(compilation1.SyntaxTrees)
+
+            compilation2.VerifyDiagnostics()
+            CompileAndVerify(compilation2, expectedOutput:="1")
+        End Sub
+
     End Class
 End Namespace

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return collection;
             }
 
-            return map.GetOrAdd(kind, _ => new ChecksumCollection(serializer, kind, SpecializedCollections.EmptyArray<object>()));
+            return map.GetOrAdd(kind, _ => new ChecksumCollection(serializer, kind, Array.Empty<object>()));
         }
 
         private static readonly ConditionalWeakTable<ChecksumCollection, Task<ChecksumCollection>>.CreateValueCallback s_emptyChecksumCollectionTaskCallback = c => Task.FromResult(c);

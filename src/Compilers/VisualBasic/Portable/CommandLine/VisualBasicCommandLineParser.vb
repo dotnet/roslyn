@@ -1452,7 +1452,7 @@ lVbRuntimePlus:
                 Dim absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory)
                 If absolutePath IsNot Nothing Then
                     Dim filePath = PathUtilities.CombineAbsoluteAndRelativePaths(absolutePath, fileName)
-                    If PortableShim.File.Exists(filePath) Then
+                    If File.Exists(filePath) Then
                         Return filePath
                     End If
                 End If
@@ -1629,7 +1629,10 @@ lVbRuntimePlus:
             Dim dataProvider As Func(Of Stream) = Function()
                                                       ' Use FileShare.ReadWrite because the file could be opened by the current process.
                                                       ' For example, it Is an XML doc file produced by the build.
-                                                      Return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite)
+                                                      Return New FileStream(fullPath,
+                                                                            FileMode.Open,
+                                                                            FileAccess.Read,
+                                                                            FileShare.ReadWrite)
                                                   End Function
             Return New ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs:=False)
         End Function

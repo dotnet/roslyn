@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
             _itemRules = itemRules;
 
             _lazyGetDrives = new Lazy<string[]>(() =>
-                IOUtilities.PerformIO(Directory.GetLogicalDrives, SpecializedCollections.EmptyArray<string>()));
+                IOUtilities.PerformIO(Directory.GetLogicalDrives, Array.Empty<string>()));
         }
 
         public ImmutableArray<CompletionItem> GetItems(string pathSoFar, string documentPath)
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         private static FileSystemInfo[] GetFileSystemInfos(DirectoryInfo directoryInfo)
         {
-            return IOUtilities.PerformIO(directoryInfo.GetFileSystemInfos, SpecializedCollections.EmptyArray<FileSystemInfo>());
+            return IOUtilities.PerformIO(directoryInfo.GetFileSystemInfos, Array.Empty<FileSystemInfo>());
         }
     }
 }

@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text

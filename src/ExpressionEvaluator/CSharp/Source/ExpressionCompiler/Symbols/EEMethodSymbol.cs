@@ -651,13 +651,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             base.AddSynthesizedReturnTypeAttributes(ref attributes);
 
-            if (this.ReturnType.ContainsDynamic())
+            var compilation = this.DeclaringCompilation;
+            var returnType = this.ReturnType;
+
+            if (returnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
             {
-                var compilation = this.DeclaringCompilation;
-                if ((object)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null)
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
-                }
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length));
+            }
+
+            if (returnType.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(returnType));
             }
         }
 

@@ -158,8 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             id: new LocalDebugId(syntaxOffset, ordinal: 0),
                             pdbAttributes: localSymbol.SynthesizedKind.PdbAttributes(),
                             constraints: slotConstraints,
-                            isDynamic: false,
                             dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
+                            tupleElementNames: ImmutableArray<TypedConstant>.Empty,
                             isSlotReusable: false);
                     }
                     else

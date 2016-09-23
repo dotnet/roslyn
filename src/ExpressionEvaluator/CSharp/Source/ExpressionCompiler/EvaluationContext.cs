@@ -195,7 +195,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var reuseSpan = debugInfo.ReuseSpan;
             var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            MethodDebugInfo<TypeSymbol, LocalSymbol>.GetLocals(localsBuilder, symbolProvider, debugInfo.LocalVariableNames, localInfo, debugInfo.DynamicLocalMap);
+            MethodDebugInfo<TypeSymbol, LocalSymbol>.GetLocals(
+                localsBuilder,
+                symbolProvider,
+                debugInfo.LocalVariableNames,
+                localInfo,
+                debugInfo.DynamicLocalMap,
+                debugInfo.TupleLocalMap);
             if (!debugInfo.HoistedLocalScopeRecords.IsDefaultOrEmpty)
             {
                 inScopeHoistedLocals = new CSharpInScopeHoistedLocals(debugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref reuseSpan));
@@ -365,7 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        private static readonly ReadOnlyCollection<byte> s_emptyBytes = new ReadOnlyCollection<byte>(new byte[0]);
+        private static readonly ReadOnlyCollection<byte> s_emptyBytes =
+            new ReadOnlyCollection<byte>(Array.Empty<byte>());
 
         internal override ReadOnlyCollection<byte> CompileGetLocals(
             ArrayBuilder<LocalAndMethod> locals,

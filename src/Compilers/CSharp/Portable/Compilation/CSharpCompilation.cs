@@ -1507,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
                     var info = new CSDiagnosticInfo(
                          ErrorCode.ERR_MultipleEntryPoints,
-                         args: SpecializedCollections.EmptyArray<object>(),
+                         args: Array.Empty<object>(),
                          symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
                          additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
 

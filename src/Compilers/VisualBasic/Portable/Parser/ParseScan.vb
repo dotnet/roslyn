@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function ResyncAt() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)
-            Return ResyncAt(ScannerState.VB, SpecializedCollections.EmptyArray(Of SyntaxKind))
+            Return ResyncAt(ScannerState.VB, Array.Empty(Of SyntaxKind))
         End Function
 
         Friend Function ResyncAt(resyncTokens As SyntaxKind()) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)

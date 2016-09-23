@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -315,8 +317,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
 
             var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
-            var assetFromStorage = await CloneMetadataReferenceAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneMetadataReferenceAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
         }
 
         [Fact]
@@ -415,6 +417,80 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             await VerifyOptionSetsAsync(workspace, LanguageNames.CSharp).ConfigureAwait(false);
             await VerifyOptionSetsAsync(workspace, LanguageNames.VisualBasic).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task Missing_Metadata_Serailization_Test()
+        {
+            var workspace = new AdhocWorkspace();
+            var reference = new MissingMetadataReference();
+
+            var serializer = new Serializer(workspace.Services);
+            var trees = new ChecksumTreeCollection();
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
+
+            // make sure this doesn't throw
+            var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task Missing_Analyzer_Serailization_Test()
+        {
+            var workspace = new AdhocWorkspace();
+            var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+
+            var serializer = new Serializer(workspace.Services);
+            var trees = new ChecksumTreeCollection();
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
+
+            // make sure this doesn't throw
+            var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task Missing_Analyzer_Serailization_Desktop_Test()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+
+            var serializer = new Serializer(workspace.Services);
+            var trees = new ChecksumTreeCollection();
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
+
+            // make sure this doesn't throw
+            var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task SnapshotWithMissingReferencesTest()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var solution = new AdhocWorkspace(hostServices).CurrentSolution;
+            var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+
+            var metadata = new MissingMetadataReference();
+            var analyzer = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+
+            project1 = project1.AddMetadataReference(metadata);
+            project1 = project1.AddAnalyzerReference(analyzer);
+
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(project1.Solution, CancellationToken.None).ConfigureAwait(false))
+            {
+                // this shouldn't throw
+                var recovered = await GetSolutionAsync(snapshotService, snapshot).ConfigureAwait(false);
+            }
         }
 
         private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
@@ -523,7 +599,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
         }
 
-        private static async Task<Asset> CloneMetadataReferenceAssetAsync(Serializer serializer, AssetBuilder assetBuilder, Asset asset)
+        private static async Task<Asset> CloneAssetAsync(Serializer serializer, AssetBuilder assetBuilder, Asset asset)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
@@ -533,13 +609,56 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))
                 {
-                    var recovered = serializer.Deserialize<MetadataReference>(asset.Kind, reader, CancellationToken.None);
-                    var assetFromStorage = assetBuilder.Build(recovered, CancellationToken.None);
+                    var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
+                    var assetFromStorage = BuildAsset(assetBuilder, asset.Kind, recovered);
 
                     Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
-
                     return assetFromStorage;
                 }
+            }
+        }
+
+        private static Asset BuildAsset(AssetBuilder builder, string kind, object value)
+        {
+            switch (kind)
+            {
+                case WellKnownChecksumObjects.AnalyzerReference:
+                    return builder.Build((AnalyzerReference)value, CancellationToken.None);
+                case WellKnownChecksumObjects.MetadataReference:
+                    return builder.Build((MetadataReference)value, CancellationToken.None);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
+        {
+            protected override Assembly LoadFromPathImpl(string fullPath)
+            {
+                throw new FileNotFoundException(fullPath);
+            }
+        }
+
+        private class MissingMetadataReference : PortableExecutableReference
+        {
+            public MissingMetadataReference() :
+                base(MetadataReferenceProperties.Assembly, "missing_reference", XmlDocumentationProvider.Default)
+            {
+            }
+
+            protected override DocumentationProvider CreateDocumentationProvider()
+            {
+                return null;
+            }
+
+            protected override Metadata GetMetadataImpl()
+            {
+                throw new FileNotFoundException("can't find");
+            }
+
+            protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+            {
+                return this;
             }
         }
     }

@@ -1297,7 +1297,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             bool _;
-            var lambdaBodyMatch = ComputeBodyMatch(oldLambdaBody, newLambdaBody, activeNodesInLambda ?? SpecializedCollections.EmptyArray<ActiveNode>(), diagnostics, out _, out _);
+            var lambdaBodyMatch = ComputeBodyMatch(oldLambdaBody,
+                newLambdaBody, activeNodesInLambda ?? Array.Empty<ActiveNode>(),
+                diagnostics, out _, out _);
 
             activeOrMatchedLambdas[oldLambdaBody] = info.WithMatch(lambdaBodyMatch, newLambdaBody);
 
