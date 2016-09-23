@@ -40,6 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
+            // Use a chain of tasks to make sure that we process each diagnostic event serially.
+            // This also ensures that the first diagnostic event we hear about will be processed
+            // after the initial background work to get the first group of diagnostics.
             private readonly object _taskGate = new object();
             private Task _taskChain;
 
