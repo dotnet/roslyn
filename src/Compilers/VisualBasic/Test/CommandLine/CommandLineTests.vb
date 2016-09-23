@@ -953,6 +953,17 @@ a.vb
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version"}, _baseDirectory)
+            Assert.Equal(False, parsedArgs.Errors.Any())
+            Assert.True(parsedArgs.DisplayVersion)
+            Assert.Equal(False, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version", "c"}, _baseDirectory)
+            Assert.Equal(False, parsedArgs.Errors.Any())
+            Assert.True(parsedArgs.DisplayVersion)
+            Assert.Equal(True, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version:something"}, _baseDirectory)
+            Assert.Equal(True, parsedArgs.Errors.Any())
+            Assert.False(parsedArgs.DisplayVersion)
             parsedArgs = InteractiveParse({"/?"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
@@ -7914,6 +7925,33 @@ End Class
                 New String() {"a,s.dll", "b,s.dll"},
                 args.MetadataReferences.Select(Function(x) x.Reference))
         End Sub
+
+        <WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")>
+        <Fact()>
+        Public Sub Version()
+            Dim source = "Garbage"
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source)
+
+            Dim output As New StringWriter()
+
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/version"})
+            vbc.Run(output, Nothing)
+            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
+            Dim actual = output.ToString().TrimEnd()
+            Assert.Equal(version, actual)
+
+            output = New StringWriter()
+            vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/version", "/preferreduilang:en"})
+            vbc.Run(output, Nothing)
+            actual = output.ToString().TrimEnd()
+            Assert.Equal(version, actual)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
