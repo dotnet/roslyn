@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 Document document, CancellationToken cancellationToken)
             {
                 this.AssertIsBackground();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (document == null)
                 {
