@@ -3,15 +3,15 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using System.Linq;
-using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
