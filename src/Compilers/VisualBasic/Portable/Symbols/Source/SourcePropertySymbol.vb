@@ -543,6 +543,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
             Dim attrData = arguments.Attribute
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location)
+            End If
+
             If arguments.SymbolPart = AttributeLocation.Return Then
                 Dim isMarshalAs = attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute)
 

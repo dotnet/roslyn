@@ -1560,6 +1560,10 @@ lReportErrorOnTwoTokens:
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
 
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location)
+            End If
+
             If arguments.SymbolPart = AttributeLocation.Return Then
                 ' Decode well-known attributes applied to return value
 
