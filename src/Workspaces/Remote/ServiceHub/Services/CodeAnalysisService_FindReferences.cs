@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var symbolAndProjectId = await symbolAndProjectIdArg.RehydrateAsync(
                 solution, CancellationToken).ConfigureAwait(false);
-            var documents = documentArgs.Select(a => a.Rehydrate())
-                                        .Select(solution.GetDocument)
-                                        .ToImmutableHashSet();
+            var documents = documentArgs?.Select(a => a.Rehydrate())
+                                         .Select(solution.GetDocument)
+                                         .ToImmutableHashSet();
 
             var progressCallback = new ProgressCallback(this);
             await DefaultSymbolFinderEngineService.FindReferencesInCurrentProcessAsync(

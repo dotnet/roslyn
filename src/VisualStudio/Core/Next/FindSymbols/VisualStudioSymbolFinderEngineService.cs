@@ -48,7 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
             IImmutableSet<Document> documents, 
             CancellationToken cancellationToken)
         {
-            documents = documents ?? ImmutableHashSet<Document>.Empty;
             var clientService = solution.Workspace.Services.GetService<IRemoteHostClientService>();
             var client = await clientService.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
 
@@ -67,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
                 await session.InvokeAsync(
                     WellKnownServiceHubServices.CodeAnalysisService_FindReferencesAsync,
                     SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
-                    documents.Select(SerializableDocumentId.Dehydrate).ToArray()).ConfigureAwait(false);
+                    documents?.Select(SerializableDocumentId.Dehydrate).ToArray()).ConfigureAwait(false);
             }
         }
 
