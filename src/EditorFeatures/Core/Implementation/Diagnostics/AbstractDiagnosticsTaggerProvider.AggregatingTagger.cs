@@ -336,14 +336,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // was removed.  If so, clear out any diagnostics we have associated with this
                 // diagnostic source ID and notify any listeners that 
 
+                var id = e.Id;
                 ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
-                if (!_idToProviderAndTagger.TryGetValue(e.Id, out providerAndTagger))
+                if (!_idToProviderAndTagger.TryGetValue(id, out providerAndTagger))
                 {
                     // Wasn't a diagnostic source we care about.
                     return;
                 }
 
-                _idToProviderAndTagger.Remove(e.Id);
+                _idToProviderAndTagger.Remove(id);
                 DisconnectFromTagger(providerAndTagger.Item2);
 
                 OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
