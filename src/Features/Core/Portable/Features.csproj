@@ -685,7 +685,9 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="NavigateTo\" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

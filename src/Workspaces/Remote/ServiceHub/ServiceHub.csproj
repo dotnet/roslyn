@@ -19,6 +19,10 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
+      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
       <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
       <Name>Features</Name>
@@ -50,6 +54,7 @@
   <ItemGroup>
     <None Include="project.json" />
     <Compile Include="CodeLens\CodeLensArguments.cs" />
+    <Compile Include="Shared\RemoteArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -74,6 +79,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="NavigateTo\" />
     <Folder Include="Storage\" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

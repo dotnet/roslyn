@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal sealed partial class DefaultNavigateToEngineService
+    internal partial class DefaultNavigateToEngineService
     {
         private class SearchResult : INavigateToSearchResult
         {

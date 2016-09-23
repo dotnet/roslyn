@@ -89,6 +89,9 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
       <Link>Shared\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RemoteArguments.cs">
+      <Link>Shared\RemoteArguments.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
       <Link>Shared\ServerDirectStream.cs</Link>
     </Compile>
@@ -110,6 +113,7 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
+    <Compile Include="NavigateTo\VisualStudioNavigateToEngineService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
@@ -133,5 +137,6 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

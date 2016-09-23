@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Navigation;
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
     [ExportWorkspaceService(typeof(INavigateToEngineService), layer: ServiceLayer.Default), Shared]
-    internal partial class DefaultNavigateToEngineService : INavigateToEngineService
+    internal sealed partial class DefaultNavigateToEngineService : INavigateToEngineService
     {
         public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
             Project project, string searchPattern, CancellationToken cancellationToken)
