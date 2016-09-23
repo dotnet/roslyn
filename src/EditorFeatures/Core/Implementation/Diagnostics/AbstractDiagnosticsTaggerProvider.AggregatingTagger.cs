@@ -159,16 +159,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                     // Disconnect us from our underlying taggers and make sure they're
                     // released as well.
-                    foreach (var kvp in _idToProviderAndTagger)
-                    {
-                        var tagger = kvp.Value.Item2;
-
-                        DisconnectFromTagger(tagger);
-                    }
-
-                    _idToProviderAndTagger.Clear();
+                    DisconnectFromAllTaggers();
                     _owner.RemoveTagger(this, _subjectBuffer);
                 }
+            }
+
+            private void DisconnectFromAllTaggers()
+            {
+                this.AssertIsForeground();
+
+                foreach (var kvp in _idToProviderAndTagger)
+                {
+                    var tagger = kvp.Value.Item2;
+
+                    DisconnectFromTagger(tagger);
+                }
+
+                _idToProviderAndTagger.Clear();
             }
 
             private void DisconnectFromTagger(IAccurateTagger<TTag> tagger)
@@ -224,6 +231,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private void OnDiagnosticsUpdatedOnForeground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
+
+                if (_disposed)
+                {
+                    return;
+                }
 
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
@@ -325,12 +337,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // was removed.  If so, clear out any diagnostics we have associated with this
                 // diagnostic source ID and notify any listeners that 
 
-                if (_disposed)
+                ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
+                if (!_idToProviderAndTagger.TryGetValue(e.Id, out providerAndTagger))
                 {
+                    // Wasn't a diagnostic source we care about.
                     return;
                 }
 
-                RemoveCachedDiagnostics(e.Id);
+                _idToProviderAndTagger.Remove(e.Id);
+                DisconnectFromTagger(providerAndTagger.Item2);
+
                 OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
             }
 
@@ -338,40 +354,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 this.AssertIsForeground();
 
-                // Make a copy of all the IDs so that we don't change a collection as we're
-                // iterating over it.
-                var ids = _idToProviderAndTagger.Keys.ToArray();
-                foreach (var id in ids)
-                {
-                    RemoveCachedDiagnostics(id);
-                }
-
+                DisconnectFromAllTaggers();
                 OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
-            }
-
-            private void RemoveCachedDiagnostics(object id)
-            {
-                this.AssertIsForeground();
-
-                ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
-                if (!_idToProviderAndTagger.TryGetValue(id, out providerAndTagger))
-                {
-                    // Wasn't a diagnostic source we care about.
-                    return;
-                }
-
-                _idToProviderAndTagger.Remove(id);
-                DisconnectFromTagger(providerAndTagger.Item2);
             }
 
             private void OnDiagnosticsUpdatedOnForeground(
                 DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {
                 this.AssertIsForeground();
-                if (_disposed)
-                {
-                    return;
-                }
 
                 // Find the appropriate async tagger for this diagnostics id, and let it know that
                 // there were new diagnostics produced for it.
@@ -413,6 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
+
                 this.TagsChanged?.Invoke(sender, args);
             }
 
