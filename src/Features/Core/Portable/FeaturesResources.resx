@@ -1070,10 +1070,10 @@ This version used in: {2}</value>
   <data name="Use_throw_expression" xml:space="preserve">
     <value>Use 'throw' expression</value>
   </data>
-  <data name="project_lower_case" xml:space="preserve">
-    <value>project</value>
+  <data name="project_space" xml:space="preserve">
+    <value>project </value>
   </data>
-  <data name="type" xml:space="preserve">
+  <data name="type_space" xml:space="preserve">
     <value>type </value>
   </data>
 </root>

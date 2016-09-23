@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("Method").Single();
-                VerifyNavigateToResultItem(item, "Method", MatchKind.Exact, NavigateToItemKind.Method, "Method()", $"{FeaturesResources.type}Foo.Bar.DogBed");
+                VerifyNavigateToResultItem(item, "Method", MatchKind.Exact, NavigateToItemKind.Method, "Method()", $"{FeaturesResources.type_space}Foo.Bar.DogBed");
             }
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("Bar").Single();
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar<T>(T)", $"{FeaturesResources.type}Foo<U>");
+                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar<T>(T)", $"{FeaturesResources.type_space}Foo<U>");
             }
         }
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("string").Single();
-                VerifyNavigateToResultItem(item, "string", MatchKind.Exact, NavigateToItemKind.Field, displayName: "@string", additionalInfo: $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "string", MatchKind.Exact, NavigateToItemKind.Field, displayName: "@string", additionalInfo: $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("this").Single();
-                VerifyNavigateToResultItem(item, "this[]", MatchKind.Exact, NavigateToItemKind.Property, displayName: "this[int]", additionalInfo: $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "this[]", MatchKind.Exact, NavigateToItemKind.Property, displayName: "this[int]", additionalInfo: $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEvent, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("CEH").Single();
-                VerifyNavigateToResultItem(item, "ChangedEventHandler", MatchKind.Regular, NavigateToItemKind.Event, additionalInfo: $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "ChangedEventHandler", MatchKind.Regular, NavigateToItemKind.Event, additionalInfo: $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("B").Single();
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Property, additionalInfo: $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Property, additionalInfo: $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("DS").Single();
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething()", $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething()", $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("DS").Single();
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething(int, string)", $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething(int, string)", $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("Foo").Single(t => t.Kind == NavigateToItemKind.Method);
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Foo()", $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Foo()", $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("Foo").Single(t => t.Kind == NavigateToItemKind.Method);
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Foo(int)", $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Foo(int)", $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("Foo").Single(t => t.Kind == NavigateToItemKind.Method && t.Name != ".ctor");
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "static Foo()", $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "static Foo()", $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("Bar").Single();
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar()", $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar()", $"{FeaturesResources.type_space}Foo");
             }
         }
 
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 var unused = itemDisplay.Glyph;
 
                 Assert.Equal("Name", itemDisplay.Name);
-                Assert.Equal($"{FeaturesResources.type}DogBed", itemDisplay.AdditionalInformation);
+                Assert.Equal($"{FeaturesResources.type_space}DogBed", itemDisplay.AdditionalInformation);
                 _glyphServiceMock.Verify();
 
                 item = items.ElementAt(1);
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 unused = itemDisplay.Glyph;
 
                 Assert.Equal("Name", itemDisplay.Name);
-                Assert.Equal($"{FeaturesResources.type}Foo", itemDisplay.AdditionalInformation);
+                Assert.Equal($"{FeaturesResources.type_space}Foo", itemDisplay.AdditionalInformation);
                 _glyphServiceMock.Verify();
             }
         }
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("sqr").Single();
-                VerifyNavigateToResultItem(item, "sqr", MatchKind.Exact, NavigateToItemKind.Field, "sqr", $"{FeaturesResources.type}Foo");
+                VerifyNavigateToResultItem(item, "sqr", MatchKind.Exact, NavigateToItemKind.Field, "sqr", $"{FeaturesResources.type_space}Foo");
             }
         }
 

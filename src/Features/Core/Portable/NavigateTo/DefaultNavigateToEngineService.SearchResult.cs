@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         case DeclaredSymbolInfoKind.Interface:
                         case DeclaredSymbolInfoKind.Module:
                         case DeclaredSymbolInfoKind.Struct:
-                            return FeaturesResources.project_lower_case + document.Project.Name;
+                            return FeaturesResources.project_space + document.Project.Name;
                         default:
-                            return FeaturesResources.type + declaredSymbolInfo.ContainerDisplayName;
+                            return FeaturesResources.type_space + declaredSymbolInfo.ContainerDisplayName;
                     }
                 });
             }

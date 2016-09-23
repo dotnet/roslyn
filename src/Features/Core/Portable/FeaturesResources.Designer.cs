@@ -2050,11 +2050,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to project.
+        ///   Looks up a localized string similar to project .
         /// </summary>
-        internal static string project_lower_case {
+        internal static string project_space {
             get {
-                return ResourceManager.GetString("project_lower_case", resourceCulture);
+                return ResourceManager.GetString("project_space", resourceCulture);
             }
         }
         
@@ -2569,15 +2569,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to type .
-        /// </summary>
-        internal static string type {
-            get {
-                return ResourceManager.GetString("type", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to type constraint.
         /// </summary>
         internal static string type_constraint {
@@ -2619,6 +2610,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Type_Sharphelp_for_more_information {
             get {
                 return ResourceManager.GetString("Type_Sharphelp_for_more_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type .
+        /// </summary>
+        internal static string type_space {
+            get {
+                return ResourceManager.GetString("type_space", resourceCulture);
             }
         }
         
