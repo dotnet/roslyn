@@ -325,6 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
+                Debug.Assert(!_disposed);
 
                 if (e.Kind != DiagnosticsUpdatedKind.DiagnosticsRemoved)
                 {
@@ -362,6 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {
                 this.AssertIsForeground();
+                Debug.Assert(!_disposed);
 
                 // Find the appropriate async tagger for this diagnostics id, and let it know that
                 // there were new diagnostics produced for it.
