@@ -230,23 +230,71 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     _definitions.Add(definition);
                 }
 
-                foreach (var location in definition.SourceSpans)
+                // If this is a definition we always want to show, then create entries
+                // for all the definition locations.
+                if (definition.DisplayIfNoReferences)
                 {
-                    await OnEntryFoundAsync(definition,
-                        (db, c) => CreateDocumentLocationEntryAsync(
-                            db, location, isDefinitionLocation: true, cancellationToken: c)).ConfigureAwait(false);
+                    await AddDefinitionEntriesAsync(definition).ConfigureAwait(false);
                 }
+            }
+
+            private async Task AddDefinitionEntriesAsync(DefinitionItem definition)
+            {
+                var cancellationToken = _cancellationTokenSource.Token;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Don't do anything if we already have entries for this definition.
+                if (HasEntriesForDefinition(definition))
+                {
+                    return;
+                }
+
+                // First find the bucket corresponding to our definition. If we can't find/create 
+                // one, then don't do anything for this reference.
+                var definitionBucket = GetOrCreateDefinitionBucket(definition);
+                if (definitionBucket == null)
+                {
+                    return;
+                }
+
+                // We could do this inside the lock.  but htat would mean async activity in a 
+                // lock, and i'd like to avoid that.  That does mean that we might do extra
+                // work if multiple threads end up down htis path.  But only one of them will
+                // win when we access the lock below.
+                var builder = ImmutableArray.CreateBuilder<Entry>();
+                foreach (var definitionLocation in definition.SourceSpans)
+                {
+                    var definitionEntry = await CreateDocumentLocationEntryAsync(
+                        definitionBucket, definitionLocation, isDefinitionLocation: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    if (definitionEntry != null)
+                    {
+                        builder.Add(definitionEntry);
+                    }
+                }
+
+                lock (_gate)
+                {
+                    // Do one final check to ensure that no other thread beat us here.
+                    if (!HasEntriesForDefinition(definition))
+                    {
+                        _entries = _entries.AddRange(builder);
+                        CurrentVersionNumber++;
+                    }
+                }
+
+                // Let all our subscriptions know that we've updated.
+                _tableDataSink.FactorySnapshotChanged(this);
             }
 
             public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
             {
                 return OnEntryFoundAsync(reference.Definition,
                     (db, c) => CreateDocumentLocationEntryAsync(
-                        db, reference.SourceSpan, isDefinitionLocation: false, cancellationToken: c));
+                    db, reference.SourceSpan, isDefinitionLocation: false, cancellationToken: c));
             }
 
             private async Task OnEntryFoundAsync(
-                DefinitionItem definition, 
+                DefinitionItem definition,
                 Func<RoslynDefinitionBucket, CancellationToken, Task<Entry>> createEntryAsync)
             {
                 var cancellationToken = _cancellationTokenSource.Token;
@@ -260,12 +308,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return;
                 }
 
-                var entry = await createEntryAsync(
-                    definitionBucket, cancellationToken).ConfigureAwait(false);
+                var entry = await createEntryAsync(definitionBucket, cancellationToken).ConfigureAwait(false);
                 if (entry == null)
                 {
                     return;
                 }
+
+                // Ok, we got a *reference* to some definition item.  This may have been
+                // a reference for some definition that we haven't created any definition
+                // entries for (i.e. becuase it had DisplayIfNoReferences = false).  Because
+                // we've now found a reference, we want to make sure all tis definition
+                // entries are added.
+                await AddDefinitionEntriesAsync(definition).ConfigureAwait(false);
 
                 lock (_gate)
                 {
@@ -276,6 +330,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 // Let all our subscriptions know that we've updated.
                 _tableDataSink.FactorySnapshotChanged(this);
+            }
+
+            private bool HasEntriesForDefinition(DefinitionItem definition)
+            {
+                lock (_gate)
+                {
+                    return _entries.Any(e => e.DefinitionBucket.DefinitionItem == definition);
+                }
             }
 
             private async Task<Entry> CreateDocumentLocationEntryAsync(
