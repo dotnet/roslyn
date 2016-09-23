@@ -188,6 +188,7 @@
     <Compile Include="CommandState.cs" />
     <Compile Include="ContentTypeLanguageMetadata.cs" />
     <Compile Include="ContentTypeNames.cs" />
+    <Compile Include="Implementation\NavigateTo\RoslynSearch\DefaultNavigateToEngineService.cs" />
     <Compile Include="DocumentSnapshotSpan.cs" />
     <Compile Include="EditorFeaturesResources.Designer.cs">
       <DependentUpon>EditorFeaturesResources.resx</DependentUpon>
@@ -281,9 +282,8 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
+    <Compile Include="Implementation\NavigateTo\RoslynSearch\INavigateToEngineService.cs" />
     <Compile Include="Implementation\NavigateTo\INavigateToOptionsService.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />
-    <Compile Include="Implementation\NavigateTo\INavigateToSearchResultProvider.cs" />
     <Compile Include="Implementation\Structure\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.cs" />
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
@@ -546,8 +546,8 @@
     <Compile Include="Implementation\MetadataAsSource\MetadataAsSourceGeneratedFileInfo.cs" />
     <Compile Include="Implementation\MetadataAsSource\MetadataAsSourceWorkspace.cs" />
     <Compile Include="Implementation\MetadataAsSource\SymbolMappingServiceFactory.cs" />
-    <Compile Include="Implementation\NavigateTo\AbstractNavigateToSearchService.cs" />
-    <Compile Include="Implementation\NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
+    <Compile Include="Implementation\NavigateTo\RoslynSearch\AbstractNavigateToSearchService.cs" />
+    <Compile Include="Implementation\NavigateTo\RoslynSearch\DefaultNavigateToEngineService.SearchResult.cs" />
     <Compile Include="Implementation\NavigateTo\DefaultNavigateToPreviewService.cs" />
     <Compile Include="Implementation\NavigateTo\DefaultNavigateToPreviewServiceFactory.cs" />
     <Compile Include="Implementation\NavigateTo\INavigateToPreviewService.cs" />

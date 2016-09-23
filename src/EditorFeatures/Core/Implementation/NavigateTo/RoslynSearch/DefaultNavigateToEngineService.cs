@@ -3,22 +3,35 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Navigation;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    [Export(typeof(INavigateToSearchResultProvider)), Shared]
-    internal sealed partial class NavigateToSearchResultProvider : INavigateToSearchResultProvider
+    [ExportWorkspaceService(typeof(INavigateToEngineService), layer: ServiceLayer.Default), Shared]
+    internal partial class DefaultNavigateToEngineService : INavigateToEngineService
     {
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
+        public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
+            Project project, string searchPattern, CancellationToken cancellationToken)
+        {
+            return SearchProjectInCurrentProcessAsync(project, searchPattern, cancellationToken);
+        }
+
+        public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(
+            Document document, string searchPattern, CancellationToken cancellationToken)
+        {
+            return SearchDocumentInCurrentProcessAsync(document, searchPattern, cancellationToken);
+        }
+
+        public static async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
             Project project, string searchPattern, CancellationToken cancellationToken)
         {
             var results = await FindNavigableDeclaredSymbolInfos(
@@ -26,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             return ProcessResult(searchPattern, results);
         }
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(
+        public static async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
             Document document, string searchPattern, CancellationToken cancellationToken)
         {
             var results = await FindNavigableDeclaredSymbolInfos(
@@ -34,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             return ProcessResult(searchPattern, results);
         }
 
-        private ImmutableArray<INavigateToSearchResult> ProcessResult(
-            string searchPattern, 
+        private static ImmutableArray<INavigateToSearchResult> ProcessResult(
+            string searchPattern,
             ImmutableArray<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>> results)
         {
             var containsDots = searchPattern.IndexOf('.') >= 0;
@@ -89,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
         }
 
-        private INavigateToSearchResult ConvertResult(
+        private static INavigateToSearchResult ConvertResult(
             bool containsDots, ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
         {
             var declaredSymbolInfo = result.Item1;

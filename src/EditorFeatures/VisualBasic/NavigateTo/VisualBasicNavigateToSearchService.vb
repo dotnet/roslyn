@@ -8,10 +8,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigateTo
     <ExportLanguageService(GetType(INavigateToSearchService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicNavigateToSearchService
         Inherits AbstractNavigateToSearchService
-
-        <ImportingConstructor>
-        Sub New(<ImportMany> resultProviders As IEnumerable(Of INavigateToSearchResultProvider))
-            MyBase.New(resultProviders)
-        End Sub
     End Class
 End Namespace
