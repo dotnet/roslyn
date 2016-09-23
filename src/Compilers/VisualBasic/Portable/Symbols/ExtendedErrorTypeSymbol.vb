@@ -48,6 +48,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        resultKind As LookupResultKind,
                        Optional reportErrorWhenReferenced As Boolean = False)
             MyBase.New(arity)
+            Debug.Assert(errorInfo Is Nothing OrElse errorInfo.Severity = DiagnosticSeverity.Error)
+
             _name = name
             _diagnosticInfo = errorInfo
             _reportErrorWhenReferenced = reportErrorWhenReferenced
@@ -74,6 +76,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        Optional reportErrorWhenReferenced As Boolean = False,
                        Optional nonErrorGuessType As NamedTypeSymbol = Nothing)
             MyBase.New(arity)
+            Debug.Assert(errorInfo Is Nothing OrElse errorInfo.Severity = DiagnosticSeverity.Error)
+
             _name = name
             _diagnosticInfo = errorInfo
             _reportErrorWhenReferenced = reportErrorWhenReferenced
