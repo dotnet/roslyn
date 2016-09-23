@@ -207,6 +207,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e));
             }
 
+            /// <summary>
+            /// We do all mutation work on the UI thread.  That ensures that all mutation
+            /// is processed serially *and* it means we can safely examine things like
+            /// subject buffers and open documents without any threat of race conditions.
+            /// Note that we do not do any expensive work here.  We just store (or remove)
+            /// the data we were given in appropriate buckets.
+            /// 
+            /// For example, we create a TaggerProvider per unique DiagnosticUpdatedArgs.Id
+            /// we get.  So if we see a new id we simply create a tagger for it and pass it
+            /// these args to store.  Otherwise we pass these args to the existing tagger.
+            /// </summary>
             private void OnDiagnosticsUpdatedOnForeground(DiagnosticsUpdatedArgs e)
             {
                 this.AssertIsForeground();
