@@ -1,5 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if DEBUG
+// We use a struct rather than a class to represent the state for efficiency
+// for data flow analysis, with 32 bits of data inline. Merely copying the state
+// variable causes the first 32 bits to be cloned, as they are inline. This can
+// hide a plethora of errors that would only be exhibited in programs with more
+// than 32 variables to be tracked. However, few of our tests have that many
+// variables.
+//
+// To help diagnose these problems, we use the preprocessor symbol REFERENCE_STATE
+// to cause the data flow state be a class rather than a struct. When it is a class,
+// this category of problems would be exhibited in programs with a small number of
+// tracked variables. But it is slower, so we only do it in DEBUG mode.
+#define REFERENCE_STATE
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +28,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// Implement C# data flow analysis (definite assignment).
+    /// </summary>
     internal partial class DataFlowPass : AbstractFlowPass<DataFlowPass.LocalState>
     {
         /// <summary>
@@ -232,8 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.RemoveReturns();
 
-            if ((object)currentMethodOrLambda != null &&
-                currentMethodOrLambda.IsAsync &&
+            if (currentMethodOrLambda?.IsAsync == true &&
                 !currentMethodOrLambda.IsImplicitlyDeclared)
             {
                 var foundAwait = result.Any(pending => pending.Branch?.Kind == BoundKind.AwaitExpression);
@@ -269,16 +286,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
 
                             var sourceField = field as SourceMemberFieldSymbol;
-                            if ((object)sourceField != null && sourceField.HasInitializer) continue;
+                            if (sourceField?.HasInitializer == true) continue;
 
                             var backingField = field as SynthesizedBackingFieldSymbol;
-                            if ((object)backingField != null && backingField.HasInitializer) continue;
+                            if (backingField?.HasInitializer == true) continue;
 
                             int fieldSlot = VariableSlot(field, thisSlot);
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                             {
                                 Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
-                                if ((object)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Property)
+                                if (associatedPropertyOrEvent?.Kind == SymbolKind.Property)
                                 {
                                     Diagnostics.Add(ErrorCode.ERR_UnassignedThisAutoProperty, location, associatedPropertyOrEvent);
                                 }
@@ -1358,7 +1375,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_tryState != null)
             {
+#if REFERENCE_STATE
+                var state = _tryState;
+#else
                 var state = _tryState.Value;
+#endif
                 SetSlotUnassigned(slot, ref state);
                 _tryState = state;
             }
@@ -1392,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.RefKind == RefKind.Out && !this.currentMethodOrLambda.IsAsync) // out parameters not allowed in async
             {
                 int slot = GetOrCreateSlot(parameter);
-                if (slot > 0) SetSlotState(slot, initiallyAssignedVariables != null && initiallyAssignedVariables.Contains(parameter));
+                if (slot > 0) SetSlotState(slot, initiallyAssignedVariables?.Contains(parameter) == true);
             }
             else
             {
@@ -1405,6 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, SyntaxNode syntax, Location location)
         {
+            Debug.Assert(!this.IsConditionalState);
             if (!this.State.Reachable)
             {
                 // if the code is not reachable, then it doesn't matter if out parameters are assigned.
@@ -1612,62 +1634,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            ImmutableArray<LocalSymbol> localsOpt = node.Locals;
-
-            if (localsOpt.IsDefaultOrEmpty)
-            {
-                return base.VisitUsingStatement(node);
-            }
-
-            foreach (LocalSymbol local in localsOpt)
-            {
-                switch (local.DeclarationKind)
-                {
-                    case LocalDeclarationKind.RegularVariable:
-                    case LocalDeclarationKind.PatternVariable:
-                        DeclareVariable(local);
-                        break;
-
-                    default:
-                        Debug.Assert(local.DeclarationKind == LocalDeclarationKind.UsingVariable);
-                        break;
-                }
-            }
-
+            var localsOpt = node.Locals;
+            DeclareVariables(localsOpt);
             var result = base.VisitUsingStatement(node);
-
-            foreach (LocalSymbol local in localsOpt)
+            if (!localsOpt.IsDefaultOrEmpty)
             {
-                switch (local.DeclarationKind)
+                foreach (LocalSymbol local in localsOpt)
                 {
-                    case LocalDeclarationKind.UsingVariable:
-                        NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
-                        break;
+                    if (local.DeclarationKind == LocalDeclarationKind.UsingVariable)
+                    {
+                        // At the end of the statement, there's an implied read when the local is disposed
+                        NoteRead(local);
+                        Debug.Assert(_usedVariables.Contains(local));
+                    }
                 }
             }
-
-            Debug.Assert(localsOpt.Where(l => l.DeclarationKind == LocalDeclarationKind.UsingVariable).All(_usedVariables.Contains));
 
             return result;
         }
 
         public override BoundNode VisitFixedStatement(BoundFixedStatement node)
         {
-            foreach (LocalSymbol local in node.Locals)
-            {
-                switch (local.DeclarationKind)
-                {
-                    case LocalDeclarationKind.RegularVariable:
-                    case LocalDeclarationKind.PatternVariable:
-                        DeclareVariable(local);
-                        break;
-
-                    default:
-                        Debug.Assert(local.DeclarationKind == LocalDeclarationKind.FixedVariable);
-                        break;
-                }
-            }
-
+            DeclareVariables(node.Locals);
             return base.VisitFixedStatement(node);
         }
 
@@ -1693,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol.IsConst ||
                 // When data flow analysis determines that the variable is sometimes used without being assigned
                 // first, we want to treat that variable, during region analysis, as assigned where it is introduced.
-                initiallyAssignedVariables != null && initiallyAssignedVariables.Contains(symbol);
+                initiallyAssignedVariables?.Contains(symbol) == true;
             SetSlotState(GetOrCreateSlot(symbol), initiallyAssigned);
         }
 
@@ -1756,7 +1744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
             int slot = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
-            if (initiallyAssignedVariables != null && initiallyAssignedVariables.Contains(node.LocalSymbol))
+            if (initiallyAssignedVariables?.Contains(node.LocalSymbol) == true)
             {
                 // When data flow analysis determines that the variable is sometimes
                 // used without being assigned first, we want to treat that variable, during region analysis,
@@ -1929,8 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (b) have information indicating that this will not result in
                     // a read to an unassigned variable (i.e. the operand is definitely
                     // assigned).
-                    if (_unassignedVariableAddressOfSyntaxes != null &&
-                        !_unassignedVariableAddressOfSyntaxes.Contains(node.Syntax as PrefixUnaryExpressionSyntax))
+                    if (_unassignedVariableAddressOfSyntaxes?.Contains(node.Syntax as PrefixUnaryExpressionSyntax) == false)
                     {
                         shouldReadOperand = true;
                     }
@@ -2054,20 +2041,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region TryStatements
 
+#if REFERENCE_STATE
+        private LocalState _tryState;
+#else
         private LocalState? _tryState;
+#endif
 
         protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
         {
             if (trackUnassignments)
             {
+#if REFERENCE_STATE
+                LocalState oldTryState = _tryState;
+#else
                 LocalState? oldTryState = _tryState;
+#endif
                 _tryState = AllBitsSet();
                 base.VisitTryBlock(tryBlock, node, ref tryState);
+#if REFERENCE_STATE
+                var tts = _tryState;
+#else
                 var tts = _tryState.Value;
+#endif
                 IntersectWith(ref tryState, ref tts);
+#if REFERENCE_STATE
+                if (oldTryState != null)
+#else
                 if (oldTryState.HasValue)
+#endif
                 {
+#if REFERENCE_STATE
+                    var ots = oldTryState;
+#else
                     var ots = oldTryState.Value;
+#endif
                     IntersectWith(ref ots, ref tts);
                     oldTryState = ots;
                 }
@@ -2083,14 +2090,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (trackUnassignments)
             {
+#if REFERENCE_STATE
+                LocalState oldTryState = _tryState;
+#else
                 LocalState? oldTryState = _tryState;
+#endif
                 _tryState = AllBitsSet();
                 VisitCatchBlockInternal(catchBlock, ref finallyState);
+#if REFERENCE_STATE
+                var tts = _tryState;
+#else
                 var tts = _tryState.Value;
+#endif
                 IntersectWith(ref finallyState, ref tts);
+#if REFERENCE_STATE
+                if (oldTryState != null)
+#else
                 if (oldTryState.HasValue)
+#endif
                 {
+#if REFERENCE_STATE
+                    var ots = oldTryState;
+#else
                     var ots = oldTryState.Value;
+#endif
                     IntersectWith(ref ots, ref tts);
                     oldTryState = ots;
                 }
@@ -2124,14 +2147,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (trackUnassignments)
             {
+#if REFERENCE_STATE
+                LocalState oldTryState = _tryState;
+#else
                 LocalState? oldTryState = _tryState;
+#endif
                 _tryState = AllBitsSet();
                 base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+#if REFERENCE_STATE
+                var tts = _tryState;
+#else
                 var tts = _tryState.Value;
+#endif
                 IntersectWith(ref unsetInFinally, ref tts);
+#if REFERENCE_STATE
+                if (oldTryState != null)
+#else
                 if (oldTryState.HasValue)
+#endif
                 {
+#if REFERENCE_STATE
+                    var ots = oldTryState;
+#else
                     var ots = oldTryState.Value;
+#endif
                     IntersectWith(ref ots, ref tts);
                     oldTryState = ots;
                 }
@@ -2320,7 +2359,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#if REFERENCE_STATE
+        internal class LocalState : AbstractLocalState
+#else
         internal struct LocalState : AbstractLocalState
+#endif
         {
             internal BitVector Assigned;
 
