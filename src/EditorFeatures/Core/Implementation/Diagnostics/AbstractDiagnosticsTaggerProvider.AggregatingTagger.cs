@@ -55,12 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 _owner = owner;
                 _subjectBuffer = subjectBuffer;
 
-                // Register to hear about diagnostics changing.  When we're notified about new
-                // diagnostics (and those diagnostics are for our buffer), we'll ensure that
-                // we have an underlying tagger responsible for asynchronously handling diagnostics
-                // from the owner of that diagnostic update.
-                _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
-
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
                 _currentDocumentId = document?.Id;
 
@@ -71,6 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 task.CompletesAsyncOperation(asyncToken);
 
                 _taskChain = task;
+
+                // Register to hear about diagnostics changing.  When we're notified about new
+                // diagnostics (and those diagnostics are for our buffer), we'll ensure that
+                // we have an underlying tagger responsible for asynchronously handling diagnostics
+                // from the owner of that diagnostic update.
+                _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
             }
 
             private void GetInitialDiagnosticsInBackground(
@@ -202,8 +202,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     // Chain the events so we process them serially.  This also ensures
                     // that we don't process events while still getting our initial set
                     // of diagnostics.
+                    var asyncToken = _owner._listener.BeginAsyncOperation(GetType() + ".OnDiagnosticsUpdated");
                     _taskChain = _taskChain.ContinueWith(
                         _ => OnDiagnosticsUpdatedOnBackground(e), TaskScheduler.Default);
+                    _taskChain.CompletesAsyncOperation(asyncToken);
                 }
             }
 
