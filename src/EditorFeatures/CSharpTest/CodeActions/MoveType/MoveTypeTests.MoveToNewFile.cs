@@ -486,5 +486,117 @@ class Class2 { }";
 }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(13969, "https://github.com/dotnet/roslyn/issues/13969")]
+        public async Task MoveTypeInFileWithComplexHierarchy()
+        {
+            var code =
+@"namespace OuterN1.N1
+{
+    namespace InnerN2.N2
+    {
+        class OuterClass1
+        {
+            class InnerClass2
+            {
+            }
+        }
+    }
+
+    namespace InnerN3.N3
+    {
+        class OuterClass2
+        {
+            [||]class InnerClass2 
+            {
+                class InnerClass3
+                {
+                }
+            }
+
+            class InnerClass4
+            {
+            }
+        }
+
+        class OuterClass3
+        {
+        }
+    }
+}
+
+namespace OuterN2.N2
+{
+    namespace InnerN3.N3
+    {
+        class OuterClass5 {
+            class InnerClass6 {
+            }
+        }
+    }
+}
+";
+
+            var codeAfterMove =
+@"namespace OuterN1.N1
+{
+    namespace InnerN2.N2
+    {
+        class OuterClass1
+        {
+            class InnerClass2
+            {
+            }
+        }
+    }
+
+    namespace InnerN3.N3
+    {
+        partial class OuterClass2
+        {
+            class InnerClass4
+            {
+            }
+        }
+
+        class OuterClass3
+        {
+        }
+    }
+}
+
+namespace OuterN2.N2
+{
+    namespace InnerN3.N3
+    {
+        class OuterClass5 {
+            class InnerClass6 {
+            }
+        }
+    }
+}";
+
+            var expectedDocumentName = "InnerClass2.cs";
+
+            var destinationDocumentText =
+@"
+namespace OuterN1.N1
+{
+    namespace InnerN3.N3
+    {
+        partial class OuterClass2
+        {
+            class InnerClass2 
+            {
+                class InnerClass3
+                {
+                }
+            }
+        }
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
     }
 }
