@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// <summary>
             /// if a nested type is being moved, this ensures its containing type is partial.
             /// </summary>
-            /// <param name="documentEditor">document editor for the new document being created</param>
             private void AddPartialModifiersToTypeChain(
                 DocumentEditor documentEditor, bool removeAttributes)
             {
