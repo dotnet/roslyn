@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     // that we don't process events while still getting our initial set
                     // of diagnostics.
                     var asyncToken = _owner._listener.BeginAsyncOperation(GetType() + ".OnDiagnosticsUpdated");
-                    _taskChain = _taskChain.ContinueWith(
+                    _taskChain = _taskChain.SafeContinueWith(
                         _ => OnDiagnosticsUpdatedOnBackground(e), TaskScheduler.Default);
                     _taskChain.CompletesAsyncOperation(asyncToken);
                 }
