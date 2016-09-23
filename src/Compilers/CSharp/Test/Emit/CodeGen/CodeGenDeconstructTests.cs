@@ -3730,12 +3730,13 @@ System.Console.Write($""{x1} {x2} {x3}"");
                 Assert.Equal("System.Int32 Script.x2", x2Symbol.ToTestDisplayString());
                 VerifyModelForDeconstructionField(model, x2, x2Ref);
 
-                // extra checks on x1
+                // extra checks on x1's var
                 var x1Type = GetTypeSyntax(x1);
                 Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
                 Assert.Equal("string", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
                 Assert.Null(model.GetAliasInfo(x1Type));
 
+                // extra check on x2 and x3's var
                 var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
@@ -4087,6 +4088,9 @@ var (x, y) = (1, 2);
             var xRef = GetReference(tree, "x");
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x, xRef);
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.False(xType.IsErrorType());
+            Assert.Equal("System.Int32", xType.ToTestDisplayString());
         }
 
         [Fact]
@@ -4185,6 +4189,210 @@ var (y1, y2) = (x1, x2);
                 // var (x1, x2) = (y1, y2);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x2").WithArguments("x2").WithLocation(2, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+            var x1Type = ((FieldSymbol)x1Symbol).Type;
+            Assert.True(x1Type.IsErrorType());
+            Assert.Equal("var", x1Type.Name);
+
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Symbol = model.GetDeclaredSymbol(x2);
+            var x2Ref = GetReference(tree, "x2");
+            Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x2, x2Ref);
+            var x2Type = ((FieldSymbol)x2Symbol).Type;
+            Assert.True(x2Type.IsErrorType());
+            Assert.Equal("var", x2Type.Name);
+        }
+
+        [Fact]
+        public void VarAliasInVarDeconstructionInScript()
+        {
+            var source =
+@"
+using var = System.Byte;
+var (x1, (x2, x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(3, 6),
+                // (3,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(3, 11),
+                // (3,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(3, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("System.Byte Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("System.Byte Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra check on var
+            var x123Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+            Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+        }
+
+        [Fact]
+        public void VarTypeInVarDeconstructionInScript()
+        {
+            var source =
+@"
+class var
+{
+    public static implicit operator var(int i) { return null; }
+}
+var (x1, (x2, x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 6),
+                // (6,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 11),
+                // (6,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(6, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("Script.var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("Script.var Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra check on var
+            var x123Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+            Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+        }
+
+        [Fact]
+        public void VarAliasInTypedDeconstructionInScript()
+        {
+            var source =
+@"
+using var = System.Byte;
+(var x1, (var x2, var x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2 3");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("System.Byte Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("System.Byte Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra checks on x1's var
+            var x1Type = GetTypeSyntax(x1);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+            Assert.Equal("byte", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+            var x1Alias = model.GetAliasInfo(x1Type);
+            Assert.Equal(SymbolKind.NamedType, x1Alias.Target.Kind);
+            Assert.Equal("byte", x1Alias.Target.ToDisplayString());
+
+            // extra checks on x3's var
+            var x3Type = GetTypeSyntax(x3);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x3Type).Symbol.Kind);
+            Assert.Equal("byte", model.GetSymbolInfo(x3Type).Symbol.ToDisplayString());
+            var x3Alias = model.GetAliasInfo(x3Type);
+            Assert.Equal(SymbolKind.NamedType, x3Alias.Target.Kind);
+            Assert.Equal("byte", x3Alias.Target.ToDisplayString());
+        }
+
+        [Fact]
+        public void VarTypeInTypedDeconstructionInScript()
+        {
+            var source =
+@"
+class var
+{
+    public static implicit operator var(int i) { return new var(); }
+    public override string ToString() { return ""var""; }
+}
+(var x1, (var x2, var x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "var var var");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("Script.var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("Script.var Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra checks on x1's var
+            var x1Type = GetTypeSyntax(x1);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+            Assert.Equal("var", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+            Assert.Null(model.GetAliasInfo(x1Type));
+
+            // extra checks on x3's var
+            var x3Type = GetTypeSyntax(x3);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x3Type).Symbol.Kind);
+            Assert.Equal("var", model.GetSymbolInfo(x3Type).Symbol.ToDisplayString());
+            Assert.Null(model.GetAliasInfo(x3Type));
         }
     }
 }
