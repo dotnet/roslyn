@@ -53,6 +53,30 @@ class Class2 { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(14008, "https://github.com/dotnet/roslyn/issues/14008")]
+        public async Task TestFolders()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document Folders=""A\B""> 
+[|class|] Class1 { }
+class Class2 { }
+        </Document>
+    </Project>
+</Workspace>";
+            var codeAfterMove = @"class Class2 { }";
+
+            var expectedDocumentName = "Class1.cs";
+            var destinationDocumentText = @"class Class1 { }";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, 
+                destinationDocumentText, destinationDocumentContainers: new [] {"A", "B"});
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestForSpans2()
         {
             var code =

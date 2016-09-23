@@ -71,12 +71,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             private async Task<Solution> AddNewDocumentWithSingleTypeDeclarationAndImportsAsync(
                 DocumentId newDocumentId)
             {
-                Debug.Assert(SemanticDocument.Document.Name != FileName,
+                var document = SemanticDocument.Document;
+                Debug.Assert(document.Name != FileName,
                              $"New document name is same as old document name:{FileName}");
 
                 var root = SemanticDocument.Root;
-                var projectToBeUpdated = SemanticDocument.Document.Project;
-                var documentEditor = await DocumentEditor.CreateAsync(SemanticDocument.Document, CancellationToken).ConfigureAwait(false);
+                var projectToBeUpdated = document.Project;
+                var documentEditor = await DocumentEditor.CreateAsync(document, CancellationToken).ConfigureAwait(false);
 
                 AddPartialModifiersToTypeChain(documentEditor);
 
@@ -90,7 +91,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var modifiedRoot = documentEditor.GetChangedRoot();
 
                 // add an empty document to solution, so that we'll have options from the right context.
-                var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(newDocumentId, FileName, text: string.Empty);
+                var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
+                    newDocumentId, FileName, text: string.Empty, folders: document.Folders);
 
                 // update the text for the new document
                 solutionWithNewDocument = solutionWithNewDocument.WithDocumentSyntaxRoot(newDocumentId, modifiedRoot, PreservationMode.PreserveIdentity);
