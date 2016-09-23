@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         {
         }
 
-        internal override ISignatureHelpProvider CreateSignatureHelpProvider()
+        internal override SignatureHelpProvider CreateSignatureHelpProvider()
         {
             return new ElementAccessExpressionSignatureHelpProvider();
         }
@@ -758,7 +758,7 @@ class C
             {
             }
 
-            internal override ISignatureHelpProvider CreateSignatureHelpProvider()
+            internal override SignatureHelpProvider CreateSignatureHelpProvider()
             {
                 return new ElementAccessExpressionSignatureHelpProvider();
             }

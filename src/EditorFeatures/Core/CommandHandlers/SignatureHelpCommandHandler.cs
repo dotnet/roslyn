@@ -9,10 +9,8 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Utilities;
 
@@ -29,17 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
-        private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
 
         [ImportingConstructor]
         public SignatureHelpCommandHandler(
             IInlineRenameService inlineRenameService,
-            [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters)
+            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
             : this(inlineRenameService,
-                   ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                   signatureHelpProviders, asyncListeners)
+                   ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault(), asyncListeners)
         {
         }
 
@@ -47,11 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public SignatureHelpCommandHandler(
             IInlineRenameService inlineRenameService,
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> signatureHelpPresenter,
-            [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _inlineRenameService = inlineRenameService;
-            _signatureHelpProviders = ExtensionOrderer.Order(signatureHelpProviders);
             _asyncListeners = asyncListeners;
             _signatureHelpPresenter = signatureHelpPresenter;
         }
@@ -78,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             controller = Controller.GetInstance(
                 args, _signatureHelpPresenter,
-                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.SignatureHelp),
-                _signatureHelpProviders);
+                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.SignatureHelp));
 
             return true;
         }

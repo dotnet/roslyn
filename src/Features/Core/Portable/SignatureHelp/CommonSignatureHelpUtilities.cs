@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             SyntaxNode root,
             int position,
             ISyntaxFactsService syntaxFacts,
-            SignatureHelpTriggerReason triggerReason,
+            SignatureHelpTriggerKind triggerReason,
             Func<SyntaxToken, bool> isTriggerToken,
             Func<TSyntax, SyntaxToken, bool> isArgumentListToken,
             CancellationToken cancellationToken,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             where TSyntax : SyntaxNode
         {
             var token = syntaxFacts.FindTokenOnLeftOfPosition(root, position);
-            if (triggerReason == SignatureHelpTriggerReason.TypeCharCommand)
+            if (triggerReason == SignatureHelpTriggerKind.Insertion)
             {
                 if (isTriggerToken(token) &&
                     !syntaxFacts.IsInNonUserCode(root.SyntaxTree, position, cancellationToken))
@@ -122,12 +122,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     return true;
                 }
             }
-            else if (triggerReason == SignatureHelpTriggerReason.InvokeSignatureHelpCommand)
+            else if (triggerReason == SignatureHelpTriggerKind.Other)
             {
                 expression = token.Parent?.GetAncestorsOrThis<TSyntax>().SkipWhile(syntax => !isArgumentListToken(syntax, token)).FirstOrDefault();
                 return expression != null;
             }
-            else if (triggerReason == SignatureHelpTriggerReason.RetriggerCommand)
+            else if (triggerReason == SignatureHelpTriggerKind.Update)
             {
                 if (!syntaxFacts.IsInNonUserCode(root.SyntaxTree, position, cancellationToken) ||
                     syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(root.SyntaxTree, position, cancellationToken))
