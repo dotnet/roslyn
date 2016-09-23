@@ -1300,5 +1300,36 @@ class Program
 @"True";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(13520, "https://github.com/dotnet/roslyn/issues/13520")]
+        public void ConditionalPatternsCannotSubsume()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        object value = false;
+        switch (value)
+        {
+            case true: break;
+            case object o when args.Length == -1: break;
+            case false: break;
+            case bool b: throw null; // error: bool already handled by previous cases.
+        }
+    }
+    public static bool IsB(char value)
+    {
+        return value == 'b';
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case bool b: ; // error: bool already handled by previous cases.
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(11, 18)
+                );
+        }
     }
 }
