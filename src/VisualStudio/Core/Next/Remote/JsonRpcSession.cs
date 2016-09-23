@@ -86,13 +86,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly object _callbackTarget;
 
-            public ServiceJsonRpcClient(Stream stream, object callbackTarget) : base(stream)
+            public ServiceJsonRpcClient(Stream stream, object callbackTarget) 
+                : base(stream, callbackTarget, useThisAsCallback: false)
             {
                 // this one doesn't need cancellation token since it has nothing to cancel
                 _callbackTarget = callbackTarget;
             }
-
-            protected override object GetCallbackTarget() => _callbackTarget;
         }
 
         /// <summary>
@@ -110,16 +109,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly JsonRpcSession _owner;
             private readonly CancellationTokenSource _source;
 
-            public SnapshotJsonRpcClient(JsonRpcSession owner, Stream stream) :
-                base(stream)
+            public SnapshotJsonRpcClient(JsonRpcSession owner, Stream stream)
+                : base(stream, callbackTarget: null, useThisAsCallback: true)
             {
                 _owner = owner;
                 _source = new CancellationTokenSource();
             }
 
             private ChecksumScope ChecksumScope => _owner.ChecksumScope;
-
-            protected override object GetCallbackTarget() => this;
 
             /// <summary>
             /// this is callback from remote host side to get asset associated with checksum from VS.
