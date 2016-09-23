@@ -150,6 +150,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
     <NuGetPackageToIncludeInVsix Include="System.IO" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
     <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
