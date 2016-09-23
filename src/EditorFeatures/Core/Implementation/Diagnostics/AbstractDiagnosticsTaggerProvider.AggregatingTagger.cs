@@ -217,6 +217,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// For example, we create a TaggerProvider per unique DiagnosticUpdatedArgs.Id
             /// we get.  So if we see a new id we simply create a tagger for it and pass it
             /// these args to store.  Otherwise we pass these args to the existing tagger.
+            /// 
+            /// Similarly, clearing out data is just a matter of us clearing our reference
+            /// to the data.  
             /// </summary>
             private void OnDiagnosticsUpdatedOnForeground(DiagnosticsUpdatedArgs e)
             {
@@ -328,6 +331,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
 
                 RemoveCachedDiagnostics(e.Id);
+                OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
             }
 
             private void RemoveAllCachedDiagnostics()
@@ -341,6 +345,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     RemoveCachedDiagnostics(id);
                 }
+
+                OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
             }
 
             private void RemoveCachedDiagnostics(object id)
@@ -356,8 +362,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 _idToProviderAndTagger.Remove(id);
                 DisconnectFromTagger(providerAndTagger.Item2);
-
-                OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
             }
 
             private void OnDiagnosticsUpdatedOnForeground(
