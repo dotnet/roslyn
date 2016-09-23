@@ -787,7 +787,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Extensibility\Navigation\" />
-    <Folder Include="Implementation\NavigateTo\RoslynSearch\" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
