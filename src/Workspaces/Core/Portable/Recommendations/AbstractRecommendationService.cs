@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
             // TODO This should be revised once we have a good public API for tuple fields
             // See https://github.com/dotnet/roslyn/issues/13229
-            var fieldsToRemove = elementNames.Select((n, i) => IsFriendlyName(i, elementNames[i]) ? "Item" + (i + 1) : null)
-                .Where(n => n != null).Concat("Rest");
+            var fieldsToRemove = elementNames.Select((n, i) => IsFriendlyName(i, n) ? "Item" + (i + 1) : null)
+                .Where(n => n != null).Concat("Rest").ToSet();
 
             return symbols.Where(s => s.Kind != SymbolKind.Field || elementNames.Contains(s.Name) || !fieldsToRemove.Contains(s.Name));
         }
