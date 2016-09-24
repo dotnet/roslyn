@@ -92,20 +92,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             try
             {
-                ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords;
-                ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups;
-                ImmutableArray<ExternAliasRecord> externAliasRecords;
-                ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap;
-                ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap;
-                ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap;
-                ImmutableDictionary<LocalNameAndScope, ImmutableArray<string>> tupleLocalConstantMap;
-                string defaultNamespaceName;
-
                 var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
                 if (symMethod != null)
                 {
                     symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
                 }
+
+                ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups;
+                ImmutableArray<ExternAliasRecord> externAliasRecords;
+                string defaultNamespaceName;
 
                 if (isVisualBasicMethod)
                 {
@@ -116,12 +111,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         out importRecordGroups,
                         out defaultNamespaceName);
 
-                    hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
                     externAliasRecords = ImmutableArray<ExternAliasRecord>.Empty;
-                    dynamicLocalMap = null;
-                    dynamicLocalConstantMap = null;
-                    tupleLocalMap = null;
-                    tupleLocalConstantMap = null;
                 }
                 else
                 {
@@ -135,18 +125,38 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         out importRecordGroups,
                         out externAliasRecords);
 
-                    ReadCSharpNativeCustomDebugInfo(
-                        symReader,
-                        methodToken,
-                        methodVersion,
-                        allScopes,
-                        out hoistedLocalScopeRecords,
-                        out dynamicLocalMap,
-                        out dynamicLocalConstantMap,
+                    defaultNamespaceName = "";
+                }
+
+                ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
+                ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap = null;
+                ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap = null;
+                ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap = null;
+                ImmutableDictionary<LocalNameAndScope, ImmutableArray<string>> tupleLocalConstantMap = null;
+
+                byte[] customDebugInfo = symReader.GetCustomDebugInfoBytes(methodToken, methodVersion);
+                if (customDebugInfo != null)
+                {
+                    if (!isVisualBasicMethod)
+                    {
+                        var customDebugInfoRecord = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.StateMachineHoistedLocalScopes);
+                        if (!customDebugInfoRecord.IsDefault)
+                        {
+                            hoistedLocalScopeRecords = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(customDebugInfoRecord)
+                                .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.EndOffset - s.StartOffset + 1));
+                        }
+
+                        GetCSharpDynamicLocalInfo(
+                            customDebugInfo,
+                            allScopes,
+                            out dynamicLocalMap,
+                            out dynamicLocalConstantMap);
+                    }
+
+                    GetTupleElementNamesLocalInfo(
+                        customDebugInfo,
                         out tupleLocalMap,
                         out tupleLocalConstantMap);
-
-                    defaultNamespaceName = "";
                 }
 
                 var constantsBuilder = ArrayBuilder<TLocalSymbol>.GetInstance();
@@ -339,48 +349,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             record = default(ImportRecord);
             return false;
-        }
-
-        private static void ReadCSharpNativeCustomDebugInfo(
-            ISymUnmanagedReader3 reader,
-            int methodToken,
-            int methodVersion,
-            IEnumerable<ISymUnmanagedScope> scopes,
-            out ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
-            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
-            out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap,
-            out ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap,
-            out ImmutableDictionary<LocalNameAndScope, ImmutableArray<string>> tupleLocalConstantMap)
-        {
-            hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
-            dynamicLocalMap = null;
-            dynamicLocalConstantMap = null;
-            tupleLocalMap = null;
-            tupleLocalConstantMap = null;
-
-            byte[] customDebugInfoBytes = reader.GetCustomDebugInfoBytes(methodToken, methodVersion);
-            if (customDebugInfoBytes == null)
-            {
-                return;
-            }
-
-            var customDebugInfoRecord = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfoBytes, CustomDebugInfoKind.StateMachineHoistedLocalScopes);
-            if (!customDebugInfoRecord.IsDefault)
-            {
-                hoistedLocalScopeRecords = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(customDebugInfoRecord)
-                    .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.EndOffset - s.StartOffset + 1));
-            }
-
-            GetCSharpDynamicLocalInfo(
-                customDebugInfoBytes,
-                scopes,
-                out dynamicLocalMap,
-                out dynamicLocalConstantMap);
-
-            GetTupleElementNamesLocalInfo(
-                customDebugInfoBytes,
-                out tupleLocalMap,
-                out tupleLocalConstantMap);
         }
 
         /// <exception cref="InvalidOperationException">Bad data.</exception>

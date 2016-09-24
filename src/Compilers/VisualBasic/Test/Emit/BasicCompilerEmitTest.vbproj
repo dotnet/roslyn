@@ -156,6 +156,7 @@
     <Compile Include="PDB\PDBConstLocalTests.vb" />
     <Compile Include="PDB\PDBExternalSourceDirectiveTests.vb" />
     <Compile Include="PDB\PDBLambdaTests.vb" />
+    <Compile Include="PDB\PDBTupleTests.vb" />
     <Compile Include="PDB\PDBVariableInitializerTests.vb" />
     <Compile Include="PDB\PDBIteratorTests.vb" />
     <Compile Include="PDB\PDBForEachTests.vb" />
