@@ -392,6 +392,12 @@
     <Compile Include="Options\GlobalOptionService.cs" />
     <Compile Include="Options\IGlobalOptionService.cs" />
     <Compile Include="Options\IWorkspaceOptionService.cs" />
+    <Compile Include="Remote\IRemoteHostClientFactory.cs" />
+    <Compile Include="Remote\IRemoteHostClientService.cs" />
+    <Compile Include="Remote\RemoteHostClient.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.RemoteHostClientService.cs" />
+    <Compile Include="Remote\WellKnownRemoteHostServices.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
     <Compile Include="Shared\Utilities\IStreamingProgressTracker.cs" />

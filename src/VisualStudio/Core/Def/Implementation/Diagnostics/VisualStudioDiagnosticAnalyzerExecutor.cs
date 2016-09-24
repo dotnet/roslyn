@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
