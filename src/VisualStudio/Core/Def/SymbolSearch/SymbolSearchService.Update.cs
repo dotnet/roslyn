@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using static System.FormattableString;
+using Microsoft.VisualStudio.RemoteControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -529,7 +530,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
                 // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
 
-                using (var stream = await client.ReadFileAsync(__VsRemoteControlBehaviorOnStale.ReturnsNull).ConfigureAwait(false))
+                using (var stream = await client.ReadFileAsync(BehaviorOnStale.ReturnNull).ConfigureAwait(false))
                 {
                     if (stream == null)
                     {

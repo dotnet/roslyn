@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.Internal.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.SymbolSearch
+Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
 Imports Roslyn.Test.Utilities
 
@@ -226,7 +227,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
 
                 ' We should get a call to try to read the file. Simulate a crash in the client.
-                clientMock.Setup(Sub(c) c.ReadFileAsync(It.IsAny(Of __VsRemoteControlBehaviorOnStale))).
+                clientMock.Setup(Sub(c) c.ReadFileAsync(It.IsAny(Of BehaviorOnStale))).
                     Throws(New NotImplementedException())
 
                 ' Client should be disposed.
@@ -689,7 +690,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
 
             ' Return a full database element when the service asks for it.
-            clientMock.Setup(Function(c) c.ReadFileAsync(It.IsAny(Of __VsRemoteControlBehaviorOnStale))).
+            clientMock.Setup(Function(c) c.ReadFileAsync(It.IsAny(Of BehaviorOnStale))).
                 Returns(Task.FromResult(stream))
             ' Always dispose the client when we get a response.
             clientMock.Setup(Sub(c) c.Dispose())

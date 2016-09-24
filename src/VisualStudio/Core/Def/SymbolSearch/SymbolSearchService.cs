@@ -46,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             VisualStudioWorkspaceImpl workspace,
             VSShell.SVsServiceProvider serviceProvider)
             : this(workspace,
-                   workspace.Services.GetService<IPackageInstallerService>(), 
-                   CreateRemoteControlService(serviceProvider),
+                   workspace.Services.GetService<IPackageInstallerService>(),
+                   new RemoteControlService(),
                    new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(),
                    new IOService(),
@@ -58,18 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                    FatalError.ReportWithoutCrash,
                    new CancellationTokenSource())
         {
-        }
-
-        private static IRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
-        {
-            var vsService = serviceProvider.GetService(typeof(SVsRemoteControlService));
-            if (vsService == null)
-            {
-                // If we can't access the file update service, then there's nothing we can do.
-                return null;
-            }
-
-            return new RemoteControlService(vsService);
         }
 
         /// <summary>
