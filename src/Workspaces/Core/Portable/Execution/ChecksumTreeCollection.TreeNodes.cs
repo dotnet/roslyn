@@ -140,10 +140,11 @@ namespace Microsoft.CodeAnalysis.Execution
             public virtual ChecksumObject TryGetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
             {
                 ChecksumObject checksumObject;
-                foreach (var entry in _cache.Values)
+                foreach (var kv in _cache)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    var entry = kv.Value;
                     if (entry.TryGetValue(checksum, out checksumObject))
                     {
                         // this cache has information for the checksum
@@ -177,8 +178,9 @@ namespace Microsoft.CodeAnalysis.Execution
                     return;
                 }
 
-                foreach (var entry in _cache.Values)
+                foreach (var kv in _cache)
                 {
+                    var entry = kv.Value;
                     AppendChecksumObjects(map, searchingChecksumsLeft, entry, cancellationToken);
                     if (searchingChecksumsLeft.Count == 0)
                     {
@@ -215,8 +217,9 @@ namespace Microsoft.CodeAnalysis.Execution
                     return self;
                 }
 
-                foreach (var entry in _cache.Values)
+                foreach (var kv in _cache)
                 {
+                    var entry = kv.Value;
                     var tree = entry.TryGetSubTreeNode();
                     if (tree == null)
                     {
