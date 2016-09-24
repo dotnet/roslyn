@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         protected override void CollectBlockSpans(
             RegionDirectiveTriviaSyntax regionDirective,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             var match = regionDirective.GetMatchingDirective(cancellationToken);

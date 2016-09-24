@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of FieldDeclarationSyntax)
 
         Protected Overrides Sub CollectBlockSpans(fieldDeclaration As FieldDeclarationSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             CollectCommentsRegions(fieldDeclaration, spans)
         End Sub

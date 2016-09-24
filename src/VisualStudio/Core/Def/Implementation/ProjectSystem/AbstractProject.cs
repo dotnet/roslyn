@@ -305,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return ImmutableArray<string>.Empty;
             }
 
-            var builder = ImmutableArray.CreateBuilder<string>();
+            var builder = ArrayBuilder<string>.GetInstance();
             if (this.ContainingDirectoryPathOpt != null)
             {
                 builder.Add(this.ContainingDirectoryPathOpt);
@@ -316,7 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 builder.Add(Path.GetDirectoryName(outputPath));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         public ImmutableArray<ProjectReference> GetCurrentProjectReferences()

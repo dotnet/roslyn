@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             SyntaxGenerator syntaxGenerator,
             ISyntaxFactsService syntaxFactsService)
         {
-            var builder = ImmutableArray.CreateBuilder<TExpressionSyntax>();
+            var builder = ArrayBuilder<TExpressionSyntax>.GetInstance();
             for (int i = 1; i < arguments.Count; i++)
             {
                 var argumentExpression = syntaxFactsService.GetExpressionOfArgument(arguments[i]);
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 }
             }
 
-            var expandedArguments = builder.ToImmutable();
+            var expandedArguments = builder.ToImmutableAndFree();
             return expandedArguments;
         }
 

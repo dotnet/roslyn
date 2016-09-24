@@ -215,7 +215,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// </summary>
         public async Task<ImmutableArray<DiagnosticData>> GetSelectedItemsAsync(bool isAddSuppression, CancellationToken cancellationToken)
         {
-            var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+            var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+
             Dictionary<string, Project> projectNameToProjectMapOpt = null;
             Dictionary<Project, ImmutableDictionary<string, Document>> filePathToDocumentMapOpt = null;
 
@@ -331,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         private static async Task<ImmutableDictionary<string, Document>> GetFilePathToDocumentMapAsync(Project project, CancellationToken cancellationToken)
