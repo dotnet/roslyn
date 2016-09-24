@@ -68,6 +68,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
             {
+                // Ignore duplicate locations.  We don't want to clutter the UI with them.
+                if (location.IsDuplicateReferenceLocation)
+                {
+                    return;
+                }
+
                 var referenceItem = location.TryCreateSourceReferenceItem(
                     GetDefinitionItem(definition));
 
