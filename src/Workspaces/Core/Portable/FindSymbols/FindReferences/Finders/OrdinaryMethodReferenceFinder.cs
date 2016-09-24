@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol.MethodKind == MethodKind.LocalFunction;
         }
 
-        protected override async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var symbol = symbolAndProjectId.Symbol;
             if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
             {
-                return SpecializedCollections.SingletonEnumerable(
+                return ImmutableArray.Create(
                     symbolAndProjectId.WithSymbol((ISymbol)symbol.ContainingType));
             }
             else
@@ -44,36 +44,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 if (otherPartsOfPartial == null && baseCascadedSymbols == null)
                 {
-                    return null;
+                    return ImmutableArray<SymbolAndProjectId>.Empty;
                 }
-
-                otherPartsOfPartial = otherPartsOfPartial ?? SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
-                baseCascadedSymbols = baseCascadedSymbols ?? SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
 
                 return otherPartsOfPartial.Concat(baseCascadedSymbols);
             }
         }
 
-        private IEnumerable<SymbolAndProjectId> GetOtherPartsOfPartial(
+        private ImmutableArray<SymbolAndProjectId> GetOtherPartsOfPartial(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId)
         {
             var symbol = symbolAndProjectId.Symbol;
             if (symbol.PartialDefinitionPart != null)
             {
-                return SpecializedCollections.SingletonEnumerable(
+                return ImmutableArray.Create(
                     symbolAndProjectId.WithSymbol((ISymbol)symbol.PartialDefinitionPart));
             }
 
             if (symbol.PartialImplementationPart != null)
             {
-                return SpecializedCollections.SingletonEnumerable(
+                return ImmutableArray.Create(
                     symbolAndProjectId.WithSymbol((ISymbol)symbol.PartialImplementationPart));
             }
 
-            return null;
+            return ImmutableArray<SymbolAndProjectId>.Empty;
         }
 
-        protected override async Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol methodSymbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -97,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
             var forEachDocuments = IsForEachMethod(methodSymbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<Document>();
+                : ImmutableArray<Document>.Empty;
 
             return ordinaryDocuments.Concat(forEachDocuments);
         }
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 methodSymbol.Name == WellKnownMemberNames.MoveNextMethodName;
         }
 
-        protected override async Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
             CancellationToken cancellationToken)
@@ -122,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var forEachMatches = IsForEachMethod(symbol)
                 ? await FindReferencesInForEachStatementsAsync(symbol, document, cancellationToken).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+                : ImmutableArray<ReferenceLocation>.Empty;
 
             return nameMatches.Concat(forEachMatches);
         }
