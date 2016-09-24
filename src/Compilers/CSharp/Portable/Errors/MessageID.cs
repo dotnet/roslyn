@@ -123,7 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureOutVar = MessageBase + 12713,
 
         IDS_FeatureIOperation = MessageBase + 12714,
-        IDS_ThrowExpression = MessageBase + 12715,
+        IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
+        IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
+        IDS_ThrowExpression = MessageBase + 12717,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -189,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureThrowExpression:
                 case MessageID.IDS_FeatureTuples:
                 case MessageID.IDS_FeatureOutVar:
+                case MessageID.IDS_FeatureExpressionBodiedAccessor:
+                case MessageID.IDS_FeatureExpressionBodiedDeOrConstructor:
                     return LanguageVersion.CSharp7;
 
                 // C# 6 features.
