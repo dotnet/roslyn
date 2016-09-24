@@ -13,6 +13,7 @@ Imports Microsoft.Internal.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.SymbolSearch
 Imports Moq
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
     Public Class SymbolSearchServiceTests
@@ -817,11 +818,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Private Sub New()
             End Sub
 
-            Public Sub LogException(e As Exception, text As String) Implements ILogService.LogException
-            End Sub
+            Public Function LogExceptionAsync(e As Exception, text As String) As Task Implements ILogService.LogExceptionAsync
+                Return SpecializedTasks.EmptyTask
+            End Function
 
-            Public Sub LogInfo(text As String) Implements ILogService.LogInfo
-            End Sub
+            Public Function LogInfoAsync(text As String) As Task Implements ILogService.LogInfoAsync
+                Return SpecializedTasks.EmptyTask
+            End Function
         End Class
     End Class
 End Namespace
