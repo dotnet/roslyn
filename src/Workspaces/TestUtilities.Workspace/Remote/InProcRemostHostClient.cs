@@ -9,11 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Nerdbank;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
-namespace Roslyn.VisualStudio.Test.Utilities.Remote
+namespace Roslyn.Test.Utilities.Remote
 {
     internal class InProcRemoteHostClient : RemoteHostClient
     {
