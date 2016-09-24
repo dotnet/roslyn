@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -8,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             CancellationToken cancellationToken)
         {
-            ImmutableArray<SymbolAndProjectId>.Builder results = null;
+            var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             var parameter = parameterAndProjectId.Symbol;
             if (parameter.ContainingSymbol.IsAnonymousFunction())
@@ -94,7 +92,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                 var container = GetContainer(semanticModel, parameterNode, syntaxFactsService);
                                 if (container != null)
                                 {
-                                    results = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
                                     results.AddRange(CascadeBetweenAnonymousFunctionParameters(
                                         document, semanticModel, container, parameterAndProjectId, convertedType, cancellationToken));
                                 }
@@ -110,20 +107,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     int ordinal = parameter.Ordinal;
                     if (invokeMethod != null && ordinal < invokeMethod.Parameters.Length)
                     {
-                        if (results == null)
-                        {
-                            results = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
-                        }
-
                         results.Add(parameterAndProjectId.WithSymbol(
                             invokeMethod.Parameters[ordinal]));
                     }
                 }
             }
 
-            return results == null
-                ? ImmutableArray<SymbolAndProjectId>.Empty
-                : results.ToImmutable();
+            return results.ToImmutableAndFree();
         }
 
         private ImmutableArray<SymbolAndProjectId> CascadeBetweenAnonymousFunctionParameters(
@@ -134,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ITypeSymbol convertedType1,
             CancellationToken cancellationToken)
         {
-            var result = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             var parameter = parameterAndProjectId.Symbol;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -159,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndFree();
         }
 
         private bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
@@ -195,7 +185,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             CancellationToken cancellationToken)
         {
-            var results = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
+            var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
@@ -278,13 +268,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return results.ToImmutable();
+            return results.ToImmutableAndFree();
         }
 
         private ImmutableArray<SymbolAndProjectId> CascadeBetweenPartialMethodParameters(
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId)
         {
-            var result = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             var parameter = parameterAndProjectId.Symbol;
             if (parameter.ContainingSymbol is IMethodSymbol)
@@ -304,7 +294,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndFree();
         }
     }
 }

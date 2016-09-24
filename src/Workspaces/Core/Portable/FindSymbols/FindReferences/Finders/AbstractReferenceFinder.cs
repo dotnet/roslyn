@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray<Document>.Empty;
             }
 
-            ImmutableArray<Document>.Builder documents = null;
+            var documents = ArrayBuilder<Document>.GetInstance();
             foreach (var document in project.Documents)
             {
                 if (scope != null && !scope.Contains(document))
@@ -104,19 +104,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 if (await predicateAsync(document, cancellationToken).ConfigureAwait(false))
                 {
-                    documents = documents ?? ImmutableArray.CreateBuilder<Document>();
                     documents.Add(document);
                 }
             }
 
-            if (documents == null)
-            {
-                return ImmutableArray<Document>.Empty;
-            }
-            else
-            {
-                return documents.ToImmutable();
-            }
+            return documents.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -285,7 +277,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var locations = ImmutableArray.CreateBuilder<ReferenceLocation>();
+            var locations = ArrayBuilder<ReferenceLocation>.GetInstance();
             foreach (var token in tokens)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -304,7 +296,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return locations.ToImmutable();
+            return locations.ToImmutableAndFree();
         }
 
         protected static Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
@@ -402,24 +394,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ImmutableArray<ReferenceLocation> nonAliasReferences,
             CancellationToken cancellationToken)
         {
-            ImmutableArray<IAliasSymbol>.Builder aliasSymbols = null;
+            var aliasSymbols = ArrayBuilder<IAliasSymbol>.GetInstance();
             foreach (var r in nonAliasReferences)
             {
                 var symbol = await GetAliasSymbolAsync(document, r, cancellationToken).ConfigureAwait(false);
                 if (symbol != null)
                 {
-                    if (aliasSymbols == null)
-                    {
-                        aliasSymbols = ImmutableArray.CreateBuilder<IAliasSymbol>();
-                    }
-
                     aliasSymbols.Add(symbol);
                 }
             }
 
-            return aliasSymbols != null
-                ? aliasSymbols.Distinct().ToImmutableArray()
-                : ImmutableArray<IAliasSymbol>.Empty;
+            return aliasSymbols.ToImmutableAndFree();
         }
 
         private static async Task<ImmutableArray<ReferenceLocation>> FindReferencesThroughAliasSymbolsAsync(
@@ -430,7 +415,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var allAliasReferences = ImmutableArray.CreateBuilder<ReferenceLocation>();
+            var allAliasReferences = ArrayBuilder<ReferenceLocation>.GetInstance();
             foreach (var aliasSymbol in aliasSymbols)
             {
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(symbol, aliasSymbol.Name, document, cancellationToken, findParentNode).ConfigureAwait(false);
@@ -446,7 +431,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return allAliasReferences.ToImmutable();
+            return allAliasReferences.ToImmutableAndFree();
         }
 
         private static async Task<ImmutableArray<ReferenceLocation>> FindReferencesThroughAliasSymbolsAsync(
@@ -457,7 +442,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var allAliasReferences = ImmutableArray.CreateBuilder<ReferenceLocation>();
+            var allAliasReferences = ArrayBuilder<ReferenceLocation>.GetInstance();
             foreach (var aliasSymbol in aliasSymbols)
             {
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(aliasSymbol.Name, document, symbolsMatch, cancellationToken).ConfigureAwait(false);
@@ -473,7 +458,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return allAliasReferences.ToImmutable();
+            return allAliasReferences.ToImmutableAndFree();
         }
 
         protected Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
@@ -497,7 +482,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                var locations = ImmutableArray.CreateBuilder<ReferenceLocation>();
+                var locations = ArrayBuilder<ReferenceLocation>.GetInstance();
 
                 var originalUnreducedSymbolDefinition = symbol.GetOriginalUnreducedDefinition();
 
@@ -517,7 +502,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     }
                 }
 
-                return locations.ToImmutable();
+                return locations.ToImmutableAndFree();
             }
             else
             {

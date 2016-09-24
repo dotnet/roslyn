@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var elementAccessExpressionsAndIndexerMemberCref = elementAccessExpressions.Concat(indexerMemberCref);
 
-            var locations = ImmutableArray.CreateBuilder<ReferenceLocation>();
+            var locations = ArrayBuilder<ReferenceLocation>.GetInstance();
 
             foreach (var node in elementAccessExpressionsAndIndexerMemberCref)
             {
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return locations.ToImmutable();
+            return locations.ToImmutableAndFree();
         }
     }
 }
