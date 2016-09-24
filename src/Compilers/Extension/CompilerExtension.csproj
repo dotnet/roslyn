@@ -58,6 +58,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Process" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
     <NuGetPackageToIncludeInVsix Include="System.IO" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.DriveInfo" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
