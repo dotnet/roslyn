@@ -13,6 +13,10 @@ using Microsoft.VisualStudio.LanguageServices.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
+    /// <summary>
+    /// Implementation of the <see cref="ISymbolSearchUpdateEngineFactory"/> that attempts to connect
+    /// to the ServiceHub service to offload the work to.
+    /// </summary>
     [ExportWorkspaceService(typeof(ISymbolSearchUpdateEngineFactory), ServiceLayer.Host), Shared]
     internal class VisualStudioSymbolSearchUpdateEngineFactory : ISymbolSearchUpdateEngineFactory
     {
@@ -32,6 +36,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
 
             var emptySolution = workspace.CreateSolution(workspace.CurrentSolution.Id);
+
+            // We create a single session and use it for the entire lifetime of this process.
+            // That single session will be used to do all communication with the remote process.
+            // This is because each session will cause a new instance of the RemoteSymbolSearchUpdateEngine
+            // to be created on the remote side.  We only want one instance of that type.  The
+            // alternative is to make that type static variable on the remote side.  But that's
+            // much less clean and would make some of the state management much more complex.
             var session = await client.CreateServiceSessionAsync(
                 WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine,
                 emptySolution, logService, cancellationToken).ConfigureAwait(false);
