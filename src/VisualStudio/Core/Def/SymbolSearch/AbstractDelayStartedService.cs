@@ -43,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         protected abstract void EnableService();
 
         protected abstract void StartWorking();
-        protected abstract void StopWorking();
 
         internal void Connect(string languageName)
         {
@@ -94,31 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var options = Workspace.Options;
             return _perLanguageOptions.Any(o => options.GetOption(o, language));
-        }
-
-        internal void Disconnect(string languageName)
-        {
-            this.AssertIsForeground();
-
-            var options = Workspace.Options;
-            if (!options.GetOption(_serviceOnOffOption))
-            {
-                // Feature is totally disabled.  Do nothing.
-                return;
-            }
-
-            _registeredLanguageNames.Remove(languageName);
-            if (_registeredLanguageNames.Count == 0)
-            {
-                if (_enabled)
-                {
-                    _enabled = false;
-                    StopWorking();
-                }
-
-                var optionsService = Workspace.Services.GetService<IOptionService>();
-                optionsService.OptionChanged -= OnOptionChanged;
-            }
         }
     }
 }

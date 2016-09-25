@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Arguments;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -59,11 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 _session = session;
             }
 
-            public void Dispose()
-            {
-                _session.Dispose();
-            }
-
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity)
             {
@@ -82,12 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     name, arity).ConfigureAwait(false);
 
                 return results.Select(r => r.Rehydrate()).ToImmutableArray();
-            }
-
-            public Task StopUpdatesAsync()
-            {
-                return _session.InvokeAsync(
-                    WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine_StopUpdatesAsync);
             }
 
             public Task UpdateContinuouslyAsync(

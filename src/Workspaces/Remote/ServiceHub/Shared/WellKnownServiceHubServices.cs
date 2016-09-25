@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public const string RemoteSymbolSearchUpdateEngine_UpdateContinuouslyAsync = "UpdateContinuouslyAsync";
         public const string RemoteSymbolSearchUpdateEngine_FindPackagesWithTypeAsync = "FindPackagesWithTypeAsync";
         public const string RemoteSymbolSearchUpdateEngine_FindReferenceAssembliesWithTypeAsync = "FindReferenceAssembliesWithTypeAsync";
-        public const string RemoteSymbolSearchUpdateEngine_StopUpdatesAsync = "StopUpdatesAsync";
 
         #endregion
 

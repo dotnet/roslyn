@@ -106,20 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
         }
 
-        protected override void StopWorking()
-        {
-            StopEngine();
-            _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
-            _cancellationTokenSource.Cancel();
-        }
-
-        private async void StopEngine()
-        {
-            var engine = await GetEngine(_cancellationTokenSource.Token).ConfigureAwait(false);
-            await engine.StopUpdatesAsync().ConfigureAwait(false);
-            engine.Dispose();
-        }
-
         public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {

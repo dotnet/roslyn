@@ -10,10 +10,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// Service that allows you to query the SymbolSearch database and which keeps 
     /// the database up to date.  
     /// </summary>
-    internal interface ISymbolSearchUpdateEngine : IDisposable
+    internal interface ISymbolSearchUpdateEngine
     {
         Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory);
-        Task StopUpdatesAsync();
 
         Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity);

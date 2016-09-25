@@ -44,11 +44,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return serializedResults;
         }
 
-        public Task StopUpdatesAsync(byte[] solutionChecksum)
-        {
-            return _updateEngine.StopUpdatesAsync();
-        }
-
         private class LogService : ISymbolSearchLogService
         {
             private readonly RemoteSymbolSearchUpdateEngine _service;

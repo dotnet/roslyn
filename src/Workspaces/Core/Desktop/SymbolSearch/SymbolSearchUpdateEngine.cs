@@ -73,17 +73,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        public void Dispose()
-        {
-            // Nothing to do.  We're not holding onto any resources we need to dispose of.
-        }
-
-        public Task StopUpdatesAsync()
-        {
-            _cancellationTokenSource.Cancel();
-            return SpecializedTasks.EmptyTask;
-        }
-
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity)
         {
