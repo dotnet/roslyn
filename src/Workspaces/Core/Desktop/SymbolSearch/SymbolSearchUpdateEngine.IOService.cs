@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal partial class DefaultSymbolSearchUpdateEngine
+    internal partial class SymbolSearchUpdateEngine
     {
         private class IOService : IIOService
         {

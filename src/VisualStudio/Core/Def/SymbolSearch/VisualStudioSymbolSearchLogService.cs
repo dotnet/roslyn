@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 }
 
                 AssertIsForeground();
-                _activityLog?.LogEntry((uint)type, DefaultSymbolSearchUpdateEngine.HostId, text);
+                _activityLog?.LogEntry((uint)type, SymbolSearchUpdateEngine.HostId, text);
 
                 // Keep a running in memory log as well for debugging purposes.
                 s_log.AddLast(text);

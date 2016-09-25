@@ -14,9 +14,9 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.VisualStudio.RemoteControl;
 using Roslyn.Utilities;
 using static System.FormattableString;
-using Microsoft.VisualStudio.RemoteControl;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class DefaultSymbolSearchUpdateEngine
+    internal partial class SymbolSearchUpdateEngine
     {
         // Internal for testing purposes.
         internal const string ContentAttributeName = "content";
@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e, text);
 
-
-        // internal for testing purposes.
-        internal Task UpdateSourceInBackgroundAsync(string source, string localSettingsDirectory)
+        public Task UpdateContinuouslyAsync(string source, string localSettingsDirectory)
         {
             // Only the first thread to try to update this source should succeed
             // and cause us to actually being the update loop. 
@@ -86,12 +84,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         private class Updater
         {
-            private readonly DefaultSymbolSearchUpdateEngine _service;
+            private readonly SymbolSearchUpdateEngine _service;
             private readonly string _source;
             private readonly DirectoryInfo _cacheDirectoryInfo;
             private readonly FileInfo _databaseFileInfo;
 
-            public Updater(DefaultSymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
+            public Updater(SymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
             {
                 _service = service;
                 _source = source;

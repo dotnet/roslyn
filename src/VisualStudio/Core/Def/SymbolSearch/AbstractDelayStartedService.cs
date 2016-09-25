@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     /// <summary>
     /// Base type for services that we want to delay running until certain criteria is met.
-    /// For example, we don't want to run the <see cref="SymbolSearchService"/> core codepath
+    /// For example, we don't want to run the <see cref="VisualStudioSymbolSearchService"/> core codepath
     /// if the user has not enabled the features that need it.  That helps us avoid loading
     /// dlls unnecessarily and bloating the VS memory space.
     /// </summary>

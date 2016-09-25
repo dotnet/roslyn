@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.RemoteControl;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal partial class DefaultSymbolSearchUpdateEngine
+    internal partial class SymbolSearchUpdateEngine
     {
         private class RemoteControlService : IRemoteControlService
         {

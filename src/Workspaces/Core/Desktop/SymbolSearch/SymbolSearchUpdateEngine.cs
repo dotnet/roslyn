@@ -3,28 +3,17 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.Settings;
-using Roslyn.Utilities;
-using VSShell = Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
     /// A service which enables searching for packages matching certain criteria.
@@ -33,27 +22,19 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
-    internal partial class SymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
+    internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
-        private readonly Workspace _workspace;
-
         private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
-        [ImportingConstructor]
-        public SymbolSearchService(
-            VisualStudioWorkspaceImpl workspace,
-            VSShell.SVsServiceProvider serviceProvider)
-            : this(workspace,
-                   workspace.Services.GetService<IPackageInstallerService>(),
+        public SymbolSearchUpdateEngine(HostWorkspaceServices workspaceServices)
+            : this(workspaceServices.GetService<IPackageInstallerService>(),
+                   workspaceServices.GetService<ISymbolSearchLogService>(),
                    new RemoteControlService(),
-                   new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(),
                    new IOService(),
                    new PatchService(),
                    new DatabaseFactoryService(),
-                   new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings),
                    // Report all exceptions we encounter, but don't crash on them.
                    FatalError.ReportWithoutCrash,
                    new CancellationTokenSource())
@@ -63,29 +44,17 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         /// <summary>
         /// For testing purposes only.
         /// </summary>
-        internal SymbolSearchService(
-            Workspace workspace,
+        internal SymbolSearchUpdateEngine(
             IPackageInstallerService installerService,
+            ISymbolSearchLogService logService,
             IRemoteControlService remoteControlService,
-            ILogService logService,
             IDelayService delayService,
             IIOService ioService,
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
-            string localSettingsDirectory,
             Func<Exception, bool> reportAndSwallowException,
-            CancellationTokenSource cancellationTokenSource) 
-            : base(workspace, SymbolSearchOptions.Enabled,
-                              SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
-                              SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+            CancellationTokenSource cancellationTokenSource)
         {
-            if (remoteControlService == null)
-            {
-                // If we can't access the file update service, then there's nothing we can do.
-                return;
-            }
-
-            _workspace = workspace;
             _installerService = installerService;
             _delayService = delayService;
             _ioService = ioService;
@@ -93,46 +62,50 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _remoteControlService = remoteControlService;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
-            _localSettingsDirectory = localSettingsDirectory;
             _reportAndSwallowException = reportAndSwallowException;
 
             _cancellationTokenSource = cancellationTokenSource;
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        protected override void EnableService()
-        {
-            // When our service is enabled hook up to package source changes.
-            // We need to know when the list of sources have changed so we can
-            // kick off the work to process them.
-            _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
-        }
+        //protected override void EnableService()
+        //{
+        //    // When our service is enabled hook up to package source changes.
+        //    // We need to know when the list of sources have changed so we can
+        //    // kick off the work to process them.
+        //    _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
+        //}
 
-        private void OnPackageSourcesChanged(object sender, EventArgs e)
-        {
-            StartWorking();
-        }
+        //private void OnPackageSourcesChanged(object sender, EventArgs e)
+        //{
+        //    StartWorking();
+        //}
 
-        protected override void StartWorking()
-        {
-            // Kick off a database update.  Wait a few seconds before starting so we don't
-            // interfere too much with solution loading.
-            var sources = _installerService.PackageSources;
+        //protected override void StartWorking()
+        //{
+        //    // Kick off a database update.  Wait a few seconds before starting so we don't
+        //    // interfere too much with solution loading.
+        //    var sources = _installerService.PackageSources;
 
-            // Always pull down the nuget.org index.  It contains the MS reference assembly index
-            // inside of it.
-            var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
-            foreach (var source in allSources)
-            {
-                Task.Run(() => UpdateSourceInBackgroundAsync(source.Name));
-            }
-        }
+        //    // Always pull down the nuget.org index.  It contains the MS reference assembly index
+        //    // inside of it.
+        //    var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
+        //    foreach (var source in allSources)
+        //    {
+        //        Task.Run(() => UpdateSourceInBackgroundAsync(source.Name));
+        //    }
+        //}
 
-        protected override void StopWorking()
+        public void StopUpdates()
         {
-            _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
             _cancellationTokenSource.Cancel();
         }
+
+        //protected override void StopWorking()
+        //{
+        //    _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
+        //    _cancellationTokenSource.Cancel();
+        //}
 
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)

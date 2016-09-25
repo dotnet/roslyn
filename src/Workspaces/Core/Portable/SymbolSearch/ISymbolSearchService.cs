@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -67,6 +71,20 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             AssemblyName = assemblyName;
             TypeName = typeName;
             ContainingNamespaceNames = containingNamespaceNames;
+        }
+    }
+
+    [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
+    internal class DefaultSymbolSearchService : ISymbolSearchService
+    {
+        public IEnumerable<PackageWithTypeResult> FindPackagesWithType(string source, string name, int arity, CancellationToken cancellationToken)
+        {
+            return SpecializedCollections.EmptyEnumerable<PackageWithTypeResult>();
+        }
+
+        public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(string name, int arity, CancellationToken cancellationToken)
+        {
+            return SpecializedCollections.EmptyEnumerable<ReferenceAssemblyWithTypeResult>();
         }
     }
 }

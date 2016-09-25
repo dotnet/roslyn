@@ -51,13 +51,13 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DelayService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.IOService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.PatchService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.RemoteControlService.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchLogService.cs" />
-    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
-    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.DelayService.cs" />
-    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.IOService.cs" />
-    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.PatchService.cs" />
-    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.RemoteControlService.cs" />
-    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.cs" />
     <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
     <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchUpdateEngine.cs" />
@@ -73,7 +73,7 @@
     <Compile Include="SymbolSearch\IPatchService.cs" />
     <Compile Include="SymbolSearch\IRemoteControlService.cs" />
     <Compile Include="SymbolSearch\Patching\Delta.cs" />
-    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.Update.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.Update.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
     <Compile Include="Utilities\ReferencePathUtilities_Desktop.cs" />
     <Compile Include="WorkspaceDesktopResources.Designer.cs">
@@ -165,6 +165,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
