@@ -51,6 +51,7 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="SymbolSearch\ISymbolSearchLogService.cs" />
     <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.DelayService.cs" />
     <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.IOService.cs" />
@@ -69,7 +70,6 @@
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\IDelayService.cs" />
     <Compile Include="SymbolSearch\IIOService.cs" />
-    <Compile Include="SymbolSearch\ILogService.cs" />
     <Compile Include="SymbolSearch\IPatchService.cs" />
     <Compile Include="SymbolSearch\IRemoteControlService.cs" />
     <Compile Include="SymbolSearch\Patching\Delta.cs" />
