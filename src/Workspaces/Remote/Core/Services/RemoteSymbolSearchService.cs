@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -44,28 +45,28 @@ namespace Microsoft.CodeAnalysis.Remote.Services
             return updateEngine.UpdateContinuouslyAsync(source, localSettingsDirectory);
         }
 
-        public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
             var updateEngine = GetUpdateEngine();
             if (updateEngine == null)
             {
-                return SpecializedCollections.EmptyEnumerable<PackageWithTypeResult>();
+                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
             }
 
-            return updateEngine.FindPackagesWithType(source, name, arity, cancellationToken);
+            return updateEngine.FindPackagesWithTypeAsync(source, name, arity, cancellationToken);
         }
 
-        public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithType(
             string name, int arity, CancellationToken cancellationToken)
         {
             var updateEngine = GetUpdateEngine();
             if (updateEngine == null)
             {
-                return SpecializedCollections.EmptyEnumerable<ReferenceAssemblyWithTypeResult>();
+                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
             }
 
-            return updateEngine.FindReferenceAssembliesWithType(name, arity, cancellationToken);
+            return updateEngine.FindReferenceAssembliesWithTypeAsync(name, arity, cancellationToken);
         }
     }
 }

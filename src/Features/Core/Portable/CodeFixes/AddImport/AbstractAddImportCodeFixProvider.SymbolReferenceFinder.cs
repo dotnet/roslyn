@@ -302,7 +302,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = searchService.FindReferenceAssembliesWithType(name, arity, cancellationToken);
+                var results = await searchService.FindReferenceAssembliesWithTypeAsync(
+                    name, arity, cancellationToken).ConfigureAwait(false);
 
                 var project = _document.Project;
                 var projectId = project.Id;
@@ -329,7 +330,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = searchService.FindPackagesWithType(source.Name, name, arity, cancellationToken);
+                var results = await searchService.FindPackagesWithTypeAsync(
+                    source.Name, name, arity, cancellationToken).ConfigureAwait(false);
 
                 var project = _document.Project;
                 var projectId = project.Id;

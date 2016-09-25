@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -29,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
     {
-        private readonly SymbolSearchUpdateEngine _updateEngine;
+        private readonly Task<ISymbolSearchUpdateEngine> _engineTask;
 
         private readonly IPackageInstallerService _installerService;
         private readonly string _localSettingsDirectory;
@@ -46,7 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
             var logService = new VisualStudioSymbolSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
-            _updateEngine = new SymbolSearchUpdateEngine(logService);
+
+            var engineFactory = workspace.Services.GetService<ISymbolSearchUpdateEngineFactory>();
+            _engineTask = engineFactory.CreateEngineAsync(workspace, logService);
         }
 
         protected override void EnableService()
@@ -78,21 +81,30 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        private Task UpdateSourceInBackgroundAsync(string sourceName)
+        private async Task UpdateSourceInBackgroundAsync(string sourceName)
         {
-            return _updateEngine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory);
+            var engine = await _engineTask.ConfigureAwait(false);
+            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
         }
 
         protected override void StopWorking()
         {
             _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
-            _updateEngine.StopUpdates();
+            StopEngine();
         }
 
-        public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+        private async void StopEngine()
+        {
+            var engine = await _engineTask.ConfigureAwait(false);
+            await engine.StopUpdatesAsync().ConfigureAwait(false);
+        }
+
+        public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            var allPackagesWithType = _updateEngine.FindPackagesWithType(source, name, arity, cancellationToken);
+            var engine = await _engineTask.ConfigureAwait(false);
+            var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
+                source, name, arity, cancellationToken).ConfigureAwait(false);
 
             var typesFromPackagesUsedInOtherProjects = new List<PackageWithTypeResult>();
             var typesFromPackagesNotUsedInOtherProjects = new List<PackageWithTypeResult>();
@@ -106,11 +118,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 resultList.Add(packageWithType);
             }
 
+            var result = ArrayBuilder<PackageWithTypeResult>.GetInstance();
+
             // We always returm types from packages that we've use elsewhere in the project.
-            foreach (var type in typesFromPackagesUsedInOtherProjects)
-            {
-                yield return type;
-            }
+            result.AddRange(typesFromPackagesUsedInOtherProjects);
 
             // For all other hits include as long as the popularity is high enough.  
             // Popularity ranks are in powers of two.  So if two packages differ by 
@@ -125,17 +136,21 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
                 if (Math.Abs(bestRank.Value - rank) > 1)
                 {
-                    yield break;
+                    break;
                 }
 
-                yield return packageWithType;
+                result.Add(packageWithType);
             }
+
+            return result.ToImmutableAndFree();
         }
 
-        public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+        public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
-            return _updateEngine.FindReferenceAssembliesWithType(name, arity, cancellationToken);
+            var engine = await _engineTask.ConfigureAwait(false);
+            return await engine.FindReferenceAssembliesWithTypeAsync(
+                name, arity, cancellationToken).ConfigureAwait(false);
         }
     }
 }

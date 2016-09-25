@@ -3,15 +3,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Packaging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class SymbolSearchUpdateEngine
+    internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
         private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
@@ -65,31 +65,33 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        public void StopUpdates()
+        public Task StopUpdatesAsync()
         {
             _cancellationTokenSource.Cancel();
+            return SpecializedTasks.EmptyTask;
         }
 
-        public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
             IAddReferenceDatabaseWrapper databaseWrapper;
             if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
             {
                 // Don't have a database to search.  
-                yield break;
+                SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                yield break;
+                SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
             var symbols = new PartialArray<Symbol>(100);
 
+            var result = ArrayBuilder<PackageWithTypeResult>.GetInstance();
             if (query.TryFindMembers(database, ref symbols))
             {
                 var types = FilterToViableTypes(symbols);
@@ -99,13 +101,15 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // Ignore any reference assembly results.
                     if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
                     {
-                        yield return CreateResult(database, type);
+                        result.Add(CreateResult(database, type));
                     }
                 }
             }
+
+            return Task.FromResult(result.ToImmutableAndFree());
         }
 
-        public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
@@ -113,19 +117,20 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out databaseWrapper))
             {
                 // Don't have a database to search.  
-                yield break;
+                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                yield break;
+                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
             var symbols = new PartialArray<Symbol>(100);
 
+            var results = ArrayBuilder<ReferenceAssemblyWithTypeResult>.GetInstance();
             if (query.TryFindMembers(database, ref symbols))
             {
                 var types = FilterToViableTypes(symbols);
@@ -137,11 +142,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     {
                         var nameParts = new List<string>();
                         GetFullName(nameParts, type.FullName.Parent);
-                        yield return new ReferenceAssemblyWithTypeResult(
+                        var result = new ReferenceAssemblyWithTypeResult(
                             type.AssemblyName.ToString(), type.Name.ToString(), containingNamespaceNames: nameParts);
+                        results.Add(result);
                     }
                 }
             }
+
+            return Task.FromResult(results.ToImmutableAndFree());
         }
 
         private List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)

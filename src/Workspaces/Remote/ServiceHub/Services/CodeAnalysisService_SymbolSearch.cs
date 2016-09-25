@@ -18,22 +18,22 @@ namespace Microsoft.CodeAnalysis.Remote
                 logService, sourceName, localSettingsDirectory);
         }
 
-        public Task<SerializablePackageWithTypeResult[]> SymbolSearch_FindPackagesWithType(
+        public async Task<SerializablePackageWithTypeResult[]> SymbolSearch_FindPackagesWithType(
             string source, string name, int arity, byte[] solutionChecksum)
         {
-            var results = RoslynServices.SymbolSearchService.FindPackagesWithType(
-                source, name, arity, CancellationToken);
+            var results = await RoslynServices.SymbolSearchService.FindPackagesWithType(
+                source, name, arity, CancellationToken).ConfigureAwait(false);
             var serializedResults = results.Select(SerializablePackageWithTypeResult.Dehydrate).ToArray();
-            return Task.FromResult(serializedResults);
+            return serializedResults;
         }
 
-        public Task<SerializableReferenceAssemblyWithTypeResult[]> SymbolSearch_FindReferenceAssembliesWithType(
+        public async Task<SerializableReferenceAssemblyWithTypeResult[]> SymbolSearch_FindReferenceAssembliesWithType(
             string name, int arity, byte[] solutionChecksum)
         {
-            var results = RoslynServices.SymbolSearchService.FindReferenceAssembliesWithType(
-                name, arity, CancellationToken);
+            var results = await RoslynServices.SymbolSearchService.FindReferenceAssembliesWithType(
+                name, arity, CancellationToken).ConfigureAwait(false);
             var serializedResults = results.Select(SerializableReferenceAssemblyWithTypeResult.Dehydrate).ToArray();
-            return Task.FromResult(serializedResults);
+            return serializedResults;
         }
 
         private class LogService : ISymbolSearchLogService

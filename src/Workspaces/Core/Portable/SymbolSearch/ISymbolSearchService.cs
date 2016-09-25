@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+        Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken);
 
         /// <summary>
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+        Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken);
     }
 
@@ -81,14 +82,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
     internal class DefaultSymbolSearchService : ISymbolSearchService
     {
-        public IEnumerable<PackageWithTypeResult> FindPackagesWithType(string source, string name, int arity, CancellationToken cancellationToken)
+        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            string source, string name, int arity, CancellationToken cancellationToken)
         {
-            return SpecializedCollections.EmptyEnumerable<PackageWithTypeResult>();
+            return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
         }
 
-        public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(string name, int arity, CancellationToken cancellationToken)
+        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            string name, int arity, CancellationToken cancellationToken)
         {
-            return SpecializedCollections.EmptyEnumerable<ReferenceAssemblyWithTypeResult>();
+            return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
         }
     }
 }
