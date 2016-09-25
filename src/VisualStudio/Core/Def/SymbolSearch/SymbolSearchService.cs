@@ -140,12 +140,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        protected override void StopWorking()
-        {
-            _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
-            _cancellationTokenSource.Cancel();
-        }
-
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
