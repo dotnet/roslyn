@@ -51,13 +51,29 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.DelayService.cs" />
+    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.IOService.cs" />
+    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.PatchService.cs" />
+    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.RemoteControlService.cs" />
+    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.cs" />
     <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
     <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchUpdateEngine.cs" />
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
+    <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
+    <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\IDelayService.cs" />
+    <Compile Include="SymbolSearch\IIOService.cs" />
+    <Compile Include="SymbolSearch\ILogService.cs" />
+    <Compile Include="SymbolSearch\IPatchService.cs" />
+    <Compile Include="SymbolSearch\IRemoteControlService.cs" />
+    <Compile Include="SymbolSearch\Patching\Delta.cs" />
+    <Compile Include="SymbolSearch\DefaultSymbolSearchUpdateEngine.Update.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
     <Compile Include="Utilities\ReferencePathUtilities_Desktop.cs" />
     <Compile Include="WorkspaceDesktopResources.Designer.cs">

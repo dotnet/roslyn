@@ -394,6 +394,7 @@
     <Compile Include="Options\IWorkspaceOptionService.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
+    <Compile Include="Shared\Utilities\IOUtilities.cs" />
     <Compile Include="Shared\Utilities\IStreamingProgressTracker.cs" />
     <Compile Include="Shared\Utilities\StreamingProgressTracker.cs" />
     <Compile Include="Options\OptionStorageLocation.cs" />
@@ -493,12 +494,14 @@
     <Compile Include="SymbolKey\SymbolKey.ArrayTypeSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyWriter.cs" />
     <Compile Include="SymbolKey\SymbolKey.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchOptionsProvider.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
     <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchOptions.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
