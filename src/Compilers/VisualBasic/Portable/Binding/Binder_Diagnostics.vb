@@ -15,6 +15,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
         Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
+                                                                       syntax As VisualBasicSyntaxNode,
+                                                                       id As ERRID) As BoundExpression
+            Return ReportDiagnosticAndProduceBadExpression(diagBag, syntax, ErrorFactory.ErrorInfo(id))
+        End Function
+
+        ''' <summary>
+        ''' Report a diagnostic, and also produce an error expression with error type.
+        ''' </summary>
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As BoundExpression

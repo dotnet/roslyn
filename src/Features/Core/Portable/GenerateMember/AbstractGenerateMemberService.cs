@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
 
             var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var semanticModel = document.SemanticModel;
-            var isMemberAccessExpression = syntaxFacts.IsMemberAccessExpression(simpleNameOrMemberAccessExpression);
+            var isMemberAccessExpression = syntaxFacts.IsSimpleMemberAccessExpression(simpleNameOrMemberAccessExpression);
             if (isMemberAccessExpression ||
                 syntaxFacts.IsConditionalMemberAccessExpression(simpleNameOrMemberAccessExpression))
             {

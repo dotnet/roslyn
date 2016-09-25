@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="resourceManager"><see cref="ResourceManager"/> for the calling assembly.</param>
         /// <param name="resourceSource">Type handling assembly's resource management. Typically, this is the static class generated for the resources file from which resources are accessed.</param>
         public LocalizableResourceString(string nameOfLocalizableResource, ResourceManager resourceManager, Type resourceSource)
-            : this(nameOfLocalizableResource, resourceManager, resourceSource, SpecializedCollections.EmptyArray<string>())
+            : this(nameOfLocalizableResource, resourceManager, resourceSource, Array.Empty<string>())
         {
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
             var length = (int)reader.ReadCompressedUInt();
             if (length == 0)
             {
-                _formatArguments = SpecializedCollections.EmptyArray<string>();
+                _formatArguments = Array.Empty<string>();
             }
             else
             {

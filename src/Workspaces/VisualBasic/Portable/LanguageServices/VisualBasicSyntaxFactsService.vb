@@ -20,17 +20,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicSyntaxFactsServiceFactory
         Implements ILanguageServiceFactory
 
-        Public Shared ReadOnly Property Instance As New VisualBasicSyntaxFactsService
-
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return Instance
+            Return VisualBasicSyntaxFactsService.Instance
         End Function
-
     End Class
 
     Friend Class VisualBasicSyntaxFactsService
         Inherits AbstractSyntaxFactsService
         Implements ISyntaxFactsService
+
+        Public Shared ReadOnly Property Instance As New VisualBasicSyntaxFactsService
+
+        Private Sub New()
+        End Sub
 
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
             Return token.Kind = SyntaxKind.AwaitKeyword
@@ -436,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsOperator(token)
         End Function
 
-        Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMemberAccessExpression
+        Public Function IsSimpleMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleMemberAccessExpression
             Return TypeOf node Is MemberAccessExpressionSyntax AndAlso
                 DirectCast(node, MemberAccessExpressionSyntax).Kind = SyntaxKind.SimpleMemberAccessExpression
         End Function
@@ -1463,5 +1465,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             newRoot = root
             newContextNode = contextNode
         End Sub
+
+        Public Function GetObjectCreationInitializer(objectCreationExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetObjectCreationInitializer
+            Return DirectCast(objectCreationExpression, ObjectCreationExpressionSyntax).Initializer
+        End Function
+
+        Public Function IsSimpleAssignmentStatement(statement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleAssignmentStatement
+            Return statement.IsKind(SyntaxKind.SimpleAssignmentStatement)
+        End Function
+
+        Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement
+            Dim assignment = DirectCast(statement, AssignmentStatementSyntax)
+            left = assignment.Left
+            right = assignment.Right
+        End Sub
+
+        Public Function GetNameOfMemberAccessExpression(memberAccessExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetNameOfMemberAccessExpression
+            Return DirectCast(memberAccessExpression, MemberAccessExpressionSyntax).Name
+        End Function
+
+        Public Function GetOperatorTokenOfMemberAccessExpression(memberAccessExpression As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetOperatorTokenOfMemberAccessExpression
+            Return DirectCast(memberAccessExpression, MemberAccessExpressionSyntax).OperatorToken
+        End Function
+
+        Public Function GetIdentifierOfSimpleName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetIdentifierOfSimpleName
+            Return DirectCast(node, SimpleNameSyntax).Identifier
+        End Function
+
+        Public Function GetIdentifierOfVariableDeclarator(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetIdentifierOfVariableDeclarator
+            Return DirectCast(node, VariableDeclaratorSyntax).Names.Last().Identifier
+        End Function
+
+        Public Function IsIdentifierName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIdentifierName
+            Return node.IsKind(SyntaxKind.IdentifierName)
+        End Function
+
+        Public Function IsLocalDeclarationStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalDeclarationStatement
+            Return node.IsKind(SyntaxKind.LocalDeclarationStatement)
+        End Function
+
+        Public Function IsDeclaratorOfLocalDeclarationStatement(declarator As SyntaxNode, localDeclarationStatement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeclaratorOfLocalDeclarationStatement
+            Return DirectCast(localDeclarationStatement, LocalDeclarationStatementSyntax).Declarators.
+                Contains(DirectCast(declarator, VariableDeclaratorSyntax))
+        End Function
+
+        Public Function AreEquivalent(token1 As SyntaxToken, token2 As SyntaxToken) As Boolean Implements ISyntaxFactsService.AreEquivalent
+            Return SyntaxFactory.AreEquivalent(token1, token2)
+        End Function
+
+        Public Function AreEquivalent(node1 As SyntaxNode, node2 As SyntaxNode) As Boolean Implements ISyntaxFactsService.AreEquivalent
+            Return SyntaxFactory.AreEquivalent(node1, node2)
+        End Function
     End Class
 End Namespace

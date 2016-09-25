@@ -71,6 +71,45 @@ namespace Microsoft.CodeAnalysis.Recommendations
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
         }
 
+        /// <summary>
+        /// If container is a tuple type, any of its tuple element which has a friendly name will cause
+        /// the suppression of the corresponding default name (ItemN).
+        /// In that case, Rest is also removed.
+        /// </summary>
+        protected static IEnumerable<ISymbol> SuppressDefaultTupleElements(INamespaceOrTypeSymbol container,
+            IEnumerable<ISymbol> symbols)
+        {
+            if (!container.IsType)
+            {
+                return symbols;
+            }
+
+            var type = (ITypeSymbol)container;
+            if (!type.IsTupleType)
+            {
+                return symbols;
+            }
+
+            var tuple = (INamedTypeSymbol)type;
+            var elementNames = tuple.TupleElementNames;
+            if (elementNames.IsDefault)
+            {
+                return symbols;
+            }
+
+            // TODO This should be revised once we have a good public API for tuple fields
+            // See https://github.com/dotnet/roslyn/issues/13229
+            var fieldsToRemove = elementNames.Select((n, i) => IsFriendlyName(i, n) ? "Item" + (i + 1) : null)
+                .Where(n => n != null).Concat("Rest").ToSet();
+
+            return symbols.Where(s => s.Kind != SymbolKind.Field || elementNames.Contains(s.Name) || !fieldsToRemove.Contains(s.Name));
+        }
+
+        private static bool IsFriendlyName(int i, string elementName)
+        {
+            return elementName != null && string.Compare(elementName, "Item" + (i + 1), StringComparison.OrdinalIgnoreCase) != 0;
+        }
+
         private sealed class ShouldIncludeSymbolContext
         {
             private readonly SyntaxContext _context;

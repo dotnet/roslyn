@@ -8854,5 +8854,41 @@ class C
 }";
             await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElements()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        var t = (Alice: 1, Item2: 2, ITEM3: 3, 4, 5, 6, 7, 8, Bob: 9);
+        t.$$
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs;
+
+            await VerifyItemExistsAsync(markup, "Alice");
+            await VerifyItemExistsAsync(markup, "Bob");
+            await VerifyItemExistsAsync(markup, "CompareTo");
+            await VerifyItemExistsAsync(markup, "Equals");
+            await VerifyItemExistsAsync(markup, "GetHashCode");
+            await VerifyItemExistsAsync(markup, "GetType");
+            await VerifyItemExistsAsync(markup, "Item2");
+            await VerifyItemExistsAsync(markup, "ITEM3");
+            for (int i = 4; i <= 8; i++)
+            {
+                await VerifyItemExistsAsync(markup, "Item" + i);
+            }
+            await VerifyItemExistsAsync(markup, "ToString");
+
+            await VerifyItemIsAbsentAsync(markup, "Item1");
+            await VerifyItemIsAbsentAsync(markup, "Item9");
+            await VerifyItemIsAbsentAsync(markup, "Rest");
+
+            // TODO fix once we have a good public API for tuple elements
+            // See https://github.com/dotnet/roslyn/issues/13229
+            await VerifyItemExistsAsync(markup, "Item3");
+        }
     }
 }

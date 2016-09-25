@@ -24,14 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(root != null);
                 Debug.Assert(options != null);
-                Debug.Assert(path != null);
                 Debug.Assert(textOpt == null || textOpt.Encoding == encodingOpt && textOpt.ChecksumAlgorithm == checksumAlgorithm);
 
                 _lazyText = textOpt;
                 _encodingOpt = encodingOpt ?? textOpt?.Encoding;
                 _checksumAlgorithm = checksumAlgorithm;
                 _options = options;
-                _path = path;
+                _path = path ?? string.Empty;
                 _root = cloneRoot ? this.CloneNodeAsRoot(root) : root;
                 _hasCompilationUnitRoot = root.Kind() == SyntaxKind.CompilationUnit;
                 this.SetDirectiveStack(directives);

@@ -55,7 +55,7 @@ namespace Roslyn.Utilities
 
                 internal static readonly Func<string> GetRuntimeDirectoryOpt = TypeOpt?
                     .GetTypeInfo()
-                    .GetDeclaredMethod("GetRuntimeDirectory", SpecializedCollections.EmptyArray<Type>())?
+                    .GetDeclaredMethod("GetRuntimeDirectory", Array.Empty<Type>())?
                     .CreateDelegate<Func<string>>();
             }
 
@@ -184,8 +184,8 @@ namespace Roslyn.Utilities
 
                 private Assembly Stub(object sender, object resolveEventArgs)
                 {
-                    var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, SpecializedCollections.EmptyArray<object>());
-                    var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, SpecializedCollections.EmptyArray<object>());
+                    var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, Array.Empty<object>());
+                    var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, Array.Empty<object>());
 
                     return _handler(name, requestingAssembly);
                 }
@@ -206,7 +206,7 @@ namespace Roslyn.Utilities
                     throw new PlatformNotSupportedException();
                 }
 
-                return _AppDomain.get_CurrentDomain.Invoke(null, SpecializedCollections.EmptyArray<object>());
+                return _AppDomain.get_CurrentDomain.Invoke(null, Array.Empty<object>());
             }
 
             internal static void GetOrRemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler, MethodInfo handlerOperation)

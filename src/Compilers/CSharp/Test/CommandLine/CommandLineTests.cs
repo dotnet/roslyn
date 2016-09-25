@@ -59,10 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 _patterns = patterns;
             }
 
-            internal override IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, object searchOption)
+            internal override IEnumerable<string> EnumerateFiles(string directory,
+                                                                 string fileNamePattern,
+                                                                 SearchOption searchOption)
             {
                 var key = directory + "|" + fileNamePattern;
-                if (searchOption == PortableShim.SearchOption.TopDirectoryOnly)
+                if (searchOption == SearchOption.TopDirectoryOnly)
                 {
                     return _patterns[key];
                 }

@@ -726,4 +726,10 @@ Additional information: {1}</value>
   <data name="For_member_access_expressions" xml:space="preserve">
     <value>For member access expressions</value>
   </data>
+  <data name="Prefer_object_initializer" xml:space="preserve">
+    <value>Prefer object initializer</value>
+  </data>
+  <data name="Expression_preferences_colon" xml:space="preserve">
+    <value>Expression preferences:</value>
+  </data>
 </root>

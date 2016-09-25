@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 
         protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
-            return TestWorkspace.CreateCSharpAsync(definition, parseOptions, compilationOptions);
+            return TestWorkspace.IsWorkspaceElement(definition)
+                ? TestWorkspace.CreateAsync(definition)
+                : TestWorkspace.CreateCSharpAsync(definition, parseOptions, compilationOptions);
         }
 
         protected override string GetLanguage()

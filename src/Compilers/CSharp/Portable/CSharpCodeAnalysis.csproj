@@ -11,9 +11,8 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
@@ -757,6 +756,7 @@
     <Compile Include="Syntax\AttributeSyntax.cs" />
     <Compile Include="Syntax\AttributeTargetSpecifierSyntax.cs" />
     <Compile Include="Syntax\CompilationUnitSyntax.cs" />
+    <Compile Include="Syntax\ConstructorDeclarationSyntax.cs" />
     <Compile Include="Syntax\CSharpLineDirectiveMap.cs" />
     <Compile Include="Syntax\CSharpPragmaWarningStateMap.cs" />
     <Compile Include="Syntax\CSharpSyntaxNode.cs" />
@@ -767,6 +767,7 @@
     <Compile Include="Syntax\CSharpSyntaxWalker.cs" />
     <Compile Include="Syntax\DeclarationStatementSyntax.cs" />
     <Compile Include="Syntax\DelegateDeclarationSyntax.cs" />
+    <Compile Include="Syntax\DestructorDeclarationSyntax.cs" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
     <Compile Include="Syntax\ForStatementSyntax.cs" />

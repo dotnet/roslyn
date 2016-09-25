@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
 
@@ -36,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim local = PlaceholderLocalSymbol.Create(
                     typeNameDecoder,
                     containingMethod,
+                    sourceAssembly,
                     [alias])
                 _implicitDeclarations.Add(local.Name, local)
             Next
