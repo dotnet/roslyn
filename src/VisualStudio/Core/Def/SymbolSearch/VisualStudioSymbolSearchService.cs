@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IPackageInstallerService _installerService;
         private readonly string _localSettingsDirectory;
-        private readonly VisualStudioSymbolSearchLogService _logService;
+        private readonly LogService _logService;
 
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _installerService = workspace.Services.GetService<IPackageInstallerService>();
             _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
-            _logService = new VisualStudioSymbolSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
+            _logService = new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
         }
 
         protected override void EnableService()
