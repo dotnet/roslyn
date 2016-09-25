@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
+    /// <summary>
+    /// Service that keeps the SymbolSearch database up to date.  
+    /// </summary>
     internal interface ISymbolSearchUpdateEngine : IDisposable
     {
-        Task UpdateContinuouslyAsync(
-            string sourceName, string localSettingsDirectory);
+        Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory);
         Task StopUpdatesAsync();
 
         Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
