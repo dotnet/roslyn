@@ -59,7 +59,6 @@
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.IOService.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.PatchService.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.RemoteControlService.cs" />
-    <Compile Include="SymbolSearch\ISymbolSearchLogService.cs" />
     <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
     <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
     <Compile Include="Options\ExportOptionAttribute.cs" />

@@ -28,6 +28,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchUpdateEngine(ISymbolSearchLogService logService)
+            : this(logService, new CancellationTokenSource())
+        {
+
+        }
+
+        public SymbolSearchUpdateEngine(
+            ISymbolSearchLogService logService, 
+            CancellationTokenSource cancellationTokenSource)
             : this(logService,
                    new RemoteControlService(),
                    new DelayService(),
@@ -36,7 +44,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
                    FatalError.ReportWithoutCrash,
-                   new CancellationTokenSource())
+                   cancellationTokenSource)
         {
         }
 
@@ -65,6 +73,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
+        public void Dispose()
+        {
+            // Nothing to do.  We're not holding onto any resources we need to dispose of.
+        }
+
         public Task StopUpdatesAsync()
         {
             _cancellationTokenSource.Cancel();
@@ -72,7 +85,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-            string source, string name, int arity, CancellationToken cancellationToken)
+            string source, string name, int arity)
         {
             IAddReferenceDatabaseWrapper databaseWrapper;
             if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
@@ -110,7 +123,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-            string name, int arity, CancellationToken cancellationToken)
+            string name, int arity)
         {
             // Our reference assembly data is stored in the nuget.org DB.
             IAddReferenceDatabaseWrapper databaseWrapper;

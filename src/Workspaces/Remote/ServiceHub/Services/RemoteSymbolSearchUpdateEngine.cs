@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Arguments;
@@ -8,39 +10,50 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 namespace Microsoft.CodeAnalysis.Remote
 {
     // root level service for all Roslyn services
-    internal partial class CodeAnalysisService
+    internal partial class RemoteSymbolSearchUpdateEngine : ServiceHubServiceBase
     {
-        public Task SymbolSearch_UpdateContinuouslyAsync(
-            string sourceName, string localSettingsDirectory, byte[] solutionChecksum)
+        private readonly SymbolSearchUpdateEngine _updateEngine;
+
+        public RemoteSymbolSearchUpdateEngine(Stream stream, IServiceProvider serviceProvider) 
+            : base(stream, serviceProvider)
         {
-            var logService = new LogService(this);
-            return RoslynServices.SymbolSearchService.UpdateContinuouslyAsync(
-                logService, sourceName, localSettingsDirectory);
+            _updateEngine = new SymbolSearchUpdateEngine(new LogService(this), _cancellationTokenSource);
         }
 
-        public async Task<SerializablePackageWithTypeResult[]> SymbolSearch_FindPackagesWithType(
+        public Task UpdateContinuouslyAsync(
+            string sourceName, string localSettingsDirectory, byte[] solutionChecksum)
+        {
+            return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
+        }
+
+        public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(
             string source, string name, int arity, byte[] solutionChecksum)
         {
-            var results = await RoslynServices.SymbolSearchService.FindPackagesWithType(
-                source, name, arity, CancellationToken).ConfigureAwait(false);
+            var results = await _updateEngine.FindPackagesWithTypeAsync(
+                source, name, arity).ConfigureAwait(false);
             var serializedResults = results.Select(SerializablePackageWithTypeResult.Dehydrate).ToArray();
             return serializedResults;
         }
 
-        public async Task<SerializableReferenceAssemblyWithTypeResult[]> SymbolSearch_FindReferenceAssembliesWithType(
+        public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithType(
             string name, int arity, byte[] solutionChecksum)
         {
-            var results = await RoslynServices.SymbolSearchService.FindReferenceAssembliesWithType(
-                name, arity, CancellationToken).ConfigureAwait(false);
+            var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
+                name, arity).ConfigureAwait(false);
             var serializedResults = results.Select(SerializableReferenceAssemblyWithTypeResult.Dehydrate).ToArray();
             return serializedResults;
         }
 
+        public Task StopUpdatesAsync(byte[] solutionChecksum)
+        {
+            return _updateEngine.StopUpdatesAsync();
+        }
+
         private class LogService : ISymbolSearchLogService
         {
-            private readonly CodeAnalysisService _service;
+            private readonly RemoteSymbolSearchUpdateEngine _service;
 
-            public LogService(CodeAnalysisService service)
+            public LogService(RemoteSymbolSearchUpdateEngine service)
             {
                 _service = service;
             }
