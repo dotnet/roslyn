@@ -8,6 +8,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
+    /// <summary>
+    /// Factory that will produce the <see cref="ISymbolSearchUpdateEngine"/>.  The default
+    /// implementation produces an engine that will run in-process.  Implementations at
+    /// other layers can behave differently (for example, running the engine out-of-process).
+    /// </summary>
     internal interface ISymbolSearchUpdateEngineFactory : IWorkspaceService
     {
         Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
