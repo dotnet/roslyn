@@ -60,7 +60,6 @@
     <Compile Include="SymbolSearch\ISymbolSearchLogService.cs" />
     <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
     <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
-    <Compile Include="SymbolSearch\ISymbolSearchUpdateEngine.cs" />
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
     {
-        private readonly ISymbolSearchUpdateEngine _updateEngine;
+        private readonly SymbolSearchUpdateEngine _updateEngine;
 
         private readonly IPackageInstallerService _installerService;
         private readonly string _localSettingsDirectory;
@@ -37,27 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public VisualStudioSymbolSearchService(
             VisualStudioWorkspaceImpl workspace,
             VSShell.SVsServiceProvider serviceProvider)
-            : this(workspace,
-                   workspace.Services.GetService<IPackageInstallerService>(),
-                   new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings))
-        {
-        }
-
-        /// <summary>
-        /// For testing purposes only.
-        /// </summary>
-        internal VisualStudioSymbolSearchService(
-            Workspace workspace,
-            IPackageInstallerService installerService,
-            string localSettingsDirectory) 
             : base(workspace, SymbolSearchOptions.Enabled,
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
-            _updateEngine = workspace.Services.GetService<ISymbolSearchUpdateEngine>();
+            workspace.Services.GetService<IPackageInstallerService>();
+            _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
-            _installerService = installerService;
-            _localSettingsDirectory = localSettingsDirectory;
+            var logService = new VisualStudioSymbolSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
+            _updateEngine = new SymbolSearchUpdateEngine(logService);
         }
 
         protected override void EnableService()

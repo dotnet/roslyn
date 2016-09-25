@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
+    internal partial class SymbolSearchUpdateEngine
     {
         private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
-        public SymbolSearchUpdateEngine(HostWorkspaceServices workspaceServices)
-            : this(workspaceServices.GetService<ISymbolSearchLogService>(),
+        public SymbolSearchUpdateEngine(ISymbolSearchLogService logService)
+            : this(logService,
                    new RemoteControlService(),
                    new DelayService(),
                    new IOService(),
@@ -65,44 +65,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        //protected override void EnableService()
-        //{
-        //    // When our service is enabled hook up to package source changes.
-        //    // We need to know when the list of sources have changed so we can
-        //    // kick off the work to process them.
-        //    _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
-        //}
-
-        //private void OnPackageSourcesChanged(object sender, EventArgs e)
-        //{
-        //    StartWorking();
-        //}
-
-        //protected override void StartWorking()
-        //{
-        //    // Kick off a database update.  Wait a few seconds before starting so we don't
-        //    // interfere too much with solution loading.
-        //    var sources = _installerService.PackageSources;
-
-        //    // Always pull down the nuget.org index.  It contains the MS reference assembly index
-        //    // inside of it.
-        //    var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
-        //    foreach (var source in allSources)
-        //    {
-        //        Task.Run(() => UpdateSourceInBackgroundAsync(source.Name));
-        //    }
-        //}
-
         public void StopUpdates()
         {
             _cancellationTokenSource.Cancel();
         }
-
-        //protected override void StopWorking()
-        //{
-        //    _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
-        //    _cancellationTokenSource.Cancel();
-        //}
 
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)

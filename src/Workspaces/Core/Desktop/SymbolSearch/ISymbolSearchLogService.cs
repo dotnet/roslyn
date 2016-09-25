@@ -12,17 +12,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// <summary>
     /// Used so we can mock out logging in unit tests.
     /// </summary>
-    internal interface ISymbolSearchLogService : IWorkspaceService
+    internal interface ISymbolSearchLogService
     {
         Task LogExceptionAsync(Exception e, string text);
         Task LogInfoAsync(string text);
-    }
-
-    [ExportWorkspaceService(typeof(ISymbolSearchLogService)), Shared]
-    internal class DefaultSymbolSearchLogService : ISymbolSearchLogService
-    {
-        public Task LogExceptionAsync(Exception e, string text) => SpecializedTasks.EmptyTask;
-
-        public Task LogInfoAsync(string text) => SpecializedTasks.EmptyTask;
     }
 }
