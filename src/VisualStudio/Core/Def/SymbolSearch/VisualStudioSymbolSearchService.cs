@@ -30,10 +30,15 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
     {
-        private readonly Task<ISymbolSearchUpdateEngine> _engineTask;
+        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private ISymbolSearchUpdateEngine _updateEngine;
 
+        private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IPackageInstallerService _installerService;
         private readonly string _localSettingsDirectory;
+        private readonly VisualStudioSymbolSearchLogService _logService;
+
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         [ImportingConstructor]
         public VisualStudioSymbolSearchService(
@@ -43,13 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
+            _workspace = workspace;
             _installerService = workspace.Services.GetService<IPackageInstallerService>();
             _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
-            var logService = new VisualStudioSymbolSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
-
-            var engineFactory = workspace.Services.GetService<ISymbolSearchUpdateEngineFactory>();
-            _engineTask = engineFactory.CreateEngineAsync(workspace, logService);
+            _logService = new VisualStudioSymbolSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
         }
 
         protected override void EnableService()
@@ -75,34 +78,51 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             // inside of it.
             var allSources = sources.Concat(new PackageSource(
                 SymbolSearchUpdateEngine.NugetOrgSource, source: null));
+
             foreach (var source in allSources)
             {
                 Task.Run(() => UpdateSourceInBackgroundAsync(source.Name));
             }
         }
 
+        private async Task<ISymbolSearchUpdateEngine> GetEngine(CancellationToken cancellationToken)
+        {
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_updateEngine == null)
+                {
+                    var engineFactory = _workspace.Services.GetService<ISymbolSearchUpdateEngineFactory>();
+                    _updateEngine = await engineFactory.CreateEngineAsync(
+                        _workspace, _logService, cancellationToken).ConfigureAwait(false);
+                }
+
+                return _updateEngine;
+            }
+        }
+
         private async Task UpdateSourceInBackgroundAsync(string sourceName)
         {
-            var engine = await _engineTask.ConfigureAwait(false);
+            var engine = await GetEngine(_cancellationTokenSource.Token).ConfigureAwait(false);
             await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
         }
 
         protected override void StopWorking()
         {
-            _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
             StopEngine();
+            _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
+            _cancellationTokenSource.Cancel();
         }
 
         private async void StopEngine()
         {
-            var engine = await _engineTask.ConfigureAwait(false);
+            var engine = await GetEngine(_cancellationTokenSource.Token).ConfigureAwait(false);
             await engine.StopUpdatesAsync().ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            var engine = await _engineTask.ConfigureAwait(false);
+            var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
                 source, name, arity, cancellationToken).ConfigureAwait(false);
 
@@ -148,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
-            var engine = await _engineTask.ConfigureAwait(false);
+            var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             return await engine.FindReferenceAssembliesWithTypeAsync(
                 name, arity, cancellationToken).ConfigureAwait(false);
         }
