@@ -44,15 +44,19 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public readonly string TypeName;
         public readonly string Version;
 
+        internal readonly int Rank;
+
         public PackageWithTypeResult(
             string packageName,
             string typeName, 
             string version,
+            int rank,
             IReadOnlyList<string> containingNamespaceNames)
         {
             PackageName = packageName;
             TypeName = typeName;
             Version = string.IsNullOrWhiteSpace(version) ? null : version;
+            Rank = rank;
             ContainingNamespaceNames = containingNamespaceNames;
         }
     }

@@ -216,6 +216,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                     packageName:=packageName,
                     typeName:=typeName,
                     version:=Nothing,
+                    rank:=0,
                     containingNamespaceNames:=nameParts))
             End Function
 

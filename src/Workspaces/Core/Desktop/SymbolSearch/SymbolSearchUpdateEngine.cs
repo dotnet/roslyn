@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchUpdateEngine(HostWorkspaceServices workspaceServices)
-            : this(workspaceServices.GetService<IPackageInstallerService>(),
-                   workspaceServices.GetService<ISymbolSearchLogService>(),
+            : this(workspaceServices.GetService<ISymbolSearchLogService>(),
                    new RemoteControlService(),
                    new DelayService(),
                    new IOService(),
@@ -45,7 +44,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// For testing purposes only.
         /// </summary>
         internal SymbolSearchUpdateEngine(
-            IPackageInstallerService installerService,
             ISymbolSearchLogService logService,
             IRemoteControlService remoteControlService,
             IDelayService delayService,
@@ -55,7 +53,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             Func<Exception, bool> reportAndSwallowException,
             CancellationTokenSource cancellationTokenSource)
         {
-            _installerService = installerService;
             _delayService = delayService;
             _ioService = ioService;
             _logService = logService;
@@ -131,51 +128,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             {
                 var types = FilterToViableTypes(symbols);
 
-                var typesFromPackagesUsedInOtherProjects = new List<Symbol>();
-                var typesFromPackagesNotUsedInOtherProjects = new List<Symbol>();
-
                 foreach (var type in types)
                 {
                     // Ignore any reference assembly results.
                     if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
                     {
-                        var packageName = type.PackageName.ToString();
-                        if (_installerService.GetInstalledVersions(packageName).Any())
-                        {
-                            typesFromPackagesUsedInOtherProjects.Add(type);
-                        }
-                        else
-                        {
-                            typesFromPackagesNotUsedInOtherProjects.Add(type);
-                        }
+                        yield return CreateResult(database, type);
                     }
-                }
-
-                var result = new List<Symbol>();
-
-                // We always returm types from packages that we've use elsewhere in the project.
-                int? bestRank = null;
-                foreach (var type in typesFromPackagesUsedInOtherProjects)
-                {
-                    yield return CreateResult(database, type);
-                }
-
-                // For all other hits include as long as the popularity is high enough.  
-                // Popularity ranks are in powers of two.  So if two packages differ by 
-                // one rank, then one is at least twice as popular as the next.  Two 
-                // ranks would be four times as popular.  Three ranks = 8 times,  etc. 
-                // etc.  We keep packages that within 1 rank of the best package we find.
-                foreach (var type in typesFromPackagesNotUsedInOtherProjects)
-                {
-                    var rank = GetRank(type);
-                    bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
-
-                    if (Math.Abs(bestRank.Value - rank) > 1)
-                    {
-                        yield break;
-                    }
-
-                    yield return CreateResult(database, type);
                 }
             }
         }
@@ -243,6 +202,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 packageName: packageName, 
                 typeName: type.Name.ToString(), 
                 version: version,
+                rank: GetRank(type),
                 containingNamespaceNames: nameParts);
         }
 

@@ -38,7 +38,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Dim remoteControlService = New Mock(Of IRemoteControlService)
 
                 Dim service = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlService.Object,
                     delayService:=TestDelayService.Instance,
@@ -69,7 +68,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Dim remoteControlService = New Mock(Of IRemoteControlService)
 
                 Dim service = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlService.Object,
                     delayService:=TestDelayService.Instance,
@@ -107,7 +105,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=serviceMock.Object,
                     delayService:=TestDelayService.Instance,
@@ -151,7 +148,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=serviceMock.Object,
                     delayService:=delayMock.Object,
@@ -187,7 +183,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=serviceMock.Object,
                     delayService:=TestDelayService.Instance,
@@ -236,7 +231,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
@@ -280,7 +274,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
@@ -328,7 +321,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
@@ -387,7 +379,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
@@ -433,7 +424,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
@@ -487,7 +477,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
@@ -547,7 +536,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
@@ -603,7 +591,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    installerService:=TestInstallerService.Instance,
                     logService:=TestLogService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
@@ -743,45 +730,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Return TimeSpan.Zero
                 End Get
             End Property
-        End Class
-
-        Private Class TestInstallerService
-            Implements IPackageInstallerService
-
-            Public Shared ReadOnly Instance As IPackageInstallerService = New TestInstallerService()
-
-            Public ReadOnly Property IsEnabled As Boolean Implements IPackageInstallerService.IsEnabled
-                Get
-                    Return True
-                End Get
-            End Property
-
-            Public ReadOnly Property PackageSources As ImmutableArray(Of PackageSource) Implements IPackageInstallerService.PackageSources
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public Event PackageSourcesChanged As EventHandler Implements IPackageInstallerService.PackageSourcesChanged
-
-            Public Sub ShowManagePackagesDialog(packageName As String) Implements IPackageInstallerService.ShowManagePackagesDialog
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Iterator Function GetInstalledVersions(packageName As String) As IEnumerable(Of String) Implements IPackageInstallerService.GetInstalledVersions
-            End Function
-
-            Public Function GetProjectsWithInstalledPackage(solution As Solution, packageName As String, version As String) As IEnumerable(Of Project) Implements IPackageInstallerService.GetProjectsWithInstalledPackage
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function IsInstalled(workspace As Workspace, projectId As ProjectId, packageName As String) As Boolean Implements IPackageInstallerService.IsInstalled
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function TryInstallPackage(workspace As Workspace, documentId As DocumentId, source As String, packageName As String, versionOpt As String, cancellationToken As CancellationToken) As Boolean Implements IPackageInstallerService.TryInstallPackage
-                Throw New NotImplementedException()
-            End Function
         End Class
 
         Private Class TestLogService

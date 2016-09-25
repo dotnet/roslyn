@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Elfie.Model;
-using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.RemoteControl;
 using Roslyn.Utilities;
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.
-        private readonly IPackageInstallerService _installerService;
         private readonly IDelayService _delayService;
         private readonly IIOService _ioService;
         private readonly ISymbolSearchLogService _logService;

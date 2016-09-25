@@ -103,7 +103,44 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            return _updateEngine.FindPackagesWithType(source, name, arity, cancellationToken);
+            var allPackagesWithType = _updateEngine.FindPackagesWithType(source, name, arity, cancellationToken);
+
+            var typesFromPackagesUsedInOtherProjects = new List<PackageWithTypeResult>();
+            var typesFromPackagesNotUsedInOtherProjects = new List<PackageWithTypeResult>();
+
+            foreach (var packageWithType in allPackagesWithType)
+            {
+                var resultList = _installerService.GetInstalledVersions(packageWithType.PackageName).Any()
+                    ?  typesFromPackagesUsedInOtherProjects
+                    : typesFromPackagesNotUsedInOtherProjects;
+
+                resultList.Add(packageWithType);
+            }
+
+            // We always returm types from packages that we've use elsewhere in the project.
+            foreach (var type in typesFromPackagesUsedInOtherProjects)
+            {
+                yield return type;
+            }
+
+            // For all other hits include as long as the popularity is high enough.  
+            // Popularity ranks are in powers of two.  So if two packages differ by 
+            // one rank, then one is at least twice as popular as the next.  Two 
+            // ranks would be four times as popular.  Three ranks = 8 times,  etc. 
+            // etc.  We keep packages that within 1 rank of the best package we find.
+            int? bestRank = null;
+            foreach (var packageWithType in typesFromPackagesNotUsedInOtherProjects)
+            {
+                var rank = packageWithType.Rank;
+                bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
+
+                if (Math.Abs(bestRank.Value - rank) > 1)
+                {
+                    yield break;
+                }
+
+                yield return packageWithType;
+            }
         }
 
         public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
