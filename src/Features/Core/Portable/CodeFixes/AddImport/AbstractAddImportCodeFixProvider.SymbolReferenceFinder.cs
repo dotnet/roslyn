@@ -279,6 +279,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 if (symbolSearchService != null &&
+                    installerService != null &&
                     searchNugetPackages && 
                     installerService.IsEnabled)
                 {
