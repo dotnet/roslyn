@@ -91,14 +91,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
             {
                 // Don't have a database to search.  
-                SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
