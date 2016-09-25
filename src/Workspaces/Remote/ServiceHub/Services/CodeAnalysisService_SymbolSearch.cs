@@ -1,19 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Remote.Arguments;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
-using Roslyn.Utilities;
-using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -26,6 +16,24 @@ namespace Microsoft.CodeAnalysis.Remote
             var logService = new LogService(this);
             return RoslynServices.SymbolSearchService.UpdateContinuouslyAsync(
                 logService, sourceName, localSettingsDirectory);
+        }
+
+        public Task<SerializablePackageWithTypeResult[]> SymbolSearch_FindPackagesWithType(
+            string source, string name, int arity, byte[] solutionChecksum)
+        {
+            var results = RoslynServices.SymbolSearchService.FindPackagesWithType(
+                source, name, arity, CancellationToken);
+            var serializedResults = results.Select(SerializablePackageWithTypeResult.Dehydrate).ToArray();
+            return Task.FromResult(serializedResults);
+        }
+
+        public Task<SerializableReferenceAssemblyWithTypeResult[]> SymbolSearch_FindReferenceAssembliesWithType(
+            string name, int arity, byte[] solutionChecksum)
+        {
+            var results = RoslynServices.SymbolSearchService.FindReferenceAssembliesWithType(
+                name, arity, CancellationToken);
+            var serializedResults = results.Select(SerializableReferenceAssemblyWithTypeResult.Dehydrate).ToArray();
+            return Task.FromResult(serializedResults);
         }
 
         private class LogService : ISymbolSearchLogService

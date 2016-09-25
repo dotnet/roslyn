@@ -65,6 +65,7 @@
     <Compile Include="Services\ServiceHubServiceBase.cs" />
     <Compile Include="Services\SnapshotService.cs" />
     <Compile Include="Shared\Extensions.cs" />
+    <Compile Include="Shared\RemoteArguments.cs" />
     <Compile Include="Shared\ServerDirectStream.cs" />
     <Compile Include="Shared\ClientDirectStream.cs" />
     <Compile Include="Shared\WellKnownServiceHubServices.cs" />
