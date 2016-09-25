@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote.Services;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -25,5 +26,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public static readonly AssetService AssetService = new AssetService();
         public static readonly SolutionService SolutionService = new SolutionService();
         public static readonly CompilationService CompilationService = new CompilationService();
+        public static readonly RemoteSymbolSearchService SymbolSearchService = new RemoteSymbolSearchService();
     }
 }
