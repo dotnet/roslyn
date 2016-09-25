@@ -36,9 +36,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         internal const string TooOldAttributeName = "tooOld";
         internal const string NugetOrgSource = "nuget.org";
 
-        private const string HostId = "RoslynNuGetSearch";
+        public const string HostId = "RoslynNuGetSearch";
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
-        private static readonly LinkedList<string> s_log = new LinkedList<string>();
 
         /// <summary>
         /// Cancellation support for the task we use to keep the local database up to date.

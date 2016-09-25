@@ -197,6 +197,7 @@
     <Compile Include="Shared\LogicalStringComparer.cs" />
     <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
+    <Compile Include="SymbolSearch\VisualStudioSymbolSearchLogService.cs" />
     <Compile Include="Telemetry\CodeMarkerLogger.cs" />
     <Compile Include="Telemetry\ProjectTypeLookupService.cs" />
     <Compile Include="Telemetry\ProjectTelemetryIncrementalAnalyzerProvider.cs" />
