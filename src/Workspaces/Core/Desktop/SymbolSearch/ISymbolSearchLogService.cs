@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// </summary>
     internal interface ISymbolSearchLogService
     {
-        Task LogExceptionAsync(Exception e, string text);
+        Task LogExceptionAsync(string exception, string text);
         Task LogInfoAsync(string text);
     }
 }

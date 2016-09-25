@@ -740,7 +740,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Private Sub New()
             End Sub
 
-            Public Function LogExceptionAsync(e As Exception, text As String) As Task Implements ISymbolSearchLogService.LogExceptionAsync
+            Public Function LogExceptionAsync(exception As String, text As String) As Task Implements ISymbolSearchLogService.LogExceptionAsync
                 Return SpecializedTasks.EmptyTask
             End Function
 

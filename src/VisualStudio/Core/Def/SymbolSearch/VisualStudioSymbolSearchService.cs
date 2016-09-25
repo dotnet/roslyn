@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
-            workspace.Services.GetService<IPackageInstallerService>();
+            _installerService = workspace.Services.GetService<IPackageInstallerService>();
             _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
             var logService = new VisualStudioSymbolSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));

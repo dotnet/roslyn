@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         private Task LogInfoAsync(string text) => _logService.LogInfoAsync(text);
 
-        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e, text);
+        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e.ToString(), text);
 
         public Task UpdateContinuouslyAsync(string source, string localSettingsDirectory)
         {

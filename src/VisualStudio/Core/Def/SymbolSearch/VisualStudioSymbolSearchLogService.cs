@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -26,9 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return LogAsync(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
         }
 
-        public Task LogExceptionAsync(Exception e, string text)
+        public Task LogExceptionAsync(string exception, string text)
         {
-            return LogAsync(text + ". " + e.ToString(), __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
+            return LogAsync(text + ". " + exception, __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
         }
 
         private Task LogAsync(string text, __ACTIVITYLOG_ENTRYTYPE type)

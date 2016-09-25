@@ -51,6 +51,7 @@
     <None Include="project.json" />
     <Compile Include="CodeLens\CodeLensArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
+    <Compile Include="Services\CodeAnalysisService_SymbolSearch.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
