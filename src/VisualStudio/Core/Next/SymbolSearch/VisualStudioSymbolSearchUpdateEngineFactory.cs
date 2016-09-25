@@ -26,6 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
 
             var client = await clientService.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return new SymbolSearchUpdateEngine(logService);
+            }
 
             var emptySolution = workspace.CreateSolution(workspace.CurrentSolution.Id);
             var session = await client.CreateServiceSessionAsync(

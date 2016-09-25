@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public static readonly Option<bool> Enabled = new Option<bool>(nameof(SymbolSearchOptions), nameof(Enabled), defaultValue: true);
 
         public static PerLanguageOption<bool> SuggestForTypesInReferenceAssemblies =
-            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: false,
+            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
 
         public static PerLanguageOption<bool> SuggestForTypesInNuGetPackages =
-            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: false,
+            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
     }
 }

@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return true;
                 }
 
-                return false;
+                return true;
             }
 
             private bool DynamicAnalysisEnabled()

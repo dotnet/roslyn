@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             foreach (var packageWithType in allPackagesWithType)
             {
                 var resultList = _installerService.GetInstalledVersions(packageWithType.PackageName).Any()
-                    ?  typesFromPackagesUsedInOtherProjects
+                    ? typesFromPackagesUsedInOtherProjects
                     : typesFromPackagesNotUsedInOtherProjects;
 
                 resultList.Add(packageWithType);
