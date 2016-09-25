@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
-    /// Service that keeps the SymbolSearch database up to date.  
+    /// Service that allows you to query the SymbolSearch database and which keeps 
+    /// the database up to date.  
     /// </summary>
     internal interface ISymbolSearchUpdateEngine : IDisposable
     {
