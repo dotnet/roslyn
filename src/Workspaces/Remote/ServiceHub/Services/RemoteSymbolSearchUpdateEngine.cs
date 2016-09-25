@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return serializedResults;
         }
 
-        public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithType(
+        public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, byte[] solutionChecksum)
         {
             var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
