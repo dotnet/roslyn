@@ -9521,6 +9521,7 @@ End Module
             Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
 
+            Assert.Equal("DirectCast((e:=1, f:=""hello""), (c As Integer, d As String)?)", node.Parent.ToString())
             Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, model.GetConversion(node.Parent).Kind)
@@ -10285,7 +10286,49 @@ options:=TestOptions.DebugExe)
         End Sub
 
         <Fact>
-        Public Sub TupleConvertedTypeUDC07()
+        Public Sub TupleConvertedTypeUDC07_StrictOff_Narrowing()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim x As C1 = M1()
+        System.Console.Write(x.ToString())
+    End Sub
+
+    Shared Function M1() As (Integer, String)
+        Return (1, "qq")
+    End Function
+
+    Public Class C1
+        Public Dim val As (Byte, String)
+
+        Public Sub New(ByVal arg As (Byte, String))
+            val = arg
+        End Sub
+
+        Public Shared Narrowing Operator CType(ByVal arg As (Byte, String)) As C1
+            System.Console.Write("C1 ")
+            Return New C1(arg)
+        End Operator
+    End Class
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+
+            CompileAndVerify(comp, expectedOutput:="C1 C+C1")
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleConvertedTypeUDC07_StrictOff_Narrowing()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Tuples">
