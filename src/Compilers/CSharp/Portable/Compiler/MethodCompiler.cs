@@ -1551,11 +1551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body = (BoundBlock)binder.BindEmbeddedBlock(blockSyntax, diagnostics);
                     importChain = binder.ImportChain;
 
-                    if (method.MethodKind == MethodKind.Destructor)
-                    {
-                        return MethodBodySynthesizer.ConstructDestructorBody(method, body);
-                    }
-
                     foreach (var iterator in binder.MethodSymbolsWithYield)
                     {
                         foreach (var parameter in iterator.Parameters)
@@ -1591,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                     importChain = binder.ImportChain;
                     // Add locals
-                    return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                    body = binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
                 else
                 {
@@ -1608,6 +1603,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // synthesized methods should return their bound bodies
                 body = null;
+            }
+
+            if (method.MethodKind == MethodKind.Destructor && body != null)
+            {
+                return MethodBodySynthesizer.ConstructDestructorBody(method, body);
             }
 
             var constructorInitializer = BindConstructorInitializerIfAny(method, compilationState, diagnostics);

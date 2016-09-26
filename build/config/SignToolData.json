@@ -127,6 +127,7 @@
         "System.Diagnostics.FileVersionInfo.dll",
         "System.Diagnostics.Process.dll",
         "System.Diagnostics.StackTrace.dll",
+        "System.IO.Compression.dll",
         "System.IO.FileSystem.dll",
         "System.IO.FileSystem.DriveInfo.dll",
         "System.IO.FileSystem.Primitives.dll",

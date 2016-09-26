@@ -15,28 +15,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class SourceMemberFieldSymbolFromDesignation : SourceMemberFieldSymbol
     {
         private TypeSymbol _lazyType;
+        private SyntaxReference _typeSyntax;
 
         internal SourceMemberFieldSymbolFromDesignation(
             SourceMemberContainerTypeSymbol containingType,
             SingleVariableDesignationSyntax designation,
+            TypeSyntax typeSyntax,
             DeclarationModifiers modifiers)
             : base(containingType, modifiers, designation.Identifier.ValueText, designation.GetReference(), designation.Identifier.GetLocation())
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
+            _typeSyntax = typeSyntax.GetReference();
         }
 
         internal static SourceMemberFieldSymbolFromDesignation Create(
                 SourceMemberContainerTypeSymbol containingType,
                 SingleVariableDesignationSyntax designation,
+                TypeSyntax typeSyntax,
                 DeclarationModifiers modifiers,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
         {
-            Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
-            var typeSyntax = ((TypedVariableComponentSyntax)designation.Parent).Type;
+            Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator
+                || nodeToBind is ExpressionSyntax
+                || nodeToBind.Kind() == SyntaxKind.VariableComponentAssignment);
+
             return typeSyntax.IsVar
-                ? new SourceMemberFieldSymbolFromDesignationWithEnclosingContext(containingType, designation, modifiers, containingFieldOpt, nodeToBind)
-                : new SourceMemberFieldSymbolFromDesignation(containingType, designation, modifiers);
+                ? new SourceMemberFieldSymbolFromDesignationWithEnclosingContext(containingType, designation, typeSyntax, modifiers, containingFieldOpt, nodeToBind)
+                : new SourceMemberFieldSymbolFromDesignation(containingType, designation, typeSyntax, modifiers);
         }
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
@@ -54,14 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (SingleVariableDesignationSyntax)this.SyntaxNode;
             }
         }
-        
-        protected override TypeSyntax TypeSyntax
-        {
-            get
-            {
-                return ((TypedVariableComponentSyntax)VariableDesignation.Parent).Type;
-            }
-        }
+
+        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntax.GetSyntax();
 
         protected override SyntaxTokenList ModifiersTokenList
         {
@@ -170,16 +170,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly FieldSymbol _containingFieldOpt;
             private readonly SyntaxReference _nodeToBind;
 
-
             internal SourceMemberFieldSymbolFromDesignationWithEnclosingContext(
                 SourceMemberContainerTypeSymbol containingType,
                 SingleVariableDesignationSyntax designation,
+                TypeSyntax typeSyntax,
                 DeclarationModifiers modifiers,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
-                : base(containingType, designation, modifiers)
+                : base(containingType, designation, typeSyntax, modifiers)
             {
-                Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
+                Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator
+                    || nodeToBind is ExpressionSyntax
+                    || nodeToBind.Kind() == SyntaxKind.VariableComponentAssignment);
+
                 _containingFieldOpt = containingFieldOpt;
                 _nodeToBind = nodeToBind.GetReference();
             }
@@ -205,6 +208,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // int x, y[out var Z, 1 is int I];
                         // for (int x, y[out var Z, 1 is int I]; ;) {}
                         binder.BindDeclaratorArguments((VariableDeclaratorSyntax)nodeToBind, diagnostics);
+                        break;
+
+                    case SyntaxKind.VariableComponentAssignment:
+                        var deconstruction = (VariableComponentAssignmentSyntax)nodeToBind;
+
+                        binder.BindDeconstructionDeclaration(deconstruction, deconstruction.VariableComponent,
+                            deconstruction.Value, diagnostics);
+
                         break;
 
                     default:

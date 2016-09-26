@@ -10,6 +10,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory)), Shared]
     internal class RemoteHostClientFactory : IRemoteHostClientFactory
     {

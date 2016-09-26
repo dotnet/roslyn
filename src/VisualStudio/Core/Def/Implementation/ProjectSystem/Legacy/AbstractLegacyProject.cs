@@ -45,8 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                   hostDiagnosticUpdateSourceOpt: hostDiagnosticUpdateSourceOpt,
                   commandLineParserServiceOpt: commandLineParserServiceOpt)
         {
-            ConnectHierarchyEvents();
-            this.IsWebSite = GetIsWebsiteProject(hierarchy);
+            if (Hierarchy != null)
+            {
+                ConnectHierarchyEvents();
+                this.IsWebSite = GetIsWebsiteProject(Hierarchy);
+            }
 
             // Initialize command line arguments.
             base.SetArguments(commandLine: string.Empty);
@@ -65,10 +68,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             DisconnectHierarchyEvents();
         }
 
-        protected void AddFile(string filename, SourceCodeKind sourceCodeKind, uint itemId)
+        protected void AddFile(string filename, SourceCodeKind sourceCodeKind)
         {
             Func<IVisualStudioHostDocument, bool> getIsCurrentContext = document => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
-            AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNames(itemId));
+            AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNames);
         }
 
         protected void SetOutputPathAndRelatedData(string objOutputPath)
@@ -124,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             return hierarchy.TryGetName(out name) ? name : null;
         }
 
-        private static string GetProjectFilePath(IVsHierarchy hierarchy)
+        internal static string GetProjectFilePath(IVsHierarchy hierarchy)
         {
             string filePath;
             return ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out filePath)) ? filePath : null;
