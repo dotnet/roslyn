@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 _actionSets = await extensionManager.PerformFunctionAsync(Provider, async () =>
                 {
-                    var builder = ImmutableArray.CreateBuilder<SuggestedActionSet>();
+                    var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
                     // We use ConfigureAwait(true) to stay on the UI thread.
                     var previewChangesSuggestedActionSet = await GetPreviewChangesSuggestedActionSetAsync(cancellationToken).ConfigureAwait(true);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         builder.Add(fixAllSuggestedActionSet);
                     }
 
-                    return builder.ToImmutable();
+                    return builder.ToImmutableAndFree();
                     // We use ConfigureAwait(true) to stay on the UI thread.
                 }, defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
             }

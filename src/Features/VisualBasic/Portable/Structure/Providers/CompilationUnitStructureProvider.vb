@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of CompilationUnitSyntax)
 
         Protected Overrides Sub CollectBlockSpans(compilationUnit As CompilationUnitSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             Dim regions As New List(Of BlockSpan)
 

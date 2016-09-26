@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.Structure
         private readonly Document _document;
         private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
         private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
-        private readonly ImmutableArray<BlockSpan>.Builder _spans;
+        private readonly ArrayBuilder<BlockSpan> _spans;
         private readonly CancellationToken _cancellationToken;
 
         private BlockSpanCollector(
             Document document,
             ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> nodeOutlinerMap,
             ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> triviaOutlinerMap,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             _document = document;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Structure
             SyntaxNode syntaxRoot,
             ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> nodeOutlinerMap,
             ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> triviaOutlinerMap,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             var collector = new BlockSpanCollector(document, nodeOutlinerMap, triviaOutlinerMap, spans, cancellationToken);
