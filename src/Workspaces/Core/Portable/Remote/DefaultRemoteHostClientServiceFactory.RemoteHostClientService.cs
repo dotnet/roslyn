@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public class RemoteHostClientService : IRemoteHostClientService
         {
-            private readonly Task<RemoteHostClient> _instanceTask;
+            private readonly AsyncLazy<RemoteHostClient> _lazyInstance;
 
             public RemoteHostClientService(Workspace workspace)
             {
@@ -21,20 +21,17 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
-                _instanceTask = Task.Run(() => remoteHostClientFactory.CreateAsync(workspace, CancellationToken.None), CancellationToken.None);
+                _lazyInstance = new AsyncLazy<RemoteHostClient>(c => remoteHostClientFactory.CreateAsync(workspace, c), cacheResult: true);
             }
 
             public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (_instanceTask == null)
+                if (_lazyInstance == null)
                 {
-                    // service is in shutdown mode or not enabled
                     return SpecializedTasks.Default<RemoteHostClient>();
                 }
 
-                return _instanceTask;
+                return _lazyInstance.GetValueAsync(cancellationToken);
             }
         }
     }

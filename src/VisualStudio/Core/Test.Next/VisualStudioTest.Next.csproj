@@ -62,10 +62,6 @@
       <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
       <Name>ServiceHub</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\TestUtilities.Workspace\TestUtilities.Workspaces.csproj">
-      <Project>{78324e87-92d5-412c-9fa8-5cc2fbfbaf6c}</Project>
-      <Name>TestUtilities.Workspaces</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Core\Test\ServicesVisualStudioTest.vbproj">
       <Project>{A1455D30-55FC-45EF-8759-3AEBDB13D940}</Project>
       <Name>ServicesVisualStudioTest</Name>
