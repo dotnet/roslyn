@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result.Select(s => s.Symbol).ToList();
         }
 
-        internal static async Task<IEnumerable<SymbolAndProjectId>> FindImplementationsAsync(
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // A symbol can only have implementations if it's an interface or a
@@ -230,14 +230,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingTypesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
                 return implementingTypes.Select(s => (SymbolAndProjectId)s)
                                         .Where(IsAccessible)
-                                        .ToList();
+                                        .ToImmutableArray();
             }
             else if (symbol.IsImplementableMember())
             {
                 var containingType = symbol.ContainingType.OriginalDefinition;
                 var allTypes = await DependentTypeFinder.FindTransitivelyImplementingTypesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
 
-                List<SymbolAndProjectId> results = null;
+                ImmutableArray<SymbolAndProjectId>.Builder results = null;
                 foreach (var t in allTypes.Convert<INamedTypeSymbol, ITypeSymbol>())
                 {
                     foreach (var m in t.FindImplementationsForInterfaceMember(symbol, solution.Workspace, cancellationToken))
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var bestDef = sourceDef.Symbol != null ? sourceDef : m;
                         if (IsAccessible(bestDef))
                         {
-                            results = results ?? new List<SymbolAndProjectId>();
+                            results = results ?? ImmutableArray.CreateBuilder<SymbolAndProjectId>();
                             results.Add(bestDef.WithSymbol(bestDef.Symbol.OriginalDefinition));
                         }
                     }
@@ -254,11 +254,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (results != null)
                 {
-                    return results.Distinct(SymbolAndProjectIdComparer.SymbolEquivalenceInstance);
+                    return results.Distinct(SymbolAndProjectIdComparer.SymbolEquivalenceInstance)
+                                  .ToImmutableArray();
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
+            return ImmutableArray<SymbolAndProjectId>.Empty;
         }
 
         private static bool IsAccessible(SymbolAndProjectId symbolAndProjectId)
@@ -278,7 +279,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Finds all the callers of a specified symbol.
         /// </summary>
-        public static Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
         {
             return FindCallersAsync(symbol, solution, documents: null, cancellationToken: cancellationToken);
         }
@@ -322,7 +324,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return results ?? SpecializedCollections.EmptyEnumerable<SymbolCallerInfo>();
         }
 
-        private static Task<IEnumerable<ReferencedSymbol>> FindCallReferencesAsync(
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindCallReferencesAsync(
             Solution solution,
             ISymbol symbol,
             IImmutableSet<Document> documents,
@@ -334,11 +336,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     symbol.Kind == SymbolKind.Method ||
                     symbol.Kind == SymbolKind.Property)
                 {
-                    return SymbolFinder.FindReferencesAsync(symbol, solution, documents, cancellationToken);
+                    var result = await FindReferencesAsync(
+                        symbol, solution, documents, cancellationToken).ConfigureAwait(false);
+                    return result.ToImmutableArray();
                 }
             }
 
-            return SpecializedTasks.EmptyEnumerable<ReferencedSymbol>();
+            return ImmutableArray<ReferencedSymbol>.Empty;
         }
 
         private static bool OriginalSymbolsMatch(
