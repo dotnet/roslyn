@@ -72,6 +72,12 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
         {
+            if (checksum == Checksum.Null)
+            {
+                // check nil case
+                return Asset.Null;
+            }
+
             // search snapshots we have
             foreach (var cache in _rootTreeNodes.Values)
             {
@@ -102,7 +108,13 @@ namespace Microsoft.CodeAnalysis.Execution
             using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
             {
                 var numberOfChecksumsToSearch = searchingChecksumsLeft.Object.Count;
-                var result = new Dictionary<Checksum, ChecksumObject>();
+                var result = new Dictionary<Checksum, ChecksumObject>(numberOfChecksumsToSearch);
+
+                // check nil case
+                if (searchingChecksumsLeft.Object.Remove(Checksum.Null))
+                {
+                    result[Checksum.Null] = Asset.Null;
+                }
 
                 // search checksum trees we have
                 foreach (var cache in _rootTreeNodes.Values)
