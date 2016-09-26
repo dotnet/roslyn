@@ -10,12 +10,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Represents expression variables declared in a global statement.
+    /// Represents expression and deconstruction variables declared in a global statement.
     /// </summary>
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
         private TypeSymbol _lazyType;
-        private readonly TypeSyntax _typeSyntax;
+        private SyntaxReference _typeSyntax;
 
         internal GlobalExpressionVariable(
             SourceMemberContainerTypeSymbol containingType,
@@ -27,31 +27,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, modifiers, name, syntax, location)
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
-            this._typeSyntax = typeSyntax;
+            _typeSyntax = typeSyntax.GetReference();
         }
 
         internal static GlobalExpressionVariable Create(
                 SourceMemberContainerTypeSymbol containingType,
-                TypeSyntax typeSyntax,
                 DeclarationModifiers modifiers,
+                TypeSyntax typeSyntax,
                 string name,
                 SyntaxNode syntax,
                 Location location,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
         {
-            Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
+            Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator
+                || nodeToBind is ExpressionSyntax
+                || nodeToBind.Kind() == SyntaxKind.VariableComponentAssignment);
             var syntaxReference = syntax.GetReference();
             return typeSyntax.IsVar
                 ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
                 : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
         }
 
+
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
-        protected override TypeSyntax TypeSyntax => this._typeSyntax;
+        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntax.GetSyntax();
         protected override SyntaxTokenList ModifiersTokenList => default(SyntaxTokenList);
         public override bool HasInitializer => false;
         protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics) => null;
+        public SingleVariableDesignationSyntax VariableDesignation
+        {
+            get
+            {
+                return (SingleVariableDesignationSyntax)this.SyntaxNode;
+            }
+        }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
@@ -149,7 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxNode nodeToBind)
                 : base(containingType, modifiers, typeSyntax, name, syntax, location)
             {
-                Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
+                Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator
+                    || nodeToBind is ExpressionSyntax
+                    || nodeToBind.Kind() == SyntaxKind.VariableComponentAssignment);
+
                 _containingFieldOpt = containingFieldOpt;
                 _nodeToBind = nodeToBind.GetReference();
             }
@@ -175,6 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // int x, y[out var Z, 1 is int I];
                         // for (int x, y[out var Z, 1 is int I]; ;) {}
                         binder.BindDeclaratorArguments((VariableDeclaratorSyntax)nodeToBind, diagnostics);
+                        break;
+
+                    case SyntaxKind.VariableComponentAssignment:
+                        var deconstruction = (VariableComponentAssignmentSyntax)nodeToBind;
+
+                        binder.BindDeconstructionDeclaration(deconstruction, deconstruction.VariableComponent,
+                            deconstruction.Value, diagnostics);
+
                         break;
 
                     default:

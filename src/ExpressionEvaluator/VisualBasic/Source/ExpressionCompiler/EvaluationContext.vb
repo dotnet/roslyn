@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim currentFrame = compilation.GetMethod(moduleVersionId, methodHandle)
             Debug.Assert(currentFrame IsNot Nothing)
-            Dim symbolProvider = New VisualBasicEESymbolProvider(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
+            Dim symbolProvider = New VisualBasicEESymbolProvider(compilation.SourceAssembly, DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
 
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle)
@@ -409,8 +409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 resultProperties = properties
                 Return New VisualBasicCompileResult(
                         stream.ToArray(),
-                        s_typeName,
-                        s_methodName,
+                        GetSynthesizedMethod(moduleBuilder),
                         formatSpecifiers)
             End Using
         End Function
@@ -459,13 +458,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         properties.ModifierFlags)
                 Return New VisualBasicCompileResult(
                         stream.ToArray(),
-                        s_typeName,
-                        s_methodName,
+                        GetSynthesizedMethod(modulebuilder),
                         formatSpecifiers:=Nothing)
             End Using
         End Function
 
-        Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(New Byte() {})
+        Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(Array.Empty(Of Byte))
 
         Friend Overrides Function CompileGetLocals(
             locals As ArrayBuilder(Of LocalAndMethod),
@@ -647,6 +645,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Function IsValidMissingAssemblyIdentity(identity As AssemblyIdentity) As Boolean
             Return identity IsNot Nothing AndAlso Not identity.Equals(MissingCorLibrarySymbol.Instance.Identity)
         End Function
+
+        Private Shared Function GetSynthesizedMethod(moduleBuilder As CommonPEModuleBuilder) As MethodSymbol
+            Dim method = DirectCast(moduleBuilder, EEAssemblyBuilder).Methods.Single(Function(m) m.MetadataName = s_methodName)
+            Debug.Assert(method.ContainingType.MetadataName = s_typeName)
+            Return method
+        End Function
+
     End Class
 
 End Namespace

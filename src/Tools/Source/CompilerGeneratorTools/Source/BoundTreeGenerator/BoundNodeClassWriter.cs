@@ -1245,7 +1245,7 @@ namespace BoundTreeGenerator
                                     }
                                     else
                                     {
-                                        Write("new TreeDumperNode(\"{0}\", null, node.{1}.IsDefault ? SpecializedCollections.EmptyArray<TreeDumperNode>() : from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
+                                        Write("new TreeDumperNode(\"{0}\", null, node.{1}.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
                                     }
                                 }
                                 else
@@ -1260,7 +1260,7 @@ namespace BoundTreeGenerator
                         }
                         else
                         {
-                            WriteLine("SpecializedCollections.EmptyArray<TreeDumperNode>()");
+                            WriteLine("Array.Empty<TreeDumperNode>()");
                         }
                         WriteLine(");");
                         Unbrace();
@@ -1314,7 +1314,7 @@ namespace BoundTreeGenerator
                         }
                         else
                         {
-                            WriteLine("SpecializedCollections.EmptyArray(Of TreeDumperNode)())");
+                            WriteLine("Array.Empty(Of TreeDumperNode)())");
                         }
                         Outdent();
                         WriteLine("End Function");

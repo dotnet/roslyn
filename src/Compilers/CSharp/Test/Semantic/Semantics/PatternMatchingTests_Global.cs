@@ -3695,6 +3695,12 @@ class H
                 // (12,32): error CS0102: The type 'Script' already contains a definition for 'x4'
                 //                     (42 is int x4));
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 32),
+                // (14,33): error CS0102: The type 'Script' already contains a definition for 'x5'
+                // (bool x5, bool x6) = ((5 is int x5),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(14, 33),
+                // (15,33): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //                       (6 is int x6));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(15, 33),
                 // (1,1): warning CS0164: This label has not been referenced
                 // l1:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l1").WithLocation(1, 1),
@@ -3718,7 +3724,13 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
                 // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25),
+                // (19,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(19, 29),
+                // (19,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -3746,12 +3758,12 @@ class H
                 var x5Decl = GetPatternDeclarations(tree, "x5").Single();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(1, x5Ref.Length);
-                VerifyModelForDeclarationField(model, x5Decl, x5Ref);
+                VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
 
                 var x6Decl = GetPatternDeclarations(tree, "x6").Single();
                 var x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(1, x6Ref.Length);
-                VerifyModelForDeclarationField(model, x6Decl, x6Ref);
+                VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
@@ -3844,6 +3856,12 @@ class H
                 // (12,32): error CS0102: The type 'Script' already contains a definition for 'x4'
                 //                     (42 is var x4));
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 32),
+                // (14,33): error CS0102: The type 'Script' already contains a definition for 'x5'
+                // (bool x5, bool x6) = ((5 is var x5),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(14, 33),
+                // (15,33): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //                       (6 is var x6));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(15, 33),
                 // (1,1): warning CS0164: This label has not been referenced
                 // l1:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l1").WithLocation(1, 1),
@@ -3867,7 +3885,13 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
                 // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25),
+                // (19,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(19, 29),
+                // (19,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -3895,12 +3919,12 @@ class H
                 var x5Decl = GetPatternDeclarations(tree, "x5").Single();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(1, x5Ref.Length);
-                VerifyModelForDeclarationField(model, x5Decl, x5Ref);
+                VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
 
                 var x6Decl = GetPatternDeclarations(tree, "x6").Single();
                 var x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(1, x6Ref.Length);
-                VerifyModelForDeclarationField(model, x6Decl, x6Ref);
+                VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {

@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override Symbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
             return GlobalExpressionVariable.Create(
-                _containingType, node.Type, _modifiers,
+                _containingType, _modifiers, node.Type,
                 node.Identifier.ValueText, node, node.Identifier.GetLocation(),
                 _containingFieldOpt, nodeToBind);
         }
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var designation = node.VariableDesignation();
             return GlobalExpressionVariable.Create(
-                _containingType, ((TypedVariableComponentSyntax)designation.Parent).Type, _modifiers,
+                _containingType, _modifiers, node.Type(),
                 designation.Identifier.ValueText, designation, designation.Identifier.GetLocation(),
                 _containingFieldOpt, nodeToBind);
         }

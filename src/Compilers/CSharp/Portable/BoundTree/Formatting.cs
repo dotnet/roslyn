@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class DeconstructionLocalPendingInference
+    internal partial class DeconstructionVariablePendingInference
     {
         public override object Display
         {

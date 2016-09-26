@@ -416,7 +416,7 @@ namespace Roslyn.Utilities
             if (length == 0)
             {
                 //  simple check
-                return SpecializedCollections.EmptyArray<bool>();
+                return Array.Empty<bool>();
             }
 
             var array = new bool[length];
@@ -446,7 +446,7 @@ namespace Roslyn.Utilities
             if (length == 0)
             {
                 // quick check
-                return SpecializedCollections.EmptyArray<T>();
+                return Array.Empty<T>();
             }
 
             var array = new T[length];
