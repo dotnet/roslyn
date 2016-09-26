@@ -280,12 +280,91 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return localDeclaration.Parent
         End Function
 
+        Private Function GetNonWhitespaceTrivia(trivia As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Dim newLeadingTrivia = trivia _
+                .Reverse _
+                .SkipWhile(Function(t) t.IsKind(SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia)) _
+                .Reverse
+
+            ' Ensure that we leave a line break if trivia with a comment.
+            If newLeadingTrivia.Any() AndAlso newLeadingTrivia.Last().IsKind(SyntaxKind.CommentTrivia) Then
+                newLeadingTrivia = newLeadingTrivia.Concat(SyntaxFactory.CarriageReturnLineFeed)
+            End If
+            Return newLeadingTrivia
+        End Function
+
         Private Function GetUpdatedDeclaration(modifiedIdentifier As ModifiedIdentifierSyntax) As LocalDeclarationStatementSyntax
             Dim variableDeclarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
             Dim localDeclaration = DirectCast(variableDeclarator.Parent, LocalDeclarationStatementSyntax)
 
             If localDeclaration.Declarators.Count > 1 And variableDeclarator.Names.Count = 1 Then
-                Return localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepEndOfLine)
+                Dim newLocalDeclaration As LocalDeclarationStatementSyntax
+                Dim index = localDeclaration.Declarators.IndexOf(variableDeclarator)
+                newLocalDeclaration = localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepNoTrivia)
+
+                If index = 0 Then
+                    ' Position first
+                    Dim nextToken = variableDeclarator.GetLastToken.GetNextToken()
+                    Dim newLeadingTrivia = GetNonWhitespaceTrivia(nextToken.TrailingTrivia)
+                    newLocalDeclaration = newLocalDeclaration.WithPrependedLeadingTrivia(newLeadingTrivia)
+                    Return newLocalDeclaration
+                Else
+                    ' Position in the middle or last
+                    Dim prevToken = variableDeclarator.GetFirstToken.GetPreviousToken()
+                    Dim prevTokenTrailingTrivia = prevToken.TrailingTrivia
+                    Dim prevDeclarator = newLocalDeclaration.Declarators(index - 1)
+
+                    If index = localDeclaration.Declarators.Count - 1 Then
+                        ' Position last
+                        Dim trailingTrivia = GetNonWhitespaceTrivia(variableDeclarator.GetTrailingTrivia)
+                        If prevTokenTrailingTrivia.Any(Function(t) t.IsKind(SyntaxKind.CommentTrivia, SyntaxKind.EndOfLineTrivia)) Then
+                            ' Dim a = 1, ' a
+                            '     |b| = 2 ' b
+                            Return newLocalDeclaration _
+                                .ReplaceNode(
+                                    prevDeclarator,
+                                    prevDeclarator.WithTrailingTrivia(prevTokenTrailingTrivia)) _
+                                .WithPrependedLeadingTrivia(trailingTrivia)
+                        End If
+
+                        If trailingTrivia.Any(Function(t) t.IsKind(SyntaxKind.CommentTrivia)) Then
+                            ' Dim a = 1, |b| = 2 ' b
+                            Return newLocalDeclaration _
+                                .ReplaceNode(
+                                    prevDeclarator,
+                                    prevDeclarator.WithAppendedTrailingTrivia(trailingTrivia))
+                        End If
+
+                        Return localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepEndOfLine)
+                    Else
+                        ' Position middle
+                        Dim comma = prevDeclarator.GetLastToken.GetNextToken
+                        Dim trailingTrivia = GetNonWhitespaceTrivia(comma.TrailingTrivia)
+                        If prevTokenTrailingTrivia.Any(Function(t) t.IsKind(SyntaxKind.CommentTrivia, SyntaxKind.EndOfLineTrivia)) Then
+                            ' Dim a = 1, ' a
+                            '     |b| = 2, ' b
+                            '     c = 2
+                            newLocalDeclaration = newLocalDeclaration _
+                                .ReplaceToken(
+                                    comma,
+                                    comma.WithTrailingTrivia(prevTokenTrailingTrivia)) _
+                                .WithPrependedLeadingTrivia(trailingTrivia)
+
+                            Dim nextDeclarator = newLocalDeclaration.Declarators(index)
+                            If nextDeclarator.GetLeadingTrivia.IsEmpty Then
+                                newLocalDeclaration = newLocalDeclaration _
+                                    .ReplaceNode(
+                                        nextDeclarator,
+                                        nextDeclarator.WithLeadingTrivia(variableDeclarator.GetLeadingTrivia))
+                            End If
+                            Return newLocalDeclaration
+                        End If
+
+                        ' Dim a = 1, |b| = 2, ' b
+                        '     c = 3
+                        Return newLocalDeclaration
+                    End If
+                End If
             End If
 
             If variableDeclarator.Names.Count > 1 Then
