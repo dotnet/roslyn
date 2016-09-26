@@ -3230,7 +3230,21 @@ BC30311: Value of type '(Integer, String, C As Integer)' cannot be converted to 
                                           ~~~~~~~~~~~~~~~~~~
 </errors>)
 
-            ' TODO Update this test to match C# once https://github.com/dotnet/roslyn/issues/12965 is fixed (support for partially named tuples)
+
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(1, ""hello"", C:=2)", node.ToString())
+            Assert.Equal("(System.Int32, System.String, C As System.Int32)", model.GetTypeInfo(node).Type.ToTestDisplayString())
+
+            Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Dim xSymbol = DirectCast(model.GetDeclaredSymbol(x), LocalSymbol).Type
+            Assert.Equal("(System.Int32, A As System.String)", xSymbol.ToTestDisplayString())
+            Assert.True(xSymbol.IsTupleType)
+
+            Assert.Equal({"System.Int32", "System.String"}, xSymbol.TupleElementTypes.SelectAsArray(Function(t) t.ToTestDisplayString()))
+            Assert.Equal({Nothing, "A"}, xSymbol.TupleElementNames)
         End Sub
 
         <Fact>
@@ -9014,7 +9028,6 @@ End Module
 </compilation>,
 additionalRefs:=s_valueTupleRefs)
 
-            ' REVIEW TODO no conversion error on x2 or x3
             comp.AssertTheseDiagnostics(
 <errors>
 BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
@@ -9029,6 +9042,58 @@ BC41009: The tuple element name 'e' is ignored because a different name is speci
 BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                                                ~~~~
+BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+        Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
+                                                             ~~~~
+BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+        Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
+                                                                   ~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleConversion01_StrictOn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb"><![CDATA[
+Option Strict On
+Module C
+    Sub Main()
+        Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
+        Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
+        Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
+    End Sub
+End Module
+
+]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30512: Option Strict On disallows implicit conversions from '(c As Long, d As Long)' to '(a As Integer, b As Integer)'.
+        Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
+                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+        Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
+                                                             ~~~~
+BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+        Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
+                                                                   ~~~~
+BC30512: Option Strict On disallows implicit conversions from '(c As Integer, d As Integer)' to '(a As Short, b As Short)'.
+        Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
+                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+        Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
+                                                         ~~~~
+BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+        Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
+                                                               ~~~~
+BC30512: Option Strict On disallows implicit conversions from '(c As Long, d As Long)' to '(a As Integer, b As Integer)'.
+        Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
+                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                              ~~~~
@@ -9087,7 +9152,38 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+
+            Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleConvertedType01_StrictOn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Option Strict On
+Module C
+    Sub Main()
+        Dim x As (a As Short, b As String)? = (e:=1, f:="hello")
+    End Sub
+End Module
+
+        <%= s_trivial2uple %>
+    </file>
+</compilation>)
+
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
+            Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
+            Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9125,11 +9221,11 @@ End Module
 
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
-            Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString()) ' TODO REVIEW
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
 
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
-            Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString()) ' TODO REVIEW
+            Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9161,7 +9257,7 @@ End Module
             Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
             Assert.Equal("(System.Int32, System.String)", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
 
             CompileAndVerify(comp)
 
@@ -9191,7 +9287,7 @@ End Module
             Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
             Assert.Equal("(e As System.Int32, f As System.String)", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9221,11 +9317,46 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+
+            Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleConvertedType02insource00_StrictOn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Option Strict On
+Module C
+    Sub Main()
+        Dim x As (a As Short, b As String)? = DirectCast((e:=1, f:="hello"), (c As Short, d As String))
+    End Sub
+End Module
+        <%= s_trivial2uple %>
+    </file>
+</compilation>)
+
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
+            Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
+            Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+
+            Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
+            Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9256,7 +9387,42 @@ End Module
             Assert.Equal("DirectCast((x), (c As Long, d As String))", node.ToString())
             Assert.Equal("(c As System.Int64, d As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(a As System.Object, b As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+
+            Dim x = nodes.OfType(Of ParenthesizedExpressionSyntax)().Single()
+            Assert.Equal("(x)", x.ToString())
+            Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(x).Type.ToTestDisplayString())
+            Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(x).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(x).Kind)
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleConvertedType02insource01_StrictOn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Option Strict On
+Module C
+    Sub Main()
+        Dim x = (e:=1, f:="hello")
+        Dim x1 As (a As Object, b As String) = DirectCast((x), (c As Long, d As String))
+    End Sub
+End Module
+        <%= s_trivial2uple %>
+    </file>
+</compilation>)
+
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+
+            Dim node = nodes.OfType(Of ParenthesizedExpressionSyntax)().Single().Parent
+
+            Assert.Equal("DirectCast((x), (c As Long, d As String))", node.ToString())
+            Assert.Equal("(c As System.Int64, d As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
+            Assert.Equal("(a As System.Object, b As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of ParenthesizedExpressionSyntax)().Single()
             Assert.Equal("(x)", x.ToString())
@@ -9290,7 +9456,7 @@ End Module
             Assert.Equal("DirectCast((x), (c As Long, d As String))", node.ToString())
             Assert.Equal("(c As System.Int64, d As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Object, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of ParenthesizedExpressionSyntax)().Single()
             Assert.Equal("(x)", x.ToString())
@@ -9352,8 +9518,8 @@ End Module
 
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
-            Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString()) ' TODO REVIEW
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
 
             Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
@@ -9450,7 +9616,38 @@ End Module
 
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
-            Assert.Equal("(c As System.Int32, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString()) ' TODO REVIEW
+            Assert.Equal("(c As System.Int32, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(node).Kind)
+
+            Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Assert.Equal("x As (a As System.Int32, b As System.String)", model.GetDeclaredSymbol(x).ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleConvertedType05insource_StrictOn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Option Strict On
+Module C
+    Sub Main()
+        Dim x As (a As Integer, b As String) = DirectCast((e:=1, f:="hello"), (c As Integer, d As String))
+    End Sub
+End Module
+        <%= s_trivial2uple %>
+    </file>
+</compilation>)
+
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
+            Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
+            Assert.Equal("(c As System.Int32, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
@@ -9522,7 +9719,7 @@ End Module
             Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
-            Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString()) ' TODO REVIEW
+            Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, model.GetConversion(node.Parent).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
@@ -9583,7 +9780,7 @@ End Module
 
             Assert.Equal("Nothing", lnothing.ToString())
             Assert.Null(model.GetTypeInfo(lnothing).Type)
-            Assert.Equal("System.Object", model.GetTypeInfo(lnothing).ConvertedType.ToTestDisplayString()) ' TODO REVIEW
+            Assert.Equal("System.Object", model.GetTypeInfo(lnothing).ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.WideningNothingLiteral, model.GetConversion(lnothing).Kind)
 
             Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
@@ -9594,7 +9791,7 @@ End Module
             Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
-            Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString()) ' TODO REVIEW
+            Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, model.GetConversion(node.Parent).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
@@ -9637,12 +9834,54 @@ options:=TestOptions.DebugExe)
             Assert.Equal("(e:=1, f:=New C1(""qq""))", node.ToString())
             Assert.Equal("(e As System.Int32, f As C.C1)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(a As System.Int16, b As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.NarrowingTuple, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.NarrowingTuple, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As (a As System.Int16, b As System.String)", model.GetDeclaredSymbol(x).ToTestDisplayString())
 
             CompileAndVerify(comp, expectedOutput:="{1, qq1}")
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleConvertedTypeUDC01_StrictOn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Option Strict On
+Class C
+    Shared Sub Main()
+        Dim x As (a As Short, b As String) = (e:=1, f:=New C1("qq"))
+        System.Console.Write(x.ToString())
+    End Sub
+
+    Class C1
+        Public Dim s As String
+        Public Sub New(ByVal arg As String)
+            s = arg + "1"
+        End Sub
+        Public Shared Narrowing Operator CType(ByVal arg As C1) As String
+            Return arg.s
+        End Operator
+    End Class
+End Class
+        <%= s_trivial2uple %>
+    </file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(a As Short, b As String)'.
+        Dim x As (a As Short, b As String) = (e:=1, f:=New C1("qq"))
+                                              ~~~~
+BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(a As Short, b As String)'.
+        Dim x As (a As Short, b As String) = (e:=1, f:=New C1("qq"))
+                                                    ~~~~~~~~~~~~~~~
+BC30512: Option Strict On disallows implicit conversions from 'C.C1' to 'String'.
+        Dim x As (a As Short, b As String) = (e:=1, f:=New C1("qq"))
+                                                       ~~~~~~~~~~~~
+</errors>)
 
         End Sub
 
@@ -9681,11 +9920,11 @@ options:=TestOptions.DebugExe)
             Assert.Equal("(e:=1, f:=New C1(""qq""))", node.ToString())
             Assert.Equal("(e As System.Int32, f As C.C1)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.NarrowingTuple, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.NarrowingTuple, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
-            Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString()) ' TODO REVIEW
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(node.Parent).Kind) ' TODO REVIEW
+            Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(node.Parent).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As (a As System.Int16, b As System.String)", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9713,7 +9952,7 @@ Class C
             val = arg
         End Sub
         Public Shared Narrowing Operator CType(ByVal arg As (Byte, String)) As C1
-            Return New C1(arg)  ' TODO REVIEW
+            Return New C1(arg)
         End Operator
         Public Overrides Function ToString() As String
             Return val.ToString()
@@ -9733,7 +9972,7 @@ options:=TestOptions.DebugExe)
             Assert.Equal("(1, ""qq"")", node.ToString())
             Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("C.C1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind)
 
             CompileAndVerify(comp, expectedOutput:="{1, qq}")
 
@@ -9770,7 +10009,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-</errors>) ' TODO REVIEW
+</errors>)
 
             Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
             Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
@@ -9780,9 +10019,58 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.Equal("(""1"", ""qq"")", node.ToString())
             Assert.Equal("(System.String, System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("C.C1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind)
 
             CompileAndVerify(comp, expectedOutput:="(1, qq)")
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleConvertedTypeUDC03_StrictOn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Option Strict On
+Class C
+    Shared Sub Main()
+        Dim x As C1 = ("1", "qq")
+        System.Console.Write(x.ToString())
+    End Sub
+
+    Class C1
+        Public Dim val As (Byte, String)
+        Public Sub New(ByVal arg As (Byte, String))
+            val = arg
+        End Sub
+        Public Shared Narrowing Operator CType(ByVal arg As (Byte, String)) As C1
+            Return New C1(arg)
+        End Operator
+        Public Overrides Function ToString() As String
+            Return val.ToString()
+        End Function
+    End Class
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30512: Option Strict On disallows implicit conversions from '(String, String)' to 'C.C1'.
+        Dim x As C1 = ("1", "qq")
+                      ~~~~~~~~~~~
+</errors>)
+
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(""1"", ""qq"")", node.ToString())
+            Assert.Equal("(System.String, System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
+            Assert.Equal("C.C1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind)
 
         End Sub
 
@@ -9827,7 +10115,6 @@ Namespace System
         End Function
 
         Public Shared Narrowing Operator CType(ByVal arg As (T1, T2)) As C.C1
-            ' TODO REVIEW
             Return New C.C1((CType(DirectCast(DirectCast(arg.Item1, Object), Integer), Byte),
                 DirectCast(DirectCast(arg.Item2, Object), String)))
         End Operator
@@ -9847,7 +10134,7 @@ options:=TestOptions.DebugExe)
             Assert.Equal("(1, ""qq"")", node.ToString())
             Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("C.C1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind)
 
             CompileAndVerify(comp, expectedOutput:="{1, qq}")
 
@@ -9919,7 +10206,7 @@ options:=TestOptions.DebugExe)
             Assert.Equal("(1, ""qq"")", node.ToString())
             Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("C.C1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind)
 
             CompileAndVerify(comp, expectedOutput:="VT {1, qq}")
 
@@ -9991,9 +10278,9 @@ options:=TestOptions.DebugExe)
             Assert.Equal("(1, Nothing)", node.ToString())
             Assert.Null(model.GetTypeInfo(node).Type)
             Assert.Equal("C.C1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind) ' TODO REVIEW
+            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(node).Kind)
 
-            CompileAndVerify(comp, expectedOutput:="VT {1, }") ' TODO REVIEW
+            CompileAndVerify(comp, expectedOutput:="VT {1, }")
 
         End Sub
 
@@ -10030,12 +10317,12 @@ End Class
 </compilation>,
 options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 
-            comp.AssertTheseDiagnostics() ' TODO REVIEW
+            comp.AssertTheseDiagnostics()
 
             Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
             Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
 
-            CompileAndVerify(comp, expectedOutput:="C1 C+C1") ' TODO REVIEW
+            CompileAndVerify(comp, expectedOutput:="C1 C+C1")
 
         End Sub
 
