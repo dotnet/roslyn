@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         protected virtual string WorkspaceKind => TestWorkspace.WorkspaceName;
 
-        internal abstract Task<BlockSpan[]> GetBlockSpansAsync(Document document, int position);
+        internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position);
 
         protected async Task VerifyBlockSpansAsync(string markupCode, params Tuple<string, string, string, bool, bool>[] expectedRegionData)
         {
