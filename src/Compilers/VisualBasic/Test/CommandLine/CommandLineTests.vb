@@ -7929,27 +7929,19 @@ End Class
         <WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")>
         <Fact()>
         Public Sub Version()
-            Dim source = "Garbage"
-            Dim fileName = "a.vb"
-            Dim dir = Temp.CreateDirectory()
-            Dim file = dir.CreateFile(fileName)
-            file.WriteAllText(source)
+            Dim folderName = Temp.CreateDirectory().ToString()
+            Dim expected As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
 
-            Dim output As New StringWriter()
+            Dim argss = {
+                "/version",
+                "a.cs /version /preferreduilang:en",
+                "/version /nologo",
+                "/version /help"}
 
-            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/version"})
-            vbc.Run(output, Nothing)
-            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
-            Dim actual = output.ToString().TrimEnd()
-            Assert.Equal(version, actual)
-
-            output = New StringWriter()
-            vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/version", "/preferreduilang:en"})
-            vbc.Run(output, Nothing)
-            actual = output.ToString().TrimEnd()
-            Assert.Equal(version, actual)
-
-            CleanupAllGeneratedFiles(file.Path)
+            For Each args In argss
+                Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
+                Assert.Equal(expected, output.Trim())
+            Next
         End Sub
 
     End Class

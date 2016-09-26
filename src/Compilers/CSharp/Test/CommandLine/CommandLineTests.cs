@@ -8701,19 +8701,21 @@ class C {
         [Fact]
         public void Version()
         {
+            var folderName = Temp.CreateDirectory().ToString();
             var expected = FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion;
+            var argss = new[]
+            {
+                "/version",
+                "a.cs /version /preferreduilang:en",
+                "/version /nologo",
+                "/version /help",
+            };
 
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/version" });
-            int exitCode = csc.Run(outWriter);
-            Assert.Equal(expected, outWriter.ToString().TrimEnd());
-            Assert.Equal(0, exitCode);
-
-            outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "a.cs", "/version", "/preferreduilang:en" });
-            exitCode = csc.Run(outWriter);
-            Assert.Equal(expected, outWriter.ToString().TrimEnd());
-            Assert.Equal(0, exitCode);
+            foreach (var args in argss)
+            {
+                var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, args, startFolder: folderName);
+                Assert.Equal(expected, output.Trim());
+            }
         }
 
         public class QuotedArgumentTests

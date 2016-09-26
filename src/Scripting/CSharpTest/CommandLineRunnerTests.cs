@@ -452,6 +452,10 @@ Options:
             runner = CreateRunner(new[] { "/version", "/r:somefile" });
             Assert.Equal(0, runner.RunInteractive());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+
+            runner = CreateRunner(new[] { "/version", "/nologo" });
+            Assert.Equal(0, runner.RunInteractive());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
         }
 
         [Fact]
