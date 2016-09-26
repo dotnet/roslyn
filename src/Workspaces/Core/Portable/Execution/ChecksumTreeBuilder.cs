@@ -90,9 +90,11 @@ namespace Microsoft.CodeAnalysis.Execution
 
             var subAssetBuilder = new AssetBuilder(subTreeNode);
 
-            // set Asset.Nil if this particular project doesn't support compiler options
-            var compilationOptions = projectState.CompilationOptions != null ? subAssetBuilder.Build(projectState, projectState.CompilationOptions, cancellationToken) : Asset.Nil;
-            var parseOptions = projectState.ParseOptions != null ? subAssetBuilder.Build(projectState, projectState.ParseOptions, cancellationToken) : Asset.Nil;
+            // set Asset.Null if this particular project doesn't support compiler options.
+            // this one is really bit wierd since project state has both compilation/parse options but only has support compilation. 
+            // for now, we use support compilation for both options
+            var compilationOptions = projectState.SupportsCompilation ? subAssetBuilder.Build(projectState, projectState.CompilationOptions, cancellationToken) : Asset.Null;
+            var parseOptions = projectState.SupportsCompilation ? subAssetBuilder.Build(projectState, projectState.ParseOptions, cancellationToken) : Asset.Null;
 
             return new ProjectChecksumObject(
                 _serializer, info.Checksum, compilationOptions.Checksum, parseOptions.Checksum,

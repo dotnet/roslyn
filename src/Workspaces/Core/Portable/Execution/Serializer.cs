@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 switch (kind)
                 {
-                    case WellKnownChecksumObjects.Nil:
+                    case WellKnownChecksumObjects.Null:
                         return default(T);
 
                     case SolutionChecksumObject.Name:

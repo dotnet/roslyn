@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal abstract class Asset : ChecksumObject
     {
-        public static readonly Asset Nil = new NullAsset();
+        public static readonly Asset Null = new NullAsset();
 
         public Asset(Checksum checksum, string kind) : base(checksum, kind)
         {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private sealed class NullAsset : Asset
         {
             public NullAsset() :
-                base(Checksum.Nil, WellKnownChecksumObjects.Nil)
+                base(Checksum.Null, WellKnownChecksumObjects.Null)
             {
             }
 

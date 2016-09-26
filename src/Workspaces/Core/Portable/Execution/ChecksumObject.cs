@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Execution
     // TODO: Kind might not actually needed. see whether we can get rid of this
     internal static class WellKnownChecksumObjects
     {
-        public const string Nil = nameof(Nil);
+        public const string Null = nameof(Null);
 
         public const string Projects = nameof(Projects);
         public const string Documents = nameof(Documents);
