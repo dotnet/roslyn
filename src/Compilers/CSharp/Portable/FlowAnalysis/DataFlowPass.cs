@@ -28,6 +28,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+#if REFERENCE_STATE
+    using OptionalState = Optional<DataFlowPass.LocalState>;
+#else
+    using OptionalState = Nullable<DataFlowPass.LocalState>;
+#endif
+
     /// <summary>
     /// Implement C# data flow analysis (definite assignment).
     /// </summary>
@@ -432,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _unsafeAddressTakenVariables.Keys.ToArray();
         }
 
-        #region Tracking reads/writes of variables for warnings
+#region Tracking reads/writes of variables for warnings
 
         protected virtual void NoteRead(
             Symbol variable,
@@ -685,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        #endregion Tracking reads/writes of variables for warnings
+#endregion Tracking reads/writes of variables for warnings
 
         /// <summary>
         /// Locals are given slots when their declarations are encountered.  We only need give slots
@@ -1373,13 +1379,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetSlotUnassigned(int slot)
         {
-            if (_tryState != null)
+            if (_tryState.HasValue)
             {
-#if REFERENCE_STATE
-                var state = _tryState;
-#else
                 var state = _tryState.Value;
-#endif
                 SetSlotUnassigned(slot, ref state);
                 _tryState = state;
             }
@@ -1461,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        #region Visitors
+#region Visitors
 
         public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
         {
@@ -2039,42 +2041,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        #region TryStatements
-
-#if REFERENCE_STATE
-        private LocalState _tryState;
-#else
-        private LocalState? _tryState;
-#endif
+#region TryStatements
+        private OptionalState _tryState;
 
         protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
         {
             if (trackUnassignments)
             {
-#if REFERENCE_STATE
-                LocalState oldTryState = _tryState;
-#else
-                LocalState? oldTryState = _tryState;
-#endif
+                OptionalState oldTryState = _tryState;
                 _tryState = AllBitsSet();
                 base.VisitTryBlock(tryBlock, node, ref tryState);
-#if REFERENCE_STATE
-                var tts = _tryState;
-#else
                 var tts = _tryState.Value;
-#endif
                 IntersectWith(ref tryState, ref tts);
-#if REFERENCE_STATE
-                if (oldTryState != null)
-#else
                 if (oldTryState.HasValue)
-#endif
                 {
-#if REFERENCE_STATE
-                    var ots = oldTryState;
-#else
                     var ots = oldTryState.Value;
-#endif
                     IntersectWith(ref ots, ref tts);
                     oldTryState = ots;
                 }
@@ -2090,30 +2071,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (trackUnassignments)
             {
-#if REFERENCE_STATE
-                LocalState oldTryState = _tryState;
-#else
-                LocalState? oldTryState = _tryState;
-#endif
+                OptionalState oldTryState = _tryState;
                 _tryState = AllBitsSet();
                 VisitCatchBlockInternal(catchBlock, ref finallyState);
-#if REFERENCE_STATE
-                var tts = _tryState;
-#else
                 var tts = _tryState.Value;
-#endif
                 IntersectWith(ref finallyState, ref tts);
-#if REFERENCE_STATE
-                if (oldTryState != null)
-#else
                 if (oldTryState.HasValue)
-#endif
                 {
-#if REFERENCE_STATE
-                    var ots = oldTryState;
-#else
                     var ots = oldTryState.Value;
-#endif
                     IntersectWith(ref ots, ref tts);
                     oldTryState = ots;
                 }
@@ -2147,30 +2112,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (trackUnassignments)
             {
-#if REFERENCE_STATE
-                LocalState oldTryState = _tryState;
-#else
-                LocalState? oldTryState = _tryState;
-#endif
+                OptionalState oldTryState = _tryState;
                 _tryState = AllBitsSet();
                 base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
-#if REFERENCE_STATE
-                var tts = _tryState;
-#else
                 var tts = _tryState.Value;
-#endif
                 IntersectWith(ref unsetInFinally, ref tts);
-#if REFERENCE_STATE
-                if (oldTryState != null)
-#else
                 if (oldTryState.HasValue)
-#endif
                 {
-#if REFERENCE_STATE
-                    var ots = oldTryState;
-#else
                     var ots = oldTryState.Value;
-#endif
                     IntersectWith(ref ots, ref tts);
                     oldTryState = ots;
                 }
@@ -2183,7 +2132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        #endregion TryStatements
+#endregion TryStatements
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
@@ -2280,7 +2229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        #endregion Visitors
+#endregion Visitors
 
         protected override string Dump(LocalState state)
         {
