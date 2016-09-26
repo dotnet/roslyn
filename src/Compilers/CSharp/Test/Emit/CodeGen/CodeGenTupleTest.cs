@@ -2902,13 +2902,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,24): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "a").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "a").WithLocation(6, 24),
                 // (6,38): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "b").WithLocation(6, 38),
                 // (6,50): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50)
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "b").WithLocation(6, 50)
                );
         }
 
@@ -2930,16 +2930,16 @@ class C
             comp.VerifyDiagnostics(
                 // (6,28): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(6, 28),
                 // (6,50): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 50),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(6, 50),
                 // (7,14): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item2, string Item2) y = (Item2: 1, Item2: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(7, 14),
                 // (7,40): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item2, string Item2) y = (Item2: 1, Item2: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(7, 40)
                 );
         }
 
@@ -2960,13 +2960,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,37): error CS8125: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item10").WithArguments("Item10", "10").WithLocation(6, 37),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item10").WithArguments("Item10", "10").WithLocation(6, 37),
                 // (6,61): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 61),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(6, 61),
                 // (6,71): error CS8125: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item10").WithArguments("Item10", "10").WithLocation(6, 71)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item10").WithArguments("Item10", "10").WithLocation(6, 71)
                 );
         }
 
@@ -3007,10 +3007,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,24): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, c: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "a").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "a").WithLocation(6, 24),
                 // (6,50): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, c: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50)
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "b").WithLocation(6, 50)
                 );
         }
 
@@ -3031,22 +3031,22 @@ class C
             comp.VerifyDiagnostics(
                 // (6,28): error CS8125: Tuple member name 'Item3' is only allowed at position 3.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item3").WithArguments("Item3", "3").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item3").WithArguments("Item3", "3").WithLocation(6, 28),
                 // (6,42): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 42),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(6, 42),
                 // (6,100): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 100),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 100),
                 // (6,111): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 111),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(6, 111),
                 // (6,125): error CS8125: Tuple member name 'Item4' is only allowed at position 4.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "4").WithLocation(6, 125),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item4").WithArguments("Item4", "4").WithLocation(6, 125),
                 // (6,189): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 189)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 189)
                );
         }
 
@@ -3067,22 +3067,22 @@ class C
             comp.VerifyDiagnostics(
                 // (6,18): error CS8126: Tuple member name 'CompareTo' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 18),
                 // (6,43): error CS8126: Tuple member name 'Deconstruct' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 43),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 43),
                 // (6,59): error CS8126: Tuple member name 'Equals' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 59),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 59),
                 // (6,70): error CS8126: Tuple member name 'GetHashCode' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 70),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 70),
                 // (6,86): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 86),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 86),
                 // (6,95): error CS8126: Tuple member name 'ToString' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 95)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 95)
                 );
         }
 
@@ -9562,31 +9562,31 @@ class C
             comp.VerifyDiagnostics(
                 // (9,17): error CS8125: Tuple member name 'Item9' is only allowed at position 9.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item9").WithArguments("Item9", "9").WithLocation(9, 17),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item9").WithArguments("Item9", "9").WithLocation(9, 17),
                 // (9,28): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(9, 28),
                 // (9,39): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(9, 39),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(9, 39),
                 // (9,50): error CS8125: Tuple member name 'Item3' is only allowed at position 3.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item3").WithArguments("Item3", "3").WithLocation(9, 50),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item3").WithArguments("Item3", "3").WithLocation(9, 50),
                 // (9,61): error CS8125: Tuple member name 'Item4' is only allowed at position 4.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "4").WithLocation(9, 61),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item4").WithArguments("Item4", "4").WithLocation(9, 61),
                 // (9,72): error CS8125: Tuple member name 'Item5' is only allowed at position 5.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item5").WithArguments("Item5", "5").WithLocation(9, 72),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item5").WithArguments("Item5", "5").WithLocation(9, 72),
                 // (9,83): error CS8125: Tuple member name 'Item6' is only allowed at position 6.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item6").WithArguments("Item6", "6").WithLocation(9, 83),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item6").WithArguments("Item6", "6").WithLocation(9, 83),
                 // (9,94): error CS8125: Tuple member name 'Item7' is only allowed at position 7.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item7").WithArguments("Item7", "7").WithLocation(9, 94),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item7").WithArguments("Item7", "7").WithLocation(9, 94),
                 // (9,105): error CS8125: Tuple member name 'Item8' is only allowed at position 8.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item8").WithArguments("Item8", "8").WithLocation(9, 105)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item8").WithArguments("Item8", "8").WithLocation(9, 105)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -9666,7 +9666,7 @@ class C
             comp.VerifyDiagnostics(
                 // (9,73): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //     static (int a1, int a2, int a3, int a4, int a5, int a6, int a7, int Item1) M8()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(9, 73)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(9, 73)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -10204,7 +10204,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b)").WithArguments("(int a, int b)").WithLocation(23, 12),
                 // (35,73): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //     static (int a, int b, int c, int d, int e, int f, int g, int h, int Item2) M103()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(35, 73),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(35, 73),
                 // (35,12): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
                 //     static (int a, int b, int c, int d, int e, int f, int g, int h, int Item2) M103()
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b, int c, int d, int e, int f, int g, int h, int Item2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(35, 12),

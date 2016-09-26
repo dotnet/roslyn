@@ -3891,13 +3891,13 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37262: Tuple member names must be unique.
+BC37262: Tuple element names must be unique.
         Dim x As (a As Integer, a As String) = (b:=1, b:="hello", b:=2)
                                 ~
-BC37262: Tuple member names must be unique.
+BC37262: Tuple element names must be unique.
         Dim x As (a As Integer, a As String) = (b:=1, b:="hello", b:=2)
                                                       ~
-BC37262: Tuple member names must be unique.
+BC37262: Tuple element names must be unique.
         Dim x As (a As Integer, a As String) = (b:=1, b:="hello", b:=2)
                                                                   ~
 </errors>)
@@ -3923,16 +3923,16 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37261: Tuple member name 'Item1' is only allowed at position 1.
+BC37261: Tuple element name 'Item1' is only allowed at position 1.
         Dim x As (Item1 As Integer, Item1 As String) = (Item1:=1, Item1:="hello")
                                     ~~~~~
-BC37261: Tuple member name 'Item1' is only allowed at position 1.
+BC37261: Tuple element name 'Item1' is only allowed at position 1.
         Dim x As (Item1 As Integer, Item1 As String) = (Item1:=1, Item1:="hello")
                                                                   ~~~~~
-BC37261: Tuple member name 'Item2' is only allowed at position 2.
+BC37261: Tuple element name 'Item2' is only allowed at position 2.
         Dim y As (Item2 As Integer, Item2 As String) = (Item2:=1, Item2:="hello")
                   ~~~~~
-BC37261: Tuple member name 'Item2' is only allowed at position 2.
+BC37261: Tuple element name 'Item2' is only allowed at position 2.
         Dim y As (Item2 As Integer, Item2 As String) = (Item2:=1, Item2:="hello")
                                                         ~~~~~
 </errors>)
@@ -3957,13 +3957,13 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37261: Tuple member name 'Item10' is only allowed at position 10.
+BC37261: Tuple element name 'Item10' is only allowed at position 10.
         Dim x As (Item1 As Integer, Item01 As Integer, Item10 As Integer) = (Item01:=1, Item1:=2, Item10:=3)
                                                        ~~~~~~
-BC37261: Tuple member name 'Item1' is only allowed at position 1.
+BC37261: Tuple element name 'Item1' is only allowed at position 1.
         Dim x As (Item1 As Integer, Item01 As Integer, Item10 As Integer) = (Item01:=1, Item1:=2, Item10:=3)
                                                                                         ~~~~~
-BC37261: Tuple member name 'Item10' is only allowed at position 10.
+BC37261: Tuple element name 'Item10' is only allowed at position 10.
         Dim x As (Item1 As Integer, Item01 As Integer, Item10 As Integer) = (Item01:=1, Item1:=2, Item10:=3)
                                                                                                   ~~~~~~
 </errors>)
@@ -4011,10 +4011,10 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37262: Tuple member names must be unique.
+BC37262: Tuple element names must be unique.
         Dim x As (a As Integer, a As String) = (b:=1, c:="hello", b:=2)
                                 ~
-BC37262: Tuple member names must be unique.
+BC37262: Tuple element names must be unique.
         Dim x As (a As Integer, a As String) = (b:=1, c:="hello", b:=2)
                                                                   ~
 </errors>)
@@ -4040,22 +4040,22 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37261: Tuple member name 'Item3' is only allowed at position 3.
+BC37261: Tuple element name 'Item3' is only allowed at position 3.
         Dim x As (Item1 As Integer, Item3 As String, Item2 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Rest As Integer) =
                                     ~~~~~
-BC37261: Tuple member name 'Item2' is only allowed at position 2.
+BC37261: Tuple element name 'Item2' is only allowed at position 2.
         Dim x As (Item1 As Integer, Item3 As String, Item2 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Rest As Integer) =
                                                      ~~~~~
-BC37260: Tuple member name 'Rest' is disallowed at any position.
+BC37260: Tuple element name 'Rest' is disallowed at any position.
         Dim x As (Item1 As Integer, Item3 As String, Item2 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Rest As Integer) =
                                                                                                                                                ~~~~
-BC37261: Tuple member name 'Item2' is only allowed at position 2.
+BC37261: Tuple element name 'Item2' is only allowed at position 2.
             (Item2:="bad", Item4:="bad", Item3:=3, Item4:=4, Item5:=5, Item6:=6, Item7:=7, Rest:="bad")
              ~~~~~
-BC37261: Tuple member name 'Item4' is only allowed at position 4.
+BC37261: Tuple element name 'Item4' is only allowed at position 4.
             (Item2:="bad", Item4:="bad", Item3:=3, Item4:=4, Item5:=5, Item6:=6, Item7:=7, Rest:="bad")
                            ~~~~~
-BC37260: Tuple member name 'Rest' is disallowed at any position.
+BC37260: Tuple element name 'Rest' is disallowed at any position.
             (Item2:="bad", Item4:="bad", Item3:=3, Item4:=4, Item5:=5, Item6:=6, Item7:=7, Rest:="bad")
                                                                                            ~~~~
 </errors>)
@@ -4080,22 +4080,22 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37260: Tuple member name 'CompareTo' is disallowed at any position.
+BC37260: Tuple element name 'CompareTo' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                  ~~~~~~~~~
-BC37260: Tuple member name 'Deconstruct' is disallowed at any position.
+BC37260: Tuple element name 'Deconstruct' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                           ~~~~~~~~~~~
-BC37260: Tuple member name 'Equals' is disallowed at any position.
+BC37260: Tuple element name 'Equals' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                                           ~~~~~~
-BC37260: Tuple member name 'GetHashCode' is disallowed at any position.
+BC37260: Tuple element name 'GetHashCode' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                                                      ~~~~~~~~~~~
-BC37260: Tuple member name 'Rest' is disallowed at any position.
+BC37260: Tuple element name 'Rest' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                                                                      ~~~~
-BC37260: Tuple member name 'ToString' is disallowed at any position.
+BC37260: Tuple element name 'ToString' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                                                                               ~~~~~~~~
 </errors>)
@@ -6502,7 +6502,7 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37262: Tuple member names must be unique.
+BC37262: Tuple element names must be unique.
         Dim x1 = (A:=10, a:=20)
                          ~
 BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
@@ -6511,7 +6511,7 @@ BC31429: 'A' is ambiguous because multiple kinds of members with this name exist
 BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
         System.Console.Write(x1.A)
                              ~~~~
-BC37262: Tuple member names must be unique.
+BC37262: Tuple element names must be unique.
         Dim x2 as (A as Integer, a As Integer) = (10, 20)
                                  ~
 BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
@@ -6520,19 +6520,19 @@ BC31429: 'A' is ambiguous because multiple kinds of members with this name exist
 BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
         System.Console.Write(x1.A)
                              ~~~~
-BC37261: Tuple member name 'item1' is only allowed at position 1.
+BC37261: Tuple element name 'item1' is only allowed at position 1.
         Dim x3 = (I1:=10, item1:=20)
                           ~~~~~
-BC37261: Tuple member name 'item1' is only allowed at position 1.
+BC37261: Tuple element name 'item1' is only allowed at position 1.
         Dim x4 = (Item1:=10, item1:=20)
                              ~~~~~
-BC37261: Tuple member name 'item1' is only allowed at position 1.
+BC37261: Tuple element name 'item1' is only allowed at position 1.
         Dim x5 = (item1:=10, item1:=20)
                              ~~~~~
-BC37260: Tuple member name 'tostring' is disallowed at any position.
+BC37260: Tuple element name 'tostring' is disallowed at any position.
         Dim x6 = (tostring:=10, item1:=20)
                   ~~~~~~~~
-BC37261: Tuple member name 'item1' is only allowed at position 1.
+BC37261: Tuple element name 'item1' is only allowed at position 1.
         Dim x6 = (tostring:=10, item1:=20)
                                 ~~~~~
 </errors>)
