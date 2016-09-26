@@ -1972,7 +1972,7 @@ Module Module1
         Dim d As Long = &B001001100110
 
         ' unsigned
-        Dim e As UShort = &B01011
+        Dim e As Byte = &B01011
         Dim f As UShort = &B00100
         Dim g As UInteger = &B001001100110
         Dim h As ULong = &B001001100110
@@ -2002,7 +2002,7 @@ Module Module1
         Dim d As Long = &B1001100110
 
         ' unsigned
-        Dim e As UShort = &B1011
+        Dim e As Byte = &B1011
         Dim f As UShort = &B100
         Dim g As UInteger = &B1001100110
         Dim h As ULong = &B1001100110
