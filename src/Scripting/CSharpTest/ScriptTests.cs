@@ -711,7 +711,7 @@ i", options);
                     leaveOpen: true))
                 {
                     var textFromStream = streamReader.ReadToEnd();
-                    System.Diagnostics.Debug.Assert(textFromStream == text);
+                    Assert.Equal(textFromStream, text);
                 }
 
                 stream.Position = 0;
