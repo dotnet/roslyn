@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
         private readonly string _name;
         private readonly bool _isAutoPropertyAccessor;
+        private readonly bool _isExpressionBodied;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
             NamedTypeSymbol containingType,
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _property.IsExpressionBodied;
+                return _isExpressionBodied;
             }
         }
 
@@ -148,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = false;
+            _isExpressionBodied = true;
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer bit
@@ -192,12 +194,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body?.GetReference(), location)
+            base(containingType, syntax.GetReference(), syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(), location)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
+            Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
+            var hasBody = syntax.Body != null;
+            var hasExpressionBody = syntax.ExpressionBody != null;
+            _isExpressionBodied = !hasBody && hasExpressionBody;
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);
@@ -216,8 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            var bodyOpt = syntax.Body;
-            if (bodyOpt != null)
+            if (hasBody || hasExpressionBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }

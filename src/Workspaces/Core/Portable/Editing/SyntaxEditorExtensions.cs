@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Editing
             editor.ReplaceNode(declaration, (d, g) => g.WithModifiers(d, modifiers));
         }
 
+        internal static void RemoveAllAttributes(this SyntaxEditor editor, SyntaxNode declaration)
+        {
+            editor.ReplaceNode(declaration, (d, g) => g.RemoveAllAttributes(d));
+        }
+
         public static void SetName(this SyntaxEditor editor, SyntaxNode declaration, string name)
         {
             editor.ReplaceNode(declaration, (d, g) => g.WithName(d, name));

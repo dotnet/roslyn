@@ -1539,6 +1539,169 @@ class C
         }
 
         [Fact]
+        public void DeconstructionInScript()
+        {
+            var tree = UsingTree(@" (int x, int y) = (1, 2); ", options: TestOptions.Script);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.DeconstructionDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableComponentAssignment);
+                        {
+                            N(SyntaxKind.ParenthesizedVariableComponent);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TypedVariableComponent);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TypedVariableComponent);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DeconstructionForEachInScript()
+        {
+            var tree = UsingTree(@" foreach ((int x, int y) in new[] { (1, 2) }) { }; ", options: TestOptions.Script);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ForEachComponentStatement);
+                    {
+                        N(SyntaxKind.ForEachKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.ParenthesizedVariableComponent);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TypedVariableComponent);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.SingleVariableDesignation);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.TypedVariableComponent);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.SingleVariableDesignation);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.ImplicitArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.ArrayInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.TupleExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TupleArray()
         {
             var text = "(T, T)[] id;";

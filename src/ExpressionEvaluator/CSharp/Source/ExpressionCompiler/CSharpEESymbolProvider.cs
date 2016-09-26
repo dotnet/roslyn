@@ -22,16 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _method = method;
         }
 
-        private TypeSymbol GetDynamicType(TypeSymbol type, RefKind refKind, ImmutableArray<bool> dynamicFlags)
-        {
-            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(type, _sourceAssembly, refKind, dynamicFlags, checkLength: false);
-        }
-
-        private TypeSymbol IncludeTupleElementNames(TypeSymbol type, ImmutableArray<string> tupleElementNames)
-        {
-            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _sourceAssembly, tupleElementNames);
-        }
-
         public override LocalSymbol GetLocalVariable(
             string name,
             int slotIndex,
@@ -57,19 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 type = info.Type;
             }
 
-            if (!dynamicFlagsOpt.IsDefault)
-            {
-                type = GetDynamicType(type, refKind, dynamicFlagsOpt);
-            }
-
-            if (!tupleElementNamesOpt.IsDefault)
-            {
-                type = IncludeTupleElementNames(type, tupleElementNamesOpt);
-            }
-
             // Custom modifiers can be dropped since binding ignores custom
             // modifiers from locals and since we only need to preserve
             // the type of the original local in the generated method.
+            type = IncludeDynamicAndTupleElementNamesIfAny(type, refKind, dynamicFlagsOpt, tupleElementNamesOpt);
             return new EELocalSymbol(_method, EELocalSymbol.NoLocations, name, slotIndex, kind, type, refKind, isPinned, isCompilerGenerated: false, canScheduleToStack: false);
         }
 
@@ -80,16 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<bool> dynamicFlagsOpt,
             ImmutableArray<string> tupleElementNamesOpt)
         {
-            if (!dynamicFlagsOpt.IsDefault)
-            {
-                type = GetDynamicType(type, RefKind.None, dynamicFlagsOpt);
-            }
-
-            if (!tupleElementNamesOpt.IsDefault)
-            {
-                type = IncludeTupleElementNames(type, tupleElementNamesOpt);
-            }
-
+            type = IncludeDynamicAndTupleElementNamesIfAny(type, RefKind.None, dynamicFlagsOpt, tupleElementNamesOpt);
             return new EELocalConstantSymbol(_method, name, type, value);
         }
 
@@ -124,6 +96,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             bool isNoPiaLocalType;
             return _metadataDecoder.GetSymbolForTypeHandleOrThrow(handle, out isNoPiaLocalType, allowTypeSpec: true, requireShortForm: false);
+        }
+
+        private TypeSymbol IncludeDynamicAndTupleElementNamesIfAny(
+            TypeSymbol type,
+            RefKind refKind,
+            ImmutableArray<bool> dynamicFlagsOpt,
+            ImmutableArray<string> tupleElementNamesOpt)
+        {
+            if (!dynamicFlagsOpt.IsDefault)
+            {
+                type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(type, _sourceAssembly, refKind, dynamicFlagsOpt, checkLength: false);
+            }
+            if (!tupleElementNamesOpt.IsDefault)
+            {
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _sourceAssembly, tupleElementNamesOpt);
+            }
+            return type;
         }
     }
 }
