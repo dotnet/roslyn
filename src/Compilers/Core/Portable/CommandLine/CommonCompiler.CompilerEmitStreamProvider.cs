@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 // Unix & Mac are simple: just delete the file in the directory. 
                                 // The memory mapped content remains available for the reader.
-                                PortableShim.File.Delete(_filePath);
+                                File.Delete(_filePath);
                             }
                             else if (e.HResult == eWin32SharingViolation)
                             {
@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis
                                 var newFilePath = Path.Combine(Path.GetDirectoryName(_filePath), Guid.NewGuid().ToString() + "_" + Path.GetFileName(_filePath));
 
                                 // Try to rename the existing file. This fails unless the file is open with FileShare.Delete.
-                                PortableShim.File.Move(_filePath, newFilePath);
+                                File.Move(_filePath, newFilePath);
 
                                 // hide the renamed file:
-                                PortableShim.File.SetAttributes(newFilePath, PortableShim.FileAttributes.Hidden);
+                                File.SetAttributes(newFilePath, FileAttributes.Hidden);
 
                                 // Mark the renamed file for deletion, so that it's deleted as soon as the current reader is finished reading it
-                                PortableShim.File.Delete(newFilePath);
+                                File.Delete(newFilePath);
                             }
                         }
                         catch
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
 
             private Stream OpenFileStream()
             {
-                return _streamToDispose = _compiler.FileOpen(_filePath, PortableShim.FileMode.Create, PortableShim.FileAccess.ReadWrite, PortableShim.FileShare.None);
+                return _streamToDispose = _compiler.FileOpen(_filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             }
 
             private void ReportOpenFileDiagnostic(DiagnosticBag diagnostics, Exception e)

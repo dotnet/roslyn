@@ -113,7 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     try
                     {
                         instanceTask.Wait(_shutdownCancellationTokenSource.Token);
-                        instanceTask.Result.Shutdown();
+
+                        // result can be null if service hub failed to launch
+                        instanceTask.Result?.Shutdown();
                     }
                     catch (OperationCanceledException)
                     {
@@ -151,6 +153,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
                 var instance = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (instance == null)
+                {
+                    return null;
+                }
+
                 instance.ConnectionChanged += OnConnectionChanged;
 
                 return instance;

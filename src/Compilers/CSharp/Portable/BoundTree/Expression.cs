@@ -725,6 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitDynamic:
                     case CSharp.ConversionKind.ExplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitEnumeration:
+                    case CSharp.ConversionKind.ImplicitThrow:
                     case CSharp.ConversionKind.ImplicitTupleLiteral:
                     case CSharp.ConversionKind.ImplicitTuple:
                     case CSharp.ConversionKind.ExplicitTupleLiteral:
@@ -3015,6 +3016,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
+    }
+
+    partial class BoundThrowExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+        protected override OperationKind ExpressionKind => OperationKind.None;
     }
 
     internal partial class BoundDeclarationPattern

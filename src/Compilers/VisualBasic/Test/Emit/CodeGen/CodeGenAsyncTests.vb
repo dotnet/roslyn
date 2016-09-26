@@ -9074,6 +9074,79 @@ BC30456: 'AwaitOnCompleted' is not a member of 'AsyncVoidMethodBuilder'.
                 </expected>)
         End Sub
 
+
+        <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>
+        Public Sub MethodGroupWithConversionNoSpill()
+
+            Dim source = <compilation name="Async">
+                             <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Public Class AsyncBug
+    Public Shared Sub Main()
+        AsyncBug.Boom().GetAwaiter().GetResult()
+    End Sub
+
+    Public Async Shared Function Boom() As Task
+        Dim func As Func(Of Type) = Addressof (Await Task.FromResult(1)).GetType
+        Console.WriteLine(func())
+    End Function
+End Class
+                             </file>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[System.Int32]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>
+        Public Sub MethodGroupConversionWithSpill()
+            Dim source = <compilation name="Async">
+                             <file name="a.vb">
+imports System.Threading.Tasks
+imports System
+imports System.Linq
+imports System.Collections.Generic
+
+class Program
+    class SomeClass
+        Public Function Method(value as Integer) as Boolean
+            Return value Mod 2 = 0
+        End Function
+    End Class
+
+    private Async Function Danger() as Task(Of SomeClass)
+        await Task.Yield()
+        return new SomeClass()
+    End Function
+
+    Async function Killer() as Task(Of IEnumerable(Of Boolean))
+        Return {1, 2, 3, 4, 5}.Select(AddressOf (Await Danger()).Method)
+    End Function
+
+    Shared Sub Main(args As String())
+        For Each b in new Program().Killer().GetAwaiter().GetResult() 
+            Console.WriteLine(b)
+        Next
+    End Sub
+End Class
+                             </file>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[False
+True
+False
+True
+False
+]]>
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
     End Class
 End Namespace
 

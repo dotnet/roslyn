@@ -10,11 +10,12 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Collections;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             _clientDirectory = clientDirectory;
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
-            if (!SuppressDefaultResponseFile(args) && PortableShim.File.Exists(responseFile))
+            if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
             {
                 allArgs = new[] { "@" + responseFile }.Concat(allArgs);
             }
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var name = $"{typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Name}.dll";
                 var filePath = Path.Combine(_clientDirectory, name);
-                return PortableShim.Misc.GetFileVersion(filePath);
+                return FileVersionInfo.GetVersionInfo(filePath).FileVersion;
             }
 
             return "";
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             {
                 using (var data = OpenFileForReadWithSmallBufferOptimization(filePath))
                 {
-                    normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
+                    normalizedFilePath = data.Name;
                     return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
                 }
             }
@@ -172,18 +173,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static Stream OpenFileForReadWithSmallBufferOptimization(string filePath)
+        private static FileStream OpenFileForReadWithSmallBufferOptimization(string filePath)
         {
             // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText/EmbeddedText where
             // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
             // size, FileStream.Read still allocates the internal buffer.
-            return PortableShim.FileStream.Create(
+            return new FileStream(
                 filePath,
-                PortableShim.FileMode.Open, 
-                PortableShim.FileAccess.Read,
-                PortableShim.FileShare.ReadWrite,
+                FileMode.Open, 
+                FileAccess.Read,
+                FileShare.ReadWrite,
                 bufferSize: 1,
-                options: PortableShim.FileOptions.None);
+                options: FileOptions.None);
         }
 
         internal EmbeddedText TryReadEmbeddedFileContent(string filePath, IList<Diagnostic> diagnostics)
@@ -195,10 +196,10 @@ namespace Microsoft.CodeAnalysis
                     const int LargeObjectHeapLimit = 80 * 1024;
                     if (stream.Length < LargeObjectHeapLimit)
                     {
-                        byte[] buffer = EncodedStringText.TryGetByteArrayFromStream(stream);
-                        if (buffer != null)
+                        ArraySegment<byte> bytes;
+                        if (EncodedStringText.TryGetBytesFromStream(stream, out bytes))
                         {
-                            return EmbeddedText.FromBytes(filePath, new ArraySegment<byte>(buffer, 0, (int)stream.Length), Arguments.ChecksumAlgorithm);
+                            return EmbeddedText.FromBytes(filePath, bytes, Arguments.ChecksumAlgorithm);
                         }
                     }
 
@@ -400,7 +401,11 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(Arguments.ErrorLogPath != null);
 
-            var errorLog = OpenFile(Arguments.ErrorLogPath, consoleOutput, PortableShim.FileMode.Create, PortableShim.FileAccess.Write, PortableShim.FileShare.ReadWriteBitwiseOrDelete);
+            var errorLog = OpenFile(Arguments.ErrorLogPath,
+                                    consoleOutput,
+                                    FileMode.Create,
+                                    FileAccess.Write,
+                                    FileShare.ReadWrite | FileShare.Delete);
             if (errorLog == null)
             {
                 return null;
@@ -424,7 +429,7 @@ namespace Microsoft.CodeAnalysis
                 var culture = this.Culture;
                 if (culture != null)
                 {
-                    PortableShim.Misc.SetCurrentUICulture(culture);
+                    CultureInfo.CurrentUICulture = culture;
                 }
 
                 if (Arguments.ErrorLogPath != null)
@@ -451,7 +456,7 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
-                PortableShim.Misc.SetCurrentUICulture(saveUICulture);
+                CultureInfo.CurrentUICulture = saveUICulture;
                 errorLogger?.Dispose();
             }
         }
@@ -565,7 +570,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (Arguments.SourceLink != null)
                     {
-                        sourceLinkStreamOpt = OpenFile(Arguments.SourceLink, consoleOutput, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read);
+                        sourceLinkStreamOpt = OpenFile(Arguments.SourceLink, consoleOutput, FileMode.Open, FileAccess.Read, FileShare.Read);
                     }
 
                     var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
@@ -599,7 +604,11 @@ namespace Microsoft.CodeAnalysis
 
                                 if (finalXmlFilePath != null)
                                 {
-                                    xmlStreamOpt = OpenFile(finalXmlFilePath, consoleOutput, PortableShim.FileMode.OpenOrCreate, PortableShim.FileAccess.Write, PortableShim.FileShare.ReadWriteBitwiseOrDelete);
+                                    xmlStreamOpt = OpenFile(finalXmlFilePath,
+                                                            consoleOutput,
+                                                            FileMode.OpenOrCreate,
+                                                            FileAccess.Write,
+                                                            FileShare.ReadWrite | FileShare.Delete);
                                     if (xmlStreamOpt == null)
                                     {
                                         return Failed;
@@ -726,7 +735,7 @@ namespace Microsoft.CodeAnalysis
                         touchedFilesLogger.AddWritten(finalXmlFilePath);
                     }
 
-                    var readStream = OpenFile(Arguments.TouchedFilesPath + ".read", consoleOutput, mode: PortableShim.FileMode.OpenOrCreate);
+                    var readStream = OpenFile(Arguments.TouchedFilesPath + ".read", consoleOutput, mode: FileMode.OpenOrCreate);
                     if (readStream == null)
                     {
                         return Failed;
@@ -737,7 +746,7 @@ namespace Microsoft.CodeAnalysis
                         touchedFilesLogger.WriteReadPaths(writer);
                     }
 
-                    var writtenStream = OpenFile(Arguments.TouchedFilesPath + ".write", consoleOutput, mode: PortableShim.FileMode.OpenOrCreate);
+                    var writtenStream = OpenFile(Arguments.TouchedFilesPath + ".write", consoleOutput, mode: FileMode.OpenOrCreate);
                     if (writtenStream == null)
                     {
                         return Failed;
@@ -869,19 +878,19 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Test hook for intercepting File.Open.
         /// </summary>
-        internal Func<string, object, object, object, Stream> FileOpen
+        internal Func<string, FileMode, FileAccess, FileShare, Stream> FileOpen
         {
-            get { return _fileOpen ?? PortableShim.FileStream.Create_String_FileMode_FileAccess_FileShare; }
+            get { return _fileOpen ?? ((path, mode, access, share) => new FileStream(path, mode, access, share)); }
             set { _fileOpen = value; }
         }
-        private Func<string, object, object, object, Stream> _fileOpen;
+        private Func<string, FileMode, FileAccess, FileShare, Stream> _fileOpen;
 
-        private Stream OpenFile(string filePath, TextWriter consoleOutput, object mode = null, object access = null, object share = null)
+        private Stream OpenFile(string filePath,
+                                TextWriter consoleOutput,
+                                FileMode mode = FileMode.Open,
+                                FileAccess access = FileAccess.ReadWrite,
+                                FileShare share = FileShare.None)
         {
-            mode = mode ?? PortableShim.FileMode.Open;
-            access = access ?? PortableShim.FileAccess.ReadWrite;
-            share = share ?? PortableShim.FileShare.None;
-
             try
             {
                 return FileOpen(filePath, mode, access, share);
@@ -959,7 +968,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read);
+                return new FileStream(fullPath, FileMode.Open, FileAccess.Read);
             }
             catch (Exception ex)
             {
@@ -1002,7 +1011,7 @@ namespace Microsoft.CodeAnalysis
         {
             var key = CreateDeterminismKey(args, rawArgs, baseDirectory, parser);
             var filePath = Path.Combine(args.OutputDirectory, args.OutputFileName + ".key");
-            using (var stream = PortableShim.File.Create(filePath))
+            using (var stream = File.Create(filePath))
             {
                 var bytes = Encoding.UTF8.GetBytes(key);
                 stream.Write(bytes, 0, bytes.Length);
@@ -1038,7 +1047,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             builder.AppendLine("Source Files:");
-            var hash = new MD5CryptoServiceProvider();
+            var hash = MD5.Create();
             foreach (var sourceFile in args.SourceFiles)
             {
                 var sourceFileName = Path.GetFileName(sourceFile.Path);
@@ -1046,7 +1055,7 @@ namespace Microsoft.CodeAnalysis
                 string hashValue;
                 try
                 {
-                    var bytes = PortableShim.File.ReadAllBytes(sourceFile.Path);
+                    var bytes = File.ReadAllBytes(sourceFile.Path);
                     var hashBytes = hash.ComputeHash(bytes);
                     var data = BitConverter.ToString(hashBytes);
                     hashValue = data.Replace("-", "");

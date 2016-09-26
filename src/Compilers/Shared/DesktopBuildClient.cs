@@ -92,11 +92,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libEnvVariable,
             CancellationToken cancellationToken)
         {
+            var pipeNameOpt = GetPipeNameForPathOpt(buildPaths.ClientDirectory);
+
+            if (pipeNameOpt == null)
+            {
+                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+            }
+
             return RunServerCompilationCore(
                 language,
                 arguments,
                 buildPaths,
-                GetPipeNameForPath(buildPaths.ClientDirectory),
+                pipeNameOpt,
                 keepAlive,
                 libEnvVariable,
                 timeoutOverride: null,
@@ -473,13 +480,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
             (ObjectSecurity)typeof(PipeStream)
             .GetTypeInfo()
             .GetDeclaredMethod("GetAccessControl")
-            .Invoke(pipeStream, parameters: null);
+            ?.Invoke(pipeStream, parameters: null);
 
         private static string GetUserName() =>
             (string)typeof(Environment)
             .GetTypeInfo()
             .GetDeclaredProperty("UserName")
-            .GetMethod.Invoke(null, parameters: null);
+            ?.GetMethod?.Invoke(null, parameters: null);
 
         /// <summary>
         /// Given the full path to the directory containing the compiler exes,
@@ -488,10 +495,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         protected override string GetSessionKey(BuildPaths buildPaths)
         {
-            return GetPipeNameForPath(buildPaths.ClientDirectory);
+            return GetPipeNameForPathOpt(buildPaths.ClientDirectory);
         }
 
-        internal static string GetPipeNameForPath(string compilerExeDirectory)
+        /// <returns>
+        /// Null if not enough information was found to create a valid pipe name.
+        /// </returns>
+        internal static string GetPipeNameForPathOpt(string compilerExeDirectory)
         { 
             var basePipeName = GetBasePipeName(compilerExeDirectory);
 
@@ -500,6 +510,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var principal = new WindowsPrincipal(currentIdentity);
             var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
             var userName = GetUserName();
+            if (userName == null)
+            {
+                return null;
+            }
+
             return $"{userName}.{isAdmin}.{basePipeName}";
         }
 

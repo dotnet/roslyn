@@ -143,6 +143,17 @@ namespace Microsoft.CodeAnalysis.Options
         {
             lock (_gate)
             {
+                object oldValue;
+
+                if (_currentValues.TryGetValue(optionKey, out oldValue))
+                {
+                    if (object.Equals(oldValue, newValue))
+                    {
+                        // Value is still the same, no reason to raise events
+                        return;
+                    }
+                }
+
                 _currentValues = _currentValues.SetItem(optionKey, newValue);
             }
 

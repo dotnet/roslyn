@@ -11,8 +11,7 @@
     <AssemblyName>Roslyn.Compilers.Test.Resources</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -345,6 +344,8 @@
     <EmbeddedResource Include="SymbolsTests\snKey2.snk" />
     <EmbeddedResource Include="SymbolsTests\snPublicKey.snk" />
     <EmbeddedResource Include="SymbolsTests\snPublicKey2.snk" />
+    <EmbeddedResource Include="SymbolsTests\snMaxSizeKey.snk" />
+    <EmbeddedResource Include="SymbolsTests\snMaxSizePublicKey.snk" />
     <EmbeddedResource Include="SymbolsTests\TypeForwarders\Forwarded.netmodule" />
     <EmbeddedResource Include="SymbolsTests\TypeForwarders\TypeForwarder.dll" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.vb" />

@@ -6744,6 +6744,188 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub TupleNamesFromVB001()
+
+            Dim classLib = CreateVisualBasicCompilation("VBClass",
+            <![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Text
+Imports System.Threading.Tasks
+
+Namespace ClassLibrary1
+    Public Class Class1
+        Public foo As (Alice As Integer, Bob As Integer) = (2, 3)
+
+        Public Function Bar() As (Alice As Integer, Bob As Integer)
+            Return (4, 5)
+        End Function
+
+        Public ReadOnly Property Baz As (Alice As Integer, Bob As Integer)
+            Get
+                Return (6, 7)
+            End Get
+        End Property
+    End Class
+
+    Public Class Class2
+        Public foo As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer) = SetBob(11)
+
+        Public Function Bar() As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer)
+            Return SetBob(12)
+        End Function
+
+        Public ReadOnly Property Baz As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer)
+            Get
+                Return SetBob(13)
+            End Get
+        End Property
+
+        Private Shared Function SetBob(x As Integer) As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer)
+            Dim result As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer) = Nothing
+            result.Bob = x
+            Return result
+        End Function
+    End Class
+
+    Public Class class3
+        Implements IEnumerable(Of (Alice As Integer, Bob As Integer))
+
+        Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Public Iterator Function GetEnumerator() As IEnumerator(Of (Alice As Integer, Bob As Integer)) Implements IEnumerable(Of (Alice As Integer, Bob As Integer)).GetEnumerator
+            Yield (1, 2)
+            Yield (3, 4)
+        End Function
+    End Class
+End Namespace
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Alice)
+        System.Console.WriteLine(x.foo.Bob)
+        System.Console.WriteLine(x.Bar.Alice)
+        System.Console.WriteLine(x.Bar.Bob)
+        System.Console.WriteLine(x.Baz.Alice)
+        System.Console.WriteLine(x.Baz.Bob)
+
+        Dim y As New ClassLibrary1.Class2
+        System.Console.WriteLine(y.foo.Alice)
+        System.Console.WriteLine(y.foo.Bob)
+        System.Console.WriteLine(y.Bar.Alice)
+        System.Console.WriteLine(y.Bar.Bob)
+        System.Console.WriteLine(y.Baz.Alice)
+        System.Console.WriteLine(y.Baz.Bob)
+
+        Dim z As New ClassLibrary1.class3
+        For Each item In z
+            System.Console.WriteLine(item.Alice)
+            System.Console.WriteLine(item.Bob)
+        Next
+
+    End Sub
+End Module
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={classLib},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbexeVerifier = CompileAndVerify(vbCompilation,
+                                                 expectedOutput:="
+2
+3
+4
+5
+6
+7
+0
+11
+0
+12
+0
+13
+1
+2
+3
+4")
+
+            vbexeVerifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TupleNamesFromVB001_InterfaceImpl()
+
+            Dim classLib = CreateVisualBasicCompilation("VBClass",
+            <![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Text
+Imports System.Threading.Tasks
+
+Namespace ClassLibrary1
+    Public Class class3
+        Implements IEnumerable(Of (Alice As Integer, Bob As Integer))
+
+        Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Private Iterator Function GetEnumerator() As IEnumerator(Of (Alice As Integer, Bob As Integer)) Implements IEnumerable(Of (Alice As Integer, Bob As Integer)).GetEnumerator
+            Yield (1, 2)
+            Yield (3, 4)
+        End Function
+    End Class
+End Namespace
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim z As New ClassLibrary1.class3
+        For Each item In z
+            System.Console.WriteLine(item.Alice)
+            System.Console.WriteLine(item.Bob)
+        Next
+
+    End Sub
+End Module
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={classLib},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbexeVerifier = CompileAndVerify(vbCompilation,
+                                                 expectedOutput:="
+1
+2
+3
+4")
+
+            vbexeVerifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub TupleNamesFromCS002()
 
             Dim csCompilation = CreateCSharpCompilation("CSDll",
@@ -6823,6 +7005,88 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub TupleNamesFromVB002()
+
+            Dim classLib = CreateVisualBasicCompilation("VBClass",
+            <![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Text
+Imports System.Threading.Tasks
+
+Namespace ClassLibrary1
+    Public Class Class1
+        Public foo As (Alice As Integer, Bob As (Alice As Integer, Bob As Integer)) = (2, (2, 3))
+
+        Public Function Bar() As (Alice As (Alice As Integer, Bob As Integer)(), Bob As Integer)
+            Return (New(Integer, Integer)() {(4, 5)}, 5)
+        End Function
+
+        Public ReadOnly Property Baz As (Alice As Integer, Bob As List(Of (Alice As Integer, Bob As Integer) ?))
+            Get
+                Return (6, New List(Of (Alice As Integer, Bob As Integer) ?)() From {(8, 9)})
+            End Get
+        End Property
+
+        Public Shared Event foo1 As Action(Of (i0 As Integer, i1 As Integer, i2 As Integer, i3 As Integer, i4 As Integer, i5 As Integer, i6 As Integer, i7 As Integer, Bob As (Alice As Integer, Bob As Integer)))
+
+        Public Shared Sub raise()
+            RaiseEvent foo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)))
+        End Sub
+    End Class
+End Namespace
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Bob.Bob)
+        System.Console.WriteLine(x.foo.Item2.Item2)
+        System.Console.WriteLine(x.Bar.Alice(0).Bob)
+        System.Console.WriteLine(x.Bar.Item1(0).Item2)
+        System.Console.WriteLine(x.Baz.Bob(0).Value)
+        System.Console.WriteLine(x.Baz.Item2(0).Value)
+
+        AddHandler ClassLibrary1.Class1.foo1, Sub(p)
+                                                  System.Console.WriteLine(p.Bob.Bob)
+                                                  System.Console.WriteLine(p.Rest.Item2.Bob)
+                                              End Sub
+
+        ClassLibrary1.Class1.raise()
+
+    End Sub
+
+End Module
+
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={classLib},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbexeVerifier = CompileAndVerify(vbCompilation,
+                                                 expectedOutput:="
+3
+3
+5
+5
+(8, 9)
+(8, 9)
+42
+42")
+
+            vbexeVerifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub TupleNamesFromCS003()
 
             Dim csCompilation = CreateCSharpCompilation("CSDll",
@@ -6881,9 +7145,7 @@ End Module
 )
         End Sub
 
-        ' Need to port the changes to the tuple field ID from C#
-        ' Otherwise the partially named tuples throw exceptions.
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13470")>
+        <Fact>
         Public Sub TupleNamesFromCS004()
 
             Dim csCompilation = CreateCSharpCompilation("CSDll",
@@ -6922,7 +7184,7 @@ Module Module1
         Dim f = x.foo
         System.Console.WriteLine(f.Item1)
         System.Console.WriteLine(f.Item2)
-        System.Console.WriteLine(x.Item3)
+        System.Console.WriteLine(f.Item3)
         System.Console.WriteLine(f.Alice)
         System.Console.WriteLine(f.alice)
 
@@ -6936,7 +7198,12 @@ End Module
                             referencedCompilations:={csCompilation},
                             referencedAssemblies:=s_valueTupleRefsAndDefault)
 
-            vbCompilation.VerifyDiagnostics()
+            vbCompilation.VerifyDiagnostics(
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(9, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(10, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(16, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(17, 34)
+                )
         End Sub
 
         <Fact>
@@ -8232,6 +8499,485 @@ End Module
 
         End Sub
 
+        <Fact>
+        Public Sub UnifyUnderlyingWithTuple_08()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+
+    Sub Main()
+
+        Dim x = (1, 3)
+        Dim s As String = x
+        System.Console.WriteLine(s)
+        System.Console.WriteLine(CType(x, Long))
+
+        Dim y As (Integer, String) = New KeyValuePair(Of Integer, String)(2, "4")
+        System.Console.WriteLine(y)
+        System.Console.WriteLine(CType("5", ValueTuple(Of String, String)))
+
+        System.Console.WriteLine(+x)
+        System.Console.WriteLine(-x)
+        System.Console.WriteLine(Not x)
+        System.Console.WriteLine(If(x, True, False))
+        System.Console.WriteLine(If(Not x, True, False))
+
+        System.Console.WriteLine(x + 1)
+        System.Console.WriteLine(x - 1)
+        System.Console.WriteLine(x * 3)
+        System.Console.WriteLine(x / 2)
+        System.Console.WriteLine(x \ 2)
+        System.Console.WriteLine(x Mod 3)
+        System.Console.WriteLine(x & 3)
+        System.Console.WriteLine(x And 3)
+        System.Console.WriteLine(x Or 15)
+        System.Console.WriteLine(x Xor 3)
+        System.Console.WriteLine(x Like 15)
+        System.Console.WriteLine(x ^ 4)
+        System.Console.WriteLine(x << 1)
+        System.Console.WriteLine(x >> 1)
+        System.Console.WriteLine(x = 1)
+        System.Console.WriteLine(x <> 1)
+        System.Console.WriteLine(x > 1)
+        System.Console.WriteLine(x < 1)
+        System.Console.WriteLine(x >= 1)
+        System.Console.WriteLine(x <= 1)
+    End Sub
+End Module
+]]></file>
+</compilation>
+
+            Dim tuple =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace System
+
+    Public Structure ValueTuple(Of T1, T2)
+
+        Public Item1 As T1
+        Public Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            Me.Item1 = item1
+            Me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+
+        Public Shared Widening Operator CType(arg As ValueTuple(Of T1, T2)) As String
+            Return arg.ToString()
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As ValueTuple(Of T1, T2)) As Long
+            Return CLng(CObj(arg.Item1) + CObj(arg.Item2))
+        End Operator
+
+        Public Shared Widening Operator CType(arg As System.Collections.Generic.KeyValuePair(Of T1, T2)) As ValueTuple(Of T1, T2)
+            Return New ValueTuple(Of T1, T2)(arg.Key, arg.Value)
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As String) As ValueTuple(Of T1, T2)
+            Return New ValueTuple(Of T1, T2)(CType(CObj(arg), T1), CType(CObj(arg), T2))
+        End Operator
+
+        Public Shared Operator +(arg As ValueTuple(Of T1, T2)) As ValueTuple(Of T1, T2)
+            Return arg
+        End Operator
+
+        Public Shared Operator -(arg As ValueTuple(Of T1, T2)) As Long
+            Return -CType(arg, Long)
+        End Operator
+
+        Public Shared Operator Not(arg As ValueTuple(Of T1, T2)) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator IsTrue(arg As ValueTuple(Of T1, T2)) As Boolean
+            Return CType(arg, Long) <> 0
+        End Operator
+
+        Public Shared Operator IsFalse(arg As ValueTuple(Of T1, T2)) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator +(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) + arg2
+        End Operator
+
+        Public Shared Operator -(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) - arg2
+        End Operator
+
+        Public Shared Operator *(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) * arg2
+        End Operator
+
+        Public Shared Operator /(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) / arg2
+        End Operator
+
+        Public Shared Operator \(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) \ arg2
+        End Operator
+
+        Public Shared Operator Mod(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) Mod arg2
+        End Operator
+
+        Public Shared Operator &(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) & arg2
+        End Operator
+
+        Public Shared Operator And(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) And arg2
+        End Operator
+
+        Public Shared Operator Or(arg1 As ValueTuple(Of T1, T2), arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator Xor(arg1 As ValueTuple(Of T1, T2), arg2 As Long) As Long
+            Return CType(arg1, Long) Xor arg2
+        End Operator
+
+        Public Shared Operator Like(arg1 As ValueTuple(Of T1, T2), arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator ^(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) ^ arg2
+        End Operator
+
+        Public Shared Operator <<(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) << arg2
+        End Operator
+
+        Public Shared Operator >>(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Long
+            Return CType(arg1, Long) >> arg2
+        End Operator
+
+        Public Shared Operator =(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) = arg2
+        End Operator
+
+        Public Shared Operator <>(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <> arg2
+        End Operator
+
+        Public Shared Operator >(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) > arg2
+        End Operator
+
+        Public Shared Operator <(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) < arg2
+        End Operator
+
+        Public Shared Operator >=(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) >= arg2
+        End Operator
+
+        Public Shared Operator <=(arg1 As ValueTuple(Of T1, T2), arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <= arg2
+        End Operator
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return False
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return 0
+        End Function
+    End Structure
+End Namespace
+]]></file>
+</compilation>
+
+            Dim expectedOutput =
+"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+True
+False
+5
+3
+12
+2
+2
+1
+43
+0
+15
+7
+15
+256
+8
+2
+False
+True
+True
+False
+True
+False
+"
+            Dim [lib] = CreateCompilationWithMscorlibAndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
+            [lib].VerifyEmitDiagnostics()
+
+            Dim consumer1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
+            CompileAndVerify(consumer1, expectedOutput:=expectedOutput).VerifyDiagnostics()
+
+            Dim consumer2 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
+            CompileAndVerify(consumer2, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub UnifyUnderlyingWithTuple_12()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+
+    Sub Main()
+
+        Dim x? = (1, 3)
+        Dim s As String = x
+        System.Console.WriteLine(s)
+        System.Console.WriteLine(CType(x, Long))
+
+        Dim y As (Integer, String)? = New KeyValuePair(Of Integer, String)(2, "4")
+        System.Console.WriteLine(y)
+        System.Console.WriteLine(CType("5", ValueTuple(Of String, String)))
+
+        System.Console.WriteLine(+x)
+        System.Console.WriteLine(-x)
+        System.Console.WriteLine(Not x)
+        System.Console.WriteLine(If(x, True, False))
+        System.Console.WriteLine(If(Not x, True, False))
+
+        System.Console.WriteLine(x + 1)
+        System.Console.WriteLine(x - 1)
+        System.Console.WriteLine(x * 3)
+        System.Console.WriteLine(x / 2)
+        System.Console.WriteLine(x \ 2)
+        System.Console.WriteLine(x Mod 3)
+        System.Console.WriteLine(x & 3)
+        System.Console.WriteLine(x And 3)
+        System.Console.WriteLine(x Or 15)
+        System.Console.WriteLine(x Xor 3)
+        System.Console.WriteLine(x Like 15)
+        System.Console.WriteLine(x ^ 4)
+        System.Console.WriteLine(x << 1)
+        System.Console.WriteLine(x >> 1)
+        System.Console.WriteLine(x = 1)
+        System.Console.WriteLine(x <> 1)
+        System.Console.WriteLine(x > 1)
+        System.Console.WriteLine(x < 1)
+        System.Console.WriteLine(x >= 1)
+        System.Console.WriteLine(x <= 1)
+    End Sub
+End Module
+]]></file>
+</compilation>
+
+            Dim tuple =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace System
+
+    Public Structure ValueTuple(Of T1, T2)
+
+        Public Item1 As T1
+        Public Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            Me.Item1 = item1
+            Me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+
+        Public Shared Widening Operator CType(arg As ValueTuple(Of T1, T2)?) As String
+            Return arg.ToString()
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As ValueTuple(Of T1, T2)?) As Long
+            Return CLng(CObj(arg.Value.Item1) + CObj(arg.Value.Item2))
+        End Operator
+
+        Public Shared Widening Operator CType(arg As System.Collections.Generic.KeyValuePair(Of T1, T2)) As ValueTuple(Of T1, T2)?
+            Return New ValueTuple(Of T1, T2)(arg.Key, arg.Value)
+        End Operator
+
+        Public Shared Narrowing Operator CType(arg As String) As ValueTuple(Of T1, T2)?
+            Return New ValueTuple(Of T1, T2)(CType(CObj(arg), T1), CType(CObj(arg), T2))
+        End Operator
+
+        Public Shared Operator +(arg As ValueTuple(Of T1, T2)?) As ValueTuple(Of T1, T2)?
+            Return arg
+        End Operator
+
+        Public Shared Operator -(arg As ValueTuple(Of T1, T2)?) As Long
+            Return -CType(arg, Long)
+        End Operator
+
+        Public Shared Operator Not(arg As ValueTuple(Of T1, T2)?) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator IsTrue(arg As ValueTuple(Of T1, T2)?) As Boolean
+            Return CType(arg, Long) <> 0
+        End Operator
+
+        Public Shared Operator IsFalse(arg As ValueTuple(Of T1, T2)?) As Boolean
+            Return CType(arg, Long) = 0
+        End Operator
+
+        Public Shared Operator +(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) + arg2
+        End Operator
+
+        Public Shared Operator -(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) - arg2
+        End Operator
+
+        Public Shared Operator *(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) * arg2
+        End Operator
+
+        Public Shared Operator /(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) / arg2
+        End Operator
+
+        Public Shared Operator \(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) \ arg2
+        End Operator
+
+        Public Shared Operator Mod(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) Mod arg2
+        End Operator
+
+        Public Shared Operator &(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) & arg2
+        End Operator
+
+        Public Shared Operator And(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) And arg2
+        End Operator
+
+        Public Shared Operator Or(arg1 As ValueTuple(Of T1, T2)?, arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator Xor(arg1 As ValueTuple(Of T1, T2)?, arg2 As Long) As Long
+            Return CType(arg1, Long) Xor arg2
+        End Operator
+
+        Public Shared Operator Like(arg1 As ValueTuple(Of T1, T2)?, arg2 As Long) As Long
+            Return CType(arg1, Long) Or arg2
+        End Operator
+
+        Public Shared Operator ^(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) ^ arg2
+        End Operator
+
+        Public Shared Operator <<(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) << arg2
+        End Operator
+
+        Public Shared Operator >>(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Long
+            Return CType(arg1, Long) >> arg2
+        End Operator
+
+        Public Shared Operator =(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) = arg2
+        End Operator
+
+        Public Shared Operator <>(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <> arg2
+        End Operator
+
+        Public Shared Operator >(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) > arg2
+        End Operator
+
+        Public Shared Operator <(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) < arg2
+        End Operator
+
+        Public Shared Operator >=(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) >= arg2
+        End Operator
+
+        Public Shared Operator <=(arg1 As ValueTuple(Of T1, T2)?, arg2 As Integer) As Boolean
+            Return CType(arg1, Long) <= arg2
+        End Operator
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return False
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return 0
+        End Function
+    End Structure
+End Namespace
+]]></file>
+</compilation>
+
+            Dim expectedOutput =
+"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+True
+False
+5
+3
+12
+2
+2
+1
+43
+0
+15
+7
+15
+256
+8
+2
+False
+True
+True
+False
+True
+False
+"
+            Dim [lib] = CreateCompilationWithMscorlibAndVBRuntime(tuple, options:=TestOptions.ReleaseDll)
+            [lib].VerifyEmitDiagnostics()
+
+            Dim consumer1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].ToMetadataReference()})
+            CompileAndVerify(consumer1, expectedOutput:=expectedOutput).VerifyDiagnostics()
+
+            Dim consumer2 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe, additionalRefs:={[lib].EmitToImageReference()})
+            CompileAndVerify(consumer2, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
     End Class
 
 End Namespace

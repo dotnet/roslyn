@@ -62,9 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly string _localSettingsDirectory;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
-        private void LogInfo(string text) => _logService.LogInfo(text);
+        private Task LogInfoAsync(string text) => _logService.LogInfoAsync(text);
 
-        private void LogException(Exception e, string text) => _logService.LogException(e, text);
+        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e, text);
 
 
         // internal for testing purposes.
@@ -119,17 +119,17 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 // Keep on looping until we're told to shut down.
                 while (!_service._cancellationToken.IsCancellationRequested)
                 {
-                    _service.LogInfo("Starting update");
+                    await _service.LogInfoAsync("Starting update").ConfigureAwait(false);
                     try
                     {
                         var delayUntilNextUpdate = await UpdateDatabaseInBackgroundWorkerAsync().ConfigureAwait(false);
 
-                        _service.LogInfo($"Waiting {delayUntilNextUpdate} until next update");
+                        await _service.LogInfoAsync($"Waiting {delayUntilNextUpdate} until next update").ConfigureAwait(false);
                         await Task.Delay(delayUntilNextUpdate, _service._cancellationToken).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
                     {
-                        _service.LogInfo("Update canceled. Ending update loop");
+                        await _service.LogInfoAsync("Update canceled. Ending update loop").ConfigureAwait(false);
                         return;
                     }
                 }
@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 // disk.
                 try
                 {
-                    CleanCacheDirectory();
+                    await CleanCacheDirectoryAsync().ConfigureAwait(false);
 
                     // If we have a local database, then see if it needs to be patched.
                     // Otherwise download the full database.
@@ -182,12 +182,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
                     if (_service._ioService.Exists(_databaseFileInfo))
                     {
-                        _service.LogInfo("Local database file exists. Patching local database");
+                        await _service.LogInfoAsync("Local database file exists. Patching local database").ConfigureAwait(false);
                         return await PatchLocalDatabaseAsync().ConfigureAwait(false);
                     }
                     else
                     {
-                        _service.LogInfo("Local database file does not exist. Downloading full database");
+                        await _service.LogInfoAsync("Local database file does not exist. Downloading full database").ConfigureAwait(false);
                         return await DownloadFullDatabaseAsync().ConfigureAwait(false);
                     }
                 }
@@ -205,23 +205,23 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     // It's the standard way to indicate that we've been asked to shut
                     // down.
                     var delay = _service._delayService.ExpectedFailureDelay;
-                    _service.LogException(e, $"Error occurred updating. Retrying update in {delay}");
+                    await _service.LogExceptionAsync(e, $"Error occurred updating. Retrying update in {delay}").ConfigureAwait(false);
                     return delay;
                 }
             }
 
-            private void CleanCacheDirectory()
+            private async Task CleanCacheDirectoryAsync()
             {
-                _service.LogInfo("Cleaning cache directory");
+                await _service.LogInfoAsync("Cleaning cache directory").ConfigureAwait(false);
 
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
                 if (!_service._ioService.Exists(_cacheDirectoryInfo))
                 {
-                    _service.LogInfo("Creating cache directory");
+                    await _service.LogInfoAsync("Creating cache directory").ConfigureAwait(false);
 
                     // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
                     _service._ioService.Create(_cacheDirectoryInfo);
-                    _service.LogInfo("Cache directory created");
+                    await _service.LogInfoAsync("Cache directory created").ConfigureAwait(false);
                 }
 
                 _service._cancellationToken.ThrowIfCancellationRequested();
@@ -231,22 +231,23 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             {
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/Latest.xml");
 
-                _service.LogInfo($"Downloading and processing full database: {serverPath}");
+                await _service.LogInfoAsync($"Downloading and processing full database: {serverPath}").ConfigureAwait(false);
 
                 var element = await DownloadFileAsync(serverPath).ConfigureAwait(false);
                 var delayUntilNextUpdate = await ProcessFullDatabaseXElementAsync(element).ConfigureAwait(false);
 
-                _service.LogInfo("Downloading and processing full database completed");
+                await _service.LogInfoAsync("Downloading and processing full database completed").ConfigureAwait(false);
                 return delayUntilNextUpdate;
             }
 
             private async Task<TimeSpan> ProcessFullDatabaseXElementAsync(XElement element)
             {
-                _service.LogInfo("Processing full database element");
+                await _service.LogInfoAsync("Processing full database element").ConfigureAwait(false);
 
                 // Convert the database contents in the xml to a byte[].
-                byte[] bytes;
-                if (!TryParseDatabaseElement(element, out bytes))
+                var result = await TryParseDatabaseElementAsync(element).ConfigureAwait(false);
+
+                if (!result.Item1)
                 {
                     // Something was wrong with the full database.  Trying again soon after won't
                     // really help.  We'll just get the same busted XML from the remote service
@@ -254,15 +255,17 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     // we can retrieve good data the next time around.
 
                     var failureDelay = _service._delayService.CatastrophicFailureDelay;
-                    _service.LogInfo($"Unable to parse full database element. Update again in {failureDelay}");
+                    await _service.LogInfoAsync($"Unable to parse full database element. Update again in {failureDelay}").ConfigureAwait(false);
                     return failureDelay;
                 }
+
+                var bytes = result.Item2;
 
                 // Make a database out of that and set it to our in memory database that we'll be 
                 // searching.
                 try
                 {
-                    CreateAndSetInMemoryDatabase(bytes);
+                    await CreateAndSetInMemoryDatabaseAsync(bytes).ConfigureAwait(false);
                 }
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
@@ -271,7 +274,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     // isn't going to help.  We need to wait until there is good data
                     // on the server for us to download.
                     var failureDelay = _service._delayService.CatastrophicFailureDelay;
-                    _service.LogInfo($"Unable to create database from full database element. Update again in {failureDelay}");
+                    await _service.LogInfoAsync($"Unable to create database from full database element. Update again in {failureDelay}").ConfigureAwait(false);
                     return failureDelay;
                 }
 
@@ -281,21 +284,21 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 await WriteDatabaseFile(bytes).ConfigureAwait(false);
 
                 var delay = _service._delayService.UpdateSucceededDelay;
-                _service.LogInfo($"Processing full database element completed. Update again in {delay}");
+                await _service.LogInfoAsync($"Processing full database element completed. Update again in {delay}").ConfigureAwait(false);
                 return delay;
             }
 
             private async Task WriteDatabaseFile(byte[] bytes)
             {
-                _service.LogInfo("Writing database file");
+                await _service.LogInfoAsync("Writing database file").ConfigureAwait(false);
 
                 await RepeatIOAsync(
-                    () =>
+                    async () =>
                     {
                         var guidString = Guid.NewGuid().ToString();
                         var tempFilePath = Path.Combine(_cacheDirectoryInfo.FullName, guidString + ".tmp");
 
-                        _service.LogInfo($"Temp file path: {tempFilePath}");
+                        await _service.LogInfoAsync($"Temp file path: {tempFilePath}").ConfigureAwait(false);
 
                         try
                         {
@@ -304,25 +307,25 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                             // file has been completely written to disk (at least as well as the OS can guarantee
                             // things).
 
-                            _service.LogInfo("Writing temp file");
+                            await _service.LogInfoAsync("Writing temp file").ConfigureAwait(false);
 
                             // (intentionally not wrapped in IOUtilities.  If this throws we want to retry writing).
                             _service._ioService.WriteAndFlushAllBytes(tempFilePath, bytes);
-                            _service.LogInfo("Writing temp file completed");
+                            await _service.LogInfoAsync("Writing temp file completed").ConfigureAwait(false);
 
                             // If we have an existing db file, try to replace it file with the temp file.
                             // Otherwise, just move the temp file into place.
                             if (_service._ioService.Exists(_databaseFileInfo))
                             {
-                                _service.LogInfo("Replacing database file");
+                                await _service.LogInfoAsync("Replacing database file").ConfigureAwait(false);
                                 _service._ioService.Replace(tempFilePath, _databaseFileInfo.FullName, destinationBackupFileName: null, ignoreMetadataErrors: true);
-                                _service.LogInfo("Replace database file completed");
+                                await _service.LogInfoAsync("Replace database file completed").ConfigureAwait(false);
                             }
                             else
                             {
-                                _service.LogInfo("Moving database file");
+                                await _service.LogInfoAsync("Moving database file").ConfigureAwait(false);
                                 _service._ioService.Move(tempFilePath, _databaseFileInfo.FullName);
-                                _service.LogInfo("Moving database file completed");
+                                await _service.LogInfoAsync("Moving database file completed").ConfigureAwait(false);
                             }
                         }
                         finally
@@ -333,17 +336,17 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                         }
                     }).ConfigureAwait(false);
 
-                _service.LogInfo("Writing database file completed");
+                await _service.LogInfoAsync("Writing database file completed").ConfigureAwait(false);
             }
 
             private async Task<TimeSpan> PatchLocalDatabaseAsync()
             {
-                _service.LogInfo("Patching local database");
+                await _service.LogInfoAsync("Patching local database").ConfigureAwait(false);
 
-                _service.LogInfo("Reading in local database");
+                await _service.LogInfoAsync("Reading in local database").ConfigureAwait(false);
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
                 var databaseBytes = _service._ioService.ReadAllBytes(_databaseFileInfo.FullName);
-                _service.LogInfo($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}");
+                await _service.LogInfoAsync($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}").ConfigureAwait(false);
 
                 // Make a database instance out of those bytes and set is as the current in memory database
                 // that searches will run against.  If we can't make a database instance from these bytes
@@ -352,11 +355,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 AddReferenceDatabase database;
                 try
                 {
-                    database = CreateAndSetInMemoryDatabase(databaseBytes);
+                    database = await CreateAndSetInMemoryDatabaseAsync(databaseBytes).ConfigureAwait(false);
                 }
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
-                    _service.LogException(e, "Error creating database from local copy. Downloading full database");
+                    await _service.LogExceptionAsync(e, "Error creating database from local copy. Downloading full database").ConfigureAwait(false);
                     return await DownloadFullDatabaseAsync().ConfigureAwait(false);
                 }
 
@@ -365,13 +368,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 // Now attempt to download and apply patch file.
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
 
-                _service.LogInfo("Downloading and processing patch file: " + serverPath);
+                await _service.LogInfoAsync("Downloading and processing patch file: " + serverPath).ConfigureAwait(false);
 
                 var element = await DownloadFileAsync(serverPath).ConfigureAwait(false);
                 var delayUntilUpdate = await ProcessPatchXElementAsync(element, databaseBytes).ConfigureAwait(false);
 
-                _service.LogInfo("Downloading and processing patch file completed");
-                _service.LogInfo("Patching local database completed");
+                await _service.LogInfoAsync("Downloading and processing patch file completed").ConfigureAwait(false);
+                await _service.LogInfoAsync("Patching local database completed").ConfigureAwait(false);
 
                 return delayUntilUpdate;
             }
@@ -382,9 +385,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             /// indicates that our data is corrupt), the exception will bubble up and must be appropriately
             /// dealt with by the caller.
             /// </summary>
-            private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
+            private async Task<AddReferenceDatabase> CreateAndSetInMemoryDatabaseAsync(byte[] bytes)
             {
-                var database = CreateDatabaseFromBytes(bytes);
+                var database = await CreateDatabaseFromBytesAsync(bytes).ConfigureAwait(false);
                 _service._sourceToDatabase[_source] = new AddReferenceDatabaseWrapper(database);
                 return database;
             }
@@ -393,11 +396,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             {
                 try
                 {
-                    _service.LogInfo("Processing patch element");
+                    await _service.LogInfoAsync("Processing patch element").ConfigureAwait(false);
                     var delayUntilUpdate = await TryProcessPatchXElementAsync(patchElement, databaseBytes).ConfigureAwait(false);
                     if (delayUntilUpdate != null)
                     {
-                        _service.LogInfo($"Processing patch element completed. Update again in {delayUntilUpdate.Value}");
+                        await _service.LogInfoAsync($"Processing patch element completed. Update again in {delayUntilUpdate.Value}").ConfigureAwait(false);
                         return delayUntilUpdate.Value;
                     }
 
@@ -405,7 +408,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 }
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
-                    _service.LogException(e, "Error occurred while processing patch element. Downloading full database");
+                    await _service.LogExceptionAsync(e, "Error occurred while processing patch element. Downloading full database").ConfigureAwait(false);
                     // Fall through and download full database.
                 }
 
@@ -420,25 +423,25 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
                 if (upToDate)
                 {
-                    _service.LogInfo("Local version is up to date");
+                    await _service.LogInfoAsync("Local version is up to date").ConfigureAwait(false);
                     return _service._delayService.UpdateSucceededDelay;
                 }
 
                 if (tooOld)
                 {
-                    _service.LogInfo("Local version too old");
+                    await _service.LogInfoAsync("Local version too old").ConfigureAwait(false);
                     return null;
                 }
 
-                _service.LogInfo($"Got patch. databaseBytes.Length={databaseBytes.Length} patchBytes.Length={patchBytes.Length}.");
+                await _service.LogInfoAsync($"Got patch. databaseBytes.Length={databaseBytes.Length} patchBytes.Length={patchBytes.Length}.").ConfigureAwait(false);
 
                 // We have patch data.  Apply it to our current database bytes to produce the new
                 // database.
-                _service.LogInfo("Applying patch");
+                await _service.LogInfoAsync("Applying patch").ConfigureAwait(false);
                 var finalBytes = _service._patchService.ApplyPatch(databaseBytes, patchBytes);
-                _service.LogInfo($"Applying patch completed. finalBytes.Length={finalBytes.Length}");
+                await _service.LogInfoAsync($"Applying patch completed. finalBytes.Length={finalBytes.Length}").ConfigureAwait(false);
 
-                CreateAndSetInMemoryDatabase(finalBytes);
+                await CreateAndSetInMemoryDatabaseAsync(finalBytes).ConfigureAwait(false);
 
                 await WriteDatabaseFile(finalBytes).ConfigureAwait(false);
 
@@ -473,17 +476,17 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 }
             }
 
-            private AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
+            private async Task<AddReferenceDatabase> CreateDatabaseFromBytesAsync(byte[] bytes)
             {
-                _service.LogInfo("Creating database from bytes");
+                await _service.LogInfoAsync("Creating database from bytes").ConfigureAwait(false);
                 var result = _service._databaseFactoryService.CreateDatabaseFromBytes(bytes);
-                _service.LogInfo("Creating database from bytes completed");
+                await _service.LogInfoAsync("Creating database from bytes completed").ConfigureAwait(false);
                 return result;
             }
 
             private async Task<XElement> DownloadFileAsync(string serverPath)
             {
-                _service.LogInfo("Creating download client: " + serverPath);
+                await _service.LogInfoAsync("Creating download client: " + serverPath).ConfigureAwait(false);
 
                 // Create a client that will attempt to download the specified file.  The client works
                 // in the following manner:
@@ -499,7 +502,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
                 using (var client = _service._remoteControlService.CreateClient(HostId, serverPath, pollingMinutes))
                 {
-                    _service.LogInfo("Creating download client completed");
+                    await _service.LogInfoAsync("Creating download client completed").ConfigureAwait(false);
 
                     // Poll the client every minute until we get the file.
                     while (true)
@@ -510,7 +513,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                         if (resultOpt == null)
                         {
                             var delay = _service._delayService.CachePollDelay;
-                            _service.LogInfo($"File not downloaded. Trying again in {delay}");
+                            await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}").ConfigureAwait(false);
                             await Task.Delay(delay, _service._cancellationToken).ConfigureAwait(false);
                         }
                         else
@@ -525,7 +528,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
             private async Task<XElement> TryDownloadFileAsync(IRemoteControlClient client)
             {
-                _service.LogInfo("Read file from client");
+                await _service.LogInfoAsync("Read file from client").ConfigureAwait(false);
 
                 // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
 
@@ -533,12 +536,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 {
                     if (stream == null)
                     {
-                        _service.LogInfo("Read file completed. Client returned no data");
+                        await _service.LogInfoAsync("Read file completed. Client returned no data").ConfigureAwait(false);
                         return null;
                     }
 
-                    _service.LogInfo("Read file completed. Client returned data");
-                    _service.LogInfo("Converting data to XElement");
+                    await _service.LogInfoAsync("Read file completed. Client returned data").ConfigureAwait(false);
+                    await _service.LogInfoAsync("Converting data to XElement").ConfigureAwait(false);
 
                     // We're reading in our own XML file, but even so, use conservative settings
                     // just to be on the safe side.  First, disallow DTDs entirely (we will never
@@ -552,13 +555,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     using (var reader = XmlReader.Create(stream, settings))
                     {
                         var result = XElement.Load(reader);
-                        _service.LogInfo("Converting data to XElement completed");
+                        await _service.LogInfoAsync("Converting data to XElement completed").ConfigureAwait(false);
                         return result;
                     }
                 }
             }
 
-            private async Task RepeatIOAsync(Action action)
+            private async Task RepeatIOAsync(Func<Task> action)
             {
                 const int repeat = 6;
                 for (var i = 0; i < repeat; i++)
@@ -567,7 +570,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
                     try
                     {
-                        action();
+                        await action().ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {
@@ -580,26 +583,25 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                         }
 
                         var delay = _service._delayService.FileWriteDelay;
-                        _service.LogException(e, $"Operation failed. Trying again after {delay}");
+                        await _service.LogExceptionAsync(e, $"Operation failed. Trying again after {delay}").ConfigureAwait(false);
                         await Task.Delay(delay, _service._cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
-            private bool TryParseDatabaseElement(XElement element, out byte[] bytes)
+            private async Task<ValueTuple<bool, byte[]>> TryParseDatabaseElementAsync(XElement element)
             {
-                _service.LogInfo("Parsing database element");
+                await _service.LogInfoAsync("Parsing database element").ConfigureAwait(false);
                 var contentsAttribute = element.Attribute(ContentAttributeName);
                 if (contentsAttribute == null)
                 {
                     _service._reportAndSwallowException(
                         new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"));
 
-                    bytes = null;
-                    return false;
+                    return ValueTuple.Create(false, (byte[])null);
                 }
 
-                var contentBytes = ConvertContentAttribute(contentsAttribute);
+                var contentBytes = await ConvertContentAttributeAsync(contentsAttribute).ConfigureAwait(false);
 
                 var checksumAttribute = element.Attribute(ChecksumAttributeName);
                 if (checksumAttribute != null)
@@ -616,16 +618,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                         _service._reportAndSwallowException(
                             new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
 
-                        bytes = null;
-                        return false;
+                        return ValueTuple.Create(false, (byte[])null);
                     }
                 }
 
-                bytes = contentBytes;
-                return true;
+                return ValueTuple.Create(true, contentBytes);
             }
 
-            private byte[] ConvertContentAttribute(XAttribute contentsAttribute)
+            private async Task<byte[]> ConvertContentAttributeAsync(XAttribute contentsAttribute)
             {
                 var text = contentsAttribute.Value;
                 var compressedBytes = Convert.FromBase64String(text);
@@ -640,7 +640,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
                     var bytes = outStream.ToArray();
 
-                    _service.LogInfo($"Parsing complete. bytes.length={bytes.Length}");
+                    await _service.LogInfoAsync($"Parsing complete. bytes.length={bytes.Length}").ConfigureAwait(false);
                     return bytes;
                 }
             }

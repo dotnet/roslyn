@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected TNode AddError<TNode>(TNode node, ErrorCode code) where TNode : GreenNode
         {
-            return AddError(node, code, SpecializedCollections.EmptyObjects);
+            return AddError(node, code, Array.Empty<object>());
         }
 
         protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : GreenNode

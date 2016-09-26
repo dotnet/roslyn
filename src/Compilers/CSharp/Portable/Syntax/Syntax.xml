@@ -1693,6 +1693,13 @@
       <summary>Creates an IsPatternExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="ThrowExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ThrowExpression" />
+    <Field Name="ThrowKeyword" Type="SyntaxToken" Optional="false">
+      <Kind Name="ThrowKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="false"/>
+  </Node>
   <Node Name="WhenClauseSyntax" Base="CSharpSyntaxNode">
     <Kind Name="WhenClause" />
     <Field Name="WhenKeyword" Type="SyntaxToken">
@@ -3207,6 +3214,7 @@
       </PropertyComment>
     </Field>
     <Field Name="Body" Type="BlockSyntax" Optional="true"/>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the optional semicolon token.</summary>
@@ -3241,7 +3249,7 @@
       </PropertyComment>
     </Field>
     <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
-    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" Override="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <PropertyComment>
         <summary>Gets the optional semicolon token.</summary>
@@ -3298,7 +3306,7 @@
     </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
-    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" Override="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="SemicolonToken"/>
     </Field>
@@ -3331,7 +3339,7 @@
     </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
-    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" Override="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <PropertyComment>
         <summary>Gets the optional semicolon token.</summary>
@@ -3355,6 +3363,7 @@
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Field Name="Initializer" Type="ConstructorInitializerSyntax" Optional="true"/>
     <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" Override="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <PropertyComment>
         <summary>Gets the optional semicolon token.</summary>
@@ -3404,6 +3413,7 @@
     </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" Override="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <PropertyComment>
         <summary>Gets the optional semicolon token.</summary>
@@ -3542,6 +3552,11 @@
     <Field Name="Body" Type="BlockSyntax" Optional="true">
       <PropertyComment>
         <summary>Gets the optional body block which may be empty, but it is null if there are no braces.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional expression body.</summary>
       </PropertyComment>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">

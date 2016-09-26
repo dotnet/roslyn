@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = DecisionTree.Create(_switchStatement.Expression, _switchStatement.Expression.Type, _enclosingSymbol);
+            var subsumptionTree = DecisionTree.Create(_switchStatement.Expression, _switchStatement.Expression.Type, _enclosingSymbol);
             BoundPatternSwitchLabel defaultLabel = null;
             BoundPatternSwitchSection defaultSection = null;
             foreach (var section in _switchStatement.SwitchSections)
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this._syntax = label.Syntax;
                         // For purposes of subsumption, we do not take into consideration the value
                         // of the input expression. Therefore we consider null possible if the type permits.
-                        var subsumedErrorCode = CheckSubsumed(label.Pattern, result, inputCouldBeNull: true);
+                        var subsumedErrorCode = CheckSubsumed(label.Pattern, subsumptionTree, inputCouldBeNull: true);
                         if (subsumedErrorCode != 0 && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
                         {
                             if (!label.HasErrors)
@@ -197,6 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             AddToDecisionTree(result, label);
+                            if (label.Guard == null || label.Guard.ConstantValue == ConstantValue.True)
+                            {
+                                // Only unconditional switch labels contribute to subsumption
+                                AddToDecisionTree(subsumptionTree, label);
+                            }
                         }
                     }
                 }
@@ -224,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        AddByValue(decisionTree, constantPattern.Value, (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>>), _section, guard, label), label.HasErrors);
+                        AddByValue(decisionTree, constantPattern.Value, (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>>), _section, guard, label));
                         break;
                     }
                 case BoundKind.DeclarationPattern:
@@ -475,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression,
             TypeSymbol type);
 
-        private DecisionTree AddByValue(DecisionTree decision, BoundExpression value, DecisionMaker makeDecision, bool hasErrors)
+        private DecisionTree AddByValue(DecisionTree decision, BoundExpression value, DecisionMaker makeDecision)
         {
             if (decision.MatchIsComplete)
             {
@@ -487,17 +493,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
-                    return AddByValue((DecisionTree.ByType)decision, value, makeDecision, hasErrors);
+                    return AddByValue((DecisionTree.ByType)decision, value, makeDecision);
                 case DecisionTree.DecisionKind.ByValue:
-                    return AddByValue((DecisionTree.ByValue)decision, value, makeDecision, hasErrors);
+                    return AddByValue((DecisionTree.ByValue)decision, value, makeDecision);
                 case DecisionTree.DecisionKind.Guarded:
-                    return AddByValue((DecisionTree.Guarded)decision, value, makeDecision, hasErrors);
+                    return AddByValue((DecisionTree.Guarded)decision, value, makeDecision);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(decision.Kind);
             }
         }
 
-        private DecisionTree AddByValue(DecisionTree.Guarded guarded, BoundExpression value, DecisionMaker makeDecision, bool hasErrors)
+        private DecisionTree AddByValue(DecisionTree.Guarded guarded, BoundExpression value, DecisionMaker makeDecision)
         {
             if (guarded.Default != null)
             {
@@ -511,20 +517,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 guarded.Default = new DecisionTree.ByValue(guarded.Expression, guarded.Type, null);
             }
 
-            return AddByValue(guarded.Default, value, makeDecision, hasErrors);
+            return AddByValue(guarded.Default, value, makeDecision);
         }
 
-        private DecisionTree AddByValue(DecisionTree.ByValue byValue, BoundExpression value, DecisionMaker makeDecision, bool hasErrors)
+        private DecisionTree AddByValue(DecisionTree.ByValue byValue, BoundExpression value, DecisionMaker makeDecision)
         {
             Debug.Assert(value.Type == byValue.Type);
             if (byValue.Default != null)
             {
-                return AddByValue(byValue.Default, value, makeDecision, hasErrors);
+                return AddByValue(byValue.Default, value, makeDecision);
             }
 
             // For error recovery, to avoid "unreachable code" diagnostics when there is a bad case
             // label, we use the case label itself as the value key.
-            object valueKey = hasErrors ? (object)value : value.ConstantValue.Value;
+            object valueKey = value.ConstantValue?.Value ?? value;
             DecisionTree valueDecision;
             if (byValue.ValueAndDecision.TryGetValue(valueKey, out valueDecision))
             {
@@ -546,13 +552,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return valueDecision;
         }
 
-        private DecisionTree AddByValue(DecisionTree.ByType byType, BoundExpression value, DecisionMaker makeDecision, bool hasErrors)
+        private DecisionTree AddByValue(DecisionTree.ByType byType, BoundExpression value, DecisionMaker makeDecision)
         {
             if (byType.Default != null)
             {
                 try
                 {
-                    return AddByValue(byType.Default, value, makeDecision, hasErrors);
+                    return AddByValue(byType.Default, value, makeDecision);
                 }
                 finally
                 {
@@ -619,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Type, forType));
             }
 
-            return AddByValue(forType, value, makeDecision, hasErrors);
+            return AddByValue(forType, value, makeDecision);
         }
 
         private DecisionTree AddByType(DecisionTree decision, TypeSymbol type, DecisionMaker makeDecision)

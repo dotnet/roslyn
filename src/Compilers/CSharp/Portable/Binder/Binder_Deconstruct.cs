@@ -530,7 +530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var outVars = ArrayBuilder<OutDeconstructVarPendingInference>.GetInstance(numCheckedVariables);
-            DiagnosticBag bag = null;
 
             try
             {
@@ -560,15 +559,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // That step returns placeholder (of correct type) instead of the outVar nodes that were passed in as arguments.
                 // So the generated invocation expression will contain placeholders instead of those outVar nodes.
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
-                bag = DiagnosticBag.GetInstance();
                 BoundExpression result = BindMethodGroupInvocation(
-                                            receiverSyntax, receiverSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, bag, queryClause: null,
+                                            receiverSyntax, receiverSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
                                             allowUnexpandedForm: true);
 
                 result.WasCompilerGenerated = true;
-                diagnostics.AddRange(bag);
 
-                if (bag.HasAnyErrors())
+                if (result.HasErrors && !receiver.HasAnyErrors)
                 {
                     return MissingDeconstruct(receiver, syntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
@@ -602,13 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 analyzedArguments.Free();
                 outVars.Free();
-
-                if (bag != null)
-                {
-                    bag.Free();
-                }
             }
-
         }
 
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, CSharpSyntaxNode syntax, int numParameters, DiagnosticBag diagnostics,

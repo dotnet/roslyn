@@ -1444,6 +1444,14 @@ lReportErrorOnTwoTokens:
             End If
         End Sub
 
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            If Me.ReturnType.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Me.ReturnType))
+            End If
+        End Sub
+
         Protected Function GetDecodedWellKnownAttributeData() As MethodWellKnownAttributeData
             Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.m_lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
