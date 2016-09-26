@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 switch (kind)
                 {
+                    case WellKnownChecksumObjects.Nil:
+                        return default(T);
+
                     case SolutionChecksumObject.Name:
                         return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
                     case ProjectChecksumObject.Name:
