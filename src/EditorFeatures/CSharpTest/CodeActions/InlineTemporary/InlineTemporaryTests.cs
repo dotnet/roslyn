@@ -4113,5 +4113,36 @@ public class KVP<T1, T2>
 
             await TestAsync(code, expected, index: 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestRetainComment()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var [||]a = ""hello"";
+
+        // abc
+        a.ToString();
+    }
+}
+";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+
+        // abc
+        ""hello"".ToString();
+    }
+}
+";
+
+            await TestAsync(code, expected, index: 0);
+        }
     }
 }
