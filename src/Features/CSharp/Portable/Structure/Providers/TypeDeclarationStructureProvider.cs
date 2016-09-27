@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             TypeDeclarationSyntax typeDeclaration,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             CSharpStructureHelpers.CollectCommentBlockSpans(typeDeclaration, spans);

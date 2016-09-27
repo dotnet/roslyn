@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -493,6 +495,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        [Fact]
+        public async Task UnknownLanguageTest()
+        {
+            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NullLanguageService).Assembly));
+
+            var solution = new AdhocWorkspace(hostServices).CurrentSolution;
+
+            var project1 = solution.AddProject("Project", "Project.dll", NullLanguageService.TestLanguage);
+
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(project1.Solution, CancellationToken.None).ConfigureAwait(false))
+            {
+                // this shouldn't throw
+                var recovered = await GetSolutionAsync(snapshotService, snapshot).ConfigureAwait(false);
+            }
+        }
+
         private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
         {
             var assetBuilder = new AssetBuilder(workspace.CurrentSolution);
@@ -522,12 +541,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private async Task<Solution> GetSolutionAsync(ISolutionChecksumService service, ChecksumScope snapshot)
         {
             var workspace = new AdhocWorkspace();
-
             var solutionInfo = await GetValueAsync<SolutionChecksumObjectInfo>(service, snapshot.SolutionChecksum.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
             foreach (var projectSnapshot in snapshot.SolutionChecksum.Projects.ToProjectObjects(service))
             {
+                var projectInfo = await GetValueAsync<ProjectChecksumObjectInfo>(service, projectSnapshot.Info, WellKnownChecksumObjects.ProjectChecksumObjectInfo).ConfigureAwait(false);
+                if (!workspace.Services.IsSupported(projectInfo.Language))
+                {
+                    continue;
+                }
+
                 var documents = new List<DocumentInfo>();
                 foreach (var documentSnapshot in projectSnapshot.Documents.ToDocumentObjects(service))
                 {
@@ -584,7 +608,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             documentInfo.IsGenerated));
                 }
 
-                var projectInfo = await GetValueAsync<ProjectChecksumObjectInfo>(service, projectSnapshot.Info, WellKnownChecksumObjects.ProjectChecksumObjectInfo).ConfigureAwait(false);
                 var compilationOptions = await GetValueAsync<CompilationOptions>(service, projectSnapshot.CompilationOptions, WellKnownChecksumObjects.CompilationOptions).ConfigureAwait(false);
                 var parseOptions = await GetValueAsync<ParseOptions>(service, projectSnapshot.ParseOptions, WellKnownChecksumObjects.ParseOptions).ConfigureAwait(false);
 
@@ -629,6 +652,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
+        }
+
+        private interface INullLanguageService : ILanguageService { }
+
+        [ExportLanguageService(typeof(INullLanguageService), TestLanguage), Shared]
+        private class NullLanguageService : INullLanguageService
+        {
+            public const string TestLanguage = nameof(TestLanguage);
+
+            // do nothing
         }
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var helper = CompletionHelper.GetHelper(document);
 
-            var bestItems = ImmutableArray.CreateBuilder<CompletionItem>();
+            var bestItems = ArrayBuilder<CompletionItem>.GetInstance();
             foreach (var item in items)
             {
                 if (bestItems.Count == 0)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
             }
 
-            return bestItems.ToImmutable();
+            return bestItems.ToImmutableAndFree();
         }
     }
 }

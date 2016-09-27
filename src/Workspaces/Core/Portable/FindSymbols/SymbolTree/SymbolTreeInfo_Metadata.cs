@@ -583,16 +583,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             private ImmutableArray<BuilderNode> GenerateUnsortedNodes()
             {
-                var unsortedNodes = ImmutableArray.CreateBuilder<BuilderNode>();
+                var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
                 unsortedNodes.Add(new BuilderNode(name: "", parentIndex: RootNodeParentIndex));
 
                 AddUnsortedNodes(unsortedNodes, parentNode: _rootNode, parentIndex: 0);
 
-                return unsortedNodes.ToImmutable();
+                return unsortedNodes.ToImmutableAndFree();
             }
 
             private void AddUnsortedNodes(
-                ImmutableArray<BuilderNode>.Builder unsortedNodes, MetadataNode parentNode, int parentIndex)
+                ArrayBuilder<BuilderNode> unsortedNodes, MetadataNode parentNode, int parentIndex)
             {
                 foreach (var child in _parentToChildren[parentNode])
                 {

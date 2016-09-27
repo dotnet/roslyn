@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<string>.Empty;
             }
 
-            var builder = ImmutableArray.CreateBuilder<string>(baseList.Types.Count);
+            var builder = ArrayBuilder<string>.GetInstance(baseList.Types.Count);
 
             // It's not sufficient to just store the textual names we see in the inheritance list
             // of a type.  For example if we have:
@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddInheritanceName(builder, baseType.Type, aliasMaps);
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
             finally
             {
@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void AddInheritanceName(
-            ImmutableArray<string>.Builder builder, TypeSyntax type,
+            ArrayBuilder<string> builder, TypeSyntax type,
             List<Dictionary<string, string>> aliasMaps)
         {
             var name = GetTypeName(type);
