@@ -54,7 +54,7 @@ class Class2 { }";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         [WorkItem(14008, "https://github.com/dotnet/roslyn/issues/14008")]
-        public async Task TestFolders()
+        public async Task TestMoveToNewFileWithFolders()
         {
             var code =
 @"
