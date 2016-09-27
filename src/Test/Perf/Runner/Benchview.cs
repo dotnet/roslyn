@@ -2,10 +2,10 @@
 
 using System;
 using System.IO;
+using System.Linq;
 
 using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
-using static Roslyn.Test.Performance.Runner.Tools;
 
 namespace Roslyn.Test.Performance.Runner
 {
@@ -26,41 +26,41 @@ namespace Roslyn.Test.Performance.Runner
 
         internal static bool IsValidSubmissionType(string submissionType)
         {
-            foreach(var type in validSubmissionTypes)
-            {
-                if(submissionType == type)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return validSubmissionTypes.Any(type => type == submissionType);
         }
 
-        internal static void CheckEnvironment()
+        internal static bool CheckEnvironment()
         {
+            Log("Checking for valid environment");
+
             var sasToken = Environment.GetEnvironmentVariable(sasEnvVar);
             if (String.IsNullOrEmpty(sasToken))
             {
-                throw new Exception($"{sasEnvVar} was not defined");
+                Log($"{sasEnvVar} was not defined");
+                return false;
             }
 
             var whereGit = ShellOut("where", "git");
             if (whereGit.Failed)
             {
-                throw new Exception("git was not found on the PATH");
+                Log("git was not found on the PATH");
+                return false;
             }
 
             var wherePy = ShellOut("where", "py");
             if (wherePy.Failed)
             {
-                throw new Exception("py was not found on the PATH");
+                Log("py was not found on the PATH");
+                return false;
             }
 
             if (!Directory.Exists(scriptDir))
             {
-                throw new Exception($"BenchView Tools not found at {scriptDir}");
+                Log($"BenchView Tools not found at {scriptDir}");
+                return false;
             }
+
+            return true;
         }
 
         internal static void UploadBenchviewReport(string submissionType, string submissionName, string branch)
