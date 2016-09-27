@@ -21,6 +21,15 @@
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <OutDir>$(OutDir)Xaml\</OutDir>
+	<ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <OutputPath>..\..\..\..\Binaries\Debug\Xaml\</OutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <OutputPath>..\..\..\..\Binaries\Release\Xaml\</OutputPath>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
