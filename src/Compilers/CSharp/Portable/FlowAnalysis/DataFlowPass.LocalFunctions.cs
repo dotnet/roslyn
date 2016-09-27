@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _usedLocalFunctions.Add(localFunc);
 
-
             // First process the reads
             ReplayVarUsage(localFunc,
                            syntax,
