@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var memberModel = this.GetMemberModel(declarationSyntax);
             return memberModel?.GetDeclaredSymbol(declarationSyntax, cancellationToken) ??
-                GetEnclosingBinder(declarationSyntax.Position)?.LookupDeclaredField(declarationSyntax, declarationSyntax.Identifier.ValueText);
+                GetEnclosingBinder(declarationSyntax.Position)?.LookupDeclaredField(declarationSyntax);
         }
 
         /// <summary>

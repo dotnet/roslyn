@@ -54,14 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntax.GetSyntax();
         protected override SyntaxTokenList ModifiersTokenList => default(SyntaxTokenList);
         public override bool HasInitializer => false;
-        protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics) => null;
-        public SingleVariableDesignationSyntax VariableDesignation
-        {
-            get
-            {
-                return (SingleVariableDesignationSyntax)this.SyntaxNode;
-            }
-        }
+        protected override ConstantValue MakeConstantValue(
+            HashSet<SourceFieldSymbolWithSyntaxReference> dependencies,
+            bool earlyDecodingWellKnownAttributes,
+            DiagnosticBag diagnostics) => null;
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {

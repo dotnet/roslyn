@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression LowerDeclarationPattern(BoundDeclarationPattern pattern, BoundExpression input)
         {
-            Debug.Assert(pattern.IsVar || pattern.Variable.GetTypeOrReturnType() == pattern.DeclaredType.Type);
+            Debug.Assert(pattern.Variable.GetTypeOrReturnType() == pattern.DeclaredType.Type);
             var variableAccess = VisitExpression(pattern.VariableAccess);
 
             if (pattern.IsVar)

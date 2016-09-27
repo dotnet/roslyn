@@ -1736,13 +1736,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             okToDowngradeToNeither = false;
 
-            var argumentKind = node.Kind;
             if (considerRefKinds)
             {
                 // We may need to consider the ref kinds of the parameters while determining the better conversion from the given expression to the respective parameter types.
                 // This is needed for the omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method within a COM imported type.
                 // We can reach here only if we had at least one ref omitted argument for the given call, which must be a call to a method within a COM imported type.
-                // It is also needed for 'out var' arguments.
 
                 // Algorithm for determining the better conversion from expression when ref kinds need to be considered is NOT provided in the C# language specification,
                 // see section 7.5.3.3 'Better Conversion From Expression'.
@@ -1756,6 +1754,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    gets considered while classifying conversions between parameter types when computing better conversion target in the native compiler.
                 // NOTE:    Roslyn correctly follows the specification and ref kinds are not considered while classifying conversions between types, see method BetterConversionTarget.
 
+                Debug.Assert(refKind1 == RefKind.None || refKind1 == RefKind.Ref);
+                Debug.Assert(refKind2 == RefKind.None || refKind2 == RefKind.Ref);
                 if (refKind1 != refKind2)
                 {
                     if (refKind1 == RefKind.None)
@@ -1767,7 +1767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return conv2.Kind == ConversionKind.Identity ? BetterResult.Right : BetterResult.Neither;
                     }
                 }
-                else if (refKind1 != RefKind.None)
+                else if (refKind1 == RefKind.Ref)
                 {
                     return BetterResult.Neither;
                 }
