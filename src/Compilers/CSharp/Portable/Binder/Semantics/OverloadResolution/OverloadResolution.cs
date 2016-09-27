@@ -1737,7 +1737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             okToDowngradeToNeither = false;
 
             var argumentKind = node.Kind;
-            if (considerRefKinds || argumentKind == BoundKind.OutVariablePendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
+            if (considerRefKinds)
             {
                 // We may need to consider the ref kinds of the parameters while determining the better conversion from the given expression to the respective parameter types.
                 // This is needed for the omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method within a COM imported type.
@@ -1781,6 +1781,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             okToDowngradeToNeither = false;
 
+            // SPEC: Given an implicit conversion C1 that converts from an expression E to a type T1, and an implicit
+            // SPEC: conversion C2 that converts from an expression E to a type T2, C1 is a better conversion than C2
+            // SPEC: if at least one of the following holds:
+            // SPEC: •    E has a type S and an identity conversion exists from S to T1 but not from S to T2
+            // SPEC: •    E is not an anonymous function or implicitly-typed out variable declaration, and T1 is a
+            // SPEC:      better conversion target than T2 (§13.6.4.6)
+            // SPEC: •    E is an anonymous function, T1 is either a delegate type D1 or an expression tree type
+            // SPEC:      Expression<D1>, T2 is either a delegate type D2 or an expression tree type Expression<D2>
+            // SPEC:      and one of the following holds:
+            // SPEC:         o D1 is a better conversion target than D2
+            // SPEC:         o D1 and D2 have identical parameter lists, and one of the following holds:
+            // SPEC:             •    D1 has a return type Y1, and D2 has a return type Y2, an inferred return type
+            // SPEC:                  X exists for E in the context of that parameter list (§13.6.3.13), and the
+            // SPEC:                  conversion from X to Y1 is better than the conversion from X to Y2
+            // SPEC:             •    E is async, D1 has a return type Task<Y1>, and D2 has a return type Task<Y2>,
+            // SPEC:                  an inferred return type Task<X> exists for E in the context of that parameter
+            // SPEC:                  list (§13.6.3.13), and the conversion from X to Y1 is better than the conversion
+            // SPEC:                  from X to Y2
+            // SPEC:             •    D1 has a return type Y, and D2 is void returning
+
             if (Conversions.HasIdentityConversion(t1, t2))
             {
                 // Both parameters have the same type.
@@ -1789,9 +1809,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lambdaOpt = node as UnboundLambda;
 
-            // Given an implicit conversion C1 that converts from an expression E to a type T1, 
-            // and an implicit conversion C2 that converts from an expression E to a type T2,
-            // C1 is a better conversion than C2 if E does not exactly match T2 and one of the following holds:
             bool t1MatchesExactly = ExpressionMatchExactly(node, t1, ref useSiteDiagnostics);
             bool t2MatchesExactly = ExpressionMatchExactly(node, t2, ref useSiteDiagnostics);
 
@@ -1799,19 +1816,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!t2MatchesExactly)
                 {
-                    // - E exactly matches T1
                     okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, t1, t2, ref useSiteDiagnostics, false);
                     return BetterResult.Left;
+                }
+                else if (lambdaOpt == null)
+                {
+                    // both match exactly, non-lambda case.
+                    // Neither is a better conversion from expression
+                    return BetterResult.Neither;
                 }
             }
             else if (t2MatchesExactly)
             {
-                // - E exactly matches T2
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, t1, t2, ref useSiteDiagnostics, false);
                 return BetterResult.Right;
             }
 
-            // - T1 is a better conversion target than T2
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteDiagnostics, out okToDowngradeToNeither);
         }
 
@@ -1825,14 +1845,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (node.Kind == BoundKind.TupleLiteral)
+            switch (node.Kind)
             {
-                // Recurse into tuple constituent arguments.
-                // Even if the tuple literal has a natural type and conversion 
-                // from that type is not identity, we still have to do this 
-                // because we might be converting to a tuple type backed by
-                // different definition of ValueTuple type.
-                return ExpressionMatchExactly((BoundTupleLiteral)node, t, ref useSiteDiagnostics);
+                case BoundKind.OutVariablePendingInference:
+                case BoundKind.OutDeconstructVarPendingInference:
+                    return true;
+                case BoundKind.TupleLiteral:
+                    // Recurse into tuple constituent arguments.
+                    // Even if the tuple literal has a natural type and conversion 
+                    // from that type is not identity, we still have to do this 
+                    // because we might be converting to a tuple type backed by
+                    // different definition of ValueTuple type.
+                    return ExpressionMatchExactly((BoundTupleLiteral)node, t, ref useSiteDiagnostics);
             }
 
             // - E is an anonymous function, T is either a delegate type D or an expression tree 
