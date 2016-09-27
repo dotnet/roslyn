@@ -127,9 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override void Dispose(bool disposing)
         {
-            _packageInstallerService?.Disconnect(this.RoslynLanguageName);
-            _symbolSearchService?.Disconnect(this.RoslynLanguageName);
-
             if (_miscellaneousFilesWorkspace != null)
             {
                 _miscellaneousFilesWorkspace.StopSolutionCrawler();
