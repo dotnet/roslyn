@@ -1206,8 +1206,7 @@ Friend Module CompilationUtils
             Dim context = New ModuleCompilationState()
             DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
         Else
-            ' Call AddSynthesizedReturnTypeAttributes() when available: https://github.com/dotnet/roslyn/issues/13948
-            ' DirectCast(symbol, MethodSymbol).AddSynthesizedReturnTypeAttributes(attributes)
+            DirectCast(symbol, MethodSymbol).AddSynthesizedReturnTypeAttributes(attributes)
         End If
         Return If(attributes IsNot Nothing, attributes.ToImmutableAndFree(), ImmutableArray.Create(Of SynthesizedAttributeData)())
     End Function

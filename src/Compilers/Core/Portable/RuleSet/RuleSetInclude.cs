@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Return the canonical full path
-            return PortableShim.Path.GetFullPath(resolvedIncludePath);
+            return Path.GetFullPath(resolvedIncludePath);
         }
 
         private static string ResolveIncludePath(string includePath, string parentRulesetPath)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
             if (resolvedIncludePath == null && PathUtilities.IsUnixLikePlatform)
             {
                 // Attempt to resolve legacy ruleset includes after replacing Windows style directory separator char with current plaform's directory separator char.
-                includePath = includePath.Replace('\\', PortableShim.Path.DirectorySeparatorChar);
+                includePath = includePath.Replace('\\', Path.DirectorySeparatorChar);
                 resolvedIncludePath = ResolveIncludePathCore(includePath, parentRulesetPath);
             }
 
@@ -104,12 +104,12 @@ namespace Microsoft.CodeAnalysis
 
         private static string ResolveIncludePathCore(string includePath, string parentRulesetPath)
         {
-            includePath = PortableShim.Environment.ExpandEnvironmentVariables(includePath);
+            includePath = Environment.ExpandEnvironmentVariables(includePath);
             
             // If a full path is specified then use it
             if (Path.IsPathRooted(includePath))
             {
-                if (PortableShim.File.Exists(includePath))
+                if (File.Exists(includePath))
                 {
                     return includePath;
                 }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // Otherwise, try to find the include file relative to the parent ruleset.
                 includePath = PathUtilities.CombinePathsUnchecked(Path.GetDirectoryName(parentRulesetPath), includePath);
-                if (PortableShim.File.Exists(includePath))
+                if (File.Exists(includePath))
                 {
                     return includePath;
                 }

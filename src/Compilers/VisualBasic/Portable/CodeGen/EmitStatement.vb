@@ -1241,7 +1241,10 @@ OtherExpressions:
         End Sub
 
         Private Function DefineLocal(local As LocalSymbol, syntaxNode As SyntaxNode) As LocalDefinition
-            Dim specType = local.Type.SpecialType
+            Dim dynamicTransformFlags = ImmutableArray(Of TypedConstant).Empty
+            Dim tupleElementNames = If(Not local.IsCompilerGenerated AndAlso local.Type.ContainsTupleNames(),
+                VisualBasicCompilation.TupleNamesEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_String)),
+                ImmutableArray(Of TypedConstant).Empty)
 
             ' We're treating constants of type Decimal and DateTime as local here to not create a new instance for each time
             ' the value is accessed. This means there will be one local in the scope for this constant.
@@ -1259,8 +1262,8 @@ OtherExpressions:
                     local.Name,
                     If(local.Locations.FirstOrDefault(), Location.None),
                     compileTimeValue,
-                    dynamicTransformFlags:=Nothing,
-                    tupleElementNames:=Nothing)
+                    dynamicTransformFlags:=dynamicTransformFlags,
+                    tupleElementNames:=tupleElementNames)
                 ' Reference in the scope for debugging purpose
                 _builder.AddLocalConstantToScope(localConstantDef)
                 Return Nothing
@@ -1290,8 +1293,8 @@ OtherExpressions:
                 id:=localId,
                 pdbAttributes:=synthesizedKind.PdbAttributes(),
                 constraints:=constraints,
-                dynamicTransformFlags:=Nothing,
-                tupleElementNames:=Nothing,
+                dynamicTransformFlags:=dynamicTransformFlags,
+                tupleElementNames:=tupleElementNames,
                 isSlotReusable:=synthesizedKind.IsSlotReusable(_ilEmitStyle <> ILEmitStyle.Release))
 
             ' If named, add it to the local debug scope.

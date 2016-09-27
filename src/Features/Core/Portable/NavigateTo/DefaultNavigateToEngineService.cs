@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             using (var patternMatcher = new PatternMatcher(pattern, allowFuzzyMatching: true))
             {
-                var result = ImmutableArray.CreateBuilder<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>();
+                var result = ArrayBuilder<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>.GetInstance();
                 foreach (var document in project.Documents)
                 {
                     if (searchDocument != null && document != searchDocument)
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     }
                 }
 
-                return result.ToImmutable();
+                return result.ToImmutableAndFree();
             }
         }
 

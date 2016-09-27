@@ -13,10 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class VisualBasicEESymbolProvider
         Inherits EESymbolProvider(Of TypeSymbol, LocalSymbol)
 
+        Private ReadOnly _sourceAssembly As SourceAssemblySymbol
         Private ReadOnly _metadataDecoder As MetadataDecoder
         Private ReadOnly _method As PEMethodSymbol
 
-        Public Sub New([module] As PEModuleSymbol, method As PEMethodSymbol)
+        Public Sub New(sourceAssembly As SourceAssemblySymbol, [module] As PEModuleSymbol, method As PEMethodSymbol)
+            _sourceAssembly = sourceAssembly
             _metadataDecoder = New MetadataDecoder([module], method)
             _method = method
         End Sub
@@ -28,13 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             dynamicFlagsOpt As ImmutableArray(Of Boolean),
             tupleElementNamesOpt As ImmutableArray(Of String)) As LocalSymbol
 
-            ' ignore dynamic flags (in theory the CDI might be present in bad PDB)
-
             ' Custom modifiers can be dropped since binding ignores custom
             ' modifiers from locals and since we only need to preserve
             ' the type of the original local in the generated method.
             Dim kind = If(name = _method.Name, LocalDeclarationKind.FunctionValue, LocalDeclarationKind.Variable)
-            Return New EELocalSymbol(_method, EELocalSymbol.NoLocations, name, slotIndex, kind, info.Type, info.IsByRef, info.IsPinned, canScheduleToStack:=False)
+            Dim type = IncludeTupleElementNamesIfAny(info.Type, tupleElementNamesOpt)
+            Return New EELocalSymbol(_method, EELocalSymbol.NoLocations, name, slotIndex, kind, type, info.IsByRef, info.IsPinned, canScheduleToStack:=False)
         End Function
 
         Public Overrides Function GetLocalConstant(
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             dynamicFlagsOpt As ImmutableArray(Of Boolean),
             tupleElementNamesOpt As ImmutableArray(Of String)) As LocalSymbol
 
-            ' ignore dynamic flags (in theory the CDI might be present in bad PDB)
+            type = IncludeTupleElementNamesIfAny(type, tupleElementNamesOpt)
             Return New EELocalConstantSymbol(_method, name, type, value)
         End Function
 
@@ -74,6 +75,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Public Overrides Function [GetType](handle As EntityHandle) As TypeSymbol
             Dim isNoPiaLocalType As Boolean
             Return _metadataDecoder.GetSymbolForTypeHandleOrThrow(handle, isNoPiaLocalType, allowTypeSpec:=True, requireShortForm:=False)
+        End Function
+
+        Private Function IncludeTupleElementNamesIfAny(type As TypeSymbol, tupleElementNamesOpt As ImmutableArray(Of String)) As TypeSymbol
+            Return If(tupleElementNamesOpt.IsDefault,
+                type,
+                TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _sourceAssembly, tupleElementNamesOpt))
         End Function
 
     End Class

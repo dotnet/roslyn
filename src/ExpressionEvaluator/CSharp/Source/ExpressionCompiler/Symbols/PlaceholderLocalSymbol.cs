@@ -45,20 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ReadOnlyCollection<string> tupleElementNames;
             CustomTypeInfo.Decode(alias.CustomTypeInfoId, alias.CustomTypeInfo, out dynamicFlags, out tupleElementNames);
 
-            // Preserve tuple element names. See https://github.com/dotnet/roslyn/issues/13589.
             if (dynamicFlags != null)
             {
-                var flagsBuilder = ArrayBuilder<bool>.GetInstance();
-                DynamicFlagsCustomTypeInfo.CopyTo(dynamicFlags, flagsBuilder);
-                var dynamicType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
-                    type,
-                    sourceAssembly,
-                    RefKind.None,
-                    flagsBuilder.ToImmutableAndFree(),
-                    checkLength: false);
-                Debug.Assert(dynamicType != null);
-                Debug.Assert(dynamicType != type);
-                type = dynamicType;
+                type = DecodeDynamicTypes(type, sourceAssembly, dynamicFlags);
+            }
+
+            if (tupleElementNames != null)
+            {
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, sourceAssembly, tupleElementNames.AsImmutable());
             }
 
             var name = alias.FullName;
@@ -206,6 +200,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var members = type.GetMembers(methodName);
             Debug.Assert(members.Length == 1);
             return (MethodSymbol)members[0];
+        }
+
+        private static TypeSymbol DecodeDynamicTypes(TypeSymbol type, AssemblySymbol sourceAssembly, ReadOnlyCollection<byte> bytes)
+        {
+            var builder = ArrayBuilder<bool>.GetInstance();
+            DynamicFlagsCustomTypeInfo.CopyTo(bytes, builder);
+            var dynamicType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
+                type,
+                sourceAssembly,
+                RefKind.None,
+                builder.ToImmutableAndFree(),
+                checkLength: false);
+            Debug.Assert((object)dynamicType != null);
+            Debug.Assert(dynamicType != type);
+            return dynamicType;
         }
     }
 }

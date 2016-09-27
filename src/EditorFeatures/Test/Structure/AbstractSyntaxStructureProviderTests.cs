@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
@@ -17,7 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         protected virtual string WorkspaceKind => TestWorkspace.WorkspaceName;
 
-        internal abstract Task<BlockSpan[]> GetBlockSpansAsync(Document document, int position);
+        private async Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
+        {
+            var spans = await GetBlockSpansWorkerAsync(document, position);
+            return spans.WhereNotNull().ToImmutableArray();
+        }
+
+        internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position);
 
         protected async Task VerifyBlockSpansAsync(string markupCode, params Tuple<string, string, string, bool, bool>[] expectedRegionData)
         {

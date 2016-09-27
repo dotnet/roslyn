@@ -11,14 +11,14 @@
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -59,14 +59,10 @@
     <Compile Include="InternalUtilities\EncodingExtensions.cs" />
     <Compile Include="InternalUtilities\BlobBuildingStream.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="InternalUtilities\IncrementalHash.cs" />
     <Compile Include="PEWriter\DebugSourceInfo.cs" />
     <Compile Include="PEWriter\ExportedType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\CoreClrShim.cs">
-      <Link>CoreClrShim.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\DesktopShim.cs">
       <Link>DesktopShim.cs</Link>
     </Compile>
@@ -406,7 +402,6 @@
     <Compile Include="InternalUtilities\EnumUtilties.cs" />
     <Compile Include="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="InternalUtilities\FileNameUtilities.cs" />
-    <Compile Include="InternalUtilities\HashAlgorithms.cs" />
     <Compile Include="InternalUtilities\Hash.cs" />
     <Compile Include="InternalUtilities\ImmutableArrayExtensions.cs" />
     <Compile Include="InternalUtilities\ImmutableListExtensions.cs" />
@@ -419,7 +414,6 @@
     <Compile Include="InternalUtilities\ReadOnlyUnmanagedMemoryStream.cs" />
     <Compile Include="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.cs" />
-    <Compile Include="InternalUtilities\SpecializedCollections.Empty.Array.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.Dictionary.cs" />
@@ -497,7 +491,6 @@
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
-    <Compile Include="PortableShim.cs" />
     <Compile Include="RuleSet\InvalidRuleSetException.cs" />
     <Compile Include="RuleSet\RuleSet.cs" />
     <Compile Include="RuleSet\RuleSetInclude.cs" />

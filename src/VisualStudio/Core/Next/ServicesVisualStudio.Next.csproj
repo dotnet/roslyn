@@ -19,10 +19,6 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
       <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
       <Name>EditorFeatures</Name>
@@ -114,6 +110,7 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
     <Compile Include="NavigateTo\VisualStudioNavigateToEngineService.cs" />
+    <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
