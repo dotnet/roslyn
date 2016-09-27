@@ -1228,15 +1228,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool okToDowngradeToNeither;
                 var r = BetterConversionFromExpression(arguments[i],
-                                                    type1,
-                                                    m1.Result.ConversionForArg(i),
-                                                    refKind1,
-                                                    type2,
-                                                    m2.Result.ConversionForArg(i),
-                                                    refKind2,
-                                                    considerRefKinds,
-                                                    ref useSiteDiagnostics,
-                                                    out okToDowngradeToNeither);
+                                                       type1,
+                                                       m1.Result.ConversionForArg(i),
+                                                       refKind1,
+                                                       type2,
+                                                       m2.Result.ConversionForArg(i),
+                                                       refKind2,
+                                                       considerRefKinds,
+                                                       ref useSiteDiagnostics,
+                                                       out okToDowngradeToNeither);
 
                 var type1Normalized = type1.NormalizeTaskTypes(Compilation);
                 var type2Normalized = type2.NormalizeTaskTypes(Compilation);
