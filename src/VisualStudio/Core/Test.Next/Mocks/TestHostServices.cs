@@ -13,7 +13,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
         {
             return MefV1HostServices.Create(
                 MinimalTestExportProvider.CreateExportProvider(
-                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(InProcRemoteHostClientFactory))).AsExportProvider());
+                    ServiceTestExportProvider.CreateAssemblyCatalog().WithPart(typeof(InProcRemoteHostClientFactory))).AsExportProvider());
         }
     }
 }

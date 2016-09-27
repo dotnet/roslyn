@@ -5,8 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.Remote;
-using Roslyn.VisualStudio.Test.Utilities.Remote;
+using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Test.Utilities.Remote;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 {
