@@ -19,8 +19,7 @@ namespace Roslyn.Utilities
                 return SpecializedCollections.EmptyList<string>();
             }
 
-            var all = features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            return all;
+            return features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         public static ImmutableDictionary<string, string> ParseFeatures(List<string> values)
