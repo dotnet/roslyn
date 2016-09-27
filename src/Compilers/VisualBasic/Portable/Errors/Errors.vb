@@ -1766,8 +1766,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_ConstraintsFailedForInferredArgs2 = 41006
         WRN_ConditionalNotValidOnFunction = 41007
         WRN_UseSwitchInsteadOfAttribute = 41008
+        WRN_TupleLiteralNameMismatch = 41009
 
-        '// AVAILABLE                             41009 - 41199
+        '// AVAILABLE                             41010 - 41199
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 41997
         WRN_RecursiveAddHandlerCall = 41998
         WRN_ImplicitConversionCopyBack = 41999
