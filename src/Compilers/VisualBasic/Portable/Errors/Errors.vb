@@ -1689,9 +1689,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_DocFileGen = 37258
 
         ERR_TupleTooFewElements = 37259
-        ERR_TupleReservedMemberNameAnyPosition = 37260
-        ERR_TupleReservedMemberName = 37261
-        ERR_TupleDuplicateMemberName = 37262
+        ERR_TupleReservedElementNameAnyPosition = 37260
+        ERR_TupleReservedElementName = 37261
+        ERR_TupleDuplicateElementName = 37262
 
         ERR_RefReturningCallInExpressionTree = 37263
 

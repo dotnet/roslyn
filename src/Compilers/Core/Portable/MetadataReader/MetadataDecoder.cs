@@ -1454,7 +1454,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (count == 0)
             {
-                values = SpecializedCollections.EmptyArray<TypedConstant>();
+                values = Array.Empty<TypedConstant>();
             }
             else
             {
@@ -1612,8 +1612,8 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                positionalArgs = SpecializedCollections.EmptyArray<TypedConstant>();
-                namedArgs = SpecializedCollections.EmptyArray<KeyValuePair<String, TypedConstant>>();
+                positionalArgs = Array.Empty<TypedConstant>();
+                namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
 
                 // We could call decoder.GetSignature and use that to decode the arguments. However, materializing the
                 // constructor signature is more work. We try to decode the arguments directly from the metadata bytes.
@@ -1677,8 +1677,8 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
-                positionalArgs = SpecializedCollections.EmptyArray<TypedConstant>();
-                namedArgs = SpecializedCollections.EmptyArray<KeyValuePair<String, TypedConstant>>();
+                positionalArgs = Array.Empty<TypedConstant>();
+                namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
             }
 
             return false;

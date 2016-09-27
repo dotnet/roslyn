@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     var triggerSnapshot = model.TriggerSnapshot;
 
                     var completionService = CompletionService.GetService(triggerDocument);
+                    Contract.ThrowIfNull(completionService, nameof(completionService));
+
                     completionChange = completionService.GetChangeAsync(
                         triggerDocument, item.Item, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     var textChange = completionChange.TextChange;

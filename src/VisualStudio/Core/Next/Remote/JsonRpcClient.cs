@@ -19,16 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly Stream _stream;
         private readonly JsonRpc _rpc;
 
-        public JsonRpcClient(Stream stream)
+        public JsonRpcClient(Stream stream, object callbackTarget, bool useThisAsCallback)
         {
             _stream = stream;
-            _rpc = JsonRpc.Attach(stream, GetCallbackTarget());
-            _rpc.Disconnected += OnDisconnected;
-        }
 
-        protected virtual object GetCallbackTarget()
-        {
-            return null;
+            var target = useThisAsCallback ? this : callbackTarget;
+            _rpc = JsonRpc.Attach(stream, target);
+            _rpc.Disconnected += OnDisconnected;
         }
 
         public Task InvokeAsync(string targetName, params object[] arguments)

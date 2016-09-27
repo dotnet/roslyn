@@ -1949,6 +1949,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Object initialization can be simplified.
+        /// </summary>
+        internal static string Object_initialization_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Object_initialization_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Only methods with a single argument, which is not an out variable declaration, can be replaced with a property..
         /// </summary>
         internal static string Only_methods_with_a_single_argument_which_is_not_an_out_variable_declaration_can_be_replaced_with_a_property {

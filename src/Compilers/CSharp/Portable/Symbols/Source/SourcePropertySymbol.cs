@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (accessor.Body != null)
+                    if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
                         notRegularProperty = false;
                     }

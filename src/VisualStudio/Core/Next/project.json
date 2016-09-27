@@ -12,6 +12,8 @@
         },
         "Microsoft.ServiceHub.Client": "1.0.103-rc",
         "Newtonsoft.Json": "8.0.3",
+        "RoslynDependencies.Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.25718-Preview5",
+        "RoslynDependencies.Microsoft.VisualStudio.Workspace": "14.0.983-pre-ge167e81694",
         "System.Collections.Immutable": "1.2.0"
     },
     "frameworks": {

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                              Column = lineSpan.IsValid ? lineSpan.StartLinePosition.Character + 1 : 0,
                                              IsWarning = e.Severity == DiagnosticSeverity.Warning,
                                              Parameters = (e.Arguments != null && e.Arguments.Count > 0 && e.Arguments[0] != null) ?
-                                                e.Arguments.Select(x => x != null ? x.ToString() : null).ToArray() : SpecializedCollections.EmptyArray<string>()
+                                                e.Arguments.Select(x => x != null ? x.ToString() : null).ToArray() : Array.Empty<string>()
                                          })
                                     orderby ae.Code, ae.Line, ae.Column
                                     select ae).ToList();

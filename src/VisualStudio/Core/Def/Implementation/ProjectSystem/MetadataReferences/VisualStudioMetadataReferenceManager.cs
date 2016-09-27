@@ -318,14 +318,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage> storages,
             Func<FileKey, List<ITemporaryStreamStorage>, ModuleMetadata> moduleMetadataFactory)
         {
-            ImmutableArray<ModuleMetadata>.Builder moduleBuilder = null;
+            var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
 
             string assemblyDir = null;
             foreach (string moduleName in manifestModule.GetModuleNames())
             {
-                if (moduleBuilder == null)
+                if (moduleBuilder.Count == 0)
                 {
-                    moduleBuilder = ImmutableArray.CreateBuilder<ModuleMetadata>();
                     moduleBuilder.Add(manifestModule);
                     assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
                 }
@@ -336,8 +335,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 moduleBuilder.Add(metadata);
             }
 
-            var modules = (moduleBuilder != null) ? moduleBuilder.ToImmutable() : ImmutableArray.Create(manifestModule);
-            return AssemblyMetadata.Create(modules);
+            if (moduleBuilder.Count == 0)
+            {
+                moduleBuilder.Add(manifestModule);
+            }
+
+            return AssemblyMetadata.Create(
+                moduleBuilder.ToImmutableAndFree());
         }
     }
 }

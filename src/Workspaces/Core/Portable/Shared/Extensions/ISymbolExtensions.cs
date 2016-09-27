@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)
         {
-            var results = ImmutableArray.CreateBuilder<ITypeSymbol>();
+            var results = ArrayBuilder<ITypeSymbol>.GetInstance();
             results.AddRange(symbol.GetTypeArguments());
 
             var containingType = symbol.ContainingType;
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 containingType = containingType.ContainingType;
             }
 
-            return results.AsImmutable();
+            return results.ToImmutableAndFree();
         }
 
         public static bool IsAttribute(this ISymbol symbol)

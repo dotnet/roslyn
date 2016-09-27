@@ -384,9 +384,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             throw ExceptionUtilities.Unreachable;
         }
+
         protected override Symbol MakeOutVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind)
         {
-            return SourceMemberFieldSymbolFromDesignation.Create(_containingType, node.VariableDesignation(), _modifiers, _containingFieldOpt, nodeToBind);
+            return SourceMemberFieldSymbolFromDesignation.Create(_containingType, node.VariableDesignation(), node.Type(),
+                _modifiers, _containingFieldOpt, nodeToBind);
         }
 
         #region pool

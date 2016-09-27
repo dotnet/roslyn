@@ -18,10 +18,28 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal abstract class Asset : ChecksumObject
     {
+        public static readonly Asset Null = new NullAsset();
+
         public Asset(Checksum checksum, string kind) : base(checksum, kind)
         {
             // TODO: find out a way to reduce number of asset implementations.
             //       tried once but couldn't figure out
+        }
+
+        /// <summary>
+        /// null asset indicating things that doesn't actually exist
+        /// </summary>
+        private sealed class NullAsset : Asset
+        {
+            public NullAsset() :
+                base(Checksum.Null, WellKnownChecksumObjects.Null)
+            {
+            }
+
+            public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.EmptyTask;
+            }
         }
     }
 
