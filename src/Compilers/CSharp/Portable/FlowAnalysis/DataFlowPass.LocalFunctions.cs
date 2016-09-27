@@ -38,10 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                            syntax,
                            isWrite: false);
 
-            // Don't replay writes if the function is
-            // async or an iterator (i.e., is a coroutine)
-            writes &= !localFunc.IsIterator && !localFunc.IsAsync;
-
             // Now the writes
             if (writes)
             {

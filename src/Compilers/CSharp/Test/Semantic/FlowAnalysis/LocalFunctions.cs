@@ -63,8 +63,9 @@ class C
 {
     public static void M2()
     {
-        int x, y, z;
+        int a=0, x, y, z;
         L1();
+        a++;
         x++;
         y++;
         z++;
@@ -78,15 +79,12 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (10,9): error CS0165: Use of unassigned local variable 'x'
-                //         x++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(10, 9),
-                // (11,9): error CS0165: Use of unassigned local variable 'y'
+                // (12,9): error CS0165: Use of unassigned local variable 'y'
                 //         y++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(11, 9),
-                // (12,9): error CS0165: Use of unassigned local variable 'z'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(12, 9),
+                // (13,9): error CS0165: Use of unassigned local variable 'z'
                 //         z++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(13, 9));
         }
 
         [Fact]
@@ -100,10 +98,11 @@ class C
 {
     public static void M2()
     {
-        int w, x, y, z;
+        int a=0, w, x, y, z;
 
         L1();
 
+        a++;
         w++;
         x++;
         y++;
@@ -120,21 +119,21 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (23,13): warning CS0162: Unreachable code detected
+                // (24,13): warning CS0162: Unreachable code detected
                 //             y = 0;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "y").WithLocation(23, 13),
-                // (12,9): error CS0165: Use of unassigned local variable 'w'
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "y").WithLocation(24, 13),
+                // (13,9): error CS0165: Use of unassigned local variable 'w'
                 //         w++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "w").WithArguments("w").WithLocation(12, 9),
-                // (13,9): error CS0165: Use of unassigned local variable 'x'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "w").WithArguments("w").WithLocation(13, 9),
+                // (14,9): error CS0165: Use of unassigned local variable 'x'
                 //         x++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(13, 9),
-                // (14,9): error CS0165: Use of unassigned local variable 'y'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(14, 9),
+                // (15,9): error CS0165: Use of unassigned local variable 'y'
                 //         y++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(14, 9),
-                // (15,9): error CS0165: Use of unassigned local variable 'z'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(15, 9),
+                // (16,9): error CS0165: Use of unassigned local variable 'z'
                 //         z++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(15, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(16, 9));
         }
 
         [Fact]
