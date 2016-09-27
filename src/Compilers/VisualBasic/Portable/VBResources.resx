@@ -5379,14 +5379,14 @@
   <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
     <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
   </data>
-  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
-    <value>Tuple member names must be unique.</value>
+  <data name="ERR_TupleDuplicateElementName" xml:space="preserve">
+    <value>Tuple element names must be unique.</value>
   </data>
-  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
-    <value>Tuple member name '{0}' is only allowed at position {1}.</value>
+  <data name="ERR_TupleReservedElementName" xml:space="preserve">
+    <value>Tuple element name '{0}' is only allowed at position {1}.</value>
   </data>
-  <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
-    <value>Tuple member name '{0}' is disallowed at any position.</value>
+  <data name="ERR_TupleReservedElementNameAnyPosition" xml:space="preserve">
+    <value>Tuple element name '{0}' is disallowed at any position.</value>
   </data>
   <data name="ERR_TupleTooFewElements" xml:space="preserve">
     <value>Tuple must contain at least two elements.</value>
