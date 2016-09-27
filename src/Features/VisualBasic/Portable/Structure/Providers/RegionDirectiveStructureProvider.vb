@@ -21,16 +21,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Function
 
         Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             Dim matchingDirective = regionDirective.GetMatchingStartOrEndDirective(cancellationToken)
             If matchingDirective IsNot Nothing Then
-                spans.Add(
-                    CreateRegion(
-                        TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End),
-                        GetBannerText(regionDirective),
-                        autoCollapse:=False,
-                        isDefaultCollapsed:=True))
+                spans.Add(CreateRegion(
+                    TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End),
+                    GetBannerText(regionDirective),
+                    autoCollapse:=False,
+                    isDefaultCollapsed:=True,
+                    type:=BlockTypes.Nonstructural,
+                    isCollapsible:=True))
             End If
         End Sub
 

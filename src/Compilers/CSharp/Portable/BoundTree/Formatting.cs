@@ -61,6 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundThrowExpression
+    {
+        public override object Display
+        {
+            get { return MessageID.IDS_ThrowExpression.Localize(); }
+        }
+    }
+
     internal partial class BoundTupleExpression
     {
         public override object Display
@@ -96,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class OutVarLocalPendingInference
+    internal partial class OutVariablePendingInference
     {
         public override object Display
         {
@@ -112,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class DeconstructionLocalPendingInference
+    internal partial class DeconstructionVariablePendingInference
     {
         public override object Display
         {

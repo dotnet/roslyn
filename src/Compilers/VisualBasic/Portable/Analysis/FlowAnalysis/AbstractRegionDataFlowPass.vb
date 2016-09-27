@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub MakeSlots(parameters As ImmutableArray(Of ParameterSymbol))
             For Each parameter In parameters
-                MakeSlot(parameter)
+                GetOrCreateSlot(parameter)
             Next
         End Sub
 

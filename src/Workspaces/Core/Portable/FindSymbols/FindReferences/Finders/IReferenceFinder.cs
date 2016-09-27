@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<IEnumerable<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Called by the find references search engine to determine which documents in the supplied
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken));
+        Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Called by the find references search engine to determine the set of reference locations
@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(ISymbol symbol, Document document, CancellationToken cancellationToken = default(CancellationToken));
+        Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+            SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Called by the find references search engine when a new symbol definition is found.
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

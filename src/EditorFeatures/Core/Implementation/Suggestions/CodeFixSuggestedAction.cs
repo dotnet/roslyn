@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
-            var fixAllSuggestedActions = ImmutableArray.CreateBuilder<FixAllSuggestedAction>();
+            var fixAllSuggestedActions = ArrayBuilder<FixAllSuggestedAction>.GetInstance();
             foreach (var scope in supportedScopes)
             {
                 var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
@@ -75,7 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
 
-            return new SuggestedActionSet(fixAllSuggestedActions.ToImmutable(), title: EditorFeaturesResources.Fix_all_occurrences_in);
+            return new SuggestedActionSet(
+                fixAllSuggestedActions.ToImmutableAndFree(),
+                title: EditorFeaturesResources.Fix_all_occurrences_in);
         }
 
         public string GetDiagnosticID()

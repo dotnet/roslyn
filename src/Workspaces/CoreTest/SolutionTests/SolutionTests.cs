@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestGetSyntaxRootDoesNotKeepRootAlive()
         {
             var pid = ProjectId.CreateNewId();
@@ -973,7 +973,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13506"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(13506, "https://github.com/dotnet/roslyn/issues/13506")]
         public void TestRecoverableSyntaxTreeCSharp()
         {
             var pid = ProjectId.CreateNewId();

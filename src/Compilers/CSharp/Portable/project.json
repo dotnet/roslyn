@@ -1,6 +1,9 @@
 {
-  "dependencies": { },
+  "dependencies": {
+    "System.Linq.Expressions": "4.1.0",
+    "System.Threading.Tasks.Parallel": "4.0.1"
+  },
   "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
+    "netstandard1.3": {}
   }
 }

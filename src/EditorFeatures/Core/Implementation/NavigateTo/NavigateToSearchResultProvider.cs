@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -17,21 +18,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     [Export(typeof(INavigateToSearchResultProvider)), Shared]
     internal sealed partial class NavigateToSearchResultProvider : INavigateToSearchResultProvider
     {
-        public async Task<IEnumerable<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
+            Project project, string searchPattern, CancellationToken cancellationToken)
         {
-            var results = await FindNavigableDeclaredSymbolInfos(project, searchPattern, cancellationToken).ConfigureAwait(false);
-            var containsDots = searchPattern.IndexOf('.') >= 0;
-            return results.Select(r => ConvertResult(containsDots, r));
+            var results = await FindNavigableDeclaredSymbolInfos(
+                project, searchDocument: null, pattern: searchPattern, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return ProcessResult(searchPattern, results);
         }
 
-        private static async Task<IEnumerable<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(
-            Project project, string pattern, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(
+            Document document, string searchPattern, CancellationToken cancellationToken)
+        {
+            var results = await FindNavigableDeclaredSymbolInfos(
+                document.Project, document, searchPattern, cancellationToken).ConfigureAwait(false);
+            return ProcessResult(searchPattern, results);
+        }
+
+        private ImmutableArray<INavigateToSearchResult> ProcessResult(
+            string searchPattern, 
+            ImmutableArray<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>> results)
+        {
+            var containsDots = searchPattern.IndexOf('.') >= 0;
+            return results.SelectAsArray(r => ConvertResult(containsDots, r));
+        }
+
+        private static async Task<ImmutableArray<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(
+            Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
             using (var patternMatcher = new PatternMatcher(pattern, allowFuzzyMatching: true))
             {
-                var result = new List<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>();
+                var result = ArrayBuilder<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>.GetInstance();
                 foreach (var document in project.Documents)
                 {
+                    if (searchDocument != null && document != searchDocument)
+                    {
+                        continue;
+                    }
+
                     cancellationToken.ThrowIfCancellationRequested();
                     var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
 
@@ -50,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     }
                 }
 
-                return result;
+                return result.ToImmutableAndFree();
             }
         }
 
@@ -65,7 +88,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return declaredSymbolInfo.Name;
             }
         }
-
 
         private INavigateToSearchResult ConvertResult(
             bool containsDots, ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)

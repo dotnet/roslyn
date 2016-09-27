@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -3272,7 +3273,7 @@ class C
             Assert.True(mFirst.CustomModifiers.IsEmpty);
             Assert.True(mFirst.GetAttributes().IsEmpty);
             Assert.Null(mFirst.GetUseSiteDiagnostic());
-            Assert.False(mFirst.Locations.IsDefaultOrEmpty);
+            Assert.False(mFirst.Locations.IsEmpty);
             Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.False(mFirst.IsImplicitlyDeclared);
             Assert.Null(mFirst.TypeLayoutOffset);
@@ -3292,7 +3293,7 @@ class C
             Assert.True(mItem1.GetAttributes().IsEmpty);
             Assert.Null(mItem1.GetUseSiteDiagnostic());
             Assert.True(mItem1.Locations.IsEmpty);
-            Assert.False(mItem1.IsImplicitlyDeclared);
+            Assert.True(mItem1.IsImplicitlyDeclared);
             Assert.Null(mItem1.TypeLayoutOffset);
         }
 
@@ -3966,9 +3967,9 @@ namespace System
             Assert.True(mItem1.GetAttributes().IsEmpty);
             Assert.Equal("error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
                          mItem1.GetUseSiteDiagnostic().ToString());
-            Assert.False(mItem1.Locations.IsDefaultOrEmpty);
-            Assert.Equal("string", mItem1.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
-            Assert.False(mItem1.IsImplicitlyDeclared);
+            Assert.True(mItem1.Locations.IsEmpty);
+            Assert.True(mItem1.DeclaringSyntaxReferences.IsEmpty);
+            Assert.True(mItem1.IsImplicitlyDeclared);
             Assert.Null(mItem1.TypeLayoutOffset);
 
             AssertTestDisplayString(mTuple.GetMembers(),
@@ -6421,7 +6422,7 @@ class C
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11288")]
+        [Fact]
         [WorkItem(11288, "https://github.com/dotnet/roslyn/issues/11288")]
         public void TupleConversion02()
         {
@@ -6436,7 +6437,10 @@ class C
 " + trivial2uple + trivial3uple;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
-            );
+                // (6,29): error CS8135: Tuple with 3 elements cannot be converted to type '(long c, long d)'.
+                //         (int a, int b) x4 = ((long c, long d))(1, null, 2);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((long c, long d))(1, null, 2)").WithArguments("3", "(long c, long d)").WithLocation(6, 29)
+                );
         }
 
         [Fact]
@@ -7078,7 +7082,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "{1, qq1}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11289")]
+        [Fact]
         [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC02()
         {
@@ -8657,10 +8661,10 @@ class C
             Assert.True(m1Item1.CustomModifiers.IsEmpty);
             Assert.True(m1Item1.GetAttributes().IsEmpty);
             Assert.Null(m1Item1.GetUseSiteDiagnostic());
-            Assert.False(m1Item1.Locations.IsDefaultOrEmpty);
-            Assert.Equal("int", m1Item1.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.False(m1Item1.Locations.IsEmpty);
+            Assert.True(m1Item1.DeclaringSyntaxReferences.IsEmpty);
             Assert.Equal("Item1", m1Item1.TupleUnderlyingField.Name);
-            Assert.False(m1Item1.IsImplicitlyDeclared);
+            Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
             Assert.True(m2Item1.IsTupleField);
@@ -8673,11 +8677,13 @@ class C
             Assert.True(m2Item1.CustomModifiers.IsEmpty);
             Assert.True(m2Item1.GetAttributes().IsEmpty);
             Assert.Null(m2Item1.GetUseSiteDiagnostic());
-            Assert.False(m2Item1.Locations.IsDefaultOrEmpty);
+            Assert.False(m2Item1.Locations.IsEmpty);
             Assert.Equal("Item1", m2Item1.Name);
             Assert.Equal("Item1", m2Item1.TupleUnderlyingField.Name);
-            Assert.Equal(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single());
-            Assert.False(m2Item1.IsImplicitlyDeclared);
+            Assert.NotEqual(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single());
+            Assert.Equal("MetadataFile(System.ValueTuple.dll)", m2Item1.TupleUnderlyingField.Locations.Single().ToString());
+            Assert.Equal("SourceFile([826..828))", m2Item1.Locations.Single().ToString());
+            Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
             Assert.True(m2a2.IsTupleField);
@@ -8690,7 +8696,7 @@ class C
             Assert.True(m2a2.CustomModifiers.IsEmpty);
             Assert.True(m2a2.GetAttributes().IsEmpty);
             Assert.Null(m2a2.GetUseSiteDiagnostic());
-            Assert.False(m2a2.Locations.IsDefaultOrEmpty);
+            Assert.False(m2a2.Locations.IsEmpty);
             Assert.Equal("a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m2a2.TupleUnderlyingField.Name);
             Assert.False(m2a2.IsImplicitlyDeclared);
@@ -8904,10 +8910,10 @@ class C
             Assert.True(m3Item8.CustomModifiers.IsEmpty);
             Assert.True(m3Item8.GetAttributes().IsEmpty);
             Assert.Null(m3Item8.GetUseSiteDiagnostic());
-            Assert.False(m3Item8.Locations.IsDefaultOrEmpty);
-            Assert.Equal("int", m3Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.False(m3Item8.Locations.IsEmpty);
+            Assert.True(m3Item8.DeclaringSyntaxReferences.IsEmpty);
             Assert.Equal("Item1", m3Item8.TupleUnderlyingField.Name);
-            Assert.False(m3Item8.IsImplicitlyDeclared);
+            Assert.True(m3Item8.IsImplicitlyDeclared);
             Assert.Null(m3Item8.TypeLayoutOffset);
 
             var m3TupleRestTuple = (NamedTypeSymbol)((FieldSymbol)m3Tuple.GetMembers("Rest").Single()).Type;
@@ -9098,9 +9104,9 @@ class C
             Assert.True(m4Item8.CustomModifiers.IsEmpty);
             Assert.True(m4Item8.GetAttributes().IsEmpty);
             Assert.Null(m4Item8.GetUseSiteDiagnostic());
-            Assert.True(m4Item8.Locations.IsDefaultOrEmpty);
+            Assert.False(m4Item8.Locations.IsEmpty);
             Assert.Equal("Item1", m4Item8.TupleUnderlyingField.Name);
-            Assert.False(m4Item8.IsImplicitlyDeclared);
+            Assert.True(m4Item8.IsImplicitlyDeclared);
             Assert.Null(m4Item8.TypeLayoutOffset);
 
             var m4h4 = (FieldSymbol)m4Tuple.GetMembers("h4").Single();
@@ -9117,7 +9123,7 @@ class C
             Assert.True(m4h4.CustomModifiers.IsEmpty);
             Assert.True(m4h4.GetAttributes().IsEmpty);
             Assert.Null(m4h4.GetUseSiteDiagnostic());
-            Assert.False(m4h4.Locations.IsDefaultOrEmpty);
+            Assert.False(m4h4.Locations.IsEmpty);
             Assert.Equal("h4", m4h4.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m4h4.TupleUnderlyingField.Name);
             Assert.False(m4h4.IsImplicitlyDeclared);
@@ -9347,7 +9353,7 @@ class C
             Assert.True(m5Item8.CustomModifiers.IsEmpty);
             Assert.True(m5Item8.GetAttributes().IsEmpty);
             Assert.Null(m5Item8.GetUseSiteDiagnostic());
-            Assert.False(m5Item8.Locations.IsDefaultOrEmpty);
+            Assert.False(m5Item8.Locations.IsEmpty);
             Assert.Equal("Item8", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m5Item8.TupleUnderlyingField.Name);
             Assert.False(m5Item8.IsImplicitlyDeclared);
@@ -9717,9 +9723,9 @@ class C
             Assert.True(m8Item8.CustomModifiers.IsEmpty);
             Assert.True(m8Item8.GetAttributes().IsEmpty);
             Assert.Null(m8Item8.GetUseSiteDiagnostic());
-            Assert.True(m8Item8.Locations.IsDefaultOrEmpty);
+            Assert.False(m8Item8.Locations.IsEmpty);
             Assert.Equal("Item1", m8Item8.TupleUnderlyingField.Name);
-            Assert.False(m8Item8.IsImplicitlyDeclared);
+            Assert.True(m8Item8.IsImplicitlyDeclared);
             Assert.Null(m8Item8.TypeLayoutOffset);
 
             var m8Item1 = (FieldSymbol)m8Tuple.GetMembers("Item1").Last();
@@ -9737,7 +9743,7 @@ class C
             Assert.True(m8Item1.CustomModifiers.IsEmpty);
             Assert.True(m8Item1.GetAttributes().IsEmpty);
             Assert.Null(m8Item1.GetUseSiteDiagnostic());
-            Assert.False(m8Item1.Locations.IsDefaultOrEmpty);
+            Assert.False(m8Item1.Locations.IsEmpty);
             Assert.Equal("Item1", m8Item1.Name);
             Assert.Equal("Item1", m8Item1.TupleUnderlyingField.Name);
             Assert.NotEqual(m8Item1.Locations.Single(), m8Item1.TupleUnderlyingField.Locations.Single());
@@ -9917,10 +9923,10 @@ class C
             Assert.True(m1Item1.CustomModifiers.IsEmpty);
             Assert.True(m1Item1.GetAttributes().IsEmpty);
             Assert.Null(m1Item1.GetUseSiteDiagnostic());
-            Assert.False(m1Item1.Locations.IsDefaultOrEmpty);
-            Assert.Equal("1", m1Item1.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.False(m1Item1.Locations.IsEmpty);
+            Assert.True(m1Item1.DeclaringSyntaxReferences.IsEmpty);
             Assert.Equal("Item1", m1Item1.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
-            Assert.False(m1Item1.IsImplicitlyDeclared);
+            Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
             Assert.True(m2Item1.IsTupleField);
@@ -9933,11 +9939,13 @@ class C
             Assert.True(m2Item1.CustomModifiers.IsEmpty);
             Assert.True(m2Item1.GetAttributes().IsEmpty);
             Assert.Null(m2Item1.GetUseSiteDiagnostic());
-            Assert.False(m2Item1.Locations.IsDefaultOrEmpty);
-            Assert.Equal("Item1", m2Item1.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.False(m2Item1.Locations.IsEmpty);
+            Assert.True(m2Item1.DeclaringSyntaxReferences.IsEmpty);
             Assert.Equal("Item1", m2Item1.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
-            Assert.Equal(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single());
-            Assert.False(m2Item1.IsImplicitlyDeclared);
+            Assert.NotEqual(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single());
+            Assert.Equal("SourceFile([891..896))", m2Item1.TupleUnderlyingField.Locations.Single().ToString());
+            Assert.Equal("SourceFile([196..198))", m2Item1.Locations.Single().ToString());
+            Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
             Assert.True(m2a2.IsTupleField);
@@ -9950,7 +9958,7 @@ class C
             Assert.True(m2a2.CustomModifiers.IsEmpty);
             Assert.True(m2a2.GetAttributes().IsEmpty);
             Assert.Null(m2a2.GetUseSiteDiagnostic());
-            Assert.False(m2a2.Locations.IsDefaultOrEmpty);
+            Assert.False(m2a2.Locations.IsEmpty);
             Assert.Equal("a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m2a2.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.False(m2a2.IsImplicitlyDeclared);
@@ -9976,7 +9984,7 @@ class C
             Assert.Null(m1ToString.GetUseSiteDiagnostic());
             Assert.Equal("System.String System.ValueType.ToString()",
                          m1ToString.OverriddenMethod.ToTestDisplayString());
-            Assert.False(m1ToString.Locations.IsDefaultOrEmpty);
+            Assert.False(m1ToString.Locations.IsEmpty);
             Assert.Equal("public override string ToString()", m1ToString.DeclaringSyntaxReferences.Single().GetSyntax().ToString().Substring(0, 33));
             Assert.Equal(m1ToString.Locations.Single(), m1ToString.TupleUnderlyingMethod.Locations.Single());
         }
@@ -11458,8 +11466,9 @@ class C
         System.Console.WriteLine(x <= 1);
     }
 }
+";
 
-
+            var tuple = @"
 namespace System
 {
     // struct with two values
@@ -11632,11 +11641,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source,
-                additionalRefs: s_valueTupleRefs,
-                parseOptions: TestOptions.Regular,
-                options: TestOptions.ReleaseExe.WithAllowUnsafe(true),
-                expectedOutput:
+            var expectedOutput =
 @"{1, 3}
 4
 {2, 4}
@@ -11665,7 +11670,15 @@ True
 False
 True
 False
-");
+";
+            var lib = CreateCompilationWithMscorlib(tuple, options: TestOptions.ReleaseDll);
+            lib.VerifyDiagnostics();
+
+            var consumer1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.ToMetadataReference() });
+            CompileAndVerify(consumer1, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var consumer2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.EmitToImageReference() });
+            CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -11715,8 +11728,8 @@ class C
         System.Console.WriteLine(x <= 1);
     }
 }
-
-
+";
+            var tuple = @"
 namespace System
 {
     // struct with two values
@@ -11889,11 +11902,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source,
-                additionalRefs: s_valueTupleRefs,
-                parseOptions: TestOptions.Regular,
-                options: TestOptions.ReleaseExe.WithAllowUnsafe(true),
-                expectedOutput:
+            var expectedOutput =
 @"{1, 3}
 4
 {2, 4}
@@ -11922,7 +11931,663 @@ True
 False
 True
 False
-");
+";
+            var lib = CreateCompilationWithMscorlib(tuple, options: TestOptions.ReleaseDll);
+            lib.VerifyDiagnostics();
+
+            var consumer1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.ToMetadataReference() });
+            CompileAndVerify(consumer1, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var consumer2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.EmitToImageReference() });
+            CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(11530, "https://github.com/dotnet/roslyn/issues/11530")]
+        public void UnifyUnderlyingWithTuple_10()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Test
+{
+    static void Main()
+    {
+        var a = new KeyValuePair<int, long>(1, 2);
+        (int, long) b = a;
+        System.Console.WriteLine(b.Item1);
+        System.Console.WriteLine(b.Item2);
+        b.Item1++;
+        b.Item2++;
+        a = b;
+        System.Console.WriteLine(a.Key);
+        System.Console.WriteLine(a.Value);
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public static implicit operator KeyValuePair<T1, T2>(ValueTuple<T1, T2> tuple)
+        {
+            T1 k;
+            T2 v;
+            (k, v) = tuple;
+            return new KeyValuePair<T1, T2>(k, v);
+        }
+
+        public static implicit operator ValueTuple<T1, T2>(KeyValuePair<T1, T2> kvp)
+        {
+            return (kvp.Key, kvp.Value);
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular,
+                options: TestOptions.ReleaseExe,
+                expectedOutput:
+@"1
+2
+2
+3");
+        }
+
+        [Fact]
+        [WorkItem(11986, "https://github.com/dotnet/roslyn/issues/11986")]
+        public void UnifyUnderlyingWithTuple_11()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Test
+{
+    static void Main()
+    {
+        var a = (1, 2);
+        System.Console.WriteLine((int)a);
+        System.Console.WriteLine((long)a);
+        System.Console.WriteLine((string)a);
+        System.Console.WriteLine((double)a);
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public static explicit operator int((T1, T2)? source)
+        {
+            return 1;
+        }
+
+        public static explicit operator long(Nullable<(T1, T2)> source)
+        {
+            return 2;
+        }
+
+        public static explicit operator string(Nullable<ValueTuple<T1, T2>> source)
+        {
+            return ""3"";
+        }
+
+        public static explicit operator double(ValueTuple<T1, T2>? source)
+        {
+            return 4;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular,
+                options: TestOptions.ReleaseExe,
+                expectedOutput:
+@"1
+2
+3
+4");
+        }
+
+        [Fact]
+        public void UnifyUnderlyingWithTuple_12()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        (int, int)? x = (1, 3);
+        string s = x;
+        System.Console.WriteLine(s);
+        System.Console.WriteLine((long)x);
+
+        (int, string)? y = new KeyValuePair<int, string>(2, ""4"");
+        System.Console.WriteLine(y);
+        System.Console.WriteLine((ValueTuple<string, string>)""5"");
+
+        System.Console.WriteLine(+x);
+        System.Console.WriteLine(-x);
+        System.Console.WriteLine(!x);
+        System.Console.WriteLine(~x);
+        System.Console.WriteLine(++x);
+        System.Console.WriteLine(--x);
+        System.Console.WriteLine(x ? true : false);
+        System.Console.WriteLine(!x ? true : false);
+
+        System.Console.WriteLine(x + 1);
+        System.Console.WriteLine(x - 1);
+        System.Console.WriteLine(x * 3);
+        System.Console.WriteLine(x / 2);
+        System.Console.WriteLine(x % 3);
+        System.Console.WriteLine(x & 3);
+        System.Console.WriteLine(x | 15);
+        System.Console.WriteLine(x ^ 4);
+        System.Console.WriteLine(x << 1);
+        System.Console.WriteLine(x >> 1);
+        System.Console.WriteLine(x == 1);
+        System.Console.WriteLine(x != 1);
+        System.Console.WriteLine(x > 1);
+        System.Console.WriteLine(x < 1);
+        System.Console.WriteLine(x >= 1);
+        System.Console.WriteLine(x <= 1);
+    }
+}
+";
+            var tuple = @"
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public static implicit operator string(ValueTuple<T1, T2>? arg)
+        {
+            return arg.ToString();
+        }
+
+        public static explicit operator long(ValueTuple<T1, T2>? arg)
+        {
+            return ((long)(int)(object)arg.Value.Item1 + (long)(int)(object)arg.Value.Item2);
+        }
+
+        public static implicit operator ValueTuple<T1, T2>?(System.Collections.Generic.KeyValuePair<T1, T2> arg)
+        {
+            return new ValueTuple<T1, T2>(arg.Key, arg.Value);
+        }
+
+        public static explicit operator ValueTuple<T1, T2>?(string arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)arg, (T2)(object)arg);
+        }
+
+
+        public static ValueTuple<T1, T2>? operator +(ValueTuple<T1, T2>? arg)
+        {
+            return arg;
+        }
+
+        public static long operator -(ValueTuple<T1, T2>? arg)
+        {
+            return -(long)arg;
+        }
+
+        public static bool operator !(ValueTuple<T1, T2>? arg)
+        {
+            return (long)arg == 0;
+        }
+
+        public static long operator ~(ValueTuple<T1, T2>? arg)
+        {
+            return -(long)arg;
+        }
+
+        public static ValueTuple<T1, T2>? operator ++(ValueTuple<T1, T2>? arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)((int)(object)arg.Value.Item1+1), (T2)(object)((int)(object)arg.Value.Item2+1));
+        }
+
+        public static ValueTuple<T1, T2>? operator --(ValueTuple<T1, T2>? arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)((int)(object)arg.Value.Item1 - 1), (T2)(object)((int)(object)arg.Value.Item2 - 1));
+        }
+
+        public static bool operator true(ValueTuple<T1, T2>? arg)
+        {
+            return (long)arg != 0;
+        }
+
+        public static bool operator false(ValueTuple<T1, T2>? arg)
+        {
+            return (long)arg == 0;
+        }
+
+        public static long operator + (ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 + arg2;
+        }
+
+        public static long operator -(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 - arg2;
+        }
+
+        public static long operator *(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 * arg2;
+        }
+
+        public static long operator /(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 / arg2;
+        }
+
+        public static long operator %(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 % arg2;
+        }
+
+        public static long operator &(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 & arg2;
+        }
+
+        public static long operator |(ValueTuple<T1, T2>? arg1, long arg2)
+        {
+            return (long)arg1 | arg2;
+        }
+
+        public static long operator ^(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 ^ arg2;
+        }
+        public static long operator <<(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 << arg2;
+        }
+
+        public static long operator >>(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 >> arg2;
+        }
+
+        public static bool operator ==(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 == arg2;
+        }
+
+        public static bool operator !=(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 != arg2;
+        }
+
+        public static bool operator >(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 > arg2;
+        }
+
+        public static bool operator <(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 < arg2;
+        }
+
+        public static bool operator >=(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 >= arg2;
+        }
+
+        public static bool operator <=(ValueTuple<T1, T2>? arg1, int arg2)
+        {
+            return (long)arg1 <= arg2;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+    }
+}
+";
+            
+            var expectedOutput =
+@"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+-4
+{2, 4}
+{1, 3}
+True
+False
+5
+3
+12
+2
+1
+0
+15
+0
+8
+2
+False
+True
+True
+False
+True
+False
+";
+            var lib = CreateCompilationWithMscorlib(tuple, options: TestOptions.ReleaseDll);
+            lib.VerifyDiagnostics();
+
+            var consumer1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.ToMetadataReference() });
+            CompileAndVerify(consumer1, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var consumer2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.EmitToImageReference() });
+            CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnifyUnderlyingWithTuple_13()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        (int, int)? x = (1, 3);
+        string s = x;
+        System.Console.WriteLine(s);
+        System.Console.WriteLine((long)x);
+
+        (int, string)? y = new KeyValuePair<int, string>(2, ""4"");
+        System.Console.WriteLine(y);
+        System.Console.WriteLine((ValueTuple<string, string>)""5"");
+
+        System.Console.WriteLine(+x);
+        System.Console.WriteLine(-x);
+        System.Console.WriteLine(!x);
+        System.Console.WriteLine(~x);
+        System.Console.WriteLine(++x);
+        System.Console.WriteLine(--x);
+        System.Console.WriteLine(x ? true : false);
+        System.Console.WriteLine(!x ? true : false);
+
+        System.Console.WriteLine(x + 1);
+        System.Console.WriteLine(x - 1);
+        System.Console.WriteLine(x * 3);
+        System.Console.WriteLine(x / 2);
+        System.Console.WriteLine(x % 3);
+        System.Console.WriteLine(x & 3);
+        System.Console.WriteLine(x | 15);
+        System.Console.WriteLine(x ^ 4);
+        System.Console.WriteLine(x << 1);
+        System.Console.WriteLine(x >> 1);
+        System.Console.WriteLine(x == 1);
+        System.Console.WriteLine(x != 1);
+        System.Console.WriteLine(x > 1);
+        System.Console.WriteLine(x < 1);
+        System.Console.WriteLine(x >= 1);
+        System.Console.WriteLine(x <= 1);
+    }
+}
+";
+            var tuple = @"
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public static implicit operator string((T1, T2)? arg)
+        {
+            return arg.ToString();
+        }
+
+        public static explicit operator long((T1, T2)? arg)
+        {
+            return ((long)(int)(object)arg.Value.Item1 + (long)(int)(object)arg.Value.Item2);
+        }
+
+        public static implicit operator (T1, T2)?(System.Collections.Generic.KeyValuePair<T1, T2> arg)
+        {
+            return new (T1, T2)(arg.Key, arg.Value);
+        }
+
+        public static explicit operator (T1, T2)?(string arg)
+        {
+            return new (T1, T2)((T1)(object)arg, (T2)(object)arg);
+        }
+
+
+        public static (T1, T2)? operator +((T1, T2)? arg)
+        {
+            return arg;
+        }
+
+        public static long operator -((T1, T2)? arg)
+        {
+            return -(long)arg;
+        }
+
+        public static bool operator !((T1, T2)? arg)
+        {
+            return (long)arg == 0;
+        }
+
+        public static long operator ~((T1, T2)? arg)
+        {
+            return -(long)arg;
+        }
+
+        public static (T1, T2)? operator ++((T1, T2)? arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)((int)(object)arg.Value.Item1+1), (T2)(object)((int)(object)arg.Value.Item2+1));
+        }
+
+        public static (T1, T2)? operator --((T1, T2)? arg)
+        {
+            return new ValueTuple<T1, T2>((T1)(object)((int)(object)arg.Value.Item1 - 1), (T2)(object)((int)(object)arg.Value.Item2 - 1));
+        }
+
+        public static bool operator true((T1, T2)? arg)
+        {
+            return (long)arg != 0;
+        }
+
+        public static bool operator false((T1, T2)? arg)
+        {
+            return (long)arg == 0;
+        }
+
+        public static long operator + ((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 + arg2;
+        }
+
+        public static long operator -((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 - arg2;
+        }
+
+        public static long operator *((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 * arg2;
+        }
+
+        public static long operator /((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 / arg2;
+        }
+
+        public static long operator %((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 % arg2;
+        }
+
+        public static long operator &((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 & arg2;
+        }
+
+        public static long operator |((T1, T2)? arg1, long arg2)
+        {
+            return (long)arg1 | arg2;
+        }
+
+        public static long operator ^((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 ^ arg2;
+        }
+        public static long operator <<((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 << arg2;
+        }
+
+        public static long operator >>((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 >> arg2;
+        }
+
+        public static bool operator ==((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 == arg2;
+        }
+
+        public static bool operator !=((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 != arg2;
+        }
+
+        public static bool operator >((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 > arg2;
+        }
+
+        public static bool operator <((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 < arg2;
+        }
+
+        public static bool operator >=((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 >= arg2;
+        }
+
+        public static bool operator <=((T1, T2)? arg1, int arg2)
+        {
+            return (long)arg1 <= arg2;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+    }
+}
+";
+
+            var expectedOutput =
+@"{1, 3}
+4
+{2, 4}
+{5, 5}
+{1, 3}
+-4
+False
+-4
+{2, 4}
+{1, 3}
+True
+False
+5
+3
+12
+2
+1
+0
+15
+0
+8
+2
+False
+True
+True
+False
+True
+False
+";
+            var lib = CreateCompilationWithMscorlib(tuple, options: TestOptions.ReleaseDll);
+            lib.VerifyDiagnostics();
+
+            var consumer1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.ToMetadataReference() });
+            CompileAndVerify(consumer1, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var consumer2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, references: new[] { lib.EmitToImageReference() });
+            CompileAndVerify(consumer2, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -17882,6 +18547,248 @@ class Program
             var finalText = newTree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(newText.ToString(), finalText);
             // no crash
+        }
+
+        [Fact]
+        [WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")]
+        public void BadOverloadWithTupleLiteralWithNaturalType()
+        {
+            var source = @"
+class Program
+{
+    static void M(int i) { } 
+    static void M(string i) { } 
+
+    static void Main() 
+    {
+        M((1, 2));
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,11): error CS1503: Argument 1: cannot convert from '(int, int)' to 'int'
+                //         M((1, 2));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(1, 2)").WithArguments("1", "(int, int)", "int").WithLocation(9, 11));
+        }
+
+        [Fact]
+        [WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")]
+        public void BadOverloadWithTupleLiteralWithNoNaturalType()
+        {
+            var source = @"
+class Program
+{
+    static void M(int i) { } 
+    static void M(string i) { } 
+
+    static void Main() 
+    {
+        M((1, null));
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,11): error CS1503: Argument 1: cannot convert from '(int, <null>)' to 'int'
+                //         M((1, null));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(1, null)").WithArguments("1", "(int, <null>)", "int").WithLocation(9, 11));
+        }
+
+        [Fact]
+        [WorkItem(261049, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
+        public void DevDiv261049RegressionTest()
+        {
+            var source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var (a,b) =  Get(out int x, out int y);
+            Console.WriteLine($""({a.first}, {a.second})"");
+        }
+
+        static (string first,string second) Get(out int a, out int b)
+        {
+            a = 0;
+            b = 1;
+            return (""a"",""b"");
+        }
+    }
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,37): error CS1061: 'string' does not contain a definition for 'first' and no extension method 'first' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //             Console.WriteLine($"({a.first}, {a.second})");
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "first").WithArguments("string", "first").WithLocation(7, 37),
+                // (7,48): error CS1061: 'string' does not contain a definition for 'second' and no extension method 'second' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //             Console.WriteLine($"({a.first}, {a.second})");
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "second").WithArguments("string", "second").WithLocation(7, 48),
+                // (7,13): error CS0103: The name 'Console' does not exist in the current context
+                //             Console.WriteLine($"({a.first}, {a.second})");
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Console").WithArguments("Console").WithLocation(7, 13)
+                );
+        }
+
+        [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
+        public static void TupleCoVariance()
+        {
+            var source = @"
+public interface I<out T>
+{
+    System.ValueTuple<bool, T> M();
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics(
+                // (4,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I<T>.M()'. 'T' is covariant.
+                //     System.ValueTuple<bool, T> M();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "System.ValueTuple<bool, T>").WithArguments("I<T>.M()", "T", "covariant", "invariantly").WithLocation(4, 5)
+                );
+        }
+
+        [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
+        public static void TupleCoVariance2()
+        {
+            var source = @"
+public interface I<out T>
+{
+    (bool, T)[] M();
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics(
+                // (4,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I<T>.M()'. 'T' is covariant.
+                //     (bool, T)[] M();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "(bool, T)[]").WithArguments("I<T>.M()", "T", "covariant", "invariantly").WithLocation(4, 5)
+                );
+        }
+
+        [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
+        public static void TupleContraVariance()
+        {
+            var source = @"
+public interface I<in T>
+{
+    void M((bool, T)[] x);
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics(
+                // (4,12): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I<T>.M((bool, T)[])'. 'T' is contravariant.
+                //     void M((bool, T)[] x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "(bool, T)[]").WithArguments("I<T>.M((bool, T)[])", "T", "contravariant", "invariantly").WithLocation(4, 12)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        public void TupleInConstant()
+        {
+            var source = @"
+class C<T> { }
+class C
+{
+    static void Main()
+    {
+        const C<(int, int)> c = null;
+        System.Console.Write(c);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs, options: TestOptions.DebugExe);
+
+            // emit without pdb
+            using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
+            {
+                var reader = block.MetadataReader;
+                AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
+                Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+            }
+
+            // emit with pdb
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "", validator: (assembly) =>
+                {
+                    var reader = assembly.GetMetadataReader();
+                    AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
+                    Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                });
+            // no assertion in MetadataWriter
+        }
+
+        [Fact]
+        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        public void ConstantTypeFromReferencedAssembly()
+        {
+            var libSource = @" public class ReferencedType { } ";
+
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        const ReferencedType c = null;
+        System.Console.Write(c);
+    }
+}";
+
+            var libComp = CreateCompilationWithMscorlib(libSource, assemblyName: "lib");
+            libComp.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
+
+            // emit without pdb
+            using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
+            {
+                var reader = block.MetadataReader;
+                AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
+                Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+            }
+
+            // emit with pdb
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "", validator: (assembly) =>
+                {
+                    var reader = assembly.GetMetadataReader();
+                    AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
+                    Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                });
+            // no assertion in MetadataWriter
+        }
+
+        [Fact]
+        [WorkItem(13661, "https://github.com/dotnet/roslyn/issues/13661")]
+        public void LongTupleWithPartialNames_Bug13661()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var o = (A: 1, 2, C: 3, D: 4, E: 5, F: 6, G: 7, 8, I: 9);
+        Console.Write(o.I);
+    }
+}
+";
+            CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                options: TestOptions.DebugExe,
+                expectedOutput: @"9",
+                sourceSymbolValidator: (module) =>
+                {
+                    var sourceModule = (SourceModuleSymbol)module;
+                    var compilation = sourceModule.DeclaringCompilation;
+                    var tree = compilation.SyntaxTrees.First();
+                    var model = compilation.GetSemanticModel(tree);
+                    var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                    var x = nodes.OfType<VariableDeclaratorSyntax>().First();
+                    var xSymbol = ((SourceLocalSymbol)model.GetDeclaredSymbol(x)).Type;
+                    AssertEx.SetEqual(xSymbol.GetMembers().OfType<FieldSymbol>().Select(f => f.Name),
+                        "A", "C", "D", "E", "F", "G", "I", "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Rest");
+                });
+            // no assert hit
         }
     }
 }

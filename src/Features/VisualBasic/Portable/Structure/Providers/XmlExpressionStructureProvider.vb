@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of XmlNodeSyntax)
 
         Protected Overrides Sub CollectBlockSpans(xmlExpression As XmlNodeSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             ' If this XML expression is inside structured trivia (i.e. an XML doc comment), don't outline.
             If xmlExpression.HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
@@ -23,8 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim lineText = line.ToString().Substring(span.Start - line.Start)
             Dim bannerText = lineText & SpaceEllipsis
 
-            spans.Add(
-                CreateRegion(span, bannerText, autoCollapse:=False))
+            spans.Add(CreateRegion(
+                span, bannerText, autoCollapse:=False,
+                type:=BlockTypes.Xml, isCollapsible:=True))
         End Sub
     End Class
 End Namespace

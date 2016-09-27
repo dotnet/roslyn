@@ -7,13 +7,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
     internal static class CSharpCodeStyleOptions
     {
-        internal const string FeatureName = "CSharpCodeStyle";
-
         // TODO: get sign off on public api changes.
-        public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(FeatureName, "UseVarWhenDeclaringLocals", defaultValue: true);
+        public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(nameof(CodeStyleOptions), nameof(UseVarWhenDeclaringLocals), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseVarWhenDeclaringLocals"));
 
-        public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeForIntrinsicTypes = new Option<CodeStyleOption<bool>>(FeatureName, nameof(UseImplicitTypeForIntrinsicTypes), defaultValue: CodeStyleOption<bool>.Default);
-        public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWhereApparent = new Option<CodeStyleOption<bool>>(FeatureName, nameof(UseImplicitTypeWhereApparent), defaultValue: CodeStyleOption<bool>.Default);
-        public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWherePossible = new Option<CodeStyleOption<bool>>(FeatureName, nameof(UseImplicitTypeWherePossible), defaultValue: CodeStyleOption<bool>.Default);
+        public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeForIntrinsicTypes = new Option<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(UseImplicitTypeForIntrinsicTypes), defaultValue: CodeStyleOption<bool>.Default,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeForIntrinsicTypes"));
+
+        public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWhereApparent = new Option<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(UseImplicitTypeWhereApparent), defaultValue: CodeStyleOption<bool>.Default,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeWhereApparent"));
+
+        public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWherePossible = new Option<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(UseImplicitTypeWherePossible), defaultValue: CodeStyleOption<bool>.Default,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeWherePossible"));
+
+        public static readonly Option<CodeStyleOption<bool>> PreferConditionalDelegateCall = new Option<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferConditionalDelegateCall), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferConditionalDelegateCall"));
     }
 }

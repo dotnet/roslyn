@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -14,18 +15,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End Get
         End Property
 
-        Friend Overrides Async Function GetBlockSpansAsync(document As Document, position As Integer) As Task(Of BlockSpan())
+        Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
             Dim root = Await document.GetSyntaxRootAsync()
             Dim trivia = root.FindTrivia(position, findInsideTrivia:=True)
 
             Dim token = trivia.Token
 
             If token.LeadingTrivia.Contains(trivia) Then
-                Return CreateCommentsRegions(token.LeadingTrivia).ToArray()
+                Return CreateCommentsRegions(token.LeadingTrivia)
             ElseIf token.TrailingTrivia.Contains(trivia) Then
-                Return CreateCommentsRegions(token.TrailingTrivia).ToArray()
+                Return CreateCommentsRegions(token.TrailingTrivia)
             Else
-                Return Contract.FailWithReturn(Of BlockSpan())()
+                Return Contract.FailWithReturn(Of ImmutableArray(Of BlockSpan))()
             End If
         End Function
 

@@ -6455,11 +6455,11 @@ class C
 
             CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
                 edits,
-                ActiveStatementsDescription.Empty, 
+                ActiveStatementsDescription.Empty,
                 null,
                 null,
-                null, 
-                new[] 
+                null,
+                new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")
                 });
@@ -6499,6 +6499,130 @@ class C
                 null,
                 null,
                 null);
+        }
+
+        [Fact]
+        public void CSharp7SwitchStatement()
+        {
+            var src1 = @"
+class C
+{
+    static void F(object o)
+    {
+        switch (o)
+        {
+            case int i:
+                break;
+        }
+        System.Console.WriteLine(1);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F(object o)
+    {
+        switch (o)
+        {
+            case int i:
+                break;
+        }
+        System.Console.WriteLine(2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, CSharpFeaturesResources.v7_switch)
+                });
+        }
+
+        [Fact]
+        public void AddCSharp7SwitchStatement()
+        {
+            var src1 = @"
+class C
+{
+    static void F(object o)
+    {
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F(object o)
+    {
+        switch (o)
+        {
+            case string s:
+                break;
+        }
+        switch (o)
+        {
+            case int i:
+                break;
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                additionalOldSources: null,
+                additionalNewSources: null,
+                expectedSemanticEdits: null,
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (o)", CSharpFeaturesResources.v7_switch)
+                });
+        }
+
+        [Fact]
+        public void AddCSharp7SwitchStatement2()
+        {
+            var src1 = @"
+class C
+{
+    static void F(object o)
+    {
+        switch (o)
+        {
+            case 1:
+            case """":
+                break;
+        }
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F(object o)
+    {
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                additionalOldSources: null,
+                additionalNewSources: null,
+                expectedSemanticEdits: null,
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, CSharpFeaturesResources.v7_switch)
+                });
         }
 
         #endregion

@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             DestructorDeclarationSyntax destructorDeclaration,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(destructorDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, spans);
 
             // fault tolerance
             if (destructorDeclaration.Body == null ||
@@ -24,10 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 destructorDeclaration,
                 destructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
-                autoCollapse: true));
+                autoCollapse: true,
+                type: BlockTypes.Destructor,
+                isCollapsible: true));
         }
     }
 }

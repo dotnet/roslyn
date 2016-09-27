@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (parent.ChildShouldParenthesize)
             {
-                parentFullName = $"({parentFullName})";
+                parentFullName = parentFullName.Parenthesize();
             }
             var parentRuntimeType = parent.Value.Type;
             if (!parent.DeclaredTypeAndInfo.Type.Equals(parentRuntimeType.GetLmrType()))

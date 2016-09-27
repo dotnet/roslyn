@@ -120,6 +120,9 @@
   <data name="IDS_NULL" xml:space="preserve">
     <value>&lt;null&gt;</value>
   </data>
+  <data name="IDS_ThrowExpression" xml:space="preserve">
+    <value>&lt;throw expression&gt;</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -209,6 +212,15 @@
   </data>
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
+  </data>
+  <data name="IDS_FeatureExpressionBodiedAccessor" xml:space="preserve">
+    <value>expression body property accessor</value>
+  </data>
+  <data name="IDS_FeatureExpressionBodiedDeOrConstructor" xml:space="preserve">
+    <value>expression body constructor and destructor</value>
+  </data>
+  <data name="IDS_FeatureThrowExpression" xml:space="preserve">
+    <value>throw expression</value>
   </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
@@ -2503,6 +2515,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_CantReadResource" xml:space="preserve">
     <value>Error reading resource '{0}' -- '{1}'</value>
   </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
+  </data>
   <data name="WRN_XMLParseError" xml:space="preserve">
     <value>XML comment has badly formed XML -- '{0}'</value>
   </data>
@@ -4572,7 +4587,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Properties cannot combine accessor lists with expression bodies.</value>
   </data>
   <data name="ERR_BlockBodyAndExpressionBody" xml:space="preserve">
-    <value>Methods cannot combine block bodies with expression bodies.</value>
+    <value>Methods and accessors cannot combine block bodies with expression bodies.</value>
   </data>
   <data name="ERR_SwitchFallOut" xml:space="preserve">
     <value>Control cannot fall out of switch from final case label ('{0}')</value>
@@ -4845,9 +4860,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
     <value>Tuple member names must be unique.</value>
   </data>
-  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
-    <value>Tuple member names must all be provided, if any one is provided.</value>
-  </data>
   <data name="ERR_TupleReservedMemberName" xml:space="preserve">
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
@@ -4866,7 +4878,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
   </data>
-  <data name="ERR_PatternValueExpected" xml:space="preserve">
+  <data name="ERR_SwitchExpressionValueExpected" xml:space="preserve">
     <value>The switch expression must be a value; found {0}.</value>
   </data>
   <data name="ERR_PatternIsSubsumed" xml:space="preserve">
@@ -4896,6 +4908,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed out variable '{0}'.</value>
   </data>
+  <data name="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed deconstruction variable '{0}'.</value>
+  </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
   </data>
@@ -4923,9 +4938,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitTupleElementNames" xml:space="preserve">
     <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
   </data>
-  <data name="ERR_DeconstructCouldNotInferMergedType" xml:space="preserve">
-    <value>The type information on the left-hand-side '{0}' and right-hand-side '{1}' of the deconstruction was insufficient to infer a merged type.</value>
-  </data>
   <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">
     <value>An expression tree may not contain an out argument variable declaration.</value>
   </data>
@@ -4947,10 +4959,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
   </data>
-  <data name="ERR_OutVarDeconstructionIsNotSupported" xml:space="preserve">
-    <value>Deconstruction is not supported for an 'out' argument.</value>
+  <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
+    <value>The syntax 'var (...)' as an lvalue is reserved.</value>
   </data>
   <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
-    <value>Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.</value>
+    <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
+  </data>
+  <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
+    <value>{ or ; or =&gt; expected</value>
+  </data>
+  <data name="ERR_ThrowMisplaced" xml:space="preserve">
+    <value>A throw expression is not allowed in this context.</value>
   </data>
 </root>

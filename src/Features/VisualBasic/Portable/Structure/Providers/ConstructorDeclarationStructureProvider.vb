@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of SubNewStatementSyntax)
 
         Protected Overrides Sub CollectBlockSpans(constructorDeclaration As SubNewStatementSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             Dim regions As New List(Of BlockSpan)
 
@@ -18,8 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(constructorDeclaration.Parent, ConstructorBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then
-                spans.Add(
-                    CreateRegionFromBlock(block, bannerNode:=constructorDeclaration, autoCollapse:=True))
+                spans.Add(CreateRegionFromBlock(
+                    block, bannerNode:=constructorDeclaration, autoCollapse:=True,
+                    type:=BlockTypes.Constructor, isCollapsible:=True))
             End If
         End Sub
     End Class

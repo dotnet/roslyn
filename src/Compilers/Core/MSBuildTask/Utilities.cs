@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         internal static bool IsCompilerServerSupported =>
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-            DesktopBuildClient.GetRuntimeDirectoryOpt() != null;
+            DesktopBuildClient.GetRuntimeDirectoryOpt() != null &&
+            // Test that we can retrieve a valid pipe name
+            DesktopBuildClient.GetPipeNameForPathOpt("") != null;
 
         /// <summary>
         /// Convert a task item metadata to bool. Throw an exception if the string is badly formed and can't

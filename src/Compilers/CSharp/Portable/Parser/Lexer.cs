@@ -3150,7 +3150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (error != null)
             {
-                this.AddError(error.Value, errorArgs ?? SpecializedCollections.EmptyArray<object>());
+                this.AddError(error.Value, errorArgs ?? Array.Empty<object>());
             }
         }
 

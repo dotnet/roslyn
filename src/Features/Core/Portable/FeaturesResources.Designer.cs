@@ -1423,6 +1423,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Install package &apos;{0}&apos;.
+        /// </summary>
+        internal static string Install_package_0 {
+            get {
+                return ResourceManager.GetString("Install_package_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install version &apos;{0}&apos;.
         /// </summary>
         internal static string Install_version_0 {
@@ -1936,6 +1945,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Note_colon_Tab_twice_to_insert_the_0_snippet {
             get {
                 return ResourceManager.GetString("Note_colon_Tab_twice_to_insert_the_0_snippet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object initialization can be simplified.
+        /// </summary>
+        internal static string Object_initialization_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Object_initialization_can_be_simplified", resourceCulture);
             }
         }
         
@@ -2873,6 +2891,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_locally_installed_0_version_1_This_version_used_in_colon_2 {
             get {
                 return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_colon_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
+        /// </summary>
+        internal static string Use_throw_expression {
+            get {
+                return ResourceManager.GetString("Use_throw_expression", resourceCulture);
             }
         }
         

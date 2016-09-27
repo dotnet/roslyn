@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         End Function
 
         Friend Shared Function VariableAlias(name As String, typeAssemblyQualifiedName As String) As [Alias]
-            Return New [Alias](DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, Nothing)
+            Return New [Alias](DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, Nothing, Nothing)
         End Function
 
         Friend Shared Function ObjectIdAlias(id As UInteger, Optional type As Type = Nothing) As [Alias]
@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Friend Shared Function ObjectIdAlias(id As UInteger, typeAssemblyQualifiedName As String) As [Alias]
             Assert.NotEqual(Of UInteger)(0, id) ' Not a valid id.
             Dim name = $"${id}"
-            Return New [Alias](DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, Nothing)
+            Return New [Alias](DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, Nothing, Nothing)
         End Function
 
         Friend Shared Function ReturnValueAlias(Optional id As Integer = -1, Optional type As Type = Nothing) As [Alias]
@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Friend Shared Function ReturnValueAlias(id As Integer, typeAssemblyQualifiedName As String) As [Alias]
             Dim name = $"Method M{If(id < 0, "", id.ToString())} returned"
             Dim fullName = If(id < 0, "$ReturnValue", $"$ReturnValue{id}")
-            Return New [Alias](DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, Nothing)
+            Return New [Alias](DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, Nothing, Nothing)
         End Function
 
         Friend Shared Function ExceptionAlias(Optional type As Type = Nothing, Optional stowed As Boolean = False) As [Alias]
@@ -347,11 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim fullName = If(stowed, "$stowedexception", "$exception")
             Const name = "Error"
             Dim kind = If(stowed, DkmClrAliasKind.StowedException, DkmClrAliasKind.Exception)
-            Return New [Alias](kind, name, fullName, typeAssemblyQualifiedName, Nothing)
-        End Function
-
-        Friend Shared Function [Alias](kind As DkmClrAliasKind, name As String, fullName As String, typeAssemblyQualifiedName As String, customTypeInfo As CustomTypeInfo) As [Alias]
-            Return New [Alias](kind, name, fullName, typeAssemblyQualifiedName, customTypeInfo)
+            Return New [Alias](kind, name, fullName, typeAssemblyQualifiedName, Nothing, Nothing)
         End Function
 
         Friend Shared Function GetMethodDebugInfo(runtime As RuntimeInstance, qualifiedMethodName As String, Optional ilOffset As Integer = 0) As MethodDebugInfo(Of TypeSymbol, LocalSymbol)
@@ -359,8 +355,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim peMethod = peCompilation.GlobalNamespace.GetMember(Of PEMethodSymbol)(qualifiedMethodName)
             Dim peModule = DirectCast(peMethod.ContainingModule, PEModuleSymbol)
             Dim symReader = runtime.Modules.Single(Function(mi) mi.ModuleVersionId = peModule.Module.GetModuleVersionIdOrThrow()).SymReader
-            Dim symbolProvider = New VisualBasicEESymbolProvider(peModule, peMethod)
+            Dim symbolProvider = New VisualBasicEESymbolProvider(peCompilation.SourceAssembly, peModule, peMethod)
             Return MethodDebugInfo(Of TypeSymbol, LocalSymbol).ReadMethodDebugInfo(DirectCast(symReader, ISymUnmanagedReader3), symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion:=1, ilOffset:=ilOffset, isVisualBasicMethod:=True)
+        End Function
+
+        Friend Shared Function GetTupleElementNamesAttributeIfAny(method As IMethodSymbol) As SynthesizedAttributeData
+            Return GetAttributeIfAny(method, "System.Runtime.CompilerServices.TupleElementNamesAttribute")
+        End Function
+
+        Friend Shared Function GetAttributeIfAny(method As IMethodSymbol, typeName As String) As SynthesizedAttributeData
+            Return method.GetSynthesizedAttributes(forReturnType:=True).
+                Where(Function(a) a.AttributeClass.ToTestDisplayString() = typeName).
+                SingleOrDefault()
         End Function
     End Class
 End Namespace

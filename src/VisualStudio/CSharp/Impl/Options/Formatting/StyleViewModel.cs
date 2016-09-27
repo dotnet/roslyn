@@ -20,13 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </remarks>
     internal class StyleViewModel : AbstractOptionPreviewViewModel
     {
-        internal override bool ShouldPersistOption(OptionKey key)
-        {
-            return key.Option.Feature == CSharpCodeStyleOptions.FeatureName ||
-                key.Option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
-                key.Option.Feature == CodeAnalysis.Editing.GenerationOptions.FeatureName;
-        }
-
         #region "Preview Text"
 
         private static readonly string s_fieldDeclarationPreviewTrue = @"
@@ -232,6 +225,78 @@ class C{
 //]
     }
 }";
+
+        private static readonly string s_preferThrowExpression = @"
+using System;
+
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+//[
+        // Prefer:
+        this.s = s ?? throw new ArgumentNullException(nameof(s));
+
+        // Over:
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+
+        this.s = s;
+//]
+    }
+}
+";
+
+        private static readonly string s_preferConditionalDelegateCall = @"
+using System;
+
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+//[
+        // Prefer:
+        func?.Invoke(args);
+
+        // Over:
+        if (func != null)
+        {
+            func(args);
+        }
+//]
+    }
+}
+";
+
+        private static readonly string s_preferObjectInitializer = @"
+using System;
+
+class Customer
+{
+    private int Age;
+
+    public Customer()
+    {
+//[
+        // Prefer:
+        var c = new Customer()
+        {
+            Age = 21
+        };
+
+        // Over:
+        var c = new Customer();
+        c.Age = 21;
+//]
+    }
+}
+";
         #endregion
 
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
@@ -242,6 +307,8 @@ class C{
             var qualifyGroupTitle = CSharpVSResources.this_preferences_colon;
             var predefinedTypesGroupTitle = CSharpVSResources.predefined_type_preferences_colon;
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
+            var nullCheckingGroupTitle = CSharpVSResources.null_checking_colon;
+            var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
 
             var qualifyMemberAccessPreferences = new List<CodeStylePreference>
             {
@@ -272,6 +339,10 @@ class C{
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CSharpVSResources.For_built_in_types, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.When_variable_type_is_apparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
+
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, s_preferThrowExpression, s_preferThrowExpression, this, optionSet, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingGroupTitle));
         }
     }
 }

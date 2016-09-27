@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
         Protected Overrides Sub CollectBlockSpans(documentationComment As DocumentationCommentTriviaSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNullable()
             Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNullable()
@@ -87,8 +87,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
-            spans.Add(
-                CreateRegion(fullSpan, GetBannerText(documentationComment, cancellationToken), autoCollapse:=True))
+            spans.Add(CreateRegion(
+                fullSpan, GetBannerText(documentationComment, cancellationToken),
+                autoCollapse:=True, type:=BlockTypes.Nonstructural, isCollapsible:=True))
         End Sub
     End Class
 End Namespace

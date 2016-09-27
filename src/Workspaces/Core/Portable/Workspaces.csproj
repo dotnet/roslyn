@@ -11,9 +11,8 @@
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
@@ -90,9 +89,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\HashAlgorithms.cs">
-      <Link>InternalUtilities\HashAlgorithms.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
       <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
     </Compile>
@@ -125,9 +121,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Array.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Array.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs">
       <Link>InternalUtilities\SpecializedCollections.Empty.Collection.cs</Link>
@@ -228,12 +221,10 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\PortableShim.cs">
-      <Link>InternalUtilities\PortableShim.cs</Link>
-    </Compile>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
@@ -241,6 +232,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Next" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Text" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
@@ -267,6 +259,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
@@ -283,11 +276,11 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Workspaces" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
@@ -308,6 +301,7 @@
     <Compile Include="Classification\ClassificationExtensions.cs" />
     <Compile Include="Classification\ClassificationTypeNames.cs" />
     <Compile Include="Classification\ClassifiedSpan.cs" />
+    <Compile Include="Classification\ClassifiedText.cs" />
     <Compile Include="Classification\Classifier.cs" />
     <Compile Include="Classification\Classifiers\ISyntaxClassifier.cs" />
     <Compile Include="Classification\IClassificationService.cs" />
@@ -325,6 +319,7 @@
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
     <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\DocumentBasedFixAllProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixAllDiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllProviderInfo.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixMultipleDiagnosticProvider.cs" />
@@ -382,18 +377,33 @@
     <Compile Include="Execution\Serializer.cs" />
     <Compile Include="Execution\Serializer_Asset.cs" />
     <Compile Include="Execution\Serializer_ChecksumObjectWithChildren.cs" />
+    <Compile Include="Execution\Serializer_OptionSet.cs" />
     <Compile Include="Execution\SolutionChecksumObjects.cs" />
     <Compile Include="Execution\SolutionChecksumObjectInfo.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.cs" />
     <Compile Include="Execution\SolutionChecksumService.cs" />
+    <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
+    <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
+    <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
-    <Compile Include="Options\OptionService.cs" />
+    <Compile Include="Options\GlobalOptionService.cs" />
     <Compile Include="Options\IGlobalOptionService.cs" />
     <Compile Include="Options\IWorkspaceOptionService.cs" />
+    <Compile Include="Remote\IRemoteHostClientFactory.cs" />
+    <Compile Include="Remote\IRemoteHostClientService.cs" />
+    <Compile Include="Remote\RemoteHostClient.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.RemoteHostClientService.cs" />
+    <Compile Include="Remote\WellKnownRemoteHostServices.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
+    <Compile Include="Shared\Utilities\IStreamingProgressTracker.cs" />
+    <Compile Include="Shared\Utilities\StreamingProgressTracker.cs" />
+    <Compile Include="Options\OptionStorageLocation.cs" />
+    <Compile Include="Options\LocalUserProfileStorageLocation.cs" />
+    <Compile Include="Options\RoamingProfileStorageLocation.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
@@ -538,6 +548,7 @@
     <Compile Include="Utilities\ParameterName.cs" />
     <Compile Include="Utilities\SpellChecker.cs" />
     <Compile Include="Utilities\StringEscapeEncoder.cs" />
+    <Compile Include="Utilities\StringSlice.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />
@@ -753,8 +764,7 @@
     <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
     <Compile Include="Options\Providers\IOptionProvider.cs" />
-    <Compile Include="Options\Providers\IOptionSerializer.cs" />
-    <Compile Include="Options\Providers\OptionSerializerMetadata.cs" />
+    <Compile Include="Options\IOptionPersister.cs" />
     <Compile Include="OrderableMetadata.cs" />
     <Compile Include="Recommendations\AbstractRecommendationService.cs" />
     <Compile Include="Recommendations\IRecommendationService.cs" />

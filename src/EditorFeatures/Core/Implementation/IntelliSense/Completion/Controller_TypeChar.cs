@@ -317,6 +317,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             var completionService = GetCompletionService();
+            if (completionService == null)
+            {
+                return false;
+            }
+
             var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem.Item);
             return IsCommitCharacter(
                 completionService.GetRules(), model.SelectedItem.Item, ch, textTypedSoFar);

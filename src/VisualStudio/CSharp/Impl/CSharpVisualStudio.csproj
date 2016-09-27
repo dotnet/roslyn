@@ -66,7 +66,6 @@
     <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
-    <UseCodebase>true</UseCodebase>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -168,8 +167,6 @@
       <DependentUpon>AdvancedOptionPageControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Options\AutomationObject.cs" />
-    <Compile Include="Options\CSharpLanguageSettingsSerializer.cs" />
-    <Compile Include="Options\CSharpSettingsManagerOptionSerializer.cs" />
     <Compile Include="Options\Formatting\IndentationViewModel.cs" />
     <Compile Include="Options\Formatting\FormattingIndentationOptionPage.cs" />
     <Compile Include="Options\Formatting\NewLinesViewModel.cs" />

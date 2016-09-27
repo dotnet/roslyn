@@ -404,7 +404,11 @@ Public Class BuildDevDivInsertionFiles
         Next
 
         ' Add just the compiler files to a separate compiler nuspec
-        GenerateRoslynCompilerNuSpec(CompilerFiles)
+        ' (with the Immutable collections and System.Reflection.Metadata, which
+        '  are normally inserted separately)
+        Dim allCompilerFiles = CompilerFiles.Concat({
+            "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll"})
+        GenerateRoslynCompilerNuSpec(allCompilerFiles)
 
         ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
         ' These are for msvsmon, whose setup authoring is done by the debugger.
@@ -898,8 +902,25 @@ Public Class BuildDevDivInsertionFiles
         Return fileName.StartsWith("Microsoft.VisualStudio.LanguageServices.")
     End Function
 
-    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As String())
+    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As IEnumerable(Of String))
         Const PackageName As String = "VS.Tools.Roslyn"
+
+        ' No duplicates are allowed
+        filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
+
+        ' Write an Init.cmd that sets DEVPATH to the toolset location. This overrides
+        ' assembly loading during the VS build to always look in the Roslyn toolset
+        ' first. This is necessary because there are various incompatible versions
+        ' of Roslyn littered throughout the DEVPATH already and this one should always
+        ' take precedence.
+        Dim fileContents = "@echo off
+
+set RoslynToolsRoot=%~dp0
+set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
+
+        File.WriteAllText(
+            Path.Combine(_binDirectory, "Init.cmd"),
+            fileContents)
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
                   <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
@@ -911,9 +932,9 @@ Public Class BuildDevDivInsertionFiles
                           <version>0.0</version>
                       </metadata>
                       <files>
+                          <file src="Init.cmd"/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
-                              Distinct().
                               Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
                       </files>
                   </package>
@@ -950,7 +971,7 @@ Public Class BuildDevDivInsertionFiles
     ''' </summary>
     Private Sub RewritePkgDef(fileToRewrite As String)
         ' Our VSIXes normally contain a number of CodeBase attributes in our .pkgdefs so Visual Studio knows where
-        ' to load assemblies. These come in one of three forms:
+        ' to load assemblies. These come in one of two forms:
         '
         ' 1) as a part of a binding redirection:
         '
@@ -971,20 +992,11 @@ Public Class BuildDevDivInsertionFiles
         '     "version"="1.9.2.0"
         '     "codeBase"="$PackageFolder$\Esent.Interop.dll"
         '
-        ' 3) as part of a package definition:
-        '
-        '     [$RootKey$\Packages\{13c3bbb4-f18f-4111-9f54-a0fb010d9194}]
-        '     @="CSharpPackage"
-        '     "InprocServer32"="$WinDir$\SYSTEM32\MSCOREE.DLL"
-        '     "Class"="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage"
-        '     "CodeBase"="$PackageFolder$\Microsoft.VisualStudio.LanguageServices.CSharp.dll"
-        '
         ' Each of these use $PackageFolder$ as a way to specify the VSIX-relative path. When we convert our VSIXes
         ' to be installed as MSIs, we don't want the DLLs in the CommonExtensions next to our .pkgdefs. Instead
         ' we want them in PrivateAssemblies so they're in the loading path to enable proper ngen. Thus, these CodeBase
         ' attributes have to go. For #1, we can just delete the codeBase key, and leave the rest of the redirection
-        ' in place. For #2, we can delete the entire section. For #3, it's a bit tricker; we have to convert it to
-        ' an Assembly key which is just the name of the assembly without the path.
+        ' in place. For #2, we can delete the entire section.
 
         Dim lines = File.ReadAllLines(fileToRewrite)
         Dim inBindingRedirect = False
@@ -1008,11 +1020,6 @@ Public Class BuildDevDivInsertionFiles
                 If inBindingRedirect Then
                     ' Drop CodeBase from all binding redirects -- they're only for VSIX installs
                     lines(i) = Nothing
-                ElseIf parts(1).StartsWith("""") AndAlso parts(1).EndsWith("""") Then
-                    Dim valueWithoutQuotes = parts(1).Substring(1, parts(1).Length - 2)
-                    Dim assemblyName = Path.GetFileNameWithoutExtension(valueWithoutQuotes)
-                    Dim qualifiedName = assemblyName + ", Version=" + _assemblyVersion + ", Culture=neutral, PublicKeyToken=" + PublicKeyToken
-                    lines(i) = """Assembly""=""" + qualifiedName + """"
                 End If
             ElseIf String.Equals(parts(0), """isPkgDefOverrideEnabled""", StringComparison.OrdinalIgnoreCase) Then
                 ' We always need to drop this, since this is only for experimental VSIXes

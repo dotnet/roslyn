@@ -2550,6 +2550,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return true;
+
+                default:
+                    if ((object)operand.Type == null && !operand.IsLiteralNull())
+                    {
+                        if (!operand.HasAnyErrors)
+                        {
+                            // Operator 'is' cannot be applied to operand of type '(int, <null>)'
+                            Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, SyntaxFacts.GetText(SyntaxKind.IsKeyword), operand.Display);
+                        }
+
+                        return true;
+                    }
+
+                    break;
             }
 
             return operand.HasAnyErrors;

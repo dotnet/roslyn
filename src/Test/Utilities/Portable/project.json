@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "2.0.0-pre-20160714",
     "Microsoft.CSharp": "4.0.1",
     "Microsoft.NETCore.Platforms": "1.0.1",
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1",

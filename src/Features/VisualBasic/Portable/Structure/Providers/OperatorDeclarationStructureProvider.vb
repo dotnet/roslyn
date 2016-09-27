@@ -10,14 +10,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of OperatorStatementSyntax)
 
         Protected Overrides Sub CollectBlockSpans(operatorDeclaration As OperatorStatementSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             CollectCommentsRegions(operatorDeclaration, spans)
 
             Dim block = TryCast(operatorDeclaration.Parent, OperatorBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then
-                spans.Add(
-                    CreateRegionFromBlock(block, bannerNode:=operatorDeclaration, autoCollapse:=True))
+                spans.Add(CreateRegionFromBlock(
+                    block, bannerNode:=operatorDeclaration, autoCollapse:=True,
+                    type:=BlockTypes.Operator, isCollapsible:=True))
             End If
         End Sub
     End Class

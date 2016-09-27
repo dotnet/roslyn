@@ -1,20 +1,24 @@
 ﻿{
-  "dependencies": {
-    "RoslynDependencies.Microsoft.VisualStudio.CodeAnalysis.Sdk.UI": "14.3.25420",
-    "Microsoft.VisualStudio.Language.Intellisense": {
-        "version": "14.3.25407",
-        "suppressParent": "all"
+    "dependencies": {
+        "RoslynDependencies.Microsoft.VisualStudio.CodeAnalysis.Sdk.UI": "14.3.25420",
+        "Microsoft.VisualStudio.Language.Intellisense": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
+            "version": "14.3.25420",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.ImageCatalog": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
     },
-    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
-		"version": "14.3.25407",
-		"suppressParent": "all"
-	},
-    "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
-		"version": "14.3.25420",
-		"suppressParent": "all"
-	},
-  },
-  "frameworks": {
-    "net46": {}
-  }
+    "frameworks": {
+        "net46": { }
+    }
 }

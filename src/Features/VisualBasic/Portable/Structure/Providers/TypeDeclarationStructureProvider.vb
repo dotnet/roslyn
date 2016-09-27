@@ -10,14 +10,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of TypeStatementSyntax)
 
         Protected Overrides Sub CollectBlockSpans(typeDeclaration As TypeStatementSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             CollectCommentsRegions(typeDeclaration, spans)
 
             Dim block = TryCast(typeDeclaration.Parent, TypeBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then
-                spans.Add(
-                    CreateRegionFromBlock(block, bannerNode:=typeDeclaration, autoCollapse:=False))
+                Dim type =
+                    If(typeDeclaration.Kind() = SyntaxKind.InterfaceStatement, BlockTypes.Interface,
+                    If(typeDeclaration.Kind() = SyntaxKind.StructureStatement, BlockTypes.Structure,
+                    If(typeDeclaration.Kind() = SyntaxKind.ModuleStatement, BlockTypes.Module,
+                        BlockTypes.Class)))
+                spans.Add(CreateRegionFromBlock(
+                    block, bannerNode:=typeDeclaration, autoCollapse:=False,
+                    type:=type, isCollapsible:=True))
 
                 CollectCommentsRegions(block.EndBlockStatement, spans)
             End If

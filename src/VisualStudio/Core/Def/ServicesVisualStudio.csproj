@@ -18,7 +18,6 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
-    <UseCodebase>true</UseCodebase>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
@@ -84,11 +83,14 @@
     <Compile Include="Implementation\Library\VsNavInfo\NavInfoNode.cs" />
     <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
     <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
+    <Compile Include="Implementation\Options\LocalUserRegistryOptionPersister.cs" />
+    <Compile Include="Implementation\Options\RoamingVisualStudioProfileOptionPersister.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\ICodeModelFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\IDeferredProjectWorkspaceService.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContextFactory.cs" />
@@ -105,18 +107,12 @@
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
-    <Compile Include="Implementation\Options\AbstractLanguageSettingsSerializer.cs" />
-    <Compile Include="Implementation\Options\ExportLanguageSpecificOptionSerializerAttribute.cs" />
-    <Compile Include="Implementation\Options\ExportOptionSerializerAttribute.cs" />
+    <Compile Include="Implementation\Options\LanguageSettingsPersister.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
-    <Compile Include="Implementation\Remote\IRemoteHostClientFactory.cs" />
-    <Compile Include="Implementation\Remote\IRemoteHostClientService.cs" />
-    <Compile Include="Implementation\Remote\RemoteHostClient.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.SolutionChecksumUpdater.cs" />
     <Compile Include="Implementation\Remote\RemoteHostOptions.cs" />
-    <Compile Include="Implementation\Remote\WellKnownRemoteHostServices.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioDiagnosticListSuppressionStateService.cs" />
@@ -169,7 +165,7 @@
     <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
-    <Compile Include="Storage\VisualStudioPersistenStorageLocationService.cs" />
+    <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
     <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
@@ -274,15 +270,19 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
@@ -725,10 +725,6 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Implementation\Options\Style\" />
-    <Folder Include="Implementation\Workspace\Esent\" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

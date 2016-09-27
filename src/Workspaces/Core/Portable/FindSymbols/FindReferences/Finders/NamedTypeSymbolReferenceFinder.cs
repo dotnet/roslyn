@@ -19,39 +19,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.TypeKind != TypeKind.Error;
         }
 
-        protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            INamedTypeSymbol symbol,
+        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<INamedTypeSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            List<ISymbol> result = null;
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol.AssociatedSymbol != null)
             {
-                result = Add(result, SpecializedCollections.SingletonEnumerable(symbol.AssociatedSymbol));
+                Add(result, symbolAndProjectId, ImmutableArray.Create(symbol.AssociatedSymbol));
             }
 
             // cascade to constructors
-            result = Add(result, symbol.Constructors);
+            Add(result, symbolAndProjectId, symbol.Constructors);
 
             // cascade to destructor
-            result = Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
+            Add(result, symbolAndProjectId, symbol.GetMembers(WellKnownMemberNames.DestructorName));
 
-            return Task.FromResult<IEnumerable<ISymbol>>(result ?? SpecializedCollections.EmptyList<ISymbol>());
+            return Task.FromResult(result.ToImmutableAndFree());
         }
 
-        private List<ISymbol> Add(List<ISymbol> result, IEnumerable<ISymbol> enumerable)
+        private void Add<TSymbol>(
+            ArrayBuilder<SymbolAndProjectId> result,
+            SymbolAndProjectId symbolAndProjectId,
+            ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol
         {
-            if (enumerable != null)
-            {
-                result = result ?? new List<ISymbol>();
-                result.AddRange(enumerable);
-            }
-
-            return result;
+            result.AddRange(enumerable.Select(
+                s => symbolAndProjectId.WithSymbol((ISymbol)s)));
         }
 
-        protected override async Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamedTypeSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -63,9 +63,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             string simpleName;
             var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(symbol.Name, project.LanguageServices.GetService<ISyntaxFactsService>(), out simpleName)
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<Document>();
+                : ImmutableArray<Document>.Empty;
 
-            return documentsWithName.Concat(documentsWithType).Concat(documentsWithAttribute);
+            return documentsWithName.Concat(documentsWithType)
+                                    .Concat(documentsWithAttribute);
         }
 
         private static bool IsPotentialReference(
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 predefinedType == actualType;
         }
 
-        protected override async Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             INamedTypeSymbol namedType,
             Document document,
             CancellationToken cancellationToken)
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return nonAliasReferences.Concat(aliasReferences);
         }
 
-        internal static async Task<IEnumerable<ReferenceLocation>> FindNonAliasReferencesAsync(
+        internal static async Task<ImmutableArray<ReferenceLocation>> FindNonAliasReferencesAsync(
             INamedTypeSymbol symbol,
             Document document,
             CancellationToken cancellationToken)
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
         }
 
-        private static Task<IEnumerable<ReferenceLocation>> FindOrdinaryReferencesAsync(
+        private static Task<ImmutableArray<ReferenceLocation>> FindOrdinaryReferencesAsync(
             INamedTypeSymbol namedType,
             Document document,
             CancellationToken cancellationToken)
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 namedType.Name, document, symbolsMatch, cancellationToken);
         }
 
-        private static Task<IEnumerable<ReferenceLocation>> FindPredefinedTypeReferencesAsync(
+        private static Task<ImmutableArray<ReferenceLocation>> FindPredefinedTypeReferencesAsync(
             INamedTypeSymbol symbol,
             Document document,
             CancellationToken cancellationToken)
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var predefinedType = symbol.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
             {
-                return SpecializedTasks.EmptyEnumerable<ReferenceLocation>();
+                return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private static Task<IEnumerable<ReferenceLocation>> FindAttributeReferencesAsync(
+        private static Task<ImmutableArray<ReferenceLocation>> FindAttributeReferencesAsync(
             INamedTypeSymbol namedType,
             Document document,
             CancellationToken cancellationToken)
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             string simpleName;
             return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, symbolsMatch, cancellationToken)
-                : SpecializedTasks.EmptyEnumerable<ReferenceLocation>();
+                : SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
         }
     }
 }

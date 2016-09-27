@@ -158,6 +158,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(compResult.TypeName != null);
             Debug.Assert(compResult.MethodName != null);
 
+            ReadOnlyCollection<byte> customTypeInfo;
+            Guid customTypeInfoId = compResult.GetCustomTypeInfo(out customTypeInfo);
+
             return DkmCompiledClrInspectionQuery.Create(
                 runtimeInstance,
                 Binary: new ReadOnlyCollection<byte>(compResult.Assembly),
@@ -171,7 +174,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Access: resultProperties.AccessType,
                 StorageType: resultProperties.StorageType,
                 TypeModifierFlags: resultProperties.ModifierFlags,
-                CustomTypeInfo: compResult.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
+                CustomTypeInfo: customTypeInfo.ToCustomTypeInfo(customTypeInfoId));
+        }
+
+        internal static DkmClrCustomTypeInfo ToCustomTypeInfo(this ReadOnlyCollection<byte> payload, Guid payloadTypeId)
+        {
+            return (payload == null) ? null : DkmClrCustomTypeInfo.Create(payloadTypeId, payload);
         }
 
         internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol symbol, DkmClrCompilationResultFlags flags, bool isConstant)

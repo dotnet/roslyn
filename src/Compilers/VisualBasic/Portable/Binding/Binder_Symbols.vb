@@ -584,22 +584,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not lookupResult.HasSymbol Then
                         Dim diagInfo As DiagnosticInfo = Nothing
 
-                        ' In Imports clauses, a missing namespace or type is just a warning.
-                        Dim erridNotFound As ERRID = ERRID.ERR_UndefinedTypeOrNamespace1
-
-                        If typeSyntax.Parent IsNot Nothing AndAlso TypeOf typeSyntax.Parent Is ImportsClauseSyntax AndAlso
-                           Not reportedAnError Then
-                            erridNotFound = ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1
-                        End If
-
                         Dim diagName = GetBaseNamesForDiagnostic(typeSyntax)
-                        diagInfo = ErrorFactory.ErrorInfo(erridNotFound, diagName)
+                        ' In Imports clauses, a missing namespace or type is just a warning.
+                        diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UndefinedTypeOrNamespace1, diagName)
+                        Dim reportErrorWhenReferenced = False
+
+                        If typeSyntax.Parent?.Kind = SyntaxKind.SimpleImportsClause Then
+                            If DirectCast(typeSyntax.Parent, SimpleImportsClauseSyntax).Alias IsNot Nothing Then
+                                reportErrorWhenReferenced = True
+                            End If
+
+                            If Not reportedAnError Then
+                                binder.ReportDiagnostic(diagBag, typeSyntax, ErrorFactory.ErrorInfo(ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1, diagName))
+                                reportedAnError = True
+                            End If
+                        End If
 
                         If Not reportedAnError Then
                             Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
                         End If
 
-                        Return binder.GetErrorSymbol(diagName, diagInfo)
+                        Return Binder.GetErrorSymbol(diagName, diagInfo, reportErrorWhenReferenced)
                     Else
                         If lookupResult.HasDiagnostic Then
                             If Not reportedAnError Then
@@ -695,7 +700,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' set of names already used
                 Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
-                Dim countOfExplicitNames As Integer = 0
 
                 For i As Integer = 0 To numElements - 1
                     Dim argumentSyntax = syntax.Elements(i)
@@ -714,7 +718,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         name = nameSyntax.Identifier.ValueText
 
                         ' validate name if we have one
-                        countOfExplicitNames += 1
                         Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)
                         locations.Add(nameSyntax.GetLocation)
                     Else
@@ -723,10 +726,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Binder.CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
                 Next
-
-                If countOfExplicitNames <> 0 AndAlso countOfExplicitNames <> numElements Then
-                    Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleExplicitNamesOnAllMembersOrNone)
-                End If
 
                 Dim typesArray As ImmutableArray(Of TypeSymbol) = types.ToImmutableAndFree()
                 Dim locationsArray As ImmutableArray(Of Location) = locations.ToImmutableAndFree()
@@ -1053,6 +1052,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 LookupOptions.AttributeTypeOnly,
                                 useSiteDiagnostics)
                 Else
+                    Dim isLeftUnboundGenericType As Boolean = leftSymbol.Kind = SymbolKind.NamedType AndAlso DirectCast(leftSymbol, NamedTypeSymbol).IsUnboundGenericType
+
+                    If isLeftUnboundGenericType Then
+                        ' If left name bound to an unbound generic type,
+                        ' we want to perform right name lookup within
+                        ' left's original named type definition.
+                        leftSymbol = DirectCast(leftSymbol, NamedTypeSymbol).OriginalDefinition
+                    End If
+
                     binder.LookupMember(lookupResult,
                                         leftSymbol,
                                         rightIdentToken.ValueText,
@@ -1063,7 +1071,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If lookupResult.HasSingleSymbol AndAlso lookupResult.SingleSymbol.Kind = SymbolKind.NamedType Then
                         Dim namedType = DirectCast(lookupResult.SingleSymbol, NamedTypeSymbol)
 
-                        If namedType.Arity > 0 AndAlso Not namedType.IsDefinition AndAlso namedType Is namedType.ConstructedFrom Then
+                        ' If left name bound to an unbound generic type
+                        ' and right name bound to a generic type, we must
+                        ' convert right to an unbound generic type.
+                        If isLeftUnboundGenericType AndAlso namedType.IsGenericType Then
+                            lookupResult.ReplaceSymbol(namedType.AsUnboundGenericType())
+
+                        ElseIf namedType.Arity > 0 AndAlso Not namedType.IsDefinition AndAlso namedType Is namedType.ConstructedFrom Then
                             Debug.Assert(lookupResult.HasDiagnostic)
 
                             ' Note: this preserves any error associated with the generic type, which is what we want.
@@ -1115,6 +1129,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim leftSymbol As NamespaceOrTypeSymbol = DirectCast(lookupResult.SingleSymbol, NamespaceOrTypeSymbol)
+                Dim isLeftUnboundGenericType As Boolean = leftSymbol.Kind = SymbolKind.NamedType AndAlso DirectCast(leftSymbol, NamedTypeSymbol).IsUnboundGenericType
+
+                If isLeftUnboundGenericType Then
+                    ' If left name bound to an unbound generic type,
+                    ' we want to perform right name lookup within
+                    ' left's original named type definition.
+                    leftSymbol = DirectCast(leftSymbol, NamedTypeSymbol).OriginalDefinition
+                End If
 
                 binder.ReportDiagnosticsIfObsolete(diagBag, leftSymbol, leftNameSyntax)
 
@@ -1141,6 +1163,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If genericType Is Nothing Then
                     ' no symbol or symbol is a namespace
                     Return
+
+                ElseIf isLeftUnboundGenericType AndAlso genericType.IsGenericType Then
+                    ' If left name bound to an unbound generic type
+                    ' and right name bound to a generic type, we must
+                    ' convert right to an unbound generic type.
+                    lookupResult.ReplaceSymbol(genericType.AsUnboundGenericType())
+
                 Else
                     ' Construct the type and validate constraints.
                     Dim constructedType = binder.ConstructAndValidateConstraints(

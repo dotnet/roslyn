@@ -4,7 +4,6 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -221,9 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 Debug.Assert(elementNames.IsDefault || elementNames.Length == tupleCardinality);
 
-                decodedType = elementNames.IsDefault
-                    ? TupleTypeSymbol.Create(decodedType)
-                    : TupleTypeSymbol.Create(decodedType, elementNames);
+                decodedType = TupleTypeSymbol.Create(decodedType, elementNames);
             }
 
             return decodedType;
@@ -272,7 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                                     type.Sizes,
                                                     type.LowerBounds,
                                                     type.CustomModifiers);
-
         }
 
         private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)
@@ -293,6 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Check to see if all the elements are null
             var start = _namesIndex - numberOfElements;
+            _namesIndex = start;
             bool allNull = true;
 
             for (int i = 0; i < numberOfElements; i++)
@@ -300,12 +297,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (_elementNames[start + i] != null)
                 {
                     allNull = false;
+                    break;
                 }
             }
 
             if (allNull)
             {
-                _namesIndex = start;
                 return default(ImmutableArray<string>);
             }
 
@@ -316,7 +313,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 builder.Add(_elementNames[start + i]);
             }
 
-            _namesIndex = start;
             return builder.ToImmutableAndFree();
         }
     }

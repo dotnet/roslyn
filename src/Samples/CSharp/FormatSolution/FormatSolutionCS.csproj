@@ -14,6 +14,7 @@
     <FileAlignment>512</FileAlignment>
     <ScrubbedSamplePath>CSharp\FormatSolution</ScrubbedSamplePath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj">

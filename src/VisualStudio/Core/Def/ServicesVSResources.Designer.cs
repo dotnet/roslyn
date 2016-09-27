@@ -652,6 +652,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression preferences:.
+        /// </summary>
+        internal static string Expression_preferences_colon {
+            get {
+                return ResourceManager.GetString("Expression_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extract Interface.
         /// </summary>
         internal static string Extract_Interface {
@@ -1272,6 +1281,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_framework_type {
             get {
                 return ResourceManager.GetString("Prefer_framework_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer object initializer.
+        /// </summary>
+        internal static string Prefer_object_initializer {
+            get {
+                return ResourceManager.GetString("Prefer_object_initializer", resourceCulture);
             }
         }
         

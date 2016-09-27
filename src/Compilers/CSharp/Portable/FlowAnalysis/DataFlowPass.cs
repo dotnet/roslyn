@@ -1630,16 +1630,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         Debug.Assert(local.DeclarationKind == LocalDeclarationKind.UsingVariable);
-                        int slot = GetOrCreateSlot(local);
-                        if (slot >= 0)
-                        {
-                            SetSlotAssigned(slot);
-                            NoteWrite(local, value: null, read: true);
-                        }
-                        else
-                        {
-                            Debug.Assert(_emptyStructTypeCache.IsEmptyStructType(local.Type));
-                        }
                         break;
                 }
             }
@@ -1650,10 +1640,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (local.DeclarationKind)
                 {
-                    case LocalDeclarationKind.RegularVariable:
-                        ReportIfUnused(local, assigned: true);
-                        break;
-
                     case LocalDeclarationKind.UsingVariable:
                         NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
                         break;
@@ -1682,17 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = base.VisitFixedStatement(node);
-
-            foreach (LocalSymbol local in node.Locals)
-            {
-                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
-                {
-                    ReportIfUnused(local, assigned: true);
-                }
-            }
-
-            return result;
+            return base.VisitFixedStatement(node);
         }
 
         public override BoundNode VisitSequence(BoundSequence node)

@@ -4,6 +4,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
@@ -18,6 +19,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, lastToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation))
             nextOperation.Invoke(list)
+        End Sub
+
+        Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
+            nextOperation.Invoke(list)
+
+            If node.Kind = SyntaxKind.ObjectMemberInitializer Then
+                Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
+
+                If initializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
+                    AddIndentBlockOperation(list,
+                                            initializer.OpenBraceToken,
+                                            initializer.CloseBraceToken.GetPreviousToken(),
+                                            [option]:=IndentBlockOption.RelativePosition)
+
+                    list.Add(FormattingOperations.CreateIndentBlockOperation(
+                             initializer.CloseBraceToken, initializer.CloseBraceToken,
+                             indentationDelta:=0,
+                             [option]:=IndentBlockOption.RelativePosition))
+                End If
+            End If
+        End Sub
+
+        Public Overrides Sub AddAlignTokensOperations(list As List(Of AlignTokensOperation),
+                                                      node As SyntaxNode,
+                                                      optionSet As OptionSet,
+                                                      nextOperation As NextAction(Of AlignTokensOperation))
+            nextOperation.Invoke(list)
+
+            If node.Kind = SyntaxKind.ObjectMemberInitializer Then
+                Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
+
+                If initializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
+                    list.Add(New AlignTokensOperation(
+                             initializer.WithKeyword,
+                             SpecializedCollections.SingletonEnumerable(initializer.CloseBraceToken),
+                             [option]:=AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine))
+                End If
+            End If
         End Sub
 
         Public Overrides Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As Rules.NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
@@ -49,7 +88,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return operation
         End Function
 
-        Public Overrides Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperation(
+                previousToken As SyntaxToken,
+                currentToken As SyntaxToken,
+                optionSet As OptionSet,
+                nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
                 Return nextOperation.Invoke()
@@ -60,6 +104,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             If operation IsNot Nothing AndAlso operation.Option = AdjustNewLinesOption.ForceLines Then
                 Return operation
+            End If
+
+            If currentToken.Kind = SyntaxKind.DotToken AndAlso
+               currentToken.Parent.Kind = SyntaxKind.NamedFieldInitializer Then
+
+                Return New AdjustNewLinesOperation(line:=1,
+                    [option]:=AdjustNewLinesOption.ForceLines)
+            End If
+
+            If currentToken.Kind = SyntaxKind.CloseBraceToken AndAlso
+               currentToken.Parent.Kind = SyntaxKind.ObjectMemberInitializer Then
+
+                Return New AdjustNewLinesOperation(line:=1,
+                    [option]:=AdjustNewLinesOption.ForceLines)
             End If
 
             ' put attributes in its own line if it is top level attribute

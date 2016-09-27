@@ -45,7 +45,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         private PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext =>
             CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
-        public bool RunInProcess => true;
+        public bool OpenFileOnly(Workspace workspace)
+        {
+            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
+            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
+
+            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
+                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
+        }
+
+        protected abstract string GetLanguageName();
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

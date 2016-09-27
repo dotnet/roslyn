@@ -23,20 +23,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class CSharpCompilationOptionsTests : CSharpTestBase
     {
-        private void TestProperty<T>(
-            Func<CSharpCompilationOptions, T, CSharpCompilationOptions> factory,
-            Func<CSharpCompilationOptions, T> getter,
+        /// <summary>
+        /// Using an instance of <see cref="CSharpCompilationOptions"/>, tests a property in <see cref="CompilationOptions"/> , even it is hidden by <see cref="CSharpCompilationOptions"/>.
+        /// </summary>
+        private void TestHiddenProperty<T>(
+            Func<CompilationOptions, T, CompilationOptions> factory,
+            Func<CompilationOptions, T> getter,
             T validNonDefaultValue)
         {
-            var oldOpt1 = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+            TestPropertyGeneric(new CSharpCompilationOptions(OutputKind.ConsoleApplication), factory, getter, validNonDefaultValue);
+        }
 
-            var validDefaultValue = getter(oldOpt1);
+        private static void TestPropertyGeneric<TOptions, T>(TOptions oldOptions, Func<TOptions, T, TOptions> factory,
+            Func<TOptions, T> getter, T validNonDefaultValue)
+            where TOptions : CompilationOptions
+        {
+            var validDefaultValue = getter(oldOptions);
 
             // we need non-default value to test Equals and GetHashCode
             Assert.NotEqual(validNonDefaultValue, validDefaultValue);
 
             // check that the assigned value can be read:
-            var newOpt1 = factory(oldOpt1, validNonDefaultValue);
+            var newOpt1 = factory(oldOptions, validNonDefaultValue);
             Assert.Equal(validNonDefaultValue, getter(newOpt1));
             Assert.Equal(0, newOpt1.Errors.Length);
 
@@ -45,14 +53,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(newOpt1_alias, newOpt1);
 
             // check that Equals and GetHashCode work
-            var newOpt2 = factory(oldOpt1, validNonDefaultValue);
-            Assert.False(newOpt1.Equals(oldOpt1));
+            var newOpt2 = factory(oldOptions, validNonDefaultValue);
+            Assert.False(newOpt1.Equals(oldOptions));
             Assert.True(newOpt1.Equals(newOpt2));
 
             Assert.Equal(newOpt1.GetHashCode(), newOpt2.GetHashCode());
 
             // test default(T):
-            Assert.NotNull(factory(oldOpt1, default(T)));
+            Assert.NotNull(factory(oldOptions, default(T)));
+        }
+
+        [Fact]
+        public void ShadowInvariants()
+        {
+            TestHiddenProperty((old, value) => old.WithOutputKind(value), opt => opt.OutputKind, OutputKind.DynamicallyLinkedLibrary);
+            TestHiddenProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "foo.dll");
+            TestHiddenProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Foo.Bar");
+            TestHiddenProperty((old, value) => old.WithScriptClassName(value), opt => opt.ScriptClassName, "<Script>");
+            TestHiddenProperty((old, value) => old.WithOptimizationLevel(value), opt => opt.OptimizationLevel, OptimizationLevel.Release);
+            TestHiddenProperty((old, value) => old.WithOverflowChecks(value), opt => opt.CheckOverflow, true);
+            TestHiddenProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
+            TestHiddenProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
+            TestHiddenProperty((old, value) => old.WithCryptoPublicKey(value), opt => opt.CryptoPublicKey, ImmutableArray.Create<byte>(0, 1, 2, 3));
+            TestHiddenProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
+            TestHiddenProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
+            TestHiddenProperty((old, value) => old.WithGeneralDiagnosticOption(value), opt => opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress);
+
+            TestHiddenProperty((old, value) => old.WithSpecificDiagnosticOptions(value), opt => opt.SpecificDiagnosticOptions,
+                new Dictionary<string, ReportDiagnostic> { { "CS0001", ReportDiagnostic.Error } }.ToImmutableDictionary());
+            TestHiddenProperty((old, value) => old.WithReportSuppressedDiagnostics(value), opt => opt.ReportSuppressedDiagnostics, true);
+
+            TestHiddenProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
+
+            TestHiddenProperty((old, value) => old.WithXmlReferenceResolver(value), opt => opt.XmlReferenceResolver, new XmlFileResolver(null));
+            TestHiddenProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new TestMetadataReferenceResolver());
+            TestHiddenProperty((old, value) => old.WithAssemblyIdentityComparer(value), opt => opt.AssemblyIdentityComparer, new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy()));
+            TestHiddenProperty((old, value) => old.WithStrongNameProvider(value), opt => opt.StrongNameProvider, new DesktopStrongNameProvider());
+        }
+
+        private void TestProperty<T>(
+            Func<CSharpCompilationOptions, T, CSharpCompilationOptions> factory,
+            Func<CSharpCompilationOptions, T> getter,
+            T validNonDefaultValue)
+        {
+            TestPropertyGeneric(new CSharpCompilationOptions(OutputKind.ConsoleApplication), factory, getter, validNonDefaultValue);
         }
 
         [Fact]
@@ -79,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithReportSuppressedDiagnostics(value), opt => opt.ReportSuppressedDiagnostics, true);
 
             TestProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
-            TestProperty((old, value) => old.WithCurrentLocalTime(value), opt => opt.CurrentLocalTime, new DateTime(2005,1,1));
+            TestProperty((old, value) => old.WithCurrentLocalTime(value), opt => opt.CurrentLocalTime, new DateTime(2005, 1, 1));
             TestProperty((old, value) => old.WithExtendedCustomDebugInformation(value), opt => opt.ExtendedCustomDebugInformation, false);
             TestProperty((old, value) => old.WithDebugPlusMode(value), opt => opt.DebugPlusMode, true);
 

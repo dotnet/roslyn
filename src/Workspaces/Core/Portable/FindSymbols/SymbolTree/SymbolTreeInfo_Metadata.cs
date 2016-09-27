@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 create: version => CreateMetadataSymbolTreeInfo(solution, version, reference, cancellationToken),
                 keySuffix: "",
                 getVersion: info => info._version,
-                readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
+                readObject: reader => ReadSymbolTreeInfo(reader, (version, names, nodes) => GetSpellCheckerTask(solution, version, filePath, names, nodes)),
                 writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
@@ -581,22 +581,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return newChildNode;
             }
 
-            private ImmutableArray<Node> GenerateUnsortedNodes()
+            private ImmutableArray<BuilderNode> GenerateUnsortedNodes()
             {
-                var unsortedNodes = ImmutableArray.CreateBuilder<Node>();
-                unsortedNodes.Add(new Node(name: "", parentIndex: Node.RootNodeParentIndex));
+                var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
+                unsortedNodes.Add(new BuilderNode(name: "", parentIndex: RootNodeParentIndex));
 
                 AddUnsortedNodes(unsortedNodes, parentNode: _rootNode, parentIndex: 0);
 
-                return unsortedNodes.ToImmutable();
+                return unsortedNodes.ToImmutableAndFree();
             }
 
             private void AddUnsortedNodes(
-                ImmutableArray<Node>.Builder unsortedNodes, MetadataNode parentNode, int parentIndex)
+                ArrayBuilder<BuilderNode> unsortedNodes, MetadataNode parentNode, int parentIndex)
             {
                 foreach (var child in _parentToChildren[parentNode])
                 {
-                    var childNode = new Node(child.Name, parentIndex);
+                    var childNode = new BuilderNode(child.Name, parentIndex);
                     var childIndex = unsortedNodes.Count;
                     unsortedNodes.Add(childNode);
 

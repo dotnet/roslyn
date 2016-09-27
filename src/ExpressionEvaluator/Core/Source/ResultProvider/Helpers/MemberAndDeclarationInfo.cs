@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     case MemberTypes.Field:
                     case MemberTypes.Property:
-                        return _member.GetCustomAttributesData().GetDynamicFlags().GetCustomTypeInfo();
+                        return _member.GetCustomAttributesData().GetCustomTypeInfo();
                     default:
                         // If we ever see a method, we'll have to use ReturnTypeCustomAttributes.
                         throw ExceptionUtilities.UnexpectedValue(_member.MemberType);

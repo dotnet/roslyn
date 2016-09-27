@@ -5,19 +5,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal partial class RemoteHostClientServiceFactory
     {
-        public class RemoteHostClientService : IRemoteHostClientService
+        public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
         {
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
+            private readonly IEditorOptions _globalEditorOptions;
 
             private readonly object _gate;
 
@@ -25,12 +32,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private CancellationTokenSource _shutdownCancellationTokenSource;
             private Task<RemoteHostClient> _instanceTask;
 
-            public RemoteHostClientService(Workspace workspace, IDiagnosticAnalyzerService analyzerService)
+            public RemoteHostClientService(
+                Workspace workspace,
+                IDiagnosticAnalyzerService analyzerService,
+                IEditorOptions globalEditorOptions) :
+                base()
             {
                 _gate = new object();
 
                 _workspace = workspace;
                 _analyzerService = analyzerService;
+                _globalEditorOptions = globalEditorOptions;
             }
 
             public Workspace Workspace => _workspace;
@@ -48,6 +60,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
                     {
                         // not turned on
+                        return;
+                    }
+
+                    if (!FeaturesEnabled())
+                    {
+                        // none of features that require OOP is enabled.
                         return;
                     }
 
@@ -96,7 +114,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     try
                     {
                         instanceTask.Wait(_shutdownCancellationTokenSource.Token);
-                        instanceTask.Result.Shutdown();
+
+                        // result can be null if service hub failed to launch
+                        instanceTask.Result?.Shutdown();
                     }
                     catch (OperationCanceledException)
                     {
@@ -129,17 +149,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
             {
-                await AddGlobalAssetsAsync(cancellationToken).ConfigureAwait(false);
+                AddGlobalAssets(cancellationToken);
 
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
                 var instance = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (instance == null)
+                {
+                    return null;
+                }
+
                 instance.ConnectionChanged += OnConnectionChanged;
 
                 return instance;
             }
 
-            private async Task AddGlobalAssetsAsync(CancellationToken cancellationToken)
+            private void AddGlobalAssets(CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
@@ -148,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {
-                        var asset = await assetBuilder.BuildAsync(reference, cancellationToken).ConfigureAwait(false);
+                        var asset = assetBuilder.Build(reference, cancellationToken);
                         snapshotService.AddGlobalAsset(reference, asset, cancellationToken);
                     }
                 }
@@ -186,6 +211,55 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // crash right away when connection is closed
                 FatalError.Report(new Exception("Connection to remote host closed"));
+            }
+
+            private bool FeaturesEnabled()
+            {
+                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, LanguageNames.CSharp))
+                {
+                    return true;
+                }
+
+                if (DynamicAnalysisEnabled())
+                {
+                    return true;
+                }
+
+                if (CodeLenEnabled())
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            private bool DynamicAnalysisEnabled()
+            {
+                const string dynamicAnalysisPackageGuid = "3EADAB3E-2035-4513-8C13-FBA84414A16C";
+
+                // TODO: think about how to get rid of this code. since we don't want any code that require foreground
+                //       thread to run
+                AssertIsForeground();
+
+                var guid = new Guid(dynamicAnalysisPackageGuid);
+                var shell = (IVsShell)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsShell));
+                if (shell == null)
+                {
+                    return false;
+                }
+
+                int installed;
+                if (ErrorHandler.Failed(shell.IsPackageInstalled(ref guid, out installed)))
+                {
+                    return false;
+                }
+
+                return installed != 0;
+            }
+
+            private bool CodeLenEnabled()
+            {
+                return _globalEditorOptions.GetOptionValue(CodeLensOptions.IsCodeLensEnabledOptionKey);
             }
         }
     }

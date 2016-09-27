@@ -527,6 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference: // a special kind of parameter
+                case BoundKind.PseudoVariable:
                     // No temporaries are needed. Just generate local = local + value
                     return originalLHS;
 

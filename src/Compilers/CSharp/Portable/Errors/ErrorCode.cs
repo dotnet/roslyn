@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantHaveWin32ResAndIcon = 1565,
         ERR_CantReadResource = 1566,
         //ERR_AutoResGen = 1567,
-        //ERR_DocFileGen = 1569,
+        ERR_DocFileGen = 1569,
         WRN_XMLParseError = 1570,
         WRN_DuplicateParamTag = 1571,
         WRN_UnmatchedParamTag = 1572,
@@ -1134,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoSuchMemberOrExtensionNeedUsing = 4036,
         #endregion diagnostics introduced in C# 5
 
-        // available 4037-4999
+        // unused 4037-4999
 
         #region diagnostics introduced in C# 6
         // WRN_UnknownOption = 5000,   //unused in Roslyn
@@ -1242,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MutuallyExclusiveOptions = 7102,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; available 7103-8000
+        // huge gap here; unused 7103-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
@@ -1354,9 +1354,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Available = 8112, 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
+        ERR_ThrowMisplaced = 8115,
         ERR_PatternNullableType = 8116,
         ERR_BadIsPatternExpression = 8117,
-        ERR_PatternValueExpected = 8119,
+        ERR_SwitchExpressionValueExpected = 8119,
         ERR_PatternIsSubsumed = 8120,
         ERR_PatternWrongType = 8121,
         ERR_ExpressionTreeContainsIsMatch = 8122,
@@ -1370,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleDuplicateMemberName = 8127,
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8128,
         ERR_MissingDeconstruct = 8129,
-        ERR_DeconstructCouldNotInferMergedType = 8130,
+        ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable = 8130,
         ERR_DeconstructRequiresExpression = 8131,
         ERR_DeconstructWrongCardinality = 8132,
         ERR_CannotDeconstructDynamic = 8133,
@@ -1426,13 +1427,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
         ERR_PredefinedValueTupleTypeNotFound = 8179,
-        // Available  = 8180-8195
+        ERR_SemiOrLBraceOrArrowExpected = 8180,
+
+        // Available  = 8181-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
-        ERR_OutVarDeconstructionIsNotSupported = 8199,
+        ERR_VarInvocationLvalueReserved = 8199,
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
         #endregion diagnostics for out var
     }

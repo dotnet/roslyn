@@ -17,7 +17,6 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
-    <UseCodebase>true</UseCodebase>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup>

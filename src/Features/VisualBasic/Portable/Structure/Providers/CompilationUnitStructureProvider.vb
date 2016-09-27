@@ -10,12 +10,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of CompilationUnitSyntax)
 
         Protected Overrides Sub CollectBlockSpans(compilationUnit As CompilationUnitSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             Dim regions As New List(Of BlockSpan)
 
             CollectCommentsRegions(compilationUnit, spans)
-            spans.Add(CreateRegion(compilationUnit.Imports, bannerText:="Imports" & SpaceEllipsis, autoCollapse:=True))
+            spans.Add(CreateRegion(
+                compilationUnit.Imports, bannerText:="Imports" & SpaceEllipsis,
+                autoCollapse:=True, type:=BlockTypes.Nonstructural, isCollapsible:=True))
             CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
         End Sub
 

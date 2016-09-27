@@ -4348,8 +4348,7 @@ class C
                 expr: "throw new System.Exception()",
                 resultProperties: out resultProperties,
                 error: out error);
-
-            Assert.Equal("error CS1525: Invalid expression term 'throw'", error);
+            Assert.Equal("error CS8115: A throw expression is not allowed in this context.", error);
         }
 
         [WorkItem(1016555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016555")]

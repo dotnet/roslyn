@@ -281,6 +281,7 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
+    <Compile Include="Implementation\NavigateTo\INavigateToOptionsService.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />
     <Compile Include="Implementation\NavigateTo\INavigateToSearchResultProvider.cs" />
     <Compile Include="Implementation\Structure\InvalidOutliningRegionException.cs" />
@@ -567,7 +568,7 @@
     <Compile Include="Implementation\Organizing\OrganizeDocumentCommandHandler.cs" />
     <Compile Include="Implementation\Structure\OutliningCommandHandler.cs" />
     <Compile Include="Implementation\Structure\VisualStudio14StructureTaggerProvider.cs" />
-    <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.RegionTag.cs" />
+    <Compile Include="Implementation\Structure\RoslynOutliningRegionTag.cs" />
     <Compile Include="Implementation\Peek\DefinitionPeekableItem.cs" />
     <Compile Include="Implementation\Peek\ExternalFilePeekableItem.cs" />
     <Compile Include="Implementation\Peek\PeekableItem.cs" />
@@ -645,6 +646,7 @@
     <Compile Include="IRefactorNotifyService.cs" />
     <Compile Include="Shared\IImageMonikerService.cs" />
     <Compile Include="Shared\DefaultImageMonikerService.cs" />
+    <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.EditorFormatMapChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
     <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
@@ -696,7 +698,7 @@
     <Compile Include="Shared\Extensions\SnapshotPointExtensions.cs" />
     <Compile Include="Shared\Extensions\SnapshotSpanExtensions.cs" />
     <Compile Include="Shared\Extensions\SpanExtensions.cs" />
-    <Compile Include="Shared\Extensions\TaggedTextExtensions.cs" />
+    <Compile Include="Shared\Extensions\ClassificationExtensions.cs" />
     <Compile Include="Shared\Extensions\TextChangeExtensions.cs" />
     <Compile Include="Shared\Extensions\WorkspaceExtensions.cs" />
     <Compile Include="Shared\Options\ComponentOnOffOptions.cs" />

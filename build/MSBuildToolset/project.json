@@ -5,12 +5,8 @@
     "outputName": "RoslynRestore"
   },
   "dependencies": {
-    "Microsoft.Build.Framework": "0.1.0-preview-00028-160627",
-    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00028-160627",
-    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00028-160627",
-    "Microsoft.Build.Targets": "0.1.0-preview-00028-160627",
-    "Microsoft.Build": "0.1.0-preview-00028-160627",
-    "MSBuild": "0.1.0-preview-00028-160627",
+    "Microsoft.Build": "14.3.0-prerelease01",
+    "Microsoft.Build.Tasks.Core": "14.3.0-prerelease01",
     "Microsoft.NETCore.TestHost": "1.0.0",
     "Microsoft.NETCore.App": "1.0.0-rc3-004338",
     "Newtonsoft.Json": "8.0.3"

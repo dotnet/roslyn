@@ -350,5 +350,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         AssetService_SynchronizeAssetsAsync,
         AssetService_SynchronizeSolutionAssetsAsync,
         SolutionChecksumServiceFactory_GetChecksumObjects,
+        ChecksumTreeNode_GetOrCreateChecksumObject,
+        CodeAnalysisService_GetReferenceCountAsync,
+        CodeAnalysisService_FindReferenceLocationsAsync,
+        CodeAnalysisService_FindReferenceMethodsAsync,
+        CodeAnalysisService_GetFullyQualifiedName,
     }
 }

@@ -469,17 +469,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var declaredLmrType = declaredType.GetLmrType();
             var runtimeType = value.Type;
-            var runtimeLmrType = runtimeType.GetLmrType();
             var declaredTypeName = inspectionContext.GetTypeName(declaredType, declaredTypeInfo, Formatter.NoFormatSpecifiers);
-            var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, CustomTypeInfo: null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
-            var includeRuntimeTypeName =
-                !string.Equals(declaredTypeName, runtimeTypeName, StringComparison.OrdinalIgnoreCase) && // Names will reflect "dynamic", types will not.
-                !declaredLmrType.IsPointer &&
+            // Include the runtime type if distinct.
+            if (!declaredLmrType.IsPointer &&
                 (kind != ExpansionKind.PointerDereference) &&
-                (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown));
-            return includeRuntimeTypeName ?
-                string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName) :
-                declaredTypeName;
+                (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown)))
+            {
+                // Generate the declared type name without tuple element names.
+                var declaredTypeInfoNoTupleElementNames = declaredTypeInfo.WithNoTupleElementNames();
+                var declaredTypeNameNoTupleElementNames = (declaredTypeInfo == declaredTypeInfoNoTupleElementNames) ?
+                    declaredTypeName :
+                    inspectionContext.GetTypeName(declaredType, declaredTypeInfoNoTupleElementNames, Formatter.NoFormatSpecifiers);
+                // Generate the runtime type name with no tuple element names and no dynamic.
+                var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
+                // If the two names are distinct, include both.
+                if (!string.Equals(declaredTypeNameNoTupleElementNames, runtimeTypeName, StringComparison.Ordinal)) // Names will reflect "dynamic", types will not.
+                {
+                    return string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName);
+                }
+            }
+            return declaredTypeName;
         }
 
         internal EvalResult CreateDataItem(
@@ -897,7 +906,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (declaredType.IsArray)
                 {
                     elementType = declaredType.GetElementType();
-                    elementTypeInfo = DynamicFlagsCustomTypeInfo.Create(declaredTypeAndInfo.Info).SkipOne().GetCustomTypeInfo();
+                    elementTypeInfo = CustomTypeInfo.SkipOne(declaredTypeAndInfo.Info);
                 }
                 else
                 {
@@ -921,8 +930,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (declaredType.IsPointer)
             {
-                // If this ever happens, the element type info is just .SkipOne().
-                Debug.Assert(!DynamicFlagsCustomTypeInfo.Create(declaredTypeAndInfo.Info).Any());
+                // If this assert fails, the element type info is just .SkipOne().
+                Debug.Assert(declaredTypeAndInfo.Info?.PayloadTypeId != CustomTypeInfo.PayloadTypeId);
                 var elementType = declaredType.GetElementType();
                 return value.IsNull || elementType.IsVoid()
                     ? null
@@ -937,6 +946,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // skip base types. (This matches the native EE behavior
                 // to expose a single property from the exception.)
                 flags &= ~ExpansionFlags.IncludeBaseMembers;
+            }
+
+            int cardinality;
+            if (runtimeType.IsTupleCompatible(out cardinality))
+            {
+                return TupleExpansion.CreateExpansion(value, declaredTypeAndInfo, cardinality);
             }
 
             return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this);

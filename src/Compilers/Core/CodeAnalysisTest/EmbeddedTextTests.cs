@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<EndOfStreamException>(() => EmbeddedText.FromStream("path", new TruncatingStream(1000)));
 
             // Should be Assert.Throws<IOException>, but impeded by https://github.com/dotnet/roslyn/issues/12926
-            var ex = Assert.Throws<TargetInvocationException>(() => EmbeddedText.FromStream("path", new ReadFailsStream()));
-            Assert.IsType<IOException>(ex.InnerException);
+            Assert.Throws<IOException>(() => EmbeddedText.FromStream("path", new ReadFailsStream()));
         }
 
         private const string SmallSource = @"class P {}";

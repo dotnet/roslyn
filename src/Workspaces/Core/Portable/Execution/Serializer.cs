@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 switch (kind)
                 {
+                    case WellKnownChecksumObjects.Null:
+                        return default(T);
+
                     case SolutionChecksumObject.Name:
                         return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
                     case ProjectChecksumObject.Name:
@@ -76,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Execution
                         return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
                     case WellKnownChecksumObjects.SourceText:
                         return (T)(object)DeserializeSourceText(reader, cancellationToken);
+                    case WellKnownChecksumObjects.OptionSet:
+                        return (T)(object)DeserializeOptionSet(reader, cancellationToken);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);

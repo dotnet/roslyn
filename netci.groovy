@@ -101,9 +101,9 @@ set TMP=%TEMP%
                   }
                 }
 
-      def triggerPhraseOnly = configuration == 'release'   
+      def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }

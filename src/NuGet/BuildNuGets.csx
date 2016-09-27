@@ -77,6 +77,7 @@ var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Ne
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
+    "Microsoft.Codeanalysis.Build.Tasks",
     "Microsoft.CodeAnalysis.Common",
     "Microsoft.CodeAnalysis.Compilers",
     "Microsoft.CodeAnalysis.CSharp.Features",
@@ -115,6 +116,7 @@ string[] TestPackageNames = {
 // or they will not be published anywhere at all
 var PreReleaseOnlyPackages = new HashSet<string>
 {
+    "Microsoft.CodeAnalysis.Build.Tasks",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",

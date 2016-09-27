@@ -559,14 +559,8 @@ End Class
             CompileAndVerify(main, verify:=False, validator:=
                 Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
-                    Dim refs As List(Of String) = New List(Of String)()
 
-                    For Each assemblyRef In reader.AssemblyReferences
-                        Dim row = reader.GetAssemblyReference(assemblyRef)
-                        refs.Add(reader.GetString(row.Name) & " " & row.Version.Major & "." & row.Version.Minor)
-                    Next
-
-                    AssertEx.SetEqual({"mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0"}, refs)
+                    AssertEx.SetEqual({"mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0"}, reader.DumpAssemblyReferences())
                 End Sub)
         End Sub
 

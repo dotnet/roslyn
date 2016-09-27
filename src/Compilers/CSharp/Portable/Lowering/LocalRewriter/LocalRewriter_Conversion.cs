@@ -235,6 +235,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return rewrittenOperand;
                     }
 
+                case ConversionKind.ImplicitThrow:
+                    {
+                        // the operand must be a bound throw expression
+                        var operand = (BoundThrowExpression)rewrittenOperand;
+                        return _factory.ThrowExpression(operand.Expression, rewrittenType);
+                    }
+
                 case ConversionKind.ImplicitEnumeration:
                     // A conversion from constant zero to nullable is actually classified as an 
                     // implicit enumeration conversion, not an implicit nullable conversion. 
@@ -599,12 +606,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var destElementTypes = rewrittenType.GetElementTypesOfTupleOrCompatible();
             var numElements = destElementTypes.Length;
 
-            ImmutableArray<FieldSymbol> srcElementFields;
             TypeSymbol srcType = rewrittenOperand.Type;
 
+            TupleTypeSymbol tupleTypeSymbol;
             if (srcType.IsTupleType)
             {
-                srcElementFields = ((TupleTypeSymbol)srcType).TupleElementFields;
+                tupleTypeSymbol = (TupleTypeSymbol)srcType;
             }
             else
             {
@@ -615,9 +622,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // PERF: if allocations here become nuisance, consider caching the TupleTypeSymbol
                 //       in the type symbols that can actually be tuple compatible
-                srcElementFields = TupleTypeSymbol.Create((NamedTypeSymbol)srcType).TupleElementFields;
+                tupleTypeSymbol = TupleTypeSymbol.Create((NamedTypeSymbol)srcType);
             }
 
+            var srcElementFields = tupleTypeSymbol.TupleDefaultElementFields;
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
 
             BoundAssignmentOperator assignmentToTemp;

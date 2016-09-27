@@ -725,7 +725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' first find all implementations of IEnumerable(Of T)
             If Binder.IsOrInheritsFromOrImplementsInterface(type, genericIEnumerable, useSiteDiagnostics, matchingInterfaces) Then
-                If Not matchingInterfaces.IsEmpty Then
+                If matchingInterfaces.Count > 0 Then
 
                     ' now check if the type argument is compatible with the given type
                     For Each matchingInterface In matchingInterfaces
@@ -831,6 +831,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly s_isTypeParameterFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) (type.TypeKind = TypeKind.TypeParameter)
 
         ''' <summary>
+        ''' Return true if the type contains any tuples.
+        ''' </summary>
+        <Extension()>
+        Friend Function ContainsTuple(type As TypeSymbol) As Boolean
+            Return type.VisitType(s_isTupleTypeFunc, Nothing) IsNot Nothing
+        End Function
+
+        Private ReadOnly s_isTupleTypeFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) type.IsTupleType
+
+        ''' <summary>
+        ''' Return true if the type contains any tuples with element names.
+        ''' </summary>
+        <Extension()>
+        Friend Function ContainsTupleNames(type As TypeSymbol) As Boolean
+            Return type.VisitType(s_hasTupleNamesFunc, Nothing) IsNot Nothing
+        End Function
+
+        Private ReadOnly s_hasTupleNamesFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) Not type.TupleElementNames.IsDefault
+
+        ''' <summary>
         ''' Visit the given type and, in the case of compound types, visit all "sub type"
         ''' (such as A in A(), or { A(Of T), T, U } in A(Of T).B(Of U)) invoking 'predicate'
         ''' with the type and 'arg' at each sub type. If the predicate returns true for any type,
@@ -838,45 +858,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' completes without the predicate returning true for any type, this method returns null.
         ''' </summary>
         <Extension()>
-        Friend Function VisitType(Of T)(this As TypeSymbol, predicate As Func(Of TypeSymbol, T, Boolean), arg As T) As TypeSymbol
+        Friend Function VisitType(Of T)(type As TypeSymbol, predicate As Func(Of TypeSymbol, T, Boolean), arg As T) As TypeSymbol
+            ' In order to handle extremely "deep" types like "Integer()()()()()()()()()...()"
+            ' we implement manual tail recursion rather than doing the natural recursion.
 
-            Select Case this.Kind
-                Case SymbolKind.TypeParameter
-                    If predicate(this, arg) Then
-                        Return this
-                    End If
+            Dim current As TypeSymbol = type
 
-                Case SymbolKind.ArrayType
-                    If predicate(this, arg) Then
-                        Return this
-                    End If
+            Do
+                ' Visit containing types from outer-most to inner-most.
+                Select Case current.TypeKind
 
-                    Return DirectCast(this, ArrayTypeSymbol).ElementType.VisitType(predicate, arg)
+                    Case TypeKind.Class,
+                         TypeKind.Struct,
+                         TypeKind.Interface,
+                         TypeKind.Enum,
+                         TypeKind.Delegate
 
-                Case SymbolKind.NamedType, SymbolKind.ErrorType
-                    Dim typeToCheck = DirectCast(this, NamedTypeSymbol)
+                        Dim containingType = current.ContainingType
+                        If containingType IsNot Nothing Then
+                            Dim result = containingType.VisitType(predicate, arg)
 
-                    Do
-                        If predicate(typeToCheck, arg) Then
-                            Return typeToCheck
+                            If result IsNot Nothing Then
+                                Return result
+                            End If
                         End If
 
-                        For Each typeArg In typeToCheck.TypeArgumentsNoUseSiteDiagnostics
-                            Dim result = typeArg.VisitType(predicate, arg)
+                    Case TypeKind.Submission
+                        Debug.Assert(current.ContainingType Is Nothing)
+                End Select
+
+                If predicate(current, arg) Then
+                    Return current
+                End If
+
+                Select Case current.TypeKind
+
+                    Case TypeKind.Dynamic,
+                         TypeKind.TypeParameter,
+                         TypeKind.Submission,
+                         TypeKind.Enum,
+                         TypeKind.Module
+
+                        Return Nothing
+
+                    Case TypeKind.Class,
+                         TypeKind.Struct,
+                         TypeKind.Interface,
+                         TypeKind.Delegate,
+                         TypeKind.Error
+
+                        If current.IsTupleType Then
+                            ' turn tuple type elements into parameters
+                            current = current.TupleUnderlyingType
+                        End If
+
+                        For Each nestedType In DirectCast(current, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics
+                            Dim result = nestedType.VisitType(predicate, arg)
                             If result IsNot Nothing Then
                                 Return result
                             End If
                         Next
 
-                        typeToCheck = typeToCheck.ContainingType
-                    Loop While typeToCheck IsNot Nothing
+                        Return Nothing
 
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(this.Kind)
+                    Case TypeKind.Array
+                        current = DirectCast(current, ArrayTypeSymbol).ElementType
+                        Continue Do
 
-            End Select
-
-            Return Nothing
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(current.TypeKind)
+                End Select
+            Loop
         End Function
 
         ''' <summary>
@@ -1266,6 +1318,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return (name.Length = length) AndAlso (String.Compare(name, 0, namespaceName, offset, length, comparison) = 0)
         End Function
 
+        <Extension>
+        Friend Function GetTypeRefWithAttributes(type As TypeSymbol, declaringCompilation As VisualBasicCompilation, typeRef As Cci.ITypeReference) As Cci.TypeReferenceWithAttributes
+            If type.ContainsTupleNames() Then
+                Dim attr = declaringCompilation.SynthesizeTupleNamesAttribute(type)
+                If attr IsNot Nothing Then
+                    Return New Cci.TypeReferenceWithAttributes(
+                        typeRef,
+                        ImmutableArray.Create(Of Cci.ICustomAttribute)(attr))
+                End If
+            End If
+
+            Return New Cci.TypeReferenceWithAttributes(typeRef)
+        End Function
     End Module
 
 End Namespace

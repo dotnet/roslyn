@@ -380,11 +380,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Return symbolInfo.CandidateSymbols.Any() AndAlso symbolInfo.CandidateSymbols.All(Function(s) s.IsNamespace())
         End Function
 
-        Private Function LookupSymbolsInContainer(container As INamespaceOrTypeSymbol, semanticModel As SemanticModel, position As Integer, excludeInstance As Boolean) As ImmutableArray(Of ISymbol)
-            Return If(
-                    excludeInstance,
-                    semanticModel.LookupStaticMembers(position, container),
-                    semanticModel.LookupSymbols(position, container, includeReducedExtensionMethods:=True))
+        Private Function LookupSymbolsInContainer(container As INamespaceOrTypeSymbol, semanticModel As SemanticModel, position As Integer, excludeInstance As Boolean) As IEnumerable(Of ISymbol)
+            If excludeInstance Then
+                Return semanticModel.LookupStaticMembers(position, container)
+            Else
+                Return SuppressDefaultTupleElements(
+                        container,
+                        semanticModel.LookupSymbols(position, container, includeReducedExtensionMethods:=True))
+            End If
         End Function
 
         ''' <summary>

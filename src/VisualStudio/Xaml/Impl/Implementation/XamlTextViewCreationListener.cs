@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
@@ -136,13 +137,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         private AbstractProject GetXamlProject(IVsHierarchy hierarchy)
         {
-            return _vsWorkspace.ProjectTracker.Projects.FirstOrDefault(p => p.Language == StringConstants.XamlLanguageName && p.Hierarchy == hierarchy);
+            return _vsWorkspace.ProjectTracker.ImmutableProjects.FirstOrDefault(p => p.Language == StringConstants.XamlLanguageName && p.Hierarchy == hierarchy);
         }
 
         private bool TryCreateXamlDocument(AbstractProject project, string filePath, out IVisualStudioHostDocument vsDocument)
         {
             vsDocument = _vsWorkspace.ProjectTracker.DocumentProvider.TryGetDocumentForFile(
-                project, ImmutableArray<string>.Empty, filePath, SourceCodeKind.Regular, tb => tb.ContentType.IsOfType(ContentTypeNames.XamlContentType));
+                project, filePath, SourceCodeKind.Regular,
+                tb => tb.ContentType.IsOfType(ContentTypeNames.XamlContentType),
+                _ => SpecializedCollections.EmptyReadOnlyList<string>());
 
             return vsDocument != null;
         }

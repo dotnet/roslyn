@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         IEqualityComparer<TRegionTag>
         where TRegionTag : class, ITag
     {
-        public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
-
         private static IComparer<BlockSpan> s_blockSpanComparer =
             Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
@@ -157,6 +155,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
         {
+            try
+            {
+                ProcessSpansWorker(context, snapshotSpan, outliningService, spans);
+            }
+            catch (TypeLoadException)
+            {
+                // We're targetting a version of the BlockTagging infrastructure in 
+                // VS that may not match the version that the user is currently
+                // developing against.  Be resilient to this until everything moves
+                // forward to the right VS version.
+            }
+        }
+
+        private void ProcessSpansWorker(
+            TaggerContext<TRegionTag> context,
+            SnapshotSpan snapshotSpan,
+            BlockStructureService outliningService,
+            ImmutableArray<BlockSpan> spans)
+        {
             if (spans != null)
             {
                 var snapshot = snapshotSpan.Snapshot;
@@ -196,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
         {
             // Remove any spans that aren't multiline.
-            var multiLineRegions = ImmutableArray.CreateBuilder<BlockSpan>();
+            var multiLineRegions = ArrayBuilder<BlockSpan>.GetInstance();
             foreach (var region in regions)
             {
                 if (region != null && region.TextSpan.Length > 0)
@@ -237,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // Note we pass a IComparer instead of a Comparison to work around this
             // issue in ImmutableArray.Builder: https://github.com/dotnet/corefx/issues/11173
             multiLineRegions.Sort(s_blockSpanComparer);
-            return multiLineRegions.ToImmutable();
+            return multiLineRegions.ToImmutableAndFree();
         }
     }
 }

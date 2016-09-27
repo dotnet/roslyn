@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        internal override async Task<BlockSpan[]> GetBlockSpansAsync(Document document, int position)
+        internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position)
         {
             var root = await document.GetSyntaxRootAsync();
             var trivia = root.FindTrivia(position, findInsideTrivia: true);
@@ -24,15 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 
             if (token.LeadingTrivia.Contains(trivia))
             {
-                return CSharpStructureHelpers.CreateCommentRegions(token.LeadingTrivia).ToArray();
+                return CSharpStructureHelpers.CreateCommentBlockSpan(token.LeadingTrivia);
             }
             else if (token.TrailingTrivia.Contains(trivia))
             {
-                return CSharpStructureHelpers.CreateCommentRegions(token.TrailingTrivia).ToArray();
+                return CSharpStructureHelpers.CreateCommentBlockSpan(token.TrailingTrivia);
             }
             else
             {
-                return Contract.FailWithReturn<BlockSpan[]>();
+                return Contract.FailWithReturn<ImmutableArray<BlockSpan>>();
             }
         }
 
