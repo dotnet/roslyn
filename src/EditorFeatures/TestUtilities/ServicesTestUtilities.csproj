@@ -49,6 +49,10 @@
       <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
       <Name>Workspaces</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
+      <Name>ServiceHub</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Core\EditorFeatures.csproj">
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
@@ -71,6 +75,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcClient.cs">
+      <Link>Remote\JsonRpcClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcSession.cs">
+      <Link>Remote\JsonRpcSession.cs</Link>
+    </Compile>
     <Compile Include="Async\AsynchronousOperationBlocker.cs" />
     <Compile Include="Async\Checkpoint.cs" />
     <Compile Include="Async\WaitHelper.cs" />
@@ -83,6 +93,7 @@
     <Compile Include="TestExtensionErrorHandler.cs" />
     <Compile Include="TestOptionsServiceFactory.cs" />
     <Compile Include="TestWaitIndicator.cs" />
+    <Compile Include="Remote\InProcRemostHostClient.cs" />
     <Compile Include="Threading\ConditionalWpfFactAttribute.cs" />
     <Compile Include="Threading\StaTaskScheduler.cs" />
     <Compile Include="Threading\WpfFactAttribute.cs" />
@@ -92,6 +103,7 @@
     <Compile Include="VisualStudioSendKeys.cs" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
@@ -110,6 +122,7 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

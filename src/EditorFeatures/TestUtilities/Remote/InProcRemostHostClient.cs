@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-extern alias hub;
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -16,7 +14,7 @@ using Nerdbank;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
-namespace Roslyn.VisualStudio.Test.Utilities.Remote
+namespace Roslyn.Test.Utilities.Remote
 {
     internal class InProcRemoteHostClient : RemoteHostClient
     {
@@ -61,7 +59,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remote
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host
-            var snapshotStream = await _inprocServices.RequestServiceAsync(hub::Microsoft.CodeAnalysis.Remote.WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
+            var snapshotStream = await _inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
@@ -102,12 +100,12 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remote
                             var tuple = FullDuplexStream.CreateStreams();
                             return Task.FromResult<Stream>(new WrappedStream(new RemoteHostService(tuple.Item1, s_serviceProvider), tuple.Item2));
                         }
-                    case hub::Microsoft.CodeAnalysis.Remote.WellKnownServiceHubServices.CodeAnalysisService:
+                    case WellKnownServiceHubServices.CodeAnalysisService:
                         {
                             var tuple = FullDuplexStream.CreateStreams();
                             return Task.FromResult<Stream>(new WrappedStream(new CodeAnalysisService(tuple.Item1, s_serviceProvider), tuple.Item2));
                         }
-                    case hub::Microsoft.CodeAnalysis.Remote.WellKnownServiceHubServices.SnapshotService:
+                    case WellKnownServiceHubServices.SnapshotService:
                         {
                             var tuple = FullDuplexStream.CreateStreams();
                             return Task.FromResult<Stream>(new WrappedStream(new SnapshotService(tuple.Item1, s_serviceProvider), tuple.Item2));
