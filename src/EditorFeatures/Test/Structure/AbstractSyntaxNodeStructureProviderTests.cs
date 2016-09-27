@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             }
 
             var outliner = CreateProvider();
-            var actualRegions = ImmutableArray.CreateBuilder<BlockSpan>();
+            var actualRegions = ArrayBuilder<BlockSpan>.GetInstance();
             outliner.CollectBlockSpans(document, node, actualRegions, CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.

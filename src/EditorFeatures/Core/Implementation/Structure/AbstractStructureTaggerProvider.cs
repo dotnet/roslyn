@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
         {
             // Remove any spans that aren't multiline.
-            var multiLineRegions = ImmutableArray.CreateBuilder<BlockSpan>();
+            var multiLineRegions = ArrayBuilder<BlockSpan>.GetInstance();
             foreach (var region in regions)
             {
                 if (region != null && region.TextSpan.Length > 0)
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // Note we pass a IComparer instead of a Comparison to work around this
             // issue in ImmutableArray.Builder: https://github.com/dotnet/corefx/issues/11173
             multiLineRegions.Sort(s_blockSpanComparer);
-            return multiLineRegions.ToImmutable();
+            return multiLineRegions.ToImmutableAndFree();
         }
     }
 }

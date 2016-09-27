@@ -19,24 +19,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         public static ImmutableArray<TResult> ToImmutableArray<TSource, TResult>(this IList<TSource> list, Func<TSource, TResult> selector)
         {
-            var builder = ImmutableArray.CreateBuilder<TResult>(list.Count);
+            var builder = ArrayBuilder<TResult>.GetInstance(list.Count);
             for (var i = 0; i < list.Count; i++)
             {
                 builder.Add(selector(list[i]));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         public static ImmutableArray<TableItem<T>> MergeDuplicatesOrderedBy<T>(this IEnumerable<IList<TableItem<T>>> groupedItems, Func<IEnumerable<TableItem<T>>, IEnumerable<TableItem<T>>> orderer)
         {
-            var builder = ImmutableArray.CreateBuilder<TableItem<T>>();
+            var builder = ArrayBuilder<TableItem<T>>.GetInstance();
             foreach (var item in orderer(groupedItems.Select(g => g.Deduplicate())))
             {
                 builder.Add(item);
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         private static TableItem<T> Deduplicate<T>(this IList<TableItem<T>> duplicatedItems)

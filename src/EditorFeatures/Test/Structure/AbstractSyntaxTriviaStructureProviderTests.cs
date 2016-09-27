@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
             var outliner = CreateProvider();
-            var actualRegions = ImmutableArray.CreateBuilder<BlockSpan>();
+            var actualRegions = ArrayBuilder<BlockSpan>.GetInstance();
             outliner.CollectBlockSpans(document, trivia, actualRegions, CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.

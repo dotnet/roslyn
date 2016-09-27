@@ -426,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // Take all the syntax parts.  However, if any have been overridden by a 
                 // semantic part, then choose that one.
 
-                var finalParts = ImmutableArray.CreateBuilder<ClassifiedSpan>();
+                var finalParts = ArrayBuilder<ClassifiedSpan>.GetInstance();
                 var lastReplacementIndex = 0;
                 for (int i = 0, n = syntaxParts.Count; i < n; i++)
                 {
@@ -453,7 +453,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     }
                 }
 
-                return finalParts.ToImmutable();
+                return finalParts.ToImmutableAndFree();
             }
 
             private bool IsClassifiedAsText(ClassifiedSpan partAndSpan)

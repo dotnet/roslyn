@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             OperatorDeclarationSyntax operatorDeclaration,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             CSharpStructureHelpers.CollectCommentBlockSpans(operatorDeclaration, spans);
