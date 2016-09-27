@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 
@@ -14,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         public CodeElementSnapshot(ICodeElements codeElements)
         {
             var count = codeElements.Count;
-            var elementsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>(count);
+            var elementsBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance(count);
 
             for (int i = 0; i < count; i++)
             {
@@ -26,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 }
             }
 
-            _elements = elementsBuilder.ToImmutable();
+            _elements = elementsBuilder.ToImmutableAndFree();
         }
 
         public CodeElementSnapshot(ImmutableArray<EnvDTE.CodeElement> elements)

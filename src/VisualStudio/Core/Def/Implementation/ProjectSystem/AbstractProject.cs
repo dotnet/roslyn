@@ -187,6 +187,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ICommandLineParserService CommandLineParserService { get; }
 
+        /// <summary>
+        /// The <see cref="IVsHierarchy"/> for this project.  NOTE: May be null in Deferred Project Load cases.
+        /// </summary>
         public IVsHierarchy Hierarchy { get; }
 
         /// <summary>
@@ -302,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return ImmutableArray<string>.Empty;
             }
 
-            var builder = ImmutableArray.CreateBuilder<string>();
+            var builder = ArrayBuilder<string>.GetInstance();
             if (this.ContainingDirectoryPathOpt != null)
             {
                 builder.Add(this.ContainingDirectoryPathOpt);
@@ -313,7 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 builder.Add(Path.GetDirectoryName(outputPath));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         public ImmutableArray<ProjectReference> GetCurrentProjectReferences()
@@ -892,15 +895,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void AddFile(string filename, SourceCodeKind sourceCodeKind, Func<IVisualStudioHostDocument, bool> getIsCurrentContext, IReadOnlyList<string> folderNames)
+        protected void AddFile(
+            string filename,
+            SourceCodeKind sourceCodeKind,
+            Func<IVisualStudioHostDocument, bool> getIsCurrentContext,
+            Func<uint, IReadOnlyList<string>> getFolderNames)
         {
             // We can currently be on a background thread.
             // So, hookup the handlers when creating the standard text document, as we might receive these handler notifications on the UI thread.
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
-                folderNames,
                 filePath: filename,
                 sourceCodeKind: sourceCodeKind,
+                getFolderNames: getFolderNames,
                 canUseTextBuffer: CanUseTextBuffer,
                 updatedOnDiskHandler: s_documentUpdatedOnDiskEventHandler,
                 openedHandler: s_documentOpenedEventHandler,

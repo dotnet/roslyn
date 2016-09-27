@@ -151,6 +151,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
 
+            if (completionService == null)
+            {
+                return false;
+            }
+
             if (this.TextView.Selection.Mode == TextSelectionMode.Box)
             {
                 // No completion with multiple selection

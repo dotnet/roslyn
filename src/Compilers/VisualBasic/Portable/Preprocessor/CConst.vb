@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Public ReadOnly Property ErrorArgs As Object()
             Get
-                Return If(_diagnosticArguments, SpecializedCollections.EmptyObjects)
+                Return If(_diagnosticArguments, Array.Empty(Of Object))
             End Get
         End Property
     End Class
@@ -215,6 +215,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend Class BadCConst
         Inherits CConst
+
+        Public Sub New(id As ERRID)
+            MyBase.New(id)
+        End Sub
 
         Public Sub New(id As ERRID, ParamArray args As Object())
             MyBase.New(id, args)

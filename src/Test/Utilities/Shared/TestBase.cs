@@ -526,6 +526,11 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public static Lazy<MetadataReference> SystemRuntimeNetstandard13FacadeRef { get; } =
+            new Lazy<MetadataReference>(() => AssemblyMetadata.CreateFromImage(
+                TestResources.NetFX.ReferenceAssemblies_netstandard1_3.System_Runtime)
+                .GetReference(display: "System.Runtime.dll"));
+
         private static MetadataReference s_FSharpTestLibraryRef;
         public static MetadataReference FSharpTestLibraryRef
         {

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                 _stream.Dispose();
                 try
                 {
-                    PortableShim.File.Delete(_path);
+                    File.Delete(_path);
                 }
                 catch
                 {
@@ -140,13 +140,13 @@ namespace Microsoft.CodeAnalysis
         internal virtual bool FileExists(string fullPath)
         {
             Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
-            return PortableShim.File.Exists(fullPath);
+            return File.Exists(fullPath);
         }
 
         internal virtual byte[] ReadAllBytes(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return PortableShim.File.ReadAllBytes(fullPath);
+            return File.ReadAllBytes(fullPath);
         }
 
         /// <summary>
@@ -187,8 +187,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException"></exception>
         internal override Stream CreateInputStream()
         {
-            var path = PortableShim.Path.GetTempFileName();
-            Func<string, Stream> streamConstructor = lPath => new TempFileStream(lPath, PortableShim.FileStream.Create(lPath, PortableShim.FileMode.Create, PortableShim.FileAccess.ReadWrite, PortableShim.FileShare.ReadWrite));
+            var path = Path.GetTempFileName();
+            Func<string, Stream> streamConstructor = lPath => new TempFileStream(lPath,
+                new FileStream(lPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
             return FileUtilities.CreateFileStreamChecked(streamConstructor, path);
         }
 
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis
                 Sign(assemblyFilePath, keys.KeyPair);
             }
 
-            using (var fileToSign = PortableShim.FileStream.Create(assemblyFilePath, PortableShim.FileMode.Open))
+            using (var fileToSign = new FileStream(assemblyFilePath, FileMode.Open))
             {
                 fileToSign.CopyTo(outputStream);
             }

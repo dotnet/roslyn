@@ -623,15 +623,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get an error symbol.
         ''' </summary>
-        Public Overridable Function GetErrorSymbol(name As String,
-                                                   errorInfo As DiagnosticInfo,
-                                                   candidateSymbols As ImmutableArray(Of Symbol),
-                                                   resultKind As LookupResultKind) As ErrorTypeSymbol
-            Return m_containingBinder.GetErrorSymbol(name, errorInfo, candidateSymbols, resultKind)
+        Public Shared Function GetErrorSymbol(
+            name As String,
+            errorInfo As DiagnosticInfo,
+            candidateSymbols As ImmutableArray(Of Symbol),
+            resultKind As LookupResultKind,
+            Optional reportErrorWhenReferenced As Boolean = False
+        ) As ErrorTypeSymbol
+            Return New ExtendedErrorTypeSymbol(errorInfo, name, 0, candidateSymbols, resultKind, reportErrorWhenReferenced)
         End Function
 
-        Public Function GetErrorSymbol(name As String, errorInfo As DiagnosticInfo) As ErrorTypeSymbol
-            Return GetErrorSymbol(name, errorInfo, ImmutableArray(Of Symbol).Empty, LookupResultKind.Empty)
+        Public Shared Function GetErrorSymbol(name As String, errorInfo As DiagnosticInfo, Optional reportErrorWhenReferenced As Boolean = False) As ErrorTypeSymbol
+            Return GetErrorSymbol(name, errorInfo, ImmutableArray(Of Symbol).Empty, LookupResultKind.Empty, reportErrorWhenReferenced)
         End Function
 
         ''' <summary>

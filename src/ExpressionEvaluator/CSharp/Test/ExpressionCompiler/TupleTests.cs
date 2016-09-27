@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
@@ -200,7 +201,7 @@ class C
                 locals.Free();
             });
         }
-
+        
         [Fact]
         public void DeclareLocal()
         {
@@ -234,7 +235,10 @@ class C
                 Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
                 ReadOnlyCollection<byte> customTypeInfo;
                 var customTypeInfoId = result.GetCustomTypeInfo(out customTypeInfo);
-                Assert.Null(customTypeInfo);
+                ReadOnlyCollection<byte> dynamicFlags;
+                ReadOnlyCollection<string> tupleElementNames;
+                CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
+                Assert.Null(tupleElementNames);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 var method = methodData.Method;
                 Assert.Null(GetTupleElementNamesAttributeIfAny(method));
@@ -260,6 +264,71 @@ class C
   IL_003a:  stind.ref
   IL_003b:  ret
 }");
+            });
+        }
+
+        [WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")]
+        [Fact]
+        public void Alias()
+        {
+            var source =
+@"class C
+{
+    static (int, int) F;
+    static void M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef }, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(
+                    runtime,
+                    "C.M");
+                // (int A, (int, int D) B)[] t;
+                var aliasElementNames = new ReadOnlyCollection<string>(new[] { "A", "B", null, "D" });
+                var alias = new Alias(
+                    DkmClrAliasKind.Variable,
+                    "t",
+                    "t",
+                    "System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.ValueTuple`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]][], System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51",
+                    CustomTypeInfo.PayloadTypeId,
+                    CustomTypeInfo.Encode(null, aliasElementNames));
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var diagnostics = DiagnosticBag.GetInstance();
+                var testData = new CompilationTestData();
+                context.CompileGetLocals(
+                    locals,
+                    argumentsOnly: false,
+                    aliases: ImmutableArray.Create(alias),
+                    diagnostics: diagnostics,
+                    typeName: out typeName,
+                    testData: testData);
+                diagnostics.Verify();
+                diagnostics.Free();
+                Assert.Equal(locals.Count, 1);
+                ReadOnlyCollection<byte> customTypeInfo;
+                var customTypeInfoId = locals[0].GetCustomTypeInfo(out customTypeInfo);
+                ReadOnlyCollection<byte> dynamicFlags;
+                ReadOnlyCollection<string> tupleElementNames;
+                CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
+                Assert.Equal(aliasElementNames, tupleElementNames);
+                var method = testData.Methods.Single().Value.Method;
+                Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
+                var returnType = (TypeSymbol)method.ReturnType;
+                Assert.False(returnType.IsTupleType);
+                Assert.True(((ArrayTypeSymbol)returnType).ElementType.IsTupleType);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "t", expectedILOpt:
+@"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldstr      ""t""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
+  IL_000a:  castclass  ""(int A, (int, int D) B)[]""
+  IL_000f:  ret
+}");
+                locals.Free();
             });
         }
     }

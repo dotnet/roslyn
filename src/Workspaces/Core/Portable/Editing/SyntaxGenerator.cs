@@ -118,6 +118,10 @@ namespace Microsoft.CodeAnalysis.Editing
                 initializer);
         }
 
+        //internal abstract SyntaxNode ObjectMemberInitializer(IEnumerable<SyntaxNode> fieldInitializers);
+        //internal abstract SyntaxNode NamedFieldInitializer(SyntaxNode name, SyntaxNode value);
+        //internal abstract SyntaxNode WithObjectCreationInitializer(SyntaxNode objectCreationExpression, SyntaxNode initializer);
+
         /// <summary>
         /// Creates a method declaration.
         /// </summary>
