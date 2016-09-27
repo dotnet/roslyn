@@ -1158,9 +1158,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var pattern = (BoundDeclarationPattern)node;
-                        Symbol symbol = pattern.Variable as LocalSymbol;
-                        if (symbol != null)
+                        var symbol = pattern.Variable as LocalSymbol;
+                        if ((object)symbol != null)
                         {
+                            // we do not track definite assignment for pattern variables when they are
+                            // promoted to fields for top-level code in scripts and interactive
                             int slot = GetOrCreateSlot(symbol);
                             SetSlotState(slot, assigned: written || !this.State.Reachable);
                         }
