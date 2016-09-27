@@ -53,9 +53,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             return currentModel;
                         }
 
-                        var service = document.GetLanguageService<SignatureHelpService>();
+                        if (_service == null)
+                        {
+                            _service = document.GetLanguageService<SignatureHelpService>();
+                        }
 
-                        var signatureList = await service.GetSignaturesAsync(document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        var signatureList = await _service.GetSignaturesAsync(document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
                         if (signatureList.Items.Length == 0)
                         {
                             return null;

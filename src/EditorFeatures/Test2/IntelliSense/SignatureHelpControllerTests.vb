@@ -25,14 +25,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub InvokeSignatureHelpWithoutDocumentShouldNotStartNewSession()
+#If False Then
             Dim emptyProvider = New Mock(Of IDocumentProvider)
             emptyProvider _
                 .Setup(Function(p) p.GetDocumentAsync(
                     snapshot:=It.IsAny(Of ITextSnapshot),
                     cancellationToken:=It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(Of Document)(Nothing))
+#End If
 
-            Dim testData = CreateTestData(documentProvider:=emptyProvider)
+            Dim testData = CreateTestData(documentProvider:=New MockDocumentProvider(Nothing))
             testData.WaitForController()
 
             Assert.Equal(0, testData.Provider.GetItemsCount)
@@ -155,7 +157,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                     context.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
                                 End Sub)
 
-                             Dim testData = dispatcher.Invoke(Function() CreateTestData(provider:=slowProvider, waitForPresentation:=True))
+                             ' use normal document provider
+                             Dim testData = dispatcher.Invoke(Function() CreateTestData(New DocumentProvider(), provider:=slowProvider, waitForPresentation:=True))
 
                              ' Update session so that providers are requeried.
                              ' SlowProvider now blocks on the checkpoint's task.
@@ -165,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 Sub(context)
                                     checkpoint.Task.Wait()
                                     context.AddItems(CreateItems(2))
-                                    context.SetSpan(TextSpan.FromBounds(0, 2))
+                                    context.SetSpan(TextSpan.FromBounds(0, 1))
                                     context.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
                                 End Sub)
 
@@ -241,15 +244,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             testData.TypeChar("a"c)
 
+            Assert.Equal(0, testData.DocumentProvider.CallCount)
+#If False Then
             testData.DocumentProvider.Verify(
                 Function(p) p.GetDocumentAsync(
                     snapshot:=It.IsAny(Of ITextSnapshot),
                     cancellationToken:=It.IsAny(Of CancellationToken)),
                 Times.Never)
+#End If
         End Sub
 
         Private Shared Function CreateTestData(
-            Optional documentProvider As Mock(Of IDocumentProvider) = Nothing,
+            Optional documentProvider As IDocumentProvider = Nothing,
             Optional presenterSession As Mock(Of ISignatureHelpPresenterSession) = Nothing,
             Optional items As IList(Of SignatureHelpItem) = Nothing,
             Optional provider As SignatureHelpProvider = Nothing,
@@ -310,12 +316,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Dim asyncListener = New Mock(Of IAsynchronousOperationListener)
 
+            Dim service = New SignatureHelp.TestSignatureHelpService(provider)
+
             Dim controller = New Controller(
                 view.Object,
                 buffer,
                 presenter.Object,
                 asyncListener.Object,
-                documentProvider.Object)
+                documentProvider,
+                service)
 
             Dim testData = New TestData(
                 controller,
@@ -323,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 view,
                 presenter,
                 presenterSession,
-                documentProvider,
+                TryCast(documentProvider, MockDocumentProvider),
                 TryCast(provider, MockSignatureHelpProvider))
 
             If triggerSession Then
@@ -333,7 +342,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return testData
         End Function
 
-        Private Shared Function SetupDefaultDocumentProvider(document As Document) As Mock(Of IDocumentProvider)
+        Private Shared Function SetupDefaultDocumentProvider(document As Document) As IDocumentProvider
+#If False Then
             Dim documentProvider = New Mock(Of IDocumentProvider)
 
             documentProvider _
@@ -347,11 +357,35 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 .Returns(document)
 
             Return documentProvider
+#Else
+            Return New MockDocumentProvider(document)
+#End If
         End Function
+
+        Private Class MockDocumentProvider
+            Implements IDocumentProvider
+
+            Private ReadOnly _document As Document
+            Public CallCount As Integer
+
+            Public Sub New(document As Document)
+                _document = document
+            End Sub
+
+            Public Function GetDocumentAsync(snapshot As ITextSnapshot, cancellationToken As CancellationToken) As Task(Of Document) Implements IDocumentProvider.GetDocumentAsync
+                Me.CallCount = Me.CallCount + 1
+                Return Task.FromResult(_document)
+            End Function
+
+            Public Function GetOpenDocumentInCurrentContextWithChanges(snapshot As ITextSnapshot) As Document Implements IDocumentProvider.GetOpenDocumentInCurrentContextWithChanges
+                Me.CallCount = Me.CallCount + 1
+                Return _document
+            End Function
+        End Class
 
         Private Shared Function CreateItems(count As Integer) As IList(Of SignatureHelpItem)
             Return Enumerable.Range(0, count) _
-                .Select(Function(i) SignatureHelpItem.Empty) _
+                .Select(Function(i) SignatureHelpItem.Empty.WithDescriptionParts(ImmutableArray.Create(New TaggedText(TextTags.Text, i.ToString())))) _
                 .ToList()
         End Function
 
@@ -362,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim view = New Mock(Of ITextView) With {.DefaultValue = DefaultValue.Mock}
             view.Setup(Function(v) v.Caret).Returns(caret.Object)
             view.Setup(Function(v) v.TextBuffer).Returns(buffer)
-            view.Setup(Function(v) v.TextSnapshot).Returns(buffer.CurrentSnapshot)
+            view.Setup(Function(v) v.TextSnapshot).Returns(Function() buffer.CurrentSnapshot)
             Return view
         End Function
 
@@ -373,10 +407,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Public ReadOnly Controller As Controller
             Public ReadOnly Presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))
             Public ReadOnly PresenterSession As Mock(Of ISignatureHelpPresenterSession)
-            Public ReadOnly DocumentProvider As Mock(Of IDocumentProvider)
+            Public ReadOnly DocumentProvider As MockDocumentProvider
             Public ReadOnly Provider As MockSignatureHelpProvider
 
-            Public Sub New(controller As Controller, buffer As ITextBuffer, view As Mock(Of ITextView), presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), presenterSession As Mock(Of ISignatureHelpPresenterSession), documentProvider As Mock(Of IDocumentProvider), provider As MockSignatureHelpProvider)
+            Public Sub New(controller As Controller, buffer As ITextBuffer, view As Mock(Of ITextView), presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), presenterSession As Mock(Of ISignatureHelpPresenterSession), documentProvider As MockDocumentProvider, provider As MockSignatureHelpProvider)
                 Me.Controller = controller
                 Me._buffer = buffer
                 Me._view = view

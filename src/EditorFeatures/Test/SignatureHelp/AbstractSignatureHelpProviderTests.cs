@@ -209,31 +209,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
         }
 
-        private class TestService : SignatureHelpService
-        {
-            private readonly SignatureHelpProvider _provider;
-
-            public TestService(SignatureHelpProvider provider)
-            {
-                _provider = provider;
-            }
-
-            public override Task<SignatureList> GetSignaturesAsync(Document document, int caretPosition, SignatureHelpTrigger trigger = default(SignatureHelpTrigger), OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public override Task<ImmutableArray<TaggedText>> GetItemDocumentationAsync(Document document, SignatureHelpItem item, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return _provider.GetItemDocumentationAsync(document, item, cancellationToken);
-            }
-
-            public override Task<ImmutableArray<TaggedText>> GetParameterDocumentationAsync(Document document, SignatureHelpParameter parameter, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return _provider.GetParameterDocumentationAsync(document, parameter, cancellationToken);
-            }
-        }
-
         private void CompareSigHelpItemsAndCurrentPosition(
             SignatureList items,
             SignatureHelpItem actualSignatureHelpItem,
@@ -252,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 }
             }
 
-            var service = new TestService(signatureHelpProvider);
+            var service = new TestSignatureHelpService(signatureHelpProvider);
             var signature = new Signature(applicableToSpan: null, signatureHelpItem: actualSignatureHelpItem, selectedParameterIndex: currentParameterIndex, signatureHelpService: service, document: document);
 
             // We're a match if the signature matches...
@@ -439,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var signatureList = context.ToSignatureList();
 
             // If we're expecting 0 items, then there's no need to compare them
-            if ((expectedOrderedItemsOrNull == null || !expectedOrderedItemsOrNull.Any()) && signatureList == null)
+            if ((expectedOrderedItemsOrNull == null || !expectedOrderedItemsOrNull.Any()) && signatureList.Items.Length == 0)
             {
                 return;
             }

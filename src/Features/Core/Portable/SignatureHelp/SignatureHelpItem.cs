@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal sealed class SignatureHelpItem
+    internal sealed class SignatureHelpItem : IEquatable<SignatureHelpItem>
     {
         /// <summary>
         /// True if this signature help item can have an unbounded number of arguments passed to it.
@@ -153,6 +153,57 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 SuffixDisplayParts.Concat(
                 Parameters.SelectMany(p => p.GetAllParts())).Concat(
                 DescriptionParts)));
+        }
+
+        public bool Equals(SignatureHelpItem other)
+        {
+            return DeepEqualityComparer.Equals(this, other);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SignatureHelpItem);
+        }
+
+        public override int GetHashCode()
+        {
+            return DeepEqualityComparer.GetHashCode(this);
+        }
+
+        private static readonly IEqualityComparer<SignatureHelpItem> DeepEqualityComparer = new SignatureDeepEqualityComparer();
+
+        private class SignatureDeepEqualityComparer : IEqualityComparer<SignatureHelpItem>
+        {
+            public static readonly SignatureDeepEqualityComparer Instance = new SignatureDeepEqualityComparer();
+
+            public bool Equals(SignatureHelpItem x, SignatureHelpItem y)
+            {
+                if (object.ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+
+                return x != null && y != null
+                    && x.IsVariadic == y.IsVariadic
+                    && x.PrefixDisplayParts.DeepEquals(y.PrefixDisplayParts)
+                    && x.SuffixDisplayParts.DeepEquals(y.SuffixDisplayParts)
+                    && x.SeparatorDisplayParts.DeepEquals(y.SeparatorDisplayParts)
+                    && x.DescriptionParts.DeepEquals(y.DescriptionParts)
+                    && x.Parameters.DeepEquals(y.Parameters)
+                    && x.Properties.DeepEquals(y.Properties);
+            }
+
+            public int GetHashCode(SignatureHelpItem s)
+            {
+                return unchecked(
+                    (s.IsVariadic ? 1 : 0)
+                    + s.PrefixDisplayParts.GetDeepHashCode()
+                    + s.SuffixDisplayParts.GetDeepHashCode()
+                    + s.SeparatorDisplayParts.GetDeepHashCode()
+                    + s.DescriptionParts.GetDeepHashCode()
+                    + s.Parameters.GetDeepHashCode()
+                    + s.Properties.GetDeepHashCode());
+            }
         }
     }
 }

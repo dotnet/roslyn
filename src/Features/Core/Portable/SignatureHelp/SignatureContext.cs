@@ -129,10 +129,10 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         {
             if (_items == null || !_items.Any() || _state == null)
             {
-                return null;
+                return SignatureList.Empty;
             }
 
-            var items = Filter(_items, _state.ArgumentNames);
+            var items = Filter(_items.Distinct(), _state.ArgumentNames);
             return new SignatureList(items, _applicableSpan, _state.ArgumentIndex, _state.ArgumentCount, _state.ArgumentName);
         }
 

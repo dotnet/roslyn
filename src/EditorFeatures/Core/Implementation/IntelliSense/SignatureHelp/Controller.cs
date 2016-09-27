@@ -21,14 +21,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         private static readonly object s_controllerPropertyKey = new object();
 
+        private SignatureHelpService _service;
+
         public Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
-            IDocumentProvider documentProvider)
+            IDocumentProvider documentProvider,
+            SignatureHelpService service = null)
             : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
+            this._service = service;
         }
 
         internal static Controller GetInstance(
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             AssertIsForeground();
             VerifySessionIsInactive();
 
-            this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer, null));
+            this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer, null), _service);
             this.sessionOpt.ComputeModel(trigger);
         }
 

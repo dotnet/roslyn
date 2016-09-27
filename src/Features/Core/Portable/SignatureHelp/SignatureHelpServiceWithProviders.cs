@@ -139,10 +139,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var allProviders = GetProviders();
-            if (allProviders.IsEmpty)
-            {
-                return null;
-            }
 
             switch (trigger.Kind)
             {
@@ -165,9 +161,10 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 case SignatureHelpTriggerKind.Other:
                 case SignatureHelpTriggerKind.Update:
                     return await GetSignaturesAsync(allProviders, document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
-            }
 
-            return null;
+                default:
+                    return SignatureList.Empty;
+            }
         }
 
         private async Task<SignatureList> GetSignaturesAsync(
@@ -182,7 +179,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             {
                 options = options ?? document.Project.Solution.Workspace.Options;
 
-                SignatureList bestSignatureList = null;
+                SignatureList bestSignatureList = SignatureList.Empty;
 
                 // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
                 // to the extension crashing.

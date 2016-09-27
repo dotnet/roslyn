@@ -218,6 +218,7 @@
     <Compile Include="Extensions\WorkspaceExtensions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
     <Compile Include="MoveType\AbstractMoveTypeTest.cs" />
+    <Compile Include="SignatureHelp\TestSignatureHelpService.cs" />
     <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxTriviaStructureProviderTests.cs" />

@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal sealed class SignatureHelpParameter
+    internal sealed class SignatureHelpParameter : IEquatable<SignatureHelpParameter>
     {
         /// <summary>
         /// The name of this parameter.
@@ -157,6 +159,55 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return this.PrefixDisplayParts.Concat(this.DisplayParts)
                                           .Concat(this.SuffixDisplayParts)
                                           .Concat(this.SelectedDisplayParts);
+        }
+
+        public bool Equals(SignatureHelpParameter other)
+        {
+            return DeepEqualityComparer.Equals(this, other);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SignatureHelpProvider);
+        }
+
+        public override int GetHashCode()
+        {
+            return DeepEqualityComparer.GetHashCode(this);
+        }
+
+        internal static readonly IEqualityComparer<SignatureHelpParameter> DeepEqualityComparer = new SignatureParameterEqualityComparer();
+
+        private class SignatureParameterEqualityComparer : IEqualityComparer<SignatureHelpParameter>
+        {
+            public bool Equals(SignatureHelpParameter x, SignatureHelpParameter y)
+            {
+                if (object.ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+
+                return x != null && y != null
+                    && x.Name == y.Name
+                    && x.PrefixDisplayParts.DeepEquals(y.PrefixDisplayParts)
+                    && x.DisplayParts.DeepEquals(y.DisplayParts)
+                    && x.SuffixDisplayParts.DeepEquals(y.SuffixDisplayParts)
+                    && x.IsOptional == y.IsOptional
+                    && x.SelectedDisplayParts.DeepEquals(y.SelectedDisplayParts)
+                    && x.Properties.DeepEquals(y.Properties);
+            }
+
+            public int GetHashCode(SignatureHelpParameter p)
+            {
+                return unchecked(
+                    p.Name.GetHashCode()
+                    + p.PrefixDisplayParts.GetDeepHashCode()
+                    + p.DisplayParts.GetDeepHashCode()
+                    + p.SuffixDisplayParts.GetDeepHashCode()
+                    + (p.IsOptional ? 1 : 0)
+                    + p.SelectedDisplayParts.GetDeepHashCode()
+                    + p.Properties.GetDeepHashCode());
+            }
         }
     }
 }
