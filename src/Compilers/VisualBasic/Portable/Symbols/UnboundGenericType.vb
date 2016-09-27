@@ -317,6 +317,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
+        Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
+
         Private NotInheritable Class ConstructedSymbol
             Inherits UnboundGenericType
 

@@ -999,5 +999,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
             Me._underlyingType.GenerateDeclarationErrors(cancellationToken)
         End Sub
+
+        Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            ' We might need to have a real implementation here, depending on the resolution
+            ' of https://github.com/dotnet/roslyn/issues/14104
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
     End Class
 End Namespace

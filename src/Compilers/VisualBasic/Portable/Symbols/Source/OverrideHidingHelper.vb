@@ -697,54 +697,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim overriddenInThisType As ArrayBuilder(Of TSymbol) = ArrayBuilder(Of TSymbol).GetInstance()
 
             For Each sym In currType.GetMembers(overridingSym.Name)
-                ' Use original definition for accessibility check, because substitutions can cause
-                ' reductions in accessibility that aren't appropriate (see bug #12038 for example).
-                Dim accessible = AccessCheck.IsSymbolAccessible(sym.OriginalDefinition, overridingContainingType.OriginalDefinition, Nothing, useSiteDiagnostics:=Nothing)
-
-                If sym.Kind = overridingSym.Kind AndAlso
-                    CanOverrideOrHide(sym) Then
-
-                    Dim member As TSymbol = DirectCast(sym, TSymbol)
-                    Dim exactMatch As Boolean = True ' considered to be True for all runtime signature comparisons
-                    Dim exactMatchIgnoringCustomModifiers As Boolean = True ' considered to be True for all runtime signature comparisons
-
-                    If If(overridingIsFromSomeCompilation,
-                        sym.IsWithEventsProperty = overridingSym.IsWithEventsProperty AndAlso
-                            SignaturesMatch(overridingSym, member, exactMatch, exactMatchIgnoringCustomModifiers),
-                        s_runtimeSignatureComparer.Equals(overridingSym, member)) Then
-
-                        If accessible Then
-                            If exactMatchIgnoringCustomModifiers Then
-                                If exactMatch Then
-                                    If Not haveExactMatch Then
-                                        haveExactMatch = True
-                                        stopLookup = True
-                                        overriddenInThisType.Clear()
-                                    End If
-
-                                    overriddenInThisType.Add(member)
-                                ElseIf Not haveExactMatch Then
-                                    overriddenInThisType.Add(member)
-                                End If
-                            Else
-                                ' Add only if not hidden by signature
-                                AddMemberToABuilder(member, inexactOverriddenMembers)
-                            End If
-                        Else
-                            If exactMatchIgnoringCustomModifiers Then
-                                ' only exact matched methods are to be added 
-                                inaccessibleBuilder.Add(member)
-                            End If
-                        End If
-                    ElseIf Not member.IsOverloads() AndAlso accessible Then
-                        ' hiding symbol by name
-                        stopLookup = True
-                    End If
-                ElseIf accessible Then
-                    ' Any accessible symbol of different kind stops further lookup
-                    stopLookup = True
-                End If
+                ProcessMemberWithMatchingName(sym, overridingSym, overridingIsFromSomeCompilation, overridingContainingType, inexactOverriddenMembers,
+                                              inaccessibleBuilder, overriddenInThisType, stopLookup, haveExactMatch)
             Next
+
+            If overridingSym.Kind = SymbolKind.Property Then
+                Dim prop = DirectCast(DirectCast(overridingSym, Object), PropertySymbol)
+
+                If prop.IsImplicitlyDeclared AndAlso prop.IsWithEvents Then
+                    For Each sym In currType.GetSynthesizedWithEventsOverrides()
+                        If sym.Name.Equals(prop.Name) Then
+                            ProcessMemberWithMatchingName(sym, overridingSym, overridingIsFromSomeCompilation, overridingContainingType, inexactOverriddenMembers,
+                                              inaccessibleBuilder, overriddenInThisType, stopLookup, haveExactMatch)
+                        End If
+                    Next
+                End If
+            End If
 
             If overriddenInThisType.Count > 1 Then
                 RemoveMembersWithConflictingAccessibility(overriddenInThisType)
@@ -764,6 +732,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             overriddenInThisType.Free()
             Return stopLookup
         End Function
+
+        Private Shared Sub ProcessMemberWithMatchingName(
+            sym As Symbol,
+            overridingSym As TSymbol,
+            overridingIsFromSomeCompilation As Boolean,
+            overridingContainingType As NamedTypeSymbol,
+            inexactOverriddenMembers As ArrayBuilder(Of TSymbol),
+            inaccessibleBuilder As ArrayBuilder(Of TSymbol),
+            overriddenInThisType As ArrayBuilder(Of TSymbol),
+            ByRef stopLookup As Boolean,
+            ByRef haveExactMatch As Boolean
+        )
+            ' Use original definition for accessibility check, because substitutions can cause
+            ' reductions in accessibility that aren't appropriate (see bug #12038 for example).
+            Dim accessible = AccessCheck.IsSymbolAccessible(sym.OriginalDefinition, overridingContainingType.OriginalDefinition, Nothing, useSiteDiagnostics:=Nothing)
+
+            If sym.Kind = overridingSym.Kind AndAlso
+                CanOverrideOrHide(sym) Then
+
+                Dim member As TSymbol = DirectCast(sym, TSymbol)
+                Dim exactMatch As Boolean = True ' considered to be True for all runtime signature comparisons
+                Dim exactMatchIgnoringCustomModifiers As Boolean = True ' considered to be True for all runtime signature comparisons
+
+                If If(overridingIsFromSomeCompilation,
+                    sym.IsWithEventsProperty = overridingSym.IsWithEventsProperty AndAlso
+                        SignaturesMatch(overridingSym, member, exactMatch, exactMatchIgnoringCustomModifiers),
+                    s_runtimeSignatureComparer.Equals(overridingSym, member)) Then
+
+                    If accessible Then
+                        If exactMatchIgnoringCustomModifiers Then
+                            If exactMatch Then
+                                If Not haveExactMatch Then
+                                    haveExactMatch = True
+                                    stopLookup = True
+                                    overriddenInThisType.Clear()
+                                End If
+
+                                overriddenInThisType.Add(member)
+                            ElseIf Not haveExactMatch Then
+                                overriddenInThisType.Add(member)
+                            End If
+                        Else
+                            ' Add only if not hidden by signature
+                            AddMemberToABuilder(member, inexactOverriddenMembers)
+                        End If
+                    Else
+                        If exactMatchIgnoringCustomModifiers Then
+                            ' only exact matched methods are to be added 
+                            inaccessibleBuilder.Add(member)
+                        End If
+                    End If
+                ElseIf Not member.IsOverloads() AndAlso accessible Then
+                    ' hiding symbol by name
+                    stopLookup = True
+                End If
+            ElseIf accessible Then
+                ' Any accessible symbol of different kind stops further lookup
+                stopLookup = True
+            End If
+        End Sub
 
         Private Shared Sub AddMemberToABuilder(member As TSymbol,
                                                builder As ArrayBuilder(Of TSymbol))
