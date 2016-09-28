@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
         public DefinitionsAndReferences CreateDefinitionsAndReferences(
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
-            var definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
-            var references = ImmutableArray.CreateBuilder<SourceReferenceItem>();
+            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
+            var references = ArrayBuilder<SourceReferenceItem>.GetInstance();
 
             var uniqueLocations = new HashSet<DocumentSpan>();
 
@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
                     solution, referencedSymbol, definitions, references, uniqueLocations);
             }
 
-            return new DefinitionsAndReferences(definitions.ToImmutable(), references.ToImmutable());
+            return new DefinitionsAndReferences(
+                definitions.ToImmutableAndFree(), references.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -83,8 +84,8 @@ namespace Microsoft.CodeAnalysis.FindReferences
         private void ProcessReferencedSymbol(
             Solution solution,
             ReferencedSymbol referencedSymbol,
-            ImmutableArray<DefinitionItem>.Builder definitions,
-            ImmutableArray<SourceReferenceItem>.Builder references,
+            ArrayBuilder<DefinitionItem> definitions,
+            ArrayBuilder<SourceReferenceItem> references,
             HashSet<DocumentSpan> uniqueSpans)
         {
             // See if this is a symbol we even want to present to the user.  If not,
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
 
         private static void CreateReferences(
             ReferencedSymbol referencedSymbol,
-            ImmutableArray<SourceReferenceItem>.Builder references,
+            ArrayBuilder<SourceReferenceItem> references,
             DefinitionItem definitionItem,
             HashSet<DocumentSpan> uniqueSpans)
         {
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 showMetadataSymbolsWithoutReferences: false);
 
-            var sourceLocations = ImmutableArray.CreateBuilder<DocumentSpan>();
+            var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
 
             // If it's a namespace, don't create any normal lcoation.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
             }
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutable(), displayIfNoReferences);
+                tags, displayParts, sourceLocations.ToImmutableAndFree(), displayIfNoReferences);
         }
 
         public static SourceReferenceItem TryCreateSourceReferenceItem(

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var symbol = symbolAndProjectId.Symbol;
                         var finder = symbolAndFinder.Item2;
 
-                        var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<Document>();
+                        var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _cancellationToken).ConfigureAwait(false);
                         foreach (var document in documents.Distinct().WhereNotNull())
                         {
                             if (_documents == null || _documents.Contains(document))
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var projects = await f.DetermineProjectsToSearchAsync(s.Symbol, _solution, scope, _cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<Project>();
+                        var projects = await f.DetermineProjectsToSearchAsync(s.Symbol, _solution, scope, _cancellationToken).ConfigureAwait(false);
                         foreach (var project in projects.Distinct().WhereNotNull())
                         {
                             if (scope == null || scope.Contains(project))
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var child in symbols)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
-                    symbolTasks.Add(Task.Run(async () => await DetermineAllSymbolsCoreAsync(child, result).ConfigureAwait(false), _cancellationToken));
+                    symbolTasks.Add(Task.Run(() => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken));
                 }
             }
         }

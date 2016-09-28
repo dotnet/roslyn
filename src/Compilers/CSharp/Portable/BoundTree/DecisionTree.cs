@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (defaultLabel != null)
             {
-                Add(result, (e, t) => new DecisionTree.Guarded(_switchStatement.Expression, _switchStatement.Expression.Type, default(ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>>), defaultSection, null, defaultLabel));
+                Add(result, (e, t) => new DecisionTree.Guarded(_switchStatement.Expression, _switchStatement.Expression.Type, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), defaultSection, null, defaultLabel));
             }
 
             return result;
@@ -230,13 +230,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        AddByValue(decisionTree, constantPattern.Value, (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>>), _section, guard, label));
+                        AddByValue(decisionTree, constantPattern.Value, (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), _section, guard, label));
                         break;
                     }
                 case BoundKind.DeclarationPattern:
                     {
                         var declarationPattern = (BoundDeclarationPattern)pattern;
-                        DecisionMaker maker = (e, t) => new DecisionTree.Guarded(e, t, ImmutableArray.Create(new KeyValuePair<BoundExpression, LocalSymbol>(e, declarationPattern.LocalSymbol)), _section, guard, label);
+                        DecisionMaker maker = (e, t) => new DecisionTree.Guarded(e, t, ImmutableArray.Create(new KeyValuePair<BoundExpression, BoundExpression>(e, declarationPattern.VariableAccess)), _section, guard, label);
                         if (declarationPattern.IsVar)
                         {
                             Add(decisionTree, maker);
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // A sequence of bindings to be assigned before evaluation of the guard or jump to the label.
             // Each one contains the source of the assignment and the destination of the assignment, in that order.
-            public readonly ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>> Bindings;
+            public readonly ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> Bindings;
             public readonly BoundPatternSwitchSection Section;
             public readonly BoundExpression Guard;
             public readonly BoundPatternSwitchLabel Label;
@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public Guarded(
                 BoundExpression expression,
                 TypeSymbol type,
-                ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>> bindings,
+                ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> bindings,
                 BoundPatternSwitchSection section,
                 BoundExpression guard,
                 BoundPatternSwitchLabel label)

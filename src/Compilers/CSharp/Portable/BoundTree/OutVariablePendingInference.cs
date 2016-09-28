@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundLocal(this.Syntax, localSymbol, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
 
                 case SymbolKind.Field:
-                    var fieldSymbol = (SourceMemberFieldSymbolFromDesignation)this.VariableSymbol;
+                    var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;
                     var inferenceDiagnostics = DiagnosticBag.GetInstance();
 
                     if (inferenceFailed)

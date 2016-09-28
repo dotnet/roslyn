@@ -1157,11 +1157,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.DeclarationPattern:
                     {
-                        var local = (BoundDeclarationPattern)node;
-                        LocalSymbol symbol = local.LocalSymbol;
-                        int slot = GetOrCreateSlot(symbol);
-                        SetSlotState(slot, assigned: written || !this.State.Reachable);
-                        if (written) NoteWrite(symbol, value, read);
+                        var pattern = (BoundDeclarationPattern)node;
+                        var symbol = pattern.Variable as LocalSymbol;
+                        if ((object)symbol != null)
+                        {
+                            // we do not track definite assignment for pattern variables when they are
+                            // promoted to fields for top-level code in scripts and interactive
+                            int slot = GetOrCreateSlot(symbol);
+                            SetSlotState(slot, assigned: written || !this.State.Reachable);
+                        }
+
+                        if (written) NoteWrite(pattern.VariableAccess, value, read);
                         break;
                     }
 
@@ -1556,16 +1562,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CreateSlots(BoundPattern pattern)
         {
-            switch (pattern.Kind)
+            if (pattern.Kind == BoundKind.DeclarationPattern)
             {
-                case BoundKind.DeclarationPattern:
-                    {
-                        int slot = GetOrCreateSlot(((BoundDeclarationPattern)pattern).LocalSymbol);
-                        break;
-                    }
-                case BoundKind.ConstantPattern:
-                default:
-                    break;
+                var local = ((BoundDeclarationPattern)pattern).Variable as LocalSymbol;
+                if ((object)local != null)
+                {
+                    int slot = GetOrCreateSlot(local);
+                }
             }
         }
 

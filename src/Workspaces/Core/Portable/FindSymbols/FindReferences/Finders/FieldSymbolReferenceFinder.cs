@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        protected override Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IFieldSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -25,16 +25,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (symbol.AssociatedSymbol != null)
             {
                 return Task.FromResult(
-                    SpecializedCollections.SingletonEnumerable(
-                        symbolAndProjectId.WithSymbol(symbol.AssociatedSymbol)));
+                    ImmutableArray.Create(symbolAndProjectId.WithSymbol(symbol.AssociatedSymbol)));
             }
             else
             {
-                return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId>();
+                return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
             }
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IFieldSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
         }
 
-        protected override Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IFieldSymbol symbol,
             Document document,
             CancellationToken cancellationToken)

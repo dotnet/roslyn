@@ -19,13 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     [ExportWorkspaceService(typeof(IDeferredProjectWorkspaceService)), Shared]
     internal class DeferredProjectWorkspaceService : IDeferredProjectWorkspaceService
     {
-        private readonly IVsSolutionWorkspaceService _solutionWorkspaceService;
+        private readonly Lazy<IVsSolutionWorkspaceService> _solutionWorkspaceService;
         private readonly IVsSolution7 _solution7;
 
         [ImportingConstructor]
         public DeferredProjectWorkspaceService(SVsServiceProvider serviceProvider)
         {
-            _solutionWorkspaceService = serviceProvider.GetService(typeof(SVsSolutionWorkspaceService)) as IVsSolutionWorkspaceService;
+            _solutionWorkspaceService = new Lazy<IVsSolutionWorkspaceService>(
+                () => (IVsSolutionWorkspaceService)serviceProvider.GetService(typeof(SVsSolutionWorkspaceService)));
             _solution7 = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
         }
 
@@ -35,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
             string solutionConfiguration,
             CancellationToken cancellationToken)
         {
-            var commandLineInfos = await _solutionWorkspaceService.GetManagedCommandLineInfoAsync(
+            var commandLineInfos = await _solutionWorkspaceService.Value.GetManagedCommandLineInfoAsync(
                 solutionConfiguration, cancellationToken).ConfigureAwait(false);
 
             // NOTE: Anycode gives us the project references as if they were command line arguments with
