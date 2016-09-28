@@ -714,7 +714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.EnterRegion()
             End If
 
-            Select Case node?.Kind
+            Select Case node.Kind
                 Case BoundKind.Local
                     Dim local = DirectCast(node, BoundLocal)
                     If local.LocalSymbol.IsByRef Then
@@ -794,7 +794,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If rwContext <> ReadWriteContext.None Then
-                Select Case node?.Kind
+                Select Case node.Kind
+
                     Case BoundKind.Local
                         VisitLocalInReadWriteContext(DirectCast(node, BoundLocal), rwContext)
                         GoTo lUnsplitAndFinish
