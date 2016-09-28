@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <CompilerTrait(CompilerFeature.Tuples)>
@@ -11519,14 +11520,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         Private Shared Sub AssertTestDisplayString(symbols As ImmutableArray(Of Symbol), ParamArray baseLine As String())
-            Dim common = Math.Min(symbols.Length, baseLine.Length)
-            For i = 0 To common - 1
-                Dim actual = symbols(i).ToTestDisplayString()
-                Assert.Equal(baseLine(i), actual)
-            Next
-
-            Assert.Equal({}, symbols.Skip(common).Select(Function(s) s.ToTestDisplayString()).ToArray())
-            Assert.Equal(baseLine.Length, symbols.Length)
+            AssertEx.Equal(symbols.Select(Function(s) s.ToTestDisplayString()), baseLine)
         End Sub
 
         <Fact>

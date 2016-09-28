@@ -10773,15 +10773,7 @@ namespace System
 
         private static void AssertTestDisplayString(ImmutableArray<Symbol> symbols, params string[] baseLine)
         {
-            int common = Math.Min(symbols.Length, baseLine.Length);
-            for (int i = 0; i < common; i++)
-            {
-                var actual = symbols[i].ToTestDisplayString();
-                Assert.Equal(baseLine[i], actual);
-            }
-
-            Assert.Equal(new string[] { }, symbols.Skip(common).Select(s => s.ToTestDisplayString()).ToArray());
-            Assert.Equal(baseLine.Length, symbols.Length);
+            AssertEx.Equal(symbols.Select(s => s.ToTestDisplayString()), baseLine);
         }
 
         [Fact]
