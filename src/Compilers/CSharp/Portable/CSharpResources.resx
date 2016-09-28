@@ -4932,6 +4932,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
     <value>Predefined type '{0}' must be a struct.</value>
   </data>
+  <data name="ERR_NewWithTupleTypeSyntax" xml:space="preserve">
+    <value>"new" cannot be used with tuple type '{0}'. Use a tuple literal expression instead.</value>
+  </data>
   <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
     <value>Deconstruction 'var (...)' form disallows a specific type for 'var'.</value>
   </data>

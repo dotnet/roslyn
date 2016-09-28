@@ -3181,6 +3181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var type = BindType(node.Type, diagnostics);
 
+            if (node.Type.Kind() == SyntaxKind.TupleType)
+            {
+                Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, node, type);
+                return BadExpression(node, LookupResultKind.NotCreatable);
+            }
+
             BoundExpression boundInitializerOpt = node.Initializer == null ?
                 null :
                 BindInitializerExpressionOrValue(
