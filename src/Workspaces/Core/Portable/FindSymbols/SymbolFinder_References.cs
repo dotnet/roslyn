@@ -73,21 +73,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return streamingProgress.GetReferencedSymbols();
         }
 
-        internal static async Task FindReferencesAsync(
+        internal static Task FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
-            {
-                var finders = ReferenceFinders.DefaultReferenceFinders;
-                progress = progress ?? StreamingFindReferencesProgress.Instance;
-                var engine = new FindReferencesSearchEngine(
-                    solution, documents, finders, progress, cancellationToken);
-                await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
-            }
+            var engineService = solution.Workspace.Services.GetService<ISymbolFinderEngineService>();
+            return engineService.FindReferencesAsync(symbolAndProjectId, solution, progress, documents, cancellationToken);
         }
 
         internal static async Task<IEnumerable<ReferencedSymbol>> FindRenamableReferencesAsync(

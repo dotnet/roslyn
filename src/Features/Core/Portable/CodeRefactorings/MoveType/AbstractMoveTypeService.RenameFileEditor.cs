@@ -26,16 +26,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </summary>
             private IEnumerable<CodeActionOperation> RenameFileToMatchTypeName()
             {
-                var solution = SemanticDocument.Document.Project.Solution;
+                var oldDocument = SemanticDocument.Document;
+                var solution = oldDocument.Project.Solution;
                 var text = SemanticDocument.Text;
-                var oldDocumentId = SemanticDocument.Document.Id;
-                var newDocumentId = DocumentId.CreateNewId(SemanticDocument.Document.Project.Id, FileName);
+                var oldDocumentId = oldDocument.Id;
+                var newDocumentId = DocumentId.CreateNewId(oldDocument.Project.Id, FileName);
 
                 // currently, document rename is accomplished by a remove followed by an add.
                 // the workspace takes care of resolving conflicts if the document name is not unique in the project
                 // by adding numeric suffixes to the new document being added.
                 var newSolution = solution.RemoveDocument(oldDocumentId);
-                newSolution = newSolution.AddDocument(newDocumentId, FileName, text);
+                newSolution = newSolution.AddDocument(newDocumentId, FileName, text, oldDocument.Folders);
 
                 return new CodeActionOperation[]
                 {

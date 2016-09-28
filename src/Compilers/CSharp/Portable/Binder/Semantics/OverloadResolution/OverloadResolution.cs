@@ -1229,26 +1229,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool okToDowngradeToNeither;
                 BetterResult r;
 
-                if (argumentKind == BoundKind.OutVariablePendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
-                {
-                    // If argument is an out variable that needs type inference,
-                    // neither candidate is better in this argument.
-                    r = BetterResult.Neither;
-                    okToDowngradeToNeither = false;
-                }
-                else
-                {
-                    r = BetterConversionFromExpression(arguments[i],
-                                                       type1,
-                                                       m1.Result.ConversionForArg(i),
-                                                       refKind1,
-                                                       type2,
-                                                       m2.Result.ConversionForArg(i),
-                                                       refKind2,
-                                                       considerRefKinds,
-                                                       ref useSiteDiagnostics,
-                                                       out okToDowngradeToNeither);
-                }
+                r = BetterConversionFromExpression(arguments[i],
+                                                   type1,
+                                                   m1.Result.ConversionForArg(i),
+                                                   refKind1,
+                                                   type2,
+                                                   m2.Result.ConversionForArg(i),
+                                                   refKind2,
+                                                   considerRefKinds,
+                                                   ref useSiteDiagnostics,
+                                                   out okToDowngradeToNeither);
 
                 var type1Normalized = type1.NormalizeTaskTypes(Compilation);
                 var type2Normalized = type2.NormalizeTaskTypes(Compilation);
@@ -1801,6 +1791,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var lambdaOpt = node as UnboundLambda;
+
+            var nodeKind = node.Kind;
+            if (nodeKind == BoundKind.OutVariablePendingInference || nodeKind == BoundKind.OutDeconstructVarPendingInference)
+            {
+                // Neither conversion from expression is better when the argument is an implicitly-typed out variable declaration.
+                okToDowngradeToNeither = false;
+                return BetterResult.Neither;
+            }
 
             // Given an implicit conversion C1 that converts from an expression E to a type T1, 
             // and an implicit conversion C2 that converts from an expression E to a type T2,
