@@ -14,6 +14,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
+        public static readonly ConstructorSymbolReferenceFinder Instance = new ConstructorSymbolReferenceFinder();
+
+        private ConstructorSymbolReferenceFinder()
+        {
+        }
+
         protected override bool CanFind(IMethodSymbol symbol)
         {
             return symbol.MethodKind == MethodKind.Constructor;
@@ -52,7 +58,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 predefinedType == actualType;
         }
 
-        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+            IMethodSymbol methodSymbol,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            return FindAllReferencesInDocumentAsync(methodSymbol, document, cancellationToken);
+        }
+
+        internal async Task<ImmutableArray<ReferenceLocation>> FindAllReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             CancellationToken cancellationToken)
