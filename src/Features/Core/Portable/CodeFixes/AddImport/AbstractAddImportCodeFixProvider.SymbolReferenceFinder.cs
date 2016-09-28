@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 List<SymbolReference> allReferences = null;
                 foreach (var task in tasks)
                 {
-                    var taskResult = task.Result;
+                    var taskResult = await task.ConfigureAwait(false);
                     if (taskResult?.Count > 0)
                     {
                         allReferences = allReferences ?? new List<SymbolReference>();

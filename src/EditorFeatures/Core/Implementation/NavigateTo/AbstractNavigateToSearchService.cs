@@ -37,10 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             var results = ArrayBuilder<INavigateToSearchResult>.GetInstance();
             foreach (var task in tasks)
             {
-                if (task.Status == TaskStatus.RanToCompletion)
-                {
-                    results.AddRange(task.Result);
-                }
+                results.AddRange(await task.ConfigureAwait(false));
             }
 
             return results.ToImmutableAndFree();
