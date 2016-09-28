@@ -2973,7 +2973,7 @@ End Class
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExpectedEOS, "Inherits").WithLocation(7, 34),
-                Diagnostic(ERRID.ERR_OverrideNotNeeded3, "Method").WithArguments("sub", "Method").WithLocation(10, 30))
+                Diagnostic(ERRID.ERR_OverrideNotNeeded3, "Method").WithArguments("sub", "Method").WithLocation(9, 26))
         End Sub
     End Class
 End Namespace
