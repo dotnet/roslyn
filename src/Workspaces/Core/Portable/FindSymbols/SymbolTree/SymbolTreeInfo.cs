@@ -554,7 +554,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             builder.Add(namedType);
                         }
                     }
-
                 }
                 finally
                 {
