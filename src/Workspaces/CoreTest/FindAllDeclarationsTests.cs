@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task FindDeclarationsAsync_Test_NullProject()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 var declarations = await SymbolFinder.FindDeclarationsAsync(null, "Test", true);
             });
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task FindDeclarationsAsync_Test_NullString()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 var project = GetProject(WorkspaceKind.SingleClass);
                 var declarations = await SymbolFinder.FindDeclarationsAsync(project, null, true);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task FindDeclarationsAsync_Test_Cancellation()
         {
-            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await Assert.ThrowsAnyAsync<TaskCanceledException>(async () =>
             {
                 var cts = new CancellationTokenSource();
                 cts.Cancel();
@@ -258,7 +258,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Project_Test_NullProject()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync((Project)null, "Test", true);
             });
@@ -267,7 +267,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Project_Test_NullString()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 var project = GetProject(WorkspaceKind.SingleClass);
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, null, true);
@@ -277,7 +277,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Project_Test_Cancellation()
         {
-            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await Assert.ThrowsAnyAsync<TaskCanceledException>(async () =>
             {
                 var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
@@ -366,7 +366,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Solution_Test_NullProject()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync((Solution)null, "Test", true);
             });
@@ -375,7 +375,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Solution_Test_NullString()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 var solution = GetSolution(WorkspaceKind.SingleClass);
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, null, true);
@@ -385,7 +385,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Solution_Test_Cancellation()
         {
-            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
                 var cts = new CancellationTokenSource();
                 var solution = GetSolution(WorkspaceKind.SingleClass);
@@ -435,7 +435,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Project_Func_Test_NullProject()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync((Project)null, str => str.Contains("Test"));
             });
@@ -444,7 +444,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Project_Func_Test_NullPredicate()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 var project = GetProject(WorkspaceKind.SingleClass);
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, null);
@@ -454,7 +454,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Project_Func_Test_Cancellation()
         {
-            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
                 var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
@@ -504,7 +504,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Solution_Func_Test_NullSolution()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 await SymbolFinder.FindSourceDeclarationsAsync((Solution)null, str => str.Contains("Test"));
             });
@@ -513,7 +513,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Solution_Func_Test_NullPredicate()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
             {
                 var solution = GetSolution(WorkspaceKind.SingleClass);
                 await SymbolFinder.FindSourceDeclarationsAsync(solution, null);
@@ -523,7 +523,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Solution_Func_Test_Cancellation()
         {
-            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
                 var cts = new CancellationTokenSource();
                 var solution = GetSolution(WorkspaceKind.SingleClass);
