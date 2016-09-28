@@ -3013,10 +3013,10 @@ public class DerivingClass<T> : BaseClass<T>
 {
     [Obsolete(""Deprecated"")]
     public override void Method(T input)
-        {
-            throw new NotImplementedException();
-        }
+    {
+        throw new NotImplementedException();
     }
+}
 ";
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(
