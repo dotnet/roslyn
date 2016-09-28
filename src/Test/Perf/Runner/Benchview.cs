@@ -11,7 +11,7 @@ namespace Roslyn.Test.Performance.Runner
 {
     public static class Benchview
     {
-        private const string sasEnvironmentVar = "BV_UPLOAD_SAS_TOKEN";
+        private const string s_sasEnvironmentVar = "BV_UPLOAD_SAS_TOKEN";
         private static readonly string s_scriptDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Microsoft.BenchView.JSONFormat", "tools");
         private static readonly string s_outputDirectory = GetCPCDirectoryPath();
         private static readonly string[] s_validSubmissionTypes = new string[] { "rolling", "private", "local" };
@@ -33,10 +33,10 @@ namespace Roslyn.Test.Performance.Runner
         {
             Log("Checking for valid environment");
 
-            var sasToken = Environment.GetEnvironmentVariable(sasEnvironmentVar);
+            var sasToken = Environment.GetEnvironmentVariable(s_sasEnvironmentVar);
             if (String.IsNullOrEmpty(sasToken))
             {
-                Log($"{sasEnvironmentVar} was not defined");
+                Log($"{s_sasEnvironmentVar} was not defined");
                 return false;
             }
 
