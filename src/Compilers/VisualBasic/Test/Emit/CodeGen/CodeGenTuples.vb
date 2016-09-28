@@ -39,6 +39,15 @@ Namespace System
         End Function
     End Structure
 End Namespace
+
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.Property Or AttributeTargets.ReturnValue Or AttributeTargets.Class Or AttributeTargets.Struct )>
+    public class TupleElementNamesAttribute : Inherits Attribute
+        public Sub New(transformNames As String())
+	    End Sub
+    End Class
+End Namespace
+
 "
         ReadOnly s_trivial3uple As String = "
 Namespace System
@@ -53,14 +62,6 @@ Namespace System
             me.Item3 = item3
         End Sub
     End Structure
-End Namespace
-
-namespace System.Runtime.CompilerServices
-    <AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.Property Or AttributeTargets.ReturnValue Or AttributeTargets.Class Or AttributeTargets.Struct )>
-    public class TupleElementNamesAttribute : Inherits Attribute
-        public Sub New(transformNames As String())
-	    End Sub
-    End Class
 End Namespace
 
 "
