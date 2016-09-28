@@ -63,16 +63,15 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
         }
 
-        public async Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
+        public Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
         {
-            return await FindAsync(solution, documentId, syntaxNode,
+            return FindAsync(solution, documentId, syntaxNode,
                 progress => Task.FromResult(new ReferenceCount(
                     progress.SearchCap > 0
                         ? Math.Min(progress.ReferencesCount, progress.SearchCap)
                         : progress.ReferencesCount, progress.SearchCapReached)),
                 progress => Task.FromResult(new ReferenceCount(progress.SearchCap, isCapped: true)),
-                maxSearchResults, cancellationToken)
-                .ConfigureAwait(false);
+                maxSearchResults, cancellationToken);
         }
 
         private static async Task<ReferenceLocationDescriptor> GetDescriptorOfEnclosingSymbolAsync(Solution solution, Location location, CancellationToken cancellationToken)
@@ -180,7 +179,13 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
                     await Task.WhenAll(referenceTasks).ConfigureAwait(false);
 
-                    return referenceTasks.Select(task => task.Result);
+                    var result = ArrayBuilder<ReferenceLocationDescriptor>.GetInstance();
+                    foreach (var task in referenceTasks)
+                    {
+                        result.Add(await task.ConfigureAwait(false));
+                    }
+
+                    return (IEnumerable<ReferenceLocationDescriptor>)result.ToImmutableAndFree();
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
@@ -225,9 +230,9 @@ namespace Microsoft.CodeAnalysis.CodeLens
             return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath) : null;
         }
 
-        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        public Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
         {
-            return await FindAsync(solution, documentId, syntaxNode,
+            return FindAsync(solution, documentId, syntaxNode,
                 async progress =>
                 {
                     var descriptorTasks =
@@ -237,8 +242,18 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
                     await Task.WhenAll(descriptorTasks).ConfigureAwait(false);
 
-                    return descriptorTasks.Where(task => task.Result != null).Select(task => task.Result);
-                }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var result = ArrayBuilder<ReferenceMethodDescriptor>.GetInstance();
+                    foreach (var task in descriptorTasks)
+                    {
+                        var descriptor = await task.ConfigureAwait(false);
+                        if (result != null)
+                        {
+                            result.Add(descriptor);
+                        }
+                    }
+
+                    return (IEnumerable<ReferenceMethodDescriptor>)result.ToImmutableAndFree();
+                }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken);
         }
 
         public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
