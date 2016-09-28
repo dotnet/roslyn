@@ -365,6 +365,10 @@ Friend Class MockNamedTypeSymbol
     Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
         Throw New InvalidOperationException()
     End Sub
+
+    Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+        Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+    End Function
 End Class
 
 Friend Class MockMethodSymbol

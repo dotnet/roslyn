@@ -27,6 +27,10 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj">
       <Project>{b8da3a90-a60c-42e3-9d8e-6c67b800c395}</Project>
       <Name>ExpressionCompiler</Name>
@@ -95,6 +99,7 @@
     <Compile Include="ImportDebugInfoTests.vb" />
     <Compile Include="StatementTests.vb" />
     <Compile Include="StaticLocalsTests.vb" />
+    <Compile Include="TupleTests.vb" />
     <Compile Include="WinMdTests.vb" />
   </ItemGroup>
   <ItemGroup>

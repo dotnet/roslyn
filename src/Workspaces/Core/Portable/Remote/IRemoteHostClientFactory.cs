@@ -2,10 +2,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Remote
+namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
     /// Create new <see cref="RemoteHostClient"/>.

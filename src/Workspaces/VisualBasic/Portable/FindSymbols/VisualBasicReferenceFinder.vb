@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -14,47 +15,48 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
 
         Public Function DetermineCascadedSymbolsAsync(symbolAndProjectId As SymbolAndProjectId,
                                                       project As Project,
-                                                      cancellationToken As CancellationToken) As Task(Of IEnumerable(Of SymbolAndProjectId)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
+                                                      cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
             Dim symbol = symbolAndProjectId.Symbol
-            If Symbol.Kind = SymbolKind.Property Then
+            If symbol.Kind = SymbolKind.Property Then
                 Return DetermineCascadedSymbolsAsync(
                     symbolAndProjectId.WithSymbol(DirectCast(symbol, IPropertySymbol)),
                     project, cancellationToken)
-            ElseIf Symbol.Kind = SymbolKind.NamedType Then
+            ElseIf symbol.Kind = SymbolKind.NamedType Then
                 Return DetermineCascadedSymbolsAsync(
                     symbolAndProjectId.WithSymbol(DirectCast(symbol, INamedTypeSymbol)),
                     project, cancellationToken)
             Else
-                Return Task.FromResult(Of IEnumerable(Of SymbolAndProjectId))(Nothing)
+                Return Task.FromResult(ImmutableArray(Of SymbolAndProjectId).Empty)
             End If
         End Function
 
         Private Async Function DetermineCascadedSymbolsAsync(
                 [propertyAndProjectId] As SymbolAndProjectId(Of IPropertySymbol),
                 project As Project,
-                cancellationToken As CancellationToken) As Task(Of IEnumerable(Of SymbolAndProjectId))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId))
 
             Dim [property] = propertyAndProjectId.Symbol
             Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim relatedSymbol = [property].FindRelatedExplicitlyDeclaredSymbol(compilation)
 
             Return If([property].Equals(relatedSymbol),
-                SpecializedCollections.EmptyEnumerable(Of SymbolAndProjectId),
-                SpecializedCollections.SingletonEnumerable(
+                ImmutableArray(Of SymbolAndProjectId).Empty,
+                ImmutableArray.Create(
                     SymbolAndProjectId.Create(relatedSymbol, project.Id)))
         End Function
 
         Private Async Function DetermineCascadedSymbolsAsync(
                 namedType As SymbolAndProjectId(Of INamedTypeSymbol),
                 project As Project,
-                cancellationToken As CancellationToken) As Task(Of IEnumerable(Of SymbolAndProjectId))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId))
 
             Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
 
             ' If this is a WinForms project, then the VB 'my' feature may have synthesized 
             ' a property that would return an instance of the main Form type for the project.
             ' Search for such properties and cascade to them as well.
-            Return GetMatchingMyPropertySymbols(namedType, project.Id, compilation, cancellationToken).Distinct().ToList()
+            Return GetMatchingMyPropertySymbols(namedType, project.Id, compilation, cancellationToken).
+                Distinct().ToImmutableArray()
         End Function
 
         Private Function GetMatchingMyPropertySymbols(

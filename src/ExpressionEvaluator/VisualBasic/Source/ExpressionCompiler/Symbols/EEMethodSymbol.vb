@@ -578,6 +578,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Select
         End Function
 
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            Dim returnType = Me.ReturnType
+            If returnType.ContainsTupleNames() AndAlso DeclaringCompilation.HasTupleNamesAttributes() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(returnType))
+            End If
+        End Sub
+
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Return localPosition
         End Function

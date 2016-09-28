@@ -11,9 +11,8 @@
     <ProjectGuid>{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>BasicAnalyzers</AssemblyName>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <RestorePackages>true</RestorePackages>
@@ -91,6 +90,7 @@
     <Compile Include="AdditionalFileAnalyzers\XmlAdditionalFileAnalyzer.vb" />
     <Compile Include="DiagnosticCategories.vb" />
     <Compile Include="DiagnosticIds.vb" />
+    <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Resources.Designer.vb">
       <AutoGen>True</AutoGen>

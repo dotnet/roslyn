@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -14,34 +13,30 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class LocalConstantDefinition : Cci.ILocalDefinition
     {
-        private readonly string _name;
-        private readonly Location _location;
-        private readonly Cci.IMetadataConstant _compileTimeValue;
-        private readonly bool _isDynamic;
-
-        //Gives the synthesized dynamic attributes of the local definition
-        private readonly ImmutableArray<TypedConstant> _dynamicTransformFlags;
-
-        public LocalConstantDefinition(string name, Location location, Cci.IMetadataConstant compileTimeValue, bool isDynamic = false,
-            ImmutableArray<TypedConstant> dynamicTransformFlags = default(ImmutableArray<TypedConstant>))
+        public LocalConstantDefinition(
+            string name,
+            Location location,
+            Cci.IMetadataConstant compileTimeValue,
+            ImmutableArray<TypedConstant> dynamicTransformFlags,
+            ImmutableArray<TypedConstant> tupleElementNames)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
             Debug.Assert(compileTimeValue != null);
 
-            _name = name;
-            _location = location;
-            _compileTimeValue = compileTimeValue;
-            _isDynamic = isDynamic;
-            _dynamicTransformFlags = dynamicTransformFlags;
+            Name = name;
+            Location = location;
+            CompileTimeValue = compileTimeValue;
+            DynamicTransformFlags = dynamicTransformFlags.NullToEmpty();
+            TupleElementNames = tupleElementNames.NullToEmpty();
         }
 
-        public string Name => _name;
+        public string Name { get; }
 
-        public Location Location => _location;
+        public Location Location { get; }
 
-        public Cci.IMetadataConstant CompileTimeValue => _compileTimeValue;
+        public Cci.IMetadataConstant CompileTimeValue { get; }
 
-        public Cci.ITypeReference Type => _compileTimeValue.Type;
+        public Cci.ITypeReference Type => CompileTimeValue.Type;
 
         public bool IsConstant => true;
 
@@ -56,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public LocalSlotConstraints Constraints => LocalSlotConstraints.None;
 
-        public bool IsDynamic => _isDynamic;
-
         public LocalVariableAttributes PdbAttributes => LocalVariableAttributes.None;
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags => _dynamicTransformFlags;
+        public ImmutableArray<TypedConstant> DynamicTransformFlags { get; }
+
+        public ImmutableArray<TypedConstant> TupleElementNames { get; }
 
         public int SlotIndex => -1;
 

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of MultiLineLambdaExpressionSyntax)
 
         Protected Overrides Sub CollectBlockSpans(lambdaExpression As MultiLineLambdaExpressionSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             If Not lambdaExpression.EndSubOrFunctionStatement.IsMissing Then
                 spans.Add(CreateRegionFromBlock(

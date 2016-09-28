@@ -1241,7 +1241,10 @@ OtherExpressions:
         End Sub
 
         Private Function DefineLocal(local As LocalSymbol, syntaxNode As SyntaxNode) As LocalDefinition
-            Dim specType = local.Type.SpecialType
+            Dim dynamicTransformFlags = ImmutableArray(Of TypedConstant).Empty
+            Dim tupleElementNames = If(Not local.IsCompilerGenerated AndAlso local.Type.ContainsTupleNames(),
+                VisualBasicCompilation.TupleNamesEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_String)),
+                ImmutableArray(Of TypedConstant).Empty)
 
             ' We're treating constants of type Decimal and DateTime as local here to not create a new instance for each time
             ' the value is accessed. This means there will be one local in the scope for this constant.
@@ -1255,7 +1258,12 @@ OtherExpressions:
 
             If local.HasConstantValue Then
                 Dim compileTimeValue As MetadataConstant = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics)
-                Dim localConstantDef = New LocalConstantDefinition(local.Name, If(local.Locations.FirstOrDefault(), Location.None), compileTimeValue)
+                Dim localConstantDef = New LocalConstantDefinition(
+                    local.Name,
+                    If(local.Locations.FirstOrDefault(), Location.None),
+                    compileTimeValue,
+                    dynamicTransformFlags:=dynamicTransformFlags,
+                    tupleElementNames:=tupleElementNames)
                 ' Reference in the scope for debugging purpose
                 _builder.AddLocalConstantToScope(localConstantDef)
                 Return Nothing
@@ -1285,8 +1293,8 @@ OtherExpressions:
                 id:=localId,
                 pdbAttributes:=synthesizedKind.PdbAttributes(),
                 constraints:=constraints,
-                isDynamic:=False,
-                dynamicTransformFlags:=Nothing,
+                dynamicTransformFlags:=dynamicTransformFlags,
+                tupleElementNames:=tupleElementNames,
                 isSlotReusable:=synthesizedKind.IsSlotReusable(_ilEmitStyle <> ILEmitStyle.Release))
 
             ' If named, add it to the local debug scope.
@@ -1438,16 +1446,16 @@ OtherExpressions:
         Private Sub DefineUserDefinedStateMachineHoistedLocal(field As StateMachineFieldSymbol)
             Debug.Assert(field.SlotIndex >= 0)
             Dim fakePdbOnlyLocal = New LocalDefinition(
-                        symbolOpt:=Nothing,
-                        nameOpt:=field.Name,
-                        type:=Nothing,
-                        slot:=field.SlotIndex,
-                        synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
-                        id:=Nothing,
-                        pdbAttributes:=LocalVariableAttributes.None,
-                        constraints:=LocalSlotConstraints.None,
-                        isDynamic:=False,
-                        dynamicTransformFlags:=Nothing)
+                symbolOpt:=Nothing,
+                nameOpt:=field.Name,
+                type:=Nothing,
+                slot:=field.SlotIndex,
+                synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
+                id:=Nothing,
+                pdbAttributes:=LocalVariableAttributes.None,
+                constraints:=LocalSlotConstraints.None,
+                dynamicTransformFlags:=Nothing,
+                tupleElementNames:=Nothing)
             _builder.AddLocalToScope(fakePdbOnlyLocal)
         End Sub
 

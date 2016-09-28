@@ -14575,6 +14575,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the target type &apos;{1}&apos;..
+        '''</summary>
+        Friend ReadOnly Property WRN_TupleLiteralNameMismatch() As String
+            Get
+                Return ResourceManager.GetString("WRN_TupleLiteralNameMismatch", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to The tuple element name is ignored because a different name is specified by the assignment target..
+        '''</summary>
+        Friend ReadOnly Property WRN_TupleLiteralNameMismatch_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_TupleLiteralNameMismatch_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} &apos;{1}&apos; and partial {2} &apos;{3}&apos; conflict in {4} &apos;{5}&apos;, but are being merged because one of them is declared partial..
         '''</summary>
         Friend ReadOnly Property WRN_TypeConflictButMerged6() As String

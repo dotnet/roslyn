@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             NamespaceDeclarationSyntax namespaceDeclaration,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             // add leading comments
@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // finally, add any leading comments before the end of the namespace block
             if (!namespaceDeclaration.CloseBraceToken.IsMissing)
             {
-                CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration.CloseBraceToken.LeadingTrivia, spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(
+                    namespaceDeclaration.CloseBraceToken.LeadingTrivia, spans);
             }
         }
 

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return null;
         }
 
-        public static IEnumerable<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
+        public static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
             ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SemanticModel model, SyntaxNode root, SourceText sourceText,
             string text, CancellationToken cancellationToken)
         {
@@ -70,10 +70,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, document, version, root, sourceText, normalized, cancellationToken);
             }
 
-            return entry.IdentifierCache.GetOrAdd(normalized, key => GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, document, version, root, sourceText, key, cancellationToken));
+            return entry.IdentifierCache.GetOrAdd(normalized, 
+                key => GetIdentifierOrGlobalNamespaceTokensWithText(
+                    syntaxFacts, document, version, root, sourceText, key, cancellationToken));
         }
 
-        private static IList<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
+        private static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
             ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root, SourceText sourceText,
             string text, CancellationToken cancellationToken)
         {
@@ -87,10 +89,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // identifier is escaped
-            return root.DescendantTokens(descendIntoTrivia: true).Where(candidate).ToList();
+            return root.DescendantTokens(descendIntoTrivia: true).Where(candidate).ToImmutableArray();
         }
 
-        private static IList<SyntaxToken> GetTokensFromText(
+        private static ImmutableArray<SyntaxToken> GetTokensFromText(
             ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root,
             SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
         {
@@ -100,19 +102,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (SyntaxTreeIdentifierInfo.TryGetIdentifierLocations(document, version, text, positions.Object, cancellationToken))
                     {
-                        return GetTokensFromText(root, positions.Object, text, candidate, cancellationToken).ToList();
+                        return GetTokensFromText(root, positions.Object, text, candidate, cancellationToken);
                     }
                 }
 
-                return GetTokensFromText(syntaxFacts, root, content, text, candidate, cancellationToken).ToList();
+                return GetTokensFromText(syntaxFacts, root, content, text, candidate, cancellationToken);
             }
 
-            return SpecializedCollections.EmptyList<SyntaxToken>();
+            return ImmutableArray<SyntaxToken>.Empty;
         }
 
-        private static IEnumerable<SyntaxToken> GetTokensFromText(
+        private static ImmutableArray<SyntaxToken> GetTokensFromText(
             SyntaxNode root, List<int> positions, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
         {
+            var result = ImmutableArray.CreateBuilder<SyntaxToken>();
             foreach (var index in positions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -122,14 +125,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var span = token.Span;
                 if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token))
                 {
-                    yield return token;
+                    result.Add(token);
                 }
             }
+
+            return result.ToImmutable();
         }
 
-        private static IEnumerable<SyntaxToken> GetTokensFromText(
+        private static ImmutableArray<SyntaxToken> GetTokensFromText(
             ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
         {
+            var result = ImmutableArray.CreateBuilder<SyntaxToken>();
+
             var index = 0;
             while ((index = content.IndexOf(text, index, syntaxFacts.IsCaseSensitive)) >= 0)
             {
@@ -141,12 +148,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var span = token.Span;
                 if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token))
                 {
-                    yield return token;
+                    result.Add(token);
                 }
 
                 nextIndex = Math.Max(nextIndex, token.SpanStart);
                 index = nextIndex;
             }
+
+            return result.ToImmutable();
         }
 
         public static IEnumerable<SyntaxToken> GetConstructorInitializerTokens(
@@ -256,7 +265,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ImmutableHashSet<string> AliasNameSet;
             public List<SyntaxToken> ConstructorInitializerCache;
 
-            public readonly ConcurrentDictionary<string, IList<SyntaxToken>> IdentifierCache = new ConcurrentDictionary<string, IList<SyntaxToken>>();
+            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new ConcurrentDictionary<string, ImmutableArray<SyntaxToken>>();
             public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new ConcurrentDictionary<SyntaxNode, SymbolInfo>();
         }
     }

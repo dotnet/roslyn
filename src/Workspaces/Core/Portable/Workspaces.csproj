@@ -11,9 +11,8 @@
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
@@ -90,9 +89,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\HashAlgorithms.cs">
-      <Link>InternalUtilities\HashAlgorithms.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
       <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
     </Compile>
@@ -125,9 +121,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Array.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Array.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs">
       <Link>InternalUtilities\SpecializedCollections.Empty.Collection.cs</Link>
@@ -228,9 +221,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\PortableShim.cs">
-      <Link>InternalUtilities\PortableShim.cs</Link>
-    </Compile>
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
@@ -286,12 +276,11 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Workspaces" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
@@ -402,6 +391,12 @@
     <Compile Include="Options\GlobalOptionService.cs" />
     <Compile Include="Options\IGlobalOptionService.cs" />
     <Compile Include="Options\IWorkspaceOptionService.cs" />
+    <Compile Include="Remote\IRemoteHostClientFactory.cs" />
+    <Compile Include="Remote\IRemoteHostClientService.cs" />
+    <Compile Include="Remote\RemoteHostClient.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.RemoteHostClientService.cs" />
+    <Compile Include="Remote\WellKnownRemoteHostServices.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
     <Compile Include="Shared\Utilities\IStreamingProgressTracker.cs" />

@@ -2,7 +2,6 @@
 
 extern alias PDB;
 
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,7 +15,6 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;

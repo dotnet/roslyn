@@ -1,9 +1,11 @@
 {
-    "dependencies": {
-        "xunit": "2.1.0",
-        "xunit.runner.console": "2.2.0-beta1-build3239"
-    },
-    "frameworks": {
-        "net46": { }
-    }
+  "dependencies": {
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.2.0-beta1-build3239",
+    "Newtonsoft.Json": "8.0.3",
+    "Nerdbank.FullDuplexStream": "1.0.1"
+  },
+  "frameworks": {
+    "net46": { }
+  }
 }

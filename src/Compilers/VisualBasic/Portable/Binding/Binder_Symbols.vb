@@ -584,22 +584,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not lookupResult.HasSymbol Then
                         Dim diagInfo As DiagnosticInfo = Nothing
 
-                        ' In Imports clauses, a missing namespace or type is just a warning.
-                        Dim erridNotFound As ERRID = ERRID.ERR_UndefinedTypeOrNamespace1
-
-                        If typeSyntax.Parent IsNot Nothing AndAlso TypeOf typeSyntax.Parent Is ImportsClauseSyntax AndAlso
-                           Not reportedAnError Then
-                            erridNotFound = ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1
-                        End If
-
                         Dim diagName = GetBaseNamesForDiagnostic(typeSyntax)
-                        diagInfo = ErrorFactory.ErrorInfo(erridNotFound, diagName)
+                        ' In Imports clauses, a missing namespace or type is just a warning.
+                        diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UndefinedTypeOrNamespace1, diagName)
+                        Dim reportErrorWhenReferenced = False
+
+                        If typeSyntax.Parent?.Kind = SyntaxKind.SimpleImportsClause Then
+                            If DirectCast(typeSyntax.Parent, SimpleImportsClauseSyntax).Alias IsNot Nothing Then
+                                reportErrorWhenReferenced = True
+                            End If
+
+                            If Not reportedAnError Then
+                                binder.ReportDiagnostic(diagBag, typeSyntax, ErrorFactory.ErrorInfo(ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1, diagName))
+                                reportedAnError = True
+                            End If
+                        End If
 
                         If Not reportedAnError Then
                             Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
                         End If
 
-                        Return binder.GetErrorSymbol(diagName, diagInfo)
+                        Return Binder.GetErrorSymbol(diagName, diagInfo, reportErrorWhenReferenced)
                     Else
                         If lookupResult.HasDiagnostic Then
                             If Not reportedAnError Then

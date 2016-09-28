@@ -440,7 +440,7 @@ class C
                     ImmutableArray.Create<CompletionProvider>(provider));
                 var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default);
 
-               Assert.True(called);
+                Assert.True(called);
             }
         }
     }

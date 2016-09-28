@@ -249,7 +249,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 if ((method = member as MethodInfo) != null)
                 {
-                    return (method.ReturnType == typeof(void)) ? VoidValue : method.Invoke(obj, SpecializedCollections.EmptyObjects);
+                    return (method.ReturnType == typeof(void))
+                        ? VoidValue
+                        : method.Invoke(obj, Array.Empty<object>());
                 }
 
                 var property = (PropertyInfo)member;
@@ -258,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return null;
                 }
 
-                return property.GetValue(obj, SpecializedCollections.EmptyObjects);
+                return property.GetValue(obj, Array.Empty<object>());
             }
             catch (TargetInvocationException e)
             {

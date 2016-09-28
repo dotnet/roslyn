@@ -60,8 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
             property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
 
-            InitializePortableShim(compilerAssembly);
-
             RegisterFindResultsLibraryManager();
 
             var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
@@ -82,25 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             LoadComponentsInUIContextOnceSolutionFullyLoaded();
 
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
-        }
-
-        private static void InitializePortableShim(Assembly compilerAssembly)
-        {
-            // We eagerly force all of the types to be loaded within the PortableShim because there are scenarios
-            // in which loading types can trigger the current AppDomain's AssemblyResolve or TypeResolve events.
-            // If handlers of those events do anything that would cause PortableShim to be accessed recursively,
-            // bad things can happen. In particular, this fixes the scenario described in TFS bug #1185842.
-            //
-            // Note that the fix below is written to be as defensive as possible to do no harm if it impacts other
-            // scenarios.
-
-            // Initialize the PortableShim linked into the Workspaces layer.
-            Roslyn.Utilities.PortableShim.Initialize();
-
-            // Initialize the PortableShim linked into the Compilers layer via reflection.
-            var compilerPortableShim = compilerAssembly.GetType("Roslyn.Utilities.PortableShim", throwOnError: false);
-            var initializeMethod = compilerPortableShim?.GetMethod(nameof(Roslyn.Utilities.PortableShim.Initialize), BindingFlags.Static | BindingFlags.NonPublic);
-            initializeMethod?.Invoke(null, null);
         }
 
         private void InitializeColors()

@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="moduleName">The moduleName.</param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the module name is different; otherwise current instance.</returns>        
-        Public Function WithModuleName(moduleName As String) As VisualBasicCompilationOptions
+        Public Shadows Function WithModuleName(moduleName As String) As VisualBasicCompilationOptions
             If String.Equals(moduleName, Me.ModuleName, StringComparison.Ordinal) Then
                 Return Me
             End If
@@ -1199,5 +1199,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 referencesSupersedeLowerVersions:=False)
 
         End Sub
+
+        Protected Overrides Function CommonWithModuleName(moduleName As String) As CompilationOptions
+            Return WithModuleName(moduleName)
+        End Function
+
+        Protected Overrides Function CommonWithMainTypeName(mainTypeName As String) As CompilationOptions
+            Return WithMainTypeName(mainTypeName)
+        End Function
+
+        Protected Overrides Function CommonWithScriptClassName(scriptClassName As String) As CompilationOptions
+            Return WithScriptClassName(scriptClassName)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoKeyContainer(cryptoKeyContainer As String) As CompilationOptions
+            Return WithCryptoKeyContainer(cryptoKeyContainer)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoKeyFile(cryptoKeyFile As String) As CompilationOptions
+            Return WithCryptoKeyFile(cryptoKeyFile)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoPublicKey(cryptoPublicKey As ImmutableArray(Of Byte)) As CompilationOptions
+            Return WithCryptoPublicKey(cryptoPublicKey)
+        End Function
+
+        Protected Overrides Function CommonWithDelaySign(delaySign As Boolean?) As CompilationOptions
+            Return WithDelaySign(delaySign)
+        End Function
+
+        Protected Overrides Function CommonWithCheckOverflow(checkOverflow As Boolean) As CompilationOptions
+            Return WithOverflowChecks(checkOverflow)
+        End Function
     End Class
 End Namespace

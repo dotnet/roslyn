@@ -106,7 +106,7 @@ namespace Microsoft.Cci
                             index: local.SlotIndex,
                             name: _debugMetadataOpt.GetOrAddString(local.Name));
 
-                        SerializeDynamicLocalInfo(local, lastLocalVariableHandle);
+                        SerializeLocalInfo(local, lastLocalVariableHandle);
                     }
 
                     foreach (ILocalDefinition constant in scope.Constants)
@@ -118,7 +118,7 @@ namespace Microsoft.Cci
                             name: _debugMetadataOpt.GetOrAddString(constant.Name),
                             signature: SerializeLocalConstantSignature(constant));
 
-                        SerializeDynamicLocalInfo(constant, lastLocalConstantHandle);
+                        SerializeLocalInfo(constant, lastLocalConstantHandle);
                     }
                 }
             }
@@ -465,20 +465,30 @@ namespace Microsoft.Cci
 
         #region Locals
 
-        private void SerializeDynamicLocalInfo(ILocalDefinition local, EntityHandle parent)
+        private void SerializeLocalInfo(ILocalDefinition local, EntityHandle parent)
         {
             var dynamicFlags = local.DynamicTransformFlags;
-            if (dynamicFlags.IsDefault)
+            if (!dynamicFlags.IsEmpty)
             {
-                return;
+                var value = SerializeBitVector(dynamicFlags);
+
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: parent,
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.DynamicLocalVariables),
+                    value: _debugMetadataOpt.GetOrAddBlob(value));
             }
 
-            var value = SerializeBitVector(dynamicFlags);
+            var tupleElementNames = local.TupleElementNames;
+            if (!tupleElementNames.IsEmpty)
+            {
+                var builder = new BlobBuilder();
+                SerializeTupleElementNames(builder, tupleElementNames);
 
-            _debugMetadataOpt.AddCustomDebugInformation(
-                parent: parent,
-                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.DynamicLocalVariables),
-                value: _debugMetadataOpt.GetOrAddBlob(value));
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: parent,
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TupleElementNames),
+                    value: _debugMetadataOpt.GetOrAddBlob(builder));
+            }
         }
 
         private static ImmutableArray<byte> SerializeBitVector(ImmutableArray<TypedConstant> vector)
@@ -523,6 +533,23 @@ namespace Microsoft.Cci
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        private static void SerializeTupleElementNames(BlobBuilder builder, ImmutableArray<TypedConstant> names)
+        {
+            foreach (var name in names)
+            {
+                WriteUtf8String(builder, (string)name.Value ?? string.Empty);
+            }
+        }
+
+        /// <summary>
+        /// Write string as UTF8 with null terminator.
+        /// </summary>
+        private static void WriteUtf8String(BlobBuilder builder, string str)
+        {
+            builder.WriteUTF8(str);
+            builder.WriteByte(0);
         }
 
         #endregion

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -128,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             {
                 return e.Option.Feature == nameof(SimplificationOptions) ||
+                       e.Option.Feature == nameof(CodeStyleOptions) ||
                        e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
                        e.Option == RuntimeOptions.FullSolutionAnalysis ||
                        e.Option == InternalDiagnosticsOptions.UseDiagnosticEngineV2 ||

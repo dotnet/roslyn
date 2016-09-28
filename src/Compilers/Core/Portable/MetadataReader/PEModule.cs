@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Roslyn.Utilities;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
