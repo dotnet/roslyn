@@ -18790,5 +18790,228 @@ class C
                 });
             // no assert hit
         }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct0()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int a, int b) x;
+        x.Item1 = 1;
+        x.b = 2;
+ 
+        // by the language rules tuple x is definitely assigned
+        // since all its elements are definitely assigned
+        System.Console.WriteLine(x);
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,24): error CS8182: Predefined type 'ValueTuple`2' must be a struct.
+                //         (int a, int b) x;
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x").WithArguments("ValueTuple`2").WithLocation(6, 24)
+            );
+
+        }
+
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct1()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (1, 1);
+ 
+        System.Console.WriteLine(x);
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS8180: Predefined type 'ValueTuple`2' must be a struct.
+                //         var x = (1, 1);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x = (1, 1)").WithArguments("ValueTuple`2").WithLocation(6, 13)
+            );
+
+        }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static void Test2((int a, int b) arg)
+    {
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // error CS8180: Predefined type 'ValueTuple`2' must be a struct.
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1)
+            );
+
+        }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct3()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static void Test1()
+    {
+        (int, int)[] x = null;
+ 
+        System.Console.WriteLine(x);
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (10,22): error CS8180: Predefined type 'ValueTuple`2' must be a struct.
+                //         (int, int)[] x = null;
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x = null").WithArguments("ValueTuple`2").WithLocation(10, 22)
+            );
+
+        }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct4()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static (int a, int b) Test2()
+    {
+        return (1, 1);
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (9,5): error CS8180: Predefined type 'ValueTuple`2' must be a struct.
+                //     {
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, @"{
+        return (1, 1);
+    }").WithArguments("ValueTuple`2").WithLocation(9, 5)
+            );
+
+        }        
     }
 }
