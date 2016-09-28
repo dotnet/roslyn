@@ -55,8 +55,8 @@
   <ItemGroup>
     <Compile Include="CodeLens\CodeLensArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
-    <Compile Include="FindReferences\FindReferencesArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_FindReferences.cs" />
+    <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Diagnostics\DiagnosticArguments.cs" />
@@ -66,6 +66,7 @@
     <Compile Include="Services\ServiceHubServiceBase.cs" />
     <Compile Include="Services\SnapshotService.cs" />
     <Compile Include="Shared\Extensions.cs" />
+    <Compile Include="Shared\RemoteArguments.cs" />
     <Compile Include="Shared\ServerDirectStream.cs" />
     <Compile Include="Shared\ClientDirectStream.cs" />
     <Compile Include="Shared\WellKnownServiceHubServices.cs" />

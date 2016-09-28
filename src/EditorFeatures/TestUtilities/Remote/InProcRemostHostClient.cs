@@ -110,6 +110,11 @@ namespace Roslyn.Test.Utilities.Remote
                             var tuple = FullDuplexStream.CreateStreams();
                             return Task.FromResult<Stream>(new WrappedStream(new SnapshotService(tuple.Item1, s_serviceProvider), tuple.Item2));
                         }
+                    case WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine:
+                        {
+                            var tuple = FullDuplexStream.CreateStreams();
+                            return Task.FromResult<Stream>(new WrappedStream(new RemoteSymbolSearchUpdateEngine(tuple.Item1, s_serviceProvider), tuple.Item2));
+                        }
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(serviceName);

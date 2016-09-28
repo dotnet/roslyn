@@ -79,14 +79,14 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
       <Link>Diagnostics\DiagnosticResultSerializer.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\FindReferences\FindReferencesArguments.cs">
-      <Link>FindSymbols\FindReferencesArguments.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
       <Link>Shared\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RemoteArguments.cs">
+      <Link>Shared\RemoteArguments.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
       <Link>Shared\ServerDirectStream.cs</Link>
@@ -121,6 +121,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ServicesVisualStudioNextResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SymbolSearch\VisualStudioSymbolSearchUpdateEngineFactory.cs" />
     <Compile Include="FindSymbols\VisualStudioSymbolFinderEngineService.ServerCallback.cs" />
   </ItemGroup>
   <ItemGroup>
