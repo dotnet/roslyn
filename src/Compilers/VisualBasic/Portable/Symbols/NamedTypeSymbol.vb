@@ -1080,6 +1080,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>True if this Is an interface type.</returns>
         Friend MustOverride ReadOnly Property IsInterface As Boolean
 
+        ''' <summary>
+        ''' Get synthesized WithEvents overrides that aren't returned by <see cref="GetMembers"/>
+        ''' </summary>
+        Friend MustOverride Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+
 #Region "INamedTypeSymbol"
 
         Private ReadOnly Property INamedTypeSymbol_Arity As Integer Implements INamedTypeSymbol.Arity

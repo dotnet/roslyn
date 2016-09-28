@@ -1209,7 +1209,7 @@ class Other {
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
 
@@ -1257,6 +1257,74 @@ unsafe struct Struct1
                 // (26,23): error CS1503: Argument 1: cannot convert from 'char*' to 'char[]'
                 //         return nameof(myStruct.MessageType);
                 Diagnostic(ErrorCode.ERR_BadArgType, "myStruct.MessageType").WithArguments("1", "char*", "char[]").WithLocation(26, 23));
+        }
+
+
+        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        public void FixedFieldAccessInsideNameOf()
+        {
+            var source =
+@"
+using System;
+
+struct MyType
+{
+  public static string a = nameof(MyType.normalField);
+  public static string b = nameof(MyType.fixedField);
+  public static string c = nameof(fixedField);
+
+  public int normalField;
+  public unsafe fixed short fixedField[6];
+
+  public MyType(int i) {
+      this.normalField = i;
+  }
+}
+
+class EntryPoint
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(MyType.a + "" "");
+        Console.Write(MyType.b + "" "");
+        Console.Write(MyType.c);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        public void FixedFieldAccessFromInnerClass()
+        {
+            var source =
+@"
+using System;
+
+public struct MyType
+{
+  public static class Inner
+  {
+     public static string a = nameof(normalField);
+     public static string b = nameof(fixedField);
+  }
+
+  public int normalField;
+  public unsafe fixed short fixedField[6];
+}
+
+class EntryPoint
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(MyType.Inner.a + "" "");
+        Console.Write(MyType.Inner.b);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
         }
     }
 }
