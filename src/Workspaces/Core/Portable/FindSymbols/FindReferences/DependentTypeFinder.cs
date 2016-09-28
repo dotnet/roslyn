@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
-        internal static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedClassesAsync(
+        internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync(SymbolAndProjectId{INamedTypeSymbol}, Solution, IImmutableSet{Project}, CancellationToken)"/>, which is a publically callable method.
         /// </summary>
-        public static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyDerivedClassesAsync(
+        public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 transitive: true, cancellationToken: cancellationToken);
         }
 
-        private static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
+        private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
             SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects, 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken: cancellationToken);
             }
 
-            return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId<INamedTypeSymbol>>();
+            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>();
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
-        internal static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedAndImplementingTypesAsync(
+        internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 transitive: false, cancellationToken: cancellationToken);
         }
 
-        private static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedAndImplementingTypesAsync(
+        private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedAndImplementingTypesAsync(
             SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -141,10 +141,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken: cancellationToken);
            }
 
-            return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId<INamedTypeSymbol>>();
+            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>();
         }
 
-        private static async Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesAsync(
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesAsync(
             SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     transitive, cancellationToken).ConfigureAwait(false);
             }
 
-            return result;
+            return result.ToImmutableArray();
         }
 
         private static async Task FindTypesInProjectAsync(

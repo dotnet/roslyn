@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 SymbolAndProjectId.Create(symbol, projectId: null),
                 solution, projects, cancellationToken).ConfigureAwait(false);
 
-            return result.Select(s => s.Symbol).ToList();
+            return result.SelectAsArray(s => s.Symbol);
         }
 
-        internal static async Task<IEnumerable<SymbolAndProjectId>> FindOverridesAsync(
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindOverridesAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Method can only have overrides if its a virtual, abstract or override and is not
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     symbolAndProjectId.WithSymbol(containingType),
                     solution, projects, cancellationToken).ConfigureAwait(false);
 
-                List<SymbolAndProjectId> results = null;
+                var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
                 foreach (var type in derivedTypes)
                 {
                     foreach (var m in GetMembers(type, symbol.Name))
@@ -58,19 +58,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             member.OverriddenMember() != null &&
                             OriginalSymbolsMatch(member.OverriddenMember().OriginalDefinition, symbol.OriginalDefinition, solution, cancellationToken))
                         {
-                            results = results ?? new List<SymbolAndProjectId>();
                             results.Add(bestMember);
                         }
                     }
                 }
 
-                if (results != null)
-                {
-                    return results;
-                }
+                return results.ToImmutableAndFree();
             }
 
-            return SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
+            return ImmutableArray<SymbolAndProjectId>.Empty;
         }
 
         /// <summary>
@@ -186,10 +182,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var result = await FindDerivedClassesAsync(
                 SymbolAndProjectId.Create(type, projectId: null),
                 solution, projects, cancellationToken).ConfigureAwait(false);
-            return result.Select(s => s.Symbol).ToList();
+            return result.SelectAsArray(s => s.Symbol);
         }
 
-        internal static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
+        internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
             SymbolAndProjectId<INamedTypeSymbol> typeAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var type = typeAndProjectId.Symbol;
@@ -215,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var result = await FindImplementationsAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
                 solution, projects, cancellationToken).ConfigureAwait(false);
-            return result.Select(s => s.Symbol).ToList();
+            return result.SelectAsArray(s => s.Symbol);
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsAsync(
@@ -299,7 +295,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var directReferences = callReferences.Where(
                 r => SymbolEquivalenceComparer.Instance.Equals(symbol, r.Definition)).FirstOrDefault();
 
-            var indirectReferences = callReferences.Where(r => r != directReferences).ToList();
+            var indirectReferences = callReferences.WhereAsArray(r => r != directReferences);
 
             List<SymbolCallerInfo> results = null;
 
