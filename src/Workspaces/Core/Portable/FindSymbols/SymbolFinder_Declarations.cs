@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
             }
 
             return await FindDeclarationsAsync(
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
             }
 
             return await FindDeclarationsAsync(
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
             }
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Name_FindSourceDeclarationsAsync, cancellationToken))
