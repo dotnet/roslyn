@@ -7191,7 +7191,7 @@ class C
             Assert.Equal(Conversion.NoConversion, model.GetConversion(node));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11289")]
+        [Fact]
         [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC04()
         {
@@ -7265,7 +7265,7 @@ namespace System
             CompileAndVerify(comp, expectedOutput: "{1, qq}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11289")]
+        [Fact]
         [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC05()
         {
@@ -7348,7 +7348,7 @@ namespace System
 {1, qq}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11289")]
+        [Fact]
         [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC06()
         {
