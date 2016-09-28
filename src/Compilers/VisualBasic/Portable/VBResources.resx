@@ -5107,6 +5107,7 @@
 /quiet                            Quiet output mode.
 /verbose                          Display verbose messages.
 /parallel[+|-]                    Concurrent build. 
+/version                          Display the compiler version number and exit.
 
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
