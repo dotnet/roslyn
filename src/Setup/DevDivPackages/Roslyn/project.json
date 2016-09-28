@@ -9,7 +9,7 @@
     "System.AppContext": "4.1.0",
     "System.Console": "4.0.0",
     "System.Collections": "4.0.11",
-    "System.Collection.Concurrent": "4.0.12",
+    "System.Collections.Concurrent": "4.0.12",
     "System.Diagnostics.Process": "4.1.0",
     "System.Diagnostics.Tools": "4.0.1",
     "System.Diagnostics.FileVersionInfo": "4.0.0",
