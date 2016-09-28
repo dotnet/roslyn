@@ -5394,7 +5394,7 @@
   <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
     <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
   </data>
-  <data name="ERR_ExplicitTupleElementNames" xml:space="preserve">
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
     <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
   </data>
   <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">

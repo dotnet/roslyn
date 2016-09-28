@@ -4015,9 +4015,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Cannot reference &apos;System.Runtime.CompilerServices.TupleElementNamesAttribute&apos; explicitly. Use the tuple syntax to define tuple names..
         /// </summary>
-        internal static string ERR_ExplicitTupleElementNames {
+        internal static string ERR_ExplicitTupleElementNamesAttribute {
             get {
-                return ResourceManager.GetString("ERR_ExplicitTupleElementNames", resourceCulture);
+                return ResourceManager.GetString("ERR_ExplicitTupleElementNamesAttribute", resourceCulture);
             }
         }
         

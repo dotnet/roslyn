@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConversionNotTupleCompatible = 8135,
         ERR_DeconstructionVarFormDisallowsSpecificType = 8136,
         ERR_TupleElementNamesAttributeMissing = 8137,
-        ERR_ExplicitTupleElementNames = 8138,
+        ERR_ExplicitTupleElementNamesAttribute = 8138,
         ERR_CantChangeTupleNamesOnOverride = 8139,
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
         ERR_ImplBadTupleNames = 8141,

@@ -1703,8 +1703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_ValueTupleTypeRefResolutionError = 37267
 
         ERR_TupleElementNamesAttributeMissing = 37268
-        ERR_ExplicitTupleElementNames = 37269
-
+        ERR_ExplicitTupleElementNamesAttribute = 37269
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

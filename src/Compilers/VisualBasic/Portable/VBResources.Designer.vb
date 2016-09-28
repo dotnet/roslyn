@@ -4460,9 +4460,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to Cannot reference &apos;System.Runtime.CompilerServices.TupleElementNamesAttribute&apos; explicitly. Use the tuple syntax to define tuple names..
         '''</summary>
-        Friend ReadOnly Property ERR_ExplicitTupleElementNames() As String
+        Friend ReadOnly Property ERR_ExplicitTupleElementNamesAttribute() As String
             Get
-                Return ResourceManager.GetString("ERR_ExplicitTupleElementNames", resourceCulture)
+                Return ResourceManager.GetString("ERR_ExplicitTupleElementNamesAttribute", resourceCulture)
             End Get
         End Property
         

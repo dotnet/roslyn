@@ -2127,7 +2127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' If we start caching information about ComVisibleAttribute here, implementation of GetComVisibleState function should be changed accordingly.
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location)
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             Dim decoded As Boolean = False
