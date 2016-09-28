@@ -435,10 +435,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var namedType = containerSymbol as INamedTypeSymbol;
-                        if (namedType != null)
+                        var nsOrType = containerSymbol as INamespaceOrTypeSymbol;
+                        if (nsOrType != null)
                         {
-                            results.AddRange(namedType.GetMembers(GetName(node)));
+                            results.AddRange(nsOrType.GetMembers(GetName(node)));
                         }
                     }
                 }
@@ -554,7 +554,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             builder.Add(namedType);
                         }
                     }
-
                 }
                 finally
                 {

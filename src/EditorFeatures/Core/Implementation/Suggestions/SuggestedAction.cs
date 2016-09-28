@@ -80,19 +80,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             return Task.Run(
-                async () => await CodeAction.GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(false), cancellationToken);
+                () => CodeAction.GetOperationsAsync(progressTracker, cancellationToken), cancellationToken);
         }
 
         protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
         {
             return Task.Run(
-                async () => await actionWithOptions.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false), cancellationToken);
+                () => actionWithOptions.GetOperationsAsync(options, cancellationToken), cancellationToken);
         }
 
         protected Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
         {
             return Task.Run(
-                async () => await CodeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
+                () => CodeAction.GetPreviewOperationsAsync(cancellationToken), cancellationToken);
         }
 
         public void Invoke(CancellationToken cancellationToken)

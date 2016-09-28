@@ -1675,10 +1675,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
-        public override ILocalSymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var memberModel = this.GetMemberModel(declarationSyntax);
-            return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+            return memberModel?.GetDeclaredSymbol(declarationSyntax, cancellationToken) ??
+                GetEnclosingBinder(declarationSyntax.Position)?.LookupDeclaredField(declarationSyntax);
         }
 
         /// <summary>

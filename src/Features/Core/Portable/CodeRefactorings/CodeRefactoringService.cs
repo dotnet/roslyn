@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 foreach (var provider in this.GetProviders(document))
                 {
                     tasks.Add(Task.Run(
-                        async () => await GetRefactoringFromProviderAsync(document, state, provider, extensionManager, cancellationToken).ConfigureAwait(false), cancellationToken));
+                        () => GetRefactoringFromProviderAsync(document, state, provider, extensionManager, cancellationToken), cancellationToken));
                 }
 
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
