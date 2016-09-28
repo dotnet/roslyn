@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -402,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return desiredName;
             }
 
-            private async Task<IEnumerable<SymbolResult<ITypeSymbol>>> GetTypeSymbols(
+            private async Task<ImmutableArray<SymbolResult<ITypeSymbol>>> GetTypeSymbols(
                 SearchScope searchScope,
                 string name,
                 TSimpleNameSyntax nameNode,
@@ -410,12 +411,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 if (searchScope.CancellationToken.IsCancellationRequested)
                 {
-                    return null;
+                    return ImmutableArray<SymbolResult<ITypeSymbol>>.Empty;
                 }
 
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: searchScope.CancellationToken))
                 {
-                    return null;
+                    return ImmutableArray<SymbolResult<ITypeSymbol>>.Empty;
                 }
 
                 var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Type).ConfigureAwait(false);
@@ -425,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     var attributeSymbols = await searchScope.FindDeclarationsAsync(name + AttributeSuffix, nameNode, SymbolFilter.Type).ConfigureAwait(false);
 
-                    symbols = symbols.Concat(
+                    symbols = symbols.AddRange(
                         attributeSymbols.Select(r => r.WithDesiredName(r.DesiredName.GetWithoutAttributeSuffix(isCaseSensitive: false))));
                 }
 
@@ -641,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return GetProposedTypes(searchScope, name, accessibleTypeSymbols);
             }
 
-            private List<SymbolReference> GetNamespacesForMatchingTypesAsync(
+            private ImmutableArray<SymbolReference> GetNamespacesForMatchingTypesAsync(
                 SearchScope searchScope, int arity, bool inAttributeContext, bool hasIncompleteParentMember,
                 IEnumerable<SymbolResult<ITypeSymbol>> symbols)
             {
@@ -655,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return GetProposedNamespaces(searchScope, accessibleTypeSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
             }
 
-            private List<SymbolReference> GetProposedNamespaces(SearchScope scope, IEnumerable<SymbolResult<INamespaceSymbol>> namespaces)
+            private ImmutableArray<SymbolReference> GetProposedNamespaces(SearchScope scope, IEnumerable<SymbolResult<INamespaceSymbol>> namespaces)
             {
                 // We only want to offer to add a using if we don't already have one.
                 return
@@ -663,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                               .Select(n => n.WithSymbol(MapToCompilationNamespaceIfPossible(n.Symbol)))
                               .Where(n => n.Symbol != null && !_namespacesInScope.Contains(n.Symbol))
                               .Select(n => scope.CreateReference(n))
-                              .ToList();
+                              .ToImmutableArray();
             }
 
             private List<SymbolReference> GetProposedTypes(SearchScope searchScope, string name, List<SymbolResult<ITypeSymbol>> accessibleTypeSymbols)
@@ -684,14 +685,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return result;
             }
 
-            private Task<IEnumerable<SymbolResult<ISymbol>>> GetSymbolsAsync(SearchScope searchScope, TSimpleNameSyntax nameNode)
+            private Task<ImmutableArray<SymbolResult<ISymbol>>> GetSymbolsAsync(SearchScope searchScope, TSimpleNameSyntax nameNode)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
                 // See if the name binds.  If it does, there's nothing further we need to do.
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: true, cancellationToken: searchScope.CancellationToken))
                 {
-                    return SpecializedTasks.EmptyEnumerable<SymbolResult<ISymbol>>();
+                    return SpecializedTasks.EmptyImmutableArray<SymbolResult<ISymbol>>();
                 }
 
                 string name;
@@ -699,14 +700,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
                 if (name == null)
                 {
-                    return SpecializedTasks.EmptyEnumerable<SymbolResult<ISymbol>>();
+                    return SpecializedTasks.EmptyImmutableArray<SymbolResult<ISymbol>>();
                 }
 
                 return searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member);
             }
 
-            private IEnumerable<SymbolReference> FilterForExtensionMethods(
-                SearchScope searchScope, SyntaxNode expression, IEnumerable<SymbolResult<ISymbol>> symbols)
+            private ImmutableArray<SymbolReference> FilterForExtensionMethods(
+                SearchScope searchScope, SyntaxNode expression, ImmutableArray<SymbolResult<ISymbol>> symbols)
             {
                 var extensionMethodSymbols = OfType<IMethodSymbol>(symbols)
                     .Where(s => s.Symbol.IsExtensionMethod &&
@@ -718,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     searchScope, extensionMethodSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
             }
 
-            private async Task<IEnumerable<SymbolResult<IMethodSymbol>>> GetAddMethodsAsync(
+            private async Task<ImmutableArray<SymbolResult<IMethodSymbol>>> GetAddMethodsAsync(
                 SearchScope searchScope, SyntaxNode expression)
             {
                 string name;
@@ -726,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _syntaxFacts.GetNameAndArityOfSimpleName(_node, out name, out arity);
                 if (name != null || !_owner.IsAddMethodContext(_node, _semanticModel))
                 {
-                    return SpecializedCollections.EmptyEnumerable<SymbolResult<IMethodSymbol>>();
+                    return ImmutableArray<SymbolResult<IMethodSymbol>>.Empty;
                 }
 
                 // Note: there is no desiredName for these search results.  We're searching for
@@ -734,15 +735,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // of the existing user code to that name.
                 var symbols = await searchScope.FindDeclarationsAsync("Add", nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
                 return OfType<IMethodSymbol>(symbols)
-                    .Where(s => s.Symbol.IsExtensionMethod &&
+                    .WhereAsArray(s => s.Symbol.IsExtensionMethod &&
                                 s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
                                      _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken))
-                    .Select(s => s.WithDesiredName(null));
+                    .SelectAsArray(s => s.WithDesiredName(null));
             }
 
-            private IEnumerable<SymbolResult<T>> OfType<T>(IEnumerable<SymbolResult<ISymbol>> symbols) where T : ISymbol
+            private ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
             {
-                return symbols.Where(s => s.Symbol is T).Select(s => s.WithSymbol((T)s.Symbol));
+                return symbols.WhereAsArray(s => s.Symbol is T)
+                              .SelectAsArray(s => s.WithSymbol((T)s.Symbol));
             }
         }
     }
