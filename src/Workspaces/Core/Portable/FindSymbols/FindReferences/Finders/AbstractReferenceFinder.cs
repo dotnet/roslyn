@@ -173,15 +173,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingIdentifierAsync(symbol, symbol.Name, document, cancellationToken);
+            return FindReferencesInDocumentUsingIdentifierAsync(
+                symbol, symbol.Name, document, cancellationToken: cancellationToken);
         }
 
         protected static Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             ISymbol symbol,
             string identifier,
             Document document,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SyntaxNode> findParentNode = null)
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInDocumentUsingIdentifierAsync(
+                symbol, identifier, document, findParentNode: null,
+                cancellationToken: cancellationToken);
+        }
+
+        protected static Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentUsingIdentifierAsync(
+            ISymbol symbol,
+            string identifier,
+            Document document,
+            Func<SyntaxToken, SyntaxNode> findParentNode,
+            CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
 
@@ -252,8 +264,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             IEnumerable<SyntaxToken> tokens,
             Func<SyntaxToken, bool> tokensMatch,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SyntaxNode> findParentNode = null)
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInTokensAsync(
+                symbol, document, tokens, tokensMatch,
+                findParentNode: null, cancellationToken: cancellationToken);
+        }
+
+        protected Task<ImmutableArray<ReferenceLocation>> FindReferencesInTokensAsync(
+            TSymbol symbol,
+            Document document,
+            IEnumerable<SyntaxToken> tokens,
+            Func<SyntaxToken, bool> tokensMatch,
+            Func<SyntaxToken, SyntaxNode> findParentNode,
+            CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
 
@@ -303,8 +327,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             Document document,
             Func<SyntaxToken, bool> tokensMatch,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SyntaxNode> findParentNode = null)
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInDocumentAsync(
+                symbol, document, tokensMatch, 
+                findParentNode: null, cancellationToken: cancellationToken);
+        }
+
+        protected static Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+            TSymbol symbol,
+            Document document,
+            Func<SyntaxToken, bool> tokensMatch,
+            Func<SyntaxToken, SyntaxNode> findParentNode,
+            CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
             return FindReferencesInDocumentAsync(symbol, document, tokensMatch, symbolsMatch, cancellationToken);
@@ -357,12 +392,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
+        protected static Task<ImmutableArray<ReferenceLocation>> FindAliasReferencesAsync(
+            ImmutableArray<ReferenceLocation> nonAliasReferences,
+            ISymbol symbol,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            return FindAliasReferencesAsync(
+                nonAliasReferences, symbol, document,
+                findParentNode: null, cancellationToken: cancellationToken);
+        }
+
         protected static async Task<ImmutableArray<ReferenceLocation>> FindAliasReferencesAsync(
             ImmutableArray<ReferenceLocation> nonAliasReferences,
             ISymbol symbol,
             Document document,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SyntaxNode> findParentNode = null)
+            Func<SyntaxToken, SyntaxNode> findParentNode,
+            CancellationToken cancellationToken)
         {
             var aliasSymbols = await GetAliasSymbolsAsync(document, nonAliasReferences, cancellationToken).ConfigureAwait(false);
             if (aliasSymbols == null)
@@ -418,7 +464,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var allAliasReferences = ArrayBuilder<ReferenceLocation>.GetInstance();
             foreach (var aliasSymbol in aliasSymbols)
             {
-                var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(symbol, aliasSymbol.Name, document, cancellationToken, findParentNode).ConfigureAwait(false);
+                var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
+                    symbol, aliasSymbol.Name, document, findParentNode, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
 
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
@@ -426,7 +473,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 string simpleName;
                 if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out simpleName))
                 {
-                    aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, document, cancellationToken).ConfigureAwait(false);
+                    aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
+                        symbol, simpleName, document, cancellationToken).ConfigureAwait(false);
                     allAliasReferences.AddRange(aliasReferences);
                 }
             }
