@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             return FindDerivedAndImplementingTypesAsync(
-               SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
+                SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
                 transitive: false, cancellationToken: cancellationToken);
         }
 
@@ -611,10 +611,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
             cachedInfos.Add(declarationInfo);
 
-            SymbolAndProjectIdSet result = null;
+            var result = CreateSymbolAndProjectIdSet();
             foreach (var symbolInfo in declarationInfo.DeclaredSymbolInfos)
             {
-                result = await ProcessSymbolInfo(
+                await ProcessSymbolInfo(
                     document, symbolInfo,
                     typesToSearchFor,
                     inheritanceQuery, cachedModels,
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return ToImmutableAndFree(result);
         }
 
-        private static async Task<SymbolAndProjectIdSet> ProcessSymbolInfo(
+        private static async Task ProcessSymbolInfo(
             Document document,
             DeclaredSymbolInfo info,
             SymbolAndProjectIdSet typesToSearchFor,
@@ -644,7 +644,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol != null)
                 {
-                    result = result ?? CreateSymbolAndProjectIdSet();
                     result.Add(SymbolAndProjectId.Create(symbol, projectId));
                 }
             }
@@ -658,7 +657,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol?.BaseType?.SpecialType == SpecialType.System_Object)
                 {
-                    result = result ?? CreateSymbolAndProjectIdSet();
                     result.Add(SymbolAndProjectId.Create(symbol, projectId));
                 }
             }
@@ -670,13 +668,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (typeImmediatelyMatches(typesToSearchFor, symbol))
                     {
-                        result = result ?? CreateSymbolAndProjectIdSet();
                         result.Add(SymbolAndProjectId.Create(symbol, projectId));
                     }
                 }
             }
-
-            return result;
         }
 
         private static bool AnyInheritanceNamesMatch(
