@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _hasInitializer; }
         }
 
-        private VariableDeclaratorSyntax VariableDeclaratorNode
+        protected VariableDeclaratorSyntax VariableDeclaratorNode
         {
             get
             {
