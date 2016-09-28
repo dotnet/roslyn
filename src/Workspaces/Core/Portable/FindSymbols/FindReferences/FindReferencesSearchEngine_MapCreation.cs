@@ -13,17 +13,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using SymbolGroup = ImmutableArray<SymbolAndProjectId>;
+
     internal partial class FindReferencesSearchEngine
     {
-        private async Task<ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>> CreateDocumentMapAsync(
-            ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> projectMap)
+        private static readonly SymbolAndProjectIdComparer s_symbolComparer = 
+            new SymbolAndProjectIdComparer(MetadataUnifyingEquivalenceComparer.Instance);
+
+        private async Task<ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolGroup, IReferenceFinder>>>> CreateDocumentMapAsync(
+            ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolGroup, IReferenceFinder>>> projectMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, _cancellationToken))
             {
-                Func<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> createQueue = 
-                    d => new ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>();
+                Func<Document, ConcurrentQueue<ValueTuple<SymbolGroup, IReferenceFinder>>> createQueue = 
+                    d => new ConcurrentQueue<ValueTuple<SymbolGroup, IReferenceFinder>>();
 
-                var documentMap = new ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>();
+                var documentMap = new ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolGroup, IReferenceFinder>>>();
 
 #if PARALLEL
             Roslyn.Utilities.TaskExtensions.RethrowIncorrectAggregateExceptions(cancellationToken, () =>
@@ -55,20 +60,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var project = kvp.Key;
                     var projectQueue = kvp.Value;
 
-                    foreach (var symbolAndFinder in projectQueue)
+                    foreach (var symbolGroupAndFinder in projectQueue)
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var symbolAndProjectId = symbolAndFinder.Item1;
-                        var symbol = symbolAndProjectId.Symbol;
-                        var finder = symbolAndFinder.Item2;
+                        var symbolGroup = symbolGroupAndFinder.Item1;
+                        var finder = symbolGroupAndFinder.Item2;
 
-                        var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _cancellationToken).ConfigureAwait(false);
+                        var documents = await finder.DetermineDocumentsToSearchAsync(symbolGroup, project, _documents, _cancellationToken).ConfigureAwait(false);
                         foreach (var document in documents.Distinct().WhereNotNull())
                         {
                             if (_documents == null || _documents.Contains(document))
                             {
-                                documentMap.GetOrAdd(document, createQueue).Enqueue(symbolAndFinder);
+                                documentMap.GetOrAdd(document, createQueue).Enqueue(symbolGroupAndFinder);
                             }
                         }
                     }
@@ -80,15 +84,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task<ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>> CreateProjectMapAsync(
-            ConcurrentSet<SymbolAndProjectId> symbols)
+        private async Task<ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolGroup, IReferenceFinder>>>> CreateProjectMapAsync(
+            ImmutableArray<SymbolGroup> symbols)
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateProjectMapAsync, _cancellationToken))
             {
-                Func<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> createQueue = 
-                    p => new ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>();
+                Func<Project, ConcurrentQueue<ValueTuple<SymbolGroup, IReferenceFinder>>> createQueue = 
+                    p => new ConcurrentQueue<ValueTuple<SymbolGroup, IReferenceFinder>>();
 
-                var projectMap = new ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>();
+                var projectMap = new ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolGroup, IReferenceFinder>>>();
 
 #if PARALLEL
             Roslyn.Utilities.TaskExtensions.RethrowIncorrectAggregateExceptions(cancellationToken, () =>
@@ -108,18 +112,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 #else
 
                 var scope = _documents != null ? _documents.Select(d => d.Project).ToImmutableHashSet() : null;
-                foreach (var s in symbols)
+                foreach (var symbolGroup in symbols)
                 {
                     foreach (var f in _finders)
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var projects = await f.DetermineProjectsToSearchAsync(s.Symbol, _solution, scope, _cancellationToken).ConfigureAwait(false);
+                        var projects = await f.DetermineProjectsToSearchAsync(symbolGroup, _solution, scope, _cancellationToken).ConfigureAwait(false);
                         foreach (var project in projects.Distinct().WhereNotNull())
                         {
                             if (scope == null || scope.Contains(project))
                             {
-                                projectMap.GetOrAdd(project, createQueue).Enqueue(ValueTuple.Create(s, f));
+                                projectMap.GetOrAdd(project, createQueue).Enqueue(ValueTuple.Create(symbolGroup, f));
                             }
                         }
                     }
@@ -131,16 +135,75 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task<ConcurrentSet<SymbolAndProjectId>> DetermineAllSymbolsAsync(
+        private async Task<ImmutableArray<SymbolGroup>> DetermineAllSymbolsAsync(
             SymbolAndProjectId symbolAndProjectId)
         {
             using (Logger.LogBlock(FunctionId.FindReference_DetermineAllSymbolsAsync, _cancellationToken))
             {
-                var result = new ConcurrentSet<SymbolAndProjectId>(
-                    new SymbolAndProjectIdComparer(MetadataUnifyingEquivalenceComparer.Instance));
+                var result = new ConcurrentSet<SymbolAndProjectId>(s_symbolComparer);
                 await DetermineAllSymbolsCoreAsync(symbolAndProjectId, result).ConfigureAwait(false);
-                return result;
+
+                // Now bucket the symbols accordingly.
+                 
+                return BucketResults(result);
             }
+        }
+
+        private ImmutableArray<SymbolGroup> BucketResults(
+            ConcurrentSet<SymbolAndProjectId> result)
+        {
+            var buckets = ArrayBuilder<SymbolGroup>.GetInstance();
+
+            var namedTypeToConstructors = new Dictionary<SymbolAndProjectId, List<SymbolAndProjectId>>(
+                s_symbolComparer);
+
+            // We combine named types and their constructors into one single bucket.
+            foreach (var symbolAndProject in result)
+            {
+                if (symbolAndProject.Symbol.Kind == SymbolKind.NamedType)
+                {
+                    namedTypeToConstructors.Add(symbolAndProject, new List<SymbolAndProjectId>());
+                }
+            }
+
+            foreach (var symbolAndProject in result)
+            {
+                if (symbolAndProject.Symbol.Kind  == SymbolKind.NamedType)
+                {
+                    // Skip named types as we've already processed them in the higher loop.
+                    continue;
+                }
+
+                // If we find a constructor, bucket it with its named type (if we've seen the
+                // named type for it).
+                if (symbolAndProject.Symbol.Kind == SymbolKind.Method)
+                {
+                    var method = (IMethodSymbol)symbolAndProject.Symbol;
+                    if (method.MethodKind == MethodKind.Constructor)
+                    {
+                        List<SymbolAndProjectId> constructors;
+                        if (namedTypeToConstructors.TryGetValue(
+                                symbolAndProject.WithSymbol(method.ContainingType), out constructors))
+                        {
+                            constructors.Add(symbolAndProject);
+                            continue;
+                        }
+                    }
+                }
+
+                // Anything else goes in its own bucket.
+                buckets.Add(ImmutableArray.Create(symbolAndProject));
+            }
+
+            foreach (var kvp in namedTypeToConstructors)
+            {
+                var bucket = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+                bucket.Add(kvp.Key);
+                bucket.AddRange(kvp.Value);
+                buckets.Add(bucket.ToImmutableAndFree());
+            }
+
+            return buckets.ToImmutableAndFree();
         }
 
         private async Task DetermineAllSymbolsCoreAsync(

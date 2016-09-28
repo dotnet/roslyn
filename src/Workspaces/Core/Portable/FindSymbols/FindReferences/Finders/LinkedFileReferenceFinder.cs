@@ -9,9 +9,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
+    using SymbolGroup = ImmutableArray<SymbolAndProjectId>;
+
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
-        public async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+        public async Task<SymbolGroup> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var linkedSymbols = new HashSet<SymbolAndProjectId>();
@@ -62,20 +64,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return linkedSymbols.ToImmutableArray();
         }
 
-        public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+            SymbolGroup symbolGroup, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken))
         {
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
+            SymbolGroup symbolGroup, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             return SpecializedTasks.EmptyImmutableArray<Project>();
         }
 
-        public Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ImmutableArray<ValueTuple<SymbolAndProjectId, ImmutableArray<ReferenceLocation>>>> FindReferencesInDocumentAsync(
+            SymbolGroup symbolGroup, Document document, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+            return Task.FromResult(
+                ImmutableArray<ValueTuple<SymbolAndProjectId, ImmutableArray<ReferenceLocation>>>.Empty);
         }
     }
 }
