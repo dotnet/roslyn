@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             t => t.TypeKind == TypeKind.Interface || s_isNonSealedClass(t);
 
         private static readonly ObjectPool<SymbolAndProjectIdSet> s_setPool = new ObjectPool<SymbolAndProjectIdSet>(
-            () => new SymbolAndProjectIdSet());
+            () => new SymbolAndProjectIdSet(SymbolAndProjectIdComparer<INamedTypeSymbol>.SymbolEquivalenceInstance));
 
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
