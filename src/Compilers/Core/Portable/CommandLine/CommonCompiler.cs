@@ -45,6 +45,16 @@ namespace Microsoft.CodeAnalysis
         public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLoggerOpt);
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
+
+        /// <summary>
+        /// Print compiler version
+        /// </summary>
+        /// <param name="consoleOutput"></param>
+        public virtual void PrintVersion(TextWriter consoleOutput)
+        {
+            consoleOutput.WriteLine(GetAssemblyVersion());
+        }
+
         internal abstract string GetToolName();
 
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
@@ -466,6 +476,12 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(!Arguments.IsScriptRunner);
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (Arguments.DisplayVersion)
+            {
+                PrintVersion(consoleOutput);
+                return Succeeded;
+            }
 
             if (Arguments.DisplayLogo)
             {

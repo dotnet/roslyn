@@ -4474,7 +4474,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /help                         Display this usage message (Short form: /?)
  /nologo                       Suppress compiler copyright message
  /noconfig                     Do not auto include CSC.RSP file
- /parallel[+|-]                Concurrent build. 
+ /parallel[+|-]                Concurrent build.
+ /version                      Display the compiler version number and exit.
 
                         - ADVANCED -
  /baseaddress:&lt;address&gt;        Base address for the library to be built
