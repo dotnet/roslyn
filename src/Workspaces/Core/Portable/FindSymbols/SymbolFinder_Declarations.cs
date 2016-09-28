@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+        public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
             Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (name == null)
@@ -127,16 +128,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
-            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), SymbolFilter.All, cancellationToken: cancellationToken);
+            return await FindDeclarationsAsync(
+                project, SearchQuery.Create(name, ignoreCase), SymbolFilter.All, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+        public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (name == null)
@@ -146,13 +148,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
-            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken: cancellationToken);
+            return await FindDeclarationsAsync(
+                project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+        internal static Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
             Project project, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
+                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
             }
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_FindDeclarationsAsync, cancellationToken))
@@ -175,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static async Task<IEnumerable<ISymbol>> FindDeclarationsAsyncImpl(
+        private static async Task<ImmutableArray<ISymbol>> FindDeclarationsAsyncImpl(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -216,20 +219,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Makes certain all namespace symbols returned by API are from the compilation.
         /// </summary>
-        private static IEnumerable<ISymbol> TranslateNamespaces(List<ISymbol> symbols, Compilation compilation)
+        private static ImmutableArray<ISymbol> TranslateNamespaces(List<ISymbol> symbols, Compilation compilation)
         {
+            var result = ArrayBuilder<ISymbol>.GetInstance();
             foreach (var symbol in symbols)
             {
                 var ns = symbol as INamespaceSymbol;
                 if (ns != null)
                 {
-                    yield return compilation.GetCompilationNamespace(ns);
+                    result.Add(compilation.GetCompilationNamespace(ns));
                 }
                 else
                 {
-                    yield return symbol;
+                    result.Add(symbol);
                 }
             }
+
+            return result.ToImmutableAndFree();
         }
 
         private static async Task AddDeclarationsAsync(
@@ -479,8 +485,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static IEnumerable<ISymbol> FilterByCriteria(IEnumerable<ISymbol> symbols, SymbolFilter criteria)
+        internal static ImmutableArray<ISymbol> FilterByCriteria(
+            IEnumerable<ISymbol> symbols, SymbolFilter criteria)
         {
+            var result = ArrayBuilder<ISymbol>.GetInstance();
             foreach (var symbol in symbols)
             {
                 if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
@@ -490,9 +498,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (MeetCriteria(symbol, criteria))
                 {
-                    yield return symbol;
+                    result.Add(symbol);
                 }
             }
+
+            return result.ToImmutableAndFree();
         }
 
         private static bool MeetCriteria(ISymbol symbol, SymbolFilter filter)
