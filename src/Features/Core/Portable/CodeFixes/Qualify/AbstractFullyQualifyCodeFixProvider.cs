@@ -46,53 +46,57 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             using (Logger.LogBlock(FunctionId.Refactoring_FullyQualify, cancellationToken))
             {
                 // Has to be a simple identifier or generic name.
-                if (node != null && CanFullyQualify(diagnostic, ref node))
+                if (node == null || !CanFullyQualify(diagnostic, ref node))
                 {
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return;
+                }
 
-                    var matchingTypes = await this.GetMatchingTypesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
-                    var matchingNamespaces = await this.GetMatchingNamespacesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                    if (matchingTypes.IsEmpty || matchingNamespaces.IsEmpty)
+                var matchingTypes = await this.GetMatchingTypesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
+                var matchingNamespaces = await this.GetMatchingNamespacesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
+
+                if (matchingTypes.IsEmpty && matchingNamespaces.IsEmpty)
+                {
+                    return;
+                }
+
+                var matchingTypeContainers = FilterAndSort(GetContainers(matchingTypes, semanticModel.Compilation));
+                var matchingNamespaceContainers = FilterAndSort(GetContainers(matchingNamespaces, semanticModel.Compilation));
+
+                var proposedContainers =
+                    matchingTypeContainers.Concat(matchingNamespaceContainers)
+                                            .Distinct()
+                                            .Take(MaxResults);
+
+                var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
+
+                foreach (var container in proposedContainers)
+                {
+                    var containerName = displayService.ToMinimalDisplayString(semanticModel, node.SpanStart, container);
+
+                    var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                    string name;
+                    int arity;
+                    syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+
+                    // Actual member name might differ by case.
+                    string memberName;
+                    if (this.IgnoreCase)
                     {
-                        var matchingTypeContainers = FilterAndSort(GetContainers(matchingTypes, semanticModel.Compilation));
-                        var matchingNamespaceContainers = FilterAndSort(GetContainers(matchingNamespaces, semanticModel.Compilation));
-
-                        var proposedContainers =
-                            matchingTypeContainers.Concat(matchingNamespaceContainers)
-                                                  .Distinct()
-                                                  .Take(MaxResults);
-
-                        var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
-
-                        foreach (var container in proposedContainers)
-                        {
-                            var containerName = displayService.ToMinimalDisplayString(semanticModel, node.SpanStart, container);
-
-                            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                            string name;
-                            int arity;
-                            syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
-
-                            // Actual member name might differ by case.
-                            string memberName;
-                            if (this.IgnoreCase)
-                            {
-                                var member = container.GetMembers(name).FirstOrDefault();
-                                memberName = member != null ? member.Name : name;
-                            }
-                            else
-                            {
-                                memberName = name;
-                            }
-
-                            var codeAction = new MyCodeAction(
-                                $"{containerName}.{memberName}",
-                                c => ProcessNode(document, node, containerName, c));
-
-                            context.RegisterCodeFix(codeAction, diagnostic);
-                        }
+                        var member = container.GetMembers(name).FirstOrDefault();
+                        memberName = member != null ? member.Name : name;
                     }
+                    else
+                    {
+                        memberName = name;
+                    }
+
+                    var codeAction = new MyCodeAction(
+                        $"{containerName}.{memberName}",
+                        c => ProcessNode(document, node, containerName, c));
+
+                    context.RegisterCodeFix(codeAction, diagnostic);
                 }
             }
         }
