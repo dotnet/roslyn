@@ -518,17 +518,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             int reserved = TupleTypeSymbol.IsElementNameReserved(name);
             if (reserved == 0)
             {
-                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberNameAnyPosition, syntax, name);
+                Error(diagnostics, ErrorCode.ERR_TupleReservedElementNameAnyPosition, syntax, name);
                 return false;
             }
             else if (reserved > 0 && reserved != index + 1)
             {
-                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberName, syntax, name, reserved);
+                Error(diagnostics, ErrorCode.ERR_TupleReservedElementName, syntax, name, reserved);
                 return false;
             }
             else if (!uniqueFieldNames.Add(name))
             {
-                Error(diagnostics, ErrorCode.ERR_TupleDuplicateMemberName, syntax);
+                Error(diagnostics, ErrorCode.ERR_TupleDuplicateElementName, syntax);
                 return false;
             }
             return true;

@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' an empty collection of syntax errors.
-        Friend Shared EmptyErrorCollection As New ReadOnlyCollection(Of Diagnostic)(New VBDiagnostic() {})
+        Friend Shared EmptyErrorCollection As New ReadOnlyCollection(Of Diagnostic)(Array.Empty(Of Diagnostic))
 
         ''' <summary>
         ''' Get all syntax errors associated with this node, or any child nodes, grand-child nodes, etc. The errors

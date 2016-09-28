@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -23,12 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _method = method;
         }
 
-        private TypeSymbol GetDynamicType(TypeSymbol type, RefKind refKind, ImmutableArray<bool> dynamicFlags)
-        {
-            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(type, _sourceAssembly, refKind, dynamicFlags, checkLength: false);
-        }
-
-        public override LocalSymbol GetLocalVariable(string name, int slotIndex, LocalInfo<TypeSymbol> info, ImmutableArray<bool> dynamicFlagsOpt)
+        public override LocalSymbol GetLocalVariable(
+            string name,
+            int slotIndex,
+            LocalInfo<TypeSymbol> info,
+            ImmutableArray<bool> dynamicFlagsOpt,
+            ImmutableArray<string> tupleElementNamesOpt)
         {
             var isPinned = info.IsPinned;
 
@@ -48,24 +47,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 type = info.Type;
             }
 
-            if (!dynamicFlagsOpt.IsDefault)
-            {
-                type = GetDynamicType(type, refKind, dynamicFlagsOpt);
-            }
-
             // Custom modifiers can be dropped since binding ignores custom
             // modifiers from locals and since we only need to preserve
             // the type of the original local in the generated method.
+            type = IncludeDynamicAndTupleElementNamesIfAny(type, refKind, dynamicFlagsOpt, tupleElementNamesOpt);
             return new EELocalSymbol(_method, EELocalSymbol.NoLocations, name, slotIndex, kind, type, refKind, isPinned, isCompilerGenerated: false, canScheduleToStack: false);
         }
 
-        public override LocalSymbol GetLocalConstant(string name, TypeSymbol type, ConstantValue value, ImmutableArray<bool> dynamicFlagsOpt)
+        public override LocalSymbol GetLocalConstant(
+            string name,
+            TypeSymbol type,
+            ConstantValue value,
+            ImmutableArray<bool> dynamicFlagsOpt,
+            ImmutableArray<string> tupleElementNamesOpt)
         {
-            if (!dynamicFlagsOpt.IsDefault)
-            {
-                type = GetDynamicType(type, RefKind.None, dynamicFlagsOpt);
-            }
-
+            type = IncludeDynamicAndTupleElementNamesIfAny(type, RefKind.None, dynamicFlagsOpt, tupleElementNamesOpt);
             return new EELocalConstantSymbol(_method, name, type, value);
         }
 
@@ -100,6 +96,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             bool isNoPiaLocalType;
             return _metadataDecoder.GetSymbolForTypeHandleOrThrow(handle, out isNoPiaLocalType, allowTypeSpec: true, requireShortForm: false);
+        }
+
+        private TypeSymbol IncludeDynamicAndTupleElementNamesIfAny(
+            TypeSymbol type,
+            RefKind refKind,
+            ImmutableArray<bool> dynamicFlagsOpt,
+            ImmutableArray<string> tupleElementNamesOpt)
+        {
+            if (!dynamicFlagsOpt.IsDefault)
+            {
+                type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(type, _sourceAssembly, refKind, dynamicFlagsOpt, checkLength: false);
+            }
+            if (!tupleElementNamesOpt.IsDefault)
+            {
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _sourceAssembly, tupleElementNamesOpt);
+            }
+            return type;
         }
     }
 }

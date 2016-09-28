@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             if (this.CodeAction.GetCodeActions().Any())
             {
-                var nestedSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
+                var nestedSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
                 var fixCount = this.CodeAction.GetCodeActions().Length;
 
                 foreach (var c in this.CodeAction.GetCodeActions())
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 _actionSets = ImmutableArray.Create(
-                    new SuggestedActionSet(nestedSuggestedActions.ToImmutable()));
+                    new SuggestedActionSet(nestedSuggestedActions.ToImmutableAndFree()));
 
                 return Task.FromResult(_actionSets);
             }

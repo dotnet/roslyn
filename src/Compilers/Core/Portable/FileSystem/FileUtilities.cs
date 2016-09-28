@@ -240,7 +240,7 @@ namespace Roslyn.Utilities
 
             try
             {
-                return PortableShim.Path.GetFullPath(path);
+                return Path.GetFullPath(path);
             }
             catch (ArgumentException e)
             {
@@ -258,7 +258,7 @@ namespace Roslyn.Utilities
 
         internal static string NormalizeDirectoryPath(string path)
         {
-            return NormalizeAbsolutePath(path).TrimEnd(PortableShim.Path.DirectorySeparatorChar, PortableShim.Path.AltDirectorySeparatorChar);
+            return NormalizeAbsolutePath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
 
         internal static string TryNormalizeAbsolutePath(string path)
@@ -267,7 +267,7 @@ namespace Roslyn.Utilities
 
             try
             {
-                return PortableShim.Path.GetFullPath(path);
+                return Path.GetFullPath(path);
             }
             catch
             {
@@ -281,7 +281,7 @@ namespace Roslyn.Utilities
 
             try
             {
-                return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read);
+                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
             catch (IOException)
             {
@@ -297,7 +297,7 @@ namespace Roslyn.Utilities
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
-            return RethrowExceptionsAsIOException(() => PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read, 4096, PortableShim.FileOptions.Asynchronous));
+            return RethrowExceptionsAsIOException(() => new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous));
         }
 
         internal static T RethrowExceptionsAsIOException<T>(Func<T> operation)
@@ -364,7 +364,7 @@ namespace Roslyn.Utilities
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
             try
             {
-                return PortableShim.File.GetLastWriteTimeUtc(fullPath);
+                return File.GetLastWriteTimeUtc(fullPath);
             }
             catch (Exception e)
             {
@@ -376,7 +376,7 @@ namespace Roslyn.Utilities
         {
             try
             {
-                return PortableShim.File.OpenRead(path);
+                return File.OpenRead(path);
             }
             catch (ArgumentException)
             {

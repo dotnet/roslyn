@@ -424,6 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(syntaxTrees.All(Function(tree) syntaxTrees(syntaxTreeOrdinalMap(tree)) Is tree))
             Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.AsImmutable(), EqualityComparer(Of SyntaxTree).Default))
+            Debug.Assert(embeddedTrees.All(Function(treeAndDeclaration) declarationTable.Contains(treeAndDeclaration.DeclarationEntry)))
 
             _options = options
             _syntaxTrees = syntaxTrees
@@ -926,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 removeSet.Add(tree)
             Next
 
-            Debug.Assert(Not removeSet.IsEmpty())
+            Debug.Assert(removeSet.Count > 0)
 
             ' We're going to have to revise the ordinals of all
             ' trees after the first one removed, so just build
@@ -971,7 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return UpdateSyntaxTrees(ImmutableArray(Of SyntaxTree).Empty,
                                      ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                                      ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)(),
-                                     DeclarationTable.Empty,
+                                     AddEmbeddedTrees(DeclarationTable.Empty, _embeddedTrees),
                                      referenceDirectivesChanged:=_declarationTable.ReferenceDirectives.Any())
         End Function
 

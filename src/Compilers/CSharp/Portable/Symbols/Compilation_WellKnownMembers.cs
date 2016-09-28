@@ -546,10 +546,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return names;
             }
 
-            private static bool TryGetNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
+            internal static bool TryGetNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
             {
                 type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
-                Debug.Assert(namesBuilder.Any());
                 return namesBuilder.Any(name => name != null);
             }
 
@@ -585,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol booleanType, int customModifiersCount, RefKind refKind)
             {
                 var flagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, customModifiersCount, refKind, flagsBuilder, addCustomModifierFlags: true);
+                Encode(type, customModifiersCount, refKind, flagsBuilder, addCustomModifierFlags: true);
                 Debug.Assert(flagsBuilder.Any());
                 Debug.Assert(flagsBuilder.Contains(true));
 
@@ -599,21 +598,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constantsBuilder.ToImmutableAndFree();
             }
 
-            internal static ImmutableArray<bool> Encode(TypeSymbol type, int customModifiersCount, RefKind refKind)
-            {
-                var transformFlagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, customModifiersCount, refKind, transformFlagsBuilder, addCustomModifierFlags: true);
-                return transformFlagsBuilder.ToImmutableAndFree();
-            }
-
             internal static ImmutableArray<bool> EncodeWithoutCustomModifierFlags(TypeSymbol type, RefKind refKind)
             {
                 var transformFlagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, -1, refKind, transformFlagsBuilder, addCustomModifierFlags: false);
+                Encode(type, -1, refKind, transformFlagsBuilder, addCustomModifierFlags: false);
                 return transformFlagsBuilder.ToImmutableAndFree();
             }
 
-            private static void EncodeInternal(TypeSymbol type, int customModifiersCount, RefKind refKind, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
+            internal static void Encode(TypeSymbol type, int customModifiersCount, RefKind refKind, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
             {
                 Debug.Assert(!transformFlagsBuilder.Any());
 

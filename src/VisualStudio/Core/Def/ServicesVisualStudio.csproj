@@ -90,6 +90,7 @@
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\ICodeModelFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\IDeferredProjectWorkspaceService.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContextFactory.cs" />
@@ -108,14 +109,10 @@
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
     <Compile Include="Implementation\Options\LanguageSettingsPersister.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
-    <Compile Include="Implementation\Remote\IRemoteHostClientFactory.cs" />
-    <Compile Include="Implementation\Remote\IRemoteHostClientService.cs" />
-    <Compile Include="Implementation\Remote\RemoteHostClient.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.SolutionChecksumUpdater.cs" />
     <Compile Include="Implementation\Remote\RemoteHostOptions.cs" />
-    <Compile Include="Implementation\Remote\WellKnownRemoteHostServices.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioDiagnosticListSuppressionStateService.cs" />
@@ -285,7 +282,6 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />

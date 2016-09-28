@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -107,6 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!localFunc.WasCompilerGenerated) EnterParameters(localFunc.Symbol.Parameters);
 
             var oldPending2 = SavePending();
+
+            // If this is an iterator, there's an implicit branch before the first statement
+            // of the function where the enumerable is returned.
+            if (localFunc.Symbol.IsIterator)
+            {
+                PendingBranches.Add(new PendingBranch(null, this.State));
+            }
+
             VisitAlways(localFunc.Body);
             RestorePending(oldPending2); // process any forward branches within the lambda body
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
@@ -126,17 +135,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.State = pending.State;
                 BoundNode branch = pending.Branch;
-                if (branch.Kind == BoundKind.ReturnStatement)
-                {
-                    // ensure out parameters are definitely assigned at each return
-                    LeaveParameters(localFunc.Symbol.Parameters, branch.Syntax, 
-                                    branch.WasCompilerGenerated ? location : null);
-                    IntersectWith(ref stateAtReturn, ref this.State);
-                }
-                else
-                {
-                    // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
-                }
+                LeaveParameters(localFunc.Symbol.Parameters, branch?.Syntax,
+                                branch?.WasCompilerGenerated == true
+                                    ? location : null);
+                IntersectWith(ref stateAtReturn, ref this.State);
             }
 
             // Check for changes to the read and write sets

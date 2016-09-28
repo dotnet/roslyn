@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
         End Function
 
         Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             Dim match = regionDirective.GetMatchingStartOrEndDirective(cancellationToken)
             If match IsNot Nothing Then

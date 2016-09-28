@@ -78,11 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 
         public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, ProjectId id, out IntPtr imageList, out ushort index)
         {
-            var project = workspace.GetHostProject(id);
-            if (project != null)
+            var hierarchy = workspace.GetHostProject(id)?.Hierarchy;
+            if (hierarchy != null)
             {
-                var hierarchy = project.Hierarchy;
-
                 return TryGetImageListAndIndex(hierarchy, imageService, VSConstants.VSITEMID_ROOT, out imageList, out index);
             }
 

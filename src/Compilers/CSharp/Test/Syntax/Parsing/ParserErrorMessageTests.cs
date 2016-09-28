@@ -2416,7 +2416,7 @@ Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
 
         // TODO: extra error CS1014
         [Fact]
-        public void CS1043ERR_SemiOrLBraceExpected()
+        public void CS7887ERR_SemiOrLBraceOrArrowExpected()
         {
             var test = @"
 using System;
@@ -2434,9 +2434,9 @@ return 1;
 ";
 
             ParseAndValidate(test,
-    // (7,13): error CS1043: { or ; expected
+    // (7,13): error CS7887: { or ; or => expected
     //         get return 1;
-    Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "return"),
+    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "return"),
     // (8,2): error CS1513: } expected
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
@@ -3452,6 +3452,7 @@ class MyClass {
         }
 
         // TODO: extra error CS1001
+
         [Fact]
         public void CS1536ERR_NoVoidParameter()
         {
@@ -3469,6 +3470,23 @@ class Test
     // (4,25): error CS1001: Identifier expected
     //     public void foo(void){}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
+        }
+
+        [Fact]
+        public void CS1536ERR_NoVoidParameter_02()
+        {
+            var test = @"
+class Test
+{
+    object o = (ref void x) => {};
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS1536: Invalid parameter type 'void'
+                //     object o = (ref void x) => {};
+                Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(4, 21)
+                );
         }
 
         [Fact]

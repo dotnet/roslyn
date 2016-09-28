@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -125,9 +126,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
-                ImmutableArray<string>.Empty,
                 filePath: additionalFilePath,
                 sourceCodeKind: SourceCodeKind.Regular,
+                getFolderNames: _ => SpecializedCollections.EmptyReadOnlyList<string>(),
                 canUseTextBuffer: _ => true,
                 updatedOnDiskHandler: s_additionalDocumentUpdatedOnDiskEventHandler,
                 openedHandler: s_additionalDocumentOpenedEventHandler,

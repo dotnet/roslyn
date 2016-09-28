@@ -5664,7 +5664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = this.CheckInstanceOrStatic(node, receiver, fieldSymbol, ref resultKind, diagnostics);
             }
 
-            if (!hasError && fieldSymbol.IsFixed)
+            if (!hasError && fieldSymbol.IsFixed && EnclosingNameofArgument == null)
             {
                 TypeSymbol receiverType = receiver.Type;
                 hasError =

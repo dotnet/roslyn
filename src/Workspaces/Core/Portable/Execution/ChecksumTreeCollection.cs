@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -72,9 +73,16 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
         {
-            // search snapshots we have
-            foreach (var cache in _rootTreeNodes.Values)
+            if (checksum == Checksum.Null)
             {
+                // check nil case
+                return Asset.Null;
+            }
+
+            // search snapshots we have
+            foreach (var kv in _rootTreeNodes)
+            {
+                var cache = kv.Value;
                 var checksumObject = cache.TryGetChecksumObject(checksum, cancellationToken);
                 if (checksumObject != null)
                 {
@@ -83,10 +91,11 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             // search global assets
-            foreach (var asset in _globalAssets.Values)
+            foreach (var kv in _globalAssets)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                var asset = kv.Value;
                 if (asset.Checksum == checksum)
                 {
                     return asset;
@@ -102,11 +111,18 @@ namespace Microsoft.CodeAnalysis.Execution
             using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
             {
                 var numberOfChecksumsToSearch = searchingChecksumsLeft.Object.Count;
-                var result = new Dictionary<Checksum, ChecksumObject>();
+                var result = new Dictionary<Checksum, ChecksumObject>(numberOfChecksumsToSearch);
+
+                // check nil case
+                if (searchingChecksumsLeft.Object.Remove(Checksum.Null))
+                {
+                    result[Checksum.Null] = Asset.Null;
+                }
 
                 // search checksum trees we have
-                foreach (var cache in _rootTreeNodes.Values)
+                foreach (var kv in _rootTreeNodes)
                 {
+                    var cache = kv.Value;
                     cache.AppendChecksumObjects(result, searchingChecksumsLeft.Object, cancellationToken);
                     if (result.Count == numberOfChecksumsToSearch)
                     {
@@ -117,10 +133,11 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
 
                 // search global assets
-                foreach (var asset in _globalAssets.Values)
+                foreach (var kv in _globalAssets)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    var asset = kv.Value;
                     if (searchingChecksumsLeft.Object.Remove(asset.Checksum))
                     {
                         result[asset.Checksum] = asset;
@@ -141,8 +158,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)
         {
-            foreach (var cache in _rootTreeNodes.Values)
+            foreach (var kv in _rootTreeNodes)
             {
+                var cache = kv.Value;
                 var entry = cache.TryGetChecksumObjectEntry(key, kind, cancellationToken);
                 if (entry != null)
                 {
@@ -186,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return collection;
             }
 
-            return map.GetOrAdd(kind, _ => new ChecksumCollection(serializer, kind, SpecializedCollections.EmptyArray<object>()));
+            return map.GetOrAdd(kind, _ => new ChecksumCollection(serializer, kind, Array.Empty<object>()));
         }
 
         private static readonly ConditionalWeakTable<ChecksumCollection, Task<ChecksumCollection>>.CreateValueCallback s_emptyChecksumCollectionTaskCallback = c => Task.FromResult(c);

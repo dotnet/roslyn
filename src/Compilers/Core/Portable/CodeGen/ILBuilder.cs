@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void AddLocalToScope(LocalDefinition local)
         {
-            HasDynamicLocal |= local.IsDynamic;
+            HasDynamicLocal |= !local.DynamicTransformFlags.IsEmpty;
             _scopeManager.AddLocal(local);
         }
 
@@ -1188,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void AddLocalConstantToScope(LocalConstantDefinition localConstant)
         {
-            HasDynamicLocal |= localConstant.IsDynamic;
+            HasDynamicLocal |= !localConstant.DynamicTransformFlags.IsEmpty;
             _scopeManager.AddLocalConstant(localConstant);
         }
 

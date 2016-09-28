@@ -6,6 +6,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -178,12 +179,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static VersionStamp GetAnalyzerVersion(string path)
         {
-            if (path == null || !PortableShim.File.Exists(path))
+            if (path == null || !File.Exists(path))
             {
                 return VersionStamp.Default;
             }
 
-            return VersionStamp.Create(PortableShim.File.GetLastWriteTimeUtc(path));
+            return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
         }
 
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(string fullPath, AnalyzerLoadFailureEventArgs e)
