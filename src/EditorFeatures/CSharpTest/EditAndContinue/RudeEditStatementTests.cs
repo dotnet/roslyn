@@ -7118,6 +7118,32 @@ var (x1, x2) = (30, 40);
         }
 
         [Fact]
+        public void ForEachStatement()
+        {
+            string src1 = @"
+foreach(var x1 in new[] { 1 }) { Console.Write(1); }
+";
+
+            string src2 = @"
+foreach(var x3 in new[] { 1 }) { Console.Write(1); }
+foreach(var x1 in new[] { 30 }) { Console.Write(50); }
+";
+
+            // variable names weight more in matching
+            var expected = new MatchingPairs
+            {
+                { "foreach(var x1 in new[] { 1 }) { Console.Write(1); }", "foreach(var x1 in new[] { 30 }) { Console.Write(50); }" },
+                { "{ Console.Write(1); }", "{ Console.Write(50); }" },
+                { "Console.Write(1);", "Console.Write(1);" }
+            };
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
         public void ForEachComponentStatement()
         {
             string src1 = @"
@@ -7198,7 +7224,7 @@ for (var x1 = 30; ; ) { Console.Write(50); }
             expected.AssertEqual(actual);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13904")]
         [WorkItem(13904, "https://github.com/dotnet/roslyn/issues/13904")]
         public void Assignment()
         {
@@ -7215,9 +7241,9 @@ var x1 = 100;
             // https://github.com/dotnet/roslyn/issues/13904
             var expected = new MatchingPairs
             {
-                { "var x1 = 1;", "var x3 = 1;" },
-                { "var x1 = 1", "var x3 = 1" },
-                { "x1 = 1", "x3 = 1" }
+                { "var x1 = 1;", "var x1 = 1;" },
+                { "var x1 = 1", "var x1 = 1" },
+                { "x1 = 1", "x1 = 1" }
             };
 
             var match = GetMethodMatch(src1, src2);
