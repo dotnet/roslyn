@@ -380,22 +380,14 @@ Inner i;
         }
 
         [Fact]
-        public static void FindSourceDeclarationsAsync_Solution_Test_Cancellation()
+        public async Task FindSourceDeclarationsAsync_Solution_Test_Cancellation()
         {
-            Assert.Throws<AggregateException>(() =>
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
-                try
-                {
-                    var cts = new CancellationTokenSource();
-                    var solution = GetSolution(WorkspaceKind.SingleClass);
-                    cts.Cancel();
-                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(solution, "Test", true, SymbolFilter.All, cts.Token).Result;
-                }
-                catch (AggregateException ex)
-                {
-                    VerifyInnerExceptionIsType<OperationCanceledException>(ex);
-                    throw;
-                }
+                var cts = new CancellationTokenSource();
+                var solution = GetSolution(WorkspaceKind.SingleClass);
+                cts.Cancel();
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, "Test", true, SymbolFilter.All, cts.Token);
             });
         }
 
@@ -437,19 +429,11 @@ Inner i;
         }
 
         [Fact]
-        public static void FindSourceDeclarationsAsync_Project_Func_Test_NullProject()
+        public async Task FindSourceDeclarationsAsync_Project_Func_Test_NullProject()
         {
-            Assert.Throws<AggregateException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
-                try
-                {
-                    var declarations = SymbolFinder.FindSourceDeclarationsAsync((Project)null, str => str.Contains("Test")).Result;
-                }
-                catch (AggregateException ex)
-                {
-                    VerifyInnerExceptionArgumentNull(ex, "project");
-                    throw;
-                }
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync((Project)null, str => str.Contains("Test"));
             });
         }
 
@@ -464,22 +448,14 @@ Inner i;
         }
 
         [Fact]
-        public static void FindSourceDeclarationsAsync_Project_Func_Test_Cancellation()
+        public async Task FindSourceDeclarationsAsync_Project_Func_Test_Cancellation()
         {
-            Assert.Throws<AggregateException>(() =>
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
-                try
-                {
-                    var cts = new CancellationTokenSource();
-                    var project = GetProject(WorkspaceKind.SingleClass);
-                    cts.Cancel();
-                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), SymbolFilter.All, cts.Token).Result;
-                }
-                catch (AggregateException ex)
-                {
-                    VerifyInnerExceptionIsType<OperationCanceledException>(ex);
-                    throw;
-                }
+                var cts = new CancellationTokenSource();
+                var project = GetProject(WorkspaceKind.SingleClass);
+                cts.Cancel();
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), SymbolFilter.All, cts.Token);
             });
         }
 
@@ -521,49 +497,33 @@ Inner i;
         }
 
         [Fact]
-        public static void FindSourceDeclarationsAsync_Solution_Func_Test_NullSolution()
+        public async Task FindSourceDeclarationsAsync_Solution_Func_Test_NullSolution()
         {
-            Assert.Throws<AggregateException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
-                try
-                {
-                    var declarations = SymbolFinder.FindSourceDeclarationsAsync((Solution)null, str => str.Contains("Test")).Result;
-                }
-                catch (AggregateException ex)
-                {
-                    VerifyInnerExceptionArgumentNull(ex, "solution");
-                    throw;
-                }
+                await SymbolFinder.FindSourceDeclarationsAsync((Solution)null, str => str.Contains("Test"));
             });
         }
 
         [Fact]
-        public static void FindSourceDeclarationsAsync_Solution_Func_Test_NullPredicate()
+        public async Task FindSourceDeclarationsAsync_Solution_Func_Test_NullPredicate()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
                 var solution = GetSolution(WorkspaceKind.SingleClass);
-                var declarations = SymbolFinder.FindSourceDeclarationsAsync(solution, null).Result;
+                await SymbolFinder.FindSourceDeclarationsAsync(solution, null);
             });
         }
 
         [Fact]
-        public static void FindSourceDeclarationsAsync_Solution_Func_Test_Cancellation()
+        public async Task FindSourceDeclarationsAsync_Solution_Func_Test_Cancellation()
         {
-            Assert.Throws<AggregateException>(() =>
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
-                try
-                {
-                    var cts = new CancellationTokenSource();
-                    var solution = GetSolution(WorkspaceKind.SingleClass);
-                    cts.Cancel();
-                    var declarations = SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"), SymbolFilter.All, cts.Token).Result;
-                }
-                catch (AggregateException ex)
-                {
-                    VerifyInnerExceptionIsType<OperationCanceledException>(ex);
-                    throw;
-                }
+                var cts = new CancellationTokenSource();
+                var solution = GetSolution(WorkspaceKind.SingleClass);
+                cts.Cancel();
+                await SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"), SymbolFilter.All, cts.Token);
             });
         }
 
