@@ -2130,7 +2130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Is this a field?
-            SourceMemberFieldSymbolFromDesignation expressionVariableField = LookupDeclaredField(declarationExpression.VariableDesignation());
+            GlobalExpressionVariable expressionVariableField = LookupDeclaredField(declarationExpression.VariableDesignation());
 
             if ((object)expressionVariableField == null)
             {
@@ -2158,14 +2158,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         expressionVariableField, null, LookupResultKind.Viable, fieldType);
         }
 
-        internal SourceMemberFieldSymbolFromDesignation LookupDeclaredField(SingleVariableDesignationSyntax variableDesignator)
+        internal GlobalExpressionVariable LookupDeclaredField(SingleVariableDesignationSyntax variableDesignator)
         {
-            foreach (Symbol member in ContainingType?.GetMembers(variableDesignator.Identifier.ValueText) ?? ImmutableArray<Symbol>.Empty)
+            return LookupDeclaredField(variableDesignator, variableDesignator.Identifier.ValueText);
+        }
+
+        internal GlobalExpressionVariable LookupDeclaredField(DeclarationPatternSyntax variable)
+        {
+            return LookupDeclaredField(variable, variable.Identifier.ValueText);
+        }
+
+        internal GlobalExpressionVariable LookupDeclaredField(SyntaxNode node, string identifier)
+        {
+            foreach (Symbol member in ContainingType?.GetMembers(identifier) ?? ImmutableArray<Symbol>.Empty)
             {
-                SourceMemberFieldSymbolFromDesignation field;
+                GlobalExpressionVariable field;
                 if (member.Kind == SymbolKind.Field &&
-                    (field = member as SourceMemberFieldSymbolFromDesignation)?.SyntaxTree == variableDesignator.SyntaxTree &&
-                    field.SyntaxNode == variableDesignator)
+                    (field = member as GlobalExpressionVariable)?.SyntaxTree == node.SyntaxTree &&
+                    field.SyntaxNode == node)
                 {
                     return field;
                 }
@@ -5664,7 +5674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = this.CheckInstanceOrStatic(node, receiver, fieldSymbol, ref resultKind, diagnostics);
             }
 
-            if (!hasError && fieldSymbol.IsFixed)
+            if (!hasError && fieldSymbol.IsFixed && EnclosingNameofArgument == null)
             {
                 TypeSymbol receiverType = receiver.Type;
                 hasError =

@@ -309,18 +309,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private void AddBindings(ArrayBuilder<BoundStatement> sectionBuilder, ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>> bindings)
+            private void AddBindings(ArrayBuilder<BoundStatement> sectionBuilder, ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> bindings)
             {
-                if (bindings.IsDefaultOrEmpty)
+                if (!bindings.IsDefaultOrEmpty)
                 {
-                    return;
-                }
-
-                foreach (var kv in bindings)
-                {
-                    var source = kv.Key;
-                    var dest = kv.Value;
-                    sectionBuilder.Add(_factory.Assignment(_factory.Local(dest), source));
+                    foreach (var kv in bindings)
+                    {
+                        var source = kv.Key;
+                        var dest = kv.Value;
+                        var rewriter = this.LocalRewriter;
+                        sectionBuilder.Add(_factory.ExpressionStatement(
+                            rewriter.MakeStaticAssignmentOperator(
+                                _factory.Syntax, rewriter.VisitExpression(dest), rewriter.VisitExpression(source), RefKind.None, dest.Type, false)));
+                    }
                 }
             }
 

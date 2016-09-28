@@ -49,14 +49,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-    <Compile Include="CodeLens\CodeLensArguments.cs" />
-    <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
-    <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
-    <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeLens\CodeLensArguments.cs" />
+    <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
+    <Compile Include="Services\CodeAnalysisService_FindReferences.cs" />
+    <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
+    <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Diagnostics\DiagnosticArguments.cs" />
     <Compile Include="Services\CodeAnalysisService.cs" />
@@ -72,7 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>

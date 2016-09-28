@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var document = kvp.Key;
                     var documentQueue = kvp.Value;
 
-                    documentTasks.Add(Task.Run(async () => await ProcessDocumentQueueAsync(document, documentQueue, wrapper).ConfigureAwait(false), _cancellationToken));
+                    documentTasks.Add(Task.Run(() => ProcessDocumentQueueAsync(document, documentQueue, wrapper), _cancellationToken));
                 }
 
                 await Task.WhenAll(documentTasks).ConfigureAwait(false);

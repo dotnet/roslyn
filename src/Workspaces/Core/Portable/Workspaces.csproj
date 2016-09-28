@@ -276,12 +276,11 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Workspaces" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
@@ -383,6 +382,7 @@
     <Compile Include="Execution\SolutionChecksumObjectInfo.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.cs" />
     <Compile Include="Execution\SolutionChecksumService.cs" />
+    <Compile Include="FindSymbols\ISymbolFinderEngineService.cs" />
     <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
@@ -392,6 +392,12 @@
     <Compile Include="Options\GlobalOptionService.cs" />
     <Compile Include="Options\IGlobalOptionService.cs" />
     <Compile Include="Options\IWorkspaceOptionService.cs" />
+    <Compile Include="Remote\IRemoteHostClientFactory.cs" />
+    <Compile Include="Remote\IRemoteHostClientService.cs" />
+    <Compile Include="Remote\RemoteHostClient.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.RemoteHostClientService.cs" />
+    <Compile Include="Remote\WellKnownRemoteHostServices.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
     <Compile Include="Shared\Utilities\IOUtilities.cs" />

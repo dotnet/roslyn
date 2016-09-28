@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.TypeParameterKind == TypeParameterKind.Method;
         }
 
-        protected override Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<ITypeParameterSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -29,21 +29,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(SpecializedCollections.SingletonEnumerable(
+                    return Task.FromResult(ImmutableArray.Create(
                         symbolAndProjectId.WithSymbol((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal])));
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(SpecializedCollections.SingletonEnumerable(
+                    return Task.FromResult(ImmutableArray.Create(
                         symbolAndProjectId.WithSymbol((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal])));
                 }
             }
 
-            return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId>();
+            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ITypeParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : fullName;
         }
 
-        protected override Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
             Document document,
             CancellationToken cancellationToken)

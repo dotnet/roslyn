@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamespaceSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : symbol.Name;
         }
 
-        protected override async Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             INamespaceSymbol symbol,
             Document document,
             CancellationToken cancellationToken)
