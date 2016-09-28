@@ -454,12 +454,12 @@ Inner i;
         }
 
         [Fact]
-        public static void FindSourceDeclarationsAsync_Project_Func_Test_NullPredicate()
+        public async Task FindSourceDeclarationsAsync_Project_Func_Test_NullPredicate()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
                 var project = GetProject(WorkspaceKind.SingleClass);
-                var declarations = SymbolFinder.FindSourceDeclarationsAsync(project, null).Result;
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, null);
             });
         }
 
