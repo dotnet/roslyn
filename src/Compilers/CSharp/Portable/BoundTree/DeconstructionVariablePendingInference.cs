@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundLocal(this.Syntax, local, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
 
                 case SymbolKind.Field:
-                    var field = (SourceMemberFieldSymbolFromDesignation)this.VariableSymbol;
+                    var field = (GlobalExpressionVariable)this.VariableSymbol;
                     var inferenceDiagnostics = DiagnosticBag.GetInstance();
                     if (inferenceFailed)
                     {

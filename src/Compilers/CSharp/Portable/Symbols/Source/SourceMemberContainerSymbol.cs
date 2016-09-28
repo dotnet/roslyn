@@ -3245,11 +3245,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (designation.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
-                    var field = SourceMemberFieldSymbolFromDesignation.Create(this, (SingleVariableDesignationSyntax)designation,
-                                                                        type, DeclarationModifiers.Private, null, assignment);
-
+                    var single = (SingleVariableDesignationSyntax)designation;
+                    var field = GlobalExpressionVariable.Create(
+                        containingType: this,
+                        modifiers: DeclarationModifiers.Private,
+                        typeSyntax: type,
+                        name: single.Identifier.ValueText,
+                        syntax: designation,
+                        location: designation.Location,
+                        containingFieldOpt: null,
+                        nodeToBind: assignment);
                     builder.Add(field);
-
                     break;
 
                 case SyntaxKind.ParenthesizedVariableDesignation:
