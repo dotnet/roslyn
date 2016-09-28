@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
@@ -9,7 +9,6 @@ using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using static Roslyn.Test.Performance.Runner.Tools;
 using static Roslyn.Test.Performance.Runner.Benchview;
 using static Roslyn.Test.Performance.Runner.TraceBackup;
-using Roslyn.Test.Performance.Runner;
 using Mono.Options;
 
 namespace Runner
@@ -40,9 +39,9 @@ namespace Runner
 
             if (shouldReportBenchview)
             {
-                if(!CheckBenchViewOptions(submissionType, submissionName) ||
-                   !CheckEnvironment() ||
-                   !DetermineBranch(ref branch))
+                if (!CheckBenchViewOptions(submissionType, submissionName) ||
+                    !CheckEnvironment() ||
+                    !DetermineBranch(ref branch))
                 {
                     return -1;
                 }
@@ -142,7 +141,6 @@ namespace Runner
 
         private static async Task AsyncMain(bool isRunningUnderCI)
         {
-
             RuntimeSettings.IsRunnerAttached = true;
 
             var testDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Perf", "tests");
@@ -230,7 +228,6 @@ namespace Runner
                         traceManager.Stop();
                         traceManager.ResetScenarioGenerator();
                     }
-
                 }
                 catch (Exception)
                 {
