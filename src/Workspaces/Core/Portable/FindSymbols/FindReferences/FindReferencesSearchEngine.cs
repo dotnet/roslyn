@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
         }
 
-        public async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId)
         {
             await _progress.OnStartedAsync().ConfigureAwait(false);

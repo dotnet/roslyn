@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static async Task<IEnumerable<ReferencedSymbol>> FindRenamableReferencesAsync(
+        internal static async Task<ImmutableArray<ReferencedSymbol>> FindRenamableReferencesAsync(
             SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)

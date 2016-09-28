@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var result = await FindImplementedInterfaceMembersAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
                 solution, projects, cancellationToken).ConfigureAwait(false);
-            return result.Select(s => s.Symbol).ToList();
+            return result.SelectAsArray(s => s.Symbol);
         }
 
-        internal static async Task<IEnumerable<SymbolAndProjectId>> FindImplementedInterfaceMembersAsync(
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementedInterfaceMembersAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Member can only implement interface members if it is an explicit member, or if it is
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var explicitImplementations = symbol.ExplicitInterfaceImplementations();
                 if (explicitImplementations.Length > 0)
                 {
-                    return explicitImplementations.Select(symbolAndProjectId.WithSymbol);
+                    return explicitImplementations.SelectAsArray(symbolAndProjectId.WithSymbol);
                 }
                 else if (
                     symbol.DeclaredAccessibility == Accessibility.Public && !symbol.IsStatic &&
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         containingType, solution, projects, cancellationToken).ConfigureAwait(false);
                     var allTypes = derivedClasses.Concat(containingType);
 
-                    List<SymbolAndProjectId> results = null;
+                    var builder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
                     foreach (var type in allTypes.Convert<INamedTypeSymbol, ITypeSymbol>())
                     {
@@ -136,8 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                         if (implementation.Symbol != null &&
                                             SymbolEquivalenceComparer.Instance.Equals(implementation.Symbol.OriginalDefinition, symbol.OriginalDefinition))
                                         {
-                                            results = results ?? new List<SymbolAndProjectId>();
-                                            results.Add(bestMethod);
+                                            builder.Add(bestMethod);
                                         }
                                     }
                                 }
@@ -145,14 +144,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
 
-                    if (results != null)
-                    {
-                        return results.Distinct(SymbolAndProjectIdComparer.SymbolEquivalenceInstance);
-                    }
+                    var result = builder.Distinct(SymbolAndProjectIdComparer.SymbolEquivalenceInstance)
+                                        .ToImmutableArray();
+                    builder.Free();
+                    return result;
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
+            return ImmutableArray<SymbolAndProjectId>.Empty;
         }
 
         private static IEnumerable<SymbolAndProjectId> GetMembers(
