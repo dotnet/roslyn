@@ -15,10 +15,10 @@ You may use the contextual keyword `var` for the variable's type.
 The scope will be the same as for a *pattern-variable* introduced via pattern-matching.
 
 According to Language Specification (section 7.6.7 Element access)
-The argument-list of an element-access is not allowed to contain ref or out arguments.
-However, due to backward compatibility, compiler overlooks this restriction during parsing
-and even ignores out/ref modifiers in element access during binding.
-We will enforce that language rule for out variables declarations at the syntax level.
+the argument-list of an element-access (indexing expression)
+does not contain ref or out arguments.
+However, they are permitted by the compiler for various scenarios, for example indexers
+declared in metadata that accept `out`.
 
 Within the scope of a local variable introduced by a local-variable-declaration, 
 it is a compile-time error to refer to that local variable in a textual position 
@@ -33,18 +33,15 @@ We add a new conversion:
 
 > There is a *conversion from expression* from an implicitly-typed out variable declaration to every type.
 
-The section "Better Conversion from expression" (from the ECMA version, which is the base of our draft C# spec) is modified to add the bold text, below:
+Also
 
-> 13.6.4.4 Better conversion from expression
-Given an implicit conversion C1 that converts from an expression E to a type T1, and an implicit conversion C2 that converts from an expression E to a type T2, C1 is a better conversion than C2 if at least one of the following holds:
-- E has a type S and an identity conversion exists from S to T1 but not from S to T2
-- E is not an anonymous function **or implicitly-typed out variable declaration,** and T1 is a better conversion target than T2 (§13.6.4.6)
-- E is an anonymous function, T1 is either a delegate type D1 or an expression tree type `Expression<D1>`, T2 is either a delegate type D2 or an expression tree type `Expression<D2>` and one of the following holds:
-  - D1 is a better conversion target than D2
-  - D1 and D2 have identical parameter lists, and one of the following holds:
-    - D1 has a return type Y1, and D2 has a return type Y2, an inferred return type X exists for E in the context of that parameter list (§13.6.3.13), and the conversion from X to Y1 is better than the conversion from X to Y2
-    - E is async, D1 has a return type `Task<Y1>`, and D2 has a return type `Task<Y2>`, an inferred return type `Task<X>` exists for E in the context of that parameter list (§13.6.3.13), and the conversion from X to Y1 is better than the conversion from X to Y2
-    - D1 has a return type Y, and D2 is `void` returning
+> The type of an explicitly-typed out variable argument is the declared type.
+
+and
+
+> An implicitly-typed out variable argument has no type.
+
+Neither conversion from expression is better when the argument is an implicitly-typed out variable declaration. (this needs to be woven into the form of the specification) 
 
 The type of an implicitly-typed out variable is the type of the corresponding parameter in the signature of the method.
 
