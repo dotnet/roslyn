@@ -16,6 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = node.Syntax;
             var pslr = new PatternSwitchLocalRewriter(this, node);
             var expression = VisitExpression(node.Expression);
+
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the expression are being executed.
+            if (!node.WasCompilerGenerated && this.Instrument)
+            {
+                expression = _instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
+            }
+
             var result = ArrayBuilder<BoundStatement>.GetInstance();
 
             // output the decision tree part
@@ -55,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // node is not compiler generated
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                translatedSwitch = _instrumenter.InstrumentBoundPatternSwitchStatement(node, translatedSwitch);
+                translatedSwitch = _instrumenter.InstrumentPatternSwitchStatement(node, translatedSwitch);
             }
 
             return translatedSwitch;
@@ -300,7 +308,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _loweredDecisionTree.Add(_factory.Goto(checkGuard));
                     sectionBuilder.Add(_factory.Label(checkGuard));
                     AddBindings(sectionBuilder, guarded.Bindings);
-                    sectionBuilder.Add(_factory.ConditionalGoto(LocalRewriter.VisitExpression(guarded.Guard), targetLabel, true));
+
+                    var guardTest = _factory.ConditionalGoto(LocalRewriter.VisitExpression(guarded.Guard), targetLabel, true);
+
+                    // Create the sequence point if generating debug info and
+                    // node is not compiler generated
+                    if (this.LocalRewriter.Instrument && !guarded.Guard.WasCompilerGenerated)
+                    {
+                        guardTest = this.LocalRewriter._instrumenter.InstrumentPatternSwitchWhenClause(guarded.Guard, guardTest);
+                    }
+
+                    sectionBuilder.Add(guardTest);
+
                     var guardFailed = _factory.GenerateLabel("guardFailed");
                     sectionBuilder.Add(_factory.Goto(guardFailed));
                     _loweredDecisionTree.Add(_factory.Label(guardFailed));
