@@ -2962,9 +2962,8 @@ Public MustInherit Class BaseClass(of T)
 End Class
     
 Public Class DerivingClass(Of T) Inherits BaseClass(Of T)
-
     <Obsolete("Deprecated")>
-        Public Overrides Sub Method(input As T)
+    Public Overrides Sub Method(input As T)
         Throw New NotImplementedException()
     End Sub
 End Class
