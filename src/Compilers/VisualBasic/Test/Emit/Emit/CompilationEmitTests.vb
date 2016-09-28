@@ -2947,7 +2947,6 @@ BC37256: An error occurred while writing the output file: <%= output.ThrownExcep
             End Using
         End Sub
 
-
         <Fact>
         <WorkItem(11691, "https://github.com/dotnet/roslyn/issues/11691")>
         Public Sub ObsoleteAttributeOverride()
@@ -2961,7 +2960,8 @@ Public MustInherit Class BaseClass(of T)
     Public MustOverride Function Method(input As T) As Integer
 End Class
     
-Public Class DerivingClass(Of T) Inherits BaseClass(Of T)
+Public Class DerivingClass(Of T) 
+    Inherits BaseClass(Of T)
     <Obsolete("Deprecated")>
     Public Overrides Sub Method(input As T)
         Throw New NotImplementedException()
@@ -2970,10 +2970,12 @@ End Class
 ]]>
                     </file>
                 </compilation>)
-
-            compilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_ExpectedEOS, "Inherits").WithLocation(7, 34),
-                Diagnostic(ERRID.ERR_OverrideNotNeeded3, "Method").WithArguments("sub", "Method").WithLocation(9, 26))
+            CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnostics(),
+<expected>
+    BC30437: 'Public Overrides Sub Method(input As T)' cannot override 'Public MustOverride Function Method(input As T) As Integer' because they differ by their return types.
+    Public Overrides Sub Method(input As T)
+                         ~~~~~~
+</expected>)
         End Sub
     End Class
 End Namespace
