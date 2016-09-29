@@ -221,7 +221,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             End Function
 
             Private Function CreateSearchResult(ParamArray results As PackageWithTypeResult()) As Task(Of ImmutableArray(Of PackageWithTypeResult))
-                Return Task.FromResult(results.ToImmutableArray())
+                Return Task.FromResult(ImmutableArray.Create(results))
             End Function
 
             Private Function CreateNameParts(ParamArray parts As String()) As IReadOnlyList(Of String)
