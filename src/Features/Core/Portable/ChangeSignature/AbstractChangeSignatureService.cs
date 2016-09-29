@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public abstract SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node);
 
-        public abstract Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
 
         public abstract SyntaxNode ChangeSignature(
@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
 
-        public async Task<IEnumerable<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return context.CanChangeSignature
-                ? SpecializedCollections.SingletonEnumerable(new ChangeSignatureCodeAction(this, context))
-                : SpecializedCollections.EmptyEnumerable<ChangeSignatureCodeAction>();
+                ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, context))
+                : ImmutableArray<ChangeSignatureCodeAction>.Empty;
         }
 
         internal ChangeSignatureResult ChangeSignature(Document document, int position, Action<string, NotificationSeverity> errorHandler, CancellationToken cancellationToken)

@@ -1755,7 +1755,8 @@ namespace Microsoft.CodeAnalysis
             return compilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
         }
 
-        public async Task<IEnumerable<DocumentState>> GetDocumentsWithNameAsync(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DocumentState>> GetDocumentsWithNameAsync(
+            ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // this will be used to find documents that contain declaration information in IDE cache such as DeclarationSyntaxTreeInfo for "NavigateTo"
             var trees = GetCompilationTracker(id).GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
@@ -1769,15 +1770,16 @@ namespace Microsoft.CodeAnalysis
             if (compilation == null)
             {
                 // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
-                return SpecializedCollections.EmptyEnumerable<DocumentState>();
+                return ImmutableArray<DocumentState>.Empty;
             }
 
             return ConvertTreesToDocuments(
                 id, compilation.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree)));
         }
 
-        private IEnumerable<DocumentState> ConvertTreesToDocuments(ProjectId id, IEnumerable<SyntaxTree> trees)
+        private ImmutableArray<DocumentState> ConvertTreesToDocuments(ProjectId id, IEnumerable<SyntaxTree> trees)
         {
+            var result = ArrayBuilder<DocumentState>.GetInstance();
             foreach (var tree in trees)
             {
                 var document = GetDocumentState(tree, id);
@@ -1787,8 +1789,10 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                yield return document;
+                result.Add(document);
             }
+
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var methodGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
                                            .OfType<IMethodSymbol>()
+                                           .ToImmutableArray()
                                            .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
 
             // try to bind to the actual method
@@ -84,10 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             // if the symbol could be bound, replace that item in the symbol list
             if (matchedMethodSymbol != null && matchedMethodSymbol.IsGenericMethod)
             {
-                methodGroup = methodGroup.Select(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
+                methodGroup = methodGroup.SelectAsArray(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
             }
 
-            methodGroup = methodGroup.Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart);
+            methodGroup = methodGroup.Sort(
+                symbolDisplayService, semanticModel, invocationExpression.SpanStart);
 
             var expressionType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
 

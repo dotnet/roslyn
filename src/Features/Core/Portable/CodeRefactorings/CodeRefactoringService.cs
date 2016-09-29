@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return false;
         }
 
-        public async Task<IEnumerable<CodeRefactoring>> GetRefactoringsAsync(
+        public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
             Document document,
             TextSpan state,
             CancellationToken cancellationToken)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 }
 
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-                return results.WhereNotNull();
+                return results.WhereNotNull().ToImmutableArray();
             }
         }
 
