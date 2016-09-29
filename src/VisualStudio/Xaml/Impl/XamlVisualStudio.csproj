@@ -27,6 +27,10 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
