@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Remote.FindReferences;
+using Microsoft.CodeAnalysis.Remote.Arguments;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
