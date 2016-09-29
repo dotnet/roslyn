@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            var spellChecker = _spellCheckerTask.Result;
+            var spellChecker = await _spellCheckerTask.ConfigureAwait(false);
             var similarNames = spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
             var result = ArrayBuilder<ISymbol>.GetInstance();
 
