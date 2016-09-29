@@ -290,6 +290,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '  InAttribute, OutAttribute
             '     - metadata flag set, no diagnostics reported, don't influence language semantics
 
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
+
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultParameterValueAttribute) Then
                 ' Attribute decoded and constant value stored during EarlyDecodeWellKnownAttribute.
                 DecodeDefaultParameterValueAttribute(AttributeDescription.DefaultParameterValueAttribute, arguments)

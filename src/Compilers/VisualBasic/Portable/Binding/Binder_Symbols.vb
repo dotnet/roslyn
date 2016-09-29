@@ -700,6 +700,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' set of names already used
                 Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
+                Dim hasExplicitNames = False
 
                 For i As Integer = 0 To numElements - 1
                     Dim argumentSyntax = syntax.Elements(i)
@@ -718,6 +719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         name = nameSyntax.Identifier.ValueText
 
                         ' validate name if we have one
+                        hasExplicitNames = True
                         Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)
                         locations.Add(nameSyntax.GetLocation)
                     Else
@@ -726,6 +728,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Binder.CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
                 Next
+
+                If hasExplicitNames Then
+                    ' If the tuple type with names is bound then we must have the TupleElementNamesAttribute to emit
+                    ' it is typically there though, if we have ValueTuple at all
+                    ' and we need System.String as well
+
+                    ' Report diagnostics if System.String doesn't exist
+                    binder.GetSpecialType(SpecialType.System_String, syntax, diagnostics)
+
+                    If Not binder.Compilation.HasTupleNamesAttributes Then
+                        Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleElementNamesAttributeMissing, AttributeDescription.TupleElementNamesAttribute.FullName)
+                    End If
+                End If
 
                 Dim typesArray As ImmutableArray(Of TypeSymbol) = types.ToImmutableAndFree()
                 Dim locationsArray As ImmutableArray(Of Location) = locations.ToImmutableAndFree()

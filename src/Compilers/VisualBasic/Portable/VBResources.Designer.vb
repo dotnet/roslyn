@@ -4458,6 +4458,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot reference &apos;System.Runtime.CompilerServices.TupleElementNamesAttribute&apos; explicitly. Use the tuple syntax to define tuple names..
+        '''</summary>
+        Friend ReadOnly Property ERR_ExplicitTupleElementNamesAttribute() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExplicitTupleElementNamesAttribute", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type &apos;{0}&apos; exported from module &apos;{1}&apos; conflicts with type declared in primary module of this assembly..
         '''</summary>
         Friend ReadOnly Property ERR_ExportedTypeConflictsWithDeclaration() As String
@@ -10385,6 +10394,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_TupleDuplicateMemberName() As String
             Get
                 Return ResourceManager.GetString("ERR_TupleDuplicateMemberName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Cannot define a class or member that utilizes tuples because the compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference?.
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleElementNamesAttributeMissing() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleElementNamesAttributeMissing", resourceCulture)
             End Get
         End Property
         
