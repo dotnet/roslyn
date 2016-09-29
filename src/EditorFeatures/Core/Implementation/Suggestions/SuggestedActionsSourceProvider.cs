@@ -595,8 +595,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // If the light bulb is only asking for code fixes, then we don't consider suppressions.
                     var considerSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
                     var result = await Task.Run(
-                        async () => await provider._codeFixService.GetFirstDiagnosticWithFixAsync(
-                            document, range.Span.ToTextSpan(), considerSuppressionFixes, cancellationToken).ConfigureAwait(false),
+                        () => provider._codeFixService.GetFirstDiagnosticWithFixAsync(
+                            document, range.Span.ToTextSpan(), considerSuppressionFixes, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasFix)
@@ -654,8 +654,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
 
                     return await Task.Run(
-                        async () => await provider._codeRefactoringService.HasRefactoringsAsync(
-                            document, selection.Value, cancellationToken).ConfigureAwait(false),
+                        () => provider._codeRefactoringService.HasRefactoringsAsync(
+                            document, selection.Value, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 }
 

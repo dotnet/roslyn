@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string appConfigPath = null;
             bool displayLogo = true;
             bool displayHelp = false;
+            bool displayVersion = false;
             bool optimize = false;
             bool checkOverflow = false;
             bool allowUnsafe = false;
@@ -164,6 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case "?":
                     case "help":
                         displayHelp = true;
+                        continue;
+
+                    case "version":
+                        displayVersion = true;
                         continue;
 
                     case "r":
@@ -1298,6 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NoWin32Manifest = noWin32Manifest,
                 DisplayLogo = displayLogo,
                 DisplayHelp = displayHelp,
+                DisplayVersion = displayVersion,
                 ManifestResources = managedResources.AsImmutable(),
                 CompilationOptions = options,
                 ParseOptions = IsScriptRunner ? scriptParseOptions : parseOptions,

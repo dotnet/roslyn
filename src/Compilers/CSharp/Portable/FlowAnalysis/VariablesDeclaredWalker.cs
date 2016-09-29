@@ -77,7 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsInside && pattern.Kind == BoundKind.DeclarationPattern)
             {
                 var decl = (BoundDeclarationPattern)pattern;
-                _variablesDeclared.Add(decl.LocalSymbol);
+                if (decl.Variable.Kind == SymbolKind.Local)
+                {
+                    // Because this API only returns local symbols and parameters,
+                    // we exclude pattern variables that have become fields in scripts.
+                    _variablesDeclared.Add(decl.Variable);
+                }
             }
         }
 
