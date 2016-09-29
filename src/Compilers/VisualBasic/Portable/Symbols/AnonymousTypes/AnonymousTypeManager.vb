@@ -5,6 +5,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
+    <Flags>
+    Friend Enum TypeCompareKind As Integer
+        ConsiderEverything = 0
+        IgnoreCustomModifiers = 1
+        IgnoreTupleNames = 4
+    End Enum
+
     ''' <summary> 
     ''' Manages anonymous types and delegates created on module level. All requests 
     ''' for anonymous type/delegate symbols go via the instance of this class.
@@ -47,6 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Compares anonymous types ignoring custom modifiers
         ''' </summary>
         Public Shared Function EqualsIgnoringCustomModifiers(left As TypeSymbol, right As TypeSymbol) As Boolean
+
             If left.TypeKind <> right.TypeKind Then
                 Return False
             End If

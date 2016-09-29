@@ -1701,6 +1701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InvalidInstrumentationKind = 37266
 
         ERR_ValueTupleTypeRefResolutionError = 37267
+        ERR_InvalidOverrideDueToTupleNames = 37268
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
