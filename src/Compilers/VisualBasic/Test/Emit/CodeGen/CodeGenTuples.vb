@@ -13067,6 +13067,306 @@ BC37268: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Inte
 
         End Sub
 
+        <Fact>
+        Public Sub OverriddenMethodWithDifferentTupleNamesInReturnUsingTypeArg()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Function M1(Of T)() As (a As T, b As T)
+        Return (Nothing, Nothing)
+    End Function
+    Public Overridable Function M2(Of T)() As (a As T, b As T)
+        Return (Nothing, Nothing)
+    End Function
+    Public Overridable Function M3(Of T)() As (a As T, b As T)()
+        Return {(Nothing, Nothing)}
+    End Function
+    Public Overridable Function M4(Of T)() As (a As T, b As T)?
+        Return (Nothing, Nothing)
+    End Function
+    Public Overridable Function M5(Of T)() As (c As (a As T, b As T), d As T)
+        Return ((Nothing, Nothing), Nothing)
+    End Function
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Function M1(Of T)() As (A As T, B As T)
+        Return (Nothing, Nothing)
+    End Function
+    Public Overrides Function M2(Of T)() As (notA As T, notB As T)
+        Return (Nothing, Nothing)
+    End Function
+    Public Overrides Function M3(Of T)() As (notA As T, notB As T)()
+        Return {(Nothing, Nothing)}
+    End Function
+    Public Overrides Function M4(Of T)() As (notA As T, notB As T)?
+        Return (Nothing, Nothing)
+    End Function
+    Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)
+        Return ((Nothing, Nothing), Nothing)
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37268: 'Public Overrides Function M2(Of T)() As (notA As T, notB As T)' cannot override 'Public Overridable Function M2(Of T)() As (a As T, b As T)' because they differ by their tuple element names.
+    Public Overrides Function M2(Of T)() As (notA As T, notB As T)
+                              ~~
+BC37268: 'Public Overrides Function M3(Of T)() As (notA As T, notB As T)()' cannot override 'Public Overridable Function M3(Of T)() As (a As T, b As T)()' because they differ by their tuple element names.
+    Public Overrides Function M3(Of T)() As (notA As T, notB As T)()
+                              ~~
+BC37268: 'Public Overrides Function M4(Of T)() As (notA As T, notB As T)?' cannot override 'Public Overridable Function M4(Of T)() As (a As T, b As T)?' because they differ by their tuple element names.
+    Public Overrides Function M4(Of T)() As (notA As T, notB As T)?
+                              ~~
+BC37268: 'Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)' cannot override 'Public Overridable Function M5(Of T)() As (c As (a As T, b As T), d As T)' because they differ by their tuple element names.
+    Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)
+                              ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub OverridenMethodWithDifferentTupleNamesInParameters()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+    Public Overridable Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+    Public Overridable Sub M3(x As (a As Integer, b As Integer)())
+    End Sub
+    Public Overridable Sub M4(x As (a As Integer, b As Integer)?)
+    End Sub
+    Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Sub M1(x As (A As Integer, B As Integer))
+    End Sub
+    Public Overrides Sub M2(x As (notA As Integer, notB As Integer))
+    End Sub
+    Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())
+    End Sub
+    Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)
+    End Sub
+    Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37268: 'Public Overrides Sub M2(x As (notA As Integer, notB As Integer))' cannot override 'Public Overridable Sub M2(x As (a As Integer, b As Integer))' because they differ by their tuple element names.
+    Public Overrides Sub M2(x As (notA As Integer, notB As Integer))
+                         ~~
+BC37268: 'Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())' cannot override 'Public Overridable Sub M3(x As (a As Integer, b As Integer)())' because they differ by their tuple element names.
+    Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())
+                         ~~
+BC37268: 'Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)' cannot override 'Public Overridable Sub M4(x As (a As Integer, b As Integer)?)' because they differ by their tuple element names.
+    Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)
+                         ~~
+BC37268: 'Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' cannot override 'Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))' because they differ by their tuple element names.
+    Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+                         ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub OverridenMethodWithDifferentTupleNamesInParametersUsingTypeArg()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Sub M1(Of T)(x As (a As T, b As T))
+    End Sub
+    Public Overridable Sub M2(Of T)(x As (a As T, b As T))
+    End Sub
+    Public Overridable Sub M3(Of T)(x As (a As T, b As T)())
+    End Sub
+    Public Overridable Sub M4(Of T)(x As (a As T, b As T)?)
+    End Sub
+    Public Overridable Sub M5(Of T)(x As (c As (a As T, b As T), d As T))
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Sub M1(Of T)(x As (A As T, B As T))
+    End Sub
+    Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))
+    End Sub
+    Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())
+    End Sub
+    Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)
+    End Sub
+    Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37268: 'Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))' cannot override 'Public Overridable Sub M2(Of T)(x As (a As T, b As T))' because they differ by their tuple element names.
+    Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))
+                         ~~
+BC37268: 'Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())' cannot override 'Public Overridable Sub M3(Of T)(x As (a As T, b As T)())' because they differ by their tuple element names.
+    Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())
+                         ~~
+BC37268: 'Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)' cannot override 'Public Overridable Sub M4(Of T)(x As (a As T, b As T)?)' because they differ by their tuple element names.
+    Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)
+                         ~~
+BC37268: 'Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))' cannot override 'Public Overridable Sub M5(Of T)(x As (c As (a As T, b As T), d As T))' because they differ by their tuple element names.
+    Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))
+                         ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub HiddenMethodsWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Function M1() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+    Public Overridable Function M2() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+    Public Overridable Function M3() As (a As Integer, b As Integer)()
+        Return {(1, 2)}
+    End Function
+    Public Overridable Function M4() As (a As Integer, b As Integer)?
+        Return (1, 2)
+    End Function
+    Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)
+        Return ((1, 2), 3)
+    End Function
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Function M1() As (A As Integer, B As Integer)
+        Return (1, 2)
+    End Function
+    Public Function M2() As (notA As Integer, notB As Integer)
+        Return (1, 2)
+    End Function
+    Public Function M3() As (notA As Integer, notB As Integer)()
+        Return {(1, 2)}
+    End Function
+    Public Function M4() As (notA As Integer, notB As Integer)?
+        Return (1, 2)
+    End Function
+    Public Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
+        Return ((1, 2), 3)
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40005: function 'M1' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M1() As (A As Integer, B As Integer)
+                    ~~
+BC40005: function 'M2' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M2() As (notA As Integer, notB As Integer)
+                    ~~
+BC40005: function 'M3' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M3() As (notA As Integer, notB As Integer)()
+                    ~~
+BC40005: function 'M4' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M4() As (notA As Integer, notB As Integer)?
+                    ~~
+BC40005: function 'M5' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
+                    ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateMethodDetectionWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class C
+    Public Sub M1(x As (A As Integer, B As Integer))
+    End Sub
+    Public Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+
+    Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))
+    End Sub
+    Public Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+
+    Public Sub M3(x As (notA As Integer, notB As Integer)())
+    End Sub
+    Public Sub M3(x As (a As Integer, b As Integer)())
+    End Sub
+
+    Public Sub M4(x As (notA As Integer, notB As Integer)?)
+    End Sub
+    Public Sub M4(x As (a As Integer, b As Integer)?)
+    End Sub
+
+    Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+    End Sub
+    Public Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30269: 'Public Sub M1(x As (A As Integer, B As Integer))' has multiple definitions with identical signatures.
+    Public Sub M1(x As (A As Integer, B As Integer))
+               ~~
+BC30269: 'Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))' has multiple definitions with identical signatures.
+    Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))
+               ~~
+BC30269: 'Public Sub M3(x As (notA As Integer, notB As Integer)())' has multiple definitions with identical signatures.
+    Public Sub M3(x As (notA As Integer, notB As Integer)())
+               ~~
+BC30269: 'Public Sub M4(x As (notA As Integer, notB As Integer)?)' has multiple definitions with identical signatures.
+    Public Sub M4(x As (notA As Integer, notB As Integer)?)
+               ~~
+BC30269: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' has multiple definitions with identical signatures.
+    Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+               ~~
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace
