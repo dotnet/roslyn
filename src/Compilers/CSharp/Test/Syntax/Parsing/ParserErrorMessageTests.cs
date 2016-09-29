@@ -2048,30 +2048,33 @@ namespace x
 ";
             // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
             ParseAndValidate(text, TestOptions.Regular,
-    // (7,21): error CS1031: Type expected
-    //             e = new base;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
-    // (7,21): error CS1526: A new expression requires (), [], or {} after type
-    //             e = new base;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
-    // (7,21): error CS1002: ; expected
-    //             e = new base;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
-    // (8,21): error CS1031: Type expected
-    //             e = new this;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
-    // (8,21): error CS1526: A new expression requires (), [], or {} after type
-    //             e = new this;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
-    // (8,21): error CS1002: ; expected
-    //             e = new this;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-    // (9,21): error CS8096: Tuple type must have at least two elements.
-    //             e = new ();     // CS1031, too few tuple elements
-    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
-    // (9,23): error CS1526: A new expression requires (), [], or {} after type
-    //             e = new ();     // CS1031, too few tuple elements
-    Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
+                // (7,21): error CS1031: Type expected
+                //             e = new base;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
+                // (7,21): error CS1526: A new expression requires (), [], or {} after type
+                //             e = new base;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
+                // (7,21): error CS1002: ; expected
+                //             e = new base;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
+                // (8,21): error CS1031: Type expected
+                //             e = new this;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
+                // (8,21): error CS1526: A new expression requires (), [], or {} after type
+                //             e = new this;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
+                // (8,21): error CS1002: ; expected
+                //             e = new this;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
+                // (9,17): error CS8181: "new" cannot be used with tuple type '()'. Use a tuple literal expression instead.
+                //             e = new ();     // CS1031, too few tuple elements
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new ()").WithArguments("()").WithLocation(9, 17),
+                // (9,21): error CS8124: Tuple must contain at least two elements.
+                //             e = new ();     // CS1031, too few tuple elements
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
+                // (9,23): error CS1526: A new expression requires (), [], or {} after type
+                //             e = new ();     // CS1031, too few tuple elements
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
              );
         }
 
@@ -2111,6 +2114,9 @@ namespace x
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
+                // (9,17): error CS8181: "new" cannot be used with tuple type '()'. Use a tuple literal expression instead.
+                //             e = new ();     // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new ()").WithArguments("()").WithLocation(9, 17),
                 // (9,21): error CS8124: Tuple must contain at least two elements.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),

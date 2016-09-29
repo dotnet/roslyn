@@ -2597,7 +2597,7 @@ class C1
 {
     static void Test(int arg1, (byte, byte) arg2)
     {
-        (int, int) t1 = new(int, int)();
+        (int, int)? t1 = new(int, int)?();
         (int, int)? t2 = default((int a, int b));
 
         (int, int) t3 = (a: (int)arg1, b: (int)arg1);
