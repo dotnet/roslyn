@@ -4474,7 +4474,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /help                         Display this usage message (Short form: /?)
  /nologo                       Suppress compiler copyright message
  /noconfig                     Do not auto include CSC.RSP file
- /parallel[+|-]                Concurrent build. 
+ /parallel[+|-]                Concurrent build.
+ /version                      Display the compiler version number and exit.
 
                         - ADVANCED -
  /baseaddress:&lt;address&gt;        Base address for the library to be built
@@ -4857,14 +4858,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}.</value>
   </data>
-  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
-    <value>Tuple member names must be unique.</value>
+  <data name="ERR_TupleDuplicateElementName" xml:space="preserve">
+    <value>Tuple element names must be unique.</value>
   </data>
-  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
-    <value>Tuple member name '{0}' is only allowed at position {1}.</value>
+  <data name="ERR_TupleReservedElementName" xml:space="preserve">
+    <value>Tuple element name '{0}' is only allowed at position {1}.</value>
   </data>
-  <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
-    <value>Tuple member name '{0}' is disallowed at any position.</value>
+  <data name="ERR_TupleReservedElementNameAnyPosition" xml:space="preserve">
+    <value>Tuple element name '{0}' is disallowed at any position.</value>
   </data>
   <data name="ERR_PredefinedTypeMemberNotFoundInAssembly" xml:space="preserve">
     <value>Member '{0}' was not found on type '{1}' from assembly '{2}'.</value>
@@ -4908,6 +4909,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed out variable '{0}'.</value>
   </data>
+  <data name="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed deconstruction variable '{0}'.</value>
+  </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
   </data>
@@ -4932,11 +4936,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
     <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
   </data>
-  <data name="ERR_ExplicitTupleElementNames" xml:space="preserve">
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
     <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
-  </data>
-  <data name="ERR_DeconstructCouldNotInferMergedType" xml:space="preserve">
-    <value>The type information on the left-hand-side '{0}' and right-hand-side '{1}' of the deconstruction was insufficient to infer a merged type.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">
     <value>An expression tree may not contain an out argument variable declaration.</value>

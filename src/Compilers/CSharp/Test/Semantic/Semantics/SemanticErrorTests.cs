@@ -23120,7 +23120,20 @@ namespace System
         public T2 Item2;
         public ValueTuple(T1 item1, T2 item2) { Item1 = item1; Item2 = item2; }
     }
-}";
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// Indicates that the use of <see cref=""System.ValueTuple""/> on a member is meant to be treated as a tuple with element names.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue | AttributeTargets.Class | AttributeTargets.Struct )]
+    public sealed class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] transformNames) { }
+    }
+}
+";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,59): error CS8198: An expression tree may not contain an out argument variable declaration.

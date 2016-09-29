@@ -102,20 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageServices.SourcesChanged += OnSourceProviderSourcesChanged;
         }
 
-        protected override void StopWorking()
-        {
-            this.AssertIsForeground();
-
-            if (!IsEnabled)
-            {
-                return;
-            }
-
-            // Stop listening to workspace changes.
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            _packageServices.SourcesChanged -= OnSourceProviderSourcesChanged;
-        }
-
         protected override void StartWorking()
         {
             this.AssertIsForeground();

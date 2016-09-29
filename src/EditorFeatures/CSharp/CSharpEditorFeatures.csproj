@@ -144,7 +144,6 @@
     <Compile Include="InlineRename\CSharpEditorInlineRenameService.cs" />
     <Compile Include="LanguageServices\CSharpContentTypeLanguageService.cs" />
     <Compile Include="LineSeparators\CSharpLineSeparatorService.cs" />
-    <Compile Include="NavigateTo\CSharpNavigateToSearchService.cs" />
     <Compile Include="NavigationBar\CSharpNavigationBarItemService.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoProvider.cs" />

@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         protected override void CollectBlockSpans(
             DocumentationCommentTriviaSyntax documentationComment,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             var startPos = documentationComment.FullSpan.Start;

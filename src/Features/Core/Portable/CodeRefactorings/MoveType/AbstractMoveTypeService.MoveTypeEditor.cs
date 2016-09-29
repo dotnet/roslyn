@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </summary>
             /// <param name="root">root, of the syntax tree of forked document</param>
             /// <returns>list of syntax nodes, to be removed from the forked copy.</returns>
-            private IEnumerable<SyntaxNode> GetMembersToRemove(SyntaxNode root)
+            private ISet<SyntaxNode> GetMembersToRemove(SyntaxNode root)
             {
                 var spine = new HashSet<SyntaxNode>();
 
@@ -146,31 +146,39 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // get potential namespace, types and members to remove.
                 var removableCandidates = root
-                    .DescendantNodes(n => DescendIntoChildren(n, spine.Contains(n)))
-                    .Where(n => FilterToTopLevelMembers(n, State.TypeNode));
+                    .DescendantNodes(n => spine.Contains(n))
+                    .Where(n => FilterToTopLevelMembers(n, State.TypeNode)).ToSet();
 
                 // diff candidates with items we want to keep.
-                return removableCandidates.Except(spine);
-            }
+                removableCandidates.ExceptWith(spine);
 
-            private static bool DescendIntoChildren(SyntaxNode node, bool shouldDescendIntoType)
-            {
-                // 1. get top level types and namespaces to remove.
-                // 2. descend into types and get members to remove, only if type is part of spine, which means
-                //    we'll be keeping the type declaration but not other members, in the new file.
-                return node is TCompilationUnitSyntax
-                    || node is TNamespaceDeclarationSyntax
-                    || (node is TTypeDeclarationSyntax && shouldDescendIntoType);
+#if DEBUG
+                // None of the nodes we're removing should also have any of their parent
+                // nodes removed.  If that happened we could get a crash by first trying to remove
+                // the parent, then trying to remove the child.
+                foreach (var node in removableCandidates)
+                {
+                    foreach (var ancestor in node.GetAncestors())
+                    {
+                        Debug.Assert(!removableCandidates.Contains(ancestor));
+                    }
+                }
+#endif
+
+                return removableCandidates;
             }
 
             private static bool FilterToTopLevelMembers(SyntaxNode node, SyntaxNode typeNode)
             {
-                // It is a type declaration that is not the node we've moving
-                // or its a container namespace, or a member declaration that is not a type,
-                // thereby ignoring other stuff like statements and identifiers.
-                return node is TTypeDeclarationSyntax
-                    ? !node.Equals(typeNode)
-                    : (node is TNamespaceDeclarationSyntax || node is TMemberDeclarationSyntax);
+                // We never filter out the actual node we're trying to keep around.
+                if (node == typeNode)
+                {
+                    return false;
+                }
+
+                return node is TTypeDeclarationSyntax ||
+                       node is TMemberDeclarationSyntax ||
+                       node is TNamespaceDeclarationSyntax;
             }
 
             /// <summary>

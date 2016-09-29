@@ -426,6 +426,7 @@ Executes script-file.csx if specified, otherwise launches an interactive REPL (R
 
 Options:
   /help                          Display this usage message (alternative form: /?)
+  /version                       Display the version and exit
   /i                             Drop to REPL after executing the specified script.
   /r:<file>                      Reference metadata from the specified assembly file (alternative form: /reference)
   /r:<file list>                 Reference metadata from the specified assembly files (alternative form: /reference)
@@ -435,6 +436,26 @@ Options:
   @<file>                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void Version()
+        {
+            var runner = CreateRunner(new[] { "/version" });
+            Assert.Equal(0, runner.RunInteractive());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+
+            runner = CreateRunner(new[] { "/version", "/help" });
+            Assert.Equal(0, runner.RunInteractive());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+
+            runner = CreateRunner(new[] { "/version", "/r:somefile" });
+            Assert.Equal(0, runner.RunInteractive());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+
+            runner = CreateRunner(new[] { "/version", "/nologo" });
+            Assert.Equal(0, runner.RunInteractive());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
         }
 
         [Fact]

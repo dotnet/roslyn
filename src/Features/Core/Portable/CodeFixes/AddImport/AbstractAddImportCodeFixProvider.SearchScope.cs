@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken = cancellationToken;
             }
 
-            protected abstract Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
+            protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
             public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
             public async Task<IEnumerable<SymbolResult<ISymbol>>> FindDeclarationsAsync(
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
             }
 
-            protected override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            protected override Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 return SymbolFinder.FindDeclarationsAsync(_project, searchQuery, filter, CancellationToken);
@@ -133,14 +134,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _projectToAssembly = projectToAssembly;
             }
 
-            protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
+            protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
+                string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     // Looks like there was nothing in the cache.  Return no results for now.
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // Don't create the assembly until it is actually needed by the SymbolTreeInfo.FindAsync
@@ -190,14 +192,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _metadataReference);
             }
 
-            protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 return await info.FindAsync(searchQuery, _assembly, filter, CancellationToken).ConfigureAwait(false);

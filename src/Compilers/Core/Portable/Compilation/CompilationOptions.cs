@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis
         internal DateTime CurrentLocalTime { get; private set; }
 
         internal DateTime CurrentLocalTime_internal_protected_set { set { CurrentLocalTime = value; } }
-       
+
         /// <summary>
         /// Emit extended custom debug information to the PDB file.
         /// </summary>
@@ -467,6 +467,46 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        public CompilationOptions WithModuleName(string moduleName)
+        {
+            return CommonWithModuleName(moduleName);
+        }
+
+        public CompilationOptions WithMainTypeName(string mainTypeName)
+        {
+            return CommonWithMainTypeName(mainTypeName);
+        }
+
+        public CompilationOptions WithScriptClassName(string scriptClassName)
+        {
+            return CommonWithScriptClassName(scriptClassName);
+        }
+
+        public CompilationOptions WithCryptoKeyContainer(string cryptoKeyContainer)
+        {
+            return CommonWithCryptoKeyContainer(cryptoKeyContainer);
+        }
+
+        public CompilationOptions WithCryptoKeyFile(string cryptoKeyFile)
+        {
+            return CommonWithCryptoKeyFile(cryptoKeyFile);
+        }
+
+        public CompilationOptions WithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey)
+        {
+            return CommonWithCryptoPublicKey(cryptoPublicKey);
+        }
+
+        public CompilationOptions WithDelaySign(bool? delaySign)
+        {
+            return CommonWithDelaySign(delaySign);
+        }
+
+        public CompilationOptions WithOverflowChecks(bool checkOverflow)
+        {
+            return CommonWithCheckOverflow(checkOverflow);
+        }
+
         protected abstract CompilationOptions CommonWithConcurrentBuild(bool concurrent);
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
@@ -482,6 +522,15 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics);
+        protected abstract CompilationOptions CommonWithModuleName(string moduleName);
+        protected abstract CompilationOptions CommonWithMainTypeName(string mainTypeName);
+        protected abstract CompilationOptions CommonWithScriptClassName(string scriptClassName);
+        protected abstract CompilationOptions CommonWithCryptoKeyContainer(string cryptoKeyContainer);
+        protected abstract CompilationOptions CommonWithCryptoKeyFile(string cryptoKeyFile);
+        protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
+        protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
+        protected abstract CompilationOptions CommonWithCheckOverflow(bool checkOverflow);
+
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 

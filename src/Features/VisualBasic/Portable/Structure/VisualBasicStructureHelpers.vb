@@ -29,12 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         ' For testing purposes
         Friend Function CreateCommentsRegions(triviaList As SyntaxTriviaList) As ImmutableArray(Of BlockSpan)
-            Dim spans = ImmutableArray.CreateBuilder(Of BlockSpan)
+            Dim spans = ArrayBuilder(Of BlockSpan).GetInstance()
             CollectCommentsRegions(triviaList, spans)
-            Return spans.ToImmutable()
+            Return spans.ToImmutableAndFree()
         End Function
 
-        Friend Sub CollectCommentsRegions(triviaList As SyntaxTriviaList, spans As ImmutableArray(Of BlockSpan).Builder)
+        Friend Sub CollectCommentsRegions(triviaList As SyntaxTriviaList,
+                                          spans As ArrayBuilder(Of BlockSpan))
             If triviaList.Count > 0 Then
                 Dim startComment As SyntaxTrivia? = Nothing
                 Dim endComment As SyntaxTrivia? = Nothing
@@ -64,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
         Friend Sub CollectCommentsRegions(node As SyntaxNode,
-                                          spans As ImmutableArray(Of BlockSpan).Builder)
+                                          spans As ArrayBuilder(Of BlockSpan))
             If node Is Nothing Then
                 Throw New ArgumentNullException(NameOf(node))
             End If

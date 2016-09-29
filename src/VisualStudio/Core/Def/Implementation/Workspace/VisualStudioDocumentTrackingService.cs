@@ -72,13 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return ImmutableArray.Create<DocumentId>();
             }
 
-            ImmutableArray<DocumentId>.Builder ids = ImmutableArray.CreateBuilder<DocumentId>(snapshot.Count);
+            var ids = ArrayBuilder<DocumentId>.GetInstance(snapshot.Count);
             foreach (var frame in snapshot)
             {
                 ids.Add(frame.Id);
             }
 
-            return ids.ToImmutable();
+            return ids.ToImmutableAndFree();
         }
 
         /// <summary>
