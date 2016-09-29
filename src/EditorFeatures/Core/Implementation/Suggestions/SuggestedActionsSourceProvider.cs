@@ -324,13 +324,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private IEnumerable<SuggestedActionSet> OrganizeFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, bool hasSuppressionFixes)
             {
                 var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<SuggestedAction>>();
-                var order = ImmutableArray.CreateBuilder<CodeFixGroupKey>();
+                var order = ArrayBuilder<CodeFixGroupKey>.GetInstance();
 
                 // First group fixes by diagnostic and priority.
                 GroupFixes(workspace, fixCollections, map, order, hasSuppressionFixes);
 
                 // Then prioritize between the groups.
-                return PrioritizeFixGroups(map.ToImmutable(), order.ToImmutable());
+                return PrioritizeFixGroups(map.ToImmutable(), order.ToImmutableAndFree());
             }
 
             /// <summary>
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Workspace workspace,
                 IEnumerable<CodeFixCollection> fixCollections,
                 IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
-                IList<CodeFixGroupKey> order,
+                ArrayBuilder<CodeFixGroupKey> order,
                 bool hasSuppressionFixes)
             {
                 foreach (var fixCollection in fixCollections)
@@ -417,7 +417,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private static void AddFix(CodeFix fix, SuggestedAction suggestedAction, IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, IList<CodeFixGroupKey> order)
+            private static void AddFix(
+                CodeFix fix, SuggestedAction suggestedAction,
+                IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
+                ArrayBuilder<CodeFixGroupKey> order)
             {
                 var diag = fix.GetPrimaryDiagnosticData();
 
@@ -443,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// </remarks>
             private static IEnumerable<SuggestedActionSet> PrioritizeFixGroups(IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, IList<CodeFixGroupKey> order)
             {
-                var sets = ImmutableArray.CreateBuilder<SuggestedActionSet>();
+                var sets = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
                 foreach (var diag in order)
                 {
@@ -459,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                 }
 
-                return sets.ToImmutable();
+                return sets.ToImmutableAndFree();
             }
 
             private static SuggestedActionSetPriority GetSuggestedActionSetPriority(CodeActionPriority key)
@@ -527,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// </remarks>
             private SuggestedActionSet OrganizeRefactorings(Workspace workspace, CodeRefactoring refactoring)
             {
-                var refactoringSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
+                var refactoringSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
 
                 foreach (var a in refactoring.Actions)
                 {
@@ -536,7 +539,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         a, refactoring.Provider, _owner._listener));
                 }
 
-                return new SuggestedActionSet(refactoringSuggestedActions.ToImmutable(), SuggestedActionSetPriority.Low);
+                return new SuggestedActionSet(
+                    refactoringSuggestedActions.ToImmutableAndFree(), SuggestedActionSetPriority.Low);
             }
 
             public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
@@ -591,8 +595,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // If the light bulb is only asking for code fixes, then we don't consider suppressions.
                     var considerSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
                     var result = await Task.Run(
-                        async () => await provider._codeFixService.GetFirstDiagnosticWithFixAsync(
-                            document, range.Span.ToTextSpan(), considerSuppressionFixes, cancellationToken).ConfigureAwait(false),
+                        () => provider._codeFixService.GetFirstDiagnosticWithFixAsync(
+                            document, range.Span.ToTextSpan(), considerSuppressionFixes, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasFix)
@@ -650,8 +654,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
 
                     return await Task.Run(
-                        async () => await provider._codeRefactoringService.HasRefactoringsAsync(
-                            document, selection.Value, cancellationToken).ConfigureAwait(false),
+                        () => provider._codeRefactoringService.HasRefactoringsAsync(
+                            document, selection.Value, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 }
 

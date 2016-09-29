@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -126,9 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override void Dispose(bool disposing)
         {
-            _packageInstallerService?.Disconnect(this.RoslynLanguageName);
-            _symbolSearchService?.Disconnect(this.RoslynLanguageName);
-
             if (_miscellaneousFilesWorkspace != null)
             {
                 _miscellaneousFilesWorkspace.StopSolutionCrawler();

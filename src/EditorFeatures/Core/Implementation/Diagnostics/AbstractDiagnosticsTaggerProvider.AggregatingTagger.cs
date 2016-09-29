@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // GetDiagnostics returns whatever cached diagnostics in the service which can be stale ones. for example, build error will be most likely stale
                 // diagnostics. so here we make sure we filter out any diagnostics that is not in the text range.
-                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+                var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 var fullSpan = new TextSpan(0, text.Length);
                 foreach (var diagnostic in _owner._diagnosticService.GetDiagnostics(
                     args.Workspace, args.ProjectId, args.DocumentId, args.Id, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken))
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
 
             public void OnTaggerCreated()

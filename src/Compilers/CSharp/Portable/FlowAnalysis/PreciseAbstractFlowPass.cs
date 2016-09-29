@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void VisitLvalue(BoundExpression node)
         {
             if (_trackRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
-            switch (node.Kind)
+            switch (node?.Kind)
             {
                 case BoundKind.Parameter:
                     VisitLvalueParameter((BoundParameter)node);
@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        public sealed override BoundNode VisitDeconstructionLocalPendingInference(DeconstructionLocalPendingInference node)
+        public sealed override BoundNode VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
         {
             throw ExceptionUtilities.Unreachable;
         }

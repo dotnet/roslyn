@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
         }
 
-        protected override async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<TSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -37,23 +37,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     // We have a normal method.  Find any interface methods that it implicitly or
                     // explicitly implements and cascade down to those.
-                    var interfaceMembersImplemented = await SymbolFinder.FindImplementedInterfaceMembersAsync(
+                    var interfaceMembersImplementedStream = await SymbolFinder.FindImplementedInterfaceMembersAsync(
                         symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
+                    var interfaceMembersImplemented = interfaceMembersImplementedStream.ToImmutableArray();
 
                     // Finally, methods can cascade through virtual/override inheritance.  NOTE(cyrusn):
                     // We only need to go up or down one level.  Then, when we're finding references on
                     // those members, we'll end up traversing the entire hierarchy.
-                    var overrides = await SymbolFinder.FindOverridesAsync(
+                    var overridesStream = await SymbolFinder.FindOverridesAsync(
                         symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
+                    var overrides = overridesStream.ToImmutableArray();
 
                     var overriddenMember = symbolAndProjectId.WithSymbol(symbol.OverriddenMember());
-                    return overriddenMember.Symbol == null
-                        ? interfaceMembersImplemented.Concat(overrides)
-                        : interfaceMembersImplemented.Concat(overrides).Concat(overriddenMember);
+                    if (overriddenMember.Symbol == null)
+                    {
+                        return interfaceMembersImplemented.Concat(overrides);
+                    }
+
+                    return interfaceMembersImplemented.Concat(overrides).Concat(overriddenMember);
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
+            return ImmutableArray<SymbolAndProjectId>.Empty;
         }
     }
 }

@@ -151,13 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         internal static ImmutableArray<BlockSpan> CreateCommentBlockSpan(
             SyntaxTriviaList triviaList)
         {
-            var result = ImmutableArray.CreateBuilder<BlockSpan>();
+            var result = ArrayBuilder<BlockSpan>.GetInstance();
             CollectCommentBlockSpans(triviaList, result);
-            return result.ToImmutable();
+            return result.ToImmutableAndFree();
         }
 
         public static void CollectCommentBlockSpans(
-            SyntaxTriviaList triviaList, ImmutableArray<BlockSpan>.Builder spans)
+            SyntaxTriviaList triviaList, ArrayBuilder<BlockSpan> spans)
         {
             if (triviaList.Count > 0)
             {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         public static void CollectCommentBlockSpans(
-            SyntaxNode node, ImmutableArray<BlockSpan>.Builder spans)
+            SyntaxNode node, ArrayBuilder<BlockSpan> spans)
         {
             if (node == null)
             {

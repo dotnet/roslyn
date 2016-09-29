@@ -79,6 +79,14 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObject>(projectChecksum, cancellationToken).ConfigureAwait(false);
 
+                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                if (!workspace.Services.IsSupported(projectInfo.Language))
+                {
+                    // only add project our workspace supports. 
+                    // workspace doesn't allow creating project with unknown languages
+                    continue;
+                }
+
                 var documents = new List<DocumentInfo>();
                 foreach (var documentChecksum in projectSnapshot.Documents)
                 {
@@ -146,7 +154,6 @@ namespace Microsoft.CodeAnalysis.Remote
                             documentInfo.IsGenerated));
                 }
 
-                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
                 var compilationOptions = await RoslynServices.AssetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, cancellationToken).ConfigureAwait(false);
                 var parseOptions = await RoslynServices.AssetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, cancellationToken).ConfigureAwait(false);
 

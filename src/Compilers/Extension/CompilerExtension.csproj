@@ -47,7 +47,6 @@
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.Native" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.Win32.Primitives" />
-    <!-- Even though the VS process includes both of these, we need to also include them in the VSIX for the compiler processes -->
     <NuGetPackageToIncludeInVsix Include="System.AppContext" />
     <NuGetPackageToIncludeInVsix Include="System.Collections" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />

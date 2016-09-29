@@ -925,7 +925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetInheritanceNames(typeBlock As TypeBlockSyntax) As ImmutableArray(Of String)
-            Dim builder = ImmutableArray.CreateBuilder(Of String)
+            Dim builder = ArrayBuilder(Of String).GetInstance()
 
             Dim aliasMap = GetAliasMap(typeBlock)
             Try
@@ -937,7 +937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddInheritanceNames(builder, implementsStatement.Types, aliasMap)
                 Next
 
-                Return builder.ToImmutable()
+                Return builder.ToImmutableAndFree()
             Finally
                 FreeAliasMap(aliasMap)
             End Try
@@ -966,7 +966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub AddInheritanceNames(
-                builder As ImmutableArray(Of String).Builder,
+                builder As ArrayBuilder(Of String),
                 types As SeparatedSyntaxList(Of TypeSyntax),
                 aliasMap As Dictionary(Of String, String))
 
@@ -976,7 +976,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddInheritanceName(
-                builder As ImmutableArray(Of String).Builder,
+                builder As ArrayBuilder(Of String),
                 typeSyntax As TypeSyntax,
                 aliasMap As Dictionary(Of String, String))
             Dim name = GetTypeName(typeSyntax)

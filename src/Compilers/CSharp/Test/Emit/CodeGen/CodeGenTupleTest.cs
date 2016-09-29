@@ -819,7 +819,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: "{1, 2}");
             comp.VerifyDiagnostics();
@@ -855,7 +855,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {1, 2}
@@ -898,7 +898,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
 
@@ -980,7 +980,7 @@ class C
 
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 1
@@ -1085,7 +1085,7 @@ class C
 
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -1127,7 +1127,7 @@ class C
         return new T[]{x};
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: "2");
             comp.VerifyDiagnostics();
@@ -1160,7 +1160,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: "{, }");
             comp.VerifyDiagnostics();
@@ -1193,7 +1193,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: "{1, {2, {3, 4}}}");
             comp.VerifyDiagnostics();
@@ -1237,7 +1237,7 @@ class C
         System.Console.WriteLine(x.Item1 + x.Item2);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"2
 42");
@@ -1283,7 +1283,7 @@ class C
         System.Console.WriteLine(x.Item1 + x.Item2);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"2
 42");
@@ -1329,7 +1329,7 @@ class C
         System.Console.WriteLine(x.a + x.b);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"2
 42");
@@ -1375,7 +1375,7 @@ class C
         System.Console.WriteLine(x.a + x.b.c + x.b.d);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"2
 42");
@@ -1446,7 +1446,7 @@ class C
         (int, string) x = (1, ""hello"", 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,27): error CS0029: Cannot implicitly convert type '(int, string, int)' to '(int, string)'
@@ -1466,7 +1466,7 @@ class C
         (int, string) x = (1, null, 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,27): error CS8135: Tuple with 3 elements cannot be converted to type '(int, string)'.
@@ -1511,7 +1511,7 @@ class C
         (int, string a) x = (1, ""hello"", c: 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -1550,7 +1550,7 @@ class C
         System.Console.WriteLine(x.b.ToString());
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
             var comp = CompileAndVerify(source, expectedOutput: @"1
 hello");
         }
@@ -1567,7 +1567,7 @@ class C
         System.Console.WriteLine(x.Item1 + "" "" + x.Item2 + "" "" + x.a + "" "" + x.Item3);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"1 hello hello 3");
         }
@@ -1627,7 +1627,7 @@ class C
         System.Console.WriteLine(x.Item1 + "" "" + x.Item2 + "" "" + x.Item3);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"1 hello 3");
         }
@@ -1659,7 +1659,7 @@ class C
         return d;
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"4");
             comp.VerifyDiagnostics();
@@ -1716,7 +1716,7 @@ class C
         return f();
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"42");
             comp.VerifyDiagnostics();
@@ -1754,7 +1754,7 @@ class C
         return f();
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"{42, 42}");
             comp.VerifyDiagnostics();
@@ -2125,7 +2125,7 @@ class C
         return x.f1;
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
             var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -2241,7 +2241,7 @@ class C
         return x.ToString();
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
             var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"{42, 42}", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -2832,7 +2832,7 @@ class C
         return x.f8;
     }
 }
-" + trivial2uple + trivial3uple + trivialRemainingTuples;
+" + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
 
             CompileAndVerify(source, expectedOutput: @"42", additionalRefs: new[] { MscorlibRef_v46 }, options: TestOptions.ReleaseExe);
         }
@@ -2896,19 +2896,19 @@ class C
         (int a, string a) x = (b: 1, b: ""hello"", b: 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,24): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "a").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "a").WithLocation(6, 24),
                 // (6,38): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "b").WithLocation(6, 38),
                 // (6,50): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50)
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "b").WithLocation(6, 50)
                );
         }
 
@@ -2924,22 +2924,22 @@ class C
         (int Item2, string Item2) y = (Item2: 1, Item2: ""hello"");
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(6, 28),
                 // (6,50): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 50),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(6, 50),
                 // (7,14): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item2, string Item2) y = (Item2: 1, Item2: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(7, 14),
                 // (7,40): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item2, string Item2) y = (Item2: 1, Item2: "hello");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(7, 40)
                 );
         }
 
@@ -2960,13 +2960,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,37): error CS8125: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item10").WithArguments("Item10", "10").WithLocation(6, 37),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item10").WithArguments("Item10", "10").WithLocation(6, 37),
                 // (6,61): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(6, 61),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(6, 61),
                 // (6,71): error CS8125: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item10").WithArguments("Item10", "10").WithLocation(6, 71)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item10").WithArguments("Item10", "10").WithLocation(6, 71)
                 );
         }
 
@@ -2984,7 +2984,7 @@ class C
         System.Console.WriteLine(x.b ?? ""null"");
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"0
 null");
@@ -3001,16 +3001,16 @@ class C
         (int a, string a) x = (b: 1, c: ""hello"", b: 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,24): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, c: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "a").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "a").WithLocation(6, 24),
                 // (6,50): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, c: "hello", b: 2);
-                Diagnostic(ErrorCode.ERR_TupleDuplicateMemberName, "b").WithLocation(6, 50)
+                Diagnostic(ErrorCode.ERR_TupleDuplicateElementName, "b").WithLocation(6, 50)
                 );
         }
 
@@ -3031,22 +3031,22 @@ class C
             comp.VerifyDiagnostics(
                 // (6,28): error CS8125: Tuple member name 'Item3' is only allowed at position 3.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item3").WithArguments("Item3", "3").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item3").WithArguments("Item3", "3").WithLocation(6, 28),
                 // (6,42): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 42),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(6, 42),
                 // (6,100): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 100),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 100),
                 // (6,111): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 111),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(6, 111),
                 // (6,125): error CS8125: Tuple member name 'Item4' is only allowed at position 4.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "4").WithLocation(6, 125),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item4").WithArguments("Item4", "4").WithLocation(6, 125),
                 // (6,189): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 189)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 189)
                );
         }
 
@@ -3067,22 +3067,22 @@ class C
             comp.VerifyDiagnostics(
                 // (6,18): error CS8126: Tuple member name 'CompareTo' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 18),
                 // (6,43): error CS8126: Tuple member name 'Deconstruct' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 43),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 43),
                 // (6,59): error CS8126: Tuple member name 'Equals' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 59),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 59),
                 // (6,70): error CS8126: Tuple member name 'GetHashCode' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 70),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 70),
                 // (6,86): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 86),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 86),
                 // (6,95): error CS8126: Tuple member name 'ToString' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 95)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 95)
                 );
         }
 
@@ -3116,7 +3116,7 @@ class C
         System.Console.WriteLine($""{x.Item1} {x.Item2} {x.Item3} {x.Item4} {x.Item5} {x.Item6} {x.Item7} {x.Item8} {x.Item9} {x.Item10} {x.Item11} {x.Item12}"");
     }
 }
-" + trivial2uple + trivial3uple + trivialRemainingTuples;
+" + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -3847,7 +3847,7 @@ class C3
         System.Console.Write(x.GetType().Assembly == typeof(C3).Assembly);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp1 = CreateCompilationWithMscorlib(source1);
             comp1.VerifyDiagnostics();
@@ -4552,7 +4552,7 @@ class C
         (int, var) x = (1, 2);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
@@ -5516,7 +5516,7 @@ class C
         (short a, string b) x3 = ((long c, string d))(1, ""hello"");
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -5541,7 +5541,7 @@ class C
         System.Console.WriteLine(x2);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {1, hello}");
@@ -5590,7 +5590,7 @@ class C
         x = null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term ')'
@@ -5647,7 +5647,7 @@ class C
         x = ((int, int))null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (12,32): error CS1525: Invalid expression term ')'
@@ -5705,7 +5705,7 @@ class C
         x = null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term ')'
@@ -5764,7 +5764,7 @@ class C
         x = null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term ')'
@@ -5820,7 +5820,7 @@ class C
         x = (null, 1);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,21): error CS1525: Invalid expression term ')'
@@ -5882,7 +5882,7 @@ class C
     }
 }
 
-" + trivial2uple + trivialRemainingTuples; //intentionally not including 3-tuple for usesite errors
+" + trivial2uple + trivialRemainingTuples + tupleattributes_cs; //intentionally not including 3-tuple for usesite errors
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (13,37): error CS1525: Invalid expression term ';'
@@ -5960,7 +5960,7 @@ class C
         (string, Func<(string, string)>) x1 = (null, ()=>(null, 1.1));  // actual error, should be the same as above.
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (8,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -6010,7 +6010,7 @@ class C
         (string, Func<(string, string)>) x1 = ((string, Func<(string, string)>))(null, () => (null, 1.1));  // actual error, should be the same as above.
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (8,45): error CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -6395,7 +6395,7 @@ class C
         (int a, int b) x3 = ((long c, long d))(e: 1, f:""qq"");
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
                 // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(long c, long d)'.
@@ -6434,7 +6434,7 @@ class C
         (int a, int b) x4 = ((long c, long d))(1, null, 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
                 // (6,29): error CS8135: Tuple with 3 elements cannot be converted to type '(long c, long d)'.
@@ -6454,7 +6454,7 @@ class C
         (short a, string b)? x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6485,7 +6485,7 @@ class C
         short? y = (short?)11;
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6528,7 +6528,7 @@ class C
         (short a, string b)? x =(1, ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6557,7 +6557,7 @@ class C
         (short a, string b)? x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6586,7 +6586,7 @@ class C
         (short a, string b)? x = ((short c, string d))(e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6623,7 +6623,7 @@ class C
         (object a, string b) x1 = ((long c, string d))(x);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6657,7 +6657,7 @@ class C
         (object a, string b)? x1 = ((long c, string d))(x);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6690,7 +6690,7 @@ class C
         (int a, string b)? x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6719,7 +6719,7 @@ class C
         (int a, string b)? x = ((int c, string d)?)(e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6754,7 +6754,7 @@ class C
         (int a, string b)? x = ((int c, string d))(e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6789,7 +6789,7 @@ class C
         (int a, string b) x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6818,7 +6818,7 @@ class C
         (int a, string b) x = ((int c, string d))(e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6847,7 +6847,7 @@ class C
         (short a, string b) x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6877,7 +6877,7 @@ class C
         short y = (short)11;
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6920,7 +6920,7 @@ class C
         (short a, string b) x = (e: 1, f: null);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6950,7 +6950,7 @@ class C
         string y = (string)null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -7009,7 +7009,7 @@ class C
         }
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
@@ -7056,7 +7056,7 @@ class C
         }
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
@@ -7115,7 +7115,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
@@ -7191,7 +7191,7 @@ class C
             Assert.Equal(Conversion.NoConversion, model.GetConversion(node));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11289")]
+        [Fact]
         [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC04()
         {
@@ -7265,7 +7265,7 @@ namespace System
             CompileAndVerify(comp, expectedOutput: "{1, qq}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11289")]
+        [Fact]
         [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC05()
         {
@@ -7348,7 +7348,7 @@ namespace System
 {1, qq}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11289")]
+        [Fact]
         [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC06()
         {
@@ -7696,7 +7696,7 @@ class Program
         System.Console.WriteLine(2);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 2
@@ -7776,7 +7776,7 @@ class C
         System.Console.WriteLine(f(x));
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 test1
@@ -7827,7 +7827,7 @@ class C
         System.Console.WriteLine(f(x));
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 test1
@@ -7860,7 +7860,7 @@ class C
         System.Console.WriteLine(typeof(T));
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 System.ValueType
@@ -7887,7 +7887,7 @@ class C
         System.Console.WriteLine(typeof(T));
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -7933,7 +7933,7 @@ class C
         System.Console.WriteLine(typeof(T));
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -8118,7 +8118,7 @@ class C
         (int x, System.ArgIterator y) z = (1, 2, new System.ArgIterator());
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -8148,7 +8148,7 @@ class C
         (int x, System.ArgIterator y) y;
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -8356,7 +8356,7 @@ class C
         (int, int) x = (1, 1);
     }
 CS0151ERR_IntegralTypeValueExpected}
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
@@ -9562,31 +9562,31 @@ class C
             comp.VerifyDiagnostics(
                 // (9,17): error CS8125: Tuple member name 'Item9' is only allowed at position 9.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item9").WithArguments("Item9", "9").WithLocation(9, 17),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item9").WithArguments("Item9", "9").WithLocation(9, 17),
                 // (9,28): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(9, 28),
                 // (9,39): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(9, 39),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(9, 39),
                 // (9,50): error CS8125: Tuple member name 'Item3' is only allowed at position 3.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item3").WithArguments("Item3", "3").WithLocation(9, 50),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item3").WithArguments("Item3", "3").WithLocation(9, 50),
                 // (9,61): error CS8125: Tuple member name 'Item4' is only allowed at position 4.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "4").WithLocation(9, 61),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item4").WithArguments("Item4", "4").WithLocation(9, 61),
                 // (9,72): error CS8125: Tuple member name 'Item5' is only allowed at position 5.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item5").WithArguments("Item5", "5").WithLocation(9, 72),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item5").WithArguments("Item5", "5").WithLocation(9, 72),
                 // (9,83): error CS8125: Tuple member name 'Item6' is only allowed at position 6.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item6").WithArguments("Item6", "6").WithLocation(9, 83),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item6").WithArguments("Item6", "6").WithLocation(9, 83),
                 // (9,94): error CS8125: Tuple member name 'Item7' is only allowed at position 7.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item7").WithArguments("Item7", "7").WithLocation(9, 94),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item7").WithArguments("Item7", "7").WithLocation(9, 94),
                 // (9,105): error CS8125: Tuple member name 'Item8' is only allowed at position 8.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item8").WithArguments("Item8", "8").WithLocation(9, 105)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item8").WithArguments("Item8", "8").WithLocation(9, 105)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -9666,7 +9666,7 @@ class C
             comp.VerifyDiagnostics(
                 // (9,73): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //     static (int a1, int a2, int a3, int a4, int a5, int a6, int a7, int Item1) M8()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item1").WithArguments("Item1", "1").WithLocation(9, 73)
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item1").WithArguments("Item1", "1").WithLocation(9, 73)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -9802,7 +9802,7 @@ class C
         System.Console.WriteLine(v6.ToString());
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"1
 11
@@ -10204,7 +10204,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b)").WithArguments("(int a, int b)").WithLocation(23, 12),
                 // (35,73): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //     static (int a, int b, int c, int d, int e, int f, int g, int h, int Item2) M103()
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(35, 73),
+                Diagnostic(ErrorCode.ERR_TupleReservedElementName, "Item2").WithArguments("Item2", "2").WithLocation(35, 73),
                 // (35,12): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
                 //     static (int a, int b, int c, int d, int e, int f, int g, int h, int Item2) M103()
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b, int c, int d, int e, int f, int g, int h, int Item2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(35, 12),
@@ -11385,7 +11385,7 @@ public class Test<T>
        throw new NotImplementedException();
     }
 }
-" + trivialRemainingTuples;
+" + trivialRemainingTuples + tupleattributes_cs;
 
             var source2 = @"
 class C
@@ -11399,7 +11399,7 @@ class C
         System.Console.WriteLine(v1.Rest.Item9);
     }
 }
-" + trivial2uple + trivialRemainingTuples;
+" + trivial2uple + trivialRemainingTuples + tupleattributes_cs;
 
             var comp1 = CreateCompilationWithMscorlib(source1,
                                                      options: TestOptions.ReleaseDll);
@@ -13114,7 +13114,7 @@ class C
         if (o is (int, int) t) { }
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -13153,7 +13153,7 @@ class C
         (x, x);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -13174,7 +13174,7 @@ class C
         if (o is (int a, int b)) { }
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
 
             var comp = CreateCompilationWithMscorlib(source);
@@ -13202,7 +13202,7 @@ class C
         if (o is (1, 2)) { }
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -13225,7 +13225,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -13260,7 +13260,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -13283,7 +13283,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -13310,7 +13310,7 @@ class C
         (1, 1);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
@@ -13384,7 +13384,7 @@ class TestAttribute : System.Attribute
 
     public (int, string) Val {get; set;}
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
@@ -13475,7 +13475,7 @@ class C
         Print(x2);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
@@ -13490,7 +13490,7 @@ System.ValueTuple`2[System.Int32,System.ValueTuple`2[System.Int32,System.String]
         {
             var source = @"
 class Class { void Method() { tuple = (1, ""hello""); } }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
@@ -13802,7 +13802,7 @@ class C3
         [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
         public void LongLiteralsAndAmbiguousVT_02()
         {
-            var source1 = trivial2uple + trivial3uple + trivialRemainingTuples;
+            var source1 = trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
 
             var source2 = @"
 public static class C2
@@ -14111,7 +14111,7 @@ class C
         var x5 = (System.Func<int>)(() => 12);
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -14172,7 +14172,7 @@ class C
         System.Func<int> x5 = () => 12;
     }
 }
-" + trivial2uple + trivial3uple;
+" + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -15070,7 +15070,7 @@ using System;
         }
     }
 
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {Program+C2, Program+C2}
@@ -15102,7 +15102,7 @@ using System;
         }
     }
 
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {Program+C2, Program+C2}
@@ -15126,7 +15126,7 @@ class C
         System.Console.WriteLine(z);
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {1, 2}
@@ -15196,7 +15196,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {2, 3}
@@ -15381,7 +15381,7 @@ class D<T> : C<T>
         return new D<T>(""converted"");
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 explicit
@@ -15445,7 +15445,7 @@ class C
         bt = ((B, B)?)xt;
 }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "ImplicitConversions06Err");
             comp.VerifyEmitDiagnostics(
@@ -15609,7 +15609,7 @@ class Program
     }
 }
 
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -17876,7 +17876,7 @@ namespace System
         }
     }
 }
-";
+" + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source,
                 parseOptions: TestOptions.Regular);
@@ -18108,7 +18108,7 @@ class C
             return v1.Item1;            
         }
     }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"5", options: TestOptions.ReleaseExe);
 
@@ -18292,7 +18292,7 @@ public static class C1
         System.Console.WriteLine(""M1"");
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var source2 = @"
 public static class C2
@@ -18302,7 +18302,7 @@ public static class C2
         System.Console.WriteLine(""M1"");
     }
 }
-" + trivial2uple;
+" + trivial2uple + tupleattributes_cs;
 
             var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1",
                           parseOptions: TestOptions.Regular.WithTuplesFeature());

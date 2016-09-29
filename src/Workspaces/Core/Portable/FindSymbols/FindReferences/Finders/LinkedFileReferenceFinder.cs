@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
-        public async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+        public async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var linkedSymbols = new HashSet<SymbolAndProjectId>();
@@ -59,23 +59,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return linkedSymbols;
+            return linkedSymbols.ToImmutableArray();
         }
 
-        public Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SpecializedTasks.EmptyEnumerable<Document>();
+            return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        public Task<IEnumerable<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SpecializedTasks.EmptyEnumerable<Project>();
+            return SpecializedTasks.EmptyImmutableArray<Project>();
         }
 
-        public Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        public Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SpecializedTasks.EmptyEnumerable<ReferenceLocation>();
+            return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
         }
     }
 }

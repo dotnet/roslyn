@@ -89,10 +89,6 @@
       <Name>Features</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\TestUtilities.Next\VisualStudioTestUtilities.Next.csproj">
-      <Project>{78324e87-92d5-412c-9fa8-5cc2fbfbaf6c}</Project>
-      <Name>VisualStudioTestUtilities.Next</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Next\ServicesVisualStudio.Next.csproj">
       <Project>{fe0d4bdd-1c30-488e-a870-854f5b8c5014}</Project>
       <Name>ServicesVisualStudio.Next</Name>

@@ -89,8 +89,12 @@ namespace Microsoft.CodeAnalysis.Execution
             var additionalDocuments = await subSnapshotBuilder.BuildAsync(projectState.AdditionalDocumentStates, projectState.AdditionalDocumentIds.Select(id => projectState.AdditionalDocumentStates[id]), WellKnownChecksumObjects.TextDocuments, cancellationToken).ConfigureAwait(false);
 
             var subAssetBuilder = new AssetBuilder(subTreeNode);
-            var compilationOptions = subAssetBuilder.Build(projectState, projectState.CompilationOptions, cancellationToken);
-            var parseOptions = subAssetBuilder.Build(projectState, projectState.ParseOptions, cancellationToken);
+
+            // set Asset.Null if this particular project doesn't support compiler options.
+            // this one is really bit wierd since project state has both compilation/parse options but only has support compilation. 
+            // for now, we use support compilation for both options
+            var compilationOptions = projectState.SupportsCompilation ? subAssetBuilder.Build(projectState, projectState.CompilationOptions, cancellationToken) : Asset.Null;
+            var parseOptions = projectState.SupportsCompilation ? subAssetBuilder.Build(projectState, projectState.ParseOptions, cancellationToken) : Asset.Null;
 
             return new ProjectChecksumObject(
                 _serializer, info.Checksum, compilationOptions.Checksum, parseOptions.Checksum,
