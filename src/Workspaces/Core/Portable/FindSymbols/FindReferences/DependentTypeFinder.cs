@@ -35,10 +35,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
             t => t.TypeKind == TypeKind.Interface || s_isNonSealedClass(t);
 
+        private static readonly ObjectPool<SymbolAndProjectIdSet> s_setPool = new ObjectPool<SymbolAndProjectIdSet>(
+            () => new SymbolAndProjectIdSet(SymbolAndProjectIdComparer<INamedTypeSymbol>.SymbolEquivalenceInstance));
+
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
-        internal static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedClassesAsync(
+        internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync(SymbolAndProjectId{INamedTypeSymbol}, Solution, IImmutableSet{Project}, CancellationToken)"/>, which is a publically callable method.
         /// </summary>
-        public static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyDerivedClassesAsync(
+        public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 transitive: true, cancellationToken: cancellationToken);
         }
 
-        private static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
+        private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
             SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects, 
@@ -85,14 +88,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken: cancellationToken);
             }
 
-            return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId<INamedTypeSymbol>>();
+            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>();
         }
 
         /// <summary>
         /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync(SymbolAndProjectId, Solution, IImmutableSet{Project}, CancellationToken)"/> for 
         /// <see cref="INamedTypeSymbol"/>s
         /// </summary>
-        public static async Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingTypesAsync(
+        public static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -103,23 +106,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 transitive: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // We only want implementing types here, not derived interfaces.
-            return derivedAndImplementingTypes.Where(t => t.Symbol.TypeKind == TypeKind.Class).ToList();
+            return derivedAndImplementingTypes.WhereAsArray(t => t.Symbol.TypeKind == TypeKind.Class);
         }
 
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
-        internal static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedAndImplementingTypesAsync(
+        internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
         {
             return FindDerivedAndImplementingTypesAsync(
-               SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
+                SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
                 transitive: false, cancellationToken: cancellationToken);
         }
 
-        private static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedAndImplementingTypesAsync(
+        private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedAndImplementingTypesAsync(
             SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -141,10 +144,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken: cancellationToken);
            }
 
-            return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId<INamedTypeSymbol>>();
+            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>();
         }
 
-        private static async Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesAsync(
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesAsync(
             SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -214,7 +217,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     transitive, cancellationToken).ConfigureAwait(false);
             }
 
-            return result;
+            return ToImmutableAndFree(result);
+        }
+
+        private static ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>> ToImmutableAndFree(
+            SymbolAndProjectIdSet set)
+        {
+            var array = set.ToImmutableArray();
+            s_setPool.ClearAndFree(set);
+            return array;
         }
 
         private static async Task FindTypesInProjectAsync(
@@ -389,7 +400,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                  .ToList();
         }
 
-        private static async Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindAllMatchingMetadataTypesInProjectAsync(
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindAllMatchingMetadataTypesInProjectAsync(
             SymbolAndProjectIdSet metadataTypes,
             Project project,
             Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches,
@@ -397,7 +408,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (metadataTypes.Count == 0)
             {
-                return SpecializedCollections.EmptyEnumerable<SymbolAndProjectId<INamedTypeSymbol>>();
+                return ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>.Empty;
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -425,7 +436,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 currentTypes = immediateDerivedTypes;
             }
 
-            return result;
+            return ToImmutableAndFree(result);
         }
 
         private static async Task FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
@@ -506,7 +517,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static async Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindSourceTypesInProjectAsync(
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindSourceTypesInProjectAsync(
             SymbolAndProjectIdSet sourceAndMetadataTypes,
             Project project,
             Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
@@ -567,7 +578,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            return finalResult;
+            return ToImmutableAndFree(finalResult);
         }
 
         private static bool ImmediatelyDerivesOrImplementsFrom(
@@ -589,7 +600,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static async Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyInheritingTypesInDocumentAsync(
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyInheritingTypesInDocumentAsync(
             Document document,
             SymbolAndProjectIdSet typesToSearchFor,
             InheritanceQuery inheritanceQuery,
@@ -601,20 +612,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
             cachedInfos.Add(declarationInfo);
 
-            SymbolAndProjectIdSet result = null;
+            var result = CreateSymbolAndProjectIdSet();
             foreach (var symbolInfo in declarationInfo.DeclaredSymbolInfos)
             {
-                result = await ProcessSymbolInfo(
+                await ProcessSymbolInfo(
                     document, symbolInfo,
                     typesToSearchFor,
                     inheritanceQuery, cachedModels,
                     typeImmediatelyMatches, result, cancellationToken).ConfigureAwait(false);
             }
 
-            return result;
+            return ToImmutableAndFree(result);
         }
 
-        private static async Task<SymbolAndProjectIdSet> ProcessSymbolInfo(
+        private static async Task ProcessSymbolInfo(
             Document document,
             DeclaredSymbolInfo info,
             SymbolAndProjectIdSet typesToSearchFor,
@@ -634,7 +645,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol != null)
                 {
-                    result = result ?? CreateSymbolAndProjectIdSet();
                     result.Add(SymbolAndProjectId.Create(symbol, projectId));
                 }
             }
@@ -648,7 +658,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol?.BaseType?.SpecialType == SpecialType.System_Object)
                 {
-                    result = result ?? CreateSymbolAndProjectIdSet();
                     result.Add(SymbolAndProjectId.Create(symbol, projectId));
                 }
             }
@@ -660,13 +669,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (typeImmediatelyMatches(typesToSearchFor, symbol))
                     {
-                        result = result ?? CreateSymbolAndProjectIdSet();
                         result.Add(SymbolAndProjectId.Create(symbol, projectId));
                     }
                 }
             }
-
-            return result;
         }
 
         private static bool AnyInheritanceNamesMatch(
@@ -713,8 +719,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static SymbolAndProjectIdSet CreateSymbolAndProjectIdSet()
         {
-            return new SymbolAndProjectIdSet(
-                SymbolAndProjectIdComparer<INamedTypeSymbol>.SymbolEquivalenceInstance);
+            return s_setPool.Allocate();
         }
     }
 }
