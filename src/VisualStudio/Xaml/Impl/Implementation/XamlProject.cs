@@ -2,8 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
@@ -25,9 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 visualStudioWorkspaceOpt: visualStudioWorkspace,
                 hostDiagnosticUpdateSourceOpt: null)
         {
-            // Use default options
-            SetOptions(new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions());
-
             projectTracker.AddProject(this);
         }
 
