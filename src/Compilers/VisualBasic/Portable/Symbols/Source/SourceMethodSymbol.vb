@@ -2115,13 +2115,7 @@ lReportErrorOnTwoTokens:
                     ' with (equivalent) type parameters owned by this method.  We know that
                     ' we can perform this mapping positionally, because the method signatures
                     ' have already been compared.
-                    Dim constructedMethodWithCustomModifiers As MethodSymbol
-
-                    If Me.Arity > 0 Then
-                        constructedMethodWithCustomModifiers = overridden.Construct(Me.TypeParameters.As(Of TypeSymbol))
-                    Else
-                        constructedMethodWithCustomModifiers = overridden
-                    End If
+                    Dim constructedMethodWithCustomModifiers As MethodSymbol = overridden.ConstructIfGeneric(Me.TypeParameters.As(Of TypeSymbol))
 
                     Dim returnTypeWithCustomModifiers As TypeSymbol = constructedMethodWithCustomModifiers.ReturnType
 
