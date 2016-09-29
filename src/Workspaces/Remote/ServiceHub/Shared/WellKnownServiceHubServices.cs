@@ -26,8 +26,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
         #endregion
 
-        // FindReferences methods.
+        #region NavigateTo
+
+        public const string CodeAnalysisService_SearchDocumentAsync = "SearchDocumentAsync";
+        public const string CodeAnalysisService_SearchProjectAsync = "SearchProjectAsync";
+
+        #endregion
+
+        #region FindReferences
+
         public const string CodeAnalysisService_FindReferencesAsync = "FindReferencesAsync";
+
+        #endregion 
 
         public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
     }
