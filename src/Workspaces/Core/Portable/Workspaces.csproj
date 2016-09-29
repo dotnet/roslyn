@@ -502,6 +502,7 @@
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyWriter.cs" />
     <Compile Include="SymbolKey\SymbolKey.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchLogService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchOptions.cs" />
     <Compile Include="SymbolSearch\SymbolSearchOptionsProvider.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
@@ -509,7 +510,6 @@
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
     <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchOptions.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
