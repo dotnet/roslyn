@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
             public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
-            public async Task<IEnumerable<SymbolResult<ISymbol>>> FindDeclarationsAsync(
+            public async Task<ImmutableArray<SymbolResult<ISymbol>>> FindDeclarationsAsync(
                 string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
             {
                 if (name != null && string.IsNullOrWhiteSpace(name))
                 {
-                    return SpecializedCollections.EmptyEnumerable<SymbolResult<ISymbol>>();
+                    return ImmutableArray<SymbolResult<ISymbol>>.Empty;
                 }
 
                 var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     // We did an exact, case insensitive, search.  Case sensitive matches should
                     // be preffered though over insensitive ones.
-                    return symbols.Select(s => SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1)).ToList();
+                    return symbols.SelectAsArray(s => 
+                        SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
                 }
 
                 // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
@@ -61,14 +62,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // compiler bowels when we call FindDeclarations.
                 using (var similarityChecker = new WordSimilarityChecker(name, substringsAreSimilar: false))
                 {
-                    return symbols.Select(s =>
+                    return symbols.SelectAsArray(s =>
                     {
                         double matchCost;
                         var areSimilar = similarityChecker.AreSimilar(s.Name, out matchCost);
 
                         Debug.Assert(areSimilar);
                         return SymbolResult.Create(s.Name, nameNode, s, matchCost);
-                    }).ToList();
+                    });
                 }
             }
         }

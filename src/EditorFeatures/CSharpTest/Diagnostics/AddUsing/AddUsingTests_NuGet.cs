@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
             {
                 var workspace = await base.CreateWorkspaceFromFileAsync(definition, parseOptions, compilationOptions);
                 workspace.Options = workspace.Options
-                    .WithChangedOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
-                    .WithChangedOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);
+                    .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
+                    .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);
                 return workspace;
             }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
-                packageServiceMock.Setup(s => s.FindPackagesWithType(
+                packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                     NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
@@ -92,7 +92,7 @@ class C
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
-                packageServiceMock.Setup(s => s.FindPackagesWithType(
+                packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                     NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
@@ -123,7 +123,7 @@ class C
                     .Returns(true);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
-                packageServiceMock.Setup(s => s.FindPackagesWithType(
+                packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                     NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
@@ -147,7 +147,7 @@ class C
                     .Returns(new[] { "1.0", "2.0" });
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
-                packageServiceMock.Setup(s => s.FindPackagesWithType(
+                packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                     NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
@@ -193,7 +193,7 @@ fixProviderData: data);
                     It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<CancellationToken>()));
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
-                packageServiceMock.Setup(s => s.FindPackagesWithType(
+                packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                     NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
@@ -225,7 +225,7 @@ class C
                     It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<CancellationToken>()));
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
-                packageServiceMock.Setup(s => s.FindPackagesWithType(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
+                packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
                 await TestAsync(
@@ -244,7 +244,7 @@ class C
                 installerServiceMock.Verify();
             }
 
-            private IEnumerable<PackageWithTypeResult> CreateSearchResult(
+            private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(
                 string packageName, string typeName, IReadOnlyList<string> containingNamespaceNames)
             {
                 return CreateSearchResult(new PackageWithTypeResult(
@@ -252,7 +252,8 @@ class C
                     version: null, containingNamespaceNames: containingNamespaceNames));
             }
 
-            private IEnumerable<PackageWithTypeResult> CreateSearchResult(params PackageWithTypeResult[] results) => results;
+            private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results) 
+                => Task.FromResult(ImmutableArray.Create(results));
 
             private IReadOnlyList<string> CreateNameParts(params string[] parts) => parts;
         }

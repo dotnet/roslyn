@@ -94,8 +94,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             Document document,
             IEnumerable<SyntaxToken> tokens,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SyntaxNode> findParentNode = null)
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInTokensWithSymbolNameAsync(
+                symbol, document, tokens,
+                findParentNode: null, cancellationToken: cancellationToken);
+        }
+
+        protected Task<ImmutableArray<ReferenceLocation>> FindReferencesInTokensWithSymbolNameAsync(
+            TSymbol symbol,
+            Document document,
+            IEnumerable<SyntaxToken> tokens,
+            Func<SyntaxToken, SyntaxNode> findParentNode,
+            CancellationToken cancellationToken)
         {
             var name = symbol.Name;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -113,8 +124,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             ISymbol container,
             Document document,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SyntaxNode> findParentNode = null)
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInContainerAsync(
+                symbol, container, document,
+                findParentNode: null, cancellationToken: cancellationToken);
+        }
+
+        private Task<ImmutableArray<ReferenceLocation>> FindReferencesInContainerAsync(
+            TSymbol symbol,
+            ISymbol container,
+            Document document,
+            Func<SyntaxToken, SyntaxNode> findParentNode,
+            CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<ISymbolDeclarationService>();
             var declarations = service.GetDeclarations(container);

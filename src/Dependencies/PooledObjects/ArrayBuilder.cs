@@ -421,6 +421,11 @@ namespace Microsoft.CodeAnalysis
             _builder.AddRange(items, length);
         }
 
+        public void AddRange<S>(ImmutableArray<S> items) where S : class, T
+        {
+            AddRange(ImmutableArray<T>.CastUp(items));
+        }
+
         public void AddRange(T[] items, int start, int length)
         {
             for (int i = start, end = start + length; i < end; i++)

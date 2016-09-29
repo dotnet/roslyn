@@ -4474,7 +4474,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /help                         Display this usage message (Short form: /?)
  /nologo                       Suppress compiler copyright message
  /noconfig                     Do not auto include CSC.RSP file
- /parallel[+|-]                Concurrent build. 
+ /parallel[+|-]                Concurrent build.
+ /version                      Display the compiler version number and exit.
 
                         - ADVANCED -
  /baseaddress:&lt;address&gt;        Base address for the library to be built
@@ -4941,7 +4942,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
     <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
   </data>
-  <data name="ERR_ExplicitTupleElementNames" xml:space="preserve">
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
     <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">

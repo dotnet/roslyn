@@ -3,14 +3,12 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal interface INavigateToSearchResultProvider
+    internal interface INavigateToSearchService : ILanguageService
     {
-        /// <summary>
-        /// Compute navigate to search results for the given search pattern in the given project.
-        /// </summary>
         Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, CancellationToken cancellationToken);
         Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, CancellationToken cancellationToken);
     }
