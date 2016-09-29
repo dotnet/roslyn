@@ -85,6 +85,7 @@ namespace RunTests
                 else if (comp.Equals(current, "-testVsi"))
                 {
                     opt.TestVsi = true;
+                    opt.UseCachedResults = false;
                     index++;
                 }
                 else if (comp.Equals(current, "-xml"))
