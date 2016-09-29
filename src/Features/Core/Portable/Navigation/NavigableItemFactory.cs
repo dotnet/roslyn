@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Navigation
+namespace Microsoft.CodeAnalysis.Navigation
 {
     internal static partial class NavigableItemFactory
     {
