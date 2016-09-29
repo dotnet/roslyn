@@ -41,7 +41,7 @@ namespace RunTests
         internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
             // Use 1.5 times the number of processors for unit tests, but only 1 processor for the open integration tests
-            var max = (_options.TestVSI) ? 1 : (int)(Environment.ProcessorCount * 1.5);
+            var max = (_options.TestVsi) ? 1 : (int)(Environment.ProcessorCount * 1.5);
             var allPassed = true;
             var cacheCount = 0;
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);

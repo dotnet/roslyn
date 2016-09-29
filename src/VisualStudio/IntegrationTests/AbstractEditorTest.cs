@@ -13,19 +13,19 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractEditorTest : AbstractIntegrationTest
     {
-        protected readonly VisualStudioWorkspace_OutOfProc _visualStudioWorkspaceOutOfProc;
-        protected readonly Editor_OutOfProc _editor;
+        protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
+        protected readonly Editor_OutOfProc Editor;
 
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
             : base(instanceFactory)
         {
-            _visualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
-            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, LanguageName);
+            VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
+            VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, LanguageName);
 
-            _visualStudioWorkspaceOutOfProc = _visualStudio.Instance.VisualStudioWorkspace;
-            _visualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
+            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
+            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
 
-            _editor = _visualStudio.Instance.Editor;
+            Editor = VisualStudio.Instance.Editor;
 
             ClearEditor();
         }
@@ -34,7 +34,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         private void WaitForAsyncOperations(string featuresToWaitFor)
         {
-            _visualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
+            VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
         }
 
         protected void ClearEditor()
@@ -48,23 +48,23 @@ namespace Roslyn.VisualStudio.IntegrationTests
             int caretPosition;
             MarkupTestFile.GetPosition(markupCode, out code, out caretPosition);
 
-            var originalValue = _visualStudioWorkspaceOutOfProc.IsPrettyListingOn(LanguageName);
+            var originalValue = VisualStudioWorkspaceOutOfProc.IsPrettyListingOn(LanguageName);
 
-            _visualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, false);
+            VisualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, false);
             try
             {
-                _editor.SetText(code);
-                _editor.MoveCaret(caretPosition);
+                Editor.SetText(code);
+                Editor.MoveCaret(caretPosition);
             }
             finally
             {
-                _visualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, originalValue);
+                VisualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, originalValue);
             }
         }
 
         protected void SendKeys(params object[] keys)
         {
-            _editor.SendKeys(keys);
+            Editor.SendKeys(keys);
         }
 
         protected KeyPress KeyPress(VirtualKey virtualKey, ShiftState shiftState)
@@ -84,12 +84,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void DisableSuggestionMode()
         {
-            _visualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
+            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
         }
 
         protected void EnableSuggestionMode()
         {
-            _visualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
+            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
         }
 
         protected void InvokeCompletionList()
@@ -100,7 +100,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void ExecuteCommand(string commandName)
         {
-            _visualStudio.Instance.ExecuteCommand(commandName);
+            VisualStudio.Instance.ExecuteCommand(commandName);
         }
 
         private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)
@@ -116,7 +116,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             var expectedTextBeforeCaret = expectedText.Substring(0, caretStartIndex);
             var expectedTextAfterCaret = expectedText.Substring(caretEndIndex);
 
-            var lineText = _editor.GetCurrentLineText();
+            var lineText = Editor.GetCurrentLineText();
 
             if (trimWhitespace)
             {
@@ -155,7 +155,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
             else
             {
-                var lineText = _editor.GetCurrentLineText();
+                var lineText = Editor.GetCurrentLineText();
 
                 if (trimWhitespace)
                 {
@@ -181,12 +181,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
 
-            var editorText = _editor.GetText();
+            var editorText = Editor.GetText();
             Assert.Contains(expectedTextWithoutCaret, editorText);
 
             var index = editorText.IndexOf(expectedTextWithoutCaret);
 
-            var caretPosition = _editor.GetCaretPosition();
+            var caretPosition = Editor.GetCaretPosition();
             Assert.Equal(caretStartIndex + index, caretPosition);
         }
 
@@ -198,14 +198,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
             else
             {
-                var editorText = _editor.GetText();
+                var editorText = Editor.GetText();
                 Assert.Contains(expectedText, editorText);
             }
         }
 
         protected void VerifyCompletionItemExists(params string[] expectedItems)
         {
-            var completionItems = _editor.GetCompletionItems();
+            var completionItems = Editor.GetCompletionItems();
             foreach (var expectedItem in expectedItems)
             {
                 Assert.Contains(expectedItem, completionItems);
@@ -214,24 +214,24 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void VerifyCurrentCompletionItem(string expectedItem)
         {
-            var currentItem = _editor.GetCurrentCompletionItem();
+            var currentItem = Editor.GetCurrentCompletionItem();
             Assert.Equal(expectedItem, currentItem);
         }
 
         protected void VerifyCurrentSignature(Signature expectedSignature)
         {
-            var currentSignature = _editor.GetCurrentSignature();
+            var currentSignature = Editor.GetCurrentSignature();
             Assert.Equal(expectedSignature, currentSignature);
         }
 
         protected void VerifyCaretIsOnScreen()
         {
-            Assert.True(_editor.IsCaretOnScreen());
+            Assert.True(Editor.IsCaretOnScreen());
         }
 
         protected void VerifyCompletionListIsActive(bool expected)
         {
-            Assert.Equal(expected, _editor.IsCompletionActive());
+            Assert.Equal(expected, Editor.IsCompletionActive());
         }
     }
 }

@@ -8,16 +8,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractIntegrationTest : IDisposable
     {
-        protected readonly VisualStudioInstanceContext _visualStudio;
+        protected readonly VisualStudioInstanceContext VisualStudio;
 
         protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
+            VisualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
         }
 
         public void Dispose()
         {
-            _visualStudio.Dispose();
+            VisualStudio.Dispose();
         }
 
         protected void Wait(double seconds)

@@ -13,62 +13,62 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         private static readonly char[] LineSeparators = { '\r', '\n' };
 
-        protected readonly CSharpInteractiveWindow_OutOfProc _interactiveWindow;
+        protected readonly CSharpInteractiveWindow_OutOfProc InteractiveWindow;
 
         protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            _interactiveWindow = _visualStudio.Instance.CSharpInteractiveWindow;
+            InteractiveWindow = VisualStudio.Instance.CSharpInteractiveWindow;
             ClearInteractiveWindow();
         }
 
         protected void ClearInteractiveWindow()
         {
-            _interactiveWindow.Initialize();
-            _interactiveWindow.ShowWindow();
-            _interactiveWindow.Reset();
+            InteractiveWindow.Initialize();
+            InteractiveWindow.ShowWindow();
+            InteractiveWindow.Reset();
         }
 
         protected void ClearReplText()
         {
             // Dismiss the pop-up (if any)
-            _visualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
+            VisualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
 
             // Clear the line
-            _visualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
+            VisualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
         }
 
         protected void Reset(bool waitForPrompt = true)
         {
-            _interactiveWindow.Reset(waitForPrompt: true);
+            InteractiveWindow.Reset(waitForPrompt: true);
         }
 
         protected void SubmitText(string text, bool waitForPrompt = true)
         {
-            _interactiveWindow.SubmitText(text, waitForPrompt);
+            InteractiveWindow.SubmitText(text, waitForPrompt);
         }
 
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
-            var lastReplOutput = _interactiveWindow.GetLastReplOutput();
+            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
             Assert.Equal(expectedReplOutput, lastReplOutput);
         }
 
         protected void VerifyLastReplOutputContains(string expectedReplOutput)
         {
-            var lastReplOutput = _interactiveWindow.GetLastReplOutput();
+            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
             Assert.Contains(expectedReplOutput, lastReplOutput);
         }
 
         protected void VerifyLastReplOutputEndsWith(string expectedReplOutput)
         {
-            var lastReplOutput = _interactiveWindow.GetLastReplOutput();
+            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
             Assert.EndsWith(expectedReplOutput, lastReplOutput);
         }
 
         protected void VerifyReplPromptConsistency(string prompt, string output)
         {
-            var replText = _interactiveWindow.GetReplText();
+            var replText = InteractiveWindow.GetReplText();
             var replTextLines = replText.Split(LineSeparators, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var replTextLine in replTextLines)
@@ -97,7 +97,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void WaitForReplOutput(string outputText)
         {
-            _interactiveWindow.WaitForReplOutput(outputText);
+            InteractiveWindow.WaitForReplOutput(outputText);
         }
     }
 }

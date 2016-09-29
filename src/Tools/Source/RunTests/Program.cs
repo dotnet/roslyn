@@ -184,7 +184,7 @@ namespace RunTests
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,
                 test64: options.Test64,
-                testVSI: options.TestVSI);
+                testVsi: options.TestVsi);
             var processTestExecutor = new ProcessTestExecutor(testExecutionOptions);
             if (!options.UseCachedResults)
             {

@@ -15,17 +15,16 @@ namespace RunTests
         internal string NoTrait { get; }
         internal bool UseHtml { get; }
         internal bool Test64 { get; }
+        internal bool TestVsi { get; }
 
-        internal bool TestVSI { get; }
-
-        internal TestExecutionOptions(string xunitPath, string trait, string noTrait, bool useHtml, bool test64, bool testVSI)
+        internal TestExecutionOptions(string xunitPath, string trait, string noTrait, bool useHtml, bool test64, bool testVsi)
         {
             XunitPath = xunitPath;
             Trait = trait;
             NoTrait = noTrait;
             UseHtml = useHtml;
             Test64 = test64;
-            TestVSI = testVSI;
+            TestVsi = testVsi;
         }
     }
 
