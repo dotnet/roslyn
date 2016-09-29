@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 List<SymbolReference> allReferences = null;
                 foreach (var task in tasks)
                 {
-                    var taskResult = task.Result;
+                    var taskResult = await task.ConfigureAwait(false);
                     if (taskResult?.Count > 0)
                     {
                         allReferences = allReferences ?? new List<SymbolReference>();
@@ -266,9 +266,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 var options = workspaceServices.Workspace.Options;
                 var searchReferenceAssemblies = options.GetOption(
-                    AddImportOptions.SuggestForTypesInReferenceAssemblies, language);
+                    SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, language);
                 var searchNugetPackages = options.GetOption(
-                    AddImportOptions.SuggestForTypesInNuGetPackages, language);
+                    SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
 
                 if (symbolSearchService != null &&
                     searchReferenceAssemblies)
@@ -302,7 +302,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = searchService.FindReferenceAssembliesWithType(name, arity, cancellationToken);
+                var results = await searchService.FindReferenceAssembliesWithTypeAsync(
+                    name, arity, cancellationToken).ConfigureAwait(false);
+                if (results.IsDefault)
+                {
+                    return;
+                }
 
                 var project = _document.Project;
                 var projectId = project.Id;
@@ -329,7 +334,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var results = searchService.FindPackagesWithType(source.Name, name, arity, cancellationToken);
+                var results = await searchService.FindPackagesWithTypeAsync(
+                    source.Name, name, arity, cancellationToken).ConfigureAwait(false);
+                if (results.IsDefault)
+                {
+                    return;
+                }
 
                 var project = _document.Project;
                 var projectId = project.Id;

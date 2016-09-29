@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Navigation
+namespace Microsoft.CodeAnalysis.Navigation
 {
     internal interface INavigableItem
     {

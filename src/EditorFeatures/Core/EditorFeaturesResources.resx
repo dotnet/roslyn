@@ -477,12 +477,6 @@
   <data name="Navigating_to_definition" xml:space="preserve">
     <value>Navigating to definition...</value>
   </data>
-  <data name="project" xml:space="preserve">
-    <value>project </value>
-  </data>
-  <data name="type" xml:space="preserve">
-    <value>type </value>
-  </data>
   <data name="Organize_Document" xml:space="preserve">
     <value>Organize Document</value>
   </data>

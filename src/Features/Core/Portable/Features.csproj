@@ -91,6 +91,18 @@
     </Compile>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="NavigateTo\NavigateToItemKind.cs" />
+    <Compile Include="NavigateTo\NavigateToMatchKind.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToSearchService.cs" />
+    <Compile Include="NavigateTo\DefaultNavigateToEngineService.cs" />
+    <Compile Include="NavigateTo\DefaultNavigateToEngineService.SearchResult.cs" />
+    <Compile Include="NavigateTo\INavigateToEngineService.cs" />
+    <Compile Include="NavigateTo\INavigateToSearchResult.cs" />
+    <Compile Include="NavigateTo\INavigateToSearchService.cs" />
+    <Compile Include="Navigation\INavigableItem.cs" />
+    <Compile Include="Navigation\NavigableItemFactory.cs" />
+    <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
+    <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.FixAllProvider.cs" />
@@ -372,9 +384,7 @@
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
     <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
-    <Compile Include="Shared\Options\AddImportOptionsProvider.cs" />
     <Compile Include="Shared\Extensions\ProjectExtensions.cs" />
-    <Compile Include="Shared\Options\AddImportOptions.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptionsProvider.cs" />
@@ -674,7 +684,9 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="NavigateTo\" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

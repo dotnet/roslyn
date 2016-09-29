@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Navigation
+namespace Microsoft.CodeAnalysis.Navigation
 {
     internal partial class NavigableItemFactory
     {
