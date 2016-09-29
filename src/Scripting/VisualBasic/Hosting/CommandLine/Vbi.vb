@@ -19,9 +19,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
             Return CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt)
         End Function
 
+        Friend Overrides ReadOnly Property Type As Type
+            Get
+                Return GetType(VisualBasicInteractiveCompiler)
+            End Get
+        End Property
+
+        Friend Overrides Function GetAssemblyFileVersion() As String
+            Return Type.GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
+        End Function
+
         Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
-            Dim version = GetType(VisualBasicInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
-            consoleOutput.WriteLine(VBScriptingResources.LogoLine1, version)
+            consoleOutput.WriteLine(VBScriptingResources.LogoLine1, GetAssemblyFileVersion())
             consoleOutput.WriteLine(VBScriptingResources.LogoLine2)
             consoleOutput.WriteLine()
         End Sub

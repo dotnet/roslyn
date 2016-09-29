@@ -254,6 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             consoleOutput.WriteLine();
         }
 
+        internal override Type Type => typeof(CSharpCompiler);
+
         internal override string GetToolName()
         {
             return ErrorFacts.GetMessage(MessageID.IDS_ToolName, Culture);

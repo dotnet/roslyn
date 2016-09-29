@@ -191,6 +191,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ErrorFactory.IdToString(ERRID.IDS_ToolName, Culture)
         End Function
 
+        Friend Overrides ReadOnly Property Type As Type
+            Get
+                Return GetType(VisualBasicCompiler)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Print Commandline help message (up to 80 English characters per line)
         ''' </summary>
