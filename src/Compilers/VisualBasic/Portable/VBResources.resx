@@ -1039,6 +1039,9 @@
   <data name="ERR_InvalidOverrideDueToReturn2" xml:space="preserve">
     <value>'{0}' cannot override '{1}' because they differ by their return types.</value>
   </data>
+  <data name="ERR_InvalidOverrideDueToTupleNames" xml:space="preserve">
+    <value>'{0}' cannot override '{1}' because they differ by their tuple element names.</value>
+  </data>
   <data name="ERR_ConstantWithNoValue" xml:space="preserve">
     <value>Constants must have a value.</value>
   </data>

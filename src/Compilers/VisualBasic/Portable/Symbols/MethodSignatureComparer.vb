@@ -39,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <remarks></remarks>
         TotalParameterCountMismatch = 1 << 15
+        TupleNamesMismatch = 1 << 16
 
         AllParameterMismatches =
             OptionalParameterMismatch Or
@@ -51,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ParamArrayMismatch Or
             OptionalParameterValueMismatch
 
-        AllMismatches = (1 << 16) - 1
+        AllMismatches = (1 << 17) - 1
 
         ' The set of mismatches for DetailedCompare that are ignored
         ' when testing for conflicting method in a class, or first 
@@ -316,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim typeSubstitution1 As New LazyTypeSubstitution(method1)
             Dim typeSubstitution2 As New LazyTypeSubstitution(method2)
 
-            If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch)) <> 0 Then
+            If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch Or SymbolComparisonResults.TupleNamesMismatch)) <> 0 Then
                 Dim origDef1 = method1.OriginalDefinition
                 Dim origDef2 = method2.OriginalDefinition
                 results = results Or DetailedReturnTypeCompare(origDef1.ReturnsByRef,
@@ -425,8 +426,10 @@ Done:
             type1 = SubstituteType(typeSubstitution1, type1)
             type2 = SubstituteType(typeSubstitution2, type2)
 
-            If Not type1.Type.IsSameTypeIgnoringCustomModifiers(type2.Type) Then
+            If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiers Or TypeCompareKind.IgnoreTupleNames) Then
                 Return SymbolComparisonResults.ReturnTypeMismatch
+            ElseIf Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiers) Then
+                Return SymbolComparisonResults.TupleNamesMismatch
             ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
                    (type1 <> type2) Then
                 Return SymbolComparisonResults.CustomModifierMismatch

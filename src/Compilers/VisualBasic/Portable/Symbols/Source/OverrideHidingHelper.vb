@@ -90,14 +90,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared Function SignaturesMatch(sym1 As Symbol, sym2 As Symbol, <Out()> ByRef exactMatch As Boolean, <Out()> ByRef exactMatchIgnoringCustomModifiers As Boolean) As Boolean
             ' NOTE: we should NOT ignore extra required parameters as for overloading
             Const mismatchesForOverriding As SymbolComparisonResults =
-                (SymbolComparisonResults.AllMismatches And (Not SymbolComparisonResults.MismatchesForConflictingMethods)) Or SymbolComparisonResults.CustomModifierMismatch
+                (SymbolComparisonResults.AllMismatches And (Not SymbolComparisonResults.MismatchesForConflictingMethods)) Or SymbolComparisonResults.CustomModifierMismatch Or SymbolComparisonResults.TupleNamesMismatch
 
             ' 'Exact match' means that the number of parameters and 
             ' parameter 'optionality' match on two symbol candidates
             Const exactMatchIgnoringCustomModifiersMask As SymbolComparisonResults =
                 SymbolComparisonResults.TotalParameterCountMismatch Or SymbolComparisonResults.OptionalParameterTypeMismatch
 
-            Const exactMatchMask As SymbolComparisonResults = exactMatchIgnoringCustomModifiersMask Or SymbolComparisonResults.CustomModifierMismatch
+            Const exactMatchMask As SymbolComparisonResults = exactMatchIgnoringCustomModifiersMask Or SymbolComparisonResults.CustomModifierMismatch Or SymbolComparisonResults.TupleNamesMismatch
 
             Dim results As SymbolComparisonResults = DetailedSignatureCompare(sym1, sym2, mismatchesForOverriding)
 
@@ -883,6 +883,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_OverrideWithByref2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.OptionalParameterMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_OverrideWithOptional2, member, overriddenMember, diagnostics)
+                ElseIf (comparisonResults And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                    ReportBadOverriding(ERRID.ERR_InvalidOverrideDueToTupleNames, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.ReturnTypeMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_InvalidOverrideDueToReturn2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.PropertyAccessorMismatch) <> 0 Then

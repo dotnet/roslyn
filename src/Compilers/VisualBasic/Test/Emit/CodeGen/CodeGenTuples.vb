@@ -13002,6 +13002,71 @@ options:=TestOptions.DebugExe)
 
         End Sub
 
+        <Fact>
+        Public Sub OverriddenMethodWithDifferentTupleNamesInReturn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Function M1() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+    Public Overridable Function M2() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+    Public Overridable Function M3() As (a As Integer, b As Integer)()
+        Return {(1, 2)}
+    End Function
+    Public Overridable Function M4() As (a As Integer, b As Integer)?
+        Return (1, 2)
+    End Function
+    Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)
+        Return ((1, 2), 3)
+    End Function
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Function M1() As (A As Integer, B As Integer)
+        Return (1, 2)
+    End Function
+    Public Overrides Function M2() As (notA As Integer, notB As Integer)
+        Return (1, 2)
+    End Function
+    Public Overrides Function M3() As (notA As Integer, notB As Integer)()
+        Return {(1, 2)}
+    End Function
+    Public Overrides Function M4() As (notA As Integer, notB As Integer)?
+        Return (1, 2)
+    End Function
+    Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
+        Return ((1, 2), 3)
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37268: 'Public Overrides Function M2() As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Function M2() As (a As Integer, b As Integer)' because they differ by their tuple element names.
+    Public Overrides Function M2() As (notA As Integer, notB As Integer)
+                              ~~
+BC37268: 'Public Overrides Function M3() As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Function M3() As (a As Integer, b As Integer)()' because they differ by their tuple element names.
+    Public Overrides Function M3() As (notA As Integer, notB As Integer)()
+                              ~~
+BC37268: 'Public Overrides Function M4() As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Function M4() As (a As Integer, b As Integer)?' because they differ by their tuple element names.
+    Public Overrides Function M4() As (notA As Integer, notB As Integer)?
+                              ~~
+BC37268: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
+    Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
+                              ~~
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace

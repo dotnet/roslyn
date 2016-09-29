@@ -232,12 +232,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return type.TypeKind = TypeKind.Delegate
         End Function
 
-        ''' <summary>
-        ''' Compares types ignoring type modifiers.
-        ''' Also ignores distinctions between tuple types and their underlying types (thus ignoring tuple element names)
-        ''' </summary>
         <Extension()>
         Friend Function IsSameTypeIgnoringCustomModifiers(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
+            ' TODO REVIEW I should rename this method
+            Return IsSameType(t1, t2, TypeCompareKind.IgnoreCustomModifiers Or TypeCompareKind.IgnoreTupleNames)
+        End Function
+
+        ''' <summary>
+        ''' Compares types ignoring some differences.
+        ''' </summary>
+        <Extension()>
+        Friend Function IsSameType(t1 As TypeSymbol, t2 As TypeSymbol, compareKind As TypeCompareKind) As Boolean
+
+            If (compareKind And TypeCompareKind.IgnoreTupleNames) = 0 AndAlso Not HasSameTupleNames(t1, t2) Then
+                Return False
+            End If
 
             If t1.IsTupleType Then
                 t1 = t1.TupleUnderlyingType
@@ -263,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim array2 = DirectCast(t2, ArrayTypeSymbol)
 
                 Return array1.HasSameShapeAs(array2) AndAlso
-                       array1.ElementType.IsSameTypeIgnoringCustomModifiers(array2.ElementType)
+                       array1.ElementType.IsSameType(array2.ElementType, compareKind)
 
             ElseIf t1.IsAnonymousType AndAlso t2.IsAnonymousType Then
                 Return AnonymousTypeManager.EqualsIgnoringCustomModifiers(t1, t2)
@@ -292,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim args2 As ImmutableArray(Of TypeSymbol) = container2.TypeArgumentsNoUseSiteDiagnostics
 
                         For i As Integer = 0 To args1.Length - 1 Step 1
-                            If Not args1(i).IsSameTypeIgnoringCustomModifiers(args2(i)) Then
+                            If Not args1(i).IsSameType(args2(i), compareKind) Then
                                 Return False
                             End If
                         Next
@@ -311,6 +320,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Return (t1 = t2)
+        End Function
+
+        Private Function HasSameTupleNames(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
+            If Not t1.IsTupleType AndAlso
+                Not t2.IsTupleType Then
+                Return True
+            End If
+
+            Dim t1Names = t1.TupleElementNames
+            Dim t2Names = t2.TupleElementNames
+
+            If t1Names = Nothing AndAlso t2Names = Nothing Then
+                Return True
+            End If
+
+            If t1Names = Nothing OrElse t2Names = Nothing OrElse t1Names.Length <> t2Names.Length Then
+                Return False
+            End If
+
+            For i = 0 To t1Names.Length - 1
+                If Not IdentifierComparison.Equals(t1Names(i), t2Names(i)) Then
+                    Return False
+                End If
+            Next
+
+            Return True
         End Function
 
         <Extension()>
