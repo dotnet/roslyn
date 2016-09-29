@@ -63,12 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    if (!FeaturesEnabled())
-                    {
-                        // none of features that require OOP is enabled.
-                        return;
-                    }
-
                     // log that remote host is enabled
                     Logger.Log(FunctionId.RemoteHostClientService_Enabled, KeyValueLogMessage.NoProperty);
 
@@ -211,26 +205,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // crash right away when connection is closed
                 FatalError.Report(new Exception("Connection to remote host closed"));
-            }
-
-            private bool FeaturesEnabled()
-            {
-                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, LanguageNames.CSharp))
-                {
-                    return true;
-                }
-
-                if (DynamicAnalysisEnabled())
-                {
-                    return true;
-                }
-
-                if (CodeLenEnabled())
-                {
-                    return true;
-                }
-
-                return false;
             }
 
             private bool DynamicAnalysisEnabled()
