@@ -651,7 +651,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("C.e"));
         }
 
-        [Fact, WorkItem(543977, "DevDiv")]
+        [Fact, WorkItem(543977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543977")]
         public void OnInterfaceFieldEvent()
         {
             var source = @"
@@ -1093,7 +1093,7 @@ class C
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "set").WithArguments("set", "type"));
         }
 
-        [Fact, WorkItem(545555, "DevDiv")]
+        [Fact, WorkItem(545555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545555")]
         public void AttributesWithInvalidLocationNotEmitted()
         {
             var source = @"
@@ -1124,17 +1124,20 @@ public class A : Attribute { }
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "foo").WithArguments("foo", "method, return"));
         }
 
-        [WorkItem(537613, "DevDiv"), WorkItem(537738, "DevDiv")]
+        [WorkItem(537613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537613"), WorkItem(537738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537738")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound_VerbatimIdentifierAttributeTarget()
         {
             CreateCompilationWithMscorlib(@"class A { [@return:X] void B() { } }").VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'XAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // class A { [@return:X] void B() { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("XAttribute").WithLocation(1, 20),
                 // (1,20): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
                 // class A { [@return:X] void B() { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 20));
         }
 
-        [WorkItem(537613, "DevDiv"), WorkItem(537738, "DevDiv")]
+        [WorkItem(537613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537613"), WorkItem(537738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537738")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound_VerbatimIdentifierAttributeTargetAndAttribute()
         {

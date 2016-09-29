@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function RewriteInitializerAsStatement(initializer As BoundInitializer) As BoundStatement
             Select Case initializer.Kind
-                Case BoundKind.FieldOrPropertyInitializer
+                Case BoundKind.FieldInitializer, BoundKind.PropertyInitializer
                     Return initializer
                 Case BoundKind.GlobalStatementInitializer
                     Return DirectCast(initializer, BoundGlobalStatementInitializer).Statement

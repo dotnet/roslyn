@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
             CodeAction codeAction,
-            object provider) : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider)
+            object provider,
+            IAsynchronousOperationListener operationListener) : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider, operationListener)
         {
         }
 
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 _actionSets = await extensionManager.PerformFunctionAsync(Provider, async () =>
                 {
-                    var builder = ImmutableArray.CreateBuilder<SuggestedActionSet>();
+                    var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
                     // We use ConfigureAwait(true) to stay on the UI thread.
                     var previewChangesSuggestedActionSet = await GetPreviewChangesSuggestedActionSetAsync(cancellationToken).ConfigureAwait(true);
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         builder.Add(fixAllSuggestedActionSet);
                     }
 
-                    return builder.ToImmutable();
+                    return builder.ToImmutableAndFree();
                     // We use ConfigureAwait(true) to stay on the UI thread.
                 }, defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
             }
@@ -100,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             var previewAction = new PreviewChangesCodeAction(Workspace, CodeAction, changeSummary);
-            var previewSuggestedAction = new PreviewChangesSuggestedAction(Workspace, SubjectBuffer, EditHandler, WaitIndicator, previewAction, Provider);
+            var previewSuggestedAction = new PreviewChangesSuggestedAction(
+                Workspace, SubjectBuffer, EditHandler, WaitIndicator, previewAction, Provider, OperationListener);
             return new SuggestedActionSet(ImmutableArray.Create(previewSuggestedAction));
         }
 

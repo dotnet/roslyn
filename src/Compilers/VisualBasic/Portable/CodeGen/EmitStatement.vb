@@ -1,9 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
@@ -423,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return Not Me._module.SourceModule.ContainingSourceAssembly.IsVbRuntime
         End Function
 
-        Private Sub EmitSetProjectError(syntaxNode As VisualBasicSyntaxNode, errorLineNumberOpt As BoundExpression)
+        Private Sub EmitSetProjectError(syntaxNode As SyntaxNode, errorLineNumberOpt As BoundExpression)
             Dim setProjectErrorMethod As MethodSymbol
 
             If errorLineNumberOpt Is Nothing Then
@@ -440,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Me.EmitSymbolToken(setProjectErrorMethod, syntaxNode)
         End Sub
 
-        Private Sub EmitClearProjectError(syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitClearProjectError(syntaxNode As SyntaxNode)
             Const clearProjectError As WellKnownMember = WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__ClearProjectError
             Dim clearProjectErrorMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(clearProjectError), MethodSymbol)
 
@@ -1081,7 +1083,7 @@ OtherExpressions:
             End If
         End Sub
 
-        Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As SyntaxNode)
             Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, caseLabels.Length)
             Dim keyHash As LocalDefinition = Nothing
 
@@ -1238,8 +1240,11 @@ OtherExpressions:
             End If
         End Sub
 
-        Private Function DefineLocal(local As LocalSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
-            Dim specType = local.Type.SpecialType
+        Private Function DefineLocal(local As LocalSymbol, syntaxNode As SyntaxNode) As LocalDefinition
+            Dim dynamicTransformFlags = ImmutableArray(Of TypedConstant).Empty
+            Dim tupleElementNames = If(Not local.IsCompilerGenerated AndAlso local.Type.ContainsTupleNames(),
+                VisualBasicCompilation.TupleNamesEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_String)),
+                ImmutableArray(Of TypedConstant).Empty)
 
             ' We're treating constants of type Decimal and DateTime as local here to not create a new instance for each time
             ' the value is accessed. This means there will be one local in the scope for this constant.
@@ -1253,7 +1258,12 @@ OtherExpressions:
 
             If local.HasConstantValue Then
                 Dim compileTimeValue As MetadataConstant = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics)
-                Dim localConstantDef = New LocalConstantDefinition(local.Name, If(local.Locations.FirstOrDefault(), Location.None), compileTimeValue)
+                Dim localConstantDef = New LocalConstantDefinition(
+                    local.Name,
+                    If(local.Locations.FirstOrDefault(), Location.None),
+                    compileTimeValue,
+                    dynamicTransformFlags:=dynamicTransformFlags,
+                    tupleElementNames:=tupleElementNames)
                 ' Reference in the scope for debugging purpose
                 _builder.AddLocalConstantToScope(localConstantDef)
                 Return Nothing
@@ -1283,8 +1293,8 @@ OtherExpressions:
                 id:=localId,
                 pdbAttributes:=synthesizedKind.PdbAttributes(),
                 constraints:=constraints,
-                isDynamic:=False,
-                dynamicTransformFlags:=Nothing,
+                dynamicTransformFlags:=dynamicTransformFlags,
+                tupleElementNames:=tupleElementNames,
                 isSlotReusable:=synthesizedKind.IsSlotReusable(_ilEmitStyle <> ILEmitStyle.Release))
 
             ' If named, add it to the local debug scope.
@@ -1372,7 +1382,7 @@ OtherExpressions:
         ''' <summary>
         ''' Allocates a temp without identity.
         ''' </summary>
-        Private Function AllocateTemp(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
+        Private Function AllocateTemp(type As TypeSymbol, syntaxNode As SyntaxNode) As LocalDefinition
             Return _builder.LocalSlotManager.AllocateSlot(
                 Me._module.Translate(type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics),
                 LocalSlotConstraints.None)
@@ -1412,39 +1422,40 @@ OtherExpressions:
         Private Sub EmitStateMachineScope(scope As BoundStateMachineScope)
             _builder.OpenLocalScope()
 
-            'VB EE uses name mangling to match up original locals and the fields where they are hoisted
-            'The scoping information is passed by recording PDB scopes of "fake" locals named the same 
-            'as the fields. These locals are not emitted to IL.
+            If _module.EmitOptions.DebugInformationFormat = DebugInformationFormat.Pdb Then
+                'Native PDBs: VB EE uses name mangling to match up original locals and the fields where they are hoisted
+                'The scoping information is passed by recording PDB scopes of "fake" locals named the same 
+                'as the fields. These locals are not emitted to IL.
 
-            '         vb\language\debugger\procedurecontext.cpp
-            '  813                  // Since state machines lift (almost) all locals of a method, the lifted fields should
-            '  814                  // only be shown in the debugger when the original local variable was in scope.  So
-            '  815                  // we first check if there's a local by the given name and attempt to remove it from 
-            '  816                  // m_localVariableMap.  If it was present, we decode the original local's name, otherwise
-            '  817                  // we skip loading this lifted field since it is out of scope.
+                '         vb\language\debugger\procedurecontext.cpp
+                '  813                  // Since state machines lift (almost) all locals of a method, the lifted fields should
+                '  814                  // only be shown in the debugger when the original local variable was in scope.  So
+                '  815                  // we first check if there's a local by the given name and attempt to remove it from 
+                '  816                  // m_localVariableMap.  If it was present, we decode the original local's name, otherwise
+                '  817                  // we skip loading this lifted field since it is out of scope.
 
-            For Each field In scope.Fields
-                DefineUserDefinedStateMachineHoistedLocal(DirectCast(field, StateMachineFieldSymbol))
-            Next
+                For Each field In scope.Fields
+                    DefineUserDefinedStateMachineHoistedLocal(DirectCast(field, StateMachineFieldSymbol))
+                Next
+            End If
 
             EmitStatement(scope.Statement)
-
             _builder.CloseLocalScope()
         End Sub
 
         Private Sub DefineUserDefinedStateMachineHoistedLocal(field As StateMachineFieldSymbol)
             Debug.Assert(field.SlotIndex >= 0)
             Dim fakePdbOnlyLocal = New LocalDefinition(
-                        symbolOpt:=Nothing,
-                        nameOpt:=field.Name,
-                        type:=Nothing,
-                        slot:=field.SlotIndex,
-                        synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
-                        id:=Nothing,
-                        pdbAttributes:=Cci.PdbWriter.DefaultLocalAttributesValue,
-                        constraints:=LocalSlotConstraints.None,
-                        isDynamic:=False,
-                        dynamicTransformFlags:=Nothing)
+                symbolOpt:=Nothing,
+                nameOpt:=field.Name,
+                type:=Nothing,
+                slot:=field.SlotIndex,
+                synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
+                id:=Nothing,
+                pdbAttributes:=LocalVariableAttributes.None,
+                constraints:=LocalSlotConstraints.None,
+                dynamicTransformFlags:=Nothing,
+                tupleElementNames:=Nothing)
             _builder.AddLocalToScope(fakePdbOnlyLocal)
         End Sub
 

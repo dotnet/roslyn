@@ -30,30 +30,49 @@ namespace Microsoft.CodeAnalysis
             get { return _storage == null; }
         }
 
-        public static MetadataOnlyImage Create(ITemporaryStorageService service, Compilation compilation, CancellationToken cancellationToken)
+        public static MetadataOnlyImage Create(Workspace workspace, ITemporaryStorageService service, Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
+            try
             {
-                // TODO: make it to use SerializableBytes.WritableStream rather than MemoryStream so that
-                //       we don't allocate anything for skeleton assembly.
-                using (var stream = SerializableBytes.CreateWritableStream())
+                workspace.LogTestMessage($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
+
+                using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
-                    // note: cloning compilation so we don't retain all the generated symbols after its emitted.
-                    // * REVIEW * is cloning clone p2p reference compilation as well?
-                    var emitResult = compilation.Clone().Emit(stream, options: s_emitOptions, cancellationToken: cancellationToken);
-
-                    if (emitResult.Success)
+                    // TODO: make it to use SerializableBytes.WritableStream rather than MemoryStream so that
+                    //       we don't allocate anything for skeleton assembly.
+                    using (var stream = SerializableBytes.CreateWritableStream())
                     {
-                        var storage = service.CreateTemporaryStreamStorage(cancellationToken);
+                        // note: cloning compilation so we don't retain all the generated symbols after its emitted.
+                        // * REVIEW * is cloning clone p2p reference compilation as well?
+                        var emitResult = compilation.Clone().Emit(stream, options: s_emitOptions, cancellationToken: cancellationToken);
 
-                        stream.Position = 0;
-                        storage.WriteStream(stream, cancellationToken);
+                        if (emitResult.Success)
+                        {
+                            workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+                            var storage = service.CreateTemporaryStreamStorage(cancellationToken);
 
-                        return new MetadataOnlyImage(storage, compilation.AssemblyName);
+                            stream.Position = 0;
+                            storage.WriteStream(stream, cancellationToken);
+
+                            return new MetadataOnlyImage(storage, compilation.AssemblyName);
+                        }
+                        else
+                        {
+                            workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
+
+                            foreach (var diagnostic in emitResult.Diagnostics)
+                            {
+                                workspace.LogTestMessage("  " + diagnostic.GetMessage());
+                            }
+                        }
                     }
                 }
+            }
+            finally
+            {
+                workspace.LogTestMessage($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
             }
 
             return Empty;

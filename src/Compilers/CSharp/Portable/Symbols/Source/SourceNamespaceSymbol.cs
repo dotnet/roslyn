@@ -111,21 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PERF: Declaring references are cached for compilations with event queue.
-                return this.DeclaringCompilation?.EventQueue != null ? GetCachedDeclaringReferences() : ComputeDeclaringReferencesCore();
+                return ComputeDeclaringReferencesCore();
             }
-        }
-
-        private ImmutableArray<SyntaxReference> GetCachedDeclaringReferences()
-        {
-            ImmutableArray<SyntaxReference> declaringReferences;
-            if (!Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(this, this.DeclaringCompilation, out declaringReferences))
-            {
-                declaringReferences = ComputeDeclaringReferencesCore();
-                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(this, this.DeclaringCompilation, declaringReferences);
-            }
-
-            return declaringReferences;
         }
 
         private ImmutableArray<SyntaxReference> ComputeDeclaringReferencesCore()
@@ -241,8 +228,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // NOTE: the following is not cancellable.  Once we've set the
                     // members, we *must* do the following to make sure we're in a consistent state.
                     this.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
-
                     RegisterDeclaredCorTypes();
+
+                    // We may produce a SymbolDeclaredEvent for the enclosing namespace before events for its contained members
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
                     _state.NotePartComplete(CompletionPart.NameToMembersMap);
                 }
 
@@ -259,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NOTE: This method depends on MakeNameToMembersMap() on creating a proper 
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
 
-                var dictionary = new Dictionary<String, ImmutableArray<NamedTypeSymbol>>();
+                var dictionary = new Dictionary<String, ImmutableArray<NamedTypeSymbol>>(StringOrdinalComparer.Instance);
 
                 Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> map = this.GetNameToMembersMap();
                 foreach (var kvp in map)
@@ -495,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public NameToSymbolMapBuilder(int capacity)
             {
-                _dictionary = new Dictionary<string, object>(capacity);
+                _dictionary = new Dictionary<string, object>(capacity, StringOrdinalComparer.Instance);
             }
 
             public void Add(NamespaceOrTypeSymbol symbol)
@@ -521,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> CreateMap()
             {
-                var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(_dictionary.Count);
+                var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(_dictionary.Count, StringOrdinalComparer.Instance);
 
                 foreach (var kvp in _dictionary)
                 {

@@ -1,21 +1,18 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.Commands
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ImplementAbstractClass
     Public Class ImplementAbstractClassCommandHandlerTests
 
-        <WorkItem(530553)>
+        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestSimpleCases() As Task
             Dim code = <text>
@@ -44,7 +41,7 @@ End Class</text>
              Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
         End Function
 
-        <WorkItem(530553)>
+        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestInvocationAfterWhitespaceTrivia() As Task
             Dim code = <text>
@@ -123,7 +120,7 @@ End Class</text>
             End Using
         End Function
 
-        <WorkItem(544412)>
+        <WorkItem(544412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544412")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestEnterNotOnSameLine() As Task
             Dim code = <text>
@@ -213,7 +210,7 @@ End Class</text>
         End Sub
 
         Private Function GetWorkspaceAsync(code As XElement) As Task(Of TestWorkspace)
-            Return TestWorkspaceFactory.CreateWorkspaceAsync(
+            Return TestWorkspace.CreateAsync(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
                         <Document>

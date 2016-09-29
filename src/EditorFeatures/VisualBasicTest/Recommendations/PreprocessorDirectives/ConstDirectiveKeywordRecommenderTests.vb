@@ -2,54 +2,54 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class ConstDirectiveKeywordRecommenderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashConstInFile()
-            VerifyRecommendationsContain(<File>|</File>, "#Const")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function HashConstInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>|</File>, "#Const")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashConstInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "#Const")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function HashConstInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "#Const")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInEnumBlockMemberDeclaration()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NotInEnumBlockMemberDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
                                              Enum foo
                                                  |
                                              End enum
                                          </File>, "#Const")
-        End Sub
+        End Function
 
-        <WorkItem(544629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashConstAfterSingleNonMatchingCharacter()
-            VerifyRecommendationsContain(<File>a|</File>, "#Const")
-        End Sub
+        <WorkItem(544629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544629")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function HashConstAfterSingleNonMatchingCharacterTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>a|</File>, "#Const")
+        End Function
 
-        <WorkItem(544629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashConstAfterPartialConstWithoutHash()
-            VerifyRecommendationsContain(<File>Con|</File>, "#Const")
-        End Sub
+        <WorkItem(544629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544629")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function HashConstAfterPartialConstWithoutHashTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Con|</File>, "#Const")
+        End Function
 
         <WorkItem(722, "https://github.com/dotnet/roslyn/issues/722")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterHashConst()
-            VerifyRecommendationsMissing(<File>#Const |</File>, "#Const")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotAfterHashConstTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>#Const |</File>, "#Const")
+        End Function
 
         <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterHashRegion()
-            VerifyRecommendationsMissing(<File>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotAfterHashRegionTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
                                          Class C
 
                                              #Region |
 
                                          End Class
                                          </File>, "#Const")
-        End Sub
+        End Function
     End Class
 End Namespace

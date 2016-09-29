@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+*********************************************************
+
+Copyright © Microsoft Corporation
+
+Licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in
+compliance with the License. You may obtain a copy of
+the License at
+
+http://www.apache.org/licenses/LICENSE-2.0 
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES
+OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES
+OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR
+PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+
+See the Apache 2 License for the specific language
+governing permissions and limitations under the License.
+
+*********************************************************
+-->
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="ConvertToConditionalCS.Microsoft.601d632a-0bfd-4ef1-8d17-3bd25daec3f3" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <DisplayName>Convert to Conditional for C#</DisplayName>
+    <Description xml:space="preserve">This is a sample code refactoring extension for the Microsoft Roslyn CTP.</Description>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="14.0" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+  </Dependencies>
+  <Assets></Assets>
+</PackageManifest>

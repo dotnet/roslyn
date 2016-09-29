@@ -33,8 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 // literal they're hovering over.
                 // Partial semantics should always be sufficient because the (unconverted) type
                 // of a literal can always easily be determined.
-                var partialDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
-                var semanticModel = await partialDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
                 return type == null
                     ? default(DebugDataTipInfo)

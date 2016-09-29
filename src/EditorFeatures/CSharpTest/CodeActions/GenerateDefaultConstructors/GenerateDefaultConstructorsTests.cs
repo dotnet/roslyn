@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateDefaultConstructors;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.GenerateDefaultConstructors;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -12,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 {
     public class GenerateDefaultConstructorsTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new GenerateDefaultConstructorsCodeRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestProtectedBase()
         {
             await TestAsync(
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestPublicBase()
         {
             await TestAsync(
@@ -35,7 +34,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestInternalBase()
         {
             await TestAsync(
@@ -44,14 +43,14 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestPrivateBase()
         {
             await TestMissingAsync(
 @"class C : [||]B { } class B { private B(int x) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRefOutParams()
         {
             await TestAsync(
@@ -60,7 +59,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix1()
         {
             await TestAsync(
@@ -69,7 +68,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix2()
         {
             await TestAsync(
@@ -78,7 +77,7 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRefactoring1()
         {
             await TestAsync(
@@ -87,7 +86,7 @@ index: 1);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixAll1()
         {
             await TestAsync(
@@ -96,7 +95,7 @@ index: 2);
 index: 3);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixAll2()
         {
             await TestAsync(
@@ -105,15 +104,24 @@ index: 3);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestFixAll_WithTuples()
+        {
+            await TestAsync(
+@"class C : [||]B { public C((bool, bool) x) { } } class B { internal B((int, int) x) { } protected B((string, string) x) { } public B((bool, bool) x) { } }",
+@"class C : B { public C((bool, bool) x) { } protected C((string, string) x) : base(x) { } internal C((int, int) x) : base(x) { } } class B { internal B((int, int) x) { } protected B((string, string) x) { } public B((bool, bool) x) { } }",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestMissing1()
         {
             await TestMissingAsync(
 @"class C : [||]B { public C(int x) { } } class B { internal B(int x) { } }");
         }
 
-        [WorkItem(889349)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestDefaultConstructorGeneration_1()
         {
             await TestAsync(
@@ -121,8 +129,8 @@ index: 2);
 @"class C : B { public C(int y) { } internal C(int x) : base(x) { } } class B { internal B(int x) { } }");
         }
 
-        [WorkItem(889349)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestDefaultConstructorGeneration_2()
         {
             await TestAsync(
@@ -130,7 +138,7 @@ index: 2);
 @"class C : B { internal C(int x) : base(x) { } private C(int y) { } } class B { internal B(int x) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixCount1()
         {
             await TestActionCountAsync(
@@ -139,7 +147,7 @@ count: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(544070)]
+        [WorkItem(544070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
         public async Task TestException1()
         {
             await TestAsync(
@@ -172,7 +180,7 @@ index: 3,
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException2()
         {
             await TestAsync(
@@ -181,7 +189,7 @@ compareTokens: false);
 index: 3);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException3()
         {
             await TestAsync(
@@ -190,13 +198,35 @@ index: 3);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException4()
         {
             await TestAsync(
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program : [||]Exception { public Program ( string message , Exception innerException ) : base ( message , innerException ) { } protected Program ( System . Runtime . Serialization . SerializationInfo info , System . Runtime . Serialization . StreamingContext context ) : base ( info , context ) { } static void Main ( string [ ] args ) { } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program : Exception { public Program ( ) { } public Program ( ) { } public Program ( string message ) : base ( message ) { } public Program ( string message , Exception innerException ) : base ( message , innerException ) { } protected Program ( System . Runtime . Serialization . SerializationInfo info , System . Runtime . Serialization . StreamingContext context ) : base ( info , context ) { } static void Main ( string [ ] args ) { } } ",
 index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"class C : [||]B { } class B { public B((int, string) x) { } }",
+@"class C : B { public C((int, string) x) : base(x) { } } class B { public B((int, string) x) { } }",
+index: 0,
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNames()
+        {
+            await TestAsync(
+@"class C : [||]B { } class B { public B((int a, string b) x) { } }",
+@"class C : B { public C((int a, string b) x) : base(x) { } } class B { public B((int a, string b) x) { } }",
+index: 0,
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
         }
     }
 }

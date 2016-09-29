@@ -375,7 +375,7 @@ End Module</Document>
             Next
         End Function
 
-        <WorkItem(1044441)>
+        <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Sub StoppedOnEndSub()
             Dim text = <Workspace>
@@ -392,7 +392,7 @@ End Module</Document>
             End Using
         End Sub
 
-        <WorkItem(1044441)>
+        <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Sub StoppedOnEndProperty()
             Dim text = <Workspace>

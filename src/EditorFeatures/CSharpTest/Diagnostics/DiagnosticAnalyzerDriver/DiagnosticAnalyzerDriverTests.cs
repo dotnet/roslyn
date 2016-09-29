@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
 {
     public class DiagnosticAnalyzerDriverTests
     {
-        [WpfFact]
+        [Fact]
         public async Task DiagnosticAnalyzerDriverAllInOne()
         {
             var source = TestResource.AllInOneCSharpCode;
@@ -29,20 +29,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
+            var syntaxKindsMissing = new HashSet<SyntaxKind>();
+
+            // AllInOneCSharpCode has no deconstruction or declaration expression
+            syntaxKindsMissing.Add(SyntaxKind.TypedVariableComponent);
+            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableComponent);
+            syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.DeconstructionDeclarationStatement);
+            syntaxKindsMissing.Add(SyntaxKind.VariableComponentAssignment);
+            syntaxKindsMissing.Add(SyntaxKind.ForEachComponentStatement);
+            syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
+
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source, TestOptions.Regular))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 AccessSupportedDiagnostics(analyzer);
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
                 analyzer.VerifyAllAnalyzerMembersWereCalled();
                 analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
+                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsMissing);
                 analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
             }
         }
 
-        [WpfFact, WorkItem(908658)]
+        [Fact, WorkItem(908658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908658")]
         public async Task DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock()
         {
             var methodNames = new string[] { "Initialize", "AnalyzeCodeBlock" };
@@ -57,7 +69,7 @@ class C
 ";
 
             var ideEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var ideEngineWorkspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source))
+            using (var ideEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
             {
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineAnalyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
@@ -71,7 +83,7 @@ class C
             }
 
             var compilerEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var compilerEngineWorkspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source))
+            using (var compilerEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
             {
                 var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
                 compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { compilerEngineAnalyzer });
@@ -86,11 +98,11 @@ class C
         }
 
         [Fact]
-        [WorkItem(759)]
+        [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source, TestOptions.Regular))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 await ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(async analyzer =>
@@ -98,7 +110,7 @@ class C
             }
         }
 
-        [WorkItem(908621)]
+        [WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
         [Fact]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_1()
         {
@@ -107,7 +119,7 @@ class C
             AccessSupportedDiagnostics(analyzer);
         }
 
-        [WorkItem(908621)]
+        [WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
         [Fact]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_2()
         {
@@ -126,10 +138,10 @@ class C
             Assert.True(exceptions.Count == 0);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzerOptionsArePassedToAllAnalyzers()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(TestResource.AllInOneCSharpCode, TestOptions.Regular))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(TestResource.AllInOneCSharpCode, TestOptions.Regular))
             {
                 var currentProject = workspace.CurrentSolution.Projects.Single();
 
@@ -137,7 +149,7 @@ class C
                 var newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"));
                 currentProject = newSln.Projects.Single();
                 var additionalDocument = currentProject.GetAdditionalDocument(additionalDocId);
-                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.GetDocumentState());
+                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.State);
                 AnalyzerOptions options = new AnalyzerOptions(ImmutableArray.Create(additionalStream));
                 var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
 
@@ -155,19 +167,21 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
+            public bool OpenFileOnly(Workspace workspace) => false;
+
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             {
                 return DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzerCreatedAtCompilationLevelNeedNotBeCompilationAnalyzer()
         {
             var source = @"x";
 
             var analyzer = new CompilationAnalyzerWithSyntaxTreeAnalyzer();
-            using (var ideEngineWorkspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source))
+            using (var ideEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
             {
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
                 var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
@@ -212,7 +226,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task CodeBlockAnalyzersOnlyAnalyzeExecutableCode()
         {
             var source = @"
@@ -227,7 +241,7 @@ class C
 ";
 
             var analyzer = new CodeBlockAnalyzerFactory();
-            using (var ideEngineWorkspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source))
+            using (var ideEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
             {
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
                 var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
@@ -246,7 +260,7 @@ class C
 }
 ";
 
-            using (var compilerEngineWorkspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source))
+            using (var compilerEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
             {
                 var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
                 var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });

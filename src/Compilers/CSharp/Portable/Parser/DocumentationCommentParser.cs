@@ -7,6 +7,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     // TODO: The Xml parser recognizes most commonplace XML, according to the XML spec.
     // It does not recognize the following:
     //
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     textTokens.Add(token);
                 }
 
-                var allRemainderText = SyntaxFactory.XmlText(textTokens.ToTokenList());
+                var allRemainderText = SyntaxFactory.XmlText(textTokens.ToList());
 
                 XmlParseErrorCode code = endTag ? XmlParseErrorCode.XML_EndTagNotExpected : XmlParseErrorCode.XML_ExpectedEndOfXml;
                 allRemainderText = WithAdditionalDiagnostics(allRemainderText, new XmlSyntaxDiagnosticInfo(0, 1, code));
@@ -244,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 endName = this.WithXmlParseError(endName, XmlParseErrorCode.XML_InvalidWhitespace);
                             }
 
-                            if (!endName.IsMissing && name.ToString() != endName.ToString())
+                            if (!endName.IsMissing && !MatchingXmlNames(name, endName))
                             {
                                 endName = this.WithXmlParseError(endName, XmlParseErrorCode.XML_ElementTypeMatch, endName.ToString(), name.ToString());
                             }
@@ -288,6 +290,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _pool.Free(attrs);
             }
         }
+
+        private static bool MatchingXmlNames(XmlNameSyntax name, XmlNameSyntax endName)
+        {
+            // PERF: because of deduplication we often get the same name for name and endName,
+            //       so we will check for such case first before materializing text for entire nodes 
+            //       and comparing that.
+            if (name == endName)
+            {
+                return true;
+            }
+
+            // before doing ToString, check if 
+            // all nodes contributing to ToString are recursively the same
+            // NOTE: leading and trailing trivia do not contribute to ToString
+            if (!name.HasLeadingTrivia && 
+                !endName.HasTrailingTrivia &&
+                name.IsEquivalentTo(endName))
+            {
+                return true;
+            }
+
+            return name.ToString() == endName.ToString();
+        }
+
         // assuming this is not used concurrently
         private readonly HashSet<string> _attributesSeen = new HashSet<string>();
 
@@ -390,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], badTokens.ToListNode());
+                        list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], badTokens.ToListNode());
                     }
 
                     return result;
@@ -814,11 +840,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, new XmlSyntaxDiagnosticInfo(0, node.Width, code, args));
         }
 
-        private SyntaxToken WithXmlParseError<TNode>(SyntaxToken node, XmlParseErrorCode code)
-        {
-            return WithAdditionalDiagnostics(node, new XmlSyntaxDiagnosticInfo(0, node.Width, code));
-        }
-
         private SyntaxToken WithXmlParseError(SyntaxToken node, XmlParseErrorCode code, params string[] args)
         {
             return WithAdditionalDiagnostics(node, new XmlSyntaxDiagnosticInfo(0, node.Width, code, args));
@@ -910,23 +931,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return result;
-        }
-
-        private CSharpSyntaxNode ConsumeBadTokens()
-        {
-            if (this.CurrentToken.Kind == SyntaxKind.BadToken)
-            {
-                var badTokens = _pool.Allocate<SyntaxToken>();
-                while (this.CurrentToken.Kind == SyntaxKind.BadToken)
-                {
-                    badTokens.Add(this.EatToken());
-                }
-                var result = badTokens.ToListNode();
-                _pool.Free(badTokens);
-                return result;
-            }
-
-            return null;
         }
 
         /// <summary>

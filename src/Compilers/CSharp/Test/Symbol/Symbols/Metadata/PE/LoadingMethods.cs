@@ -368,8 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(csharpModifiers3_M4.IsOverride);
 
             var byrefReturnMethod = byrefReturn.GlobalNamespace.GetTypeMembers("ByRefReturn").Single().GetMembers("M").OfType<MethodSymbol>().Single();
-            Assert.Equal(TypeKind.Error, byrefReturnMethod.ReturnType.TypeKind);
-            Assert.IsType<ByRefReturnErrorTypeSymbol>(byrefReturnMethod.ReturnType);
+            Assert.Equal(RefKind.Ref, byrefReturnMethod.RefKind);
+            Assert.Equal(TypeKind.Struct, byrefReturnMethod.ReturnType.TypeKind);
         }
 
         [Fact]
@@ -1255,7 +1255,7 @@ public class D
     }
 }
 ";
-            var longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull());
+            var longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature);
 
             var c = CreateCompilationWithMscorlib(source, new[] { longFormRef });
 
@@ -1265,7 +1265,51 @@ public class D
                 // (7,20): error CS0570: 'C.VT()' is not supported by the language
                 Diagnostic(ErrorCode.ERR_BindToBogus, "VT").WithArguments("C.VT()"));
         }
-        [WorkItem(666162, "DevDiv")]
+
+        [WorkItem(7971, "https://github.com/dotnet/roslyn/issues/7971")]
+        [Fact(Skip = "7971")]
+        public void MemberSignature_CycleTrhuTypeSpecInCustomModifiers()
+        {
+            string source = @"
+class P
+{
+    static void Main()
+    {
+        User.X(new Extender());
+    }
+}
+";
+            var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.SignatureCycle2);
+
+            var c = CreateCompilationWithMscorlib(source, new[] { lib });
+
+            c.VerifyDiagnostics();
+        }
+
+        [WorkItem(7970, "https://github.com/dotnet/roslyn/issues/7970")]
+        [Fact]
+        public void MemberSignature_TypeSpecInWrongPlace()
+        {
+            string source = @"
+class P
+{
+    static void Main()
+    {
+        User.X(new System.Collections.Generic.List<int>());
+    }
+}
+";
+            var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.TypeSpecInWrongPlace);
+
+            var c = CreateCompilationWithMscorlib(source, new[] { lib });
+
+            c.VerifyDiagnostics(
+                // (6,14): error CS0570: 'User.X(?)' is not supported by the language
+                //         User.X(new System.Collections.Generic.List<int>());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("User.X(?)"));
+        }
+
+        [WorkItem(666162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666162")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Repro666162()
         {
@@ -1301,6 +1345,39 @@ public class D
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var method = type.GetMember<MethodSymbol>("M");
             Assert.NotNull(method.ReturnType);
+        }
+
+        [Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")]
+        public void LoadingMethodWithPublicAndPrivateAccessibility()
+        {
+            string source =
+@"
+public class D
+{
+   public static void Main()
+   {
+      new C().M();
+      System.Console.WriteLine(new C().F);
+      new C.C2().M2();
+   }
+}
+";
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags) };
+
+            var comp = CreateCompilationWithMscorlib(source, references: references);
+
+            // The method, field and nested type with public and private accessibility flags get loaded as private.
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0122: 'C.M()' is inaccessible due to its protection level
+                //       new C().M();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("C.M()").WithLocation(6, 15),
+                // (7,40): error CS0122: 'C.F' is inaccessible due to its protection level
+                //       System.Console.WriteLine(new C().F);
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("C.F").WithLocation(7, 40),
+                // (8,13): error CS0122: 'C.C2' is inaccessible due to its protection level
+                //       new C.C2().M2();
+                Diagnostic(ErrorCode.ERR_BadAccess, "C2").WithArguments("C.C2").WithLocation(8, 13)
+                );
         }
     }
 }

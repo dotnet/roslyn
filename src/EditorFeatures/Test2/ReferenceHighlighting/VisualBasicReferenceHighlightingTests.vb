@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 optionIsEnabled:=False)
         End Function
 
-        <WorkItem(539121)>
+        <WorkItem(539121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539121")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithConstructor() As Task
             Await VerifyHighlightsAsync(
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        <WorkItem(539121)>
+        <WorkItem(539121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539121")>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithSynthesizedConstructor() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        <WorkItem(540670)>
+        <WorkItem(540670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithMethodNameChange1() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -83,7 +83,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        <WorkItem(540670)>
+        <WorkItem(540670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithMethodNameChange2() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -106,7 +106,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        <WorkItem(540670)>
+        <WorkItem(540670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithMethodNameChange3() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -129,7 +129,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        <WorkItem(543816)>
+        <WorkItem(543816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543816")>
         Public Async Function TestVerifyNoHighlightsForLiteral() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -145,7 +145,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        <WorkItem(545531)>
+        <WorkItem(545531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545531")>
         Public Async Function TestVerifyHighlightsForGlobal() As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -162,7 +162,7 @@ End Module
                 </Workspace>)
         End Function
 
-        <WorkItem(567959)>
+        <WorkItem(567959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Async Function TestAccessor1() As Task
             Dim input =
@@ -186,7 +186,7 @@ End Class
             Await VerifyHighlightsAsync(input)
         End Function
 
-        <WorkItem(567959)>
+        <WorkItem(567959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Async Function TestAccessor2() As Task
             Dim input =
@@ -210,7 +210,7 @@ End Class
             Await VerifyHighlightsAsync(input)
         End Function
 
-        <WorkItem(531624)>
+        <WorkItem(531624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531624")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Async Function TestHighlightParameterizedPropertyParameter() As Task
             Dim input =

@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         }
 
         // NOTE: results differ from corresponding property test.
-        [WorkItem(543263, "DevDiv")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedAccessorModifiers()
         {
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         }
 
         [Fact]
-        [WorkItem(1055825)]
+        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void AssociatedField()
         {
             var source = @"
@@ -474,7 +474,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(1055825)]
+        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void AssociatedField_MultipleFields()
         {
             var ilSource = @"
@@ -529,7 +529,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(1055825)]
+        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void AssociatedField_DuplicateEvents()
         {
             var ilSource = @"

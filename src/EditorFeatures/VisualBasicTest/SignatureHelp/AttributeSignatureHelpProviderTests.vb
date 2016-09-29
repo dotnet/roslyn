@@ -1,10 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
+Imports Microsoft.CodeAnalysis.SignatureHelp
+Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class AttributeSignatureHelpProviderTests
@@ -19,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateAlways() As Task
 
             Dim markup = <Text><![CDATA[
@@ -48,7 +47,7 @@ End Class
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -77,7 +76,7 @@ End Class
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateAdvanced() As Task
 
             Dim markup = <Text><![CDATA[
@@ -115,7 +114,7 @@ End Class
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateMixed() As Task
 
             Dim markup = <Text><![CDATA[
@@ -150,7 +149,7 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeConstructor_OnInvocation() As Task
             Dim markup = <Text><![CDATA[
 Class SomethingAttribute
@@ -174,7 +173,7 @@ End Class
             Await TestAsync(markupWithPositionAndOptSpan:=markup, expectedOrderedItemsOrNull:=expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeConstructor_CurrentParameterName() As Task
             Dim markup = <Text><![CDATA[
 Class SomethingAttribute
@@ -192,8 +191,8 @@ End Class
             Await VerifyCurrentParameterNameAsync(markupWithPosition:=markup, expectedParameterName:="y")
         End Function
 
-        <WorkItem(1094379)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(1094379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094379")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestAttributeSigHelpWithNoArgumentList() As Task
             Dim markup = "
 Imports System

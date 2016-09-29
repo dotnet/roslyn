@@ -11,20 +11,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal static class RenameLogMessage
     {
-        private const string RenameInComments = "RenameInComments";
-        private const string RenameInStrings = "RenameInStrings";
-        private const string RenameOverloads = "RenameOverloads";
+        private const string RenameInComments = nameof(RenameInComments);
+        private const string RenameInStrings = nameof(RenameInStrings);
+        private const string RenameOverloads = nameof(RenameOverloads);
 
-        private const string Committed = "Committed";
-        private const string Canceled = "Canceled";
+        private const string Committed = nameof(Committed);
+        private const string Canceled = nameof(Canceled);
 
-        private const string ConflictResolutionFinishedComputing = "ConflictResolutionFinishedComputing";
-        private const string PreviewChanges = "PreviewChanges";
+        private const string ConflictResolutionFinishedComputing = nameof(ConflictResolutionFinishedComputing);
+        private const string PreviewChanges = nameof(PreviewChanges);
 
-        private const string RenamedIdentifiersWithoutConflicts = "RenamedIdentifiersWithoutConflicts";
-        private const string ResolvableReferenceConflicts = "ResolvableReferenceConflicts";
-        private const string ResolvableNonReferenceConflicts = "ResolvableNonReferenceConflicts";
-        private const string UnresolvableConflicts = "UnresolvableConflicts";
+        private const string RenamedIdentifiersWithoutConflicts = nameof(RenamedIdentifiersWithoutConflicts);
+        private const string ResolvableReferenceConflicts = nameof(ResolvableReferenceConflicts);
+        private const string ResolvableNonReferenceConflicts = nameof(ResolvableNonReferenceConflicts);
+        private const string UnresolvableConflicts = nameof(UnresolvableConflicts);
 
         public static KeyValueLogMessage Create(
             OptionSet optionSet, UserActionOutcome outcome,

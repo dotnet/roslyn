@@ -9664,7 +9664,7 @@ BC30367: Class 'DefaultQueryIndexer11' cannot be indexed because it has no defau
         ''' to be a field, while Roslyn requires ElementAtOrDefault
         ''' to be a method or property.
         ''' </summary>
-        <WorkItem(576814, "DevDiv")>
+        <WorkItem(576814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576814")>
         <Fact()>
         Public Sub DefaultQueryIndexerField()
             Dim source =
@@ -9796,7 +9796,7 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
 </expected>)
         End Sub
 
-        <WorkItem(528731, "DevDiv")>
+        <WorkItem(528731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528731")>
         <Fact>
         Public Sub BC36598ERR_CannotLiftRestrictedTypeQuery()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -9827,7 +9827,7 @@ BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query exp
 </expected>)
         End Sub
 
-        <WorkItem(545801, "DevDiv")>
+        <WorkItem(545801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545801")>
         <Fact>
         Public Sub NoPropertyMethodConflictForQueryOperators()
             Dim verifier = CompileAndVerify(
@@ -10182,7 +10182,7 @@ BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the dat
 </expected>)
         End Sub
 
-        <WorkItem(542724, "DevDiv")>
+        <WorkItem(542724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542724")>
         <Fact>
         Public Sub QueryExprInAttributes()
             Dim compilationDef =
@@ -10253,7 +10253,7 @@ System.Int32
 ]]>)
         End Sub
 
-        <WorkItem(528969, "DevDiv")>
+        <WorkItem(528969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528969")>
         <Fact>
         Public Sub InaccessibleElementAtOrDefault()
             Dim compilationDef =
@@ -10293,7 +10293,7 @@ BC30367: Class 'Q1' cannot be indexed because it has no default property.
 
         End Sub
 
-        <WorkItem(543120, "DevDiv")>
+        <WorkItem(543120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543120")>
         <Fact()>
         Public Sub ExplicitTypeNameInExprRangeVarDeclInLetClause()
             Dim compilationDef =
@@ -10317,7 +10317,7 @@ End Module
 </expected>)
         End Sub
 
-        <WorkItem(543138, "DevDiv")>
+        <WorkItem(543138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543138")>
         <Fact()>
         Public Sub FunctionLambdaInConditionOfJoinClause()
             Dim compilationDef =
@@ -10344,7 +10344,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543171, "DevDiv")>
+        <WorkItem(543171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543171")>
         <Fact()>
         Public Sub FunctionLambdaInOrderByClause()
             Dim compilationDef =
@@ -10377,7 +10377,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(529014, "DevDiv")>
+        <WorkItem(529014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529014")>
         <Fact>
         Public Sub MissingByInGroupByQueryOperator()
             Dim compilationDef =
@@ -10681,7 +10681,7 @@ BC36594: Definition of method 'GroupJoin' is not accessible in this context.
 </expected>)
         End Sub
 
-        <WorkItem(543523, "DevDiv")>
+        <WorkItem(543523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543523")>
         <Fact()>
         Public Sub IncompleteLambdaInsideOrderByClause()
             Dim compilationDef =
@@ -10718,7 +10718,7 @@ BC42105: Function '<anonymous method>' doesn't return a value on all code paths.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(544312, "DevDiv")>
+        <Fact(), WorkItem(544312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544312")>
         Public Sub WideningConversionInOverloadResolution()
             Dim compilationDef =
 <compilation name="WideningConversionInOverloadResolution">
@@ -10776,7 +10776,7 @@ Join1
 
         End Sub
 
-        <Fact, WorkItem(530910, "DevDiv")>
+        <Fact, WorkItem(530910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530910")>
         Public Sub IQueryableOverStringMax()
             Dim compilationDef =
 <compilation>
@@ -10807,7 +10807,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(1042011)>
+        <Fact, WorkItem(1042011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042011")>
         Public Sub LambdaWithClosureInQueryExpressionAndPDB()
             Dim compilationDef =
 <compilation name="QueryExpressions">

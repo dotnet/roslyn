@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -55,15 +53,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
              string source,
              params DiagnosticDescription[] expectedDiagnostics)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source))
             {
                 var actualDiagnostics = await this.GetDiagnosticsAsync(workspace);
                 actualDiagnostics.Verify(expectedDiagnostics);
             }
         }
 
-        [WorkItem(906919)]
-        [WpfFact]
+        [WorkItem(906919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
+        [Fact]
         public async Task Bug906919()
         {
             string source = "[|class C { }|]";

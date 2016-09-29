@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 {
     public class ForegroundNotificationServiceTests
     {
-        private readonly IForegroundNotificationService _service;
+        private readonly ForegroundNotificationService _service;
         private bool _done;
 
         public ForegroundNotificationServiceTests()
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             Assert.True(_done);
             Assert.True(ran);
-            Assert.True(Empty(_service));
+            Assert.True(_service.IsEmpty_TestOnly);
         }
 
         [WpfFact]
@@ -60,28 +59,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
                 await PumpWait();
 
                 Assert.False(ran);
-                Assert.True(Empty(_service));
+                Assert.True(_service.IsEmpty_TestOnly);
             }
         }
 
         [WpfFact]
         public async Task Test_Delay()
         {
+            // NOTE: Don't be tempted to use DateTime or Stopwatch to measure this
+            // Switched to Environment.TickCount use the same clock as the notification
+            // service, see: https://github.com/dotnet/roslyn/issues/7512.
+
             var asyncToken = EmptyAsyncToken.Instance;
 
-            DateTime now = DateTime.UtcNow;
-            DateTime set = DateTime.UtcNow;
+            int startMilliseconds = Environment.TickCount;
+            int? elapsedMilliseconds = null;
 
             _service.RegisterNotification(() =>
             {
-                set = DateTime.UtcNow;
+                elapsedMilliseconds = Environment.TickCount - startMilliseconds;
+
                 _done = true;
             }, 50, asyncToken, CancellationToken.None);
 
             await PumpWait();
 
-            Assert.True(set.Subtract(now).TotalMilliseconds > 50);
-            Assert.True(Empty(_service));
+            Assert.True(elapsedMilliseconds >= 50, $"Notification fired after {elapsedMilliseconds}, instead of 50.");
+            Assert.True(_service.IsEmpty_TestOnly);
         }
 
         [WpfFact]
@@ -134,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             await PumpWait().ConfigureAwait(false);
             Assert.True(_done);
             Assert.Equal(count, 9000000);
-            Assert.True(Empty(_service));
+            Assert.True(_service.IsEmpty_TestOnly);
         }
 
         private async Task PumpWait()
@@ -143,12 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(1));
             }
-        }
-
-        private static bool Empty(IForegroundNotificationService service)
-        {
-            var temp = (ForegroundNotificationService)service;
-            return temp.IsEmpty_TestOnly;
         }
     }
 }

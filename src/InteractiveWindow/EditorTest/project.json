@@ -1,17 +1,24 @@
-﻿{
-  "dependencies": {
-    "BasicUndo": "0.9.3",
-    "Moq": "4.2.1402.2112",
-    "System.Diagnostics.Debug": "4.0.10",
-    "System.Runtime": "4.0.20",
-    "System.Runtime.Extensions": "4.0.10",
-    "xunit": "2.1.0",
-    "xunit.runner.console": "2.1.0"
-  },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7-x86": { }
-  }
+{
+    "dependencies": {
+        "System.Collections.Immutable": "1.2.0",
+        "BasicUndo": "0.9.3",
+        "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.3.25407",
+        "Moq": "4.2.1402.2112",
+        "xunit": "2.1.0",
+        "xunit.runner.console": "2.2.0-beta1-build3239",
+        "Microsoft.VisualStudio.Text.UI": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Text.UI.Wpf": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

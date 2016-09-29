@@ -1,0 +1,45 @@
+{
+  "dependencies": {
+    "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
+    "Microsoft.DiaSymReader.Native": "1.5.0-beta1",
+    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
+    "System.Collections.Immutable": "1.2.0",
+    "System.Reflection.Metadata": "1.4.1-beta-24430-01",
+    "ManagedEsent": "1.9.4",
+    "System.AppContext": "4.1.0",
+    "System.Console": "4.0.0",
+    "System.Collections": "4.0.11",
+    "System.Collections.Concurrent": "4.0.12",
+    "System.Diagnostics.Process": "4.1.0",
+    "System.Diagnostics.Tools": "4.0.1",
+    "System.Diagnostics.FileVersionInfo": "4.0.0",
+    "System.Diagnostics.StackTrace": "4.0.1",
+    "System.IO": "4.1.0",
+    "System.IO.Compression": "4.1.0",
+    "System.IO.FileSystem": "4.0.1",
+    "System.IO.FileSystem.Primitives": "4.0.1",
+    "System.IO.Pipes": "4.0.0",
+    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0",
+    "System.Runtime.Numerics": "4.0.1",
+    "System.Security.AccessControl": "4.0.0",
+    "System.Security.Cryptography.Algorithms": "4.2.0",
+    "System.Security.Cryptography.Encoding": "4.0.0",
+    "System.Security.Cryptography.X509Certificates": "4.1.0",
+    "System.Security.Principal.Windows": "4.0.0",
+    "System.Text.Encoding": "4.0.11",
+    "System.Text.Encoding.CodePages": "4.0.1",
+    "System.Text.Encoding.Extensions": "4.0.11",
+    "System.Text.RegularExpressions": "4.1.0",
+    "System.Threading.Thread": "4.0.0",
+    "System.Xml.ReaderWriter": "4.0.11",
+    "System.Xml.XDocument": "4.0.11",
+    "System.Xml.XmlDocument": "4.0.1",
+    "System.Xml.XPath.XDocument": "4.0.1"
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}

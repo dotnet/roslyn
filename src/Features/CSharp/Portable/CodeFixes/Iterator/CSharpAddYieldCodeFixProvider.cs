@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         /// <summary>
         /// CS0029: Cannot implicitly convert from type 'x' to 'y'
         /// </summary>
-        private const string CS0029 = "CS0029";
+        private const string CS0029 = nameof(CS0029);
 
         /// <summary>
         /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
         /// </summary>
-        private const string CS0266 = "CS0266";
+        private const string CS0266 = nameof(CS0266);
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             root = root.ReplaceNode(returnStatement, yieldStatement);
-            return new MyCodeAction(CSharpFeaturesResources.ChangeToYieldReturn, document.WithSyntaxRoot(root));
+            return new MyCodeAction(CSharpFeaturesResources.Replace_return_with_yield_return, document.WithSyntaxRoot(root));
         }
 
         private bool TryGetExpressionType(SemanticModel model, ExpressionSyntax expression, out ITypeSymbol returnExpressionType)

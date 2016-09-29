@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -201,8 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Refresh the drop downs to their full information
             _waitIndicator.Wait(
-                EditorFeaturesResources.NavigationBars,
-                EditorFeaturesResources.RefreshingNavigationBars,
+                EditorFeaturesResources.Navigation_Bars,
+                EditorFeaturesResources.Refreshing_navigation_bars,
                 allowCancel: true,
                 action: context => UpdateDropDownsSynchronously(context.CancellationToken));
         }
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             projectItems = documents.Select(d =>
                 new NavigationBarProjectItem(
                     d.Project.Name,
-                    GetProjectGlyph(d.Project),
+                    d.Project.GetGlyph(),
                     workspace: d.Project.Solution.Workspace,
                     documentId: d.Id,
                     language: d.Project.Language)).OrderBy(projectItem => projectItem.Text).ToList();
@@ -272,12 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             selectedProjectItem = document != null
                 ? projectItems.FirstOrDefault(p => p.Text == document.Project.Name) ?? projectItems.First()
                 : projectItems.First();
-        }
-
-        private Glyph GetProjectGlyph(Project project)
-        {
-            // TODO: Get the glyph from the hierarchy
-            return project.Language == LanguageNames.CSharp ? Glyph.CSharpProject : Glyph.BasicProject;
         }
 
         /// <summary>
@@ -347,8 +342,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             AssertIsForeground();
 
             _waitIndicator.Wait(
-                EditorFeaturesResources.NavigationBars,
-                EditorFeaturesResources.RefreshingNavigationBars,
+                EditorFeaturesResources.Navigation_Bars,
+                EditorFeaturesResources.Refreshing_navigation_bars,
                 allowCancel: true,
                 action: context => ProcessItemSelectionSynchronously(e.Item, context.CancellationToken));
         }

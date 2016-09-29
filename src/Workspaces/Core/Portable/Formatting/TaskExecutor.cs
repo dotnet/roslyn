@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -100,14 +99,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public override Task<T2> ContinueWith<T1, T2>(Task<T1> previousTask, Func<Task<T1>, T2> nextAction, CancellationToken cancellationToken)
             {
-                previousTask.Wait();
+                previousTask.Wait(cancellationToken);
 
                 return Task.FromResult(nextAction(previousTask));
             }
 
             public override Task ContinueWith<T>(Task<T> previousTask, Action<Task<T>> nextAction, CancellationToken cancellationToken)
             {
-                previousTask.Wait();
+                previousTask.Wait(cancellationToken);
 
                 nextAction(previousTask);
 

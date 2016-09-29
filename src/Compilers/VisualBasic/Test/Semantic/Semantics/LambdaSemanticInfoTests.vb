@@ -639,7 +639,7 @@ End Module
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(544647, "DevDiv")>
+        <Fact, WorkItem(544647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544647")>
         Public Sub InvokeGenericOverloadedMethod()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -678,7 +678,7 @@ End Module
             Assert.NotNull(info.Symbol)
         End Sub
 
-        <Fact, WorkItem(566495, "DevDiv")>
+        <Fact, WorkItem(566495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566495")>
         Public Sub Bug566495()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
         <compilation>
@@ -738,7 +738,7 @@ BC30203: Identifier expected.
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-        <Fact, WorkItem(960755, "DevDiv")>
+        <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_01()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -765,7 +765,7 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
         End Sub
 
-        <Fact, WorkItem(960755, "DevDiv")>
+        <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_02()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -791,7 +791,7 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
         End Sub
 
-        <Fact, WorkItem(960755, "DevDiv")>
+        <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_03()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -821,7 +821,7 @@ End Class
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
-        <Fact, WorkItem(1179899, "DevDiv")>
+        <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_01()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -858,7 +858,7 @@ BC30203: Identifier expected.
             Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(1179899, "DevDiv")>
+        <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_02()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -897,7 +897,7 @@ BC30203: Identifier expected.
             Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(1179899, "DevDiv")>
+        <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_03()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -933,7 +933,7 @@ BC30203: Identifier expected.
             Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(1179899, "DevDiv")>
+        <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_04()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

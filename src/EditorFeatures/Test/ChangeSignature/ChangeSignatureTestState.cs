@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public static async Task<ChangeSignatureTestState> CreateAsync(string markup, string languageName, ParseOptions parseOptions = null)
         {
             var workspace = languageName == LanguageNames.CSharp
-                  ? await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
-                  : await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                  ? await TestWorkspace.CreateCSharpAsync(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
+                  : await TestWorkspace.CreateVisualBasicAsync(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             return new ChangeSignatureTestState(workspace);
         }
 
         public static async Task<ChangeSignatureTestState> CreateAsync(XElement workspaceXml)
         {
-            var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml);
+            var workspace = await TestWorkspace.CreateAsync(workspaceXml);
             return new ChangeSignatureTestState(workspace);
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
             if (_testDocument == null)
             {
-                throw new ArgumentException("markup does not contain a cursor position", "workspace");
+                throw new ArgumentException("markup does not contain a cursor position", nameof(workspace));
             }
 
             InvocationDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public ChangeSignatureResult ChangeSignature()
         {
+            Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
+
             return ChangeSignatureService.ChangeSignature(
                 InvocationDocument,
                 _testDocument.CursorPosition.Value,

@@ -16,13 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Represents symbols imported to the binding scope via using namespace, using alias, and extern alias.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class Imports
     {
         internal static readonly Imports Empty = new Imports(
             null,
             ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
-            ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, 
-            ImmutableArray<AliasAndExternAliasDirective>.Empty, 
+            ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
+            ImmutableArray<AliasAndExternAliasDirective>.Empty,
             null);
 
         private readonly CSharpCompilation _compilation;
@@ -51,6 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Usings = usings;
             _diagnostics = diagnostics;
             this.ExternAliases = externs;
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            return string.Join("; ", 
+                UsingAliases.OrderBy(x => x.Value.UsingDirective.Location.SourceSpan.Start).Select(ua => $"{ua.Key} = {ua.Value.Alias.Target}").Concat(
+                Usings.Select(u => u.NamespaceOrType.ToString())).Concat(
+                ExternAliases.Select(ea => $"extern alias {ea.Alias.Name}")));
+
         }
 
         public static Imports FromSyntax(
@@ -416,13 +426,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            Debug.Assert(this._compilation == otherImports._compilation);
+            Debug.Assert(_compilation == otherImports._compilation);
 
             var usingAliases = this.UsingAliases.SetItems(otherImports.UsingAliases); // NB: SetItems, rather than AddRange
             var usings = this.Usings.AddRange(otherImports.Usings).Distinct(UsingTargetComparer.Instance);
             var externAliases = ConcatExternAliases(this.ExternAliases, otherImports.ExternAliases);
 
-            return new Imports(this._compilation, usingAliases, usings, externAliases, diagnostics: null);
+            return new Imports(_compilation, usingAliases, usings, externAliases, diagnostics: null);
         }
 
         private static ImmutableArray<AliasAndExternAliasDirective> ConcatExternAliases(ImmutableArray<AliasAndExternAliasDirective> externs1, ImmutableArray<AliasAndExternAliasDirective> externs2)
@@ -672,34 +682,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<Symbol> candidates = Binder.GetCandidateMembers(typeOrNamespace.NamespaceOrType, name, options, originalBinder: originalBinder);
                 foreach (Symbol symbol in candidates)
                 {
-                    switch (symbol.Kind)
+                    if (!IsValidLookupCandidateInUsings(symbol))
                     {
-                        // lookup via "using namespace" ignores namespaces inside
-                        case SymbolKind.Namespace:
-                            continue;
-
-                        // lookup via "using static" ignores extension methods and non-static methods
-                        case SymbolKind.Method:
-                            if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod)
-                            {
-                                continue;
-                            }
-
-                            break;
-
-                        // types are considered static members for purposes of "using static" feature
-                        // regardless of whether they are declared with "static" modifier or not
-                        case SymbolKind.NamedType:
-                            break;
-
-                        // lookup via "using static" ignores non-static members
-                        default:
-                            if (!symbol.IsStatic)
-                            {
-                                continue;
-                            }
-
-                            break;
+                        continue;
                     }
 
                     // Found a match in our list of normal using directives.  Mark the directive
@@ -716,11 +701,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static bool IsValidLookupCandidateInUsings(Symbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                // lookup via "using namespace" ignores namespaces inside
+                case SymbolKind.Namespace:
+                    return false;
+
+                // lookup via "using static" ignores extension methods and non-static methods
+                case SymbolKind.Method:
+                    if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod)
+                    {
+                        return false;
+                    }
+
+                    break;
+
+                // types are considered static members for purposes of "using static" feature
+                // regardless of whether they are declared with "static" modifier or not
+                case SymbolKind.NamedType:
+                    break;
+
+                // lookup via "using static" ignores non-static members
+                default:
+                    if (!symbol.IsStatic)
+                    {
+                        return false;
+                    }
+
+                    break;
+            }
+
+            return true;
+        }
+
         internal void LookupExtensionMethodsInUsings(
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,
-            LookupOptions options, 
+            LookupOptions options,
             Binder originalBinder)
         {
             var binderFlags = originalBinder.Flags;
@@ -831,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var member in namespaceSymbol.NamespaceOrType.GetMembersUnordered())
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(member, options, null))
+                    if (IsValidLookupCandidateInUsings(member) && originalBinder.CanAddLookupSymbolInfo(member, options, null))
                     {
                         result.AddSymbol(member, member.Name, member.GetArity());
                     }

@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
@@ -44,6 +42,10 @@
       <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
       <Name>BasicScripting</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Tools\CommonNetCoreReferences\CommonNetCoreReferences.csproj">
+      <Project>{b5a6057a-eb4c-49fb-987d-943137e72e47}</Project>
+      <Name>CommonNetCoreReferences</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="vbi.rsp">
@@ -54,7 +56,5 @@
   <ItemGroup>
     <Compile Include="Vbi.vb" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

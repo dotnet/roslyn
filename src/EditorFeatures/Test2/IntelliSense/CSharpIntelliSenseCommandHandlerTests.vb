@@ -1,11 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports System.Threading.Tasks
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpIntelliSenseCommandHandlerTests
@@ -33,7 +28,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(543913)>
+        <WorkItem(543913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543913")>
         <WpfFact>
         Public Async Function TestEscapeDismissesCompletionFirst() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -61,7 +56,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(531149)>
+        <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
         <WpfFact>
         Public Async Function TestCutDismissesCompletion() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -84,7 +79,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(531149)>
+        <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
         <WpfFact>
         Public Async Function TestPasteDismissesCompletion() As Task
             Using state = TestState.CreateCSharpTestState(

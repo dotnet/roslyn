@@ -5,10 +5,16 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class ImplicitReferenceConflictTests
 
-        <WorkItem(528966)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
+
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextCausesConflictInForEach()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
@@ -43,10 +49,10 @@ class C
             End Using
         End Sub
 
-        <WorkItem(528966)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInVBCausesConflictInForEach()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
 
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -90,10 +96,10 @@ class D
             End Using
         End Sub
 
-        <WorkItem(528966)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInVBToUpperCaseOnlyCausesConflictInCSForEach()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
 
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">

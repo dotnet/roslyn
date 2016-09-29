@@ -1,4 +1,6 @@
-﻿#pragma warning disable 169 // unused field
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+#pragma warning disable 169 // unused field
 #pragma warning disable 649 // field not set, will always be default value
 
 using System;

@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
             Get
-                Return False
+                Return ReturnsByRef
             End Get
         End Property
 
@@ -453,10 +453,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodDefinitionReturnValueAttributes As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.ReturnValueAttributes
             Get
-                CheckDefinitionInvariant()
-                Return GetCustomAttributesToEmit(Me.GetReturnTypeAttributes(), synthesized:=Nothing, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False)
+                Return GetReturnValueCustomAttributesToEmit()
             End Get
         End Property
+
+        Private Function GetReturnValueCustomAttributesToEmit() As IEnumerable(Of Cci.ICustomAttribute)
+            CheckDefinitionInvariant()
+
+            Dim userDefined As ImmutableArray(Of VisualBasicAttributeData)
+            Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
+
+            userDefined = Me.GetReturnTypeAttributes()
+            Me.AddSynthesizedReturnTypeAttributes(synthesized)
+
+            ' Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
+            ' all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
+            Return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False)
+        End Function
 
         Private ReadOnly Property IMethodDefinitionReturnValueIsMarshalledExplicitly As Boolean Implements Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly
             Get

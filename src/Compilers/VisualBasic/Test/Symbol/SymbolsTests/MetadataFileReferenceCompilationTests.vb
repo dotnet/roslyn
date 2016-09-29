@@ -10,9 +10,9 @@ Imports Roslyn.Test.Utilities
 Public Class MetadataFileReferenceCompilationTests
     Inherits BasicTestBase
 
-    <WorkItem(539480, "DevDiv")>
-    <WorkItem(1037628, "DevDiv")>
-    <Fact(Skip:="1037628")>
+    <WorkItem(539480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539480")>
+    <WorkItem(1037628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=1037628")>
+    <Fact>
     Public Sub BC31011ERR_BadRefLib1()
         Dim ref = MetadataReference.CreateFromImage({}, filePath:="Foo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -29,8 +29,8 @@ BC31519: 'Foo.dll' cannot be referenced because it is not a valid assembly.
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub
 
-    <WorkItem(1037628, "DevDiv")>
-    <Fact(Skip:="1037628")>
+    <WorkItem(1037628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=1037628")>
+    <Fact>
     Public Sub BC31007ERR_BadModuleFile1()
         Dim ref = ModuleMetadata.CreateFromImage({}).GetReference(filePath:="Foo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -42,13 +42,13 @@ End Class
 </compilation>)
         compilation1 = compilation1.AddReferences(ref)
         Dim expectedErrors1 = <errors>
-BC31007: Unable to load module file 'Foo.dll': Image is too small.
+BC31007: Unable to load module file 'Foo.dll': PE image doesn't contain managed metadata.
                  </errors>
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub
 
-    <WorkItem(538349, "DevDiv")>
-    <WorkItem(545062, "DevDiv")>
+    <WorkItem(538349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538349")>
+    <WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")>
     <Fact>
     Public Sub DuplicateReferences()
         Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib)

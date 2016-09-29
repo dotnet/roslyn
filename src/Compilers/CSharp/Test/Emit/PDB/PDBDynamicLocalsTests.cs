@@ -313,9 +313,7 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName="""" />
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d12345678901234567890123456789012345678901234567890123456789012"" />
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName="""" />
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""b12345678901234567890123456789012345678901234567890123456789012"" />
         </dynamicLocals>
         <encLocalSlotMap>
@@ -585,8 +583,8 @@ class Test
         <entry offset=""0x8"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9"">
-        <scope startOffset=""0x7"" endOffset=""0x8"">
-          <local name=""d"" il_index=""0"" il_start=""0x7"" il_end=""0x8"" attributes=""0"" />
+        <scope startOffset=""0x7"" endOffset=""0x9"">
+          <local name=""d"" il_index=""0"" il_start=""0x7"" il_end=""0x9"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -1760,9 +1758,6 @@ class F<T,V>
         <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals>
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName=""zzz"" />
-        </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
         </encLocalSlotMap>
@@ -1815,11 +1810,6 @@ class F<T,V>
         <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals>
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName=""z1"" />
-          <bucket flagCount=""0"" flags="""" slotId=""2"" localName=""z2"" />
-          <bucket flagCount=""0"" flags="""" slotId=""3"" localName=""z3"" />
-        </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
           <slot kind=""0"" offset=""389"" />
@@ -1882,10 +1872,8 @@ class F<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName=""z3"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""www"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""length63length63length63length63length63length63length63length6"" />
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName="""" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
@@ -1944,7 +1932,6 @@ class F<T>
         </using>
         <dynamicLocals>
           <bucket flagCount=""64"" flags=""0000000000000000000000000000000000000000000000000000000000000001"" slotId=""0"" localName=""yes"" />
-          <bucket flagCount=""0"" flags="""" slotId=""1"" localName=""no"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""www"" />
         </dynamicLocals>
         <encLocalSlotMap>
@@ -2055,7 +2042,7 @@ class Program
 </symbols>");
         }
 
-        [WorkItem(637465, "DevDiv")]
+        [WorkItem(637465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637465")]
         [Fact]
         public void DynamicLocalOptimizedAway()
         {

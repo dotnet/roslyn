@@ -21,22 +21,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private static readonly IAnalyzerAssemblyLoader s_analyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
 
         // Caches are used by C# and VB compilers, and shared here.
-        private static readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> s_assemblyReferenceProvider = (path, properties) => new CachingMetadataReference(path, properties);
+        public static readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> SharedAssemblyReferenceProvider = (path, properties) => new CachingMetadataReference(path, properties);
 
         public override IAnalyzerAssemblyLoader AnalyzerAssemblyLoader => s_analyzerLoader;
 
-        public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => s_assemblyReferenceProvider;
+        public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => SharedAssemblyReferenceProvider;
 
         internal DesktopCompilerServerHost()
             : this(AppDomain.CurrentDomain.BaseDirectory, RuntimeEnvironment.GetRuntimeDirectory())
         {
-
         }
 
         internal DesktopCompilerServerHost(string clientDirectory, string sdkDirectory)
             : base(clientDirectory, sdkDirectory)
         {
-
         }
 
         public override bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)

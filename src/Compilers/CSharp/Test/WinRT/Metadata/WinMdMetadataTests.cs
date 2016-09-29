@@ -206,7 +206,7 @@ public class C
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(1169511, "DevDiv")]
+        [Fact, WorkItem(1169511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1169511")]
         public void WinMdAssemblyQualifiedType()
         {
             var source =

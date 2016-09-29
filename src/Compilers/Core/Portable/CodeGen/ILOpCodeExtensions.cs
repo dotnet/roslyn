@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    internal static class ILOpCodeExtensions
+    internal static partial class ILOpCodeExtensions
     {
         public static int Size(this ILOpCode opcode)
         {
@@ -20,96 +22,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 Debug.Assert((code & 0xff00) == 0xfe00);
                 return 2;
             }
-        }
-
-        public static int BranchOperandSize(this ILOpCode opcode)
-        {
-            switch (opcode)
-            {
-                case ILOpCode.Br_s:
-                case ILOpCode.Brfalse_s:
-                case ILOpCode.Brtrue_s:
-                case ILOpCode.Beq_s:
-                case ILOpCode.Bge_s:
-                case ILOpCode.Bgt_s:
-                case ILOpCode.Ble_s:
-                case ILOpCode.Blt_s:
-                case ILOpCode.Bne_un_s:
-                case ILOpCode.Bge_un_s:
-                case ILOpCode.Bgt_un_s:
-                case ILOpCode.Ble_un_s:
-                case ILOpCode.Blt_un_s:
-                case ILOpCode.Leave_s:
-                    return 1;
-
-                case ILOpCode.Br:
-                case ILOpCode.Brfalse:
-                case ILOpCode.Brtrue:
-                case ILOpCode.Beq:
-                case ILOpCode.Bge:
-                case ILOpCode.Bgt:
-                case ILOpCode.Ble:
-                case ILOpCode.Blt:
-                case ILOpCode.Bne_un:
-                case ILOpCode.Bge_un:
-                case ILOpCode.Bgt_un:
-                case ILOpCode.Ble_un:
-                case ILOpCode.Blt_un:
-                case ILOpCode.Leave:
-                    return 4;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(opcode);
-        }
-
-        public static ILOpCode GetShortOpcode(this ILOpCode opcode)
-        {
-            switch (opcode)
-            {
-                case ILOpCode.Br:
-                    return ILOpCode.Br_s;
-
-                case ILOpCode.Brfalse:
-                    return ILOpCode.Brfalse_s;
-
-                case ILOpCode.Brtrue:
-                    return ILOpCode.Brtrue_s;
-
-                case ILOpCode.Beq:
-                    return ILOpCode.Beq_s;
-
-                case ILOpCode.Bge:
-                    return ILOpCode.Bge_s;
-
-                case ILOpCode.Bgt:
-                    return ILOpCode.Bgt_s;
-
-                case ILOpCode.Ble:
-                    return ILOpCode.Ble_s;
-
-                case ILOpCode.Blt:
-                    return ILOpCode.Blt_s;
-
-                case ILOpCode.Bne_un:
-                    return ILOpCode.Bne_un_s;
-
-                case ILOpCode.Bge_un:
-                    return ILOpCode.Bge_un_s;
-
-                case ILOpCode.Bgt_un:
-                    return ILOpCode.Bgt_un_s;
-
-                case ILOpCode.Ble_un:
-                    return ILOpCode.Ble_un_s;
-
-                case ILOpCode.Blt_un:
-                    return ILOpCode.Blt_un_s;
-
-                case ILOpCode.Leave:
-                    return ILOpCode.Leave_s;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(opcode);
         }
 
         public static ILOpCode GetLeaveOpcode(this ILOpCode opcode)
@@ -146,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         public static bool IsControlTransfer(this ILOpCode opcode)
         {
-            if (opcode.IsBranchToLabel())
+            if (opcode.IsBranch())
             {
                 return true;
             }
@@ -160,46 +72,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 case ILOpCode.Endfinally:
                 case ILOpCode.Switch:
                 case ILOpCode.Jmp:
-                    return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Opcodes that represents a branch to a label.
-        /// </summary>
-        public static bool IsBranchToLabel(this ILOpCode opcode)
-        {
-            switch (opcode)
-            {
-                case ILOpCode.Br:
-                case ILOpCode.Br_s:
-                case ILOpCode.Brtrue:
-                case ILOpCode.Brtrue_s:
-                case ILOpCode.Brfalse:
-                case ILOpCode.Brfalse_s:
-                case ILOpCode.Beq:
-                case ILOpCode.Beq_s:
-                case ILOpCode.Bne_un:
-                case ILOpCode.Bne_un_s:
-                case ILOpCode.Bge:
-                case ILOpCode.Bge_s:
-                case ILOpCode.Bge_un:
-                case ILOpCode.Bge_un_s:
-                case ILOpCode.Bgt:
-                case ILOpCode.Bgt_s:
-                case ILOpCode.Bgt_un:
-                case ILOpCode.Bgt_un_s:
-                case ILOpCode.Ble:
-                case ILOpCode.Ble_s:
-                case ILOpCode.Ble_un:
-                case ILOpCode.Ble_un_s:
-                case ILOpCode.Blt:
-                case ILOpCode.Blt_s:
-                case ILOpCode.Blt_un:
-                case ILOpCode.Blt_un_s:
-                case ILOpCode.Leave:
-                case ILOpCode.Leave_s:
                     return true;
             }
             return false;

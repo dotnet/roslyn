@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,11 +17,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     [ExportWorkspaceService(typeof(ISolutionCrawlerRegistrationService), ServiceLayer.Host), Shared]
     internal partial class SolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
     {
+        private const string Default = "*";
+
         private readonly object _gate;
         private readonly SolutionCrawlerProgressReporter _progressReporter;
 
         private readonly IAsynchronousOperationListener _listener;
-        private readonly ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
+        private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
         private readonly Dictionary<Workspace, WorkCoordinator> _documentWorkCoordinatorMap;
 
         [ImportingConstructor]
@@ -30,7 +33,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             _gate = new object();
 
-            _analyzerProviders = analyzerProviders.ToImmutableArray();
+            _analyzerProviders = analyzerProviders.GroupBy(kv => kv.Metadata.Name).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray());
+            AssertAnalyzerProviders(_analyzerProviders);
+
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.SolutionCrawler);
 
@@ -51,7 +56,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 var coordinator = new WorkCoordinator(
                     _listener,
-                    _analyzerProviders.Where(l => l.Metadata.WorkspaceKinds.Any(wk => wk == workspace.Kind)),
+                    GetAnalyzerProviders(workspace),
                     new Registration(correlationId, workspace, _progressReporter));
 
                 _documentWorkCoordinatorMap.Add(workspace, coordinator);
@@ -86,7 +91,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var coordinator = default(WorkCoordinator);
                 if (!_documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator))
                 {
-                    throw new ArgumentException("workspace");
+                    // this can happen if solution crawler is already unregistered from workspace.
+                    // one of those example will be VS shutting down so roslyn package is disposed but there is a pending
+                    // async operation.
+                    return;
                 }
 
                 // no specific projects or documents provided
@@ -125,6 +133,99 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 _documentWorkCoordinatorMap[workspace].WaitUntilCompletion_ForTestingPurposesOnly();
             }
+        }
+
+        private IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> GetAnalyzerProviders(Workspace workspace)
+        {
+            Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata> lazyProvider;
+            foreach (var kv in _analyzerProviders)
+            {
+                var lazyProviders = kv.Value;
+
+                // try get provider for the specific workspace kind
+                if (TryGetProvider(workspace.Kind, lazyProviders, out lazyProvider))
+                {
+                    yield return lazyProvider;
+                    continue;
+                }
+
+                // try get default provider
+                if (TryGetProvider(Default, lazyProviders, out lazyProvider))
+                {
+                    yield return lazyProvider;
+                }
+            }
+        }
+
+        private bool TryGetProvider(
+            string kind,
+            ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> lazyProviders,
+            out Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata> lazyProvider)
+        {
+            // set out param
+            lazyProvider = null;
+
+            // try find provider for specific workspace kind
+            if (kind != Default)
+            {
+                foreach (var provider in lazyProviders)
+                {
+                    if (provider.Metadata.WorkspaceKinds?.Any(wk => wk == kind) == true)
+                    {
+                        lazyProvider = provider;
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // try find default provider
+            foreach (var provider in lazyProviders)
+            {
+                if (IsDefaultProvider(provider.Metadata))
+                {
+                    lazyProvider = provider;
+                    return true;
+                }
+
+                return false;
+            }
+
+            return false;
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertAnalyzerProviders(
+            ImmutableDictionary<string, ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> analyzerProviders)
+        {
+#if DEBUG
+            // make sure there is duplicated provider defined for same workspace.
+            var set = new HashSet<string>();
+            foreach (var kv in analyzerProviders)
+            {
+                foreach (var lazyProvider in kv.Value)
+                {
+                    if (IsDefaultProvider(lazyProvider.Metadata))
+                    {
+                        Contract.Requires(set.Add(Default));
+                        continue;
+                    }
+
+                    foreach (var kind in lazyProvider.Metadata.WorkspaceKinds)
+                    {
+                        Contract.Requires(set.Add(kind));
+                    }
+                }
+
+                set.Clear();
+            }
+#endif
+        }
+
+        private static bool IsDefaultProvider(IncrementalAnalyzerProviderMetadata providerMetadata)
+        {
+            return providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Length == 0;
         }
 
         private class Registration

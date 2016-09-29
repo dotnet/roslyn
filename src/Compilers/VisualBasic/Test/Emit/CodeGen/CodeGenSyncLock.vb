@@ -1216,7 +1216,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(811916, "DevDiv")>
+        <Fact, WorkItem(811916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/811916")>
         Public Sub VBLegacyThreading_VB7FreeThreading_SyncLock_SyncLock4()
             Dim source =
 <compilation>
@@ -1271,7 +1271,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(1106943, "DevDiv")>
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
         Public Sub Bug1106943_01()
             Dim source =
 <compilation>
@@ -1296,7 +1296,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
         End Sub
 
-        <Fact(), WorkItem(1106943, "DevDiv")>
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
         Public Sub Bug1106943_02()
             Dim source =
 <compilation>
@@ -1321,7 +1321,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
         End Sub
 
-        <Fact(), WorkItem(1106943, "DevDiv")>
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
         Public Sub Bug1106943_03()
             Dim source =
 <compilation>
@@ -1351,7 +1351,7 @@ BC35000: Requested operation is not available because the runtime library functi
                                                     </expected>)
         End Sub
 
-        <Fact(), WorkItem(1106943, "DevDiv")>
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
         Public Sub Bug1106943_04()
             Dim source =
 <compilation>
@@ -1380,7 +1380,7 @@ BC35000: Requested operation is not available because the runtime library functi
                                                     </expected>)
         End Sub
 
-        <Fact(), WorkItem(1106943, "DevDiv")>
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
         Public Sub Bug1106943_05()
             Dim source =
 <compilation>
@@ -1414,7 +1414,7 @@ BC35000: Requested operation is not available because the runtime library functi
                                                     </expected>)
         End Sub
 
-        <Fact(), WorkItem(1106943, "DevDiv")>
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
         Public Sub Bug1106943_06()
             Dim source =
 <compilation>

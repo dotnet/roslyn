@@ -169,7 +169,7 @@ End Class
 
                 Dim outWriter = New StringWriter()
                 Dim cmd = New VisualBasicCompilerServer(
-                    New DesktopCompilerServerHost(),
+                    DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
                     {"/nologo",
                      "/touchedfiles:" + touchedBase,
                      source1},

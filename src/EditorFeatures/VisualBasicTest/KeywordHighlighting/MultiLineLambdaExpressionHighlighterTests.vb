@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
@@ -11,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New MultiLineLambdaExpressionHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda1() As Task
             Await TestAsync(<Text>
 Class C
@@ -23,7 +22,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda2() As Task
             Await TestAsync(<Text>
 Class C
@@ -35,7 +34,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda3() As Task
             Await TestAsync(<Text>
 Class C
@@ -47,7 +46,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda4() As Task
             Await TestAsync(<Text>
 Class C
@@ -59,7 +58,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineSubLambda1() As Task
             Await TestAsync(<Text>
 Class C
@@ -71,7 +70,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineSubLambda2() As Task
             Await TestAsync(<Text>
 Class C
@@ -83,7 +82,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineSubLambda3() As Task
             Await TestAsync(<Text>
 Class C
@@ -95,7 +94,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineSubLambda4() As Task
             Await TestAsync(<Text>
 Class C
@@ -107,7 +106,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineLambda_AsyncExample2_1() As Task
             Await TestAsync(
 <Text>
@@ -138,7 +137,7 @@ End Class
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineLambda_AsyncExample2_2() As Task
             Await TestAsync(
 <Text>
@@ -169,7 +168,7 @@ End Class
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineLambda_AsyncExample2_3() As Task
             Await TestAsync(
 <Text>
@@ -200,7 +199,7 @@ End Class
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda_IteratorExample2_1() As Task
             Await TestAsync(
 <Text>
@@ -226,7 +225,7 @@ End Function
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda_IteratorExample2_2() As Task
             Await TestAsync(
 <Text>
@@ -252,7 +251,7 @@ End Function
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda_IteratorExample2_3() As Task
             Await TestAsync(
 <Text>
@@ -278,7 +277,7 @@ End Function
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda_IteratorExample2_4() As Task
             Await TestAsync(
 <Text>
@@ -304,7 +303,7 @@ End Function
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda_IteratorExample2_5() As Task
             Await TestAsync(
 <Text>
@@ -330,7 +329,7 @@ End Function
 </Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineFunctionLambda_IteratorExample2_6() As Task
             Await TestAsync(
 <Text>

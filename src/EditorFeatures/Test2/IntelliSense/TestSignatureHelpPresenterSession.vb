@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -13,6 +14,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public SignatureHelpItems As IList(Of SignatureHelpItem)
         Public SelectedItem As SignatureHelpItem
         Public SelectedParameter As Integer?
+        Private presented As Boolean = False
+
+        Public ReadOnly Property EditorSessionIsActive As Boolean Implements ISignatureHelpPresenterSession.EditorSessionIsActive
+            Get
+                Return presented
+            End Get
+        End Property
 
         Public Event Dismissed As EventHandler(Of EventArgs) Implements ISignatureHelpPresenterSession.Dismissed
         Public Event ItemSelected As EventHandler(Of SignatureHelpItemEventArgs) Implements ISignatureHelpPresenterSession.ItemSelected
@@ -30,10 +38,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SignatureHelpItems = signatureHelpItems
             Me.SelectedItem = selectedItem
             Me.SelectedParameter = selectedParameter
+            Me.presented = True
         End Sub
 
         Public Sub Dismiss() Implements ISignatureHelpPresenterSession.Dismiss
             _testState.CurrentSignatureHelpPresenterSession = Nothing
+            Me.presented = False
         End Sub
 
         Public Sub SetSelectedItem(item As SignatureHelpItem)

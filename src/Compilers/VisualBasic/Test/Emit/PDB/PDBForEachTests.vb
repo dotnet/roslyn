@@ -403,7 +403,7 @@ End Class
 
 #Region "For Loop"
 
-        <WorkItem(529183, "DevDiv")>
+        <WorkItem(529183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529183")>
         <Fact>
         Public Sub ForLoop01()
             Dim source =
@@ -459,7 +459,7 @@ End Module
  </symbols>)
         End Sub
 
-        <WorkItem(529183, "DevDiv")>
+        <WorkItem(529183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529183")>
         <Fact>
         Public Sub ForLoop02()
             Dim source =

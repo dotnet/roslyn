@@ -1,9 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.IO
 Imports System.Text
 Imports Microsoft.CodeAnalysis
@@ -13,10 +9,10 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Xunit
 
 Namespace APISampleUnitTestsVB
 
-    <TestClass>
     Public Class FAQ
 
         <AttributeUsage(AttributeTargets.Method)>
@@ -51,7 +47,7 @@ Namespace APISampleUnitTestsVB
 #Region " Section 1 : Getting Information Questions "
 
         <FAQ(1)>
-        <TestMethod>
+        <Fact>
         Public Sub GetTypeForTypeName()
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(
@@ -81,18 +77,18 @@ End Module
             ' Use GetTypeInfo() to get TypeSymbol corresponding to the keyword 'Integer' above.
             Dim type = CType(model.GetTypeInfo(typeName).Type, ITypeSymbol)
 
-            Assert.AreEqual(SpecialType.System_Int32, type.SpecialType)
-            Assert.AreEqual("Integer", type.ToDisplayString())
+            Assert.Equal(SpecialType.System_Int32, type.SpecialType)
+            Assert.Equal("Integer", type.ToDisplayString())
 
             ' Alternately, use GetSymbolInfo() to get TypeSymbol corresponding to keyword 'Integer' above.
             type = CType(model.GetSymbolInfo(typeName).Symbol, ITypeSymbol)
 
-            Assert.AreEqual(SpecialType.System_Int32, type.SpecialType)
-            Assert.AreEqual("Integer", type.ToDisplayString())
+            Assert.Equal(SpecialType.System_Int32, type.SpecialType)
+            Assert.Equal("Integer", type.ToDisplayString())
         End Sub
 
         <FAQ(2)>
-        <TestMethod>
+        <Fact>
         Public Sub GetTypeForVariableDeclaration()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -121,12 +117,12 @@ End Module
             ' Get TypeSymbol corresponding to 'Dim i' above.
             Dim type = CType(model.GetDeclaredSymbol(identifier), ILocalSymbol).Type
 
-            Assert.AreEqual(SpecialType.System_Int32, type.SpecialType)
-            Assert.AreEqual("Integer", type.ToDisplayString())
+            Assert.Equal(SpecialType.System_Int32, type.SpecialType)
+            Assert.Equal("Integer", type.ToDisplayString())
         End Sub
 
         <FAQ(3)>
-        <TestMethod>
+        <Fact>
         Public Sub GetTypeForExpressions()
             Dim source =
 <text>
@@ -166,10 +162,10 @@ End Module
             Dim expressionTypeInfo As TypeInfo = model.GetTypeInfo(addExpression)
             Dim expressionType = expressionTypeInfo.Type
 
-            Assert.AreEqual(SpecialType.System_Double, expressionType.SpecialType)
-            Assert.AreEqual("Double", expressionType.ToDisplayString())
-            Assert.AreEqual(SpecialType.System_Double, expressionTypeInfo.ConvertedType.SpecialType)
-            Assert.IsTrue(model.GetConversion(addExpression).IsIdentity)
+            Assert.Equal(SpecialType.System_Double, expressionType.SpecialType)
+            Assert.Equal("Double", expressionType.ToDisplayString())
+            Assert.Equal(SpecialType.System_Double, expressionTypeInfo.ConvertedType.SpecialType)
+            Assert.True(model.GetConversion(addExpression).IsIdentity)
 
             ' Get IdentifierNameSyntax corresponding to the variable 'd' in expression 's(0) + d' above.
             Dim identifier = CType(addExpression.Right, IdentifierNameSyntax)
@@ -178,16 +174,16 @@ End Module
             Dim variableTypeInfo As TypeInfo = model.GetTypeInfo(identifier)
             Dim variableType = variableTypeInfo.Type
 
-            Assert.AreEqual(SpecialType.System_Double, variableType.SpecialType)
-            Assert.AreEqual("Double", variableType.ToDisplayString())
-            Assert.AreEqual(SpecialType.System_Double, variableTypeInfo.ConvertedType.SpecialType)
-            Assert.IsTrue(model.GetConversion(identifier).IsIdentity)
+            Assert.Equal(SpecialType.System_Double, variableType.SpecialType)
+            Assert.Equal("Double", variableType.ToDisplayString())
+            Assert.Equal(SpecialType.System_Double, variableTypeInfo.ConvertedType.SpecialType)
+            Assert.True(model.GetConversion(identifier).IsIdentity)
 
             ' Alternately, use GetSymbolInfo() to get TypeSymbol corresponding to variable 'd' above.
             variableType = (CType(model.GetSymbolInfo(identifier).Symbol, ILocalSymbol)).Type
 
-            Assert.AreEqual(SpecialType.System_Double, variableType.SpecialType)
-            Assert.AreEqual("Double", variableType.ToDisplayString())
+            Assert.Equal(SpecialType.System_Double, variableType.SpecialType)
+            Assert.Equal("Double", variableType.ToDisplayString())
 
             ' Get InvocationExpressionSyntax corresponding to 's(0)' in expression 's(0) + d' above.
             Dim elementAccess = CType(addExpression.Left, InvocationExpressionSyntax)
@@ -196,12 +192,12 @@ End Module
             expressionTypeInfo = model.GetTypeInfo(elementAccess)
             expressionType = expressionTypeInfo.Type
 
-            Assert.AreEqual(SpecialType.System_Int16, expressionType.SpecialType)
-            Assert.AreEqual("Short", expressionType.ToDisplayString())
-            Assert.AreEqual(SpecialType.System_Double, expressionTypeInfo.ConvertedType.SpecialType)
+            Assert.Equal(SpecialType.System_Int16, expressionType.SpecialType)
+            Assert.Equal("Short", expressionType.ToDisplayString())
+            Assert.Equal(SpecialType.System_Double, expressionTypeInfo.ConvertedType.SpecialType)
 
             Dim conv = model.GetConversion(elementAccess)
-            Assert.IsTrue(conv.IsWidening AndAlso conv.IsNumeric)
+            Assert.True(conv.IsWidening AndAlso conv.IsNumeric)
 
             ' Get IdentifierNameSyntax corresponding to the parameter 's' in expression 's(0) + d' above.
             identifier = CType(elementAccess.Expression, IdentifierNameSyntax)
@@ -210,19 +206,19 @@ End Module
             variableTypeInfo = model.GetTypeInfo(identifier)
             variableType = variableTypeInfo.Type
 
-            Assert.AreEqual("Short()", variableType.ToDisplayString())
-            Assert.AreEqual("Short()", variableTypeInfo.ConvertedType.ToDisplayString())
-            Assert.IsTrue(model.GetConversion(identifier).IsIdentity)
+            Assert.Equal("Short()", variableType.ToDisplayString())
+            Assert.Equal("Short()", variableTypeInfo.ConvertedType.ToDisplayString())
+            Assert.True(model.GetConversion(identifier).IsIdentity)
 
             ' Alternately, use GetSymbolInfo() to get TypeSymbol corresponding to parameter 's' above.
             variableType = (CType(model.GetSymbolInfo(identifier).Symbol, IParameterSymbol)).Type
 
-            Assert.AreEqual("Short()", variableType.ToDisplayString())
-            Assert.AreEqual(SpecialType.System_Int16, CType(variableType, IArrayTypeSymbol).ElementType.SpecialType)
+            Assert.Equal("Short()", variableType.ToDisplayString())
+            Assert.Equal(SpecialType.System_Int16, CType(variableType, IArrayTypeSymbol).ElementType.SpecialType)
         End Sub
 
         <FAQ(4)>
-        <TestMethod>
+        <Fact>
         Public Sub GetInScopeSymbols()
             Dim source =
 <text>
@@ -260,7 +256,7 @@ End Module
                                             Where result <> "Windows"
                                             Order By result)
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>C
 j As Integer
 Microsoft
@@ -275,7 +271,7 @@ System</text>.Value, results)
                                               symbol.Kind = SymbolKind.Field
                                         Select result = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
                                         Order By result)
-            Assert.AreEqual(
+            Assert.Equal(
 <text>j As Integer
 Program.i As Integer</text>.Value, results)
 
@@ -287,7 +283,7 @@ Program.i As Integer</text>.Value, results)
                                         Where result <> "Windows"
                                         Order By result)
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>C
 Microsoft
 Program
@@ -295,7 +291,7 @@ System</text>.Value, results)
         End Sub
 
         <FAQ(5)>
-        <TestMethod>
+        <Fact>
         Public Sub GetSymbolsForAccessibleMembersOfAType()
             Dim source =
 <text>
@@ -352,7 +348,7 @@ End Module
             Dim results = String.Join(vbLf, From symbol In symbols
                                             Select result = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
                                             Order By result)
-            Assert.AreEqual(
+            Assert.Equal(
 <text>C.InstanceField As Integer
 Function Object.Equals(obj As Object) As Boolean
 Function Object.Equals(objA As Object, objB As Object) As Boolean
@@ -366,7 +362,7 @@ Sub C.InstanceMethod()</text>.Value, results)
         End Sub
 
         <FAQ(6)>
-        <TestMethod>
+        <Fact>
         Public Sub FindAllInvocationsOfAMethod()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -420,11 +416,11 @@ End Module
             ' Use GetSymbolInfo() to find invocations of method C1.M2() above.
             Dim matchingInvocations = From i In allInvocations Where model.GetSymbolInfo(i).Symbol.Equals(method)
 
-            Assert.AreEqual(2, matchingInvocations.Count)
+            Assert.Equal(2, matchingInvocations.Count)
         End Sub
 
         <FAQ(7)>
-        <TestMethod>
+        <Fact>
         Public Sub FindAllReferencesToAMethodInASolution()
             Dim source1 = <text>
 Namespace NS
@@ -486,24 +482,24 @@ End Module</text>.Value
             ' Find all references to the 'MethodThatWeAreTryingToFind' in the solution.
             Dim methodReferences = SymbolFinder.FindReferencesAsync(method, sln).Result
 
-            Assert.AreEqual(1, methodReferences.Count)
+            Assert.Equal(1, methodReferences.Count)
 
             Dim methodReference = methodReferences.Single()
 
-            Assert.AreEqual(3, methodReference.Locations.Count)
+            Assert.Equal(3, methodReference.Locations.Count)
 
             Dim methodDefinition = CType(methodReference.Definition, IMethodSymbol)
 
-            Assert.AreEqual("MethodThatWeAreTryingToFind", methodDefinition.Name)
-            Assert.IsTrue(methodReference.Definition.Locations.Single.IsInSource)
-            Assert.AreEqual("File1.vb", methodReference.Definition.Locations.Single.SourceTree.FilePath)
-            Assert.IsTrue(methodReference.Locations.All(Function(referenceLocation) referenceLocation.Location.IsInSource))
-            Assert.AreEqual(1, methodReference.Locations.Count(Function(referenceLocation) referenceLocation.Document.Name = "File1.vb"))
-            Assert.AreEqual(2, methodReference.Locations.Count(Function(referenceLocation) referenceLocation.Document.Name = "File2.vb"))
+            Assert.Equal("MethodThatWeAreTryingToFind", methodDefinition.Name)
+            Assert.True(methodReference.Definition.Locations.Single.IsInSource)
+            Assert.Equal("File1.vb", methodReference.Definition.Locations.Single.SourceTree.FilePath)
+            Assert.True(methodReference.Locations.All(Function(referenceLocation) referenceLocation.Location.IsInSource))
+            Assert.Equal(1, methodReference.Locations.Count(Function(referenceLocation) referenceLocation.Document.Name = "File1.vb"))
+            Assert.Equal(2, methodReference.Locations.Count(Function(referenceLocation) referenceLocation.Document.Name = "File2.vb"))
         End Sub
 
         <FAQ(8)>
-        <TestMethod>
+        <Fact>
         Public Sub FindAllInvocationsToMethodsFromAParticularNamespace()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -537,7 +533,7 @@ End Module
             Dim walker = New MethodInvocationWalker With {.SemanticModel = model, .NamespaceName = "System.Threading.Tasks"}
             walker.Visit(tree.GetRoot())
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>
 Line 8: Task.Factory.StartNew(a)
 Line 9: t.Wait()
@@ -588,7 +584,7 @@ Line 15: t.Wait()</text>.Value, walker.Results.ToString())
         End Class
 
         <FAQ(9)>
-        <TestMethod>
+        <Fact>
         Public Sub GetAllFieldAndMethodSymbolsInACompilation()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -629,7 +625,6 @@ End Module
             Dim results = New StringBuilder()
 
             ' Traverse the symbol tree to find all namespaces, types, methods and fields.
-            ' For Each ns As NamespaceSymbol In comp.GetReferencedAssemblySymbol(Mscorlib).GlobalNamespace.GetNamespaceMembers()
             For Each ns In comp.Assembly.GlobalNamespace.GetNamespaceMembers()
                 results.Append(vbLf)
                 results.Append(ns.Kind.ToString())
@@ -655,7 +650,7 @@ End Module
 
             Next
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>
 Namespace: NS1
     Class: C
@@ -668,7 +663,7 @@ Namespace: NS2
         End Sub
 
         <FAQ(10)>
-        <TestMethod>
+        <Fact>
         Public Sub TraverseAllExpressionsInASyntaxTreeUsingAWalker()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -688,7 +683,7 @@ End Module
             Dim model = comp.GetSemanticModel(tree)
             Dim walker = New ExpressionWalker() With {.SemanticModel = model}
             walker.Visit(tree.GetRoot())
-            Assert.AreEqual(
+            Assert.Equal(
 <text>
 LiteralExpressionSyntax 0.0 has type Double
 IdentifierNameSyntax i has type Double
@@ -722,7 +717,7 @@ LiteralExpressionSyntax 2L has type Long</text>.Value, walker.Results.ToString()
         End Class
 
         <FAQ(11)>
-        <TestMethod>
+        <Fact>
         Public Sub CompareSyntax()
             Dim source =
 <text>
@@ -742,8 +737,8 @@ End Module
             Dim node2 As SyntaxNode = tree2.GetRoot()
 
             ' Compare trees and nodes that are identical.
-            Assert.IsTrue(tree1.IsEquivalentTo(tree2))
-            Assert.IsTrue(node1.IsEquivalentTo(node2))
+            Assert.True(tree1.IsEquivalentTo(tree2))
+            Assert.True(node1.IsEquivalentTo(node2))
 
             ' tree3 is identical to tree1 except for a single comment.
             Dim tree3 = SyntaxFactory.ParseSyntaxTree(
@@ -762,8 +757,8 @@ End Module
             Dim node3 As SyntaxNode = tree3.GetRoot()
 
             ' Compare trees and nodes that are identical except for trivia.
-            Assert.IsTrue(tree1.IsEquivalentTo(tree3)) ' Trivia differences are ignored.
-            Assert.IsFalse(node1.IsEquivalentTo(node3)) ' Trivia differences are considered.
+            Assert.True(tree1.IsEquivalentTo(tree3)) ' Trivia differences are ignored.
+            Assert.False(node1.IsEquivalentTo(node3)) ' Trivia differences are considered.
 
             ' tree4 is identical to tree1 except for method body contents.
             Dim tree4 = SyntaxFactory.ParseSyntaxTree(
@@ -780,23 +775,23 @@ End Module
             Dim node4 As SyntaxNode = tree4.GetRoot()
 
             ' Compare trees and nodes that are identical at the top-level.
-            Assert.IsTrue(tree1.IsEquivalentTo(tree4, topLevel:=True)) ' Only top-level nodes are considered.
-            Assert.IsFalse(node1.IsEquivalentTo(node4)) ' Non-top-level nodes are considered.
+            Assert.True(tree1.IsEquivalentTo(tree4, topLevel:=True)) ' Only top-level nodes are considered.
+            Assert.False(node1.IsEquivalentTo(node4)) ' Non-top-level nodes are considered.
 
             ' Tokens and Trivia can also be compared.
             Dim token1 As SyntaxToken = node1.DescendantTokens.First
             Dim token2 As SyntaxToken = node2.DescendantTokens.First
 
-            Assert.IsTrue(token1.IsEquivalentTo(token2))
+            Assert.True(token1.IsEquivalentTo(token2))
 
             Dim trivia1 As SyntaxTrivia = node1.DescendantTrivia().First(Function(t) t.Kind() = SyntaxKind.WhitespaceTrivia)
             Dim trivia2 As SyntaxTrivia = node2.DescendantTrivia().Last(Function(t) t.Kind() = SyntaxKind.EndOfLineTrivia)
 
-            Assert.IsFalse(trivia1.IsEquivalentTo(trivia2))
+            Assert.False(trivia1.IsEquivalentTo(trivia2))
         End Sub
 
         <FAQ(29)>
-        <TestMethod>
+        <Fact>
         Public Sub TraverseAllCommentsInASyntaxTreeUsingAWalker()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -816,7 +811,7 @@ End Module
             Dim walker As New CommentWalker()
             walker.Visit(tree.GetRoot())
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>
 ''' &lt;summary&gt;First Comment&lt;/summary&gt; (Parent Token: ModuleKeyword) (Structured)
 ' Second Comment (Parent Token: SubKeyword)
@@ -844,9 +839,9 @@ End Module
                     If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
                         ' Trivia for xml documentation comments have additional 'structure'
                         ' available under a child DocumentationCommentSyntax.
-                        Assert.IsTrue(trivia.HasStructure)
+                        Assert.True(trivia.HasStructure)
                         Dim documentationComment = CType(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
-                        Assert.IsTrue(documentationComment.ParentTrivia = trivia)
+                        Assert.True(documentationComment.ParentTrivia = trivia)
                         Results.Append(" (Structured)")
                     End If
                 End If
@@ -856,7 +851,7 @@ End Module
         End Class
 
         <FAQ(12)>
-        <TestMethod>
+        <Fact>
         Public Sub CompareSymbols()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -891,11 +886,11 @@ End Module
             Dim type As ITypeSymbol = CType(model.GetDeclaredSymbol(identifier), ILocalSymbol).Type
             Dim expectedType As ITypeSymbol = comp.GetTypeByMetadataName("C")
 
-            Assert.IsTrue(type.Equals(expectedType))
+            Assert.True(type.Equals(expectedType))
         End Sub
 
         <FAQ(13)>
-        <TestMethod>
+        <Fact>
         Public Sub TestWhetherANodeIsPartOfATreeOrASemanticModel()
             Dim source = <text>
 Imports System
@@ -923,15 +918,15 @@ End Module
             Dim tokenNotFromTree As SyntaxToken = SyntaxFactory.Token(SyntaxKind.ClassKeyword)
             Dim nodeNotFromTree As SyntaxNode = other.GetRoot()
 
-            Assert.IsTrue(nodeFromTree.SyntaxTree Is tree)
-            Assert.IsTrue(nodeFromTree.SyntaxTree Is model.SyntaxTree)
-            Assert.IsFalse(tokenNotFromTree.SyntaxTree Is tree)
-            Assert.IsFalse(nodeNotFromTree.SyntaxTree Is model.SyntaxTree)
-            Assert.IsTrue(nodeNotFromTree.SyntaxTree Is other)
+            Assert.True(nodeFromTree.SyntaxTree Is tree)
+            Assert.True(nodeFromTree.SyntaxTree Is model.SyntaxTree)
+            Assert.False(tokenNotFromTree.SyntaxTree Is tree)
+            Assert.False(nodeNotFromTree.SyntaxTree Is model.SyntaxTree)
+            Assert.True(nodeNotFromTree.SyntaxTree Is other)
         End Sub
 
         <FAQ(14)>
-        <TestMethod>
+        <Fact>
         Public Sub ValueVersusValueTextVersusGetTextForTokens()
             Dim source = <text>
 Imports System
@@ -951,19 +946,19 @@ End Module
             ' Get token corresponding to literal '1L' above.
             Dim token2 As SyntaxToken = tree.GetRoot().FindToken(source.IndexOf("1L"))
 
-            Assert.AreEqual("String", token1.Value.GetType().Name)
-            Assert.AreEqual("long", token1.Value)
-            Assert.AreEqual("long", token1.ValueText)
-            Assert.AreEqual("[long]", token1.ToString())
+            Assert.Equal("String", token1.Value.GetType().Name)
+            Assert.Equal("long", token1.Value)
+            Assert.Equal("long", token1.ValueText)
+            Assert.Equal("[long]", token1.ToString())
 
-            Assert.AreEqual("Int64", token2.Value.GetType().Name)
-            Assert.AreEqual(1L, token2.Value)
-            Assert.AreEqual("1", token2.ValueText)
-            Assert.AreEqual("1L", token2.ToString())
+            Assert.Equal("Int64", token2.Value.GetType().Name)
+            Assert.Equal(1L, token2.Value)
+            Assert.Equal("1", token2.ValueText)
+            Assert.Equal("1L", token2.ToString())
         End Sub
 
         <FAQ(16)>
-        <TestMethod>
+        <Fact>
         Public Sub GetLineAndColumnInfo()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -981,25 +976,25 @@ End Module
             Dim location As Location = node.GetLocation()
             Dim lineSpan As FileLinePositionSpan = location.GetLineSpan()
 
-            Assert.IsTrue(location.IsInSource)
-            Assert.AreEqual("MyCodeFile.vb", lineSpan.Path)
-            Assert.AreEqual(3, lineSpan.StartLinePosition.Line)
-            Assert.AreEqual(4, lineSpan.StartLinePosition.Character)
+            Assert.True(location.IsInSource)
+            Assert.Equal("MyCodeFile.vb", lineSpan.Path)
+            Assert.Equal(3, lineSpan.StartLinePosition.Line)
+            Assert.Equal(4, lineSpan.StartLinePosition.Character)
 
             ' Alternate way to get file, line and column info from any span.
             location = tree.GetLocation(node.Span)
             lineSpan = location.GetLineSpan()
 
-            Assert.AreEqual("MyCodeFile.vb", lineSpan.Path)
-            Assert.AreEqual(3, lineSpan.StartLinePosition.Line)
-            Assert.AreEqual(4, lineSpan.StartLinePosition.Character)
+            Assert.Equal("MyCodeFile.vb", lineSpan.Path)
+            Assert.Equal(3, lineSpan.StartLinePosition.Line)
+            Assert.Equal(4, lineSpan.StartLinePosition.Character)
 
             ' Yet another way to get file, line and column info from any span.
             lineSpan = tree.GetLineSpan(node.Span)
 
-            Assert.AreEqual("MyCodeFile.vb", lineSpan.Path)
-            Assert.AreEqual(4, lineSpan.EndLinePosition.Line)
-            Assert.AreEqual(11, lineSpan.EndLinePosition.Character)
+            Assert.Equal("MyCodeFile.vb", lineSpan.Path)
+            Assert.Equal(4, lineSpan.EndLinePosition.Line)
+            Assert.Equal(11, lineSpan.EndLinePosition.Character)
 
             ' SyntaxTokens also have GetLocation(). 
             ' Use GetLocation() to get the position of the 'Public' token under the above MethodBlockSyntax.                       
@@ -1007,9 +1002,9 @@ End Module
             location = token.GetLocation()
             lineSpan = location.GetLineSpan()
 
-            Assert.AreEqual("MyCodeFile.vb", lineSpan.Path)
-            Assert.AreEqual(3, lineSpan.StartLinePosition.Line)
-            Assert.AreEqual(4, lineSpan.StartLinePosition.Character)
+            Assert.Equal("MyCodeFile.vb", lineSpan.Path)
+            Assert.Equal(3, lineSpan.StartLinePosition.Line)
+            Assert.Equal(4, lineSpan.StartLinePosition.Character)
 
             ' SyntaxTrivia also have GetLocation(). 
             ' Use GetLocation() to get the position of the first EndOfLineTrivia under the above SyntaxToken.      
@@ -1017,13 +1012,13 @@ End Module
             location = trivia.GetLocation()
             lineSpan = location.GetLineSpan()
 
-            Assert.AreEqual("MyCodeFile.vb", lineSpan.Path)
-            Assert.AreEqual(2, lineSpan.StartLinePosition.Line)
-            Assert.AreEqual(0, lineSpan.StartLinePosition.Character)
+            Assert.Equal("MyCodeFile.vb", lineSpan.Path)
+            Assert.Equal(2, lineSpan.StartLinePosition.Line)
+            Assert.Equal(0, lineSpan.StartLinePosition.Character)
         End Sub
 
         <FAQ(17)>
-        <TestMethod>
+        <Fact>
         Public Sub GetEmptySourceLinesFromASyntaxTree()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1036,21 +1031,21 @@ End Module
 
             Dim text As SourceText = tree.GetText()
 
-            Assert.AreEqual(7, text.Lines.Count)
+            Assert.Equal(7, text.Lines.Count)
 
             ' Enumerate empty lines.
             Dim results = String.Join(vbLf, From line In text.Lines
                                             Where String.IsNullOrWhiteSpace(line.ToString())
                                             Select String.Format("Line {0} (Span {1}-{2}) is empty", line.LineNumber, line.Start, line.End))
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>Line 0 (Span 0-0) is empty
 Line 2 (Span 16-16) is empty
 Line 6 (Span 69-69) is empty</text>.Value, results)
         End Sub
 
         <FAQ(18)>
-        <TestMethod>
+        <Fact>
         Public Sub UseSyntaxWalker()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1074,7 +1069,7 @@ End Structure
 </text>.Value)
             Dim walker = New IfStatementIfKeywordAndTypeBlockWalker()
             walker.Visit(tree.GetRoot())
-            Assert.AreEqual(
+            Assert.Equal(
 <text>
 Visiting ModuleBlockSyntax (Kind = ModuleBlock)
 Visiting SyntaxToken (Kind = IfKeyword): #If True Then
@@ -1099,7 +1094,7 @@ Visiting StructureBlockSyntax (Kind = StructureBlock)</text>.Value, walker.Resul
             End Sub
 
             ' If you need to visit all SyntaxNodes of a particular (derived) type that appears directly
-            ' in a syntax tree, you can override the Visit* mehtod corresponding to this type.
+            ' in a syntax tree, you can override the Visit* method corresponding to this type.
             ' For example, you can override VisitIfStatement to visit all SyntaxNodes of type IfStatementSyntax.
             Public Overrides Sub VisitIfStatement(node As IfStatementSyntax)
                 Results.Append(vbLf)
@@ -1148,7 +1143,7 @@ Visiting StructureBlockSyntax (Kind = StructureBlock)</text>.Value, walker.Resul
         End Class
 
         <FAQ(19)>
-        <TestMethod>
+        <Fact>
         Public Sub GetFullyQualifiedName()
             Dim source =
 <text>
@@ -1193,8 +1188,8 @@ End Module
             Dim structType = model.GetDeclaredSymbol(structBlock)
 
             ' Use ToDisplayString() to get fully qualified name.
-            Assert.AreEqual("NS.C(Of T).S(Of U)", structType.ToDisplayString())
-            Assert.AreEqual("Global.NS.C(Of T).S(Of U)", structType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
+            Assert.Equal("NS.C(Of T).S(Of U)", structType.ToDisplayString())
+            Assert.Equal("Global.NS.C(Of T).S(Of U)", structType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
 
             ' Get ModifiedIdentifierSyntax corresponding to identifier 's' in 'Dim s As AliasedType.S(Of Long) = ...' above.
             Dim modifiedIdentifier As ModifiedIdentifierSyntax = root.DescendantNodes.
@@ -1206,32 +1201,32 @@ End Module
             ' Get TypeSymbol corresponding to above ModifiedIdentifierSyntax.
             Dim variableType = (CType(model.GetDeclaredSymbol(modifiedIdentifier), ILocalSymbol)).Type
 
-            Assert.IsFalse(variableType.Equals(structType)) ' Type of variable is a closed generic type while that of the struct is an open generic type.
-            Assert.IsTrue(variableType.OriginalDefinition.Equals(structType)) ' OriginalDefinition for a closed generic type points to corresponding open generic type.
-            Assert.AreEqual("NS.C(Of Integer).S(Of Long)", variableType.ToDisplayString())
-            Assert.AreEqual("Global.NS.C(Of Integer).S(Of Long)", variableType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
+            Assert.NotEqual(variableType, structType) ' Type of variable is a closed generic type while that of the struct is an open generic type.
+            Assert.Equal(variableType.OriginalDefinition, structType) ' OriginalDefinition for a closed generic type points to corresponding open generic type.
+            Assert.Equal("NS.C(Of Integer).S(Of Long)", variableType.ToDisplayString())
+            Assert.Equal("Global.NS.C(Of Integer).S(Of Long)", variableType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
         End Sub
 
         <FAQ(20)>
-        <TestMethod>
+        <Fact>
         Public Sub OverloadBindingDetermination()
             Dim source = <source>
 Imports System
 
 Public Class Program
-	Private Function Identity (a As Integer)
-		Return a
-	End Function
-	
-	Private Function Identity (a As Char)
-		Return a
-	End Function
-	
-	Public Sub Main()
-		Dim v1 = Identity(3)
-		Dim v2 = Identity("a"C)
+    Private Function Identity (a As Integer)
+        Return a
+    End Function
+    
+    Private Function Identity (a As Char)
+        Return a
+    End Function
+    
+    Public Sub Main()
+        Dim v1 = Identity(3)
+        Dim v2 = Identity("a"C)
         Dim v3 = Identity("arg1")
-	End Sub
+    End Sub
 End Class</source>.Value
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
@@ -1245,25 +1240,25 @@ End Class</source>.Value
             ' We can confidently index into the invocations because we are following the source line-by-line. This is not always a safe practice.
             Dim intInvocation = allInvocations.ElementAt(0)
             Dim info = model.GetSymbolInfo(intInvocation)
-            Assert.IsNotNull(info.Symbol)
-            Assert.AreEqual("Private Function Identity(a As Integer) As Object", info.Symbol.ToDisplayString)
+            Assert.NotNull(info.Symbol)
+            Assert.Equal("Private Function Identity(a As Integer) As Object", info.Symbol.ToDisplayString)
 
             ' Below, we expect to find that the method taking a Char was selected.
             Dim charInvocation = allInvocations.ElementAt(1)
             info = model.GetSymbolInfo(charInvocation)
-            Assert.IsNotNull(info.Symbol)
-            Assert.AreEqual("Private Function Identity(a As Char) As Object", info.Symbol.ToDisplayString)
+            Assert.NotNull(info.Symbol)
+            Assert.Equal("Private Function Identity(a As Char) As Object", info.Symbol.ToDisplayString)
 
             ' Below, we expect to find that no suitable Method was found, and therefore none were selected.
             Dim stringInvocation = allInvocations.ElementAt(2)
             info = model.GetSymbolInfo(stringInvocation)
-            Assert.IsNull(info.Symbol)
-            Assert.AreEqual(2, info.CandidateSymbols.Length)
-            Assert.AreEqual(CandidateReason.OverloadResolutionFailure, info.CandidateReason)
+            Assert.Null(info.Symbol)
+            Assert.Equal(2, info.CandidateSymbols.Length)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason)
         End Sub
 
         <FAQ(21)>
-        <TestMethod>
+        <Fact>
         Public Sub ClassifyConversionFromAnExpressionToATypeSymbol()
             Dim source =
 <text>
@@ -1312,12 +1307,12 @@ End Module
             Dim sourceExpression1 = CType(tree.GetRoot().FindToken(source.IndexOf("jj)")).Parent, ExpressionSyntax)
             Dim conversion As Conversion = model.ClassifyConversion(sourceExpression1, targetType)
 
-            Assert.IsTrue(conversion.IsWidening AndAlso conversion.IsNumeric)
+            Assert.True(conversion.IsWidening AndAlso conversion.IsNumeric)
 
             Dim sourceExpression2 = CType(tree.GetRoot().FindToken(source.IndexOf("ss)")).Parent, ExpressionSyntax)
             conversion = model.ClassifyConversion(sourceExpression2, targetType)
 
-            Assert.IsTrue(conversion.IsNarrowing AndAlso conversion.IsString)
+            Assert.True(conversion.IsNarrowing AndAlso conversion.IsString)
 
             ' Perform ClassifyConversion for constructed expressions
             ' at the position identified by the comment "' Perform ..." above.
@@ -1325,23 +1320,23 @@ End Module
             Dim position = source.IndexOf("' ")
             conversion = model.ClassifyConversion(position, sourceExpression3, targetType)
 
-            Assert.IsTrue(conversion.IsWidening AndAlso conversion.IsNumeric)
+            Assert.True(conversion.IsWidening AndAlso conversion.IsNumeric)
 
             Dim sourceExpression4 As ExpressionSyntax = SyntaxFactory.IdentifierName("ss")
             conversion = model.ClassifyConversion(position, sourceExpression4, targetType)
 
-            Assert.IsTrue(conversion.IsNarrowing AndAlso conversion.IsString)
+            Assert.True(conversion.IsNarrowing AndAlso conversion.IsString)
 
             Dim sourceExpression5 As ExpressionSyntax = SyntaxFactory.ParseExpression("100L")
             conversion = model.ClassifyConversion(position, sourceExpression5, targetType)
 
             ' This is Widening because the numeric literal constant 100L can be converted to Integer
             ' without any data loss. Note: This is special for literal constants.
-            Assert.IsTrue(conversion.IsWidening AndAlso conversion.IsNumeric)
+            Assert.True(conversion.IsWidening AndAlso conversion.IsNumeric)
         End Sub
 
         <FAQ(22)>
-        <TestMethod>
+        <Fact>
         Public Sub ClassifyConversionFromOneTypeSymbolToAnother()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1359,23 +1354,23 @@ End Module
             Dim stringType = comp.GetSpecialType(SpecialType.System_String)
             Dim int64Type = comp.GetSpecialType(SpecialType.System_Int64)
 
-            Assert.IsTrue(comp.ClassifyConversion(int32Type, int32Type).IsIdentity)
+            Assert.True(comp.ClassifyConversion(int32Type, int32Type).IsIdentity)
 
             Dim conversion1 = comp.ClassifyConversion(int16Type, int32Type)
 
-            Assert.IsTrue(conversion1.IsWidening AndAlso conversion1.IsNumeric)
+            Assert.True(conversion1.IsWidening AndAlso conversion1.IsNumeric)
 
             Dim conversion2 = comp.ClassifyConversion(stringType, int32Type)
 
-            Assert.IsTrue(conversion2.IsNarrowing AndAlso conversion2.IsString)
+            Assert.True(conversion2.IsNarrowing AndAlso conversion2.IsString)
 
             Dim conversion3 = comp.ClassifyConversion(int64Type, int32Type)
 
-            Assert.IsTrue(conversion3.IsNarrowing AndAlso conversion3.IsNumeric)
+            Assert.True(conversion3.IsNarrowing AndAlso conversion3.IsNumeric)
         End Sub
 
         <FAQ(23)>
-        <TestMethod>
+        <Fact>
         Public Sub GetTargetFrameworkVersionForCompilation()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1390,11 +1385,11 @@ End Module
             Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim version As Version = comp.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity.Version
-            Assert.AreEqual(4, version.Major)
+            Assert.Equal(4, version.Major)
         End Sub
 
         <FAQ(24)>
-        <TestMethod>
+        <Fact>
         Public Sub GetAssemblySymbolsAndSyntaxTreesFromAProject()
             Dim source = <text>
 Module Program
@@ -1423,17 +1418,17 @@ End Module
             Dim compilationAssembly As IAssemblySymbol = compilation.Assembly
             Dim referencedAssembly As IAssemblySymbol = DirectCast(compilation.GetAssemblyOrModuleSymbol(project.MetadataReferences.First), IAssemblySymbol)
 
-            Assert.IsTrue(compilation.GetTypeByMetadataName("Program").ContainingAssembly.Equals(compilationAssembly))
-            Assert.IsTrue(compilation.GetTypeByMetadataName("System.Object").ContainingAssembly.Equals(referencedAssembly))
+            Assert.True(compilation.GetTypeByMetadataName("Program").ContainingAssembly.Equals(compilationAssembly))
+            Assert.True(compilation.GetTypeByMetadataName("System.Object").ContainingAssembly.Equals(referencedAssembly))
 
             Dim tree As SyntaxTree = project.Documents.Single.GetSyntaxTreeAsync().Result
 
-            Assert.AreEqual("MyFile.vb", tree.FilePath)
+            Assert.Equal("MyFile.vb", tree.FilePath)
 
         End Sub
 
         <FAQ(25)>
-        <TestMethod>
+        <Fact>
         Public Sub UseSyntaxAnnotations()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1453,18 +1448,18 @@ End Module
             Dim oldRoot As SyntaxNode = tree.GetRoot()
             Dim newRoot As SyntaxNode = rewriter.Visit(oldRoot)
 
-            Assert.IsFalse(oldRoot.ContainsAnnotations)
-            Assert.IsTrue(newRoot.ContainsAnnotations)
+            Assert.False(oldRoot.ContainsAnnotations)
+            Assert.True(newRoot.ContainsAnnotations)
 
             ' Find all tokens that were tagged with annotations of type MyAnnotation.
             Dim annotatedTokens As IEnumerable(Of SyntaxNodeOrToken) = newRoot.GetAnnotatedNodesAndTokens(MyAnnotation.Kind)
             Dim results = String.Join(vbLf, annotatedTokens.Select(Function(nodeOrToken)
-                                                                       Assert.IsTrue(nodeOrToken.IsToken)
+                                                                       Assert.True(nodeOrToken.IsToken)
                                                                        Dim annotation = nodeOrToken.GetAnnotations(MyAnnotation.Kind).Single
                                                                        Return String.Format("{0} (position {1})", nodeOrToken.ToString(), MyAnnotation.GetPosition(annotation))
                                                                    End Function))
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>Main (position 2)
 Dim (position 1)
 i (position 0)
@@ -1500,7 +1495,7 @@ i (position 0)</text>.Value, results)
         End Class
 
         <FAQ(37)>
-        <TestMethod>
+        <Fact>
         Public Sub GetBaseTypesAndOverridingRelationships()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1541,9 +1536,9 @@ End Class
             Dim typeObject = comp.GetSpecialType(SpecialType.System_Object)
 
             ' Get TypeSymbols for base types of C1, C2 and C3 above.
-            Assert.IsTrue(typeC1.BaseType.Equals(typeObject))
-            Assert.IsTrue(typeC2.BaseType.Equals(typeC1))
-            Assert.IsTrue(typeC3.BaseType.Equals(typeC2))
+            Assert.True(typeC1.BaseType.Equals(typeObject))
+            Assert.True(typeC2.BaseType.Equals(typeC1))
+            Assert.True(typeC3.BaseType.Equals(typeC2))
 
             ' Get MethodSymbols for methods named F1 in types C1, C2 and C3 above.
             Dim methodC1F1 = CType(typeC1.GetMembers("F1").Single(), IMethodSymbol)
@@ -1551,27 +1546,27 @@ End Class
             Dim methodC3F1 = CType(typeC3.GetMembers("F1").Single(), IMethodSymbol)
 
             ' Get overriding relationships between above MethodSymbols.
-            Assert.IsTrue(methodC1F1.IsOverridable)
-            Assert.IsTrue(methodC2F1.IsOverridable)
-            Assert.IsFalse(methodC2F1.IsOverrides)
-            Assert.IsTrue(methodC3F1.IsOverrides)
-            Assert.IsTrue(methodC3F1.IsNotOverridable)
-            Assert.IsTrue(methodC3F1.OverriddenMethod.Equals(methodC2F1))
-            Assert.IsFalse(methodC3F1.OverriddenMethod.Equals(methodC1F1))
+            Assert.True(methodC1F1.IsOverridable)
+            Assert.True(methodC2F1.IsOverridable)
+            Assert.False(methodC2F1.IsOverrides)
+            Assert.True(methodC3F1.IsOverrides)
+            Assert.True(methodC3F1.IsNotOverridable)
+            Assert.True(methodC3F1.OverriddenMethod.Equals(methodC2F1))
+            Assert.False(methodC3F1.OverriddenMethod.Equals(methodC1F1))
 
             ' Get PropertySymbols for properties named P1 in types C1 and C3 above.
             Dim propertyC1P1 = CType(typeC1.GetMembers("P1").Single(), IPropertySymbol)
             Dim propertyC3P1 = CType(typeC3.GetMembers("P1").Single(), IPropertySymbol)
 
             ' Get overriding relationships between above PropertySymbols.
-            Assert.IsTrue(propertyC1P1.IsMustOverride)
-            Assert.IsFalse(propertyC1P1.IsOverridable)
-            Assert.IsTrue(propertyC3P1.IsOverrides)
-            Assert.IsTrue(propertyC3P1.OverriddenProperty.Equals(propertyC1P1))
+            Assert.True(propertyC1P1.IsMustOverride)
+            Assert.False(propertyC1P1.IsOverridable)
+            Assert.True(propertyC3P1.IsOverrides)
+            Assert.True(propertyC3P1.OverriddenProperty.Equals(propertyC1P1))
         End Sub
 
         <FAQ(38)>
-        <TestMethod>
+        <Fact>
         Public Sub GetInterfacesAndImplementationRelationships()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1623,31 +1618,31 @@ End Class
             Dim typeC2 = comp.GetTypeByMetadataName("C2")
             Dim typeC3 = comp.GetTypeByMetadataName("C3")
 
-            Assert.IsNull(typeI1.BaseType)
-            Assert.IsNull(typeI2.BaseType)
-            Assert.AreEqual(0, typeI1.Interfaces.Count)
-            Assert.IsTrue(typeI2.Interfaces.Single().Equals(typeI1))
+            Assert.Null(typeI1.BaseType)
+            Assert.Null(typeI2.BaseType)
+            Assert.Equal(0, typeI1.Interfaces.Count)
+            Assert.True(typeI2.Interfaces.Single().Equals(typeI1))
 
             ' Get TypeSymbol for interface implemented by C1 above.
-            Assert.IsTrue(typeC1.Interfaces.Single().Equals(typeI1))
+            Assert.True(typeC1.Interfaces.Single().Equals(typeI1))
 
             ' Get TypeSymbols for interfaces implemented by C2 above.
-            Assert.IsTrue(typeC2.Interfaces.Single().Equals(typeI2))
-            Assert.AreEqual(2, typeC2.AllInterfaces.Count)
-            Assert.IsNotNull(Aggregate type In typeC2.AllInterfaces
+            Assert.True(typeC2.Interfaces.Single().Equals(typeI2))
+            Assert.Equal(2, typeC2.AllInterfaces.Count)
+            Assert.NotNull(Aggregate type In typeC2.AllInterfaces
                              Where type.Equals(typeI1)
                              Into [Single]())
-            Assert.IsNotNull(Aggregate type In typeC2.AllInterfaces
+            Assert.NotNull(Aggregate type In typeC2.AllInterfaces
                              Where type.Equals(typeI2)
                              Into [Single]())
 
             ' Get TypeSymbols for interfaces implemented by C3 above.
-            Assert.IsTrue(typeC3.Interfaces.Single().Equals(typeI1))
-            Assert.AreEqual(2, typeC3.AllInterfaces.Count)
-            Assert.IsNotNull(Aggregate type In typeC3.AllInterfaces
+            Assert.True(typeC3.Interfaces.Single().Equals(typeI1))
+            Assert.Equal(2, typeC3.AllInterfaces.Count)
+            Assert.NotNull(Aggregate type In typeC3.AllInterfaces
                              Where type.Equals(typeI1)
                              Into [Single]())
-            Assert.IsNotNull(Aggregate type In typeC3.AllInterfaces
+            Assert.NotNull(Aggregate type In typeC3.AllInterfaces
                              Where type.Equals(typeI2)
                              Into [Single]())
 
@@ -1659,15 +1654,15 @@ End Class
             Dim methodC2M2 = CType(typeC2.GetMembers("M2").Single(), IMethodSymbol)
 
             ' Get interface implementation relationships between above MethodSymbols.
-            Assert.IsTrue(typeC1.FindImplementationForInterfaceMember(methodI1M1).Equals(methodC1M1))
-            Assert.IsTrue(typeC2.FindImplementationForInterfaceMember(methodI1M1).Equals(methodC2M1))
-            Assert.IsTrue(typeC2.FindImplementationForInterfaceMember(methodI2M2).Equals(methodC2M2))
-            Assert.IsTrue(typeC3.FindImplementationForInterfaceMember(methodI1M1).Equals(methodC2M1))
-            Assert.IsTrue(typeC3.FindImplementationForInterfaceMember(methodI2M2).Equals(methodC2M2))
+            Assert.True(typeC1.FindImplementationForInterfaceMember(methodI1M1).Equals(methodC1M1))
+            Assert.True(typeC2.FindImplementationForInterfaceMember(methodI1M1).Equals(methodC2M1))
+            Assert.True(typeC2.FindImplementationForInterfaceMember(methodI2M2).Equals(methodC2M2))
+            Assert.True(typeC3.FindImplementationForInterfaceMember(methodI1M1).Equals(methodC2M1))
+            Assert.True(typeC3.FindImplementationForInterfaceMember(methodI2M2).Equals(methodC2M2))
 
-            Assert.IsTrue(methodC1M1.ExplicitInterfaceImplementations.Single().Equals(methodI1M1))
-            Assert.IsTrue(methodC2M1.ExplicitInterfaceImplementations.Single().Equals(methodI1M1))
-            Assert.IsTrue(methodC2M2.ExplicitInterfaceImplementations.Single().Equals(methodI2M2))
+            Assert.True(methodC1M1.ExplicitInterfaceImplementations.Single().Equals(methodI1M1))
+            Assert.True(methodC2M1.ExplicitInterfaceImplementations.Single().Equals(methodI1M1))
+            Assert.True(methodC2M2.ExplicitInterfaceImplementations.Single().Equals(methodI2M2))
 
             ' Get PropertySymbols for properties named P1 in types I1, C1 and C3 above.
             Dim propertyI1P1 = CType(typeI1.GetMembers("P1").Single(), IPropertySymbol)
@@ -1675,16 +1670,16 @@ End Class
             Dim propertyC3P1 = CType(typeC3.GetMembers("P1").Single(), IPropertySymbol)
 
             ' Get interface implementation relationships between above PropertySymbols.
-            Assert.IsTrue(typeC1.FindImplementationForInterfaceMember(propertyI1P1).Equals(propertyC1P1))
-            Assert.IsTrue(typeC2.FindImplementationForInterfaceMember(propertyI1P1).Equals(propertyC1P1))
-            Assert.IsTrue(typeC3.FindImplementationForInterfaceMember(propertyI1P1).Equals(propertyC3P1))
+            Assert.True(typeC1.FindImplementationForInterfaceMember(propertyI1P1).Equals(propertyC1P1))
+            Assert.True(typeC2.FindImplementationForInterfaceMember(propertyI1P1).Equals(propertyC1P1))
+            Assert.True(typeC3.FindImplementationForInterfaceMember(propertyI1P1).Equals(propertyC3P1))
 
-            Assert.IsTrue(propertyC1P1.ExplicitInterfaceImplementations.Single.Equals(propertyI1P1))
-            Assert.IsTrue(propertyC3P1.ExplicitInterfaceImplementations.Single.Equals(propertyI1P1))
+            Assert.True(propertyC1P1.ExplicitInterfaceImplementations.Single.Equals(propertyI1P1))
+            Assert.True(propertyC3P1.ExplicitInterfaceImplementations.Single.Equals(propertyI1P1))
         End Sub
 
         <FAQ(39)>
-        <TestMethod>
+        <Fact>
         Public Sub GetAppliedAttributes()
             Dim source = <source>
 Imports System
@@ -1742,27 +1737,27 @@ End Module
 
             ' Verify that a method has no attributes
             methodSymbol = getMethod("Method1")
-            Assert.AreEqual(0, methodSymbol.GetAttributes().Count)
+            Assert.Equal(0, methodSymbol.GetAttributes().Count)
 
             ' Inspect the attributes that have been given to methods 2 and 3
             methodSymbol = getMethod("Method2")
             appliedAttribute = methodSymbol.GetAttributes().Single
-            Assert.AreEqual(attributeSymbol, appliedAttribute.AttributeClass)
-            Assert.AreEqual(TypedConstantKind.Primitive, appliedAttribute.ConstructorArguments(0).Kind)
-            Assert.AreEqual(1, CType(appliedAttribute.ConstructorArguments(0).Value, Integer))
+            Assert.Equal(attributeSymbol, appliedAttribute.AttributeClass)
+            Assert.Equal(TypedConstantKind.Primitive, appliedAttribute.ConstructorArguments(0).Kind)
+            Assert.Equal(1, CType(appliedAttribute.ConstructorArguments(0).Value, Integer))
 
             methodSymbol = getMethod("Method3")
             appliedAttribute = methodSymbol.GetAttributes().Single
-            Assert.AreEqual(attributeSymbol, appliedAttribute.AttributeClass)
-            Assert.AreEqual(TypedConstantKind.Primitive, appliedAttribute.ConstructorArguments(0).Kind)
-            Assert.AreEqual(2, CType(appliedAttribute.ConstructorArguments(0).Value, Integer))
+            Assert.Equal(attributeSymbol, appliedAttribute.AttributeClass)
+            Assert.Equal(TypedConstantKind.Primitive, appliedAttribute.ConstructorArguments(0).Kind)
+            Assert.Equal(2, CType(appliedAttribute.ConstructorArguments(0).Value, Integer))
         End Sub
 #End Region
 
 #Region " Section 2 : Constructing & Updating Tree Questions "
 
         <FAQ(26)>
-        <TestMethod>
+        <Fact>
         Public Sub AddMethodToClass()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1796,11 +1791,11 @@ End Class
 End Class
 </text>.Value
 
-            Assert.AreEqual(expected, newCompilationUnit.ToFullString().Replace(vbCrLf, vbLf))
+            Assert.Equal(expected, newCompilationUnit.ToFullString().Replace(vbCrLf, vbLf))
         End Sub
 
         <FAQ(27)>
-        <TestMethod>
+        <Fact>
         Public Sub ReplaceSubExpression()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1849,7 +1844,7 @@ End Module
 
                                                                          Return newNode
                                                                      End Function)
-            Assert.AreEqual(
+            Assert.Equal(
 <text>
 Module Program
 
@@ -1862,7 +1857,7 @@ End Module
         End Sub
 
         <FAQ(28)>
-        <TestMethod>
+        <Fact>
         Public Sub UseSymbolicInformationPlusRewriterToMakeCodeChanges()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -1902,7 +1897,7 @@ End Class
             Dim rewriter = New ClassRenamer() With {.SearchSymbol = searchSymbol, .SemanticModel = model, .NewName = "C1"}
             Dim newRoot As SyntaxNode = rewriter.Visit(oldRoot)
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>
 Imports System
 
@@ -1925,7 +1920,7 @@ End Class
 </text>.Value, newRoot.ToFullString())
         End Sub
 
-        ' Below VisualBasicSyntaxRewriter renames multiple occurances of a particular class name under the SyntaxNode being visited.
+        ' Below VisualBasicSyntaxRewriter renames multiple occurrences of a particular class name under the SyntaxNode being visited.
         ' Note that the below rewriter is not a full / correct implementation of symbolic rename. For example, it doesn't
         ' handle aliases etc. A full implementation for symbolic rename would be more complicated and is
         ' beyond the scope of this sample. The intent of this sample is mainly to demonstrate how symbolic info can be used
@@ -1958,7 +1953,7 @@ End Class
                 Return updatedClassStatement
             End Function
 
-            ' Replace all occurances of old class name with new one.
+            ' Replace all occurrences of old class name with new one.
             Public Overrides Function VisitIdentifierName(node As IdentifierNameSyntax) As SyntaxNode
                 Dim updatedIdentifierName = CType(MyBase.VisitIdentifierName(node), IdentifierNameSyntax)
 
@@ -1987,7 +1982,7 @@ End Class
         End Class
 
         <FAQ(30)>
-        <TestMethod>
+        <Fact>
         Public Sub DeleteAssignmentStatementsFromASyntaxTree()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -2013,7 +2008,7 @@ End Module
             Dim nodesToRemove = From node In oldRoot.DescendantNodes().OfType(Of AssignmentStatementSyntax)()
                                 Where IsBlock(node.Parent)
             Dim newRoot As SyntaxNode = oldRoot.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia)
-            Assert.AreEqual(<text>
+            Assert.Equal(<text>
 Module Program
 
     Sub Main()
@@ -2056,7 +2051,7 @@ End Module
         End Function
 
         <FAQ(31)>
-        <TestMethod>
+        <Fact>
         Public Sub ConstructArrayType()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -2072,11 +2067,11 @@ End Module
             Dim elementType = comp.GetSpecialType(SpecialType.System_Int32)
 
             Dim arrayType = comp.CreateArrayTypeSymbol(elementType, rank:=3)
-            Assert.AreEqual("Integer(*,*,*)", arrayType.ToDisplayString())
+            Assert.Equal("Integer(*,*,*)", arrayType.ToDisplayString())
         End Sub
 
         <FAQ(32)>
-        <TestMethod>
+        <Fact>
         Public Sub DeleteRegionsUsingRewriter()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -2115,12 +2110,12 @@ End Class
             Dim rewriter As VisualBasicSyntaxRewriter = New RegionRemover1()
             Dim newRoot As SyntaxNode = rewriter.Visit(oldRoot)
 
-            Assert.AreEqual(expected, newRoot.ToFullString())
+            Assert.Equal(expected, newRoot.ToFullString())
 
             rewriter = New RegionRemover2()
             newRoot = rewriter.Visit(oldRoot)
 
-            Assert.AreEqual(expected, newRoot.ToFullString())
+            Assert.Equal(expected, newRoot.ToFullString())
         End Sub
 
         ' Below VisualBasicSyntaxRewriter removes all #Regions and #End Regions from under the SyntaxNode being visited.
@@ -2157,7 +2152,7 @@ End Class
         End Class
 
         <FAQ(33)>
-        <TestMethod>
+        <Fact>
         Public Sub DeleteRegions()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -2188,7 +2183,7 @@ End Class
             Dim newRoot As SyntaxNode =
                     oldRoot.ReplaceTrivia(trivia:=trivia,
                                           computeReplacementTrivia:=Function(originalTrivia, originalTriviaWithReplacedDescendants) Nothing)
-            Assert.AreEqual(
+            Assert.Equal(
 <text>
 Imports System
 
@@ -2205,7 +2200,7 @@ End Class
         End Sub
 
         <FAQ(34)>
-        <TestMethod>
+        <Fact>
         Public Sub InsertLoggingStatements()
             Dim tree = SyntaxFactory.ParseSyntaxTree(
 <text>
@@ -2234,7 +2229,7 @@ End Module
             Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={newTree}, references:={Mscorlib, vbRuntime})
             Dim output As String = Execute(comp)
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>
 0
 1
@@ -2246,7 +2241,7 @@ End Module
         End Sub
 
         ' Below VisualBasicSyntaxRewriter inserts a Console.WriteLine() statement to print the value of the
-        ' LHS variable for compound assignement statements encountered in the input tree.
+        ' LHS variable for compound assignment statements encountered in the input tree.
         Public Class ConsoleWriteLineInserter
             Inherits VisualBasicSyntaxRewriter
 
@@ -2260,22 +2255,13 @@ End Module
                      node.Kind() = SyntaxKind.DivideAssignmentStatement) Then
 
                     ' Print value of the variable on the 'Left' side of
-                    ' compound assignement statements encountered.
+                    ' compound assignment statements encountered.
                     Dim consoleWriteLineStatement As StatementSyntax =
                             SyntaxFactory.ParseExecutableStatement(String.Format("System.Console.WriteLine({0})", node.Left.ToString()))
-#If True Then
                     Dim statementPair =
                         SyntaxFactory.List(Of StatementSyntax)({
                             node.WithLeadingTrivia().WithTrailingTrivia(),
                             consoleWriteLineStatement})
-#Else
-                    Dim statementPair =
-                        SyntaxFactory.SeparatedList(Of StatementSyntax)(
-                            node.WithLeadingTrivia().WithTrailingTrivia(),
-                            SyntaxFactory.Token(SyntaxKind.StatementTerminatorToken, vbLf),
-                            consoleWriteLineStatement,
-                            SyntaxFactory.Token(SyntaxKind.StatementTerminatorToken, vbLf))
-#End If
 
                     updatedNode =
                         SyntaxFactory.MultiLineIfBlock(
@@ -2348,7 +2334,7 @@ End Module
         End Class
 
         <FAQ(35)>
-        <TestMethod>
+        <Fact>
         Public Sub UseServices()
             Dim source =
 <text>Imports System.Diagnostics
@@ -2391,7 +2377,7 @@ End Module
             Dim document = sln.GetDocument(_documentId)
             document = Formatter.FormatAsync(document).Result
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>Imports System.Diagnostics
 Imports System
 Imports System.IO
@@ -2419,7 +2405,7 @@ End Module
             document = document.WithSyntaxRoot(newRoot)
             document = Simplifier.ReduceAsync(document).Result
 
-            Assert.AreEqual(
+            Assert.Equal(
 <text>Imports System.Diagnostics
 Imports System
 Imports System.IO

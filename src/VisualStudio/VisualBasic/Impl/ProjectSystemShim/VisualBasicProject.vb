@@ -1,13 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
 Imports System.Runtime.InteropServices
 Imports System.Runtime.InteropServices.ComTypes
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -16,15 +17,16 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend MustInherit Class VisualBasicProject
-        Inherits AbstractEncProject
+        Inherits AbstractLegacyProject
         Implements IVbCompilerProject
         Implements IVisualStudioHostProject
 
         Private ReadOnly _compilerHost As IVbCompilerHost
         Private ReadOnly _imports As New List(Of GlobalImport)
-        Private _lastOptions As ConvertedVisualBasicProjectOptions = ConvertedVisualBasicProjectOptions.EmptyOptions
         Private _rawOptions As VBCompilerOptions
         Private ReadOnly _explicitlyAddedDefaultReferences As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+        Private _lastOutputPath As String
+        Private _runtimeLibraries As IList(Of String) = SpecializedCollections.EmptyList(Of String)
 
         ''' <summary>
         ''' Maps a string to the related <see cref="GlobalImport"/>. Since many projects in a solution
@@ -39,11 +41,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        compilerHost As IVbCompilerHost,
                        hierarchy As IVsHierarchy,
                        serviceProvider As IServiceProvider,
-                       reportExternalErrorCreatorOpt As Func(Of ProjectId, IVsReportExternalErrors),
-                       miscellaneousFilesWorkspaceOpt As MiscellaneousFilesWorkspace,
-                       visualStudioWorkspaceOpt As VisualStudioWorkspaceImpl,
-                       hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource)
-            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, miscellaneousFilesWorkspaceOpt, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
+                       Optional reportExternalErrorCreatorOpt As Func(Of ProjectId, IVsReportExternalErrors) = Nothing,
+                       Optional visualStudioWorkspaceOpt As VisualStudioWorkspaceImpl = Nothing,
+                       Optional hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource = Nothing,
+                       Optional commandLineParserServiceOpt As ICommandLineParserService = Nothing)
+            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic,
+                       serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
 
             _compilerHost = compilerHost
 
@@ -60,7 +63,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Function AddEmbeddedMetaDataReference(wszFileName As String) As Integer Implements IVbCompilerProject.AddEmbeddedMetaDataReference
             Try
-                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True), VSConstants.S_FALSE)
+                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True))
             Catch e As Exception When FilterException(e)
                 Throw ExceptionUtilities.Unreachable
             End Try
@@ -69,12 +72,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Public Overloads Function AddMetaDataReference(wszFileName As String, bAssembly As Boolean) As Integer Implements IVbCompilerProject.AddMetaDataReference
             Try
                 ' If this is a reference already added due to it being a standard reference, just record the add
-                If _lastOptions.RuntimeLibraries.Contains(wszFileName, StringComparer.OrdinalIgnoreCase) Then
+                If _runtimeLibraries.Contains(wszFileName, StringComparer.OrdinalIgnoreCase) Then
                     _explicitlyAddedDefaultReferences.Add(wszFileName)
                     Return VSConstants.S_OK
                 End If
 
-                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(), VSConstants.S_FALSE)
+                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties())
             Catch e As Exception When FilterException(e)
                 Throw ExceptionUtilities.Unreachable
             End Try
@@ -101,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 ' We trust the project system to only tell us about files that we can use.
                 Dim canUseTextBuffer As Func(Of ITextBuffer, Boolean) = Function(t) True
 
-                MyBase.AddFile(wszFileName, SourceCodeKind.Regular, itemid, canUseTextBuffer)
+                MyBase.AddFile(wszFileName, SourceCodeKind.Regular)
             Catch e As Exception When FilterException(e)
                 Throw ExceptionUtilities.Unreachable
             End Try
@@ -235,7 +238,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Sub GetEntryPointsList(cItems As Integer, strList() As String, ByVal pcActualItems As IntPtr) Implements IVbCompilerProject.GetEntryPointsList
             Try
-                Dim project = VisualStudioWorkspace.CurrentSolution.GetProject(Id)
+                Dim project = Workspace.CurrentSolution.GetProject(Id)
                 Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
                 GetEntryPointsWorker(cItems, strList, pcActualItems, findFormsOnly:=False)
@@ -248,7 +251,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                                strList() As String,
                                                ByVal pcActualItems As IntPtr,
                                                findFormsOnly As Boolean)
-            Dim project = VisualStudioWorkspace.CurrentSolution.GetProject(Id)
+            Dim project = Workspace.CurrentSolution.GetProject(Id)
             Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
             ' If called with cItems = 0 and pcActualItems != NULL, GetEntryPointsList returns in pcActualItems the number of items available.
@@ -381,27 +384,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             End Try
         End Sub
 
-        Private Sub UpdateOptions()
-            Dim newOptions = New ConvertedVisualBasicProjectOptions(_rawOptions, _compilerHost, _imports, GetStrongNameKeyPaths(), ContainingDirectoryPathOpt, Me.ruleSet)
+        Protected Overrides Function CreateCompilationOptions(commandLineArguments As CommandLineArguments, newParseOptions As ParseOptions) As CompilationOptions
+            Dim baseCompilationOptions = DirectCast(MyBase.CreateCompilationOptions(commandLineArguments, newParseOptions), VisualBasicCompilationOptions)
+            Dim vbParseOptions = DirectCast(newParseOptions, VisualBasicParseOptions)
+            Return VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile)
+        End Function
 
-            UpdateRuleSetError(Me.ruleSet)
+        Protected Overrides Function CreateParseOptions(commandLineArguments As CommandLineArguments) As ParseOptions
+            Dim baseParseOptions = DirectCast(MyBase.CreateParseOptions(commandLineArguments), VisualBasicParseOptions)
+            Return VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
+        End Function
 
-            If newOptions.CompilationOptions <> _lastOptions.CompilationOptions OrElse
-               newOptions.ParseOptions <> _lastOptions.ParseOptions Then
-
-                SetOptions(newOptions.CompilationOptions, newOptions.ParseOptions)
-            End If
+        Private Shadows Sub UpdateOptions()
+            MyBase.UpdateOptions()
 
             ' NOTE: _NOT_ using OrdinalIgnoreCase, even though this is a path. If the user
             ' changes the casing in options, we want that to be reflected in the binary we 
             ' produce, etc.
-            If Not newOptions.OutputPath.Equals(_lastOptions.OutputPath, StringComparison.Ordinal) Then
-                SetOutputPathAndRelatedData(newOptions.OutputPath)
+            Dim outputPath = VisualBasicProjectOptionsHelper.GetOutputPath(_rawOptions)
+            If _lastOutputPath Is Nothing OrElse Not outputPath.Equals(_lastOutputPath, StringComparison.Ordinal) Then
+                SetOutputPathAndRelatedData(outputPath)
+                _lastOutputPath = outputPath
             End If
 
             ' Push down the new runtime libraries
-            If Not newOptions.RuntimeLibraries.SequenceEqual(_lastOptions.RuntimeLibraries, StringComparer.Ordinal) Then
-                For Each oldRuntimeLibrary In _lastOptions.RuntimeLibraries
+            Dim newRuntimeLibraries = VisualBasicProjectOptionsHelper.GetRuntimeLibraries(_compilerHost, _rawOptions)
+            If Not newRuntimeLibraries.SequenceEqual(_runtimeLibraries, StringComparer.Ordinal) Then
+                For Each oldRuntimeLibrary In _runtimeLibraries
                     If Not _explicitlyAddedDefaultReferences.Contains(oldRuntimeLibrary) Then
                         MyBase.RemoveMetadataReference(oldRuntimeLibrary)
                     End If
@@ -409,19 +418,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
                 _explicitlyAddedDefaultReferences.Clear()
 
-                For Each newRuntimeLibrary In newOptions.RuntimeLibraries
+                For Each newRuntimeLibrary In newRuntimeLibraries
                     newRuntimeLibrary = FileUtilities.NormalizeAbsolutePath(newRuntimeLibrary)
 
                     ' If we already reference this, just skip it
                     If HasMetadataReference(newRuntimeLibrary) Then
                         _explicitlyAddedDefaultReferences.Add(newRuntimeLibrary)
                     Else
-                        MyBase.AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(newRuntimeLibrary, MetadataReferenceProperties.Assembly, hResultForMissingFile:=0)
+                        MyBase.AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(newRuntimeLibrary, MetadataReferenceProperties.Assembly)
                     End If
                 Next
-            End If
 
-            _lastOptions = newOptions
+                _runtimeLibraries = newRuntimeLibraries
+            End If
         End Sub
 
         Public Sub SetModuleAssemblyName(wszName As String) Implements IVbCompilerProject.SetModuleAssemblyName
@@ -478,21 +487,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ' have any last options, then we won't push anything down at all. We'll call
             ' SetCompilationOptions later once we get the call through
             ' IVbCompiler.SetCompilerOptions
-            If _lastOptions IsNot ConvertedVisualBasicProjectOptions.EmptyOptions Then
-                SetOptions(_lastOptions.CompilationOptions.WithGlobalImports(_imports), _lastOptions.ParseOptions)
+            Dim lastCompilationOptions = TryCast(CurrentCompilationOptions, VisualBasicCompilationOptions)
+            If lastCompilationOptions IsNot Nothing Then
+                SetOptions(lastCompilationOptions.WithGlobalImports(_imports), CurrentParseOptions)
             End If
-        End Sub
-
-        Protected Overrides Sub UpdateAnalyzerRules()
-            MyBase.UpdateAnalyzerRules()
-
-            UpdateOptions()
         End Sub
 
 #If DEBUG Then
         Public Overrides ReadOnly Property Debug_VBEmbeddedCoreOptionOn As Boolean
             Get
-                Return _lastOptions.CompilationOptions.EmbedVbCoreRuntime
+                Return DirectCast(CurrentCompilationOptions, VisualBasicCompilationOptions).EmbedVbCoreRuntime
             End Get
         End Property
 #End If

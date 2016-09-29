@@ -505,7 +505,7 @@ End Class
             Assert.Equal(expectedNewSource.Value, newRoot.ToFullString())
         End Sub
 
-        <WorkItem(991474, "DevDiv")>
+        <WorkItem(991474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991474")>
         <Fact>
         Public Sub ReturnNothingFromStructuredTriviaRoot_Succeeds()
             Dim Text =

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             // add span [10, 20)
             spans.Add(new Span(10, 10));
             // no overlap with [0, 5)
-            Assert.Empty(spans.GetOverlap(new Span(0, 5))); 
+            Assert.Empty(spans.GetOverlap(new Span(0, 5)));
             // no overlap with [25, 30)
             Assert.Empty(spans.GetOverlap(new Span(25, 5)));
             // no overlap with [0, 10)
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(new Span[] { new Span(10, 5) },
                          spans.GetOverlap(new Span(5, 10)));
             // overlap with [0, 11)
-            Assert.Equal(new Span[] { new Span(10, 1) }, 
+            Assert.Equal(new Span[] { new Span(10, 1) },
                          spans.GetOverlap(new Span(0, 11)));
             // overlap with [15, 25)
             Assert.Equal(new Span[] { new Span(15, 5) },
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                          spans.GetOverlap(new Span(10, 10)));
             // overlap with [0, 30)
             Assert.Equal(new Span[] { new Span(10, 10) },
-                         spans.GetOverlap(new Span(0, 30))); 
+                         spans.GetOverlap(new Span(0, 30)));
 
             // no overlap with [0, 0]
             Assert.Empty(spans.GetOverlap(new Span(0, 0)));

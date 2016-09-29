@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     throw Exceptions.ThrowEFail();
                 }
 
-                var childrenBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
+                var childrenBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
 
                 foreach (var member in typeSymbol.GetMembers())
                 {
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     childrenBuilder.Add(this.State.CodeModelService.CreateExternalCodeElement(this.State, _projectId, typeMember));
                 }
 
-                _children = childrenBuilder.ToImmutable();
+                _children = childrenBuilder.ToImmutableAndFree();
             }
 
             return _children;

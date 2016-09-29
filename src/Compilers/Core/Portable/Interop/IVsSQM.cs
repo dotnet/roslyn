@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma warning disable 3001
+
 using System;
 using System.Runtime.InteropServices;
 
@@ -141,17 +142,24 @@ namespace Microsoft.VisualStudio.Shell.Interop
     [InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IVsSqmMulti
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         [return: MarshalAs(UnmanagedType.VariantBool)]
+#pragma warning restore CS0618 // Type or member is obsolete
         bool GetOptInStatus();
+
         void UnloadSessions(
             );
         void EndAllSessionsAndAbortUploads(
             );
+
         void BeginSession(
             [In, MarshalAs(UnmanagedType.U4)] System.UInt32 sessionType,
+#pragma warning disable CS0618 // Type or member is obsolete
             [In, MarshalAs(UnmanagedType.VariantBool)] System.Boolean alwaysSend,
+#pragma warning restore CS0618 // Type or member is obsolete
             [Out, MarshalAs(UnmanagedType.U4)] out System.UInt32 sessionHandle
             );
+
         void EndSession(
             [In, MarshalAs(UnmanagedType.U4)] System.UInt32 sessionHandle
             );

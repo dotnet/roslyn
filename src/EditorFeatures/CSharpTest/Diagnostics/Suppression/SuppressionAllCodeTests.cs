@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
     {
         protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(definition, (CSharpParseOptions)parseOptions);
+            return TestWorkspace.CreateCSharpAsync(definition, (CSharpParseOptions)parseOptions);
         }
 
         internal override Tuple<Analyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -26,15 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             return new Tuple<Analyzer, ISuppressionFixProvider>(new Analyzer(), new CSharpSuppressionCodeFixProvider());
         }
 
-        [WorkItem(956453)]
-        [WorkItem(1007071)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+        [WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
+        [WorkItem(1007071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         public async Task TestPragmaWarningOnEveryNodes()
         {
             await TestPragmaAsync(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         public async Task TestSuppressionWithAttributeOnEveryNodes()
         {
             await TestSuppressionWithAttributeAsync(

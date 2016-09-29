@@ -34,20 +34,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Attributes
         }
 #endif
 
-        [WpfFact]
+        [Fact]
         public void CreateExportBraceMatcherAttributeWithNullArg()
         {
             Assert.Throws<ArgumentNullException>(() =>
                 new ExportBraceMatcherAttribute(null));
         }
 
-        [WpfFact]
+        [Fact]
         public void CreateExportCompletionProviderAttributeWithNullArg()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new ExportCompletionProviderAttribute("name", null));
+                new ExportCompletionProviderMef1Attribute("name", null));
             Assert.Throws<ArgumentNullException>(() =>
-                new ExportCompletionProviderAttribute(null, "language"));
+                new ExportCompletionProviderMef1Attribute(null, "language"));
         }
     }
 }

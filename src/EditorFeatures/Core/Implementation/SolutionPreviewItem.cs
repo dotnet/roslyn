@@ -3,7 +3,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -31,11 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         public SolutionPreviewItem(ProjectId projectId, DocumentId documentId, string text)
+            : this(projectId, documentId, c => Task.FromResult<object>(text))
         {
-            ProjectId = projectId;
-            DocumentId = documentId;
             Text = text;
-            LazyPreview = c => Task.FromResult<object>(text);
         }
     }
 }

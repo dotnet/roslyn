@@ -536,30 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             };
 
             CheckAttributes(assemblies[0], assemblyArgs);
-
-            DumpAttributes(assemblies[0].Modules[0]);
-        }
-
-        private void DumpAttributes(Symbol s)
-        {
-            int i = 0;
-            foreach (var sa in s.GetAttributes())
-            {
-                int j = 0;
-                foreach (var pa in sa.CommonConstructorArguments)
-                {
-                    Console.WriteLine("{0} {1} {2}", pa.ToString());
-                    j += 1;
-                }
-
-                j = 0;
-                foreach (var na in sa.CommonNamedArguments)
-                {
-                    Console.WriteLine("{0} {1} {2} = {3}", na.Key, na.Value.ToString());
-                    j += 1;
-                }
-                i += 1;
-            }
         }
 
         private void CheckAttributes(Symbol s, AttributeArgs[] expected)
@@ -1311,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         #endregion
 
-        [WorkItem(530209, "DevDiv")]
+        [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Bug530209()
         {

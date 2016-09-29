@@ -1,14 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Roslyn.Test.Utilities;
-using Xunit;
-using Microsoft.CodeAnalysis.CSharp;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.SignatureHelp;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 
         #region "Regular tests"
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationAfterCloseParen()
         {
             var markup = @"
@@ -43,7 +44,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationInsideLambda()
         {
             var markup = @"
@@ -63,7 +64,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationInsideLambda2()
         {
             var markup = @"
@@ -83,7 +84,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithoutParameters()
         {
             var markup = @"
@@ -101,7 +102,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithoutParametersMethodXmlComments()
         {
             var markup = @"
@@ -122,7 +123,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithParametersOn1()
         {
             var markup = @"
@@ -140,7 +141,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithParametersXmlCommentsOn1()
         {
             var markup = @"
@@ -163,7 +164,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithParametersOn2()
         {
             var markup = @"
@@ -180,7 +181,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithParametersXmlComentsOn2()
         {
             var markup = @"
@@ -203,7 +204,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithoutClosingParen()
         {
             var markup = @"
@@ -221,7 +222,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithoutClosingParenWithParameters()
         {
             var markup =
@@ -239,7 +240,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithoutClosingParenWithParametersOn2()
         {
             var markup = @"
@@ -257,7 +258,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnLambda()
         {
             var markup = @"
@@ -278,7 +279,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnMemberAccessExpression()
         {
             var markup = @"
@@ -300,7 +301,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestExtensionMethod1()
         {
             var markup = @"
@@ -324,13 +325,13 @@ public static class MyExtension
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
             // TODO: Once we do the work to allow extension methods in nested types, we should change this.
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestOptionalParameters()
         {
             var markup = @"
@@ -352,7 +353,7 @@ class Class1
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestNoInvocationOnEventNotInCurrentClass()
         {
             var markup = @"
@@ -375,8 +376,8 @@ public class D
             await TestAsync(markup);
         }
 
-        [WorkItem(539712)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(539712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnNamedType()
         {
             var markup = @"
@@ -407,8 +408,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(539712)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(539712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnInstance()
         {
             var markup = @"
@@ -439,8 +440,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(545118)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestStatic1()
         {
             var markup = @"
@@ -468,8 +469,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(545118)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestStatic2()
         {
             var markup = @"
@@ -498,8 +499,8 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(543117)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(543117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543117")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnAnonymousType()
         {
             var markup = @"
@@ -523,22 +524,22 @@ class Program
                 new SignatureHelpTestItem(
 $@"void List<'a>.Add('a item)
 
-{FeaturesResources.AnonymousTypes}
-    'a {FeaturesResources.Is} new {{ string Name, int Age }}",
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} new {{ string Name, int Age }}",
                     methodDocumentation: string.Empty,
                     parameterDocumentation: string.Empty,
                     currentParameterIndex: 0,
                     description: $@"
 
-{FeaturesResources.AnonymousTypes}
-    'a {FeaturesResources.Is} new {{ string Name, int Age }}")
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} new {{ string Name, int Age }}")
             };
 
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseExpression_ProtectedAccessibility()
         {
             var markup = @"
@@ -574,8 +575,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseExpression_AbstractBase()
         {
             var markup = @"
@@ -611,8 +612,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility()
         {
             var markup = @"
@@ -643,8 +644,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_Overridden()
         {
             var markup = @"
@@ -680,8 +681,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase()
         {
             var markup = @"
@@ -712,8 +713,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden()
         {
             var markup = @"
@@ -749,8 +750,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseExpression_ProtectedInternalAccessibility()
         {
             var markup = @"
@@ -786,8 +787,8 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType()
         {
             var markup = @"
@@ -813,8 +814,8 @@ public class Derived : Base
             await TestAsync(markup, null);
         }
 
-        [WorkItem(968188)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseExpression_PrivateAccessibility()
         {
             var markup = @"
@@ -844,7 +845,7 @@ public class Derived : Base
 
         #region "Current Parameter Name"
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestCurrentParameterName()
         {
             var markup = @"
@@ -863,7 +864,7 @@ class C
 
         #region "Trigger tests"
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnTriggerParens()
         {
             var markup = @"
@@ -881,7 +882,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnTriggerComma()
         {
             var markup = @"
@@ -899,7 +900,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestNoInvocationOnSpace()
         {
             var markup = @"
@@ -914,7 +915,7 @@ class C
             await TestAsync(markup, usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestTriggerCharacterInComment01()
         {
             var markup = @"
@@ -928,7 +929,7 @@ class C
             await TestAsync(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestTriggerCharacterInComment02()
         {
             var markup = @"
@@ -943,7 +944,7 @@ class C
             await TestAsync(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestTriggerCharacterInString01()
         {
             var markup = @"
@@ -957,7 +958,7 @@ class C
             await TestAsync(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void TestTriggerCharacters()
         {
             char[] expectedCharacters = { ',', '(' };
@@ -971,7 +972,7 @@ class C
         #region "EditorBrowsable tests"
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_Method_BrowsableStateAlways()
         {
             var markup = @"
@@ -1003,7 +1004,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_Method_BrowsableStateNever()
         {
             var markup = @"
@@ -1036,7 +1037,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_Method_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -1077,7 +1078,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_Method_Overloads_OneBrowsableAlways_OneBrowsableNever()
         {
             var markup = @"
@@ -1119,7 +1120,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_Method_Overloads_BothBrowsableNever()
         {
             var markup = @"
@@ -1157,7 +1158,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task OverriddenSymbolsFilteredFromSigHelp()
         {
             var markup = @"
@@ -1196,7 +1197,7 @@ public class D : B
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverClass()
         {
             var markup = @"
@@ -1228,7 +1229,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverBaseClass()
         {
             var markup = @"
@@ -1270,7 +1271,7 @@ public class D : B
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_BrowsableStateNeverMethodsInBaseClass()
         {
             var markup = @"
@@ -1302,7 +1303,7 @@ public class B
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableAlways()
         {
             var markup = @"
@@ -1333,7 +1334,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed1()
         {
             var markup = @"
@@ -1369,7 +1370,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed2()
         {
             var markup = @"
@@ -1404,7 +1405,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableNever()
         {
             var markup = @"
@@ -1439,7 +1440,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableAlways()
         {
             var markup = @"
@@ -1471,7 +1472,7 @@ public class C<T, U>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BrowsableMixed()
         {
             var markup = @"
@@ -1506,7 +1507,7 @@ public class C<T, U>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableNever()
         {
             var markup = @"
@@ -1541,7 +1542,7 @@ public class C<T, U>
         #endregion
 
         #region "Awaitable tests"
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task AwaitableMethod()
         {
             var markup = @"
@@ -1555,16 +1556,16 @@ class C
 }";
 
             var description = $@"
-{WorkspacesResources.Usage}
+{WorkspacesResources.Usage_colon}
   await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
 
             await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, "C#");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task AwaitableMethod2()
         {
             var markup = @"
@@ -1578,11 +1579,11 @@ class C
 }";
 
             var description = $@"
-{WorkspacesResources.Usage}
+{WorkspacesResources.Usage_colon}
   Task<int> x = await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task<Task<int>> C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<Task<int>> C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
 
             await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, "C#");
         }
@@ -1590,7 +1591,7 @@ class C
         #endregion 
 
         [WorkItem(13849, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestSpecificity1()
         {
             var markup = @"
@@ -1619,8 +1620,8 @@ class C<T>
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(530017)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(530017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530017")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task LongSignature()
         {
             var markup = @"
@@ -1645,7 +1646,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task GenericExtensionMethod()
         {
             var markup = @"
@@ -1671,14 +1672,14 @@ class Program
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem("void IFoo.Bar<T>()", currentParameterIndex: 0),
-                new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
+                new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
             };
 
             // Extension methods are supported in Interactive/Script (yet).
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithCrefXmlComments()
         {
             var markup = @"
@@ -1701,7 +1702,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
@@ -1726,11 +1727,11 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
@@ -1762,12 +1763,12 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WorkItem(768697)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown1()
         {
             var markup = @"
@@ -1796,8 +1797,8 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown2()
         {
             var markup = @"
@@ -1826,8 +1827,8 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown3()
         {
             var markup = @"
@@ -1856,8 +1857,8 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown4()
         {
             var markup = @"
@@ -1880,8 +1881,8 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown5()
         {
             var markup = @"
@@ -1904,8 +1905,8 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(1067933)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokedWithNoToken()
         {
             var markup = @"
@@ -1914,7 +1915,7 @@ class Foo
             await TestAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloadDifferencesIgnored()
         {
             var markup = @"<Workspace>
@@ -1945,8 +1946,8 @@ class C
         }
 
         [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
-        [WorkItem(1068424)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestGenericParameters1()
         {
             var markup = @"
@@ -1972,8 +1973,8 @@ class C
         }
 
         [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
-        [WorkItem(1068424)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestGenericParameters2()
         {
             var markup = @"
@@ -1999,7 +2000,7 @@ class C
         }
 
         [WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestSigHelpIsVisibleOnInaccessibleItem()
         {
             var markup = @"

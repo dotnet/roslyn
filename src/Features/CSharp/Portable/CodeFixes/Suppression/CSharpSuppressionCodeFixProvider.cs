@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         private AttributeArgumentListSyntax CreateAttributeArguments(ISymbol targetSymbol, Diagnostic diagnostic)
         {
-            // SuppressMessage("Rule Category", "Rule Id", Justification = "Justification", Scope = "Scope", Target = "Target")
+            // SuppressMessage("Rule Category", "Rule Id", Justification = nameof(Justification), Scope = nameof(Scope), Target = nameof(Target))
             var category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category));
             var categoryArgument = SyntaxFactory.AttributeArgument(category);
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var ruleId = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(ruleIdText));
             var ruleIdArgument = SyntaxFactory.AttributeArgument(ruleId);
 
-            var justificationExpr = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(FeaturesResources.SuppressionPendingJustification));
+            var justificationExpr = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(FeaturesResources.Pending));
             var justificationArgument = SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Justification"), nameColon: null, expression: justificationExpr);
 
             var attributeArgumentList = SyntaxFactory.AttributeArgumentList().AddArguments(categoryArgument, ruleIdArgument, justificationArgument);

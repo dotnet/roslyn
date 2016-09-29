@@ -4,9 +4,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
 {
     internal static class ExtenderNames
     {
-        public static string ExternalLocation = "ExternalLocation";
-        public static string PartialMethod = "PartialMethod";
-        public static string ExtensionMethod = "ExtensionMethod";
-        public static string AutoImplementedProperty = "AutoImplementedProperty";
+        public static string ExternalLocation = nameof(ExternalLocation);
+        public static string PartialMethod = nameof(PartialMethod);
+        public static string ExtensionMethod = nameof(ExtensionMethod);
+        public static string AutoImplementedProperty = nameof(AutoImplementedProperty);
     }
 }

@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertToConditionalCS", "Impl\ConvertToConditionalCS.csproj", "{12E87057-11A1-4A58-AF89-7132789320F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertToConditionalCS.UnitTests", "Test\ConvertToConditionalCS.UnitTests.csproj", "{D2357ECA-345B-4E3A-9CA5-505082C13EAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestFramework", "..\..\Shared\UnitTestFramework\Impl\UnitTestFramework.csproj", "{D571F126-F0B6-487E-BB79-E91EAEE46F4F}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 3
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://vstfdevdiv:8080/devdiv_projects
+		SccProjectUniqueName0 = Impl\\ConvertToConditionalCS.csproj
+		SccProjectName0 = Impl
+		SccAuxPath0 = http://vstfdevdiv:8080/devdiv_projects
+		SccLocalPath0 = Impl
+		SccProvider0 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName1 = Test\\ConvertToConditionalCS.UnitTests.csproj
+		SccProjectName1 = Test
+		SccAuxPath1 = http://vstfdevdiv:8080/devdiv_projects
+		SccLocalPath1 = Test
+		SccProvider1 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName2 = ..\\..\\Shared\\UnitTestFramework\\Impl\\UnitTestFramework.csproj
+		SccProjectName2 = ../../Shared/UnitTestFramework/Impl
+		SccAuxPath2 = http://vstfdevdiv:8080/devdiv_projects
+		SccLocalPath2 = ..\\..\\Shared\\UnitTestFramework\\Impl
+		SccProvider2 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12E87057-11A1-4A58-AF89-7132789320F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12E87057-11A1-4A58-AF89-7132789320F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12E87057-11A1-4A58-AF89-7132789320F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12E87057-11A1-4A58-AF89-7132789320F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2357ECA-345B-4E3A-9CA5-505082C13EAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2357ECA-345B-4E3A-9CA5-505082C13EAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2357ECA-345B-4E3A-9CA5-505082C13EAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2357ECA-345B-4E3A-9CA5-505082C13EAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D571F126-F0B6-487E-BB79-E91EAEE46F4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D571F126-F0B6-487E-BB79-E91EAEE46F4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D571F126-F0B6-487E-BB79-E91EAEE46F4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D571F126-F0B6-487E-BB79-E91EAEE46F4F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

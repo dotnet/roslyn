@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal bool EarlyDecodeDeprecatedOrObsoleteAttribute(
+        internal static bool EarlyDecodeDeprecatedOrObsoleteAttribute(
             ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments,
             out CSharpAttributeData attributeData,
             out ObsoleteAttributeData obsoleteData)
@@ -260,18 +260,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="lazyCustomAttributesBag"></param>
         /// <param name="symbolPart">Specific part of the symbol to which the attributes apply, or <see cref="AttributeLocation.None"/> if the attributes apply to the symbol itself.</param>
         /// <param name="earlyDecodingOnly">Indicates that only early decoding should be performed.  WARNING: the resulting bag will not be sealed.</param>
+        /// <param name="addToDiagnostics">Diagnostic bag to report into. If null, diagnostics will be reported into <see cref="AddDeclarationDiagnostics"/></param>
+        /// <param name="binderOpt">Binder to use. If null, <see cref="DeclaringCompilation"/> GetBinderFactory will be used.</param>
         /// <returns>Flag indicating whether lazyCustomAttributes were stored on this thread. Caller should check for this flag and perform NotePartComplete if true.</returns>
         internal bool LoadAndValidateAttributes(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributesSyntaxLists,
             ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag,
             AttributeLocation symbolPart = AttributeLocation.None,
-            bool earlyDecodingOnly = false)
+            bool earlyDecodingOnly = false,
+            DiagnosticBag addToDiagnostics = null,
+            Binder binderOpt = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var compilation = this.DeclaringCompilation;
 
             ImmutableArray<Binder> binders;
-            ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, out binders);
+            ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, binderOpt, out binders);
             Debug.Assert(!attributesToBind.IsDefault);
 
             ImmutableArray<CSharpAttributeData> boundAttributes;
@@ -349,7 +353,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
                 this.RecordPresenceOfBadAttributes(boundAttributes);
-                this.AddDeclarationDiagnostics(diagnostics);
+                if (addToDiagnostics == null)
+                {
+                    this.AddDeclarationDiagnostics(diagnostics);
+                }
+                else
+                {
+                    addToDiagnostics.AddRange(diagnostics);
+                }
                 lazyAttributesStoredOnThisThread = true;
                 if (lazyCustomAttributesBag.IsEmpty) lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
             }
@@ -386,6 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart,
             DiagnosticBag diagnostics,
             CSharpCompilation compilation,
+            Binder rootBinderOpt,
             out ImmutableArray<Binder> binders)
         {
             var attributeTarget = (IAttributeTargetSymbol)this;
@@ -423,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(bindersBuilder != null);
 
                         var syntaxTree = attributeDeclarationSyntaxList.Node.SyntaxTree;
-                        var binder = compilation.GetBinderFactory(syntaxTree).GetBinder((CSharpSyntaxNode)attributeDeclarationSyntaxList.Node);
+                        var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
 
                         binder = new ContextualAttributeBinder(binder, this);
                         Debug.Assert(!binder.InAttributeArgument, "Possible cycle in attribute binding");
@@ -477,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
-            
+
             if ((explicitTarget & allowedTargets) == 0)
             {
                 // error: invalid target for symbol
@@ -655,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Given attribute can't be specified more than once if AllowMultiple is false.
             if (!uniqueAttributeTypes.Add(attributeType) && !attributeUsageInfo.AllowMultiple)
             {
-                diagnostics.Add(ErrorCode.ERR_DuplicateAttribute, node.Name.Location, node.Name);
+                diagnostics.Add(ErrorCode.ERR_DuplicateAttribute, node.Name.Location, node.GetErrorDisplayName());
                 return false;
             }
 
@@ -675,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((attributeTarget & attributeUsageInfo.ValidTargets) == 0)
             {
                 // generate error
-                diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.Name, attributeUsageInfo.GetValidTargetsErrorArgument());
+                diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.GetErrorDisplayName(), attributeUsageInfo.GetValidTargetsErrorArgument());
                 return false;
             }
 

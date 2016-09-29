@@ -150,10 +150,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         // separate class to ensure that HashCode field 
-        // is layed out in ram  before other AvlNode fields
+        // is located before other AvlNode fields
+        // Balance is also here for better packing of AvlNode on 64bit
         private abstract class HashedNode : Node
         {
             public readonly int HashCode;
+            public sbyte Balance;
 
             protected HashedNode(int hashCode, K key, V value)
                 : base(key, value)
@@ -166,7 +168,6 @@ namespace Microsoft.CodeAnalysis
         {
             public AvlNode Left;
             public AvlNode Right;
-            public sbyte Balance;
 
             public AvlNode(int hashCode, K key, V value)
                 : base(hashCode, key, value)
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis
             value = default(V);
             return false;
 
-        hasBucket:
+            hasBucket:
             if (CompareKeys(b.Key, key))
             {
                 value = b.Value;

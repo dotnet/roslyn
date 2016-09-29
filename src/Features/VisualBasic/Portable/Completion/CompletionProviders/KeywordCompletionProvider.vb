@@ -18,14 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of VisualBasicSyntaxContext)
             Dim span = New TextSpan(position, length:=0)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(False)
-            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
+            Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
-            Return CompletionUtilities.GetTextChangeSpan(text, position)
-        End Function
-
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             ' We show 'Of' after dim x as new list(
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
@@ -117,6 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.PreprocessorDirectives.EndIfDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.EndRegionDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.IfDirectiveKeywordRecommender(),
+                New KeywordRecommenders.PreprocessorDirectives.ReferenceDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.RegionDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.WarningDirectiveKeywordRecommender(),
                 New KeywordRecommenders.Queries.AggregateKeywordRecommender(),
@@ -174,5 +171,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             }.ToImmutableArray()
         End Function
 
+        Friend Overrides Function GetCurrentSpan(span As TextSpan, text As SourceText) As TextSpan
+            Return CompletionUtilities.GetCompletionItemSpan(text, span.End)
+        End Function
     End Class
 End Namespace

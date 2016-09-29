@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
 
             _dynamicFactory = new LoweredDynamicOperationFactory(F, methodOrdinal);
-            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
+            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_awaiterFields.TryGetValue(awaiterType, out result))
             {
                 int slotIndex;
-                if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics), out slotIndex))
+                if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics), F.Diagnostics, out slotIndex))
                 {
                     slotIndex = _nextAwaiterId++;
                 }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.CatchBlocks(
                         new BoundCatchBlock(
                             F.Syntax,
-                            exceptionLocal,
+                            ImmutableArray.Create(exceptionLocal),
                             F.Local(exceptionLocal),
                             exceptionLocal.Type,
                             exceptionFilterOpt: null,
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.SequencePoint(
                     body.Syntax,
                     F.Block(
-                        locals.ToImmutableAndFree(),
+                        locals.ToImmutableAndFree(), 
                         newStatements));
 
             if (rootScopeHoistedLocals.Length > 0)
@@ -301,10 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LocalSymbol resultTemp = F.SynthesizedLocal(type);
                 return F.Block(
                     ImmutableArray.Create(awaiterTemp, resultTemp),
-                        awaitIfIncomplete,
-                        F.Assignment(F.Local(resultTemp), getResultCall),
-                        F.ExpressionStatement(nullAwaiter),
-                        F.Assignment(resultPlace, F.Local(resultTemp)));
+                    awaitIfIncomplete,
+                    F.Assignment(F.Local(resultTemp), getResultCall),
+                    F.ExpressionStatement(nullAwaiter),
+                    F.Assignment(resultPlace, F.Local(resultTemp)));
             }
             else
             {
@@ -312,9 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // $awaiterTemp = null;
                 return F.Block(
                     ImmutableArray.Create(awaiterTemp),
-                        awaitIfIncomplete,
-                        F.ExpressionStatement(getResultCall),
-                        F.ExpressionStatement(nullAwaiter));
+                    awaitIfIncomplete,
+                    F.ExpressionStatement(getResultCall),
+                    F.ExpressionStatement(nullAwaiter));
             }
         }
 
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.Assignment(
                             F.Local(notifyCompletionTemp),
                                 // Use reference conversion rather than dynamic conversion:
-                                F.Convert(notifyCompletionTemp.Type, F.Local(awaiterTemp), ConversionKind.ExplicitReference)),
+                                F.Convert(notifyCompletionTemp.Type, F.Local(awaiterTemp), Conversion.ExplicitReference)),
                         F.ExpressionStatement(
                             F.Call(
                                 F.Field(F.This(), _asyncMethodBuilderField),
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol thisTemp = (F.CurrentType.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentType) : null;
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversion(
+            var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversionFromType(
                 loweredAwaiterType,
                 F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
                 ref useSiteDiagnostics).IsImplicit;

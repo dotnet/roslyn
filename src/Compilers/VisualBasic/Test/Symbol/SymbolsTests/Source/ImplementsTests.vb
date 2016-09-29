@@ -552,7 +552,7 @@ BC30232: Implemented type must be an interface.
             </expected>)
         End Sub
 
-        <WorkItem(531308, "DevDiv")>
+        <WorkItem(531308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531308")>
         <Fact>
         Public Sub ImplementsClauseAndObsoleteAttribute()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1062,7 +1062,7 @@ BC30401: 'Z3' cannot implement 'Foo' because there is no matching property on in
             </expected>)
         End Sub
 
-        <WorkItem(577934, "DevDiv")>
+        <WorkItem(577934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577934")>
         <Fact>
         Public Sub Bug577934a()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1086,7 +1086,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <WorkItem(577934, "DevDiv")>
+        <WorkItem(577934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577934")>
         <Fact>
         Public Sub Bug577934b()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1110,7 +1110,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <WorkItem(577934, "DevDiv")>
+        <WorkItem(577934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577934")>
         <Fact>
         Public Sub Bug577934c()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1769,7 +1769,7 @@ End Class
             CompilationUtils.AssertNoErrors(comp)
         End Sub
 
-        <WorkItem(545581, "DevDiv")>
+        <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1793,7 +1793,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545581, "DevDiv")>
+        <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue2()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1817,7 +1817,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545581, "DevDiv")>
+        <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue3()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1842,7 +1842,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545581, "DevDiv")>
+        <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue4()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1866,7 +1866,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545581, "DevDiv")>
+        <WorkItem(545581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545581")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue5()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1891,7 +1891,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545891, "DevDiv")>
+        <WorkItem(545891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545891")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue6()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1915,7 +1915,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545891, "DevDiv")>
+        <WorkItem(545891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545891")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue7()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1939,7 +1939,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545891, "DevDiv")>
+        <WorkItem(545891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545891")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNothingDefaultValue8()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1963,7 +1963,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545596, "DevDiv")>
+        <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNanDefaultValue()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1987,7 +1987,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545596, "DevDiv")>
+        <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNanDefaultValue2()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2011,7 +2011,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545596, "DevDiv")>
+        <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNanDefaultValue3()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2035,7 +2035,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545596, "DevDiv")>
+        <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfaceMethodWithNanDefaultValue4()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2059,7 +2059,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545596, "DevDiv")>
+        <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfacePropertyWithNanDefaultValue()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2085,7 +2085,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545596, "DevDiv")>
+        <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfacePropertyWithNanDefaultValue2()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2111,7 +2111,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545596, "DevDiv")>
+        <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfacePropertyWithNanDefaultValue3()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2137,7 +2137,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(545596, "DevDiv")>
+        <WorkItem(545596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545596")>
         <Fact>
         Public Sub ImplementInterfacePropertyWithNanDefaultValue4()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2730,7 +2730,7 @@ BC30401: 'F' cannot implement 'F' because there is no matching function on inter
 
         End Sub
 
-        <WorkItem(543664, "DevDiv")>
+        <WorkItem(543664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543664")>
         <Fact()>
         Public Sub Bug11554()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2924,7 +2924,7 @@ End Class
             CompileAndVerify(source)
         End Sub
 
-        <WorkItem(541934, "DevDiv")>
+        <WorkItem(541934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541934")>
         <Fact>
         Public Sub ImplementGenericInterfaceProperties()
             Dim source =
@@ -2987,7 +2987,7 @@ End Class
             CompileAndVerify(source)
         End Sub
 
-        <WorkItem(543253, "DevDiv")>
+        <WorkItem(543253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543253")>
         <Fact()>
         Public Sub ImplementMethodWithOptionalParameter()
             Dim source =
@@ -3014,7 +3014,7 @@ End Class
             CompileAndVerify(source).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(544531, "DevDiv")>
+        <Fact, WorkItem(544531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544531")>
         Public Sub VarianceAmbiguity1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation name="VarianceAmbiguity1">
@@ -3066,7 +3066,7 @@ BC42333: Interface 'IEnumerable(Of Animals)' is ambiguous with another implement
 
         End Sub
 
-        <Fact, WorkItem(544531, "DevDiv")>
+        <Fact, WorkItem(544531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544531")>
         Public Sub VarianceAmbiguity2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation name="VarianceAmbiguity2">
@@ -3323,7 +3323,7 @@ BC42333: Interface 'IFoo(Of J, T)' is ambiguous with another implemented interfa
 
         End Sub
 
-        <WorkItem(545863, "DevDiv")>
+        <WorkItem(545863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545863")>
         <Fact>
         Public Sub Bug14589()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3350,7 +3350,7 @@ BC30149: Class 'B' must implement 'Sub Foo(x As A(Of A(Of A(Of T).B).B).B)' for 
 
         End Sub
 
-        <WorkItem(578706, "DevDiv")>
+        <WorkItem(578706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578706")>
         <Fact>
         Public Sub ImplicitImplementationSourceVsMetadata()
             Dim source1 = <![CDATA[
@@ -3518,7 +3518,7 @@ D.Explicit
             verifyComp3(ref1b, ref2Source)
         End Sub
 
-        <WorkItem(578746, "DevDiv")>
+        <WorkItem(578746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578746")>
         <Fact>
         Public Sub Bug578746a()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3539,7 +3539,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <WorkItem(578746, "DevDiv")>
+        <WorkItem(578746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578746")>
         <Fact>
         Public Sub Bug578746b()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3560,7 +3560,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <WorkItem(578746, "DevDiv")>
+        <WorkItem(578746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578746")>
         <Fact>
         Public Sub Bug578746c()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3589,7 +3589,7 @@ BC30401: 'Foo' cannot implement 'Foo' because there is no matching sub on interf
 </expected>)
         End Sub
 
-        <WorkItem(578746, "DevDiv")>
+        <WorkItem(578746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578746")>
         <Fact>
         Public Sub Bug578746d()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3610,7 +3610,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <WorkItem(578074, "DevDiv")>
+        <WorkItem(578074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578074")>
         <Fact>
         Public Sub Bug578074()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3630,7 +3630,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <WorkItem(608228, "DevDiv")>
+        <WorkItem(608228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608228")>
         <Fact>
         Public Sub ImplementPropertyWithByRefParameter()
             Dim il = <![CDATA[
@@ -3696,7 +3696,7 @@ End Class
             Assert.Null(classType.FindImplementationForInterfaceMember(interfaceProperty))
         End Sub
 
-        <WorkItem(718115, "DevDiv")>
+        <WorkItem(718115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718115")>
         <Fact>
         Public Sub ExplicitlyImplementedAccessorsWithoutEvent()
             Dim il = <![CDATA[
@@ -3822,7 +3822,7 @@ Explicit implementation
             Assert.Null(baseType.FindImplementationForInterfaceMember(interfaceEvent))
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_01()
             Dim ilSource = <![CDATA[
@@ -3901,7 +3901,7 @@ Implementation.M2
                                               End Sub)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_02()
             Dim ilSource = <![CDATA[
@@ -3975,7 +3975,7 @@ System.Int32[]
                                               End Sub)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_03()
             Dim ilSource = <![CDATA[
@@ -4065,7 +4065,7 @@ Implementation.P1_set
                              ]]>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_04()
             Dim ilSource = <![CDATA[
@@ -4134,7 +4134,7 @@ Implementation.M12
                                               End Sub)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_05()
             Dim ilSource = <![CDATA[
@@ -4203,7 +4203,7 @@ Implementation.M12
                                               End Sub)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_06()
             Dim ilSource = <![CDATA[
@@ -4288,7 +4288,7 @@ Implementation.M12
                                               End Sub)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_07()
             Dim ilSource = <![CDATA[
@@ -4353,7 +4353,7 @@ Implementation.M12
                                               End Sub)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_08()
             Dim ilSource = <![CDATA[

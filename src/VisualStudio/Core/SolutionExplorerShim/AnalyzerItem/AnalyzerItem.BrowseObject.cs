@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _analyzerItem = analyzerItem;
             }
 
-            [DisplayName("(Name)")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Name))]
             public string Name
             {
                 get
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [DisplayName("Path")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Path))]
             public string Path
             {
                 get
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public override string GetClassName()
             {
-                return SolutionExplorerShim.AnalyzerItem_PropertyWindowClassName;
+                return SolutionExplorerShim.Analyzer_Properties;
             }
 
             public override string GetComponentName()

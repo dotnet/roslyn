@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 trees.Add(SyntaxFactory.ParseSyntaxTree(fileContents[i], parsedArguments.ParseOptions, fileNames[i]));
             }
 
-            // TODO (tomat): Revisit compilation options: App.config, strong name, search paths, etc? (bug #869604)
+            // TODO (tomat): Revisit compilation options: app.config, strong name, search paths, etc? (bug #869604)
             // TODO (tomat): move resolver initialization (With* methods below) to CommandLineParser.Parse
 
             var metadataResolver = new WorkspaceMetadataFileReferenceResolver(

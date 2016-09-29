@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
             private readonly Node[] _nodes = new Node[CacheSize];
 
-            public bool Empty
+            public bool IsEmpty
             {
                 get
                 {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             public void Touch(object instance)
             {
                 var oldIndex = -1;
-                var oldTime = DateTime.UtcNow;
+                var oldTime = DateTime.MaxValue;
 
                 for (var i = 0; i < _nodes.Length; i++)
                 {

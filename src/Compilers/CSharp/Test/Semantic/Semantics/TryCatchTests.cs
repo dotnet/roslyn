@@ -45,5 +45,39 @@ class C
             var filterExprInfo = model.GetSymbolInfo(catchClause.Filter.FilterExpression);
             Assert.Equal("string.operator !=(string, string)", filterExprInfo.Symbol.ToDisplayString());
         }
+
+        [ConditionalFact(typeof(x86))]
+        [WorkItem(7030, "https://github.com/dotnet/roslyn/issues/7030")]
+        public void Issue7030()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        int i = 3;
+        do
+        {
+            try
+            {
+                throw new Exception();
+            }
+            catch (Exception) when (--i < 0)
+            {
+                Console.Write(""e"");
+                break;
+            }
+            catch (Exception)
+            {
+                Console.Write(""h"");
+            }
+        } while (true);
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "hhhe");
+        }
     }
 }

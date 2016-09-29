@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     _diagnostics.Add(result, useSiteDiagnostics)
                     result = New BoundDirectCast(node.Syntax, result, conv, node.Type, Nothing)
                 Else
-                    Debug.Assert(node.Type = result.Type)
+                    Debug.Assert(node.Type.IsSameTypeIgnoringCustomModifiers(result.Type))
                 End If
             End If
 
@@ -138,10 +138,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 result = New BoundCall(syntax,
                                        method,
-                                       methodGroup:=Nothing,
-                                       receiver:=Nothing,
+                                       methodGroupOpt:=Nothing,
+                                       receiverOpt:=Nothing,
                                        arguments:=ImmutableArray(Of BoundExpression).Empty,
                                        constantValueOpt:=Nothing,
+                                       isLValue:=False,
+                                       suppressObjectClone:=False,
                                        type:=typeParameter)
             Else
                 result = New BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, typeParameter, hasErrors:=True)

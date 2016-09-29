@@ -468,7 +468,7 @@ class C
         [Fact]
         public void TestMethodTypeInferenceErrors()
         {
-            TestErrors(@"
+            var source = @"
 class C 
 { 
     delegate R F<out R>();
@@ -478,13 +478,14 @@ class C
       Apply(delegate { while (true) { } });
     }
 }
-",
-"'Apply' error CS0411: The type arguments for method 'C.Apply<T>(C.F<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly."
-
-               );
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,7): error CS0411: The type arguments for method 'C.Apply<T>(C.F<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //       Apply(delegate { while (true) { } });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Apply").WithArguments("C.Apply<T>(C.F<T>)").WithLocation(8, 7));
         }
 
-        [Fact, WorkItem(578362, "DevDiv")]
+        [Fact, WorkItem(578362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578362")]
         public void TypeInferenceDynamicByRef()
         {
             string source = @"
@@ -507,7 +508,7 @@ class C
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("C.Foo<T>(ref T[])"));
         }
 
-        [WorkItem(541810, "DevDiv")]
+        [WorkItem(541810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541810")]
         [Fact]
         public void TestMethodTypeInferenceWhenFixedParameterIsOpenGenericType()
         {
@@ -533,7 +534,7 @@ class Test
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem(541811, "DevDiv")]
+        [WorkItem(541811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541811")]
         [Fact]
         public void TestMethodTypeInferenceWhenFixedParameterIsOpenGenericType2()
         {
@@ -599,7 +600,7 @@ class Test
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem(541887, "DevDiv")]
+        [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
         [Fact()]
         public void Bug8785_1()
         {
@@ -627,7 +628,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArity, "Foo<>").WithArguments("Program.Foo<T, U>(T, U)", "method", "2"));
         }
 
-        [WorkItem(541887, "DevDiv")]
+        [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
         [Fact]
         public void Bug8785_2()
         {
@@ -659,7 +660,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArgType, "345").WithArguments("2", "int", "?"));
         }
 
-        [WorkItem(542591, "DevDiv")]
+        [WorkItem(542591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542591")]
         [Fact]
         public void Bug9877()
         {
@@ -678,7 +679,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "E").WithArguments("E"));
         }
 
-        [WorkItem(9142)]
+        [WorkItem(9145, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/9145")]
         [Fact]
         public void Bug9145()
         {
@@ -736,7 +737,7 @@ class Program
         }
 
 
-        [WorkItem(543691, "DevDiv")]
+        [WorkItem(543691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543691")]
         [Fact]
         public void Bug()
         {
@@ -757,7 +758,7 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(649800, "DevDiv")]
+        [WorkItem(649800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649800")]
         [Fact]
         public void InferringVoid()
         {
@@ -785,7 +786,7 @@ public class Test
             );
         }
 
-        [WorkItem(717264, "DevDiv")]
+        [WorkItem(717264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717264")]
         [Fact]
         public void SubstitutedMethod()
         {
@@ -815,7 +816,7 @@ public class C<T>
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2)", method.ToTestDisplayString());
         }
 
-        [WorkItem(717264, "DevDiv")]
+        [WorkItem(717264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717264")]
         [Fact]
         public void SubstitutedMethod_Params()
         {

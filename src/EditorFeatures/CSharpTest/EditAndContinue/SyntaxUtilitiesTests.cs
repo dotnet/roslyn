@@ -2,8 +2,6 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
-using Roslyn.Test.Utilities;
 using Xunit;
 using SyntaxUtilities = Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxUtilities;
 
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void FindPartner1()
         {
             string source1 = @"

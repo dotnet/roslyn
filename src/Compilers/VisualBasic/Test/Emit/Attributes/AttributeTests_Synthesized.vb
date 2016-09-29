@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Return DirectCast(attributes.Single(Function(a) a.AttributeClass.Name = "DebuggerBrowsableAttribute").ConstructorArguments(0).Value(), DebuggerBrowsableState)
         End Function
 
-        <Fact, WorkItem(546956, "DevDiv")>
+        <Fact, WorkItem(546956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546956")>
         Public Sub PrivateImplementationDetails()
             Dim source =
 <compilation>
@@ -90,7 +90,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(546899, "DevDiv")>
+        <Fact, WorkItem(546899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546899")>
         Public Sub Accessors()
             Dim source =
 <compilation>
@@ -147,7 +147,7 @@ End Class
             Next
         End Sub
 
-        <WorkItem(543254, "DevDiv")>
+        <WorkItem(543254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543254")>
         <Fact()>
         Public Sub Constructors()
             Dim source =
@@ -1673,5 +1673,79 @@ End Class
             Next
         End Sub
 #End Region
+
+        <Fact, WorkItem(7809, "https://github.com/dotnet/roslyn/issues/7809")>
+        Public Sub SynthesizeAttributeWithUseSiteErrorFails()
+#Region "mslib"
+            Dim mslibNoString = "
+Namespace System
+    Public Class [Object]
+    End Class
+
+    Public Class Int32
+    End Class
+
+    Public Class ValueType
+    End Class
+
+    Public Class Attribute
+    End Class
+
+    Public Class Void
+    End Class
+End Namespace
+"
+            Dim mslib = mslibNoString & "
+Namespace System
+    Public Class [String]
+    End Class
+End Namespace
+"
+#End Region
+            ' Build an mscorlib including String
+            Dim mslibComp = CreateCompilation({Parse(mslib)}).VerifyDiagnostics()
+            Dim mslibRef = mslibComp.EmitToImageReference()
+
+            ' Build an mscorlib without String
+            Dim mslibNoStringComp = CreateCompilation({Parse(mslibNoString)}).VerifyDiagnostics()
+            Dim mslibNoStringRef = mslibNoStringComp.EmitToImageReference()
+
+            Dim diagLibSource = "
+Namespace System.Diagnostics
+    Public Class DebuggerDisplayAttribute
+            Inherits System.Attribute
+
+        Public Sub New(s As System.String)
+        End Sub
+
+        Public Property Type as System.String
+    End Class
+End Namespace
+
+Namespace System.Runtime.CompilerServices
+    Public Class CompilerGeneratedAttribute
+    End Class
+End Namespace
+"
+            ' Build Diagnostics referencing mscorlib with String
+            Dim diagLibComp = CreateCompilation({Parse(diagLibSource)}, references:={mslibRef}).VerifyDiagnostics()
+            Dim diagLibRef = diagLibComp.EmitToImageReference()
+
+            ' Create compilation using Diagnostics but referencing mscorlib without String
+            Dim comp = CreateCompilation({Parse("")}, references:={diagLibRef, mslibNoStringRef})
+
+            ' Attribute cannot be synthesized because ctor has a use-site error (String type missing)
+            Dim attribute = comp.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor)
+            Assert.Equal(Nothing, attribute)
+
+            ' Attribute cannot be synthesized because type in named argument has use-site error (String type missing)
+            Dim attribute2 = comp.TrySynthesizeAttribute(
+                                           WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor,
+                                           namedArguments:=ImmutableArray.Create(New KeyValuePair(Of WellKnownMember, TypedConstant)(
+                                                                WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
+                                                                New TypedConstant(comp.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, "unused"))))
+            Assert.Equal(Nothing, attribute2)
+        End Sub
+
     End Class
 End Namespace

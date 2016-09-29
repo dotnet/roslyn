@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.ArrayType:
-                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics);
+                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.PointerType:
-                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics);
+                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.NamedType:
                     return IsNamedTypeAccessible((NamedTypeSymbol)symbol, within, ref useSiteDiagnostics, basesBeingResolved);
@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // All type argument must be accessible.
                 var typeArgs = type.TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
-                for (int i = 0; i < typeArgs.Length; ++i)
+                foreach (var typeArg in typeArgs)
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
-                    if (typeArgs[i].Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArgs[i], within, null, out unused, compilation, ref useSiteDiagnostics))
+                    if (typeArg.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         return false;
                     }
@@ -220,6 +220,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)containingType != null);
 
             failedThroughTypeCheck = false;
+
+            if (containingType.IsTupleType)
+            {
+                containingType = containingType.TupleUnderlyingType;
+            }
 
             // easy case - members of containing type are accessible.
             if ((object)containingType == (object)within)

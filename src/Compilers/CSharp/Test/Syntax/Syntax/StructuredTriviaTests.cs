@@ -3,6 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -147,7 +148,7 @@ using Blah;
             Assert.Equal("a", directives[2].File.Value);
         }
 
-        [WorkItem(546207, "DevDiv")]
+        [WorkItem(546207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546207")]
         [Fact]
         public void DocumentationCommentsLocation_SingleLine()
         {
@@ -163,7 +164,7 @@ class Program
             Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.Kind());
         }
 
-        [WorkItem(546207, "DevDiv")]
+        [WorkItem(546207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546207")]
         [Fact]
         public void DocumentationCommentsLocation_MultiLine()
         {

@@ -1,30 +1,27 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class EqualsKeywordRecommenderTests
-        <WorkItem(543136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EqualsAfterJoinInOnIdentifier()
+        <WorkItem(543136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543136")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function EqualsAfterJoinInOnIdentifierTest() As Task
             Dim method = <MethodBody>
                              Dim arr = New Integer() {4, 5}
                              Dim q2 = From num In arr Join n1 In arr On num |
                          </MethodBody>
 
-            VerifyRecommendationsAreExactly(method, "Equals")
-        End Sub
+            Await VerifyRecommendationsAreExactlyAsync(method, "Equals")
+        End Function
 
-        <WorkItem(543136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EqualsAfterJoinInOnBinaryExpression()
+        <WorkItem(543136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543136")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function EqualsAfterJoinInOnBinaryExpressionTest() As Task
             Dim method = <MethodBody>
                              Dim arr = New Integer() {4, 5}
                              Dim q2 = From num In arr Join n1 In arr On num + 5L |
                          </MethodBody>
 
-            VerifyRecommendationsAreExactly(method, "Equals")
-        End Sub
+            Await VerifyRecommendationsAreExactlyAsync(method, "Equals")
+        End Function
     End Class
 End Namespace

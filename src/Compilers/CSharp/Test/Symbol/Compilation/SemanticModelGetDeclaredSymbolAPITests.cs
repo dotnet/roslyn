@@ -340,7 +340,7 @@ class C
             Assert.Same(eventSymbol.RemoveMethod, model.GetDeclaredSymbol(accessorList[1]));
         }
 
-        [WorkItem(543494, "DevDiv")]
+        [WorkItem(543494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
         [Fact()]
         public void TestGetDeclaredSymbolFromFieldLikeEvent()
         {
@@ -362,7 +362,7 @@ class C
             Assert.IsType<SourceFieldLikeEventSymbol>(eventSymbol);
         }
 
-        [WorkItem(543574, "DevDiv")]
+        [WorkItem(543574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543574")]
         [Fact()]
         public void GetDeclaredSymbolOfEventDeclarationSyntaxAsBasePropertyDeclarationSyntax()
         {
@@ -383,7 +383,7 @@ public class Test
             Assert.Equal("Iter3", symbol.Name);
         }
 
-        [WorkItem(543574, "DevDiv")]
+        [WorkItem(543574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543574")]
         [Fact()]
         public void GetDeclaredSymbolOfPropertyDeclarationSyntaxAsBasePropertyDeclarationSyntax()
         {
@@ -405,7 +405,7 @@ public class Test
             Assert.Equal("Prop", symbol.Name);
         }
 
-        [WorkItem(543574, "DevDiv")]
+        [WorkItem(543574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543574")]
         [Fact()]
         public void GetDeclaredSymbolOfIndexerDeclarationSyntaxAsBasePropertyDeclarationSyntax()
         {
@@ -430,7 +430,7 @@ public class Test
             Assert.Equal("System.Object Test.this[System.Int32 x, System.Int32 y] { get; }", symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543574, "DevDiv")]
+        [WorkItem(543574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543574")]
         [Fact()]
         public void GetDeclaredSymbolOfEventDeclarationSyntax()
         {
@@ -452,7 +452,7 @@ public class Test
             Assert.Equal("Iter3", symbol.Name);
         }
 
-        [WorkItem(543574, "DevDiv")]
+        [WorkItem(543574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543574")]
         [Fact()]
         public void GetDeclaredSymbolOfPropertyDeclarationSyntax()
         {
@@ -474,7 +474,7 @@ public class Test
             Assert.Equal("Prop", symbol.Name);
         }
 
-        [WorkItem(543574, "DevDiv")]
+        [WorkItem(543574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543574")]
         [Fact()]
         public void GetDeclaredSymbolOfIndexerDeclarationSyntax()
         {
@@ -776,7 +776,7 @@ class C
             Assert.Equal("x", symbol.Name);
         }
 
-        [WorkItem(540108, "DevDiv")]
+        [WorkItem(540108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540108")]
         [Fact]
         public void TestGetDeclaredSymbolFromDelegateParameter()
         {
@@ -939,7 +939,30 @@ namespace N1.N2
             Assert.Equal("p1", psym.Name);
         }
 
-        [WorkItem(537230, "DevDiv")]
+        [Fact]
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        public void TestGetDeclaredSymbolWithIncompleteDeclaration()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class C0 { }
+
+class 
+
+class C1 { }
+");
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var typeDecl = (ClassDeclarationSyntax)root.Members[1];
+            var model = compilation.GetSemanticModel(tree);
+
+            var symbol = model.GetDeclaredSymbol(typeDecl);
+
+            Assert.NotNull(symbol);
+            Assert.Equal(string.Empty, symbol.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, symbol.TypeKind);
+        }
+
+        [WorkItem(537230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537230")]
         [Fact]
         public void TestLookupUnresolvableNamespaceUsing()
         {
@@ -1762,7 +1785,7 @@ static class S
                 "void object.E<T, U>(T t, U u)");
         }
 
-        [WorkItem(541125, "DevDiv")]
+        [WorkItem(541125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541125")]
         [Fact]
         public void TestLookupSymbolsMoreGenericExtensionMethods()
         {
@@ -1830,7 +1853,7 @@ static class S
                 "void A<int>.E7<int>(Action<A<int>> f)");
         }
 
-        [WorkItem(544933, "DevDiv")]
+        [WorkItem(544933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544933")]
         [Fact]
         public void TestLookupSymbolsGenericExtensionMethodWithConstraints()
         {
@@ -2685,7 +2708,7 @@ namespace A
             Assert.NotNull(info.Symbol);
         }
 
-        [WorkItem(537932, "DevDiv")]
+        [WorkItem(537932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537932")]
         [Fact]
         public void GetDeclaredSymbolDupAliasNameErr()
         {
@@ -2715,7 +2738,7 @@ namespace NS {
             Assert.Equal(typeB, classB);
         }
 
-        [WorkItem(537624, "DevDiv")]
+        [WorkItem(537624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537624")]
         [Fact]
         public void GetDeclaredSymbolForUsingDirective()
         {
@@ -2808,7 +2831,7 @@ class C : I
             Assert.Same(explicitPropertySymbol.SetMethod, explicitPropertySetterSymbol);
         }
 
-        [WorkItem(527284, "DevDiv")]
+        [WorkItem(527284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527284")]
         [Fact]
         public void GetDeclaredSymbolDottedNSAPI()
         {
@@ -2841,7 +2864,7 @@ namespace N1 {
             Assert.Equal(n3, dn23);
         }
 
-        [WorkItem(527285, "DevDiv")]
+        [WorkItem(527285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527285")]
         [Fact]
         public void GetDeclaredSymbolGlobalSystemNSErr()
         {
@@ -2863,7 +2886,7 @@ class Test { }
             Assert.Equal(compSym, declsym);
         }
 
-        [WorkItem(527286, "DevDiv")]
+        [WorkItem(527286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527286")]
         [Fact]
         public void GetDeclaredSymbolInvalidOverloadsErr()
         {
@@ -2921,7 +2944,7 @@ class CFoo
             Assert.Same(mems2[2], dsymc3);
         }
 
-        [WorkItem(537953, "DevDiv")]
+        [WorkItem(537953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537953")]
         [Fact]
         public void GetDeclaredSymbolNoTypeSymbolWithErr()
         {
@@ -2945,7 +2968,7 @@ namespace NS
             Assert.Equal(srcSym, declSym);
         }
 
-        [WorkItem(537954, "DevDiv")]
+        [WorkItem(537954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537954")]
         [Fact]
         public void GetDeclaredSymbolExtraForDupTypesErr()
         {
@@ -2974,7 +2997,7 @@ namespace NS
             Assert.Equal(dsym1, dsym2);
         }
 
-        [WorkItem(537955, "DevDiv")]
+        [WorkItem(537955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537955")]
         [Fact]
         public void GetDeclaredSymbolSameNameMethodsDiffNSs()
         {
@@ -3041,7 +3064,7 @@ namespace NS1 {
             Assert.Equal(ns2, dsym2);
         }
 
-        [WorkItem(538953, "DevDiv")]
+        [WorkItem(538953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538953")]
         [Fact]
         public void GetDeclaredSymbolAccessorErrs1()
         {
@@ -3079,7 +3102,7 @@ namespace NS1 {
             Assert.Null(dsym);
         }
 
-        [WorkItem(538953, "DevDiv")]
+        [WorkItem(538953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538953")]
         [Fact]
         public void GetDeclaredSymbolAccessorErrs2()
         {
@@ -3099,7 +3122,7 @@ public sealed class ErrorProp
             Assert.Null(model.GetDeclaredSymbol(accessorDecl));
         }
 
-        [WorkItem(538148, "DevDiv")]
+        [WorkItem(538148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538148")]
         [Fact]
         public void TestOverloadsInImplementedInterfaceMethods()
         {
@@ -3212,8 +3235,8 @@ class C
         }
 
         // named and optional parameters
-        [WorkItem(539346, "DevDiv")]
-        [WorkItem(540792, "DevDiv")]
+        [WorkItem(539346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539346")]
+        [WorkItem(540792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540792")]
         [Fact]
         public void TestGetDeclaredSymbolForParamInLambdaExprPrecededByExplicitKeyword()
         {
@@ -3241,8 +3264,8 @@ class Program
         }
 
         //named and optional parameters
-        [WorkItem(539346, "DevDiv")]
-        [WorkItem(540792, "DevDiv")]
+        [WorkItem(539346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539346")]
+        [WorkItem(540792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540792")]
         [Fact]
         public void TestGetDeclaredSymbolForLambdaInDefaultValue1()
         {
@@ -3267,8 +3290,8 @@ class Program
             Assert.NotNull(symbol);
         }
 
-        [WorkItem(540792, "DevDiv")]
-        [WorkItem(539346, "DevDiv")]
+        [WorkItem(540792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540792")]
+        [WorkItem(539346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539346")]
         [Fact]
         public void TestGetDeclaredSymbolForLambdaInDefaultValue2()
         {
@@ -3293,7 +3316,7 @@ class Program
             Assert.NotNull(symbol);
         }
 
-        [WorkItem(540834, "DevDiv")]
+        [WorkItem(540834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540834")]
         [Fact]
         public void TestGetDeclaredSymbolForIncompleteMemberNode()
         {
@@ -3334,7 +3357,7 @@ class Test
             Assert.NotNull(symbol);
         }
 
-        [WorkItem(541057, "DevDiv")]
+        [WorkItem(541057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541057")]
         [Fact]
         public void TestGetDeclaredSymbolConstDelegateDecl()
         {
@@ -3355,7 +3378,7 @@ public class Test
             Assert.NotNull(symbol);
         }
 
-        [WorkItem(541084, "DevDiv")]
+        [WorkItem(541084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541084")]
         [Fact]
         public void TestIncompleteUsingDirectiveSyntax()
         {
@@ -3375,7 +3398,7 @@ using myType1 =
             Assert.Equal(SymbolKind.Alias, symbol.Kind);
         }
 
-        [WorkItem(541225, "DevDiv")]
+        [WorkItem(541225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541225")]
         [Fact]
         public void TestGetDeclaredSymbolForeachStmt()
         {
@@ -3403,7 +3426,7 @@ class C
             Assert.Equal("aaa", symbol.Name);
         }
 
-        [WorkItem(541225, "DevDiv")]
+        [WorkItem(541225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541225")]
         [Fact]
         public void TestGetDeclaredSymbolForeachStmtError1()
         {
@@ -3426,7 +3449,7 @@ class C
             Assert.Equal("aaa", symbol.Name);
         }
 
-        [WorkItem(541225, "DevDiv")]
+        [WorkItem(541225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541225")]
         [Fact]
         public void TestGetDeclaredSymbolForeachStmtError2()
         {
@@ -3459,7 +3482,7 @@ namespace N
             Assert.Equal("bbb", symbol2.Name);
         }
 
-        [WorkItem(541225, "DevDiv")]
+        [WorkItem(541225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541225")]
         [Fact]
         public void TestGetDeclaredSymbolCatchClause()
         {
@@ -3490,7 +3513,7 @@ class C
             Assert.Equal("aaa", symbol.Name);
         }
 
-        [WorkItem(541214, "DevDiv")]
+        [WorkItem(541214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541214")]
         [Fact]
         public void TestGetDeclaredSymbolTopLevelMethod()
         {
@@ -3512,7 +3535,7 @@ class void Foo()
             Assert.Equal("Foo", symbol.Name);
         }
 
-        [WorkItem(541214, "DevDiv")]
+        [WorkItem(541214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541214")]
         [Fact]
         public void TestGetDeclaredSymbolNamespaceLevelMethod()
         {
@@ -3537,7 +3560,7 @@ namespace N
             Assert.Equal("Foo", symbol.Name);
         }
 
-        [WorkItem(543238, "DevDiv")]
+        [WorkItem(543238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543238")]
         [Fact]
         public void TestGetDeclaredSymbolEnumMemberDeclarationSyntax()
         {
@@ -3595,7 +3618,7 @@ class Program
             Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
         }
 
-        [WorkItem(541800, "DevDiv")]
+        [WorkItem(541800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541800")]
         [Fact]
         public void GetDeclaredSymbolOnGlobalStmtParseOptionScript()
         {
@@ -3611,7 +3634,7 @@ class Program
             Assert.Null(symbol);
         }
 
-        [WorkItem(542102, "DevDiv")]
+        [WorkItem(542102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542102")]
         [Fact]
         public void GetSymbolInGoto()
         {
@@ -3634,7 +3657,7 @@ class Program
             Assert.Equal(SymbolKind.Label, symbol.Kind);
         }
 
-        [WorkItem(542342, "DevDiv")]
+        [WorkItem(542342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542342")]
         [Fact]
         public void SourceNamespaceSymbolMergeWithMetadata()
         {
@@ -3677,7 +3700,7 @@ class Program
             Assert.Same(declSymbol, memSymbol);
         }
 
-        [WorkItem(542459, "DevDiv")]
+        [WorkItem(542459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542459")]
         [Fact]
         public void StructKeywordInsideSwitchWithScriptParseOption()
         {
@@ -3711,7 +3734,7 @@ class Test
             Assert.NotEmpty(diagnostics);
         }
 
-        [WorkItem(542459, "DevDiv")]
+        [WorkItem(542459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542459")]
         [Fact]
         public void Bug9728_SmallerReproCase()
         {
@@ -3729,7 +3752,7 @@ struct break;
             Assert.NotEmpty(diagnostics);
         }
 
-        [WorkItem(542483, "DevDiv")]
+        [WorkItem(542483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542483")]
         [Fact]
         public void IncompleteStructDeclWithSpace()
         {
@@ -3748,7 +3771,7 @@ namespace N1
             Assert.NotEmpty(diagnostics);
         }
 
-        [WorkItem(542583, "DevDiv")]
+        [WorkItem(542583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542583")]
         [Fact]
         public void LambdaExpressionInFieldInitReferencingAnotherFieldWithScriptParseOption()
         {
@@ -3769,7 +3792,7 @@ class P
             Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind);
         }
 
-        [WorkItem(542495, "DevDiv")]
+        [WorkItem(542495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542495")]
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void AliasSymbolEquality()
         {
@@ -3784,16 +3807,12 @@ class C
             var compilation = CreateCompilationWithMscorlib(text);
             var tree = compilation.SyntaxTrees[0];
             var node = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().DescendantTokens().Where(t => t.ToString() == "Alias").Last().Parent;
-            var model1 = compilation.GetSemanticModel(tree);
-            var alias1 = model1.GetAliasInfo(node);
+            var modelWeakReference = ObjectReference.CreateFromFactory(() => compilation.GetSemanticModel(tree));
+            var alias1 = modelWeakReference.UseReference(sm => sm.GetAliasInfo(node));
 
             // We want the Compilation's WeakReference<BinderFactory> to be collected
             // so that the next semantic model will get a new one.
-            model1 = null; // otherwise it will keep the BinderFactory alive
-            GC.Collect(GC.MaxGeneration);
-            GC.WaitForPendingFinalizers();
-            GC.Collect(GC.MaxGeneration);
-            GC.WaitForPendingFinalizers();
+            modelWeakReference.AssertReleased();
 
             var model2 = compilation.GetSemanticModel(tree);
             var alias2 = model2.GetAliasInfo(node);
@@ -3802,7 +3821,7 @@ class C
             Assert.NotSame(alias1, alias2);
         }
 
-        [WorkItem(542475, "DevDiv")]
+        [WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")]
         [Fact]
         public void PartialMethods()
         {
@@ -3827,7 +3846,7 @@ partial class program
             Assert.Equal(param.Identifier.Span, symbol.Locations[0].SourceSpan);
         }
 
-        [WorkItem(542217, "DevDiv")]
+        [WorkItem(542217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542217")]
         [Fact]
         public void ConflictingAliases()
         {
@@ -3867,7 +3886,7 @@ class C
             Assert.Equal(alias2, alias2b);
         }
 
-        [WorkItem(542902, "DevDiv")]
+        [WorkItem(542902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542902")]
         [Fact]
         public void InaccessibleDefaultAttributeConstructor()
         {
@@ -3894,7 +3913,7 @@ public class X { }
             Assert.Equal(CandidateReason.NotAnAttributeType, symbolInfo.CandidateReason);
         }
 
-        [WorkItem(543024, "DevDiv")]
+        [WorkItem(543024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543024")]
         [Fact]
         public void BindUnboundGenericType()
         {
@@ -4032,7 +4051,7 @@ class M {
             return SyntaxFactory.ParseCompilationUnit(source + " class X {}").Members.First().AsTypeDeclarationSyntax().AttributeLists.First().Attributes.First();
         }
 
-        [WorkItem(653957, "DevDiv")]
+        [WorkItem(653957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653957")]
         [Fact]
         public void MissingExtensionMethodNullDereference()
         {
@@ -4435,7 +4454,7 @@ class C
             Assert.Equal(declaredSymbol, lookupSymbols.Single()); //operators can't be referenced by name, but the user asked for it specifically
         }
 
-        [WorkItem(543415, "DevDiv")]
+        [WorkItem(543415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543415")]
         [Fact]
         public void AliasRace1()
         {
@@ -4472,7 +4491,7 @@ class C { }
             Assert.True(result.IsCompleted);
         }
 
-        [WorkItem(543415, "DevDiv")]
+        [WorkItem(543415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543415")]
         [Fact]
         public void AliasRace2()
         {
@@ -4509,7 +4528,7 @@ class C { }
             Assert.True(result.IsCompleted);
         }
 
-        [WorkItem(544100, "DevDiv")]
+        [WorkItem(544100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544100")]
         [Fact]
         public void NoLocalScopeBinder()
         {
@@ -4531,7 +4550,7 @@ class C
             model.GetSemanticInfoSummary(node.Type);
         }
 
-        [WorkItem(543868, "DevDiv")]
+        [WorkItem(543868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543868")]
         [Fact]
         public void IsEventUsableAsField()
         {
@@ -4651,7 +4670,7 @@ class C : A<>.B<> { }";
             Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<?>.B<?>");
         }
 
-        [WorkItem(563572, "DevDiv")]
+        [WorkItem(563572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563572")]
         [Fact]
         public void InvalidEnumDeclaration()
         {
@@ -4679,7 +4698,7 @@ public class C
             Assert.Equal(SymbolKind.Event, eventSymbol.Kind);
         }
 
-        [WorkItem(563572, "DevDiv")]
+        [WorkItem(563572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563572")]
         [Fact]
         public void TypeMembersWithoutNames()
         {

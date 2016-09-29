@@ -135,6 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             private readonly DiagnosticDescriptor _descriptor =
                     new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+            public bool OpenFileOnly(Workspace workspace) => false;
+
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

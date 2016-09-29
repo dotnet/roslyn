@@ -1,54 +1,47 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class ElseDirectiveKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseNotInFile()
-            VerifyRecommendationsMissing(<File>|</File>, "#Else")
-        End Sub
+        Public Async Function HashElseNotInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>|</File>, "#Else")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseInFileAfterIf()
-            VerifyRecommendationsContain(<File>
+        Public Async Function HashElseInFileAfterIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 #If True Then
 |</File>, "#Else")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseInFileAfterElseIf()
-            VerifyRecommendationsContain(<File>
+        Public Async Function HashElseInFileAfterElseIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 #If True Then
 #ElseIf True Then
 |</File>, "#Else")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseNotInFileAfterElse1()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function HashElseNotInFileAfterElse1Test() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #If True Then
 #Else
 |</File>, "#Else")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseNotInFileAfterElse2()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function HashElseNotInFileAfterElse2Test() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #If True Then
 #ElseIf True Then
 #Else
 |</File>, "#Else")
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
             for (int i = 0; i < method.TypeParameters.Length; i++)
             {
-                mapping.Add(method.TypeParameters[i], updatedTypeParameters[i]);
+                mapping[method.TypeParameters[i]] = updatedTypeParameters[i];
             }
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     typeParameter.Ordinal);
 
                 newTypeParameters.Add(newTypeParameter);
-                mapping.Add(typeParameter, newTypeParameter);
+                mapping[typeParameter] = newTypeParameter;
             }
 
             // Now we update the constraints.
@@ -168,13 +168,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return updatedMethod.RenameParameters(parameterNames);
         }
 
-        public static IMethodSymbol RemoveInaccessibleAttributesAndAttributesOfType(
-            this IMethodSymbol method, ISymbol accessibleWithin, INamedTypeSymbol removeAttributeType,
-            IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null)
+        public static IMethodSymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
+            this IMethodSymbol method, ISymbol accessibleWithin, params INamedTypeSymbol[] removeAttributeTypes)
         {
             Func<AttributeData, bool> shouldRemoveAttribute = a =>
-                a.AttributeClass.Equals(removeAttributeType) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
-            return method.RemoveAttributesCore(shouldRemoveAttribute, statements, handlesExpressions);
+                removeAttributeTypes.Any(attr => attr != null && attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
+
+            return method.RemoveAttributesCore(shouldRemoveAttribute, statements: null, handlesExpressions: null);
         }
 
         private static IMethodSymbol RemoveAttributesCore(

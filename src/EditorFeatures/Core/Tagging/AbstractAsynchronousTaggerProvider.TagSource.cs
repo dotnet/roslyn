@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #endregion
 
-            public event Action<ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>>> TagsChangedForBuffer;
+            public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>> TagsChangedForBuffer;
 
             public event EventHandler Paused;
             public event EventHandler Resumed;
@@ -111,6 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Kick off a task to compute the initial set of tags.
                 RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
             }
+
+            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
+            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
 
             private ITaggerEventSource CreateEventSource()
             {
@@ -260,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _eventSource.Changed -= OnChanged;
             }
 
-            private void RaiseTagsChanged(ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)
+            private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
             {
                 this.AssertIsForeground();
                 if (difference.Count == 0)
@@ -270,10 +273,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 RaiseTagsChanged(SpecializedCollections.SingletonCollection(
-                    new KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>(buffer, difference)));
+                    new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)));
             }
 
-            private void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> collection)
+            private void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, DiffResult>> collection)
             {
                 TagsChangedForBuffer?.Invoke(collection);
             }
@@ -296,13 +299,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// <summary>
             /// Return all the spans that appear in only one of "latestSpans" or "previousSpans".
             /// </summary>
-            private static IEnumerable<SnapshotSpan> Difference<T>(IEnumerable<ITagSpan<T>> latestSpans, IEnumerable<ITagSpan<T>> previousSpans, IEqualityComparer<T> comparer)
+            private static DiffResult Difference<T>(IEnumerable<ITagSpan<T>> latestSpans, IEnumerable<ITagSpan<T>> previousSpans, IEqualityComparer<T> comparer)
                 where T : ITag
             {
-                var latestEnumerator = latestSpans.GetEnumerator();
-                var previousEnumerator = previousSpans.GetEnumerator();
-                try
+                using (var addedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject())
+                using (var removedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject())
+                using (var latestEnumerator = latestSpans.GetEnumerator())
+                using (var previousEnumerator = previousSpans.GetEnumerator())
                 {
+                    var added = addedPool.Object;
+                    var removed = removedPool.Object;
+
                     var latest = NextOrDefault(latestEnumerator);
                     var previous = NextOrDefault(previousEnumerator);
 
@@ -313,12 +320,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                         if (latestSpan.Start < previousSpan.Start)
                         {
-                            yield return latestSpan;
+                            added.Add(latestSpan);
                             latest = NextOrDefault(latestEnumerator);
                         }
                         else if (previousSpan.Start < latestSpan.Start)
                         {
-                            yield return previousSpan;
+                            removed.Add(previousSpan);
                             previous = NextOrDefault(previousEnumerator);
                         }
                         else
@@ -327,19 +334,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                             // region to be conservative.
                             if (previousSpan.End > latestSpan.End)
                             {
-                                yield return previousSpan;
+                                removed.Add(previousSpan);
                                 latest = NextOrDefault(latestEnumerator);
                             }
                             else if (latestSpan.End > previousSpan.End)
                             {
-                                yield return latestSpan;
+                                added.Add(latestSpan);
                                 previous = NextOrDefault(previousEnumerator);
                             }
                             else
                             {
                                 if (!comparer.Equals(latest.Tag, previous.Tag))
                                 {
-                                    yield return latestSpan;
+                                    added.Add(latestSpan);
                                 }
 
                                 latest = NextOrDefault(latestEnumerator);
@@ -350,20 +357,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     while (latest != null)
                     {
-                        yield return latest.Span;
+                        added.Add(latest.Span);
                         latest = NextOrDefault(latestEnumerator);
                     }
 
                     while (previous != null)
                     {
-                        yield return previous.Span;
+                        removed.Add(previous.Span);
                         previous = NextOrDefault(previousEnumerator);
                     }
-                }
-                finally
-                {
-                    latestEnumerator.Dispose();
-                    previousEnumerator.Dispose();
+
+                    return new DiffResult(added, removed);
                 }
             }
         }

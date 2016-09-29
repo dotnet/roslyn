@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 {
                     var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
                     var syntaxTree = await document.GetSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
-                    var token = syntaxTree.GetTouchingWord(snapshotSpan.Start.Position, syntaxFactsService, _cancellationToken);
+                    var token = await syntaxTree.GetTouchingWordAsync(snapshotSpan.Start.Position, syntaxFactsService, _cancellationToken).ConfigureAwait(false);
 
                     // The OriginalName is determined with a simple textual check, so for a
                     // statement such as "Dim [x = 1" the textual check will return a name of "[x".
@@ -207,6 +207,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 // Get the source symbol if possible
                 var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
+
+                if (sourceSymbol.Kind == SymbolKind.Field && 
+                    ((IFieldSymbol)sourceSymbol).ContainingType.IsTupleType &&
+                    sourceSymbol.IsImplicitlyDeclared)
+                {
+                    // should not rename Item1, Item2...
+                    // when user did not declare them in source.
+                    return TriggerIdentifierKind.NotRenamable;
+                }
 
                 if (!sourceSymbol.Locations.All(loc => loc.IsInSource))
                 {

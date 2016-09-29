@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class AsyncLazyTests
     {
+        // This probably shouldn't need WpfFact, but the failure is being tracked by https://github.com/dotnet/roslyn/issues/7438
         [WpfFact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void CancellationDuringInlinedComputationFromGetValueStillCachesResult()
         {
@@ -42,12 +43,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 includeSynchronousComputation ? synchronousComputation : null,
                 cacheResult: true);
 
-            var thrownException = Roslyn.Test.Utilities.AssertEx.Throws<Exception>(() =>
+            var thrownException = Assert.ThrowsAny<Exception>(() =>
                 {
                     // Do a first request. Even though we will get a cancellation during the evaluation,
                     // since we handed a result back, that result must be cached.
                     doGetValue(lazy, requestCancellationTokenSource.Token);
-                }, allowDerived: true);
+                });
 
             // Assert it's either cancellation or aggregate exception
             Assert.True(thrownException is OperationCanceledException || ((AggregateException)thrownException).Flatten().InnerException is OperationCanceledException);

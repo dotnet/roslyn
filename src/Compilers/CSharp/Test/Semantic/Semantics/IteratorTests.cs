@@ -93,7 +93,7 @@ class Test
                 );
         }
 
-        [WorkItem(546081, "DevDiv")]
+        [WorkItem(546081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546081")]
         [Fact]
         public void IteratorBlockWithUnreachableCode()
         {
@@ -134,7 +134,7 @@ class Test
             Assert.True(emitResult.Success);
         }
 
-        [WorkItem(546364, "DevDiv")]
+        [WorkItem(546364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546364")]
         [Fact]
         public void IteratorWithEnumeratorMoveNext()
         {
@@ -166,7 +166,7 @@ public class Program
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(813557, "DevDiv")]
+        [WorkItem(813557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813557")]
         [Fact]
         public void IteratorWithDelegateCreationExpression()
         {
@@ -191,7 +191,7 @@ public class Program
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(888254, "DevDiv")]
+        [WorkItem(888254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
         [Fact]
         public void IteratorWithTryCatch()
         {
@@ -231,7 +231,7 @@ namespace RoslynYield
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(888254, "DevDiv")]
+        [WorkItem(888254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
         [Fact]
         public void IteratorWithTryCatchFinally()
         {
@@ -310,13 +310,13 @@ namespace RoslynYield
                 // yield return int.
                 Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(1, 1));
 
-            var tree = comp.SyntaxTrees[0];     
+            var tree = comp.SyntaxTrees[0];
             var yieldNode = (YieldStatementSyntax)tree.GetRoot().DescendantNodes().Where(n => n is YieldStatementSyntax).SingleOrDefault();
 
             Assert.NotNull(yieldNode);
             Assert.Equal(SyntaxKind.YieldReturnStatement, yieldNode.Kind());
 
-            var model = comp.GetSemanticModel(tree);          
+            var model = comp.GetSemanticModel(tree);
             var typeInfo = model.GetTypeInfo(yieldNode.Expression);
 
             Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
@@ -338,6 +338,96 @@ namespace RoslynYield
 
             Assert.NotNull(yieldNode);
             Assert.Equal(SyntaxKind.YieldBreakStatement, yieldNode.Kind());
+        }
+
+        [Fact]
+        [WorkItem(11649, "https://github.com/dotnet/roslyn/issues/11649")]
+        public void IteratorRewriterShouldNotRewriteBaseMethodWrapperSymbol()
+        {
+            var text =
+@"using System.Collections.Generic;
+
+class Base
+{
+    protected virtual IEnumerable<int> M()
+    {
+        yield break;
+    }
+
+    class D : Base
+    {
+        protected override IEnumerable<int> M()
+        {
+            base.M(); // the rewriting of D.M() synthesizes a BaseMethodWrapperSymbol for this base call, with return type IEnumerable,
+                      // but it should not in turn be lowered by the IteratorRewriter
+            yield break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugDll);
+            comp.VerifyEmitDiagnostics(); // without the fix for bug 11649, the compilation would fail emitting
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        [WorkItem(11649, "https://github.com/dotnet/roslyn/issues/11649")]
+        public void IteratorRewriterShouldNotRewriteBaseMethodWrapperSymbol2()
+        {
+            var source =
+@"using System.Collections.Generic;
+
+class Base
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(string.Join("","", new D().M()));
+    }
+
+    protected virtual IEnumerable<int> M()
+    {
+        yield return 1;
+        yield return 2;
+        yield break;
+    }
+
+    class D : Base
+    {
+        protected override IEnumerable<int> M()
+        {
+            yield return 0;
+            foreach (var n in base.M())
+            {
+                yield return n;
+            }
+            yield return 3;
+            yield break;
+        }
+    }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "0,1,2,3", options: TestOptions.DebugExe);
+            comp.Compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(261047, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=261047&_a=edit")]
+        public void MissingExpression()
+        {
+            var text =
+@"using System.Collections.Generic;
+
+class Test
+{
+    IEnumerable<int> I()
+    {
+        yield return;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS1627: Expression expected after yield return
+                //         yield return;
+                Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(7, 15)
+                );
         }
     }
 }

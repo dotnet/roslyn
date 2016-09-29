@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class SourceTextContainerExtensionsTests
     {
-        [WpfFact]
+        [Fact]
         public void GetBufferTextFromNonTextContainerThrows()
         {
             var containerMock = new Mock<SourceTextContainer>();
             Assert.Throws<ArgumentException>(() => Microsoft.CodeAnalysis.Text.Extensions.GetTextBuffer(containerMock.Object));
         }
 
-        [WpfFact]
+        [Fact]
         public void GetBufferTextFromTextContainerDoesNotThrow()
         {
             var textSnapshotMock = new Mock<VisualStudio.Text.ITextSnapshot>();

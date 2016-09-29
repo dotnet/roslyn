@@ -1,20 +1,34 @@
 ﻿{
-  "dependencies": {
-    "Microsoft.Composition": "1.0.27",
-    "Moq": "4.2.1402.2112",
-    "System.Collections": "4.0.10",
-    "System.Diagnostics.Debug": "4.0.10",
-    "System.Globalization": "4.0.10",
-    "System.Runtime": "4.0.20",
-    "System.Runtime.Extensions": "4.0.10",
-    "System.Threading": "4.0.10",
-    "xunit": "2.1.0",
-    "xunit.runner.console": "2.1.0"
-  },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": { }
-  }
+    "dependencies": {
+        "Microsoft.VisualStudio.Language.Intellisense": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Imaging": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Text.UI": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Text.UI.Wpf": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

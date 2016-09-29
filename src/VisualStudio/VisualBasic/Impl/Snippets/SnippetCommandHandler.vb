@@ -1,20 +1,21 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Editor
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Utilities
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
-Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
-Imports System.ComponentModel.Composition
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCommandHandler("VB Snippets", ContentTypeNames.VisualBasicContentType)>
@@ -29,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Sub
 
         Protected Overrides Function IsSnippetExpansionContext(document As Document, startPosition As Integer, cancellationToken As CancellationToken) As Boolean
-            Dim syntaxTree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(cancellationToken)
+            Dim syntaxTree = document.GetSyntaxTreeSynchronously(CancellationToken.None)
 
             Return Not syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(startPosition, cancellationToken) AndAlso
                 Not syntaxTree.IsEntirelyWithinComment(startPosition, cancellationToken) AndAlso
@@ -59,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 bstrKinds:=Nothing,
                 iCountKinds:=0,
                 fIncludeNULLKind:=1,
-                bstrPrefixText:=BasicVSResources.InsertSnippet,
+                bstrPrefixText:=BasicVSResources.Insert_Snippet,
                 bstrCompletionChar:=">"c)
 
         End Sub

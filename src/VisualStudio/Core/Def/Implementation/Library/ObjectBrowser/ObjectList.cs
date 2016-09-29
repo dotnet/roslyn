@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
@@ -697,7 +696,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                         {
                             var compilation = project
                                 .GetCompilationAsync(CancellationToken.None)
-                                .WaitAndGetResult(CancellationToken.None);
+                                .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
 
                             var symbol = symbolListItem.ResolveSymbol(compilation);
                             if (symbol != null)

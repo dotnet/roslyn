@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -66,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
         }
 
-        private async void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             switch (e.Kind)
             {
@@ -76,7 +77,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
                     var newDocument = e.NewSolution.GetDocument(e.DocumentId);
 
-                    await DocumentChangedAsync(oldDocument, newDocument).ConfigureAwait(false);
+                    // make sure we do this in background thread. we don't care about ordering of events
+                    // we just need to refresh OB at some point if it ever needs to be updated
+                    // link to the bug tracking root cause  - https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=169649&_a=edit
+                    Task.Run(() => DocumentChangedAsync(oldDocument, newDocument));
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
@@ -98,12 +102,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private async Task DocumentChangedAsync(Document oldDocument, Document newDocument)
         {
-            var oldTextVersion = await oldDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
-            var newTextVersion = await newDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
-
-            if (oldTextVersion != newTextVersion)
+            try
             {
-                UpdateClassAndMemberVersions();
+                var oldTextVersion = await oldDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
+                var newTextVersion = await newDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
+
+                if (oldTextVersion != newTextVersion)
+                {
+                    UpdateClassAndMemberVersions();
+                }
+            }
+            catch (Exception e) when (FatalError.Report(e))
+            {
+                // make it crash VS on any exception
             }
         }
 
@@ -199,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             return project
                 .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+                .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
         }
 
         public override uint GetLibraryFlags()
@@ -395,11 +406,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            SharedPools.Default<StringBuilder>().ClearAndFree(namespaceName);
-            SharedPools.Default<StringBuilder>().ClearAndFree(className);
-
             // TODO: Make sure we pass the right value for Visual Basic.
             ppNavInfo = this.LibraryService.NavInfoFactory.Create(libraryName, referenceOwnerName, namespaceName.ToString(), className.ToString(), memberName);
+
+            SharedPools.Default<StringBuilder>().ClearAndFree(namespaceName);
+            SharedPools.Default<StringBuilder>().ClearAndFree(className);
 
             return VSConstants.S_OK;
         }

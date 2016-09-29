@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class FindReferencesTests : TestBase
+    public partial class FindReferencesTests : ServicesTestBase
     {
         private Solution CreateSolution()
         {
@@ -210,7 +210,7 @@ static class Module1
             Assert.Equal(2, references.ElementAt(0).Locations.Count());
         }
 
-        [Fact, WorkItem(537936, "DevDiv")]
+        [Fact, WorkItem(537936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537936")]
         public async Task FindReferences_InterfaceMapping()
         {
             var text = @"
@@ -266,6 +266,58 @@ class B : C, A
             result.ForEach((reference) => Verify(reference, expectedMatchedLines));
 
             Assert.Empty(expectedMatchedLines);
+        }
+
+        [WorkItem(4936, "https://github.com/dotnet/roslyn/issues/4936")]
+        [Fact]
+        public async Task OverriddenMethodsFromPortableToDesktop()
+        {
+            var solution = new AdhocWorkspace().CurrentSolution;
+
+            // create portable assembly with a virtual method
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
+namespace N
+{
+    public class BaseClass
+    {
+        public virtual void SomeMethod() { }
+    }
+}
+", MscorlibRefPortable);
+
+            // create a normal assembly with a type derived from the portable base and overriding the method
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
+using N;
+namespace M
+{
+    public class DerivedClass : BaseClass
+    {
+        public override void SomeMethod() { }
+    }
+}
+", MscorlibRef, solution.Projects.Single(pid => pid.Name == "PortableProject").Id);
+
+            // get symbols for methods
+            var portableCompilation = await solution.Projects.Single(p => p.Name == "PortableProject").GetCompilationAsync();
+            var baseType = portableCompilation.GetTypeByMetadataName("N.BaseClass");
+            var baseVirtualMethodSymbol = baseType.GetMembers("SomeMethod").Single();
+
+            var normalCompilation = await solution.Projects.Single(p => p.Name == "NormalProject").GetCompilationAsync();
+            var derivedType = normalCompilation.GetTypeByMetadataName("M.DerivedClass");
+            var overriddenMethodSymbol = derivedType.GetMembers("SomeMethod").Single();
+
+            // FAR from the virtual method should find both methods
+            var refsFromVirtual = await SymbolFinder.FindReferencesAsync(baseVirtualMethodSymbol, solution);
+            Assert.Equal(2, refsFromVirtual.Count());
+
+            // FAR from the overriden method should find both methods
+            var refsFromOverride = await SymbolFinder.FindReferencesAsync(overriddenMethodSymbol, solution);
+            Assert.Equal(2, refsFromOverride.Count());
+
+            // all methods returned should be equal
+            var refsFromVirtualSorted = refsFromVirtual.Select(r => r.Definition).OrderBy(r => r.ContainingType.Name).ToArray();
+            var refsFromOverrideSorted = refsFromOverride.Select(r => r.Definition).OrderBy(r => r.ContainingType.Name).ToArray();
+            Assert.Equal(refsFromVirtualSorted, refsFromOverrideSorted);
         }
 
         private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)

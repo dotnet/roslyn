@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new AttributeNamedParameterCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
@@ -39,11 +39,12 @@ public class TestAttribute : Attribute
     public ConsoleColor Color { get; set; }
 }";
 
-            await VerifySendEnterThroughToEnterAsync(markup, "Color =", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync(markup, "Color =", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "Color =", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
+            await VerifySendEnterThroughToEnterAsync(markup, "Color =", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "Color =", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitCharacterTest()
         {
             const string markup = @"
@@ -64,7 +65,7 @@ public class TestAttribute : Attribute
             await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SimpleAttributeUsage()
         {
             var markup = @"
@@ -85,7 +86,7 @@ public class TestAttribute : Attribute
             await VerifyItemExistsAsync(markup, "Color =");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterComma()
         {
             var markup = @"
@@ -107,8 +108,8 @@ public class TestAttribute : Attribute
             await VerifyItemExistsAsync(markup, "Text =");
         }
 
-        [WorkItem(544345)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(544345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExistingItemsAreFiltered()
         {
             var markup = @"
@@ -131,7 +132,7 @@ public class TestAttribute : Attribute
             await VerifyItemIsAbsentAsync(markup, "Color =");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeConstructor()
         {
             var markup = @"
@@ -150,7 +151,7 @@ class Foo
             await VerifyItemExistsAsync(markup, "a:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeConstructorAfterComma()
         {
             var markup = @"
@@ -169,8 +170,8 @@ class Foo
             await VerifyItemExistsAsync(markup, "a:");
         }
 
-        [WorkItem(545426)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(545426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestPropertiesInScript()
         {
             var markup = @"
@@ -192,8 +193,8 @@ class Foo
             await VerifyItemExistsAsync(markup, "Text =");
         }
 
-        [WorkItem(1075278)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInComment()
         {
             var markup = @"

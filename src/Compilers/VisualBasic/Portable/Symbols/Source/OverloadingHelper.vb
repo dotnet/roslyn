@@ -1,11 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Diagnostics
-Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -13,6 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' for recasing method and property names.
     ''' </summary>
     Friend Module OverloadingHelper
+
         ''' <summary>
         ''' Set the correct metadata name for all overloads of a particular name and symbol kind
         ''' (must be method or property) inside a container.
@@ -20,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The rules are as follows:
         '''    1) If a method or property overrides one from its base class, its metadata name
         '''       must match that.
-        '''    2) If method overload those in the base (because the Overloads keyword is used), and
+        '''    2) If method overloads those in the base (because the Overloads keyword is used), and
         '''       all metadata names in the base are consistent in case, use that name.
         '''    3) All overloads with a class should match, except possibly for overrides. If there is
         '''       an override or overload from base, use that. Otherwise, use casing of first member in
@@ -76,13 +72,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Collect all overloads in "container" of the given name and kind.
         ''' Also determine if any have "Overloads" or "Overrides" specifiers.
         ''' </summary>
-        Private Sub FindOverloads(name As String, kind As SymbolKind,
+        Private Sub FindOverloads(name As String,
+                                  kind As SymbolKind,
                                   container As NamedTypeSymbol,
                                   overloadsMembers As ArrayBuilder(Of Symbol),
                                   ByRef hasOverloadSpecifier As Boolean,
                                   ByRef hasOverrideSpecifier As Boolean)
             For Each member In container.GetMembers(name)
-                If member.Kind = kind Then
+                If IsCandidateMember(member, kind) Then
                     overloadsMembers.Add(member)
 
                     If member.IsOverrides Then
@@ -166,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 For Each foundMember In lookupSymbols
                     ' Go through each member found in a base class or interface
-                    If foundMember.Kind = kind AndAlso foundMember.ContainingType IsNot container Then
+                    If IsCandidateMember(foundMember, kind) AndAlso foundMember.ContainingType IsNot container Then
                         If metadataName Is Nothing Then
                             metadataName = foundMember.MetadataName
                         Else
@@ -184,6 +181,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             result.Free()
 
             Return metadataName
+        End Function
+
+        Private Function IsCandidateMember(member As Symbol, kind As SymbolKind) As Boolean
+            Return member.Kind = kind AndAlso Not member.IsAccessor()
         End Function
 
     End Module

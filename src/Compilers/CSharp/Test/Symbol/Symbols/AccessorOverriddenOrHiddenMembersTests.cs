@@ -247,7 +247,7 @@ class Derived : Base
             Assert.Equal(0, derived2SetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
         }
 
-        [WorkItem(540145, "DevDiv")]
+        [WorkItem(540145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540145")]
         [Fact]
         public void Regress6304_01()
         {
@@ -267,7 +267,7 @@ abstract public class TestClass2 : TestClass1
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P2").WithArguments("TestClass2.P2", "TestClass1.P2"));
         }
 
-        [WorkItem(540145, "DevDiv")]
+        [WorkItem(540145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540145")]
         [Fact]
         public void Regress6304_02()
         {
@@ -811,7 +811,7 @@ public class CSIPropImpl : VBIPropImpl, IProp
             );
         }
 
-        [WorkItem(546143, "DevDiv")]
+        [WorkItem(546143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546143")]
         [Fact]
         public void AccessorWithImportedGenericType()
         {
@@ -851,7 +851,7 @@ public class G<T>
             }
         }
 
-        [WorkItem(546143, "DevDiv")]
+        [WorkItem(546143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546143")]
         [ClrOnlyFact]
         public void OverridingExplicitInterfaceImplementationFromSource()
         {
@@ -924,7 +924,7 @@ class Derived : Base
 ");
         }
 
-        [WorkItem(1102883, "DevDiv")]
+        [WorkItem(1102883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102883")]
         [Fact]
         public void Bug1102883_ReproSteps()
         {

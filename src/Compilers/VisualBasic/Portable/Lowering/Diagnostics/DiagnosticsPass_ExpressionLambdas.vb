@@ -248,6 +248,10 @@ lSelect:
                 Me.Visit(node.ReceiverOpt)
             End If
 
+            If IsInExpressionLambda And method.ReturnsByRef Then
+                GenerateDiagnostic(ERRID.ERR_RefReturningCallInExpressionTree, node)
+            End If
+
             Me.VisitList(node.Arguments)
             Return Nothing
         End Function
@@ -256,6 +260,10 @@ lSelect:
             Dim [property] As PropertySymbol = node.PropertySymbol
             If Not [property].IsShared Then
                 Me.Visit(node.ReceiverOpt)
+            End If
+
+            If IsInExpressionLambda AndAlso [property].ReturnsByRef Then
+                GenerateDiagnostic(ERRID.ERR_RefReturningCallInExpressionTree, node)
             End If
 
             Me.VisitList(node.Arguments)

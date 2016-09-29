@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "GetStartPoint() tests"
 
-        <WorkItem(639075)>
+        <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetStartPoint_SimpleEvent() As Task
             Dim code =
@@ -43,7 +43,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=25)))
         End Function
 
-        <WorkItem(639075)>
+        <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetStartPoint_SimpleEventWithAttributes() As Task
             Dim code =
@@ -77,7 +77,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=31)))
         End Function
 
-        <WorkItem(639075)>
+        <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetStartPoint_CustomEvent() As Task
             Dim code =
@@ -119,7 +119,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=41)))
         End Function
 
-        <WorkItem(639075)>
+        <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetStartPoint_CustomEventWithAttributes() As Task
             Dim code =
@@ -166,7 +166,7 @@ End Class
 
 #Region "GetEndPoint() tests"
 
-        <WorkItem(639075)>
+        <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetEndPoint_SimpleEvent() As Task
             Dim code =
@@ -199,7 +199,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=26, absoluteOffset:=34, lineLength:=25)))
         End Function
 
-        <WorkItem(639075)>
+        <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetEndPoint_SimpleEventWithAttributes() As Task
             Dim code =
@@ -233,7 +233,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=26, absoluteOffset:=66, lineLength:=25)))
         End Function
 
-        <WorkItem(639075)>
+        <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetEndPoint_CustomEvent() As Task
             Dim code =
@@ -275,7 +275,7 @@ End Class
                      TextPoint(line:=11, lineOffset:=14, absoluteOffset:=299, lineLength:=13)))
         End Function
 
-        <WorkItem(639075)>
+        <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetEndPoint_CustomEventWithAttributes() As Task
             Dim code =
@@ -577,6 +577,43 @@ End Class
 
             Await TestName(code, "Foo")
         End Function
+#End Region
+
+#Region "OverrideKind tests"
+
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_SimpleEvent() As Task
+            Dim code =
+<Code>
+Class C
+    Event $$E()
+End Class
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+        End Function
+
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_CustomEvent() As Task
+            Dim code =
+<Code>
+Class C
+    Custom Event $$E As System.EventHandler
+        AddHandler(value As System.EventHandler)
+        End AddHandler
+        RemoveHandler(value As System.EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As System.EventArgs)
+        End RaiseEvent
+    End Event
+End Class
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+        End Function
+
 #End Region
 
 #Region "Type tests"

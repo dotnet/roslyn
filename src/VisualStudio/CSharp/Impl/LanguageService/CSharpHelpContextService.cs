@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             // For now, find the token under the start of the selection.
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = syntaxTree.GetTouchingToken(span.Start, cancellationToken, findInsideTrivia: true);
+            var token = await syntaxTree.GetTouchingTokenAsync(span.Start, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
             if (IsValid(token, span))
             {

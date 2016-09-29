@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Text
     internal sealed class SourceTextStream : Stream
     {
         private readonly SourceText _source;
+        private readonly Encoding _encoding;
         private readonly Encoder _encoder;
 
         private readonly int _minimumTargetBufferCount;
@@ -22,11 +24,16 @@ namespace Microsoft.CodeAnalysis.Text
         private int _bufferUnreadChars;
         private bool _preambleWritten;
 
-        public SourceTextStream(SourceText source, int bufferSize = 2048)
+        private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
+
+        public SourceTextStream(SourceText source, int bufferSize = 2048, bool useDefaultEncodingIfNull = false)
         {
+            Debug.Assert(source.Encoding != null || useDefaultEncodingIfNull);
+
             _source = source;
-            _encoder = source.Encoding.GetEncoder();
-            _minimumTargetBufferCount = source.Encoding.GetMaxByteCount(charCount: 1);
+            _encoding = source.Encoding ?? s_utf8EncodingWithNoBOM;
+            _encoder = _encoding.GetEncoder();
+            _minimumTargetBufferCount = _encoding.GetMaxByteCount(charCount: 1);
             _sourceOffset = 0;
             _position = 0;
             _charBuffer = new char[Math.Min(bufferSize, _source.Length)];
@@ -109,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Text
         private int WritePreamble(byte[] buffer, int offset, int count)
         {
             _preambleWritten = true;
-            byte[] preambleBytes = _source.Encoding.GetPreamble();
+            byte[] preambleBytes = _encoding.GetPreamble();
             if (preambleBytes == null)
             {
                 return 0;

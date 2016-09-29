@@ -1,12 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class ActiveStatementTrackingServiceTests
         Inherits RudeEditTestBase
 
-        <WpfFact, WorkItem(846042)>
+        <Fact, WorkItem(846042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")>
         Public Sub MovedOutsideOfMethod1()
             Dim src1 = "
 Class C
@@ -33,7 +32,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub MovedOutsideOfMethod2()
             Dim src1 = "
 Class C
@@ -59,7 +58,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub MovedOutsideOfLambda1()
             Dim src1 = "
 Class C
@@ -85,7 +84,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub MovedOutsideOfLambda2()
             Dim src1 = "
 Class C

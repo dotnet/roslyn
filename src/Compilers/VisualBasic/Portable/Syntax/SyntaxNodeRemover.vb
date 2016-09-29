@@ -3,6 +3,7 @@
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
+Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -158,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         If Me.IsForRemoval(node) Then
                             If alternate Is Nothing Then
                                 alternate = New SyntaxNodeOrTokenListBuilder(n)
-                                alternate.AddRange(withSeps, 0, i)
+                                alternate.Add(withSeps, 0, i)
                             End If
 
                             If alternate.Count > 0 AndAlso alternate(alternate.Count - 1).IsToken Then
@@ -183,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                     If item <> visited AndAlso alternate Is Nothing Then
                         alternate = New SyntaxNodeOrTokenListBuilder(n)
-                        alternate.AddRange(withSeps, 0, i)
+                        alternate.Add(withSeps, 0, i)
                     End If
 
                     If alternate IsNot Nothing AndAlso Not visited.IsKind(SyntaxKind.None) Then

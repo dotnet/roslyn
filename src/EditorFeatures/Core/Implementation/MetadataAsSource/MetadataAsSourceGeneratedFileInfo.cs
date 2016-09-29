@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var projectInfo = ProjectInfo.Create(
                 projectId,
                 VersionStamp.Default,
-                "MetadataAsSourceProject",
-                AssemblyIdentity.Name,
-                LanguageName,
+                name: AssemblyIdentity.Name,
+                assemblyName: AssemblyIdentity.Name,
+                language: LanguageName,
                 compilationOptions: compilationOptions,
                 documents: new[] { assemblyInfoDocument, generatedDocument },
                 metadataReferences: References);

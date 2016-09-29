@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     {
         private const string CommandName = "reset";
         private const string NoConfigParameterName = "noconfig";
-        private static readonly int NoConfigParameterNameLength = NoConfigParameterName.Length;
+        private static readonly int s_noConfigParameterNameLength = NoConfigParameterName.Length;
         private readonly IStandardClassificationService _registry;
 
         [ImportingConstructor]
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             int argumentsStart = argumentsSpan.Start;
             foreach (var pos in GetNoConfigPositions(arguments))
             {
-                var snapshotSpan = new SnapshotSpan(snapshot, new Span(argumentsStart + pos, NoConfigParameterNameLength));
+                var snapshotSpan = new SnapshotSpan(snapshot, new Span(argumentsStart + pos, s_noConfigParameterNameLength));
                 yield return new ClassificationSpan(snapshotSpan, _registry.Keyword);
             }
         }
@@ -83,12 +83,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 if (index < 0) yield break;
 
                 if ((index == 0 || char.IsWhiteSpace(arguments[index - 1])) &&
-                    (index + NoConfigParameterNameLength == arguments.Length || char.IsWhiteSpace(arguments[index + NoConfigParameterNameLength])))
+                    (index + s_noConfigParameterNameLength == arguments.Length || char.IsWhiteSpace(arguments[index + s_noConfigParameterNameLength])))
                 {
                     yield return index;
                 }
 
-                startIndex = index + NoConfigParameterNameLength;
+                startIndex = index + s_noConfigParameterNameLength;
             }
         }
 

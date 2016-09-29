@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -124,17 +123,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string name,
             SynthesizedLocalKind kind,
             LocalDebugId id,
-            uint pdbAttributes,
+            LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags,
+            ImmutableArray<TypedConstant> tupleElementNames,
             bool isSlotReusable)
         {
             LocalDefinition local;
 
             if (!isSlotReusable || !FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
             {
-                local = this.DeclareLocalImpl(type, symbol, name, kind, id, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
+                local = this.DeclareLocalImpl(type, symbol, name, kind, id, pdbAttributes, constraints, dynamicTransformFlags, tupleElementNames);
             }
 
             LocalMap.Add(symbol, local);
@@ -166,7 +165,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal LocalDefinition AllocateSlot(
             Cci.ITypeReference type,
             LocalSlotConstraints constraints,
-            ImmutableArray<TypedConstant> dynamicTransformFlags = default(ImmutableArray<TypedConstant>))
+            ImmutableArray<TypedConstant> dynamicTransformFlags = default(ImmutableArray<TypedConstant>),
+            ImmutableArray<TypedConstant> tupleElementNames = default(ImmutableArray<TypedConstant>))
         {
             LocalDefinition local;
             if (!FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
@@ -177,10 +177,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     nameOpt: null,
                     kind: SynthesizedLocalKind.EmitterTemp,
                     id: LocalDebugId.None,
-                    pdbAttributes: Cci.PdbWriter.HiddenLocalAttributesValue,
+                    pdbAttributes: LocalVariableAttributes.DebuggerHidden,
                     constraints: constraints,
-                    isDynamic: false,
-                    dynamicTransformFlags: dynamicTransformFlags);
+                    dynamicTransformFlags: dynamicTransformFlags,
+                    tupleElementNames: tupleElementNames);
             }
 
             return local;
@@ -192,10 +192,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string nameOpt,
             SynthesizedLocalKind kind,
             LocalDebugId id,
-            uint pdbAttributes,
+            LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            bool isDynamic,
-            ImmutableArray<TypedConstant> dynamicTransformFlags)
+            ImmutableArray<TypedConstant> dynamicTransformFlags,
+            ImmutableArray<TypedConstant> tupleElementNames)
         {
             if (_lazyAllLocals == null)
             {
@@ -206,7 +206,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             if (symbolOpt != null && _slotAllocatorOpt != null)
             {
-                local = _slotAllocatorOpt.GetPreviousLocal(type, symbolOpt, nameOpt, kind, id, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
+                local = _slotAllocatorOpt.GetPreviousLocal(
+                    type,
+                    symbolOpt,
+                    nameOpt,
+                    kind,
+                    id,
+                    pdbAttributes,
+                    constraints,
+                    dynamicTransformFlags: dynamicTransformFlags,
+                    tupleElementNames: tupleElementNames);
                 if (local != null)
                 {
                     int slot = local.SlotIndex;
@@ -224,8 +233,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 id: id,
                 pdbAttributes: pdbAttributes,
                 constraints: constraints,
-                isDynamic: isDynamic,
-                dynamicTransformFlags: dynamicTransformFlags);
+                dynamicTransformFlags: dynamicTransformFlags,
+                tupleElementNames: tupleElementNames);
 
             _lazyAllLocals.Add(local);
             return local;

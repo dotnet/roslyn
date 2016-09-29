@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.DocumentationCommentFormatting;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -242,6 +242,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     return _symbol.IsAnonymousType;
                 }
             }
+
+            public bool IsTupleType => _symbol.IsTupleType;
+
+            public ImmutableArray<ITypeSymbol> TupleElementTypes => _symbol.TupleElementTypes;
+
+            public ImmutableArray<string> TupleElementNames => _symbol.TupleElementNames;
+
+            public INamedTypeSymbol TupleUnderlyingType => _symbol.TupleUnderlyingType;
 
             ITypeSymbol ITypeSymbol.OriginalDefinition
             {

@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.XmlDocCommentCompletion;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new XmlDocCommentCompletionProvider();
         }
@@ -36,22 +36,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             }
         }
 
-        protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
+        protected override async Task VerifyWorkerAsync(
+            string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+            int? glyph, int? matchPriority)
         {
             // We don't need to try writing comments in from of items in doc comments.
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AlwaysVisibleAtAnyLevelItems1()
         {
             await VerifyItemsExistAsync(@"
@@ -62,7 +65,7 @@ public class foo
 }", "see", "seealso", "![CDATA[", "!--");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AlwaysVisibleAtAnyLevelItems2()
         {
             await VerifyItemsExistAsync(@"
@@ -73,7 +76,7 @@ public class foo
 }", "see", "seealso", "![CDATA[", "!--");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AlwaysVisibleNotTopLevelItems1()
         {
             await VerifyItemsExistAsync(@"
@@ -81,10 +84,10 @@ public class foo
 {
     /// <summary> $$ </summary>
     public void bar() { }
-}", "c", "code", "list", "para", "paramref", "typeparamref");
+}", "c", "code", "list", "para");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AlwaysVisibleNotTopLevelItems2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -95,7 +98,7 @@ public class foo
 }", "c", "code", "list", "para", "paramref", "typeparamref");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AlwaysVisibleTopLevelOnlyItems1()
         {
             await VerifyItemsExistAsync(@"
@@ -106,7 +109,7 @@ public class foo
 }", "exception", "include", "permission");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AlwaysVisibleTopLevelOnlyItems2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -117,7 +120,7 @@ public class foo
 }", "exception", "include", "permission");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TopLevelSingleUseItems1()
         {
             await VerifyItemsExistAsync(@"
@@ -128,7 +131,7 @@ public class foo
 }", "example", "remarks", "summary");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TopLevelSingleUseItems2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -139,7 +142,7 @@ public class foo
 }", "example", "remarks", "summary");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TopLevelSingleUseItems3()
         {
             await VerifyItemsAbsentAsync(@"
@@ -153,7 +156,7 @@ public class foo
 }", "example", "remarks", "summary");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OnlyInListItems()
         {
             await VerifyItemsAbsentAsync(@"
@@ -167,7 +170,7 @@ public class foo
 }", "listheader", "item", "term", "description");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OnlyInListItems2()
         {
             await VerifyItemsAbsentAsync(@"
@@ -179,7 +182,7 @@ public class foo
 }", "listheader", "item", "term", "description");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OnlyInListItems3()
         {
             await VerifyItemsExistAsync(@"
@@ -191,7 +194,7 @@ public class foo
 }", "listheader", "item", "term", "description");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OnlyInListItems4()
         {
             await VerifyItemsExistAsync(@"
@@ -203,7 +206,7 @@ public class foo
 }", "listheader", "item", "term", "description");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ListHeaderItems()
         {
             await VerifyItemsExistAsync(@"
@@ -219,7 +222,7 @@ public class foo
 }", "term", "description");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task VoidMethodDeclarationItems()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -231,7 +234,7 @@ public class foo
 }", "returns");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodReturns()
         {
             await VerifyItemExistsAsync(@"
@@ -243,7 +246,7 @@ public class foo
 }", "returns");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodParamTypeParam()
         {
             await VerifyItemsExistAsync(@"
@@ -255,7 +258,7 @@ public class foo<T>
 }", "typeparam name=\"T\"", "param name=\"green\"");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IndexerParamTypeParam()
         {
             await VerifyItemsExistAsync(@"
@@ -267,7 +270,34 @@ public class foo<T>
 }", "param name=\"green\"");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task MethodParamRefName()
+        {
+            await VerifyItemsExistAsync(@"
+public class foo<T>
+{
+    
+    /// <summary>
+    /// $$
+    /// </summary>
+    public int bar<T>(T green) { }
+}", "typeparamref name=\"T\"", "paramref name=\"green\"");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ClassTypeParamRefName()
+        {
+            await VerifyItemsExistAsync(@"
+/// <summary>
+/// $$
+/// </summary>
+public class foo<T>
+{
+    public int bar<T>(T green) { }
+}", "typeparamref name=\"T\"");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ClassTypeParam()
         {
             await VerifyItemsExistAsync(@"
@@ -980,7 +1010,7 @@ public class foo<T>
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
         }
 
-        [WorkItem(623168)]
+        [WorkItem(623168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623168")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoTrailingSpace()
         {
@@ -999,8 +1029,8 @@ public class foo<T>
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit, commitChar: ' ');
         }
 
-        [WorkItem(638802)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(638802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638802")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TagsAfterSameLineClosedTag()
         {
             var text = @"/// <summary>
@@ -1009,11 +1039,11 @@ public class foo<T>
 /// </summary>
 ";
 
-            await VerifyItemsExistAsync(text, "!--", "![CDATA[", "c", "code", "list", "para", "paramref", "seealso", "see", "typeparamref");
+            await VerifyItemsExistAsync(text, "!--", "![CDATA[", "c", "code", "list", "para", "seealso", "see");
         }
 
-        [WorkItem(734825)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(734825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734825")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EnumMember()
         {
             var text = @"public enum z
@@ -1029,8 +1059,8 @@ public class foo<T>
             await VerifyItemsExistAsync(text);
         }
 
-        [WorkItem(954679)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(954679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954679")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionList()
         {
             await VerifyItemExistsAsync(@"
@@ -1040,8 +1070,8 @@ public class foo
 }", "completionlist");
         }
 
-        [WorkItem(775091)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ParamRefNames()
         {
             await VerifyItemExistsAsync(@"
@@ -1052,6 +1082,58 @@ static void Main(string[] args)
 {
 }
 ", "args");
+        }
+
+        [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PartialTagCompletion()
+        {
+            await VerifyItemsExistAsync(@"
+public class foo
+{
+    /// <r$$
+    public void bar() { }
+}", "!--", "![CDATA[", "completionlist", "example", "exception", "include", "permission", "remarks", "see", "seealso", "summary");
+        }
+
+        [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PartialTagCompletionNestedTags()
+        {
+            await VerifyItemsExistAsync(@"
+public class foo
+{
+    /// <summary>
+    /// <r$$
+    /// </summary>
+    public void bar() { }
+}", "!--", "![CDATA[", "c", "code", "list", "para", "see", "seealso");
+        }
+
+        [WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamAtTopLevelOnly()
+        {
+            await VerifyItemsAbsentAsync(@"
+/// <summary>
+/// $$
+/// </summary>
+public class Foo<T>
+{
+}", "typeparam name=\"T\"");
+        }
+
+        [WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ParamAtTopLevelOnly()
+        {
+            await VerifyItemsAbsentAsync(@"
+/// <summary>
+/// $$
+/// </summary>
+static void Foo(string str)
+{
+}", "param name=\"str\"");
         }
     }
 }

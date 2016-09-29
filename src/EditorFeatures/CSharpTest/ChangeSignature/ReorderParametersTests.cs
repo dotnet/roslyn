@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -369,63 +366,7 @@ class Program
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
-
-        [WpfFact(Skip = "908023"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderCollectionInitializerAddMethodParametersAndArguments()
-        {
-            var markup = @"
-using System;
-using System.Collections;
-
-class Program : IEnumerable
-{
-    static void Main(string[] args)
-    {
-        new Program { { 1, 2 }, { ""three"", ""four"" }, { 5, 6 } };
-    }
-
-    public void Add(int x, int y)$$
-    {
-    }
-
-    public void Add(string x, string y)
-    {
-    }
-
-    public IEnumerator GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
-}";
-            var permutation = new[] { 1, 0 };
-            var updatedCode = @"
-using System;
-using System.Collections;
-
-class Program : IEnumerable
-{
-    static void Main(string[] args)
-    {
-        new Program { { 2, 1 }, { ""three"", ""four"" }, { 6, 5 } };
-    }
-
-    public void Add(int y, int x)
-    {
-    }
-
-    public void Add(string x, string y)
-    {
-    }
-
-    public IEnumerator GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
-}";
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
+        
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
         {

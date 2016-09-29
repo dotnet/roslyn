@@ -1,15 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     Public Class ModuleNameExpansionTests
         Inherits AbstractExpansionTest
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestExpandModuleNameForSimpleName() As Task
             Dim input =
 <Workspace>
@@ -54,7 +51,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestExpandModuleNameForQualifiedNameWithMissingModuleName() As Task
             Dim input =
 <Workspace>
@@ -99,7 +96,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestExpandModuleNameForMemberAccessWithMissingModuleName() As Task
             Dim input =
 <Workspace>
@@ -144,7 +141,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestExpandAndOmitModuleNameWhenConflicting() As Task
             Dim input =
                 <Workspace>
@@ -186,7 +183,7 @@ End Namespace
             Await TestAsync(input, expected, useLastProject:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestExpandModuleNameForSimpleNameRoundtrip() As Task
             Dim input =
 <Workspace>
@@ -231,7 +228,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestExpandModuleNameForQualifiedNameWithMissingModuleNameRoundtrip() As Task
             Dim input =
 <Workspace>

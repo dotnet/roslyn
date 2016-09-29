@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,10 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
     [ExportLanguageService(typeof(AbstractExtractInterfaceService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpExtractInterfaceService : AbstractExtractInterfaceService
     {
-        internal override SyntaxNode GetTypeDeclaration(Document document, int position, TypeDiscoveryRule typeDiscoveryRule, CancellationToken cancellationToken)
+        internal override async Task<SyntaxNode> GetTypeDeclarationAsync(Document document, int position, TypeDiscoveryRule typeDiscoveryRule, CancellationToken cancellationToken)
         {
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var token = tree.GetRoot(cancellationToken).FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
             var typeDeclaration = token.GetAncestor<TypeDeclarationSyntax>();
 
             if (typeDeclaration == null ||
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             CancellationToken cancellationToken)
         {
             var documentWithTypeNode = solutionWithFormattedInterfaceDocument.GetDocument(documentIdWithTypeNode);
-            var root = documentWithTypeNode.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = documentWithTypeNode.GetSyntaxRootSynchronously(cancellationToken);
             var typeDeclaration = root.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single();
 
             var docId = solutionWithFormattedInterfaceDocument.GetDocument(typeDeclaration.SyntaxTree).Id;

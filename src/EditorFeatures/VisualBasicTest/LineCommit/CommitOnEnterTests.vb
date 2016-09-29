@@ -1,17 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Commands
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Operations
-Imports Moq
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Public Class CommitOnEnterTests
@@ -49,7 +39,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(531421)>
+        <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Async Function TestNoCommitAfterExplicitLineContinuation() As Task
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -68,7 +58,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(531421)>
+        <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Async Function TestCommitAfterBlankLineFollowingExplicitLineContinuation() As Task
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -199,7 +189,7 @@ End Class
         End Function
 
         <WpfFact>
-        <WorkItem(539451)>
+        <WorkItem(539451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539451")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitAfterColon() As Task
             Dim test = <Workspace>
@@ -218,7 +208,7 @@ End Class
         End Function
 
         <WpfFact>
-        <WorkItem(539408)>
+        <WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitAfterConstDirective() As Task
             Dim test = <Workspace>
@@ -233,7 +223,7 @@ End Class
         End Function
 
         <WpfFact>
-        <WorkItem(539408)>
+        <WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitAfterComment() As Task
             Dim test = <Workspace>
@@ -248,7 +238,7 @@ rem Hello World$$|]
         End Function
 
         <WpfFact>
-        <WorkItem(544372)>
+        <WorkItem(544372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function UndoAfterCommitOnBlankLine() As Threading.Tasks.Task
             Using testData = Await CommitTestData.CreateAsync(<Workspace>
@@ -266,7 +256,7 @@ rem Hello World$$|]
         End Function
 
         <WpfFact>
-        <WorkItem(540210)>
+        <WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitAfterThenTouchingThen() As Task
             ' Note that the source we are starting this test with is *not* syntactically correct,
@@ -290,7 +280,7 @@ End Class
         End Function
 
         <WpfFact>
-        <WorkItem(540210)>
+        <WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitAfterThenTouchingStatement() As Task
             ' Note that the source we are starting this test with is *not* syntactically correct,
@@ -314,7 +304,7 @@ End Class
         End Function
 
         <WpfFact>
-        <WorkItem(530463)>
+        <WorkItem(530463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530463")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitAfterPropertyStatement() As Task
             Dim test = <Workspace>
@@ -337,7 +327,7 @@ End Class
         End Function
 
         <WpfFact>
-        <WorkItem(986168)>
+        <WorkItem(986168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986168")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestDontCommitInsideStringLiteral() As Task
             Dim test = <Workspace>

@@ -18,14 +18,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
             If parent IsNot Nothing AndAlso Not parent.Statements.IsEmpty() Then
                 If context.IsFollowingCompleteStatement(Of SingleLineIfStatementSyntax)(Function(ifStatement) ifStatement.Statements.Last()) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.ElseKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True))
                 End If
             End If
 
             If context.IsSingleLineStatementContext AndAlso
                IsDirectlyInIfOrElseIf(context) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.ElseKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True))
             End If
 
             ' Determine whether we can offer "Else" after "Case" in a Select block.
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
                     ' Finally, ensure this case statement is the last one in the parenting "Select" block.
                     If selectBlock.CaseBlocks.Last().CaseStatement Is targetToken.Parent Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.CaseElseKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_the_statements_to_run_if_none_of_the_previous_cases_in_the_Select_Case_statement_returns_True))
                     End If
                 End If
             End If

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             public void CreateStartRenameUndoTransaction(Workspace workspace, ITextBuffer subjectBuffer, InlineRenameSession inlineRenameSession)
             {
-                var startRenameUndoPrimitive = new RenameUndoPrimitive(EditorFeaturesResources.StartRename);
+                var startRenameUndoPrimitive = new RenameUndoPrimitive(EditorFeaturesResources.Start_Rename);
                 var textUndoHistoryService = workspace.Services.GetService<ITextUndoHistoryWorkspaceService>();
                 ITextUndoHistory undoHistory;
                 Contract.ThrowIfFalse(textUndoHistoryService.TryGetTextUndoHistory(workspace, subjectBuffer, out undoHistory));
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
                 var adapter = _editorAdaptersFactoryService.GetBufferAdapter(this.UndoManagers[subjectBuffer].UndoHistoryBuffer);
                 var compoundAction = adapter as IVsCompoundAction;
-                compoundAction.OpenCompoundAction(EditorFeaturesResources.StartRename);
+                compoundAction.OpenCompoundAction(EditorFeaturesResources.Start_Rename);
                 applyEdit();
                 compoundAction.CloseCompoundAction();
 

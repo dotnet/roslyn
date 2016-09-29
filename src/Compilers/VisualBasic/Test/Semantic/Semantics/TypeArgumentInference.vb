@@ -392,7 +392,7 @@ System.Func`2[System.Int16,System.Int64]
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545209, "DevDiv")>
+        <Fact(), WorkItem(545209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545209")>
         Public Sub TestLambda4()
             Dim compilationDef =
 <compilation name="TypeArgumentInferenceLambda4">
@@ -1011,7 +1011,7 @@ BC36564: Type arguments could not be inferred from the delegate.
         End Sub
 
 
-        <WorkItem(540950, "DevDiv")>
+        <WorkItem(540950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540950")>
         <Fact>
         Public Sub InferForAddressOf3()
             Dim source =
@@ -1037,7 +1037,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(540951, "DevDiv")>
+        <WorkItem(540951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540951")>
         <Fact>
         Public Sub InferForAddressOf4()
             Dim source =
@@ -1064,7 +1064,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(542040, "DevDiv")>
+        <WorkItem(542040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542040")>
         <Fact>
         Public Sub InferInPresenceOfOverloadsAndSubLambda()
             Dim source =
@@ -1574,7 +1574,7 @@ BC33037: Cannot copy the value of 'ByRef' parameter 'x' back to the matching arg
 </expected>)
         End Sub
 
-        <Fact, WorkItem(545092, "DevDiv")>
+        <Fact, WorkItem(545092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545092")>
         Public Sub Bug13357()
             Dim compilationDef =
 <compilation name="TypeArgumentInference1">
@@ -1685,7 +1685,7 @@ LATE BOUND
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545812, "DevDiv")>
+        <Fact, WorkItem(545812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545812")>
         Public Sub Bug14478()
             Dim compilationDef =
 <compilation name="TypeArgumentInference2">
@@ -1731,7 +1731,7 @@ f5 - T: (System.Int32)
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545812, "DevDiv")>
+        <Fact, WorkItem(545812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545812")>
         Public Sub Bug14478_2()
             Dim compilationDef =
 <compilation name="TypeArgumentInference2">
@@ -1777,7 +1777,7 @@ scen2: CB
 ]]>)
         End Sub
 
-        <Fact, WorkItem(629539, "DevDiv")>
+        <Fact, WorkItem(629539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629539")>
         Public Sub Bug629539()
             Dim compilationDef =
 <compilation>
@@ -1832,7 +1832,7 @@ BC36734: Cannot infer a return type because more than one type is possible. Cons
 </expected>)
         End Sub
 
-        <Fact, WorkItem(811902, "DevDiv")>
+        <Fact, WorkItem(811902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/811902")>
         Public Sub Bug811902()
             Dim compilationDef =
 <compilation>

@@ -1399,7 +1399,7 @@ End Namespace
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(544933, "DevDiv")>
+        <WorkItem(544933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544933")>
         <Fact>
         Public Sub LookupSymbolsGenericExtensionMethodWithConstraints()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -1444,7 +1444,7 @@ BC30456: 'F' is not a member of 'B'.
             CheckSymbols(symbols)
         End Sub
 
-        <Fact, WorkItem(963125)>
+        <Fact, WorkItem(963125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/963125")>
         Public Sub Bug963125()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

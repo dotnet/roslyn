@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -33,12 +35,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IWaitIndicator waitIndicator,
             CodeFix fix,
             object provider,
-            Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet) :
-                base(workspace, subjectBuffer, editHandler, waitIndicator, fix.Action, provider)
+            Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet,
+            IAsynchronousOperationListener operationListener)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, fix.Action, provider, operationListener)
         {
             _fix = fix;
             _getFixAllSuggestedActionSet = getFixAllSuggestedActionSet;
         }
+
+        // Put suppressions at the end of everything.
+        internal override CodeActionPriority Priority => CodeActionPriority.None;
 
         public override bool HasActionSets
         {
@@ -60,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             if (this.CodeAction.GetCodeActions().Any())
             {
-                var nestedSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
+                var nestedSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
                 var fixCount = this.CodeAction.GetCodeActions().Length;
 
                 foreach (var c in this.CodeAction.GetCodeActions())
@@ -69,12 +75,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(c);
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
-                            this.Workspace, this.SubjectBuffer, this.EditHandler, this.WaitIndicator,
-                            new CodeFix(_fix.Project, c, _fix.Diagnostics), c, this.Provider, fixAllSuggestedActionSet));
+                        this.Workspace, this.SubjectBuffer, this.EditHandler, this.WaitIndicator, new CodeFix(_fix.Project, c, _fix.Diagnostics),
+                        c, this.Provider, fixAllSuggestedActionSet, this.OperationListener));
                 }
 
                 _actionSets = ImmutableArray.Create(
-                    new SuggestedActionSet(nestedSuggestedActions.ToImmutable()));
+                    new SuggestedActionSet(nestedSuggestedActions.ToImmutableAndFree()));
 
                 return Task.FromResult(_actionSets);
             }
@@ -82,11 +88,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return SpecializedTasks.Default<IEnumerable<SuggestedActionSet>>();
         }
 
-        public override void Invoke(CancellationToken cancellationToken)
+        protected override Task InvokeAsync(
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             // The top-level action cannot be invoked.
             // However, the nested sub-actions returned above can be.
-            throw new NotSupportedException(string.Format(EditorFeaturesResources.OperationNotSupported,
+            throw new NotSupportedException(string.Format(EditorFeaturesResources._0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation,
                 nameof(SuppressionSuggestedAction),
                 nameof(Invoke),
                 nameof(ISuggestedAction),

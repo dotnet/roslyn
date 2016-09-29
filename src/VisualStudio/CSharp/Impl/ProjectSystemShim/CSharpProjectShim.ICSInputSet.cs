@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
                 default:
 
-                    throw new ArgumentException("fileType was not a valid OutputFileType", "fileType");
+                    throw new ArgumentException("fileType was not a valid OutputFileType", nameof(fileType));
             }
 
             SetOption(ref _outputKind, newOutputKind);
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             if (!object.Equals(value, newValue))
             {
                 value = newValue;
-                SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
+                UpdateOptions();
             }
         }
     }

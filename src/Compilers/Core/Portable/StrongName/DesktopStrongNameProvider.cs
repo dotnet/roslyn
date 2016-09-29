@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                 _stream.Dispose();
                 try
                 {
-                    PortableShim.File.Delete(_path);
+                    File.Delete(_path);
                 }
                 catch
                 {
@@ -104,6 +104,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // This exception is only used to detect when the acquisition of IClrStrongName fails
+        // and the likely reason is that we're running on CoreCLR on a non-Windows platform.
+        // The place where the acquisition fails does not have access to localization,
+        // so we can't throw some generic exception with a localized message.
+        // So this is sort of a token for the eventual message to be generated.
+
+        // The path from where this is thrown to where it is caught is all internal,
+        // so there's no chance of an API consumer seeing it.
+        internal sealed class ClrStrongNameMissingException : Exception
+        {
+        }
+
         private readonly ImmutableArray<string> _keyFileSearchPaths;
 
         // for testing/mocking
@@ -119,7 +131,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(path => !PathUtilities.IsAbsolute(path)))
             {
-                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "keyFileSearchPaths");
+                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(keyFileSearchPaths));
             }
 
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
@@ -128,13 +140,13 @@ namespace Microsoft.CodeAnalysis
         internal virtual bool FileExists(string fullPath)
         {
             Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
-            return PortableShim.File.Exists(fullPath);
+            return File.Exists(fullPath);
         }
 
         internal virtual byte[] ReadAllBytes(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return PortableShim.File.ReadAllBytes(fullPath);
+            return File.ReadAllBytes(fullPath);
         }
 
         /// <summary>
@@ -172,10 +184,12 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        /// <exception cref="IOException"></exception>
         internal override Stream CreateInputStream()
         {
-            var path = PortableShim.Path.GetTempFileName();
-            Func<string, Stream> streamConstructor = lPath => new TempFileStream(lPath, PortableShim.FileStream.Create(lPath, PortableShim.FileMode.Create, PortableShim.FileAccess.ReadWrite, PortableShim.FileShare.ReadWrite));
+            var path = Path.GetTempFileName();
+            Func<string, Stream> streamConstructor = lPath => new TempFileStream(lPath,
+                new FileStream(lPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
             return FileUtilities.CreateFileStreamChecked(streamConstructor, path);
         }
 
@@ -187,7 +201,6 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-
                 try
                 {
                     string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath);
@@ -204,6 +217,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
                 }
+                // it turns out that we don't need IClrStrongName to retrieve a key file,
+                // so there's no need for a catch of ClrStrongNameMissingException in this case
             }
             else if (!string.IsNullOrEmpty(keyContainerName))
             {
@@ -211,6 +226,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     ReadKeysFromContainer(keyContainerName, out publicKey);
                     container = keyContainerName;
+                }
+                catch (ClrStrongNameMissingException)
+                {
+                    return new StrongNameKeys(StrongNameKeys.GetContainerError(messageProvider, keyContainerName,
+                        new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported))));
                 }
                 catch (IOException ex)
                 {
@@ -227,6 +247,11 @@ namespace Microsoft.CodeAnalysis
             {
                 publicKey = GetPublicKey(keyContainer);
             }
+            catch (ClrStrongNameMissingException)
+            {
+                // pipe it through so it's catchable directly by type
+                throw;
+            }
             catch (Exception ex)
             {
                 throw new IOException(ex.Message);
@@ -234,6 +259,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="IOException"></exception>
+        /// <exception cref="ClrStrongNameMissingException"></exception>
         internal override void SignAssembly(StrongNameKeys keys, Stream inputStream, Stream outputStream)
         {
             Debug.Assert(inputStream is TempFileStream);
@@ -251,7 +277,7 @@ namespace Microsoft.CodeAnalysis
                 Sign(assemblyFilePath, keys.KeyPair);
             }
 
-            using (var fileToSign = PortableShim.FileStream.Create(assemblyFilePath, PortableShim.FileMode.Open))
+            using (var fileToSign = new FileStream(assemblyFilePath, FileMode.Open))
             {
                 fileToSign.CopyTo(outputStream);
             }
@@ -266,7 +292,30 @@ namespace Microsoft.CodeAnalysis
         // internal for testing
         internal IClrStrongName GetStrongNameInterface()
         {
-            return TestStrongNameInterfaceFactory?.Invoke() ?? ClrStrongName.GetInstance();
+            var factoryCreated = TestStrongNameInterfaceFactory?.Invoke();
+
+            if (factoryCreated != null)
+            {
+                return factoryCreated;
+            }
+
+            try
+            {
+                return ClrStrongName.GetInstance();
+            }
+            catch (MarshalDirectiveException) when (PathUtilities.IsUnixLikePlatform)
+            {
+                // CoreCLR, when not on Windows, doesn't support IClrStrongName (or COM in general).
+                // This is really hard to detect/predict without false positives/negatives.
+                // It turns out that CoreCLR throws a MarshalDirectiveException when attempting
+                // to get the interface (Message "Cannot marshal 'return value': Unknown error."),
+                // so just catch that and state that it's not supported.
+
+                // We're deep in a try block that reports the exception's Message as part of a diagnostic.
+                // This exception will skip through the IOException wrapping by `Sign` (in this class),
+                // then caught by Compilation.SerializeToPeStream or DesktopStringNameProvider.CreateKeys
+                throw new ClrStrongNameMissingException();
+            }
         }
 
         internal ImmutableArray<byte> GetPublicKey(string keyContainer)
@@ -295,6 +344,11 @@ namespace Microsoft.CodeAnalysis
                 int unused;
                 strongName.StrongNameSignatureGeneration(filePath, keyName, IntPtr.Zero, 0, null, out unused);
             }
+            catch (ClrStrongNameMissingException)
+            {
+                // pipe it through so it's catchable directly by type
+                throw;
+            }
             catch (Exception ex)
             {
                 throw new IOException(ex.Message, ex);
@@ -313,6 +367,11 @@ namespace Microsoft.CodeAnalysis
                     int unused;
                     strongName.StrongNameSignatureGeneration(filePath, null, (IntPtr)pinned, keyPair.Length, null, out unused);
                 }
+            }
+            catch (ClrStrongNameMissingException)
+            {
+                // pipe it through so it's catchable directly by type
+                throw;
             }
             catch (Exception ex)
             {

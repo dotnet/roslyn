@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -138,7 +137,7 @@ foreach(int i   in source.Where(x  =>  x  > 5))
             await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 3);
         }
 
-        [WorkItem(576457)]
+        [WorkItem(576457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576457")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
         public async Task StatementLambdaInNugget()
         {

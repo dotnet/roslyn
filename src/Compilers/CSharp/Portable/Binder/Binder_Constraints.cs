@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Create a map from type parameter name to ordinal.
             // No need to report duplicate names since duplicates
             // are reported when the type parameters are bound.
-            var names = new Dictionary<string, int>(n);
+            var names = new Dictionary<string, int>(n, StringOrdinalComparer.Instance);
             foreach (var typeParameter in typeParameters)
             {
                 var name = typeParameter.Name;

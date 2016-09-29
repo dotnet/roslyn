@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenIterators_Dev11
         Inherits BasicTestBase
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub Dev11_ComprehensiveExitPoints()
             Dim source =
 <compilation>
@@ -17025,7 +17025,7 @@ Class2.excep.finally : 2
 ]]>)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub Dev11_Finally()
             Dim source =
 <compilation>
@@ -17120,7 +17120,7 @@ Dev11#61708 - it should only print 'finally' once
 finally]]>)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub Dev11_Finally0()
             Dim source =
 <compilation>
@@ -17171,7 +17171,7 @@ End Module
 7]]>)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub Dev11_Finally2()
             Dim source =
 <compilation>

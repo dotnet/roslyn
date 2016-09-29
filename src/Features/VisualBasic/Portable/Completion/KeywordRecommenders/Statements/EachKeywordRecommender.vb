@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Statements
     ''' <summary>
@@ -19,10 +20,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             Dim targetToken = context.TargetToken
 
             If targetToken.IsKind(SyntaxKind.ForKeyword) AndAlso targetToken.Parent.IsKind(SyntaxKind.ForStatement) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Each", VBFeaturesResources.ForEachKeywordToolTip))
-            Else
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Dim forStatement = DirectCast(targetToken.Parent, ForStatementSyntax)
+                If forStatement.EqualsToken = Nothing OrElse forStatement.EqualsToken.IsMissing Then
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Each", VBFeaturesResources.Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection))
+                End If
             End If
+
+            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
     End Class
 End Namespace

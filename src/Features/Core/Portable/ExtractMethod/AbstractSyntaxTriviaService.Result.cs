@@ -113,13 +113,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 // check variable assumption. ordering of two pairs can't be changed
                 Contract.ThrowIfFalse(
-                    (tokens[TriviaLocation.BeforeBeginningOfSpan].RawKind == 0 && tokens[TriviaLocation.AfterEndOfSpan].RawKind == 0) ||
                     (tokens[TriviaLocation.BeforeBeginningOfSpan].RawKind == 0 /* && don't care */) ||
                     (/* don't care && */ tokens[TriviaLocation.AfterEndOfSpan].RawKind == 0) ||
                     (tokens[TriviaLocation.BeforeBeginningOfSpan].Span.End <= tokens[TriviaLocation.AfterEndOfSpan].SpanStart));
 
                 Contract.ThrowIfFalse(
-                    (tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 && tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0) ||
                     (tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 /* && don't care */) ||
                     (/* don't care && */ tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0) ||
                     (tokens[TriviaLocation.AfterBeginningOfSpan] == tokens[TriviaLocation.BeforeEndOfSpan]) ||

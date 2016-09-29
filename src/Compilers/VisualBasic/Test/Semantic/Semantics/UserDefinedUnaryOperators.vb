@@ -648,7 +648,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544313, "DevDiv")>
+        <Fact(), WorkItem(544313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544313")>
         Public Sub IsTrueIsFalseInOverloadResolutionTakeWhile()
             Dim compilationDef =
 <compilation name="IsTrueIsFalseInOverloadResolutionTakeWhile">

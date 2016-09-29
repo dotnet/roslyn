@@ -426,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
             Dim lambdaSyntax = lambdaSymbol.Syntax
             Dim bodyBinder = lambdaBinder.GetBinder(lambdaSyntax)
-            Dim endSyntax As VisualBasicSyntaxNode = lambdaSyntax
+            Dim endSyntax As SyntaxNode = lambdaSyntax
 
             Dim block As BoundBlock
 
@@ -1016,7 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))(lambdaReturnType, diagnostics.ToReadOnlyAndFree())
         End Function
 
-        Private Shared Function LambdaHeaderErrorNode(source As UnboundLambda) As VisualBasicSyntaxNode
+        Private Shared Function LambdaHeaderErrorNode(source As UnboundLambda) As SyntaxNode
             Dim lambdaSyntax = TryCast(source.Syntax, LambdaExpressionSyntax)
 
             If lambdaSyntax IsNot Nothing Then
@@ -1103,7 +1103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _functionValue = CreateFunctionValueLocal(lambdaSymbol)
         End Sub
 
-        Private Function CreateFunctionValueLocal(lambdaSymbol As LambdaSymbol) As LocalSymbol
+        Private Shared Function CreateFunctionValueLocal(lambdaSymbol As LambdaSymbol) As LocalSymbol
             ' synthesized lambdas may not result from a LambdaExpressionSyntax (e.g. an AddressOf expression that 
             ' needs relaxation). In this case there will be no need to create a local here, this is done when generating the 
             ' lambda body.

@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTreeExtensions
@@ -29,22 +30,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function FindTriviaToLeft(nodeOrToken As SyntaxNodeOrToken, position As Integer) As SyntaxTrivia
+recurse:
             For Each child In nodeOrToken.ChildNodesAndTokens().Reverse()
-                If child.FullSpan.Start < position AndAlso position <= child.FullSpan.End Then
+                If (child.FullSpan.Start < position) AndAlso (position <= child.FullSpan.End) Then
                     If child.IsNode Then
-                        Return FindTriviaToLeft(child, position)
+                        nodeOrToken = child
+                        GoTo recurse
                     Else
-                        Dim triviaList = child.GetLeadingTrivia().Concat(child.GetTrailingTrivia()).Reverse()
-
-                        For Each trivia In triviaList
-                            If trivia.SpanStart < position AndAlso position <= child.FullSpan.End Then
+                        For Each trivia In child.GetTrailingTrivia.Reverse
+                            If (trivia.SpanStart < position) AndAlso (position <= child.FullSpan.End) Then
+                                Return trivia
+                            End If
+                        Next
+                        For Each trivia In child.GetLeadingTrivia.Reverse
+                            If (trivia.SpanStart < position) AndAlso (position <= child.FullSpan.End) Then
                                 Return trivia
                             End If
                         Next
                     End If
                 End If
             Next
-
             Return Nothing
         End Function
 
@@ -85,6 +90,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Public Function IsEntirelyWithinStringLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
+
+            If token.IsKind(SyntaxKind.StringLiteralToken) Then
+                Return token.SpanStart < position AndAlso position < token.Span.End OrElse AtEndOfIncompleteStringOrCharLiteral(token, position, """")
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
         Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
 
@@ -98,13 +114,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
+            ' If it is a numeric literal, all checks are done and we're okay. 
+            If token.IsKind(SyntaxKind.IntegerLiteralToken, SyntaxKind.DecimalLiteralToken,
+                            SyntaxKind.DateLiteralToken, SyntaxKind.FloatingLiteralToken) Then
+                Return False
+            End If
+
+            ' For char or string literals, check if we're at the end of an incomplete literal.
+            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
+
+            Return AtEndOfIncompleteStringOrCharLiteral(token, position, lastChar)
+        End Function
+
+        Private Function AtEndOfIncompleteStringOrCharLiteral(token As SyntaxToken, position As Integer, lastChar As String) As Boolean
             ' Check if it's a token that was started, but not ended
             Dim startLength = 1
             If token.IsKind(SyntaxKind.CharacterLiteralToken) Then
                 startLength = 2
             End If
 
-            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
             Return _
                 position = token.Span.End AndAlso
                  (token.Span.Length = startLength OrElse
@@ -130,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' #IF false Then
             ' |$
 
-            If SyntaxTree.FindTriviaToLeft(position, cancellationToken).Kind = SyntaxKind.DisabledTextTrivia Then
+            If syntaxTree.FindTriviaToLeft(position, cancellationToken).Kind = SyntaxKind.DisabledTextTrivia Then
                 Return True
             End If
 
@@ -145,36 +173,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return trivia.IsKind(SyntaxKind.SkippedTokensTrivia)
         End Function
 
-        ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to right.
-        ''' </summary>
-        <Extension()>
-        Public Function FindTokenOnRightOfPosition(
-            syntaxTree As SyntaxTree,
-            position As Integer,
-            cancellationToken As CancellationToken,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
+        Private Function IsGlobalStatementContext(token As SyntaxToken, position As Integer) As Boolean
+            If Not token.IsLastTokenOfStatement() Then
+                Return False
+            End If
 
-            Return syntaxTree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments)
+            ' NB: Checks whether the caret is placed after a colon or an end of line.
+            ' Otherwise the typed expression would still be a part of the previous statement.
+            If Not token.HasTrailingTrivia OrElse token.HasAncestor(Of IncompleteMemberSyntax) Then
+                Return False
+            End If
+
+            For Each trivia In token.TrailingTrivia
+                If trivia.Span.Start > position Then
+                    Return False
+                ElseIf trivia.IsKind(SyntaxKind.ColonTrivia) Then
+                    Return True
+                ElseIf trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
+                    Return True
+                End If
+            Next
+
+            Return False
         End Function
 
-        ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to left. 
-        ''' </summary>
         <Extension()>
-        Public Function FindTokenOnLeftOfPosition(
-            syntaxTree As SyntaxTree,
-            position As Integer,
-            cancellationToken As CancellationToken,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
+        Public Function IsGlobalStatementContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            If Not syntaxTree.IsScript() Then
+                Return False
+            End If
 
-            Return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments)
+            Dim token As SyntaxToken = syntaxTree.FindTokenOnLeftOfPosition(
+                position, cancellationToken, includeDirectives:=True).GetPreviousTokenIfTouchingWord(position)
+
+            If token.IsKind(SyntaxKind.None) Then
+                Dim compilationUnit = TryCast(syntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
+                Return compilationUnit Is Nothing OrElse compilationUnit.Imports.Count = 0
+            End If
+
+            Return IsGlobalStatementContext(token, position)
         End Function
 
         <Extension()>

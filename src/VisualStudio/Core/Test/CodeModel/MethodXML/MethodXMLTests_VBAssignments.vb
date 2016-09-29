@@ -356,7 +356,7 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(462922)>
+        <WorkItem(462922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/462922")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_Bug462922() As Task
             Dim definition =
@@ -519,7 +519,7 @@ End Enum
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(743120)>
+        <WorkItem(743120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743120")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_PropertyOffParameter() As Task
             Dim definition =
@@ -563,7 +563,7 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(831374)>
+        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_NullableValue() As Task
             Dim definition =
@@ -605,7 +605,7 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(831374)>
+        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_ClosedGeneric1() As Task
             Dim definition =
@@ -638,7 +638,7 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(831374)>
+        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_ClosedGeneric2() As Task
             Dim definition =
@@ -671,7 +671,7 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(831374)>
+        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_ClosedGeneric3() As Task
             Dim definition =
@@ -704,7 +704,7 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(831374)>
+        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_ClosedGeneric4() As Task
             Dim definition =
@@ -737,7 +737,7 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(831374)>
+        <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_TypeConfluence() As Task
             Dim definition =
@@ -770,7 +770,7 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(887584)>
+        <WorkItem(887584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887584")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_EscapedNames() As Task
             Dim definition =

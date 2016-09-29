@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 NamedTypeSymbol overriddenByDefinitionContaining = overriddenByDefinitionMember.ContainingType;
                 NamedTypeSymbol overriddenByDefinitionContainingTypeDefinition = overriddenByDefinitionContaining.OriginalDefinition;
-                for (NamedTypeSymbol baseType = substitutedOverridingMember.ContainingType.BaseTypeNoUseSiteDiagnostics; 
-                    (object)baseType != null; 
+                for (NamedTypeSymbol baseType = substitutedOverridingMember.ContainingType.BaseTypeNoUseSiteDiagnostics;
+                    (object)baseType != null;
                     baseType = baseType.BaseTypeNoUseSiteDiagnostics)
                 {
                     if (baseType.OriginalDefinition == overriddenByDefinitionContainingTypeDefinition)

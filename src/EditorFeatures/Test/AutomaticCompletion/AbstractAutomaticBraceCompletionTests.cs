@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         internal void CheckOverType(IBraceCompletionSession session, bool allowOverType = true)
         {
             var preClosingPoint = session.ClosingPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot);
-            Assert.Equal(preClosingPoint.Subtract(1).GetChar(), session.ClosingBrace);
+            Assert.Equal(session.ClosingBrace, preClosingPoint.Subtract(1).GetChar());
 
             bool handled;
             session.PreOverType(out handled);

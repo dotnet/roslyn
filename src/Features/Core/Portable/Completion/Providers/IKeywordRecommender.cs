@@ -2,11 +2,12 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface IKeywordRecommender<TContext>
     {
-        IEnumerable<RecommendedKeyword> RecommendKeywords(int position, TContext context, CancellationToken cancellationToken);
+        Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, TContext context, CancellationToken cancellationToken);
     }
 }

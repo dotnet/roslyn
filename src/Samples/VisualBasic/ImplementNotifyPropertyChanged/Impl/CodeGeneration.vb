@@ -206,7 +206,7 @@ Friend Module CodeGeneration
             Dim baseTypeName = SyntaxFactory.ParseTypeName(InterfaceName) _
                 .WithAdditionalAnnotations(Simplifier.Annotation)
 
-            ' Add an annoatation to format properly.
+            ' Add an annotation to format properly.
             Dim implementsStatement = SyntaxFactory.ImplementsStatement(baseTypeName).
                 WithAdditionalAnnotations(Formatter.Annotation)
 

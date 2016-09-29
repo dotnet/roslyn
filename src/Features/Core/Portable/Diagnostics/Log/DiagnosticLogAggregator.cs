@@ -21,7 +21,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             "Analyzer.SemanticModel",
             "Analyzer.Symbol",
             "Analyzer.SyntaxNode",
-            "Analyzer.SyntaxTree"
+            "Analyzer.SyntaxTree",
+            "Analyzer.Operation",
+            "Analyzer.OperationBlock",
+            "Analyzer.OperationBlockEnd",
+            "Analyzer.OperationBlockStart",
         };
 
         private readonly DiagnosticAnalyzerService _owner;
@@ -63,17 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             {
                 CLRType = analyzer.GetType();
                 Telemetry = telemetry;
-
-                Counts[0] = analyzerTelemetryInfo.CodeBlockActionsCount;
-                Counts[1] = analyzerTelemetryInfo.CodeBlockEndActionsCount;
-                Counts[2] = analyzerTelemetryInfo.CodeBlockStartActionsCount;
-                Counts[3] = analyzerTelemetryInfo.CompilationActionsCount;
-                Counts[4] = analyzerTelemetryInfo.CompilationEndActionsCount;
-                Counts[5] = analyzerTelemetryInfo.CompilationStartActionsCount;
-                Counts[6] = analyzerTelemetryInfo.SemanticModelActionsCount;
-                Counts[7] = analyzerTelemetryInfo.SymbolActionsCount;
-                Counts[8] = analyzerTelemetryInfo.SyntaxNodeActionsCount;
-                Counts[9] = analyzerTelemetryInfo.SyntaxTreeActionsCount;
+                SetAnalyzerTypeCount(analyzerTelemetryInfo);
             }
 
             public void SetAnalyzerTypeCount(AnalyzerTelemetryInfo analyzerTelemetryInfo)
@@ -88,6 +82,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                 Counts[7] = analyzerTelemetryInfo.SymbolActionsCount;
                 Counts[8] = analyzerTelemetryInfo.SyntaxNodeActionsCount;
                 Counts[9] = analyzerTelemetryInfo.SyntaxTreeActionsCount;
+                Counts[10] = analyzerTelemetryInfo.OperationActionsCount;
+                Counts[11] = analyzerTelemetryInfo.OperationBlockActionsCount;
+                Counts[12] = analyzerTelemetryInfo.OperationBlockEndActionsCount;
+                Counts[13] = analyzerTelemetryInfo.OperationBlockStartActionsCount;
             }
         }
     }

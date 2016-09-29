@@ -1,15 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
@@ -17,12 +10,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Inherits TestBase
 
         Private Async Function TestIsAccessibleWithinAsync(workspaceDefinition As XElement, expectedVisible As Boolean) As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim commonSyntaxToken = (Await document.GetSyntaxTreeAsync()).GetTouchingToken(cursorPosition, Nothing)
+                Dim tree = Await document.GetSyntaxTreeAsync()
+                Dim commonSyntaxToken = Await tree.GetTouchingTokenAsync(cursorPosition, Nothing)
 
                 Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim symbol = semanticModel.GetSymbols(commonSyntaxToken, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType:=False, cancellationToken:=Nothing).First()
@@ -34,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_ProtectedInternal() As Task
             Dim workspace =
 <Workspace>
@@ -53,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Await TestIsAccessibleWithinAsync(workspace, False)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_ProtectedInternal_InternalsVisibleTo() As Task
             Dim workspace =
 <Workspace>
@@ -74,7 +68,7 @@ public class Program { protected internal static int F; }
             Await TestIsAccessibleWithinAsync(workspace, True)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_ProtectedInternal_WrongInternalsVisibleTo() As Task
             Dim workspace =
 <Workspace>
@@ -95,7 +89,7 @@ public class Program { protected internal static int F; }
             Await TestIsAccessibleWithinAsync(workspace, False)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_PrivateInsideNestedType() As Task
             Dim workspace =
 <Workspace>
@@ -114,7 +108,7 @@ class Outer
             Await TestIsAccessibleWithinAsync(workspace, True)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_ProtectedInsideNestedType() As Task
             Dim workspace =
 <Workspace>

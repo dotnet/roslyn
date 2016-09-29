@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal partial class SyntacticClassificationTaggerProvider
     {
-        private partial class Tagger : ITagger<IClassificationTag>, IDisposable
+        private class Tagger : ITagger<IClassificationTag>, IDisposable
         {
             private TagComputer _tagComputer;
 

@@ -1753,7 +1753,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(623319, "DevDiv")]
+        [WorkItem(623319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
         {
@@ -1790,7 +1790,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(652147, "DevDiv")]
+        [WorkItem(652147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652147")]
         public async Task ReduceFloatingAndDecimalLiteralsWithInvariantCultureNegatives()
         {
             var oldCulture = Thread.CurrentThread.CurrentCulture;
@@ -1920,7 +1920,6 @@ Module Program
 End Module
 ";
             await VerifyAsync(code, expected);
-
         }
 
         [Fact]
@@ -1953,6 +1952,42 @@ Module Module1
         Dim ulMax As ULong = 0018446744073709551616UL
         Dim z As Long = &O37777777777777777777777
         Dim x As Long = &HFFFFFFFFFFFFFFFFF
+    End Sub
+End Module
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        public async Task ReduceBinaryIntegerLiteral()
+        {
+            var code = @"[|
+Module Module1
+    Sub Main()
+        Dim sMax As Short = &B101
+        Dim usMax As UShort = &B00100
+        Dim iMax As Integer = &B00100100
+        Dim uiMax As UInteger = &B001001100110
+        Dim lMax As Long = &B001001100110
+        Dim ulMax As ULong = &B001001100110
+        Dim z As Long = &B001001100110
+        Dim x As Long =&B001001100110
+    End Sub
+End Module
+|]";
+
+            var expected = @"
+Module Module1
+    Sub Main()
+        Dim sMax As Short = &B101
+        Dim usMax As UShort = &B100
+        Dim iMax As Integer = &B100100
+        Dim uiMax As UInteger = &B1001100110
+        Dim lMax As Long = &B1001100110
+        Dim ulMax As ULong = &B1001100110
+        Dim z As Long = &B1001100110
+        Dim x As Long = &B1001100110
     End Sub
 End Module
 ";

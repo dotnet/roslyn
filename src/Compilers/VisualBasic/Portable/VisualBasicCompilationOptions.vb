@@ -11,15 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits CompilationOptions
         Implements IEquatable(Of VisualBasicCompilationOptions)
 
-        Private Const s_globalImportsString = "GlobalImports"
-        Private Const s_rootNamespaceString = "RootNamespace"
-        Private Const s_optionStrictString = "OptionStrict"
-        Private Const s_optionInferString = "OptionInfer"
-        Private Const s_optionExplicitString = "OptionExplicit"
-        Private Const s_optionCompareTextString = "OptionCompareText"
-        Private Const s_embedVbCoreRuntimeString = "EmbedVbCoreRuntime"
-        Private Const s_parseOptionsString = "ParseOptions"
-
         Private _globalImports As ImmutableArray(Of GlobalImport)
         Private _rootNamespace As String
         Private _optionStrict As OptionStrict
@@ -123,6 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions,
                 concurrentBuild,
                 deterministic:=deterministic,
+                currentLocalTime:=Nothing,
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
                 debugPlusMode:=False,
@@ -131,7 +123,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public)
+                metadataImportOptions:=MetadataImportOptions.Public,
+                referencesSupersedeLowerVersions:=False)
 
         End Sub
 
@@ -161,6 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
             concurrentBuild As Boolean,
             deterministic As Boolean,
+            currentLocalTime As Date,
             suppressEmbeddedDeclarations As Boolean,
             extendedCustomDebugInformation As Boolean,
             debugPlusMode As Boolean,
@@ -169,7 +163,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataReferenceResolver As MetadataReferenceResolver,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
-            metadataImportOptions As MetadataImportOptions)
+            metadataImportOptions As MetadataImportOptions,
+            referencesSupersedeLowerVersions As Boolean)
 
             MyBase.New(
                 outputKind:=outputKind,
@@ -190,6 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
                 concurrentBuild:=concurrentBuild,
                 deterministic:=deterministic,
+                currentLocalTime:=currentLocalTime,
                 extendedCustomDebugInformation:=extendedCustomDebugInformation,
                 debugPlusMode:=debugPlusMode,
                 xmlReferenceResolver:=xmlReferenceResolver,
@@ -197,7 +193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=metadataImportOptions)
+                metadataImportOptions:=metadataImportOptions,
+                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions)
 
             _globalImports = globalImports.AsImmutableOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
@@ -217,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyClass.New(
                 outputKind:=other.OutputKind,
                 reportSuppressedDiagnostics:=other.ReportSuppressedDiagnostics,
-                ModuleName:=other.ModuleName,
+                moduleName:=other.ModuleName,
                 mainTypeName:=other.MainTypeName,
                 scriptClassName:=other.ScriptClassName,
                 globalImports:=other.GlobalImports,
@@ -235,11 +232,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyFile:=other.CryptoKeyFile,
                 cryptoPublicKey:=other.CryptoPublicKey,
                 delaySign:=other.DelaySign,
-                Platform:=other.Platform,
-                GeneralDiagnosticOption:=other.GeneralDiagnosticOption,
-                SpecificDiagnosticOptions:=other.SpecificDiagnosticOptions,
+                platform:=other.Platform,
+                generalDiagnosticOption:=other.GeneralDiagnosticOption,
+                specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
                 concurrentBuild:=other.ConcurrentBuild,
                 deterministic:=other.Deterministic,
+                currentLocalTime:=other.CurrentLocalTime,
                 extendedCustomDebugInformation:=other.ExtendedCustomDebugInformation,
                 debugPlusMode:=other.DebugPlusMode,
                 xmlReferenceResolver:=other.XmlReferenceResolver,
@@ -248,12 +246,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyIdentityComparer:=other.AssemblyIdentityComparer,
                 strongNameProvider:=other.StrongNameProvider,
                 metadataImportOptions:=other.MetadataImportOptions,
+                referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
                 publicSign:=other.PublicSign)
         End Sub
 
         Friend Overrides Function GetImports() As ImmutableArray(Of String)
             ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
-            Throw ExceptionUtilities.Unreachable
+            Dim importNames = ArrayBuilder(Of String).GetInstance(GlobalImports.Length)
+            For Each globalImport In GlobalImports
+                If Not globalImport.IsXmlClause Then
+                    importNames.Add(globalImport.Name)
+                End If
+            Next
+            Return importNames.ToImmutableAndFree()
         End Function
 
         ''' <summary>
@@ -381,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="moduleName">The moduleName.</param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the module name is different; otherwise current instance.</returns>        
-        Public Function WithModuleName(moduleName As String) As VisualBasicCompilationOptions
+        Public Shadows Function WithModuleName(moduleName As String) As VisualBasicCompilationOptions
             If String.Equals(moduleName, Me.ModuleName, StringComparison.Ordinal) Then
                 Return Me
             End If
@@ -553,7 +558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different deterministic mode specified.
         ''' <param name="deterministic"> The deterministic mode. </param>
-        ''' <returns> A new instance of VisualBasicCompilationOptions, if the concurrent build is different; otherwise the current instance.</returns>
+        ''' <returns> A new instance of VisualBasicCompilationOptions, if the deterministic mode is different; otherwise the current instance.</returns>
         ''' </summary>
         Public Shadows Function WithDeterministic(deterministic As Boolean) As VisualBasicCompilationOptions
             If deterministic = Me.Deterministic Then
@@ -561,6 +566,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {.Deterministic = deterministic}
+        End Function
+
+        Friend Function WithCurrentLocalTime(value As Date) As VisualBasicCompilationOptions
+            If value.Equals(CurrentLocalTime) Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.CurrentLocalTime_internal_protected_set = value}
         End Function
 
         ''' <summary>
@@ -680,6 +693,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.PublicSign = value}
         End Function
 
+        Protected Overrides Function CommonWithConcurrentBuild(concurrent As Boolean) As CompilationOptions
+            Return Me.WithConcurrentBuild(concurrent)
+        End Function
+
         Protected Overrides Function CommonWithDeterministic(deterministic As Boolean) As CompilationOptions
             Return Me.WithDeterministic(deterministic)
         End Function
@@ -777,6 +794,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.MetadataImportOptions_internal_protected_set = value}
         End Function
 
+        Friend Function WithReferencesSupersedeLowerVersions(value As Boolean) As VisualBasicCompilationOptions
+            If value = Me.ReferencesSupersedeLowerVersions Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.ReferencesSupersedeLowerVersions_internal_protected_set = value}
+        End Function
+
         ''' <summary>
         ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a different parse option specified.
         ''' </summary>
@@ -869,6 +894,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
+            ValidateOptions(builder, MessageProvider.Instance)
+
             If Me.EmbedVbCoreRuntime AndAlso Me.OutputKind.IsNetModule() Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_VBCoreNetModuleConflict))
             End If
@@ -916,16 +943,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: add check for 
             '          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             '          (version >= "6.2")
-
-            If Not CryptoPublicKey.IsEmpty Then
-                If CryptoKeyFile IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyFile)))
-                End If
-
-                If CryptoKeyContainer IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyContainer)))
-                End If
-            End If
         End Sub
 
         ''' <summary>
@@ -1164,11 +1181,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoPublicKey,
                 delaySign,
                 publicSign:=False,
-                Platform:=platform,
-                GeneralDiagnosticOption:=generalDiagnosticOption,
-                SpecificDiagnosticOptions:=specificDiagnosticOptions,
+                platform:=platform,
+                generalDiagnosticOption:=generalDiagnosticOption,
+                specificDiagnosticOptions:=specificDiagnosticOptions,
                 concurrentBuild:=concurrentBuild,
                 deterministic:=deterministic,
+                currentLocalTime:=Nothing,
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
                 debugPlusMode:=False,
@@ -1177,8 +1195,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public)
+                metadataImportOptions:=MetadataImportOptions.Public,
+                referencesSupersedeLowerVersions:=False)
 
         End Sub
+
+        Protected Overrides Function CommonWithModuleName(moduleName As String) As CompilationOptions
+            Return WithModuleName(moduleName)
+        End Function
+
+        Protected Overrides Function CommonWithMainTypeName(mainTypeName As String) As CompilationOptions
+            Return WithMainTypeName(mainTypeName)
+        End Function
+
+        Protected Overrides Function CommonWithScriptClassName(scriptClassName As String) As CompilationOptions
+            Return WithScriptClassName(scriptClassName)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoKeyContainer(cryptoKeyContainer As String) As CompilationOptions
+            Return WithCryptoKeyContainer(cryptoKeyContainer)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoKeyFile(cryptoKeyFile As String) As CompilationOptions
+            Return WithCryptoKeyFile(cryptoKeyFile)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoPublicKey(cryptoPublicKey As ImmutableArray(Of Byte)) As CompilationOptions
+            Return WithCryptoPublicKey(cryptoPublicKey)
+        End Function
+
+        Protected Overrides Function CommonWithDelaySign(delaySign As Boolean?) As CompilationOptions
+            Return WithDelaySign(delaySign)
+        End Function
+
+        Protected Overrides Function CommonWithCheckOverflow(checkOverflow As Boolean) As CompilationOptions
+            Return WithOverflowChecks(checkOverflow)
+        End Function
     End Class
 End Namespace

@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis
         bool ReturnsVoid { get; }
 
         /// <summary>
+        /// Returns true if this method returns by reference.
+        /// </summary>
+        bool ReturnsByRef { get; }
+
+        /// <summary>
         /// Gets the return type of the method.
         /// </summary>
         ITypeSymbol ReturnType { get; }

@@ -71,5 +71,12 @@ namespace Microsoft.CodeAnalysis
         /// null is returned.
         /// </summary>
         INamedTypeSymbol ResolveForwardedType(string fullyQualifiedMetadataName);
+
+        /// <summary>
+        /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
+        /// 
+        /// Otherwise, this returns <code>null</code>.
+        /// </summary>
+        AssemblyMetadata GetMetadata();
     }
 }

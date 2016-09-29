@@ -3,6 +3,7 @@
 // References\Debugger\Concord\Microsoft.VisualStudio.Debugger.Engine.dll
 
 #endregion
+
 namespace Microsoft.VisualStudio.Debugger
 {
     //

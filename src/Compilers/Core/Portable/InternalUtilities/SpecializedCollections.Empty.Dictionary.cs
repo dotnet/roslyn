@@ -9,9 +9,9 @@ namespace Roslyn.Utilities
     {
         private partial class Empty
         {
-            internal class Dictionary<TKey, TValue> : Collection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>
+            internal class Dictionary<TKey, TValue> : Collection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
             {
-                public static readonly new IDictionary<TKey, TValue> Instance = new Dictionary<TKey, TValue>();
+                public static readonly new Dictionary<TKey, TValue> Instance = new Dictionary<TKey, TValue>();
 
                 private Dictionary()
                 {
@@ -34,6 +34,9 @@ namespace Roslyn.Utilities
                         return Collection<TKey>.Instance;
                     }
                 }
+
+                IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => Keys;
+                IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => Values;
 
                 public bool Remove(TKey key)
                 {

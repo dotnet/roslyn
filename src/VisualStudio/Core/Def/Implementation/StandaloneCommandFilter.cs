@@ -23,14 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         /// <param name="wpfTextView">The IWpfTextView of the view.</param>
         /// <param name="commandHandlerServiceFactory">The MEF imported ICommandHandlerServiceFactory.</param>
-        /// <param name="featureOptionsService">The feature options service.</param>
         /// <param name="editorAdaptersFactoryService">The editor adapter</param>
         /// <param name="languageService">The language service</param>
         internal StandaloneCommandFilter(
             TLanguageService languageService,
             IWpfTextView wpfTextView,
             ICommandHandlerServiceFactory commandHandlerServiceFactory,
-            IOptionService featureOptionsService,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
             : base(languageService, wpfTextView, editorAdaptersFactoryService, commandHandlerServiceFactory)
         {

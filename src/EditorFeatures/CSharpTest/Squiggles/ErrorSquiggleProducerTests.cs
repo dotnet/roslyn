@@ -19,12 +19,15 @@ using Xunit;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
     public class ErrorSquiggleProducerTests : AbstractSquiggleProducerTests
     {
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForError()
         {
             var spans = await GetErrorSpans("class C {");
@@ -34,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForWarning()
         {
             var spans = await GetErrorSpans("class C { long x = 5l; }");
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.Warning, spans.First().Tag.ErrorType);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForWarningAsError()
         {
             var workspaceXml =
@@ -61,17 +64,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
-                var spans = await GetErrorSpans(workspace);
+                var spans = (await GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
                 Assert.Equal(1, spans.Count());
                 Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
             }
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        public async Task SuggestionTagsForUnnecessaryCode()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public async Task CustomizableTagsForUnnecessaryCode()
         {
             var workspaceXml =
 @"<Workspace>
@@ -95,8 +98,16 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
+                var options = new Dictionary<OptionKey, object>();
+                var language = workspace.Projects.Single().Language;
+                var preferIntrinsicPredefinedTypeOption = new OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
+                var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Error);
+                options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue);
+
+                workspace.ApplyOptions(options);
+
                 var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
                 {
                     {
@@ -110,7 +121,7 @@ class Program
                 };
 
                 var spans =
-                    (await GetErrorSpans(workspace, analyzerMap))
+                    (await GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
                         .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
 
                 Assert.Equal(3, spans.Length);
@@ -119,30 +130,30 @@ class Program
                 var third = spans[2];
 
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
-                Assert.Equal(CSharpFeaturesResources.RemoveUnnecessaryUsingsDiagnosticTitle, first.Tag.ToolTipContent);
+                Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, first.Tag.ToolTipContent);
                 Assert.Equal(40, first.Span.Start);
                 Assert.Equal(25, first.Span.Length);
 
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
-                Assert.Equal(CSharpFeaturesResources.RemoveUnnecessaryUsingsDiagnosticTitle, second.Tag.ToolTipContent);
+                Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, second.Tag.ToolTipContent);
                 Assert.Equal(82, second.Span.Start);
                 Assert.Equal(60, second.Span.Length);
 
-                Assert.Equal(PredefinedErrorTypeNames.Suggestion, third.Tag.ErrorType);
-                Assert.Equal(WorkspacesResources.NameCanBeSimplified, third.Tag.ToolTipContent);
+                Assert.Equal(PredefinedErrorTypeNames.SyntaxError, third.Tag.ErrorType);
+                Assert.Equal(WorkspacesResources.Name_can_be_simplified, third.Tag.ToolTipContent);
                 Assert.Equal(196, third.Span.Start);
                 Assert.Equal(5, third.Span.Length);
             }
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorDoesNotCrashPastEOF()
         {
             var spans = await GetErrorSpans("class C { int x =");
             Assert.Equal(3, spans.Count());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task SemanticErrorReported()
         {
             var spans = await GetErrorSpans("class C : Bar { }");
@@ -153,10 +164,10 @@ class Program
             Assert.Contains("Bar", (string)firstSpan.Tag.ToolTipContent, StringComparison.Ordinal);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync("class"))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -183,10 +194,10 @@ class Program
             }
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync("class"))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -214,7 +225,7 @@ class Program
             }
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task BuildErrorZeroLengthSpan()
         {
             var workspaceXml =
@@ -228,7 +239,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
                 var document = workspace.Documents.First();
 
@@ -247,7 +258,7 @@ class Program
             }
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task LiveErrorZeroLengthSpan()
         {
             var workspaceXml =
@@ -261,7 +272,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
                 var document = workspace.Documents.First();
 
@@ -289,11 +300,11 @@ class Program
             }
         }
 
-        private static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(params string[] content)
+        private static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(string content)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(content))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(content))
             {
-                return await GetErrorSpans(workspace);
+                return (await GetDiagnosticsAndErrorSpans(workspace)).Item2;
             }
         }
     }

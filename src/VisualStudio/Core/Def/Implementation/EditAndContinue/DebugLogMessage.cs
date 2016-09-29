@@ -11,24 +11,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
     internal static class DebugLogMessage
     {
-        private const string SessionId = "SessionId";
-        private const string EditSessionId = "EditSessionId";
+        private const string SessionId = nameof(SessionId);
+        private const string EditSessionId = nameof(EditSessionId);
 
-        private const string SessionCount = "SessionCount";
-        private const string EmptySessionCount = "EmptySessionCount";
+        private const string SessionCount = nameof(SessionCount);
+        private const string EmptySessionCount = nameof(EmptySessionCount);
 
-        private const string HadCompilationErrors = "HadCompilationErrors";
-        private const string HadRudeEdits = "HadRudeEdits";
-        private const string HadValidChanges = "HadValidChanges";
-        private const string HadValidInsignificantChanges = "HadValidInsignificantChanges";
-        private const string RudeEditsCount = "RudeEditsCount";
-        private const string EmitDeltaErrorIdCount = "EmitDeltaErrorIdCount";
+        private const string HadCompilationErrors = nameof(HadCompilationErrors);
+        private const string HadRudeEdits = nameof(HadRudeEdits);
+        private const string HadValidChanges = nameof(HadValidChanges);
+        private const string HadValidInsignificantChanges = nameof(HadValidInsignificantChanges);
+        private const string RudeEditsCount = nameof(RudeEditsCount);
+        private const string EmitDeltaErrorIdCount = nameof(EmitDeltaErrorIdCount);
 
-        private const string ErrorId = "ErrorId";
+        private const string ErrorId = nameof(ErrorId);
 
-        private const string RudeEditKind = "RudeEditKind";
-        private const string RudeEditSyntaxKind = "RudeEditSyntaxKind";
-        private const string RudeEditBlocking = "RudeEditBlocking";
+        private const string RudeEditKind = nameof(RudeEditKind);
+        private const string RudeEditSyntaxKind = nameof(RudeEditSyntaxKind);
+        private const string RudeEditBlocking = nameof(RudeEditBlocking);
 
         public static KeyValueLogMessage Create(int sessionId, EncDebuggingSessionInfo session)
         {

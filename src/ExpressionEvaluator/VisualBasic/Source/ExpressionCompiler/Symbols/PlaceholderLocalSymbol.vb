@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -25,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overloads Shared Function Create(
             typeNameDecoder As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol),
             containingMethod As MethodSymbol,
+            sourceAssembly As AssemblySymbol,
             [alias] As [Alias]) As PlaceholderLocalSymbol
 
             Dim typeName = [alias].Type
@@ -32,6 +34,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName)
             Debug.Assert(type IsNot Nothing)
+
+            Dim dynamicFlags As ReadOnlyCollection(Of Byte) = Nothing
+            Dim tupleElementNames As ReadOnlyCollection(Of String) = Nothing
+            CustomTypeInfo.Decode([alias].CustomTypeInfoId, [alias].CustomTypeInfo, dynamicFlags, tupleElementNames)
+
+            If tupleElementNames IsNot Nothing Then
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, sourceAssembly, tupleElementNames.AsImmutable())
+            End If
 
             Dim name = [alias].FullName
             Dim displayName = [alias].Name
@@ -100,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend MustOverride Function RewriteLocal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             isLValue As Boolean,
             diagnostics As DiagnosticBag) As BoundExpression
 

@@ -34,7 +34,7 @@ class C
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
-        [WorkItem(865627, "DevDiv")]
+        [WorkItem(865627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865627")]
         [Fact]
         public void TestUnusedExtensionMarksImportsAsUsed()
         {
@@ -260,7 +260,7 @@ public class C
             libCompilation.VerifyDiagnostics();
         }
 
-        [WorkItem(747219, "DevDiv")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void SemanticModelCallDoesNotCountsAsUse()
         {
@@ -287,7 +287,7 @@ class C
                 );
         }
 
-        [WorkItem(747219, "DevDiv")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void INF_UnusedUsingDirective()
         {
@@ -305,7 +305,7 @@ using C = System.Console;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using C = System.Console;"));
         }
 
-        [WorkItem(747219, "DevDiv")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void INF_UnusedExternAlias()
         {
@@ -321,7 +321,7 @@ extern alias A;
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A;"));
         }
 
-        [WorkItem(747219, "DevDiv")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void CrefCountsAsUse()
         {
@@ -342,7 +342,7 @@ public class C { }
             CreateCompilationWithMscorlibAndDocumentationComments(source).VerifyDiagnostics();
         }
 
-        [WorkItem(770147, "DevDiv")]
+        [WorkItem(770147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770147")]
         [Fact]
         public void InfoAndWarnAsError()
         {

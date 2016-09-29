@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
         Private Function CreateActionForImports(document As Document, node As ImportsStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
             Dim destinationLine As Integer = 0
             If root.Imports.Any() Then
-                destinationLine = FindLastContiguousStatement(root.Imports)
+                destinationLine = FindLastContiguousStatement(root.Imports, root.GetLeadingBannerAndPreprocessorDirectives())
             ElseIf root.Options.Any() Then
                 destinationLine = root.Options.Last().GetLocation().GetLineSpan().EndLinePosition.Line + 1
             End If
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
         End Function
 
         Private Function CreateActionForOptions(document As Document, node As OptionStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
-            Dim destinationLine = FindLastContiguousStatement(root.Options)
+            Dim destinationLine = FindLastContiguousStatement(root.Options, root.GetLeadingBannerAndPreprocessorDirectives())
 
             If DestinationPositionIsHidden(root, destinationLine, cancellationToken) Then
                 Return Nothing
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
         Private Function CreateActionForAttribute(document As Document, node As AttributesStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
             Dim destinationLine As Integer = 0
             If root.Attributes.Any() Then
-                destinationLine = FindLastContiguousStatement(root.Attributes)
+                destinationLine = FindLastContiguousStatement(root.Attributes, root.GetLeadingBannerAndPreprocessorDirectives())
             ElseIf root.Imports.Any() Then
                 destinationLine = root.Imports.Last().GetLocation().GetLineSpan().EndLinePosition.Line + 1
             ElseIf root.Options.Any() Then
@@ -144,9 +144,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             }
         End Function
 
-        Private Function FindLastContiguousStatement(nodes As IEnumerable(Of SyntaxNode)) As Integer
+        Private Function FindLastContiguousStatement(nodes As IEnumerable(Of SyntaxNode), trivia As IEnumerable(Of SyntaxTrivia)) As Integer
             If Not nodes.Any() Then
-                Return 0
+                Dim lastBannerText = trivia.LastOrDefault(Function(t) t.IsKind(SyntaxKind.CommentTrivia))
+                If lastBannerText = Nothing Then
+                    Return 0
+                Else
+                    Return lastBannerText.GetLocation().GetLineSpan().StartLinePosition.Line + 1
+                End If
             End If
 
             ' Advance through the list of nodes until we find one that doesn't start on the
@@ -166,11 +171,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
         End Function
 
         Private Function MoveStatement(kind As String, line As Integer) As String
-            Return String.Format(VBFeaturesResources.KindLine, kind, line + 1)
+            Return String.Format(VBFeaturesResources.Move_the_0_statement_to_line_1, kind, line + 1)
         End Function
 
         Private Function DeleteStatement(kind As String) As String
-            Return String.Format(VBFeaturesResources.Kind, kind)
+            Return String.Format(VBFeaturesResources.Delete_the_0_statement2, kind)
         End Function
 
         Private Function DestinationPositionIsHidden(root As CompilationUnitSyntax, destinationLine As Integer, cancellationToken As CancellationToken) As Boolean

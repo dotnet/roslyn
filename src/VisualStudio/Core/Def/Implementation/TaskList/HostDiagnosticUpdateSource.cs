@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             registrationService.Register(this);
         }
 
-        internal override Workspace Workspace
+        public override Workspace Workspace
         {
             get
             {

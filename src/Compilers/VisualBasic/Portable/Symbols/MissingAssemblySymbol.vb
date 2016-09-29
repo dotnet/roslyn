@@ -52,6 +52,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AssemblyVersionPattern As Version
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property PublicKey As ImmutableArray(Of Byte)
             Get
                 Return Identity.PublicKey
@@ -143,6 +149,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End Get
         End Property
+
+        Public Overrides Function GetMetadata() As AssemblyMetadata
+            Return Nothing
+        End Function
     End Class
 
     ''' <summary>
@@ -192,5 +202,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Function
     End Class
-
 End Namespace

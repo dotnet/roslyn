@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="TAssemblySymbol">Language specific representation for an assembly symbol.</typeparam>
     internal abstract partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
         where TCompilation : Compilation
-        where TAssemblySymbol : class, IAssemblySymbol
+        where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         protected abstract CommonMessageProvider MessageProvider { get; }
 
@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(index >= 0);
                 _index = index + 1;
                 _kind = kind;
+                _aliasesOpt = default(ImmutableArray<string>);
+                _recursiveAliasesOpt = default(ImmutableArray<string>);
             }
 
             // initialized aliases
@@ -160,7 +162,7 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public readonly int RelativeAssemblyIndex;
 
-            public int GetAssemblyIndex(int explicitlyReferencedAssemblyCount) => 
+            public int GetAssemblyIndex(int explicitlyReferencedAssemblyCount) =>
                 RelativeAssemblyIndex >= 0 ? RelativeAssemblyIndex : explicitlyReferencedAssemblyCount + RelativeAssemblyIndex;
 
             public ReferencedAssemblyIdentity(AssemblyIdentity identity, MetadataReference reference, int relativeAssemblyIndex)
@@ -214,12 +216,12 @@ namespace Microsoft.CodeAnalysis
 
             // Used to filter out duplicate references that reference the same file (resolve to the same full normalized path).
             var boundReferences = new Dictionary<MetadataReference, MetadataReference>(MetadataReferenceEqualityComparer.Instance);
-            
+
             ArrayBuilder<MetadataReference> uniqueDirectiveReferences = (referenceDirectiveLocations != null) ? ArrayBuilder<MetadataReference>.GetInstance() : null;
             var assembliesBuilder = ArrayBuilder<AssemblyData>.GetInstance();
             ArrayBuilder<PEModule> lazyModulesBuilder = null;
 
-            bool supersedeLowerVersions = compilation.IsSubmission;
+            bool supersedeLowerVersions = compilation.Options.ReferencesSupersedeLowerVersions;
 
             // When duplicate references with conflicting EmbedInteropTypes flag are encountered,
             // VB uses the flag from the last one, C# reports an error. We need to enumerate in reverse order
@@ -267,7 +269,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         case MetadataImageKind.Assembly:
                             existingReference = TryAddAssembly(
-                                compilationReference.Compilation.Assembly.Identity, 
+                                compilationReference.Compilation.Assembly.Identity,
                                 boundReference,
                                 -assembliesBuilder.Count - 1,
                                 diagnostics,
@@ -316,8 +318,8 @@ namespace Microsoft.CodeAnalysis
                             {
                                 PEAssembly assembly = assemblyMetadata.GetAssembly();
                                 existingReference = TryAddAssembly(
-                                    assembly.Identity, 
-                                    peReference, 
+                                    assembly.Identity,
+                                    peReference,
                                     -assembliesBuilder.Count - 1,
                                     diagnostics,
                                     location,
@@ -404,7 +406,7 @@ namespace Microsoft.CodeAnalysis
 
             assembliesBuilder.ReverseContents();
             assemblies = assembliesBuilder.ToImmutableAndFree();
-            
+
             if (lazyModulesBuilder == null)
             {
                 modules = ImmutableArray<PEModule>.Empty;
@@ -465,7 +467,7 @@ namespace Microsoft.CodeAnalysis
             Diagnostic newDiagnostic = null;
             try
             {
-                newMetadata = peReference.GetMetadata();
+                newMetadata = peReference.GetMetadataNoCopy();
 
                 // make sure basic structure of the PE image is valid:
                 var assemblyMetadata = newMetadata as AssemblyMetadata;
@@ -619,10 +621,10 @@ namespace Microsoft.CodeAnalysis
         /// - both assembly names are weak (no keys) and have the same simple name.
         /// </summary>
         private MetadataReference TryAddAssembly(
-            AssemblyIdentity identity, 
-            MetadataReference reference, 
-            int assemblyIndex, 
-            DiagnosticBag diagnostics, 
+            AssemblyIdentity identity,
+            MetadataReference reference,
+            int assemblyIndex,
+            DiagnosticBag diagnostics,
             Location location,
             Dictionary<string, List<ReferencedAssemblyIdentity>> referencesBySimpleName,
             bool supersedeLowerVersions)
@@ -635,7 +637,7 @@ namespace Microsoft.CodeAnalysis
                 referencesBySimpleName.Add(identity.Name, new List<ReferencedAssemblyIdentity> { referencedAssembly });
                 return null;
             }
-            
+
             if (supersedeLowerVersions)
             {
                 foreach (var other in sameSimpleNameIdentities)
@@ -669,7 +671,7 @@ namespace Microsoft.CodeAnalysis
                     // In order to eliminate duplicate references we need to try to match their identities in both directions since 
                     // ReferenceMatchesDefinition is not necessarily symmetric.
                     // (e.g. System.Numerics.Vectors, Version=4.1+ matches System.Numerics.Vectors, Version=4.0, but not the other way around.)
-                    if (other.Identity.IsStrongName && 
+                    if (other.Identity.IsStrongName &&
                         IdentityComparer.ReferenceMatchesDefinition(identity, other.Identity) &&
                         IdentityComparer.ReferenceMatchesDefinition(other.Identity, identity))
                     {

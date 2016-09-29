@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <ProjectGuid>{3BED15FD-D608-4573-B432-1569C1026F6D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Roslyn.VisualStudio.Test.Utilities</RootNamespace>
+    <AssemblyName>Roslyn.VisualStudio.Test.Utilities</AssemblyName>
+    <PlatformTarget>x86</PlatformTarget>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <Nonshipping>true</Nonshipping>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Common\Comparison.cs" />
+    <Compile Include="Common\Parameter.cs" />
+    <Compile Include="Common\Signature.cs" />
+    <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
+    <Compile Include="InProcess\InProcComponent.cs" />
+    <Compile Include="InProcess\SolutionExplorer_InProc.cs" />
+    <Compile Include="InProcess\VisualStudio_InProc.cs" />
+    <Compile Include="Input\KeyPress.cs" />
+    <Compile Include="Input\SendKeys.cs" />
+    <Compile Include="Input\ShiftState.cs" />
+    <Compile Include="Input\VirtualKey.cs" />
+    <Compile Include="IntegrationHelper.cs" />
+    <Compile Include="InProcess\Editor_InProc.cs" />
+    <Compile Include="Interop\NativeMethods.cs" />
+    <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
+    <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
+    <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
+    <Compile Include="WellKnownCommandNames.cs" />
+    <Compile Include="VisualStudioInstance.cs" />
+    <Compile Include="IntegrationService.cs" />
+    <Compile Include="InProcess\InteractiveWindow_InProc.cs" />
+    <Compile Include="Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="VisualStudioInstanceContext.cs" />
+    <Compile Include="VisualStudioInstanceFactory.cs" />
+    <Compile Include="OutOfProcess\CSharpInteractiveWindow_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\Editor_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.cs" />
+    <Compile Include="WellKnownProjectTemplates.cs" />
+    <Compile Include="OutOfProcess\VisualStudioWorkspace_OutOfProc.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.VisualStudio.IntegrationTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="project.json" />
+    <None Include="Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="UIAutomationClient" />
+    <Reference Include="UIAutomationTypes" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
+      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
+      <Name>VisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
+      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
+      <Name>ServicesTestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
+      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
+      <Project>{01e9bd68-0339-4a13-b42f-a3ca84d164f3}</Project>
+      <Name>InteractiveWindow</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
+      <Project>{20bb6fac-44d2-4d76-abfe-0c1e163a1a4f}</Project>
+      <Name>VisualStudioInteractiveWindow</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Diagnostics\Diagnostics.csproj">
+      <Project>{e2e889a5-2489-4546-9194-47c63e49eaeb}</Project>
+      <Name>Diagnostics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
+      <Name>Workspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Def\ServicesVisualStudio.csproj">
+      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
+      <Name>ServicesVisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
+      <Project>{737ff62c-f068-4317-84d0-bfb210c17a4e}</Project>
+      <Name>CSharpVisualStudioRepl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\InteractiveServices\VisualStudioInteractiveServices.csproj">
+      <Project>{a31228bb-f05c-4d4a-b98a-0e681d876b7c}</Project>
+      <Name>VisualStudioInteractiveServices</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+</Project>

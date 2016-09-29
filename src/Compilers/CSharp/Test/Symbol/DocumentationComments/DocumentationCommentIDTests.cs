@@ -323,7 +323,7 @@ class C<T>
             Assert.Equal("!:T", symbol.GetDocumentationCommentId());
         }
 
-        [WorkItem(531409, "DevDiv")]
+        [WorkItem(531409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531409")]
         [Fact]
         public void ExplicitInterfaceImplementation()
         {
@@ -370,7 +370,7 @@ class C
             Assert.Equal("M:C.M2(System.Int32,)", method2.GetDocumentationCommentId());
         }
 
-        [WorkItem(547163, "DevDiv")]
+        [WorkItem(547163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547163")]
         [Fact]
         public void NestedGenericTypes()
         {

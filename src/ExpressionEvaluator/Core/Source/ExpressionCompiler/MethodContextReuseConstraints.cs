@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -12,21 +14,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly Guid _moduleVersionId;
         private readonly int _methodToken;
         private readonly int _methodVersion;
-        private readonly uint _startOffset;
-        private readonly uint _endOffsetExclusive;
+        private readonly ILSpan _span;
 
-        internal MethodContextReuseConstraints(Guid moduleVersionId, int methodToken, int methodVersion, uint startOffset, uint endOffsetExclusive)
+        internal MethodContextReuseConstraints(Guid moduleVersionId, int methodToken, int methodVersion, ILSpan span)
         {
             Debug.Assert(moduleVersionId != default(Guid));
             Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
             Debug.Assert(methodVersion >= 1);
-            Debug.Assert(startOffset <= endOffsetExclusive);
 
             _moduleVersionId = moduleVersionId;
             _methodToken = methodToken;
             _methodVersion = methodVersion;
-            _startOffset = startOffset;
-            _endOffsetExclusive = endOffsetExclusive;
+            _span = span;
         }
 
         public bool AreSatisfied(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset)
@@ -39,92 +38,51 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return moduleVersionId == _moduleVersionId &&
                 methodToken == _methodToken &&
                 methodVersion == _methodVersion &&
-                ilOffset >= _startOffset &&
-                ilOffset < _endOffsetExclusive;
-        }
-
-        internal bool HasExpectedSpan(uint startOffset, uint endOffsetExclusive)
-        {
-            return _startOffset == startOffset && _endOffsetExclusive == endOffsetExclusive;
+                _span.Contains(ilOffset);
         }
 
         public override string ToString()
         {
-            return $"0x{_methodToken:x8}v{_methodVersion} from {_moduleVersionId} [{_startOffset}, {_endOffsetExclusive})";
+            return $"0x{_methodToken:x8}v{_methodVersion} from {_moduleVersionId} {_span}";
         }
 
-        public class Builder
+        /// <summary>
+        /// Finds a span of IL containing the specified offset where local variables and imports are guaranteed to be the same.
+        /// Examples:
+        /// scopes: [   [   ) x [  )  )
+        /// result:         [   )
+        /// 
+        /// scopes: [ x [   )   [  )  )
+        /// result: [   )     
+        /// 
+        /// scopes: [   [ x )   [  )  )
+        /// result:     [   )     
+        /// </summary>
+        public static ILSpan CalculateReuseSpan(int ilOffset, ILSpan initialSpan, IEnumerable<ILSpan> scopes)
         {
-            private readonly Guid _moduleVersionId;
-            private readonly int _methodToken;
-            private readonly int _methodVersion;
-            private readonly int _ilOffset;
-            private readonly bool _areRangesEndInclusive;
+            Debug.Assert(ilOffset >= 0);
 
-            private uint _startOffset;
-            private uint _endOffsetExclusive;
+            uint _startOffset = initialSpan.StartOffset;
+            uint _endOffsetExclusive = initialSpan.EndOffsetExclusive;
 
-            public Builder(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset, bool areRangesEndInclusive)
+            foreach (ILSpan scope in scopes)
             {
-                Debug.Assert(moduleVersionId != default(Guid));
-                Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
-                Debug.Assert(methodVersion >= 1);
-                Debug.Assert(ilOffset >= 0);
-
-                _moduleVersionId = moduleVersionId;
-                _methodToken = methodToken;
-                _methodVersion = methodVersion;
-                _ilOffset = ilOffset;
-                _areRangesEndInclusive = areRangesEndInclusive;
-
-                _startOffset = 0;
-                _endOffsetExclusive = uint.MaxValue;
-            }
-
-            public Builder(MethodContextReuseConstraints existingConstraints, int ilOffset, bool areRangesEndInclusive)
-            {
-                _moduleVersionId = existingConstraints._moduleVersionId;
-                _methodToken = existingConstraints._methodToken;
-                _methodVersion = existingConstraints._methodVersion;
-                _ilOffset = ilOffset;
-                _areRangesEndInclusive = areRangesEndInclusive;
-
-                _startOffset = existingConstraints._startOffset;
-                _endOffsetExclusive = existingConstraints._endOffsetExclusive;
-            }
-
-            public void AddRange(uint startOffset, uint endOffset)
-            {
-                Debug.Assert(startOffset >= 0);
-                Debug.Assert(startOffset <= endOffset);
-                Debug.Assert(!_areRangesEndInclusive || endOffset < int.MaxValue);
-
-                uint endOffsetExclusive = _areRangesEndInclusive ? (endOffset + 1) : endOffset;
-
-                if (_ilOffset < startOffset)
+                if (ilOffset < scope.StartOffset)
                 {
-                    _endOffsetExclusive = Math.Min(_endOffsetExclusive, startOffset);
+                    _endOffsetExclusive = Math.Min(_endOffsetExclusive, scope.StartOffset);
                 }
-                else if (_ilOffset >= endOffsetExclusive)
+                else if (ilOffset >= scope.EndOffsetExclusive)
                 {
-                    _startOffset = Math.Max(_startOffset, endOffsetExclusive);
+                    _startOffset = Math.Max(_startOffset, scope.EndOffsetExclusive);
                 }
                 else
                 {
-                    _startOffset = Math.Max(_startOffset, startOffset);
-                    _endOffsetExclusive = Math.Min(_endOffsetExclusive, endOffsetExclusive);
+                    _startOffset = Math.Max(_startOffset, scope.StartOffset);
+                    _endOffsetExclusive = Math.Min(_endOffsetExclusive, scope.EndOffsetExclusive);
                 }
             }
 
-            public MethodContextReuseConstraints Build()
-            {
-                return new MethodContextReuseConstraints(
-                    _moduleVersionId,
-                    _methodToken,
-                    _methodVersion,
-                    _startOffset,
-                    _endOffsetExclusive);
-            }
+            return new ILSpan(_startOffset, _endOffsetExclusive);
         }
     }
 }

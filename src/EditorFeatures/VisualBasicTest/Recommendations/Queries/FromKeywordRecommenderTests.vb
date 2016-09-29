@@ -1,134 +1,131 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class FromKeywordRecommenderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromNotInStatement()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromNotInStatementTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterReturn()
-            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterReturnTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterArgument1()
-            VerifyRecommendationsContain(<MethodBody>Foo(|</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterArgument1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterArgument2()
-            VerifyRecommendationsContain(<MethodBody>Foo(bar, |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterArgument2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterBinaryExpression()
-            VerifyRecommendationsContain(<MethodBody>Foo(bar + |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterBinaryExpressionTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterNot()
-            VerifyRecommendationsContain(<MethodBody>Foo(Not |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterNotTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterTypeOf()
-            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterTypeOfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterDoWhile()
-            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterDoWhileTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterDoUntil()
-            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterDoUntilTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterLoopWhile()
-            VerifyRecommendationsContain(<MethodBody>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterLoopWhileTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop While |</MethodBody>, "From")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterLoopUntil()
-            VerifyRecommendationsContain(<MethodBody>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterLoopUntilTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop Until |</MethodBody>, "From")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterIf()
-            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterElseIf()
-            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterElseIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterElseSpaceIf()
-            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterElseSpaceIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterError()
-            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterErrorTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterThrow()
-            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterThrowTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterArrayInitializerSquiggle()
-            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterArrayInitializerSquiggleTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "From")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterArrayInitializerComma()
-            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "From")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterArrayInitializerCommaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "From")
+        End Function
 
-        <WorkItem(543173)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterMultiLineFunctionLambdaExpr()
-            VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By Function()
+        <WorkItem(543173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543173")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterMultiLineFunctionLambdaExprTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By Function()
                                              Return 5
                                          End Function |</MethodBody>, "From")
-        End Sub
+        End Function
 
-        <WorkItem(543174)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterAnonymousObjectCreationExpr()
-            VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "From")
-        End Sub
+        <WorkItem(543174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543174")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterAnonymousObjectCreationExprTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "From")
+        End Function
 
-        <WorkItem(543219)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterIntoClause()
-            VerifyRecommendationsContain(<MethodBody>Dim q1 = From i1 In arr Group By i1 Into Count |</MethodBody>, "From")
-        End Sub
+        <WorkItem(543219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543219")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterIntoClauseTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 = From i1 In arr Group By i1 Into Count |</MethodBody>, "From")
+        End Function
 
-        <WorkItem(543232)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FromAfterNestedAggregateFromClause()
-            VerifyRecommendationsContain(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "From")
-        End Sub
+        <WorkItem(543232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543232")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function FromAfterNestedAggregateFromClauseTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "From")
+        End Function
 
-        <WorkItem(543270)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInDelegateCreation()
+        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotInDelegateCreationTest() As Task
             Dim code =
 <File>
 Module Program
@@ -144,8 +141,7 @@ Module Program
 End Module
 </File>
 
-            VerifyRecommendationsMissing(code, "From")
-        End Sub
-
+            Await VerifyRecommendationsMissingAsync(code, "From")
+        End Function
     End Class
 End Namespace

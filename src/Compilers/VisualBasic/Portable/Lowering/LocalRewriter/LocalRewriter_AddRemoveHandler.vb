@@ -10,14 +10,26 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitAddHandlerStatement(node As BoundAddHandlerStatement) As BoundNode
-            Return RewriteAddRemoveHandler(node)
+            Dim rewritten = RewriteAddRemoveHandler(node)
+
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenter.InstrumentAddHandlerStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
         Public Overrides Function VisitRemoveHandlerStatement(node As BoundRemoveHandlerStatement) As BoundNode
-            Return RewriteAddRemoveHandler(node)
+            Dim rewritten = RewriteAddRemoveHandler(node)
+
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenter.InstrumentRemoveHandlerStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
-        Private Function RewriteAddRemoveHandler(node As BoundAddRemoveHandlerStatement) As BoundNode
+        Private Function RewriteAddRemoveHandler(node As BoundAddRemoveHandlerStatement) As BoundStatement
             Dim unwrappedEventAccess As BoundEventAccess = UnwrapEventAccess(node.EventAccess)
             Dim [event] = unwrappedEventAccess.EventSymbol
 
@@ -37,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, result, canThrow:=True)
             End If
 
-            Return If(node.WasCompilerGenerated, result, MarkStatementWithSequencePoint(result))
+            Return result
         End Function
 
         ''' <summary>
@@ -66,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function RewriteWinRtEvent(node As BoundAddRemoveHandlerStatement, unwrappedEventAccess As BoundEventAccess,
                                                isAddition As Boolean) As BoundStatement
 
-            Dim syntax As VisualBasicSyntaxNode = node.Syntax
+            Dim syntax As SyntaxNode = node.Syntax
             Dim eventSymbol As EventSymbol = unwrappedEventAccess.EventSymbol
 
             Dim rewrittenReceiverOpt As BoundExpression = GetEventAccessReceiver(unwrappedEventAccess)
@@ -142,8 +154,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New BoundCall(
                     syntax:=syntax,
                     method:=DirectCast(marshalMethod, MethodSymbol),
-                    methodGroup:=Nothing,
-                    receiver:=Nothing,
+                    methodGroupOpt:=Nothing,
+                    receiverOpt:=Nothing,
                     arguments:=marshalArguments,
                     constantValueOpt:=Nothing,
                     suppressObjectClone:=True,
@@ -219,13 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      accessorSymbol.ReturnType)
             End If
 
-            Dim statement As BoundStatement = New BoundExpressionStatement(node.Syntax, expr)
-
-            If Me.GenerateDebugInfo AndAlso Not node.WasCompilerGenerated Then
-                statement = Me.MarkStatementWithSequencePoint(statement)
-            End If
-
-            Return statement
+            Return New BoundExpressionStatement(node.Syntax, expr)
         End Function
 
         Private Function UnwrapEventAccess(node As BoundExpression) As BoundEventAccess

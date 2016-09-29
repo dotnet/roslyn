@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Text;
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         public static async Task<CallHierarchyTestState> CreateAsync(XElement markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
-            var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(markup, exportProvider: exportProvider);
+            var workspace = await TestWorkspace.CreateAsync(markup, exportProvider: exportProvider);
 
             return new CallHierarchyTestState(workspace);
         }
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
                 .WithPart(typeof(CallHierarchyProvider))
                 .WithPart(typeof(SymbolMappingServiceFactory))
                 .WithPart(typeof(EditorNotificationServiceFactory))
+                .WithPart(typeof(DefaultSymbolFinderEngineService))
                 .WithParts(additionalTypes);
 
             return MinimalTestExportProvider.CreateExportProvider(catalog);
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         public static async Task<CallHierarchyTestState> CreateAsync(string markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
-            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: exportProvider);
+            var workspace = await TestWorkspace.CreateCSharpAsync(markup, exportProvider: exportProvider);
             return new CallHierarchyTestState(markup, workspace);
         }
 

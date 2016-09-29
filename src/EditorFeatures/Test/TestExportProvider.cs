@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.VisualStudio.Composition;
@@ -91,8 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTreeFactoryServiceFactory), // BasicServicesCore
                 typeof(CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationServiceFactory),
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicCodeGenerationServiceFactory),
-                typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxFactsService),
-                typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsService),
+                typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxFactsServiceFactory),
+                typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory),
                 typeof(CodeAnalysis.CSharp.CSharpSymbolDeclarationService),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSymbolDeclarationService),
                 typeof(CodeAnalysis.Editor.CSharp.LanguageServices.CSharpSymbolDisplayServiceFactory),
@@ -108,7 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.CSharp.CodeGeneration.CSharpSyntaxGenerator),
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxGenerator),
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
-                typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService)
+                typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService),
+                typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider),
+                typeof(CodeAnalysis.Diagnostics.EngineV2.InProcCodeAnalysisDiagnosticAnalyzerExecutor)
             };
 
             return MinimalTestExportProvider.GetLanguageNeutralTypes()

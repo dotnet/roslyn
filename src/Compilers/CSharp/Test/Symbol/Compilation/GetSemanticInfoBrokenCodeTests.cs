@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class GetSemanticInfoTests : SemanticModelTestBase
     {
-        [WorkItem(545639, "DevDiv")]
+        [WorkItem(545639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545639")]
         [Fact]
         public void Bug14200()
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(546285, "DevDiv")]
+        [WorkItem(546285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546285")]
         [Fact]
         public void OmittedArraySize()
         {
@@ -93,7 +93,7 @@ class C
             VisitAllExpressions(model, expr);
         }
 
-        [WorkItem(546332, "DevDiv")]
+        [WorkItem(546332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546332")]
         [Fact]
         public void ExpressionInStructuredTrivia()
         {
@@ -108,7 +108,7 @@ class C
             }
         }
 
-        [WorkItem(546637, "DevDiv")]
+        [WorkItem(546637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546637")]
         [Fact()]
         public void Bug16411()
         {
@@ -130,7 +130,7 @@ class C
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(547065, "DevDiv")]
+        [WorkItem(547065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547065")]
         [Fact]
         public void Bug17789()
         {
@@ -160,7 +160,7 @@ static class C
             }
         }
 
-        [WorkItem(578141, "DevDiv")]
+        [WorkItem(578141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578141")]
         [Fact]
         public void IsImplicitlyDeclared()
         {
@@ -184,7 +184,7 @@ abstract void M();";
             Assert.False(member.IsImplicitlyDeclared);
         }
 
-        [WorkItem(611177, "DevDiv")]
+        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void Repro611177()
         {
@@ -200,7 +200,7 @@ abstract void M();";
             model.GetSymbolInfo(identifierSyntax);
         }
 
-        [WorkItem(611177, "DevDiv")]
+        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void UsingStatementInDelegateInArrayRankInType()
         {
@@ -221,7 +221,7 @@ class C
             model.GetSymbolInfo(usingSyntax.Expression);
         }
 
-        [WorkItem(611177, "DevDiv")]
+        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void TypeOfInUnexpectedDelegate()
         {
@@ -243,7 +243,7 @@ class C
             Assert.Equal(comp.GetWellKnownType(WellKnownType.System_Type), info.Type);
         }
 
-        [WorkItem(611177, "DevDiv")]
+        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void UnexpectedDelegateInTypeOf()
         {
@@ -266,7 +266,7 @@ class C
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
 
-        [WorkItem(1014561, "DevDiv")]
+        [WorkItem(1014561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014561")]
         [Fact]
         public void Bug1014561()
         {
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var info = model.GetSymbolInfo(identifierSyntax); //Used to throw
         }
 
-        [WorkItem(754405, "DevDiv")]
+        [WorkItem(754405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754405")]
         [Fact]
         public void MissingNullableType()
         {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(754405, "DevDiv")]
+        [WorkItem(754405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754405")]
         [Fact]
         public void MissingPointerType()
         {
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(754405, "DevDiv")]
+        [WorkItem(754405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754405")]
         [Fact]
         public void MissingArrayType()
         {
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(757789, "DevDiv")]
+        [WorkItem(757789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757789")]
         [Fact]
         public void OmittedTypeArgument()
         {

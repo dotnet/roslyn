@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -35,14 +36,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
+        /// <exception cref="InvalidDataException" />
         internal static BufferBlock[] Deserialize(string str)
         {
             var serializer = new DataContractJsonSerializer(typeof(BufferBlock[]));
-            var bytes = Encoding.UTF8.GetBytes(str);
-            using (var stream = new MemoryStream(bytes))
+            try
             {
-                var obj = serializer.ReadObject(stream);
-                return (BufferBlock[])obj;
+                var bytes = Encoding.UTF8.GetBytes(str);
+                using (var stream = new MemoryStream(bytes))
+                {
+                    var obj = serializer.ReadObject(stream);
+                    return (BufferBlock[])obj;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new InvalidDataException(e.Message, e);
             }
         }
     }

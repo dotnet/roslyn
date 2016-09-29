@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(newA.ToFullString(), latestAs.ElementAt(0).ToFullString());
         }
 
-        [WorkItem(1070667, "DevDiv")]
+        [WorkItem(1070667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070667")]
         [Fact]
         public void TestGetCurrentNodeAfterRemovalReturnsNull()
         {

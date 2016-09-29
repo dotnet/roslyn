@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private class StrongNameProviderWithBadInputStream : StrongNameProvider
         {
             private StrongNameProvider _underlyingProvider;
+
+            public Exception ThrownException;
+
             public StrongNameProviderWithBadInputStream(StrongNameProvider underlyingProvider)
             {
                 _underlyingProvider = underlyingProvider;
@@ -27,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             internal override Stream CreateInputStream()
             {
-                throw new IOException("This is a test IOException");
+                ThrownException = new IOException("This is a test IOException");
+                throw ThrownException;
             }
 
             internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider) =>
@@ -53,9 +57,9 @@ class C
             var comp = CreateCompilationWithMscorlib(src,
                 options: options);
 
-            comp.VerifyEmitDiagnostics(
-    // error CS7028: Error signing output with public key from container 'RoslynTestContainer' -- This is a test IOException
-    Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", "This is a test IOException").WithLocation(1, 1));
+            comp.Emit(new MemoryStream()).Diagnostics.Verify(
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(testProvider.ThrownException.ToString()).WithLocation(1, 1));
         }
     }
 }

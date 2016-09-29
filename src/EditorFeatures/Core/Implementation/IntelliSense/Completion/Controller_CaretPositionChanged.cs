@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -28,9 +27,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (model == null ||
                 this.IsCaretOutsideAllItemBounds(model, caretPoint))
             {
-                // Completions hadn't even been computed yet or the caret is out of bounds.  
+                // Completions hadn't even been computed yet or the caret is out of bounds.
                 // Just cancel everything we're doing.
                 this.StopModelComputation();
+                return;
+            }
+
+            // TODO(cyrusn): Find a way to allow the user to cancel out of this.
+            model = sessionOpt.WaitForModel();
+            if (model == null)
+            {
+                return;
+            }
+
+            if (model.SelectedItem != null && model.IsHardSelection)
+            {
+                // Switch to soft selection, if user moved caret to the start of a non-empty filter span.
+                // This prevents commiting if user types a commit character at this position later, but still has the list if user types filter character
+                // i.e. blah| -> |blah -> !|blah
+                // We want the filter span non-empty because we still want completion in the following case:
+                // A a = new | -> A a = new (|
+
+                var currentSpan = model.GetViewBufferSpan(model.SelectedItem.Item.Span).TextSpan;
+                if (caretPoint == currentSpan.Start && currentSpan.Length > 0)
+                {
+                    sessionOpt.SetModelIsHardSelection(false);
+                }
             }
         }
 
@@ -53,16 +75,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private bool IsCaretOutsideItemBounds(
             Model model,
             SnapshotPoint caretPoint,
-            CompletionItem item,
+            PresentationItem item,
             Dictionary<TextSpan, string> textSpanToText,
             Dictionary<TextSpan, ViewTextSpan> textSpanToViewSpan)
         {
             // Easy first check.  See if the caret point is before the start of the item.
             ViewTextSpan filterSpanInViewBuffer;
-            if (!textSpanToViewSpan.TryGetValue(item.FilterSpan, out filterSpanInViewBuffer))
+            if (!textSpanToViewSpan.TryGetValue(item.Item.Span, out filterSpanInViewBuffer))
             {
-                filterSpanInViewBuffer = model.GetSubjectBufferFilterSpanInViewBuffer(item.FilterSpan);
-                textSpanToViewSpan[item.FilterSpan] = filterSpanInViewBuffer;
+                filterSpanInViewBuffer = model.GetViewBufferSpan(item.Item.Span);
+                textSpanToViewSpan[item.Item.Span] = filterSpanInViewBuffer;
             }
 
             if (caretPoint < filterSpanInViewBuffer.TextSpan.Start)
@@ -72,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var textSnapshot = caretPoint.Snapshot;
 
-            var currentText = model.GetCurrentTextInSnapshot(item.FilterSpan, textSnapshot, textSpanToText);
+            var currentText = model.GetCurrentTextInSnapshot(item.Item.Span, textSnapshot, textSpanToText);
             var currentTextSpan = new TextSpan(filterSpanInViewBuffer.TextSpan.Start, currentText.Length);
 
             return !currentTextSpan.IntersectsWith(caretPoint);

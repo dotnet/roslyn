@@ -285,7 +285,7 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
-        <WorkItem(870422)>
+        <WorkItem(870422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870422")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_MethodCallWithoutTypeQualification() As Task
             Dim definition =

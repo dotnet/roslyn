@@ -206,7 +206,7 @@ Public Class ParseExpressionTest
         'ERRID_NullableCharNotSupported = 36637
         Assert.Equal(1, unexp.Count)
         Assert.Equal("?", unexp(0).ToString())
-        Assert.Equal(36637, unexp(0).Errors(0).Code)
+        Assert.Equal(36637, unexp(0).Errors.First().Code)
     End Sub
 
     <Fact>
@@ -310,6 +310,89 @@ ToString]]>.Value)
     End Sub
 
     <Fact>
+    Public Sub ParseTuple1()
+        Dim expr = ParseExpression("(A, B)")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("((A, B), C).C")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+
+        expr = ParseExpression(<![CDATA[
+(
+(
+42, 
+42
+),
+(
+42, 
+42
+)
+).
+ToString]]>.Value)
+
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+    End Sub
+
+    <Fact>
+    Public Sub ParseTuple2()
+        Dim expr = ParseExpression("(A, )", expectsErrors:=True)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("((A, ), ).C", expectsErrors:=True)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+    End Sub
+
+    <Fact>
+    Public Sub ParseTuple3()
+        Dim expr = ParseExpression("(A:=1, B)")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("(A:=(A, B), C).C")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1).Kind())
+
+        expr = ParseExpression(<![CDATA[
+(
+A:=
+(
+A:=
+42, 
+A:=
+42
+),
+(
+42, 
+42
+)
+).
+ToString]]>.Value)
+
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1).Kind())
+    End Sub
+
+    <Fact>
+    Public Sub ParseTuple4()
+        Dim expr = ParseExpression("(A:=1)", expectsErrors:=False)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("(A:=, C).C", expectsErrors:=True)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+
+        Dim missingArg = expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1)
+        Assert.Equal(SyntaxKind.IdentifierName, missingArg.Kind)
+        Assert.Equal(True, missingArg.IsMissing)
+    End Sub
+
+    <Fact>
     Public Sub ParseIIF()
         Dim expr = ParseExpression("if(true,A,B)")
         Assert.Equal(SyntaxKind.TernaryConditionalExpression, expr.Kind)
@@ -340,6 +423,12 @@ ToString]]>.Value)
         Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, expr.Kind)
 
         expr = ParseExpression("New Moo() From{1,2,3}")
+        Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
+
+        expr = ParseExpression("New (A, B)")
+        Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
+
+        expr = ParseExpression("New (A as Integer, B as integer)(1, 2)")
         Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
     End Sub
 
@@ -764,7 +853,7 @@ Skip 2
         Assert.Equal(SyntaxKind.SimpleJoinClause, GetOperator(expr, 1).Kind)
     End Sub
 
-    <WorkItem(542686, "DevDiv")>
+    <WorkItem(542686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542686")>
     <Fact>
     Public Sub RangeVariableNamedFrom()
         Dim expr = ParseExpression("From From In ""qq"" Join y In ""www"" On From Equals y")
@@ -1037,7 +1126,7 @@ Skip 2
         ]]>)
     End Sub
 
-    <WorkItem(537571, "DevDiv")>
+    <WorkItem(537571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537571")>
     <Fact>
     Public Sub TestLambdaInModule2()
         ' Test that a declaration with an attribute terminates the lambda.
@@ -1612,7 +1701,7 @@ Skip 2
             </errors>)
     End Sub
 
-    <WorkItem(527019, "DevDiv")>
+    <WorkItem(527019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527019")>
     <Fact>
     Public Sub ParseErrorMismatchExpectedEOSVSBadCCExpression()
         ParseAndVerify(<![CDATA[
@@ -1697,7 +1786,7 @@ end class
                  </errors>).VerifyNoMissingChildren()
     End Sub
 
-    <WorkItem(537225, "DevDiv")>
+    <WorkItem(537225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537225")>
     <Fact>
     Public Sub TestNewWithAnonymousExpression()
         ParseAndVerify(<![CDATA[
@@ -1716,7 +1805,7 @@ End Module
     End Sub
 
 
-    <WorkItem(538492, "DevDiv")>
+    <WorkItem(538492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538492")>
     <Fact>
     Public Sub TestMultipleConditionValid002()
         ParseAndVerify(<![CDATA[
@@ -1766,7 +1855,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(537003, "DevDiv")>
+    <WorkItem(537003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537003")>
     <Fact>
     Public Sub ParseFromFollowedById()
         Dim code = <![CDATA[
@@ -1786,7 +1875,7 @@ End Module
         Assert.Equal(SyntaxKind.FromClause, expr.ChildNodesAndTokens()(0).Kind())
     End Sub
 
-    <WorkItem(537003, "DevDiv")>
+    <WorkItem(537003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537003")>
     <Fact>
     Public Sub ParseFromFollowedByAndAlso()
         Dim code = <![CDATA[
@@ -1804,7 +1893,7 @@ End Module
                       </errors>)
     End Sub
 
-    <WorkItem(527765, "DevDiv")>
+    <WorkItem(527765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527765")>
     <Fact>
     Public Sub NumericLiteralLongMinValue()
         Dim code = <![CDATA[
@@ -1830,7 +1919,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(541324, "DevDiv")>
+    <WorkItem(541324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541324")>
     <Fact>
     Public Sub ParsingIntoClauseShouldNotCreateMissingTokens()
         Dim code = <![CDATA[
@@ -1861,7 +1950,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(542057, "DevDiv")>
+    <WorkItem(542057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542057")>
     <Fact>
     Public Sub ParsingImplicitLineContinuationAfterDistinct()
         Dim code = <![CDATA[
@@ -1885,7 +1974,7 @@ End Module
         Assert.True(name.ContainsDiagnostics)
     End Sub
 
-    <WorkItem(542686, "DevDiv")>
+    <WorkItem(542686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542686")>
     <Fact>
     Public Sub FromAsIdentifierInRangeQuery_1()
         Dim code = <![CDATA[
@@ -1901,7 +1990,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(542686, "DevDiv")>
+    <WorkItem(542686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542686")>
     <Fact>
     Public Sub FromAsIdentifierInRangeQuery_2()
         Dim code = <![CDATA[
@@ -1918,7 +2007,7 @@ End Module
                              Diagnostic(ERRID.ERR_ExpectedEOS, "Class"))
     End Sub
 
-    <WorkItem(542715, "DevDiv")>
+    <WorkItem(542715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542715")>
     <Fact()>
     Public Sub ParseExpressionRangeVariableDeclarationList_1()
 
@@ -1935,7 +2024,7 @@ End Module
     End Sub
 
 
-    <WorkItem(544274, "DevDiv")>
+    <WorkItem(544274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544274")>
     <Fact()>
     Public Sub ParseMemberAccessExpressionWithDotDot()
 
@@ -1950,7 +2039,7 @@ End Module
 ]]>, Diagnostic(ERRID.ERR_ExpectedIdentifier, ""))
     End Sub
 
-    <WorkItem(545515, "DevDiv")>
+    <WorkItem(545515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545515")>
     <Fact>
     Public Sub FromAsNewInQuery()
         Dim code = <![CDATA[
@@ -1963,7 +2052,7 @@ End Module
         ParseAndVerify(code, Diagnostic(ERRID.ERR_UnrecognizedTypeKeyword, ""))
     End Sub
 
-    <WorkItem(545584, "DevDiv")>
+    <WorkItem(545584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545584")>
     <Fact>
     Public Sub ParseNullableAfterOpenGeneric()
         Dim code = <![CDATA[
@@ -1980,7 +2069,7 @@ End Class
     Diagnostic(ERRID.ERR_UnrecognizedType, ")"))
     End Sub
 
-    <WorkItem(545166, "DevDiv")>
+    <WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
     <Fact>
     Public Sub ParseNullableWithQuestionMark()
         Dim code = <![CDATA[
@@ -1997,7 +2086,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(546514, "DevDiv")>
+    <WorkItem(546514, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546514")>
     <Fact>
     Public Sub XmlMemberAccessWithInvalidWhitespace()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -2028,7 +2117,7 @@ End Module
 
     End Sub
 
-    <WorkItem(546378, "DevDiv")>
+    <WorkItem(546378, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546378")>
     <Fact>
     Public Sub SpuriousLineContinuationAtBeginningOfStatement()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -2047,7 +2136,7 @@ End Module
 
     End Sub
 
-    <WorkItem(531567, "DevDiv")>
+    <WorkItem(531567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531567")>
     <Fact>
     Public Sub ColonAfterQuery()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -2062,7 +2151,7 @@ End Module
 
     End Sub
 
-    <WorkItem(546515, "DevDiv")>
+    <WorkItem(546515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546515")>
     <Fact>
     Public Sub ParseBadAsClauseInJoinQuery()
         Dim code = <![CDATA[
@@ -2079,7 +2168,7 @@ End Module
                        Diagnostic(ERRID.ERR_ExpectedInto, ""))
     End Sub
 
-    <WorkItem(546515, "DevDiv")>
+    <WorkItem(546515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546515")>
     <Fact>
     Public Sub ParseBadSourceInJoinQuery()
         Dim code = <![CDATA[
@@ -2097,7 +2186,7 @@ End Module
                        Diagnostic(ERRID.ERR_IllegalChar, "$"))
     End Sub
 
-    <WorkItem(546710, "DevDiv")>
+    <WorkItem(546710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546710")>
     <Fact()>
     Public Sub Bug16626()
         Dim source = <![CDATA[
@@ -2168,7 +2257,7 @@ End Module
         Assert.Equal(asClause.ToFullString(), "As Object ")
     End Sub
 
-    <WorkItem(601108, "DevDiv")>
+    <WorkItem(601108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601108")>
     <Fact>
     Public Sub DistinctAfterOctal()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -2514,7 +2603,7 @@ End Module
     ''' Allow missing optional expression at end of statement
     ''' within single-line expression/statement.
     ''' </summary>
-    <WorkItem(642273, "DevDiv")>
+    <WorkItem(642273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642273")>
     <Fact()>
     Public Sub MissingOptionalExpressionEndingSingleLineStatement()
         ParseAndVerify(<![CDATA[
@@ -2671,7 +2760,7 @@ End Module
     End Sub
 
     <ClrOnlyFact>
-    <WorkItem(1085618, "DevDiv")>
+    <WorkItem(1085618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085618")>
     Public Sub TooDeepLambdaDeclarations()
         Dim depth = 5000
         Dim builder As New StringBuilder()

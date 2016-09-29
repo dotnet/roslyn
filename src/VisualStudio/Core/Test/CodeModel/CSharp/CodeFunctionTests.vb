@@ -2546,7 +2546,7 @@ class A
 
 #Region "Parameter name tests"
 
-        <WorkItem(1147885)>
+        <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestParameterNameWithEscapeCharacters() As Task
             Dim code =
@@ -2561,7 +2561,7 @@ public class C
             Await TestAllParameterNames(code, "@int")
         End Function
 
-        <WorkItem(1147885)>
+        <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestParameterNameWithEscapeCharacters_2() As Task
             Dim code =

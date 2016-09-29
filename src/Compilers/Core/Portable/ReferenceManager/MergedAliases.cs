@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             Merge(
-                aliases: reference.Properties.HasRecursiveAliases ? RecursiveAliasesOpt : AliasesOpt, 
+                aliases: reference.Properties.HasRecursiveAliases ? RecursiveAliasesOpt : AliasesOpt,
                 newAliases: reference.Properties.Aliases);
         }
 

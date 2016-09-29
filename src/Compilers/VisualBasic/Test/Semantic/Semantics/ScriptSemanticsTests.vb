@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ScriptSemanticsTests
         Inherits BasicTestBase
 
-        <WorkItem(530404)>
+        <WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")>
         <Fact>
         Public Sub DiagnosticsPass()
             Dim source0 = "

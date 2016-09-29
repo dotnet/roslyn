@@ -148,6 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override Version AssemblyVersionPattern => _underlyingAssembly.AssemblyVersionPattern;
+
         internal override ImmutableArray<byte> PublicKey
         {
             get { return _underlyingAssembly.PublicKey; }
@@ -284,5 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
         }
+
+        public override AssemblyMetadata GetMetadata() => _underlyingAssembly.GetMetadata();
     }
 }

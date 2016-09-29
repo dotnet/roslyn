@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Roslyn.Utilities;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -24,6 +25,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class PEModule : IDisposable
     {
+        /// <summary>
+        /// We need to store reference to the module metadata to keep the metadata alive while 
+        /// symbols have reference to PEModule.
+        /// </summary>
+        private readonly ModuleMetadata _owner;
+
         // Either we have PEReader or we have pointer and size of the metadata blob:
         private readonly PEReader _peReaderOpt;
         private readonly IntPtr _metadataPointerOpt;
@@ -73,16 +80,18 @@ namespace Microsoft.CodeAnalysis
         // Note: not a general purpose helper
         private static readonly AttributeValueExtractor<decimal> s_decimalValueInDecimalConstantAttributeExtractor = CrackDecimalInDecimalConstantAttribute;
         private static readonly AttributeValueExtractor<ImmutableArray<bool>> s_attributeBoolArrayValueExtractor = CrackBoolArrayInAttributeValue;
+        private static readonly AttributeValueExtractor<ImmutableArray<string>> s_attributeStringArrayValueExtractor = CrackStringArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
 
-        internal PEModule(PEReader peReader, IntPtr metadataOpt, int metadataSizeOpt, bool includeEmbeddedInteropTypes = false)
+        internal PEModule(ModuleMetadata owner, PEReader peReader, IntPtr metadataOpt, int metadataSizeOpt, bool includeEmbeddedInteropTypes = false)
         {
             // shall not throw
 
             Debug.Assert((peReader == null) ^ (metadataOpt == IntPtr.Zero && metadataSizeOpt == 0));
             Debug.Assert(metadataOpt == IntPtr.Zero || metadataSizeOpt > 0);
 
+            _owner = owner;
             _peReaderOpt = peReader;
             _metadataPointerOpt = metadataOpt;
             _metadataSizeOpt = metadataSizeOpt;
@@ -614,7 +623,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
+        internal class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
         {
             private readonly StringComparer _nameComparer;
 
@@ -982,6 +991,20 @@ namespace Microsoft.CodeAnalysis
             return TryExtractBoolArrayValueFromAttribute(info.Handle, out dynamicTransforms);
         }
 
+        internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
+        {
+            var info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
+
+            if (!info.HasValue)
+            {
+                tupleElementNames = default(ImmutableArray<string>);
+                return false;
+            }
+
+            return TryExtractStringArrayValueFromAttribute(info.Handle, out tupleElementNames);
+        }
+
         internal bool HasDeprecatedOrObsoleteAttribute(EntityHandle token, out ObsoleteAttributeData obsoleteData)
         {
             AttributeInfo info;
@@ -1039,7 +1062,16 @@ namespace Microsoft.CodeAnalysis
             AttributeInfo info = FindLastTargetAttribute(token, AttributeDescription.DateTimeConstantAttribute);
             if (info.HasValue && TryExtractLongValueFromAttribute(info.Handle, out value))
             {
-                defaultValue = ConstantValue.Create(new DateTime(value));
+                // if value is outside this range, DateTime would throw when constructed
+                if (value < DateTime.MinValue.Ticks || value > DateTime.MaxValue.Ticks)
+                {
+                    defaultValue = ConstantValue.Bad;
+                }
+                else
+                {
+                    defaultValue = ConstantValue.Create(new DateTime(value));
+                }
+
                 return true;
             }
 
@@ -1138,6 +1170,7 @@ namespace Microsoft.CodeAnalysis
                 case 0: // DeprecatedAttribute(String, DeprecationType, UInt32) 
                 case 1: // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
                 case 2: // DeprecatedAttribute(String, DeprecationType, UInt32, Type) 
+                case 3: // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
                     return TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeDeprecatedDataExtractor);
 
                 default:
@@ -1185,8 +1218,8 @@ namespace Microsoft.CodeAnalysis
         {
             switch (comInterfaceType)
             {
-                case (int)ComInterfaceType.InterfaceIsDual:
-                case (int)ComInterfaceType.InterfaceIsIDispatch:
+                case (int)Cci.Constants.ComInterfaceType_InterfaceIsDual:
+                case (int)Cci.Constants.ComInterfaceType_InterfaceIsIDispatch:
                 case (int)ComInterfaceType.InterfaceIsIInspectable:
                 case (int)ComInterfaceType.InterfaceIsIUnknown:
                     return true;
@@ -1235,7 +1268,7 @@ namespace Microsoft.CodeAnalysis
             return TryExtractValueFromAttribute(handle, out value, s_attributeStringValueExtractor);
         }
 
-        private bool TryExtractLongValueFromAttribute(CustomAttributeHandle handle, out long value)
+        internal bool TryExtractLongValueFromAttribute(CustomAttributeHandle handle, out long value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeLongValueExtractor);
         }
@@ -1264,6 +1297,11 @@ namespace Microsoft.CodeAnalysis
         private bool TryExtractBoolArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<bool> value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeBoolArrayValueExtractor);
+        }
+
+        private bool TryExtractStringArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<string> value)
+        {
+            return TryExtractValueFromAttribute(handle, out value, s_attributeStringArrayValueExtractor);
         }
 
         private bool TryExtractValueFromAttribute<T>(CustomAttributeHandle handle, out T value, AttributeValueExtractor<T> valueExtractor)
@@ -2457,7 +2495,7 @@ namespace Microsoft.CodeAnalysis
 
                 string moduleName = GetModuleRefNameOrThrow(methodImport.Module);
                 string entryPointName = MetadataReader.GetString(methodImport.Name);
-                Cci.PInvokeAttributes flags = (Cci.PInvokeAttributes)methodImport.Attributes;
+                MethodImportAttributes flags = (MethodImportAttributes)methodImport.Attributes;
 
                 return new DllImportData(moduleName, entryPointName, flags);
             }
@@ -2521,6 +2559,13 @@ namespace Microsoft.CodeAnalysis
             Parameter parameter = MetadataReader.GetParameter(parameterDef);
             name = MetadataReader.GetString(parameter.Name);
             flags = parameter.Attributes;
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        internal string GetParamNameOrThrow(ParameterHandle parameterDef)
+        {
+            Parameter parameter = MetadataReader.GetParameter(parameterDef);
+            return MetadataReader.GetString(parameter.Name);
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
@@ -2966,5 +3011,7 @@ namespace Microsoft.CodeAnalysis
                 return StringTable.AddSharedUTF8(bytes, byteCount);
             }
         }
+
+        public ModuleMetadata GetNonDisposableMetadata() => _owner.Copy();
     }
 }

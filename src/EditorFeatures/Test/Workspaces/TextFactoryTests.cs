@@ -3,6 +3,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     {
         private byte[] _nonUTF8StringBytes = new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF };
 
-        [WpfFact, WorkItem(1038018), WorkItem(1041792)]
+        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018"), WorkItem(1041792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041792")]
         public void TestCreateTextFallsBackToSystemDefaultEncoding()
         {
             TestCreateTextInferredEncoding(
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.Default);
         }
 
-        [WpfFact, WorkItem(1038018)]
+        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextFallsBackToUTF8Encoding()
         {
             TestCreateTextInferredEncoding(
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
         }
 
-        [WpfFact, WorkItem(1038018)]
+        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextFallsBackToProvidedDefaultEncoding()
         {
             TestCreateTextInferredEncoding(
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.GetEncoding(1254));
         }
 
-        [WpfFact, WorkItem(1038018)]
+        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextUsesByteOrderMarkIfPresent()
         {
             TestCreateTextInferredEncoding(
@@ -53,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.UTF8);
         }
 
-        [WpfFact]
-        public void TestCreateFromTemporaryStorage()
+        [Fact]
+        public async Task TestCreateFromTemporaryStorage()
         {
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
@@ -65,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
             {
                 // Write text into it
-                temporaryStorage.WriteTextAsync(text).Wait();
+                await temporaryStorage.WriteTextAsync(text);
 
                 // Read text back from it
-                var text2 = temporaryStorage.ReadTextAsync().Result;
+                var text2 = await temporaryStorage.ReadTextAsync();
 
                 Assert.NotSame(text, text2);
                 Assert.Equal(text.ToString(), text2.ToString());
@@ -76,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        [WpfFact]
-        public void TestCreateFromTemporaryStorageWithEncoding()
+        [Fact]
+        public async Task TestCreateFromTemporaryStorageWithEncoding()
         {
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
@@ -88,10 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
             {
                 // Write text into it
-                temporaryStorage.WriteTextAsync(text).Wait();
+                await temporaryStorage.WriteTextAsync(text);
 
                 // Read text back from it
-                var text2 = temporaryStorage.ReadTextAsync().Result;
+                var text2 = await temporaryStorage.ReadTextAsync();
 
                 Assert.NotSame(text, text2);
                 Assert.Equal(text.ToString(), text2.ToString());

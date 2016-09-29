@@ -52,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var textLines = location.SourceTree.GetText().Lines;
                 var startPos = textLines.GetPosition(originalSpan.Start);
                 var endPos = textLines.GetPosition(originalSpan.End);
-                sourceSpan = new TextSpan(startPos, endPos - startPos);
+
+                sourceSpan = TextSpan.FromBounds(startPos, Math.Max(startPos, endPos));
             }
 
             if (mappedSpan.Start != mappedLineInfo.StartLinePosition || mappedSpan.End != mappedLineInfo.EndLinePosition)

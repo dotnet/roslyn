@@ -66,7 +66,7 @@ namespace Roslyn.Utilities
                     chunks[c] = chunk;
                 }
 
-                var result = new PooledStream(length, chunks);
+                var result = new ReadStream(length, chunks);
                 chunks = null;
                 return result;
             }
@@ -116,7 +116,7 @@ namespace Roslyn.Utilities
                     chunks[c] = chunk;
                 }
 
-                var result = new PooledStream(length, chunks);
+                var result = new ReadStream(length, chunks);
                 chunks = null;
                 return result;
             }
@@ -154,18 +154,11 @@ namespace Roslyn.Utilities
             protected long position;
             protected long length;
 
-            public PooledStream(long length, byte[][] chunks)
+            protected PooledStream(long length, List<byte[]> chunks)
             {
                 this.position = 0;
                 this.length = length;
-                this.chunks = new List<byte[]>(chunks);
-            }
-
-            protected PooledStream()
-            {
-                this.position = 0;
-                this.length = 0;
-                this.chunks = new List<byte[]>();
+                this.chunks = chunks;
             }
 
             public override long Length
@@ -306,7 +299,7 @@ namespace Roslyn.Utilities
             {
                 if (this.Length == 0)
                 {
-                    return SpecializedCollections.EmptyBytes;
+                    return Array.Empty<byte>();
                 }
 
                 var array = new byte[this.Length];
@@ -355,11 +348,22 @@ namespace Roslyn.Utilities
             }
         }
 
+        private class ReadStream : PooledStream
+        {
+            public ReadStream(long length, byte[][] chunks) :
+                base(length, new List<byte[]>(chunks))
+            {
+
+            }
+        }
+
         private class ReadWriteStream : PooledStream
         {
             public ReadWriteStream()
-                : base()
+                : base(length: 0, chunks: SharedPools.BigDefault<List<byte[]>>().AllocateAndClear())
             {
+                // growing list on EnsureSize shown as perf bottleneck. reuse shared list so that
+                // we don't re-allocate as much.
             }
 
             public override bool CanWrite
@@ -438,6 +442,15 @@ namespace Roslyn.Utilities
                 {
                     this.length = this.position;
                 }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                var temp = this.chunks;
+
+                base.Dispose(disposing);
+
+                SharedPools.BigDefault<List<byte[]>>().ClearAndFree(temp);
             }
         }
     }

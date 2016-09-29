@@ -43,13 +43,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each decl In ns.Members
                         ComputeDeclarationsCore(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
-                    builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken))
+                    Dim declInfo = GetDeclarationInfo(model, node, getSymbol, cancellationToken)
+                    builder.Add(declInfo)
 
                     Dim name = ns.NamespaceStatement.Name
+                    Dim nsSymbol = declInfo.DeclaredSymbol
                     While (name.Kind() = SyntaxKind.QualifiedName)
                         name = (CType(name, QualifiedNameSyntax)).Left
-                        Dim declaredSymbol = If(getSymbol, model.GetSymbolInfo(name, cancellationToken).Symbol, Nothing)
+                        Dim declaredSymbol = If(getSymbol, nsSymbol?.ContainingNamespace, Nothing)
                         builder.Add(New DeclarationInfo(name, ImmutableArray(Of SyntaxNode).Empty, declaredSymbol))
+                        nsSymbol = declaredSymbol
                     End While
 
                     Return
@@ -169,10 +172,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return initializer
         End Function
 
-        Private Shared Function GetAsNewClauseIntializer(asClause As AsClauseSyntax) As ExpressionSyntax
-            Return If(asClause.IsKind(SyntaxKind.AsNewClause),
-                CType(asClause, AsNewClauseSyntax).NewExpression,
-                Nothing)
+        Private Shared Function GetAsNewClauseIntializer(asClause As AsClauseSyntax) As SyntaxNode
+            ' The As New clause itself is necessary rather than the embedded New expression, so that the
+            ' code block associated with the declaration appears as an initializer for the purposes
+            ' of executing analyzer actions.
+            Return If(asClause.IsKind(SyntaxKind.AsNewClause), asClause, Nothing)
         End Function
     End Class
 End Namespace

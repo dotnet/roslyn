@@ -378,7 +378,7 @@ End Class
 
         End Sub
 
-        <WorkItem(529096, "DevDiv")>
+        <WorkItem(529096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529096")>
         <Fact()>
         Public Sub UseMeInLambda()
             Dim comp = CreateCompilationWithMscorlib(

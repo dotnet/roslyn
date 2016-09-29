@@ -21,19 +21,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly BinderFlags Flags;
 
+        /// <summary>
+        /// Used to create a root binder.
+        /// </summary>
+        internal Binder(CSharpCompilation compilation)
+        {
+            Debug.Assert(compilation != null);
+            this.Flags = compilation.Options.TopLevelBinderFlags;
+            this.Compilation = compilation;
+        }
+
         internal Binder(Binder next)
         {
             Debug.Assert(next != null);
             _next = next;
             this.Flags = next.Flags;
             this.Compilation = next.Compilation;
-        }
-
-        internal Binder(CSharpCompilation compilation)
-        {
-            Debug.Assert(compilation != null);
-            this.Flags = BinderFlags.None;
-            this.Compilation = compilation;
         }
 
         protected Binder(Binder next, BinderFlags flags)
@@ -144,17 +147,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Some nodes have special binder's for their contents (like Block's)
         /// </summary>
-        internal virtual Binder GetBinder(CSharpSyntaxNode node)
+        internal virtual Binder GetBinder(SyntaxNode node)
         {
             return this.Next.GetBinder(node);
         }
 
         /// <summary>
-        /// Get locals declared immediately in scope represented by the node.
+        /// Get locals declared immediately in scope designated by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
-            return this.Next.GetDeclaredLocalsForScope(node);
+            return this.Next.GetDeclaredLocalsForScope(scopeDesignator);
+        }
+
+        /// <summary>
+        /// Get local functions declared immediately in scope designated by the node.
+        /// </summary>
+        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            return this.Next.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+        }
+
+        /// <summary>
+        /// If this binder owns a scope for locals, return syntax node that is used
+        /// as the scope designator. Otherwise, null.
+        /// </summary>
+        internal virtual SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        internal virtual bool IsLocalFunctionsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal virtual bool IsLabelsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -251,16 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.GetIteratorElementType(node, diagnostics);
         }
 
-        public virtual ConsList<LocalSymbol> ImplicitlyTypedLocalsBeingBound
-        {
-            get
-            {
-                return _next.ImplicitlyTypedLocalsBeingBound;
-            }
-        }
-
         /// <summary>
-        /// The Imports for all containing namespace declarations (innermost-to-outermost, including global).
+        /// The imports for all containing namespace declarations (innermost-to-outermost, including global),
+        /// or null if there are none.
         /// </summary>
         internal virtual ImportChain ImportChain
         {
@@ -377,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void Error(DiagnosticBag diagnostics, DiagnosticInfo info, CSharpSyntaxNode syntax)
+        internal static void Error(DiagnosticBag diagnostics, DiagnosticInfo info, SyntaxNode syntax)
         {
             diagnostics.Add(new CSDiagnostic(info, syntax.Location));
         }
@@ -522,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// NOTE: The return value reflects obsolete-ness, not whether or not the diagnostic was reported.
         /// </returns>
-        private static ThreeState ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
+        internal static ThreeState ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
         {
             Debug.Assert(diagnostics != null);
 
@@ -577,44 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ThreeState.True;
         }
 
-        internal void ResolveOverloads<TMember>(
-            ImmutableArray<TMember> members,
-            ImmutableArray<TypeSymbol> typeArguments,
-            ImmutableArray<ArgumentSyntax> arguments,
-            OverloadResolutionResult<TMember> result,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool allowRefOmittedArguments)
-            where TMember : Symbol
-        {
-            var methodsBuilder = ArrayBuilder<TMember>.GetInstance(members.Length);
-            methodsBuilder.AddRange(members);
-
-            var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(typeArguments.Length);
-            typeArgumentsBuilder.AddRange(typeArguments);
-
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            var unusedDiagnostics = DiagnosticBag.GetInstance();
-            foreach (var argumentSyntax in arguments)
-            {
-                BindArgumentAndName(analyzedArguments, unusedDiagnostics, false, argumentSyntax, allowArglist: false);
-            }
-
-            OverloadResolution.MethodOrPropertyOverloadResolution(
-                methodsBuilder,
-                typeArgumentsBuilder,
-                analyzedArguments,
-                result,
-                isMethodGroupConversion: false,
-                allowRefOmittedArguments: allowRefOmittedArguments,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-
-            methodsBuilder.Free();
-            typeArgumentsBuilder.Free();
-            analyzedArguments.Free();
-            unusedDiagnostics.Free();
-        }
-
-        internal bool IsSymbolAccessibleConditional(
+        internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -687,9 +682,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundAssignment,
 
             /// <summary>
-            /// Expression is an out parameter.
+            /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
-            OutParameter,
+            RefOrOut,
 
             /// <summary>
             /// Expression is the operand of an address-of operation (&amp;).
@@ -700,6 +695,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Expression is the receiver of a fixed buffer field access
             /// </summary>
             FixedReceiver,
+
+            /// <summary>
+            /// Expression is assigned by reference.
+            /// </summary>
+            RefAssign,
+            
+            /// <summary>
+            /// Expression is returned by reference.
+            /// </summary>
+            RefReturn,
         }
 
         /// <summary>
@@ -733,6 +738,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binders.ToArrayAndFree();
         }
 #endif
+        
+        internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundExpression expression)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            return (locals.IsEmpty)
+                ? expression
+                : new BoundSequence(scopeDesignator, locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
+        }
 
+        internal BoundStatement WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            if (locals.IsEmpty)
+            {
+                return statement;
+            }
+
+            return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
+                        { WasCompilerGenerated = true };
+        }
+
+        /// <summary>
+        /// Should only be used with scopes that could declare local functions.
+        /// </summary>
+        internal BoundStatement WrapWithVariablesAndLocalFunctionsIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            var localFunctions = this.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+            if (locals.IsEmpty && localFunctions.IsEmpty)
+            {
+                return statement;
+            }
+
+            return new BoundBlock(statement.Syntax, locals, localFunctions,
+                                  ImmutableArray.Create(statement))
+            { WasCompilerGenerated = true };
+        }
     }
 }

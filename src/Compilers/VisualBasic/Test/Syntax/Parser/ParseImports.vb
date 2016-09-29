@@ -107,7 +107,7 @@ Imports Roslyn.Compilers.Common
         </errors>)
     End Sub
 
-    <WorkItem(541486, "DevDiv")>
+    <WorkItem(541486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541486")>
     <Fact>
     Public Sub ImportsAliasMissingIdentifier()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -129,7 +129,7 @@ Imports Roslyn.Compilers.Common
                                             SyntaxKind.IdentifierToken)
     End Sub
 
-    <WorkItem(541486, "DevDiv")>
+    <WorkItem(541486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541486")>
     <Fact()>
     Public Sub ImportsMissingIdentifierBeforeComma()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -151,7 +151,7 @@ Imports Roslyn.Compilers.Common
                                             SyntaxKind.IdentifierToken)
     End Sub
 
-    <WorkItem(541803, "DevDiv")>
+    <WorkItem(541803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541803")>
     <Fact>
     Public Sub AnotherImportsAfterComma()
         Dim tree = ParseAndVerify(<![CDATA[

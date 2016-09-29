@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 {
     public class CodeFixServiceTests
     {
-        [WpfFact]
+        [Fact]
         public async Task TestGetFirstDiagnosticWithFixAsync()
         {
             var diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var code = @"
     a
 ";
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetService<IErrorLoggerService>()));
                 var fixService = new CodeFixService(
@@ -57,35 +57,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInRegisterMethod()
         {
             await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInRegisterMethod());
             await GetAddedFixesAsync(new ErrorCases.ExceptionInRegisterMethod());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync()
         {
             await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
             await GetAddedFixesAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds()
         {
             await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
             await GetAddedFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
         {
             await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
             await GetAddedFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInGetFixAllProvider()
         {
             await GetAddedFixesAsync(new ErrorCases.ExceptionInGetFixAllProvider());
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 () => codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
             var code = @"class Program { }";
-            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code);
+            var workspace = await TestWorkspace.CreateCSharpAsync(code);
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
             var errorLogger = logger.First().Value;
             var fixService = new CodeFixService(

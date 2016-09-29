@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
     Public Class XmlTagCompletionTests
@@ -16,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
             Return New XmlTagCompletionCommandHandler(undoHistory, TestWaitIndicator.Default)
         End Function
 
-        Protected Overrides Function CreateTestWorkspaceAsync(initialMarkup As String) As Threading.Tasks.Task(Of TestWorkspace)
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(initialMarkup)
+        Protected Overrides Function CreateTestWorkspaceAsync(initialMarkup As String) As Task(Of TestWorkspace)
+            Return TestWorkspace.CreateVisualBasicAsync(initialMarkup)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
@@ -142,7 +141,7 @@ End Class]]></File>
             Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Function
 
-        <WorkItem(638235)>
+        <WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Async Function TestNotCloseClosedTag() As Task
             Dim text = <File><![CDATA[

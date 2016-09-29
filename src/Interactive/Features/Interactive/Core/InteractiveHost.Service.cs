@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             private static readonly ManualResetEventSlim s_clientExited = new ManualResetEventSlim(false);
 
-            private static TaskScheduler s_UIThreadScheduler;
+            private static Control s_control;
 
             private InteractiveAssemblyLoader _assemblyLoader;
             private MetadataShadowCopyProvider _metadataFileProvider;
@@ -59,13 +59,18 @@ namespace Microsoft.CodeAnalysis.Interactive
                 internal readonly ScriptOptions ScriptOptions;
 
                 internal EvaluationState(
-                    ScriptState<object> scriptState,
+                    ScriptState<object> scriptStateOpt,
                     ScriptOptions scriptOptions,
                     ImmutableArray<string> sourceSearchPaths,
                     ImmutableArray<string> referenceSearchPaths,
                     string workingDirectory)
                 {
-                    ScriptStateOpt = scriptState;
+                    Debug.Assert(scriptOptions != null);
+                    Debug.Assert(!sourceSearchPaths.IsDefault);
+                    Debug.Assert(!referenceSearchPaths.IsDefault);
+                    Debug.Assert(workingDirectory != null);
+
+                    ScriptStateOpt = scriptStateOpt;
                     ScriptOptions = scriptOptions;
                     SourceSearchPaths = sourceSearchPaths;
                     ReferenceSearchPaths = referenceSearchPaths;
@@ -74,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 internal EvaluationState WithScriptState(ScriptState<object> state)
                 {
+                    Debug.Assert(state != null);
+
                     return new EvaluationState(
                         state,
                         ScriptOptions,
@@ -84,6 +91,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 internal EvaluationState WithOptions(ScriptOptions options)
                 {
+                    Debug.Assert(options != null);
+
                     return new EvaluationState(
                         ScriptStateOpt,
                         options,
@@ -104,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public Service()
             {
                 var initialState = new EvaluationState(
-                    scriptState: null,
+                    scriptStateOpt: null,
                     scriptOptions: ScriptOptions.Default,
                     sourceSearchPaths: ImmutableArray<string>.Empty,
                     referenceSearchPaths: ImmutableArray<string>.Empty,
@@ -256,9 +265,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             var uiThread = new Thread(() =>
                             {
-                                var c = new Control();
-                                c.CreateControl();
-                                s_UIThreadScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                                s_control = new Control();
+                                s_control.CreateControl();
                                 resetEvent.Set();
                                 Application.Run();
                             });
@@ -397,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                     else
                     {
-                        Console.Error.WriteLine(string.Format(FeaturesResources.CannotResolveReference, reference));
+                        Console.Error.WriteLine(string.Format(FeaturesResources.Cannot_resolve_reference_0, reference));
                     }
                 }
                 catch (Exception e)
@@ -443,12 +451,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // remove references and imports from the options, they have been applied and will be inherited from now on:
                         state = state.WithOptions(state.ScriptOptions.RemoveImportsAndReferences());
 
-                        var newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt).ConfigureAwait(false);
-                        if (newScriptState != null)
-                        {
-                            DisplaySubmissionResult(newScriptState);
-                            state = state.WithScriptState(newScriptState);
-                        }
+                        var newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt, displayResult: true).ConfigureAwait(false);
+                        state = state.WithScriptState(newScriptState);
                     }
                 }
                 catch (Exception e)
@@ -463,11 +467,15 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return state;
             }
 
-            private void DisplaySubmissionResult(ScriptState<object> state)
+            private void DisplayException(Exception e)
             {
-                if (state.Script.HasReturnValue())
+                if (e is FileLoadException && e.InnerException is InteractiveAssemblyLoaderException)
                 {
-                    _globals.Print(state.ReturnValue);
+                    Console.Error.WriteLine(e.InnerException.Message);
+                }
+                else
+                {
+                    Console.Error.Write(_replServiceProvider.ObjectFormatter.FormatException(e));
                 }
             }
 
@@ -553,17 +561,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             #region Operations
 
-            // TODO (tomat): testing only
-            public void SetTestObjectFormattingOptions()
-            {
-                _globals.PrintOptions = new ObjectFormattingOptions(
-                    memberFormat: MemberDisplayFormat.Inline,
-                    quoteStrings: true,
-                    useHexadecimalNumbers: false,
-                    maxOutputLength: int.MaxValue,
-                    memberIndentation: "  ");
-            }
-
             /// <summary>
             /// Loads references, set options and execute files specified in the initialization file.
             /// Also prints logo unless <paramref name="isRestarting"/> is true.
@@ -589,7 +586,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     if (File.Exists(initializationFileOpt))
                     {
-                        Console.Out.WriteLine(string.Format(FeaturesResources.LoadingContextFrom, Path.GetFileName(initializationFileOpt)));
+                        Console.Out.WriteLine(string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(initializationFileOpt)));
                         var parser = _replServiceProvider.CommandLineParser;
 
                         // The base directory for relative paths is the directory that contains the .rsp file.
@@ -645,7 +642,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                             if (scriptPathOpt != null)
                             {
-                                var newScriptState = await ExecuteFileAsync(rspState, scriptPathOpt).ConfigureAwait(false);
+                                var newScriptState = await TryExecuteFileAsync(rspState, scriptPathOpt).ConfigureAwait(false);
                                 if (newScriptState != null)
                                 {
                                     // remove references and imports from the options, they have been applied and will be inherited from now on:
@@ -661,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     if (!isRestarting)
                     {
-                        Console.Out.WriteLine(FeaturesResources.TypeHelpForMoreInformation);
+                        Console.Out.WriteLine(FeaturesResources.Type_Sharphelp_for_more_information);
                     }
                 }
                 catch (Exception e)
@@ -690,11 +687,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     if (displayPath)
                     {
-                        Console.Error.WriteLine(FeaturesResources.SpecifiedFileNotFoundFormat, path);
+                        Console.Error.WriteLine(FeaturesResources.Specified_file_not_found_colon_0, path);
                     }
                     else
                     {
-                        Console.Error.WriteLine(FeaturesResources.SpecifiedFileNotFound);
+                        Console.Error.WriteLine(FeaturesResources.Specified_file_not_found);
                     }
 
                     if (attempts.Count > 0)
@@ -737,61 +734,53 @@ namespace Microsoft.CodeAnalysis.Interactive
                 string path)
             {
                 var state = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
-                var success = false;
-                try
+                string fullPath = ResolveRelativePath(path, state.WorkingDirectory, state.SourceSearchPaths, displayPath: false);
+                if (fullPath != null)
                 {
-                    var fullPath = ResolveRelativePath(path, state.WorkingDirectory, state.SourceSearchPaths, displayPath: false);
-
-                    var newScriptState = await ExecuteFileAsync(state, fullPath).ConfigureAwait(false);
+                    var newScriptState = await TryExecuteFileAsync(state, fullPath).ConfigureAwait(false);
                     if (newScriptState != null)
                     {
-                        success = true;
-                        state = state.WithScriptState(newScriptState);
+                        return CompleteExecution(state.WithScriptState(newScriptState), operation, success: newScriptState.Exception == null);
                     }
                 }
-                finally
-                {
-                    state = CompleteExecution(state, operation, success);
-                }
 
-                return state;
+                return CompleteExecution(state, operation, success: false);
             }
 
             /// <summary>
             /// Executes specified script file as a submission.
             /// </summary>
-            /// <returns>True if the code has been executed. False if the code doesn't compile.</returns>
             /// <remarks>
             /// All errors are written to the error output stream.
             /// Uses source search paths to resolve unrooted paths.
             /// </remarks>
-            private async Task<ScriptState<object>> ExecuteFileAsync(EvaluationState state, string fullPath)
+            private async Task<ScriptState<object>> TryExecuteFileAsync(EvaluationState state, string fullPath)
             {
+                Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+
                 string content = null;
-                if (fullPath != null)
+                try
                 {
-                    Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-                    try
+                    using (var reader = File.OpenText(fullPath))
                     {
-                        content = File.ReadAllText(fullPath);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.Error.WriteLine(e.Message);
+                        content = await reader.ReadToEndAsync().ConfigureAwait(false);
                     }
                 }
-
-                ScriptState<object> newScriptState = null;
-                if (content != null)
+                catch (Exception e)
                 {
-                    Script<object> script = TryCompile(state.ScriptStateOpt?.Script, content, fullPath, state.ScriptOptions);
-                    if (script != null)
-                    {
-                        newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt).ConfigureAwait(false);
-                    }
+                    // file read errors:
+                    Console.Error.WriteLine(e.Message);
+                    return null;
                 }
 
-                return newScriptState;
+                Script<object> script = TryCompile(state.ScriptStateOpt?.Script, content, fullPath, state.ScriptOptions);
+                if (script == null)
+                {
+                    // compilation errors:
+                    return null;
+                }
+
+                return await ExecuteOnUIThread(script, state.ScriptStateOpt, displayResult: false).ConfigureAwait(false);
             }
 
             private static void DisplaySearchPaths(TextWriter writer, List<string> attemptedFilePaths)
@@ -800,8 +789,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var uniqueDirectories = new HashSet<string>(directories);
 
                 writer.WriteLine(uniqueDirectories.Count == 1 ?
-                    FeaturesResources.SearchedInDirectory :
-                    FeaturesResources.SearchedInDirectories);
+                    FeaturesResources.Searched_in_directory_colon :
+                    FeaturesResources.Searched_in_directories_colon);
 
                 foreach (string directory in directories)
                 {
@@ -813,33 +802,29 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private async Task<ScriptState<object>> ExecuteOnUIThread(Script<object> script, ScriptState<object> stateOpt)
+            private async Task<ScriptState<object>> ExecuteOnUIThread(Script<object> script, ScriptState<object> stateOpt, bool displayResult)
             {
-                return await Task.Factory.StartNew(async () =>
-                {
-                    try
+                return await ((Task<ScriptState<object>>)s_control.Invoke(
+                    (Func<Task<ScriptState<object>>>)(async () =>
                     {
                         var task = (stateOpt == null) ?
-                            script.RunAsync(_globals, CancellationToken.None) :
-                            script.ContinueAsync(stateOpt, CancellationToken.None);
+                            script.RunAsync(_globals, catchException: e => true, cancellationToken: CancellationToken.None) :
+                            script.RunFromAsync(stateOpt, catchException: e => true, cancellationToken: CancellationToken.None);
 
-                        return await task.ConfigureAwait(false);
-                    }
-                    catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
-                    {
-                        Console.Error.WriteLine(e.InnerException.Message);
-                        return null;
-                    }
-                    catch (Exception e)
-                    {
-                        // TODO (tomat): format exception
-                        Console.Error.WriteLine(e);
-                        return null;
-                    }
-                },
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                s_UIThreadScheduler).Unwrap().ConfigureAwait(false);
+                        var newState = await task.ConfigureAwait(false);
+
+                        if (newState.Exception != null)
+                        {
+                            DisplayException(newState.Exception);
+                        }
+                        else if (displayResult && newState.Script.HasReturnValue())
+                        {
+                            _globals.Print(newState.ReturnValue);
+                        }
+
+                        return newState;
+
+                    }))).ConfigureAwait(false);
             }
 
             private void DisplayInteractiveErrors(ImmutableArray<Diagnostic> diagnostics, TextWriter output)
@@ -863,7 +848,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 if (diagnostics.Length > MaxErrorCount)
                 {
                     int notShown = diagnostics.Length - MaxErrorCount;
-                    output.WriteLine(string.Format(output.FormatProvider, FeaturesResources.PlusAdditional, notShown, (notShown == 1) ? "error" : "errors"));
+                    output.WriteLine(string.Format(output.FormatProvider, FeaturesResources.plus_additional_0_1, notShown, (notShown == 1) ? "error" : "errors"));
                 }
             }
 

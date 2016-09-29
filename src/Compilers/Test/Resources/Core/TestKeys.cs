@@ -1,10 +1,12 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 
 namespace TestResources
 {
     public static class TestKeys
     {
-        public static readonly ImmutableArray<byte> PublicKey_ce65828c82a341f2 = ImmutableArray.Create(new byte[] 
+        public static readonly ImmutableArray<byte> PublicKey_ce65828c82a341f2 = ImmutableArray.Create(new byte[]
         {
             0x00, 0x24, 0x00, 0x00, 0x04, 0x80, 0x00, 0x00, 0x94, 0x00, 0x00, 0x00, 0x06, 0x02, 0x00, 0x00,
             0x00, 0x24, 0x00, 0x00, 0x52, 0x53, 0x41, 0x31, 0x00, 0x04, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,

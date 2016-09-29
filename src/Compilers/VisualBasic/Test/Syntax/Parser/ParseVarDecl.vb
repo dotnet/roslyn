@@ -18,7 +18,11 @@ Public Class ParseVarDecl
                 dim j() as integer
                 dim k(,,) as integer
                 dim m(10) as integer
+
                 dim n(10)(,,) as integer
+                dim o as (integer, integer)
+                dim p as (a as integer, b as (c as integer, d as integer))
+                dim q as (a as integer, b as (c as integer, d as integer))?()
 
                 public public_i as integer
                 friend friend_i as integer
@@ -36,6 +40,11 @@ Public Class ParseVarDecl
                 dim m(10) as integer
                 dim n(10)(,,) as integer
 
+                dim n(10)(,,) as integer
+                dim o as (integer, integer)
+                dim p as (a as integer, b as (c as integer, d as integer))
+                dim q as (a as integer, b as (c as integer, d as integer))?()
+
                 public public_i as integer
                 friend friend_i as integer
                 shared shared_i as integer
@@ -51,6 +60,11 @@ Public Class ParseVarDecl
                 dim k(,,) as integer
                 dim m(10) as integer
                 dim n(10)(,,) as integer
+
+                dim n(10)(,,) as integer
+                dim o as (integer, integer)
+                dim p as (a as integer, b as (c as integer, d as integer))
+                dim q as (a as integer, b as (c as integer, d as integer))?()
 
                 public public_i as integer
                 friend friend_i as integer
@@ -71,7 +85,7 @@ Public Class ParseVarDecl
                 Private i3(10)(,,) As Integer
                 Private i4 As Integer() = {1,2,3} 
                 Private i5 As New Integer()
-                'Private c1 = New List(Of Integer) From {1, 2, 3} 'ParseTerm does not support New expression yet
+                Private c1 = New List(Of Integer) From {1, 2, 3} 
                 private c2 as new customer with {.a = 1, .b = 2, .c = 3}
             End Class
         ]]>)
@@ -147,7 +161,7 @@ FixedRankArray_19 = New Short() (1,
             </errors>)
     End Sub
 
-    <WorkItem(527021, "DevDiv")>
+    <WorkItem(527021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527021")>
     <Fact>
     Public Sub BC30036_ParseErrorMismatchExpectedExpression()
         ParseAndVerify(<![CDATA[
@@ -162,7 +176,7 @@ FixedRankArray_19 = New Short() (1,
             </errors>)
     End Sub
 
-    <WorkItem(538746, "DevDiv")>
+    <WorkItem(538746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538746")>
     <Fact>
     Public Sub ParseDecimalLiteralWithExponent()
         ParseAndVerify(<![CDATA[
@@ -196,7 +210,7 @@ FixedRankArray_19 = New Short() (1,
         End If
     End Sub
 
-    <WorkItem(541293, "DevDiv")>
+    <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
     <Fact>
     Public Sub ParsePropertyWithFromInitializer()
         ParseAndVerify(<![CDATA[
@@ -216,7 +230,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(541293, "DevDiv")>
+    <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
     <Fact>
     Public Sub ParsePropertyWithFromInitializer_2()
         ParseAndVerify(<![CDATA[
@@ -229,7 +243,7 @@ End Class
 ]]>)
     End Sub
 
-    <WorkItem(543755, "DevDiv")>
+    <WorkItem(543755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543755")>
     <Fact()>
     Public Sub Bug11682()
 

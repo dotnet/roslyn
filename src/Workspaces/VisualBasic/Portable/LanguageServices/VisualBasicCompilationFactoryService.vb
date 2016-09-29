@@ -26,12 +26,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             options As CompilationOptions,
             hostObjectType As Type) As Compilation Implements ICompilationFactoryService.CreateSubmissionCompilation
 
+#If TODO Then ' https://github.com/dotnet/roslyn/issues/9063
+            Return VisualBasicCompilation.CreateScriptCompilation(
+                assemblyName,
+                options:=DirectCast(options, VisualBasicCompilationOptions),
+                globalsType:=hostObjectType)
+#Else
             Throw New NotImplementedException()
-            ' https://github.com/dotnet/roslyn/issues/5944
-            'Return VisualBasicCompilation.CreateScriptCompilation(
-            '    assemblyName,
-            '    options:=DirectCast(options, VisualBasicCompilationOptions),
-            '    globalsType:=hostObjectType)
+#End If
         End Function
 
         Private Function ICompilationFactoryService_GetCompilationFromCompilationReference(reference As MetadataReference) As Compilation Implements ICompilationFactoryService.GetCompilationFromCompilationReference

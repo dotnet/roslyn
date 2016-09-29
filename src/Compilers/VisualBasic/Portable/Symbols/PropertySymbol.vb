@@ -42,6 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' Source: Returns False; properties from source cannot return by reference.
+        ''' Metadata: Returns whether or not this property returns by reference.
+        ''' </summary>
+        Public MustOverride ReadOnly Property ReturnsByRef As Boolean
+
+        ''' <summary>
         ''' Gets the type of the property. 
         ''' </summary>
         Public MustOverride ReadOnly Property Type As TypeSymbol
@@ -398,6 +404,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' Is this a property of a tuple type?
+        ''' </summary>
+        Public Overridable ReadOnly Property IsTupleProperty() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' If this is a property of a tuple type, return corresponding underlying property from the
+        ''' tuple underlying type. Otherwise, Nothing. 
+        ''' </summary>
+        Public Overridable ReadOnly Property TupleUnderlyingProperty() As PropertySymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Clone the property parameters for the accessor method. The
         ''' parameters are cloned (rather than referenced from the property)
         ''' since the ContainingSymbol needs to be set to the accessor.
@@ -454,6 +479,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertySymbol_SetMethod As IMethodSymbol Implements IPropertySymbol.SetMethod
             Get
                 Return Me.SetMethod
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_ReturnsByRef As Boolean Implements IPropertySymbol.ReturnsByRef
+            Get
+                Return Me.ReturnsByRef
             End Get
         End Property
 

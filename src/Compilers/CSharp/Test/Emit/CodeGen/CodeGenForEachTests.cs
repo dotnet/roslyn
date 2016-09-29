@@ -78,7 +78,7 @@ class C
 }");
         }
 
-        [WorkItem(544937, "DevDiv")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void TestForEachMultiDimensionalArray()
         {
@@ -165,7 +165,7 @@ class C
 }");
         }
 
-        [WorkItem(544937, "DevDiv")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void TestForEachMultiDimensionalArrayBreakAndContinue()
         {
@@ -853,7 +853,7 @@ struct Enumerator
 }");
         }
 
-        [WorkItem(540943, "DevDiv")]
+        [WorkItem(540943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540943")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [Fact]
         public void TestForEachExplicitlyGetEnumeratorStruct()
@@ -1049,7 +1049,7 @@ struct Enumerable
 }");
         }
 
-        [WorkItem(540943, "DevDiv")]
+        [WorkItem(540943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540943")]
         [Fact]
         public void TestForEachExplicitlyGetEnumeratorGenericStruct()
         {
@@ -1498,7 +1498,7 @@ class C
 3");
         }
 
-        [WorkItem(540952, "DevDiv")]
+        [WorkItem(540952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540952")]
         [Fact]
         public void TestGetEnumeratorWithParams()
         {
@@ -1542,7 +1542,7 @@ b
 c");
         }
 
-        [WorkItem(540954, "DevDiv")]
+        [WorkItem(540954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540954")]
         [Fact]
         public void TestMoveNextWithNonBoolDeclaredReturnType()
         {
@@ -1581,7 +1581,7 @@ class E<T>
             var compilation = CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(540958, "DevDiv")]
+        [WorkItem(540958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540958")]
         [Fact]
         public void TestNonConstantNullInForeach()
         {

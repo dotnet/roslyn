@@ -1,17 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Linq
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrection
-Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticEndConstructCorrection
     Public Class AutomaticEndConstructCorrectorTests
@@ -234,7 +229,7 @@ End Class</code>.Value
             Await VerifyContinuousEditsAsync(code, "Shared", Function(s) "Function", removeOriginalContent:=False, split:="Function")
         End Function
 
-        <WorkItem(539362)>
+        <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Async Function TestMultiLineLambdaSubToFunction() As Task
             Dim code = <code>Class A
@@ -250,7 +245,7 @@ End Class</code>.Value
             Await VerifyAsync(code, "Function")
         End Function
 
-        <WorkItem(539362)>
+        <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Async Function TestMultiLineLambdaFunctionToSub() As Task
             Dim code = <code>Class A
@@ -265,7 +260,7 @@ End Class</code>.Value
             Await VerifyAsync(code, "Sub")
         End Function
 
-        <WorkItem(539365)>
+        <WorkItem(539365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539365")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Async Function BugFix5290() As Task
             Dim code = <code>Public Class Class1
@@ -278,7 +273,7 @@ End [|Class|]</code>.Value
             Await VerifyEndAsync(code, "Structure", "Class")
         End Function
 
-        <WorkItem(539357)>
+        <WorkItem(539357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Async Function TestBugFix5276() As Task
@@ -290,7 +285,7 @@ End Class</code>.Value
             Await VerifyContinuousEditsAsync(code, "  ", Function(s) "Function", removeOriginalContent:=False)
         End Function
 
-        <WorkItem(539360)>
+        <WorkItem(539360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Async Function TestBugFix5283() As Task
@@ -304,7 +299,7 @@ End Class</code>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        <WorkItem(539498)>
+        <WorkItem(539498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
         Public Async Function TestDontThrowDueToSingleLineDeletion() As Task
             Dim code = <code>Class A
     [|$$Sub M() : End Sub|]
@@ -351,7 +346,7 @@ End Class</code>.Value
             ' do this since xml value put only vbLf
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithMarker)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithMarker)
                 Dim document = workspace.Documents.Single()
 
                 Dim buffer = document.TextBuffer
@@ -402,7 +397,7 @@ End Class</code>.Value
         End Function
 
         Private Async Function VerifyBeginAsync(code As String, keyword As String, Optional expected As String = Nothing) As Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim document = workspace.Documents.Single()
 
                 Dim selectedSpans = document.SelectedSpans
@@ -415,7 +410,7 @@ End Class</code>.Value
         End Function
 
         Private Async Function VerifyEndAsync(code As String, keyword As String, Optional expected As String = Nothing) As Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim document = workspace.Documents.Single()
 
                 Dim selectedSpans = document.SelectedSpans

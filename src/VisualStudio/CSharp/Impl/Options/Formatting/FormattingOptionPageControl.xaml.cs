@@ -29,9 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             InitializeComponent();
 
-            FormatOnSemicolonCheckBox.Content = CSharpVSResources.FormatOnSemicolonCheckBox;
-            FormatOnCloseBraceCheckBox.Content = CSharpVSResources.FormatOnCloseBraceCheckBox;
-            FormatOnPasteCheckBox.Content = CSharpVSResources.FormatOnPasteCheckBox;
+            FormatOnSemicolonCheckBox.Content = CSharpVSResources.Automatically_format_statement_on;
+            FormatOnCloseBraceCheckBox.Content = CSharpVSResources.Automatically_format_block_on;
+            FormatOnPasteCheckBox.Content = CSharpVSResources.Automatically_format_on_paste;
 
             BindToOption(FormatOnPasteCheckBox, FeatureOnOffOptions.FormatOnPaste, LanguageNames.CSharp);
             BindToOption(FormatOnCloseBraceCheckBox, FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp);

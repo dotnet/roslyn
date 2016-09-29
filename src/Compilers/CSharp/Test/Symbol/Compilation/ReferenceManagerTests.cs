@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ReferenceManagerTests : CSharpTestBase
     {
-        private static readonly CSharpCompilationOptions s_signedDll = 
+        private static readonly CSharpCompilationOptions s_signedDll =
             TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
-        
+
         [Fact]
         public void WinRtCompilationReferences()
         {
@@ -94,7 +94,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(546080, "DevDiv")]
+        [WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080")]
         public void VersionUnification_SymbolNotUsed()
         {
             var v1 = MetadataReference.CreateFromImage(TestResources.General.C1);
@@ -214,7 +214,7 @@ public class M
         }
 
         [Fact]
-        [WorkItem(529808, "DevDiv"), WorkItem(530246, "DevDiv")]
+        [WorkItem(529808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529808"), WorkItem(530246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530246")]
         public void VersionUnification_UseSiteWarnings()
         {
             string sourceLibV1 = @"
@@ -383,22 +383,16 @@ public class OKImpl : I
             CompileAndVerify(main, validator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
-                List<string> refs = new List<string>();
-                foreach (var assemblyRef in reader.AssemblyReferences)
-                {
-                    var row = reader.GetAssemblyReference(assemblyRef);
-                    refs.Add(reader.GetString(row.Name) + " " + row.Version.Major + "." + row.Version.Minor);
-                }
 
                 // Dev11 adds "Lib 1.0" to the references, we don't (see DevDiv #15580)
-                AssertEx.SetEqual(new[] { "mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0", "X 2.0" }, refs);
+                AssertEx.SetEqual(new[] { "mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0", "X 2.0" }, reader.DumpAssemblyReferences());
             },
             // PE verification would need .config file with Lib v1 -> Lib v2 binding redirect 
             verify: false);
         }
 
         [Fact]
-        [WorkItem(546080, "DevDiv")]
+        [WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080")]
         public void VersionUnification_UseSiteDiagnostics_Multiple()
         {
             string sourceA1 = @"
@@ -651,7 +645,7 @@ public class M
         }
 
         [Fact]
-        [WorkItem(546752, "DevDiv")]
+        [WorkItem(546752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546752")]
         public void VersionUnification_NoPiaMissingCanonicalTypeSymbol()
         {
             string sourceLibV1 = @"
@@ -726,7 +720,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_NoCanonicalView, "b.M").WithArguments("IB"));
         }
 
-        [WorkItem(546525, "DevDiv")]
+        [WorkItem(546525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546525")]
         [Fact]
         public void AssemblyReferencesWithAliases()
         {
@@ -753,7 +747,7 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
-        [WorkItem(545062, "DevDiv")]
+        [WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")]
         [Fact]
         public void DuplicateReferences()
         {
@@ -1010,7 +1004,7 @@ public interface I {}";
         /// Two Framework identities with unified versions.
         /// </summary>
         [Fact]
-        [WorkItem(546026, "DevDiv"), WorkItem(546169, "DevDiv")]
+        [WorkItem(546026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546026"), WorkItem(546169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546169")]
         public void CS1703ERR_DuplicateImport()
         {
             var p1 = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
@@ -1364,11 +1358,11 @@ public class A
 
             var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(
-                    pathResolver: new VirtualizedRelativePathResolver(new[] 
+                    pathResolver: new VirtualizedRelativePathResolver(new[]
                     {
                         @"C:\A\lib.dll",
                         @"C:\B\lib.dll"
-                    }), 
+                    }),
                     files: new Dictionary<string, PortableExecutableReference>()
                     {
                         { @"C:\A\lib.dll", TestReferences.NetFx.v4_0_30319.Microsoft_CSharp },
@@ -1413,7 +1407,7 @@ public class A
             var c = CreateCompilationWithMscorlib("class C : A {}", new[] { refA2, refB }, assemblyName: "C");
             var symbolA2 = c.GetReferencedAssemblySymbol(refA2);
             Assert.True(symbolA2 is Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol, "PE symbol expected");
-            Assert.Equal(1, ((AssemblyMetadata)refA2.GetMetadata()).CachedSymbols.WeakCount);
+            Assert.Equal(1, ((AssemblyMetadata)refA2.GetMetadataNoCopy()).CachedSymbols.WeakCount);
 
             GC.KeepAlive(symbolA2);
 
@@ -1469,7 +1463,7 @@ public class B : A
             Assert.NotSame(refA2_symbol1, refA2_symbol2);
         }
 
-        [WorkItem(546828, "DevDiv")]
+        [WorkItem(546828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546828")]
         [Fact]
         public void MetadataDependsOnSource()
         {
@@ -1577,7 +1571,7 @@ class Test
             }
         }
 
-        [WorkItem(546828, "DevDiv")]
+        [WorkItem(546828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546828")]
         [Fact]
         public void MetadataDependsOnMetadataOrSource()
         {
@@ -1668,7 +1662,7 @@ namespace System.Printing
         }
 
         [Fact]
-        [WorkItem(546900, "DevDiv")]
+        [WorkItem(546900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546900")]
         public void MetadataRefersToSourceAssemblyModule()
         {
             var srcA = @"
@@ -1713,7 +1707,7 @@ public class B
         }
 
         [Fact]
-        [WorkItem(530839, "DevDiv")]
+        [WorkItem(530839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530839")]
         public void EmbedInteropTypesReferences()
         {
             var libSource = @"
@@ -1741,15 +1735,12 @@ public class C : I { }
             CompileAndVerify(main, validator: (pe) =>
             {
                 var reader = pe.GetMetadataReader();
-
-                var assemblyRef = reader.AssemblyReferences.AsEnumerable().Single();
-                var name = reader.GetString(reader.GetAssemblyReference(assemblyRef).Name);
-                Assert.Equal(name, "mscorlib");
+                AssertEx.SetEqual(new[] { "mscorlib 4.0" }, reader.DumpAssemblyReferences());
             },
             verify: false);
         }
 
-        [WorkItem(531537, "DevDiv")]
+        [WorkItem(531537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531537")]
         [Fact]
         public void ModuleSymbolReuse()
         {
@@ -1805,7 +1796,7 @@ class D
             AssertEx.Equal(moduleReferences1, moduleReferences2);
         }
 
-        [WorkItem(531537, "DevDiv")]
+        [WorkItem(531537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531537")]
         [Fact]
         public void ModuleSymbolReuse_ImplicitType()
         {
@@ -1890,7 +1881,7 @@ internal class C
         }
 
         [Fact]
-        [WorkItem(531342, "DevDiv"), WorkItem(727122, "DevDiv")]
+        [WorkItem(531342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531342"), WorkItem(727122, "DevDiv")]
         public void PortableLibrary()
         {
             var plSource = @"public class C {}";
@@ -1911,7 +1902,7 @@ internal class C
         }
 
         [Fact]
-        [WorkItem(762729, "DevDiv")]
+        [WorkItem(762729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762729")]
         public void OverloadResolutionUseSiteWarning()
         {
             var libBTemplate = @"
@@ -1956,7 +1947,7 @@ public class Source
         }
 
         [Fact]
-        [WorkItem(762729, "DevDiv")]
+        [WorkItem(762729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762729")]
         public void MethodGroupConversionUseSiteWarning()
         {
             var libBTemplate = @"
@@ -2001,7 +1992,7 @@ public class Source
         }
 
         [Fact]
-        [WorkItem(762729, "DevDiv")]
+        [WorkItem(762729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762729")]
         public void IndexerUseSiteWarning()
         {
             var libBTemplate = @"
@@ -2042,7 +2033,7 @@ public class Source
         }
 
         [Fact]
-        [WorkItem(762729, "DevDiv")]
+        [WorkItem(762729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762729")]
         public void Repro762729()
         {
             var libBTemplate = @"
@@ -2122,7 +2113,7 @@ public class Source
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.Extension").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
         }
 
-        [WorkItem(905495, "DevDiv")]
+        [WorkItem(905495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905495")]
         [Fact]
         public void ReferenceWithNoMetadataSection()
         {
@@ -2158,7 +2149,7 @@ public class Source
             Assert.Throws<ObjectDisposedException>(() => compilation.GetTypeByMetadataName("System.Int64").GetMembers());
         }
 
-        [WorkItem(43)]
+        [WorkItem(43, "https://roslyn.codeplex.com/workitem/43")]
         [Fact]
         public void ReusingCorLibManager()
         {
@@ -2173,7 +2164,7 @@ public class Source
             Assert.True(corlib1.ReferenceManagerEquals(corlib2));
         }
 
-        [WorkItem(5138)]
+        [WorkItem(5138, "https://github.com/dotnet/roslyn/issues/5138")]
         [Fact]
         public void AsymmetricUnification()
         {
@@ -2609,7 +2600,7 @@ public class C : A
                 // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 
                 // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "A").WithArguments(
-                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A",
                     "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
 
             Assert.Equal("B", ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b3RefY)).Name);
@@ -2844,7 +2835,7 @@ public class C : A
                 { "B, 1.0.0.0", b2Ref }
             });
 
-            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b3Ref }, 
+            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b3Ref },
                 s_signedDll.WithMetadataReferenceResolver(resolver));
 
             c.VerifyEmitDiagnostics(
@@ -2852,11 +2843,11 @@ public class C : A
                 // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity
                 // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "A").WithArguments(
-                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A",
                     "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
 
             Assert.Equal(
-                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b3Ref)).Identity.GetDisplayName());
 
             Assert.Null((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b2Ref));
@@ -2905,8 +2896,8 @@ public class C : A
                 // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' which has a higher version than referenced assembly 
                 // 'B' with identity 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'
                 Diagnostic(ErrorCode.ERR_AssemblyMatchBadVersion, "C").WithArguments(
-                    "A", "A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
-                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                    "A", "A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                     "B", "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"),
 
                 // (1,14): error CS1705: Assembly 
@@ -2915,7 +2906,7 @@ public class C : A
                 // 'B' with identity 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'
                 Diagnostic(ErrorCode.ERR_AssemblyMatchBadVersion, "C").WithArguments(
                     "D", "D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
-                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                     "B", "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"));
 
             resolverC.VerifyResolutionAttempts(
@@ -2970,14 +2961,14 @@ public class C : A
                 // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 
                 // 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
-                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A",
                     "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"),
 
                 // (1,14): warning CS1701: Assuming assembly reference 
                 // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'E' matches identity
                 // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
-                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "E", 
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "E",
                     "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
 
             resolverC.VerifyResolutionAttempts(
@@ -3178,7 +3169,7 @@ public class C : A
             //          "System, v2"
             //     b -> "mscorlib, v4"
             //          "System, v4"
-            var aRef = CreateCompilation(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v2_0_50727.System }, 
+            var aRef = CreateCompilation(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v2_0_50727.System },
                 options: options, assemblyName: "A").EmitToImageReference();
 
             var bRef = CreateCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v4_0_30316_17626, TestReferences.NetFx.v4_0_30319.System },

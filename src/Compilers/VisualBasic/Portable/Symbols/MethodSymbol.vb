@@ -117,6 +117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property IsIterator As Boolean
 
         ''' <summary>
+        ''' Source: Returns False; methods from source cannot return by reference.
+        ''' Metadata: Returns whether or not this method returns by reference.
+        ''' </summary>
+        Public MustOverride ReadOnly Property ReturnsByRef As Boolean
+
+        ''' <summary>
         ''' Gets the return type of the method. If the method is a Sub, returns
         ''' the same type symbol as is returned by Compilation.VoidType.
         ''' </summary>
@@ -133,6 +139,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overridable Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             Return ImmutableArray(Of VisualBasicAttributeData).Empty
         End Function
+
+        ''' <summary>
+        ''' Build and add synthesized return type attributes for this method symbol.
+        ''' </summary>
+        Friend Overridable Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        End Sub
 
         ''' <summary>
         ''' Optimization: in many cases, the parameter count (fast) is sufficient and we
@@ -156,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Should return syntax node that originated the method. 
         ''' </summary>
-        Friend MustOverride ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend MustOverride ReadOnly Property Syntax As SyntaxNode
 
         ''' <summary>
         ''' Returns true if calls to this method are omitted in the given syntax tree at the given syntax node location.
@@ -722,11 +734,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The bound method body is typically a high-level tree - it may contain 
         ''' lambdas, foreach etc... which will be processed in CompileMethod(...)
         ''' </summary>
+        ''' <param name="compilationState">Enables synthesized methods to create <see cref="SyntheticBoundNodeFactory"/> instances.</param>
         ''' <param name="methodBodyBinder">Optionally returns a binder, OUT parameter!</param>
         ''' <remarks>
         ''' The method MAY return a binder used for binding so it can be reused later in method compiler
         ''' </remarks>
-        Friend Overridable Function GetBoundMethodBody(diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overridable Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -767,6 +780,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable ReadOnly Property PreserveOriginalLocals As Boolean
             Get
                 Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Is this a method of a tuple type?
+        ''' </summary>
+        Public Overridable ReadOnly Property IsTupleMethod() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' If this is a method of a tuple type, return corresponding underlying method from the
+        ''' tuple underlying type. Otherwise, Nothing. 
+        ''' </summary>
+        Public Overridable ReadOnly Property TupleUnderlyingMethod() As MethodSymbol
+            Get
+                Return Nothing
             End Get
         End Property
 
@@ -893,6 +925,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_ReturnsByRef As Boolean Implements IMethodSymbol.ReturnsByRef
+            Get
+                Return Me.ReturnsByRef
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_ReturnType As ITypeSymbol Implements IMethodSymbol.ReturnType
             Get
                 Return Me.ReturnType
@@ -961,6 +999,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End Region
 
 #Region "IMethodSymbolInternal"
+        Private ReadOnly Property IMethodSymbolInternal_IsIterator As Boolean Implements IMethodSymbolInternal.IsIterator
+            Get
+                Return Me.IsIterator
+            End Get
+        End Property
+
         Private Function IMethodSymbolInternal_CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer Implements IMethodSymbolInternal.CalculateLocalSyntaxOffset
             Return CalculateLocalSyntaxOffset(localPosition, localTree)
         End Function

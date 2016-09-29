@@ -1356,7 +1356,7 @@ class A
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [WorkItem(541898, "DevDiv")]
+        [WorkItem(541898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541898")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestIfNoEmptyTrivia()
@@ -1580,7 +1580,7 @@ class A
             VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
         }
 
-        [WorkItem(542198, "DevDiv")]
+        [WorkItem(542198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542198")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestNegElifWithoutIfWithSkipped()
@@ -2015,7 +2015,7 @@ return (i);
         }
 
         [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-        [ClrOnlyFact]
+        [Fact]
         [Trait("Feature", "Directives")]
         public void TestRegionWithSingleLineComment()
         {
@@ -2030,14 +2030,14 @@ return (i);
                 new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
             var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-            Assert.Equal("#region A//B\r\n", regionDirective.ToFullString());
+            Assert.Equal($"#region A//B{Environment.NewLine}", regionDirective.ToFullString());
             var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
             Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
             Assert.Equal("A//B", regionText.ToFullString());
         }
 
         [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-        [ClrOnlyFact]
+        [Fact]
         [Trait("Feature", "Directives")]
         public void TestRegionWithInvalidSingleLineComment()
         {
@@ -2052,7 +2052,7 @@ return (i);
                 new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
             var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-            Assert.Equal("#region A/\\B\r\n", regionDirective.ToFullString());
+            Assert.Equal($"#region A/\\B{Environment.NewLine}", regionDirective.ToFullString());
             var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
             Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
             Assert.Equal("A/\\B", regionText.ToFullString());
@@ -2110,7 +2110,7 @@ class Test
             VerifyMembers(node);
         }
 
-        [WorkItem(527079, "DevDiv")]
+        [WorkItem(527079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527079")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestRegressRegionWithEscapeUnicodePrefixOnly()
@@ -2352,7 +2352,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243, "DevDiv")]
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
         [Trait("Feature", "Directives")]
         public void Bug869243_01()
         {
@@ -2376,7 +2376,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243, "DevDiv")]
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
         [Trait("Feature", "Directives")]
         public void Bug869243_02()
         {
@@ -2409,7 +2409,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243, "DevDiv")]
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
         [Trait("Feature", "Directives")]
         public void Bug869243_03()
         {
@@ -2439,7 +2439,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243, "DevDiv")]
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
         [Trait("Feature", "Directives")]
         public void Bug869243_04()
         {
@@ -2921,7 +2921,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [WorkItem(541954, "DevDiv")]
+        [WorkItem(541954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541954")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestErrorWithNonLatinChars()
@@ -2934,7 +2934,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [WorkItem(541953, "DevDiv")]
+        [WorkItem(541953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541953")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestDiagnosticStringFileName()
@@ -3164,7 +3164,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 12345, Text = "bogus.cs" });
         }
 
-        [WorkItem(536699, "DevDiv")]
+        [WorkItem(536699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536699")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestRegressNegLineWithErrorMessage()
@@ -3220,7 +3220,7 @@ public class Test
             VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
         }
 
-        [WorkItem(537981, "DevDiv")]
+        [WorkItem(537981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537981")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestNegLineWithoutSpaceBeforeFile()
@@ -3237,7 +3237,7 @@ public class Test
             VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
         }
 
-        [WorkItem(537981, "DevDiv")]
+        [WorkItem(537981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537981")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestNegLineWithZeroWidthSpaceBeforeFile()
@@ -3322,7 +3322,7 @@ public class Test
             });
         }
 
-        [Fact, WorkItem(536701, "DevDiv"), WorkItem(530051, "DevDiv")]
+        [Fact, WorkItem(536701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536701"), WorkItem(530051, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530051")]
         [Trait("Feature", "Directives")]
         public void TestRegressPragmaWarningDisableWithWarningCode()
         {

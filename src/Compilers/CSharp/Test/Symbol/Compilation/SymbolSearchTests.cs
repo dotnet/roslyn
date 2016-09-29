@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Test(compilation, n => n.IndexOf("enum", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: true, includeType: true, includeMember: true, count: 2);
         }
 
-        [WorkItem(876191)]
+        [WorkItem(876191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876191")]
         [Fact]
         public void TestExplicitInterfaceSearch()
         {

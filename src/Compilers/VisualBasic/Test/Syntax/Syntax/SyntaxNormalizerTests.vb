@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class SyntaxNormalizerTests
 
-        <WorkItem(546397, "DevDiv")>
+        <WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         <ConditionalFact(GetType(WindowsOnly))>
         Public Sub TestAllInVB()
             Dim allInVB As String = TestResource.AllInOneVisualBasicCode
@@ -96,12 +96,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNormalizeBlock("Imports          <xmlns:db=""http://example.org/database"">", "Imports <xmlns:db=""http://example.org/database"">" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestLabelStatements()
             TestNormalizeStatement("while a<b" + vbCrLf + "foo:" + vbCrLf + "c" + vbCrLf + "end while", "while a < b" + vbCrLf + "foo:" + vbCrLf + "  c" + vbCrLf + "end while")
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestMethodStatements()
             TestNormalizeBlock("Sub foo()" + vbCrLf + "a()" + vbCrLf + "end Sub", "Sub foo()" + vbCrLf + "  a()" + vbCrLf + "end Sub" + vbCrLf)
             TestNormalizeBlock("Function foo()         as   Integer" + vbCrLf + "return 23" + vbCrLf + "end function", "Function foo() as Integer" + vbCrLf + "  return 23" + vbCrLf + "end function" + vbCrLf)
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNormalizeBlock("Sub foo()" + vbCrLf + "Dim a ( ) ( )=New Integer ( ) ( ) (   ){ }" + vbCrLf + "end Sub", "Sub foo()" + vbCrLf + "  Dim a()() = New Integer()()() {}" + vbCrLf + "end Sub" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestWithStatements()
             TestNormalizeBlock(
 <code>
@@ -127,13 +127,13 @@ end Sub
 </code>.Value)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestSyncLockStatements()
             TestNormalizeBlock("Sub foo()" + vbCrLf + "SyncLock me" + vbCrLf + "bar()" + vbCrLf + "end synclock" + vbCrLf + "end Sub",
                             "Sub foo()" + vbCrLf + "  SyncLock me" + vbCrLf + "    bar()" + vbCrLf + "  end synclock" + vbCrLf + "end Sub" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestEventStatements()
             TestNormalizeBlock(
 <code>
@@ -154,7 +154,7 @@ end module
 </code>.Value)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestAssignmentStatements()
             TestNormalizeBlock("module m1" + vbCrLf +
                             "sub s1()" + vbCrLf +
@@ -221,7 +221,7 @@ end module
                             "end module" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestCallStatements()
             TestNormalizeBlock("module m1" + vbCrLf +
                             "sub s2()" + vbCrLf +
@@ -256,7 +256,7 @@ end module
                             "Dim zipState = New With {Key .ZipCode = 98112, .State = ""WA""}" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv"), WorkItem(546514, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397"), WorkItem(546514, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546514")>
         Public Sub TestXmlAccessStatements()
             TestNormalizeBlock("Imports <xmlns:db=""http://example.org/database"">" + vbCrLf +
                             "Module Test" + vbCrLf +
@@ -276,7 +276,7 @@ end module
                             "End Module" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestNamespaceStatements()
             TestNormalizeBlock("Imports I1.I2" + vbCrLf +
                             "Namespace N1" + vbCrLf +
@@ -292,7 +292,7 @@ end module
                             "end Namespace" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestNullableStatements()
             TestNormalizeBlock(
 <code>
@@ -307,7 +307,7 @@ end module
 </code>.Value)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestInterfaceStatements()
             TestNormalizeBlock("namespace N1" + vbCrLf +
                             "Interface I1" + vbCrLf +
@@ -342,7 +342,7 @@ end module
                             "End Namespace" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestEnumStatements()
             TestNormalizeBlock("Module M1" + vbCrLf + vbCrLf +
                             "ENUM E1 as long" + vbCrLf +
@@ -417,7 +417,7 @@ end module
                             "end class" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestDelegateStatements()
 
             TestNormalizeBlock("Module M1" + vbCrLf +
@@ -461,7 +461,7 @@ end module
 
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestSelectStatements()
 
             TestNormalizeBlock("    Module M1" + vbCrLf +
@@ -504,7 +504,7 @@ end module
                             "end module" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestIfStatement()
 
             ' expressions
@@ -542,7 +542,7 @@ end module
             Assert.Equal("If 42 > 23 THeN" + vbCrLf + "  Call foo" + vbCrLf + "  Call foo" + vbCrLf + "End If", str)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestLoopStatements()
             TestNormalizeStatement("while a<b" + vbCrLf + "c                  " + vbCrLf + "end while", "while a < b" + vbCrLf + "  c" + vbCrLf + "end while")
 
@@ -597,7 +597,7 @@ end module
                             "next j, i")
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestExceptionsStatements()
 
             TestNormalizeStatement("   try" + vbCrLf +
@@ -621,7 +621,7 @@ end module
                             "end try")
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestUsingStatements()
 
             TestNormalizeStatement("  Using   r1  As  R =  New R ( ) ,   r2 As R = New R( )" + vbCrLf +
@@ -643,7 +643,7 @@ end module
                             "Dim waCusts = From cust As Customer In Customers Where cust.State = ""WA""")
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestDefaultCasingForKeywords()
             Dim expected = "Module m1" + vbCrLf + vbCrLf +
                             "  Dim x = Function(x, y) x + y" + vbCrLf + vbCrLf +
@@ -655,7 +655,7 @@ end module
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestComment()
 
             ' trailing whitespace will be aligned to the indent level (see second comment)
@@ -693,7 +693,7 @@ end module
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestMultilineLambdaFunctionsAsParameter()
 
             ' trailing whitespace will be aligned to the indent level (see second comment)
@@ -722,7 +722,7 @@ end module
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestProperty()
             Dim input = <text>Property    p   As  Integer         
                 Get
@@ -757,7 +757,7 @@ End Property
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(546397, "DevDiv")>
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestStructuredTriviaAndAttributes()
             Dim source = "Module m1" + vbCrLf +
                             " '''<x>...</x>" + vbCrLf +
@@ -778,7 +778,7 @@ End Property
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(531607, "DevDiv")>
+        <Fact(), WorkItem(531607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531607")>
         Public Sub TestNestedStructuredTrivia()
             Dim trivia = SyntaxFactory.TriviaList(
                 SyntaxFactory.Trivia(

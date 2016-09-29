@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         #region Analysis
 
         private static readonly Regex s_omittedSyntaxKindRegex =
-            new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter|InterpolatedString.*");
+            new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter|InterpolatedString|TupleType|TupleElement|TupleExpression.*");
 
         private bool FilterByAbstractName(Entry entry, string abstractMemberName)
         {
@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return !s_omittedSyntaxKindRegex.IsMatch(syntaxKind.ToString());
         }
 
-        public void VerifyAnalyzeNodeCalledForAllSyntaxKinds()
+        public void VerifyAnalyzeNodeCalledForAllSyntaxKinds(HashSet<TLanguageKindEnum> syntaxKindsPatterns)
         {
             var expectedSyntaxKinds = AllSyntaxKinds.Where(IsAnalyzeNodeSupported);
-            var actualSyntaxKinds = _callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Distinct();
+            var actualSyntaxKinds = _callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Concat(syntaxKindsPatterns).Distinct();
             AssertIsSuperset(expectedSyntaxKinds, actualSyntaxKinds);
         }
 

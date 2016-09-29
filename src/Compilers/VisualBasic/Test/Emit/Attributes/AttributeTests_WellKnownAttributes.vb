@@ -1,15 +1,16 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Roslyn.Test.Utilities
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class AttributeTests_WellKnownAttributes
@@ -277,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(540573, "DevDiv")>
+        <WorkItem(540573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540573")>
         <Fact()>
         Public Sub TestPseudoAttributes01()
             Dim source =
@@ -433,7 +434,342 @@ End Class
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(531121, "DevDiv")>
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub DateTimeConstantAttribute()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    Sub Method(<DateTimeConstant(-1)> p1 As DateTime)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim symValidator As Action(Of ModuleSymbol) =
+                Sub(peModule)
+
+                    Dim bar = peModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Bar")
+                    Dim method = bar.GetMember(Of MethodSymbol)("Method")
+                    Dim parameters = method.Parameters
+                    Dim theParameter = DirectCast(parameters(0), PEParameterSymbol)
+                    Dim peModuleSymbol = DirectCast(peModule, PEModuleSymbol)
+
+                    Assert.Equal(ParameterAttributes.None, theParameter.ParamFlags)
+
+                    ' let's find the attribute in the PE metadata
+                    Dim attributeInfo = CodeAnalysis.PEModule.FindTargetAttribute(peModuleSymbol.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute)
+                    Assert.True(attributeInfo.HasValue)
+
+                    Dim attributeValue As Long
+                    Assert.True(peModuleSymbol.Module.TryExtractLongValueFromAttribute(attributeInfo.Handle, attributeValue))
+                    Assert.Equal(-1L, attributeValue)
+
+                    ' check .param has no value
+                    Dim constantHandle = peModuleSymbol.Module.MetadataReader.GetParameter(theParameter.Handle).GetDefaultValue()
+                    Assert.True(constantHandle.IsNil)
+                End Sub
+
+            CompileAndVerify(source, symbolValidator:=symValidator)
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub DateTimeConstantAttributeWithBadDefaultValue()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    Public Function Method(<DateTimeConstant(-1)> Optional p1 As DateTime = # 8/23/1970 3:45:39AM #) As DateTime
+        Return p1
+    End Function
+    Public Shared Sub Main()
+        Console.WriteLine(New Bar().Method().Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            ' The native VB compiler emits this:
+            ' .method public instance void  Method([opt] valuetype [mscorlib]System.DateTime p1) cil managed
+            ' {
+            ' .param [1]
+            ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 80 73 3E 42 F6 37 A0 08 00 00 )
+            ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 FF FF FF FF FF FF FF FF 00 00 )
+
+            ' Using the native compiler, the code would output 621558279390000000
+
+            Dim comp = CreateCompilationWithMscorlib(source)
+            AssertTheseDiagnostics(comp,
+                                   <expected><![CDATA[
+BC37226: The parameter has multiple distinct default values.
+    Public Function Method(<DateTimeConstant(-1)> Optional p1 As DateTime = # 8/23/1970 3:45:39AM #) As DateTime
+                                                                            ~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub DateTimeConstantAttributeWithValidDefaultValue()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    Public Function Method(<DateTimeConstant(42)> Optional p1 As DateTime = # 8/23/1970 3:45:39AM #) As DateTime
+        Return p1
+    End Function
+    Public Shared Sub Main()
+        Console.WriteLine(New Bar().Method().Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            ' The native VB compiler emits this:
+            ' .method public instance valuetype [mscorlib]System.DateTime
+            ' Method([opt] valuetype [mscorlib]System.DateTime p1) cil managed
+            ' {
+            ' .param [1]
+            ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 2A 00 00 00 00 00 00 00 00 00 )
+            ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 80 73 3E 42 F6 37 A0 08 00 00 )
+
+            ' Using the native compiler, the code would output 621558279390000000
+
+            Dim comp = CreateCompilationWithMscorlib(source)
+            AssertTheseDiagnostics(comp,
+                                   <expected><![CDATA[
+BC37226: The parameter has multiple distinct default values.
+    Public Function Method(<DateTimeConstant(42)> Optional p1 As DateTime = # 8/23/1970 3:45:39AM #) As DateTime
+                                                                            ~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub DateTimeConstantAttributeWithBadDefaultValueOnField()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    <DateTimeConstant(-1)>
+    Public Const F As DateTime = # 8/23/1970 3:45:39AM #
+
+    Public Shared Sub Main()
+        Console.WriteLine(Bar.F.Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            ' The native compiler would output 621558279390000000
+            Dim comp = CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC37228: The field has multiple distinct constant values.
+    <DateTimeConstant(-1)>
+     ~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub DateTimeConstantAttributeWithValidDefaultValueOnField()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    <DateTimeConstant(42)>
+    Public Const F As DateTime = # 8/23/1970 3:45:39AM #
+
+    Public Shared Sub Main()
+        Console.WriteLine(Bar.F.Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            ' With the native VB compiler, this code outputs 621558279390000000
+            Dim comp = CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC37228: The field has multiple distinct constant values.
+    <DateTimeConstant(42)>
+     ~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub DateTimeConstantAttributeReferencedViaRef()
+            Dim source1 =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    Public Sub Method(<DateTimeConstant(-1)> p1 As DateTime)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Public Class Consumer
+    Public Shared Sub Main()
+        Dim test = New Bar()
+        test.Method()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim libComp = CreateCompilationWithMscorlib(source1)
+            Dim libCompRef = New VisualBasicCompilationReference(libComp)
+
+            Dim comp2 = CreateCompilationWithMscorlib(source2, references:={libCompRef})
+            AssertTheseDiagnostics(comp2,
+                                   <expected><![CDATA[
+BC30455: Argument not specified for parameter 'p1' of 'Public Sub Method(p1 As Date)'.
+        test.Method()
+             ~~~~~~
+]]></expected>)
+
+            Dim libAssemblyRef = libComp.EmitToImageReference()
+            Dim comp3 = CreateCompilationWithMscorlib(source2, references:={libAssemblyRef})
+            AssertTheseDiagnostics(comp3,
+                <expected><![CDATA[
+BC30455: Argument not specified for parameter 'p1' of 'Public Sub Method(p1 As Date)'.
+        test.Method()
+             ~~~~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub LoadingDateTimeConstantWithBadValueOnField()
+            Dim ilSource = <![CDATA[
+.class public auto ansi C
+       extends [mscorlib]System.Object
+{
+  .field public static initonly valuetype [mscorlib]System.DateTime F
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 ff ff ff ff ff ff ff ff 00 00 )
+  .method public specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method C::.ctor
+} // end of class C
+                ]]>
+
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Public Class D
+    Shared Sub Main()
+        System.Console.WriteLine(C.F.Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            ' Using the native compiler, this code crashed
+            Dim ilReference = CompileIL(ilSource.Value)
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ilReference})
+            AssertTheseDiagnostics(comp,
+                <expected><![CDATA[
+BC30799: Field 'C.F' has an invalid constant value.
+        System.Console.WriteLine(C.F.Ticks)
+                                 ~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub LoadingDateTimeConstantWithBadValue()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance valuetype [mscorlib]System.DateTime
+          Method([opt] valuetype [mscorlib]System.DateTime p) cil managed
+  {
+    .param [1]
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
+    // Code size       7 (0x7)
+    .maxstack  1
+    .locals init (valuetype [mscorlib]System.DateTime V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method C::Method
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method C::.ctor
+
+} // end of class C
+                ]]>
+
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Public Class D
+
+    Shared Sub Main()
+        System.Console.WriteLine(New C().Method().Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim ilReference = CompileIL(ilSource.Value)
+            CompileAndVerify(source, expectedOutput:="0", additionalRefs:={ilReference})
+            ' The native compiler would produce a working exe, but that exe would fail at runtime
+        End Sub
+
+        <WorkItem(531121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531121")>
         <Fact()>
         Public Sub TestDecimalConstantAttribute()
             Dim source =
@@ -486,7 +822,7 @@ End Class
 #Region "DllImportAttribute, MethodImplAttribute, PreserveSigAttribute"
         ''' 6879: Pseudo DllImport looks very different in metadata: pinvokeimpl(...) +
         ''' PreserveSig
-        <WorkItem(540573, "DevDiv")>
+        <WorkItem(540573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540573")>
         <Fact>
         Public Sub TestPseudoDllImport()
             Dim source =
@@ -754,7 +1090,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(544176, "DevDiv")>
+        <WorkItem(544176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544176")>
         Public Sub TestPseudoAttributes_DllImport_AllTrue()
             Dim source =
 <compilation>
@@ -817,19 +1153,19 @@ End Class
                     Assert.Equal(True, info.ThrowOnUnmappableCharacter)
 
                     Assert.Equal(
-                        Cci.PInvokeAttributes.NoMangle Or
-                        Cci.PInvokeAttributes.CharSetUnicode Or
-                        Cci.PInvokeAttributes.SupportsLastError Or
-                        Cci.PInvokeAttributes.CallConvCdecl Or
-                        Cci.PInvokeAttributes.BestFitEnabled Or
-                        Cci.PInvokeAttributes.ThrowOnUnmappableCharEnabled, DirectCast(info, Cci.IPlatformInvokeInformation).Flags)
+                        MethodImportAttributes.ExactSpelling Or
+                        MethodImportAttributes.CharSetUnicode Or
+                        MethodImportAttributes.SetLastError Or
+                        MethodImportAttributes.CallingConventionCDecl Or
+                        MethodImportAttributes.BestFitMappingEnable Or
+                        MethodImportAttributes.ThrowOnUnmappableCharEnable, DirectCast(info, Cci.IPlatformInvokeInformation).Flags)
                 End Sub
 
             CompileAndVerify(source, validator:=validator, symbolValidator:=symValidator)
         End Sub
 
         <Fact>
-        <WorkItem(544601, "DevDiv")>
+        <WorkItem(544601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")>
         Public Sub GetDllImportData_UnspecifiedProperties()
             Dim source =
 <compilation>
@@ -866,7 +1202,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(544601, "DevDiv")>
+        <WorkItem(544601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")>
         Public Sub GetDllImportData_Declare()
             Dim source =
 <compilation>
@@ -1772,7 +2108,7 @@ End Module
 #End Region
 
 #Region "DefaultCharSetAttribute"
-        <Fact, WorkItem(544518, "DevDiv")>
+        <Fact, WorkItem(544518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544518")>
         Public Sub DllImport_DefaultCharSet1()
             Dim source =
 <compilation>
@@ -1946,7 +2282,7 @@ End Class
         ''' <summary>
         ''' DefaultCharSet is not applied on embedded types.
         ''' </summary>
-        <WorkItem(546644, "DevDiv")>
+        <WorkItem(546644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546644")>
         <Fact>
         Public Sub DefaultCharSet_EmbeddedTypes()
             Dim source =
@@ -2308,7 +2644,7 @@ End Class
 #End Region
 
 #Region "ParamArrayAttribute"
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact>
         Public Sub TestParamArrayAttributeForParams2()
             Dim source =
@@ -2612,7 +2948,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(545199, "DevDiv")>
+        <WorkItem(545199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545199")>
         <Fact>
         Public Sub Serializable_NonSerialized_CustomEvents()
             Dim source =
@@ -2654,7 +2990,7 @@ BC30662: Attribute 'NonSerializedAttribute' cannot be applied to 'e2' because th
 
 #Region "AttributeUsageAttribute"
 
-        <WorkItem(541733, "DevDiv")>
+        <WorkItem(541733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")>
         <Fact()>
         Public Sub TestSourceOverrideWellKnownAttribute_01()
             Dim source = <compilation>
@@ -2678,7 +3014,7 @@ End Namespace
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsage1, "AttributeUsage(AttributeTargets.Class)").WithArguments("AttributeUsageAttribute"))
         End Sub
 
-        <WorkItem(541733, "DevDiv")>
+        <WorkItem(541733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")>
         <Fact()>
         Public Sub TestSourceOverrideWellKnownAttribute_02()
             Dim source = <compilation>
@@ -3314,7 +3650,7 @@ end class
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "SecurityAction.RequestRefuse").WithArguments("SecurityAction.RequestRefuse"))
         End Sub
 
-        <WorkItem(546623, "DevDiv")>
+        <WorkItem(546623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546623")>
         <Fact>
         Public Sub TestSecurityAttributeInvalidTarget()
             Dim source = <compilation>
@@ -3349,7 +3685,7 @@ End Class
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidTarget, "MyPermission").WithArguments("MyPermissionAttribute"))
         End Sub
 
-        <WorkItem(544929, "DevDiv")>
+        <WorkItem(544929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")>
         <Fact>
         Public Sub PrincipalPermissionAttribute()
             Dim source = <compilation>
@@ -3378,7 +3714,7 @@ End Class
                                                                     Diagnostic(ERRID.ERR_PrincipalPermissionInvalidAction, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"))
         End Sub
 
-        <WorkItem(544956, "DevDiv")>
+        <WorkItem(544956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544956")>
         <Fact>
         Public Sub SuppressUnmanagedCodeSecurityAttribute()
             Dim source = <compilation>
@@ -3706,7 +4042,7 @@ BC30662: Attribute 'InterfaceTypeAttribute' cannot be applied to 'InvalidTarget'
 ]]></expected>)
         End Sub
 
-        <WorkItem(546664, "DevDiv")>
+        <WorkItem(546664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
         <Fact()>
         Public Sub TestIsExtensibleInterface()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3786,7 +4122,7 @@ End Interface
             CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <WorkItem(546664, "DevDiv")>
+        <WorkItem(546664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
         <Fact()>
         Public Sub TestIsExtensibleInterface_LateBinding()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3892,7 +4228,7 @@ BC30456: 'LateBound' is not a member of 'NotExtensibleInterface3'.
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(546664, "DevDiv")>
+        <WorkItem(546664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
         <Fact()>
         Public Sub Bug16489_StackOverflow()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4171,7 +4507,7 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID 'Nothi
 ]]></expected>)
         End Sub
 
-        <WorkItem(545490, "DevDiv")>
+        <WorkItem(545490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545490")>
         <Fact>
         Public Sub TestInvalidGuidAttribute_02()
             Dim source = <compilation>
@@ -4248,12 +4584,13 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E
 
 #Region "WindowsRuntimeImportAttribute"
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190")>
-        <WorkItem(531295, "DevDiv")>
+        <Fact>
+        <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
+        <WorkItem(531295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531295")>
         Public Sub TestWindowsRuntimeImportAttribute()
             Dim source = <compilation>
-                <file name="a.vb">
-                    <![CDATA[
+                             <file name="a.vb">
+                                 <![CDATA[
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -4272,8 +4609,8 @@ Class A
 	End Sub
 End Class
 ]]>
-                </file>
-            </compilation>
+                             </file>
+                         </compilation>
 
             Dim sourceValidator =
                 Sub(m As ModuleSymbol)
@@ -4338,7 +4675,7 @@ End Class
         Public Sub TestSynthesizedSTAThread()
             Dim source =
     <compilation>
-                    <file name="a.vb">
+        <file name="a.vb">
             Imports System
             Module Module1
                 Sub foo()
@@ -4348,7 +4685,7 @@ End Class
                 End Sub
             End Module
         </file>
-                </compilation>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
@@ -4369,7 +4706,7 @@ End Class
         Public Sub TestNoSynthesizedSTAThread_01()
             Dim source =
     <compilation>
-                        <file name="a.vb">
+        <file name="a.vb">
             Imports System
             Module Module1
                 Sub foo()
@@ -4379,7 +4716,7 @@ End Class
                 End Sub
             End Module
         </file>
-                    </compilation>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.AssertNoErrors()
@@ -4400,8 +4737,8 @@ End Class
         Public Sub TestNoSynthesizedSTAThread_02()
             Dim source =
 <compilation>
-                            <file name="a.vb">
-                                <![CDATA[ 
+    <file name="a.vb">
+        <![CDATA[ 
             Imports System
                 Module Module1
             Sub foo()
@@ -4412,8 +4749,8 @@ End Class
             End Sub
             End Module
         ]]>
-                            </file>
-                        </compilation>
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
@@ -4434,8 +4771,8 @@ End Class
         Public Sub TestNoSynthesizedSTAThread_03()
             Dim source =
 <compilation>
-                                <file name="a.vb">
-                                    <![CDATA[ 
+    <file name="a.vb">
+        <![CDATA[ 
             Imports System
                 Module Module1
             Sub foo()
@@ -4446,8 +4783,8 @@ End Class
             End Sub
             End Module
         ]]>
-                                </file>
-                            </compilation>
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
@@ -4467,11 +4804,11 @@ End Class
 
 #Region "RequiredAttributeAttribute"
 
-        <Fact, WorkItem(81)>
+        <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeInSource()
             Dim source = <compilation>
-                                    <file name="a.vb">
-                                        <![CDATA[
+                             <file name="a.vb">
+                                 <![CDATA[
 Namespace VBClassLibrary
 
     <System.Runtime.CompilerServices.RequiredAttribute(GetType(RS))>
@@ -4497,8 +4834,8 @@ Namespace VBClassLibrary
 
 End Namespace
 ]]>
-                                    </file>
-                                </compilation>
+                             </file>
+                         </compilation>
 
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
@@ -4512,7 +4849,7 @@ BC37235: The RequiredAttribute attribute is not permitted on Visual Basic types.
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(81)>
+        <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeFromMetadata01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit RequiredAttrClass
@@ -4539,8 +4876,8 @@ BC37235: The RequiredAttribute attribute is not permitted on Visual Basic types.
                 ]]>
 
             Dim source = <compilation>
-                                        <file name="a.vb">
-                                            <![CDATA[
+                             <file name="a.vb">
+                                 <![CDATA[
 Module M
     Sub Main()
         Dim r = New RequiredAttrClass()
@@ -4548,8 +4885,8 @@ Module M
     End Sub
 End Module
 ]]>
-                                        </file>
-                                    </compilation>
+                             </file>
+                         </compilation>
 
             Dim ilReference = CompileIL(ilSource.Value)
 
@@ -4562,7 +4899,7 @@ BC30649: 'RequiredAttrClass' is an unsupported type.
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(81)>
+        <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeFromMetadata02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit RequiredAttr.Scenario1
@@ -4637,8 +4974,8 @@ BC30649: 'RequiredAttrClass' is an unsupported type.
                 ]]>
 
             Dim source = <compilation>
-                                            <file name="a.vb">
-                                                <![CDATA[
+                             <file name="a.vb">
+                                 <![CDATA[
 Imports RequiredAttr
 
 Public Class C
@@ -4651,8 +4988,8 @@ Public Class C
     End Function
 End Class
 ]]>
-                                            </file>
-                                        </compilation>
+                             </file>
+                         </compilation>
 
             Dim ilReference = CompileIL(ilSource.Value)
 
@@ -4677,7 +5014,7 @@ BC30657: 'sc1_method' has a return type that is not supported or parameter types
         Public Sub TestAttributePropagationForAsyncAndIterators_01()
             Dim source =
             <compilation>
-                                                <file name="attr.vb"><![CDATA[
+                <file name="attr.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports System.Threading.Tasks
@@ -4724,8 +5061,8 @@ Class MyAttribute
     Inherits System.Attribute
 End Class
             ]]>
-                                                </file>
-                                            </compilation>
+                </file>
+            </compilation>
 
             Dim attributeValidator As Action(Of ModuleSymbol) =
             Sub(m As ModuleSymbol)
@@ -4789,7 +5126,7 @@ End Class
         Public Sub TestAttributePropagationForAsyncAndIterators_02()
             Dim source =
             <compilation>
-                                                    <file name="attr.vb"><![CDATA[
+                <file name="attr.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports System.Threading.Tasks
@@ -4839,8 +5176,8 @@ Class MyAttribute
     Inherits System.Attribute
 End Class
             ]]>
-                                                    </file>
-                                                </compilation>
+                </file>
+            </compilation>
 
             Dim attributeValidator As Action(Of ModuleSymbol) =
             Sub(m As ModuleSymbol)

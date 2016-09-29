@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
     Public Class ImplementsGraphQueryTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestClassImplementsInterface1() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -40,8 +40,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Async Function TestMethodImplementsInterfaceMethod1() As Threading.Tasks.Task
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function TestMethodImplementsInterfaceMethod1() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -59,7 +59,7 @@ class Foo : IComparable
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ImplementsGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(

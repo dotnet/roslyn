@@ -891,7 +891,7 @@ End Class
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(530442, "DevDiv")>
+        <WorkItem(530442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530442")>
         <Fact()>
         Public Sub Bug16169()
             Dim compilationDef =

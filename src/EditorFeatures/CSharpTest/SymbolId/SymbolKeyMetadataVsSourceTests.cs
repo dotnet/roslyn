@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
     {
         #region "Metadata vs. Source"
 
-        [WpfFact]
+        [Fact]
         public void M2SNamedTypeSymbols01()
         {
             var src1 = @"using System;
@@ -78,15 +78,15 @@ public class App : C
             // 'E'
             var member05 = (typesym.GetMembers(WellKnownMemberNames.Indexer).Single() as PropertySymbol).Type;
 
-            ResolveAndVerifySymbol(member03, comp2, originalSymbols[0], comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(member01, comp2, originalSymbols[1], comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(member05, comp2, originalSymbols[2], comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(member02, comp2, originalSymbols[3], comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(member04, comp2, originalSymbols[4], comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(member03, originalSymbols[0], comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(member01, originalSymbols[1], comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(member05, originalSymbols[2], comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(member02, originalSymbols[3], comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(member04, originalSymbols[4], comp1, SymbolKeyComparison.None);
         }
 
-        [WorkItem(542700)]
-        [WpfFact]
+        [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
+        [Fact]
         public void M2SNonTypeMemberSymbols01()
         {
             var src1 = @"using System;
@@ -153,29 +153,29 @@ public class App
             Assert.Equal(6, list.Count);
 
             // event
-            ResolveAndVerifySymbol(list[0], originalSymbols[4], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[0], originalSymbols[4], model, comp1, SymbolKeyComparison.None);
 
             // field
-            ResolveAndVerifySymbol(list[1], originalSymbols[5], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[1], originalSymbols[5], model, comp1, SymbolKeyComparison.None);
 
             // prop
-            ResolveAndVerifySymbol(list[2], originalSymbols[6], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[2], originalSymbols[6], model, comp1, SymbolKeyComparison.None);
 
             // index:
-            ResolveAndVerifySymbol(list[4], originalSymbols[7], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[4], originalSymbols[7], model, comp1, SymbolKeyComparison.None);
 
             // M(string p1)
-            ResolveAndVerifySymbol(list[3], originalSymbols[2], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[3], originalSymbols[2], model, comp1, SymbolKeyComparison.None);
 
             // M(params short[] ary)
-            ResolveAndVerifySymbol(list[5], originalSymbols[1], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[5], originalSymbols[1], model, comp1, SymbolKeyComparison.None);
         }
 
         #endregion
 
         #region "Metadata vs. Metadata"
 
-        [WpfFact]
+        [Fact]
         public void M2MMultiTargetingMsCorLib01()
         {
             var src1 = @"using System;
@@ -249,30 +249,27 @@ class Test
             foreach (var body in list)
             {
                 var df = model.AnalyzeDataFlow(body.Statements.First(), body.Statements.Last());
-                if (df.VariablesDeclared != null)
+                foreach (var local in df.VariablesDeclared)
                 {
-                    foreach (var local in df.VariablesDeclared)
-                    {
-                        var localType = ((LocalSymbol)local).Type;
+                    var localType = ((LocalSymbol)local).Type;
 
-                        if (local.Name == "fi")
-                        {
-                            ResolveAndVerifySymbol(localType, comp40, mtsym20_1, comp20, SymbolKeyComparison.CaseSensitive);
-                        }
-                        else if (local.Name == "ary")
-                        {
-                            ResolveAndVerifySymbol(localType, comp40, mtsym20_2, comp20, SymbolKeyComparison.CaseSensitive);
-                        }
-                        else if (local.Name == "dt")
-                        {
-                            ResolveAndVerifySymbol(localType, comp40, mtsym20_3, comp20, SymbolKeyComparison.CaseSensitive);
-                        }
+                    if (local.Name == "fi")
+                    {
+                        ResolveAndVerifySymbol(localType, mtsym20_1, comp20, SymbolKeyComparison.None);
+                    }
+                    else if (local.Name == "ary")
+                    {
+                        ResolveAndVerifySymbol(localType, mtsym20_2, comp20, SymbolKeyComparison.None);
+                    }
+                    else if (local.Name == "dt")
+                    {
+                        ResolveAndVerifySymbol(localType, mtsym20_3, comp20, SymbolKeyComparison.None);
                     }
                 }
             }
         }
 
-        [WpfFact, WorkItem(546255)]
+        [Fact, WorkItem(546255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546255")]
         public void M2MMultiTargetingMsCorLib02()
         {
             var src1 = @"using System;
@@ -367,7 +364,7 @@ class Test
             ResolveAndVerifyTypeSymbol(list[4], (originalSymbols[0] as PropertySymbol).Type, model, comp20);
         }
 
-        [WpfFact, WorkItem(546255)]
+        [Fact, WorkItem(546255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546255")]
         public void M2MMultiTargetingMsCorLib03()
         {
             var src1 = @"using System;

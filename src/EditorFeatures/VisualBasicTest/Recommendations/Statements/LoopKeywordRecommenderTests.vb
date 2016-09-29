@@ -1,68 +1,61 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class LoopKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub LoopNotInMethodBody()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Loop")
-        End Sub
+        Public Async Function LoopNotInMethodBodyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Loop")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub LoopNotInLambda()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function LoopNotInLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Dim x = Sub()
 |
         End Sub</MethodBody>, "Loop")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub LoopNotAfterStatement()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function LoopNotAfterStatementTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Dim x
 |</MethodBody>, "Loop")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub LoopAfterDoStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function LoopAfterDoStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 |</MethodBody>, "Loop", "Loop Until", "Loop While")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub LoopAfterDoUntilStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function LoopAfterDoUntilStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do Until True
 |</MethodBody>, "Loop")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub LoopUntilNotAfterDoUntilStatement()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function LoopUntilNotAfterDoUntilStatementTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Do Until True
 |</MethodBody>, "Loop Until", "Loop While")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub LoopNotInDoLoopUntilBlock()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function LoopNotInDoLoopUntilBlockTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Do
 |
 Loop Until True</MethodBody>, "Loop")
-        End Sub
+        End Function
     End Class
 End Namespace

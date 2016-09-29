@@ -146,8 +146,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Is this a type parameter on a type?
                 Symbol containingSymbol = symbol.ContainingSymbol;
-                if (containingSymbol.Kind == SymbolKind.NamedType)
+                if (containingSymbol.Kind == SymbolKind.Method)
                 {
+                    builder.Append("``");
+                }
+                else 
+                {
+                    Debug.Assert(containingSymbol is NamedTypeSymbol);
+
                     // If the containing type is nested within other types, then we need to add their arities.
                     // e.g. A<T>.B<U>.M<V>(T t, U u, V v) should be M(`0, `1, ``0).
                     for (NamedTypeSymbol curr = containingSymbol.ContainingType; (object)curr != null; curr = curr.ContainingType)
@@ -155,14 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ordinalOffset += curr.Arity;
                     }
                     builder.Append('`');
-                }
-                else if (containingSymbol.Kind == SymbolKind.Method)
-                {
-                    builder.Append("``");
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(containingSymbol.Kind);
                 }
 
                 builder.Append(symbol.Ordinal + ordinalOffset);

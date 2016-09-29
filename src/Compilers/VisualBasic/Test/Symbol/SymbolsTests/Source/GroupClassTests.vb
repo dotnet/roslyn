@@ -3642,7 +3642,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="disposed").VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(560657, "DevDiv")>
+        <Fact, WorkItem(560657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/560657")>
         Public Sub Bug560657()
             Dim compilationDef =
 <compilation>

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     if (IsRenameValid(conflictResolution, renamedSymbolInNewSolution))
                     {
-                        AddImplicitConflicts(
+                        await AddImplicitConflictsAsync(
                             renamedSymbolInNewSolution,
                             _renameLocationSet.Symbol,
                             _renameLocationSet.ImplicitLocations,
@@ -217,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             _renameSymbolDeclarationLocation,
                             renamedSpansTracker.GetAdjustedPosition(_renameSymbolDeclarationLocation.SourceSpan.Start, _documentIdOfRenameSymbolDeclaration),
                             conflictResolution,
-                            _cancellationToken);
+                            _cancellationToken).ConfigureAwait(false);
                     }
 
                     foreach (var relatedLocation in conflictResolution.RelatedLocations)
@@ -425,9 +424,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             }
                         }
 
-                        IEnumerable<ISymbol> referencedSymbols = _renameLocationSet.ReferencedSymbols;
-                        ISymbol renameSymbol = _renameLocationSet.Symbol;
-                        await AddDeclarationConflictsAsync(renamedSymbolInNewSolution, renameSymbol, referencedSymbols, conflictResolution, reverseMappedLocations, _cancellationToken).ConfigureAwait(false);
+                        var referencedSymbols = _renameLocationSet.ReferencedSymbols;
+                        var renameSymbol = _renameLocationSet.Symbol;
+                        await AddDeclarationConflictsAsync(
+                            renamedSymbolInNewSolution, renameSymbol, referencedSymbols, conflictResolution, reverseMappedLocations, _cancellationToken).ConfigureAwait(false);
                     }
 
                     return conflictResolution.RelatedLocations.Any(r => r.Type == RelatedLocationType.PossiblyResolvableConflict);

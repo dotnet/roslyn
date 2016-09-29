@@ -5,11 +5,11 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Xunit
 
-<TestClass()>
 Public Class SymbolsAndSemantics
 
-    <TestMethod()>
+    <Fact>
     Public Sub GetExpressionType()
         Dim code =
 <text>
@@ -25,23 +25,23 @@ End Class
         Dim localDeclaration = testCode.SyntaxTree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax).First()
         Dim initializer = localDeclaration.Declarators.First().Initializer.Value
         Dim semanticInfo = testCode.SemanticModel.GetTypeInfo(initializer)
-        Assert.AreEqual("String", semanticInfo.Type.Name)
+        Assert.Equal("String", semanticInfo.Type.Name)
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub BindNameToSymbol()
         Dim code = New TestCodeContainer("Imports System")
         Dim compilationUnit = CType(code.SyntaxTree.GetRoot(), CompilationUnitSyntax)
 
         Dim name = CType(compilationUnit.Imports(0).ImportsClauses.First(), SimpleImportsClauseSyntax).Name
-        Assert.AreEqual("System", name.ToString())
+        Assert.Equal("System", name.ToString())
 
         Dim nameInfo = code.SemanticModel.GetSymbolInfo(name)
         Dim nameSymbol = CType(nameInfo.Symbol, INamespaceSymbol)
-        Assert.IsTrue(nameSymbol.GetNamespaceMembers().Any(Function(s) s.Name = "Collections"))
+        Assert.True(nameSymbol.GetNamespaceMembers().Any(Function(s) s.Name = "Collections"))
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub GetDeclaredSymbol()
         Dim code =
 <text>
@@ -54,16 +54,16 @@ End Namespace
         Dim testCode = New TestCodeContainer(code)
         Dim symbol = testCode.SemanticModel.GetDeclaredSymbol(CType(testCode.SyntaxNode, TypeStatementSyntax))
 
-        Assert.AreEqual(True, symbol.CanBeReferencedByName)
-        Assert.AreEqual("Acme", symbol.ContainingNamespace.Name)
-        Assert.AreEqual(Accessibility.Friend, symbol.DeclaredAccessibility)
-        Assert.AreEqual(SymbolKind.NamedType, symbol.Kind)
-        Assert.AreEqual("Class1", symbol.Name)
-        Assert.AreEqual("Acme.Class1", symbol.ToDisplayString())
-        Assert.AreEqual("Acme.Class1", symbol.ToString())
+        Assert.Equal(True, symbol.CanBeReferencedByName)
+        Assert.Equal("Acme", symbol.ContainingNamespace.Name)
+        Assert.Equal(Accessibility.Friend, symbol.DeclaredAccessibility)
+        Assert.Equal(SymbolKind.NamedType, symbol.Kind)
+        Assert.Equal("Class1", symbol.Name)
+        Assert.Equal("Acme.Class1", symbol.ToDisplayString())
+        Assert.Equal("Acme.Class1", symbol.ToString())
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub GetSymbolXmlDocComments()
         Dim code =
 <text>
@@ -79,10 +79,10 @@ End Class
         Dim symbol = testCode.SemanticModel.GetDeclaredSymbol(CType(testCode.SyntaxNode, TypeStatementSyntax))
         Dim actualXml = symbol.GetDocumentationCommentXml()
         Dim expectedXml = "<member name=""T:Class1""> <summary> This is a test class! </summary></member>"
-        Assert.AreEqual(expectedXml, actualXml.Replace(vbCr, "").Replace(vbLf, ""))
+        Assert.Equal(expectedXml, actualXml.Replace(vbCr, "").Replace(vbLf, ""))
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub SymbolDisplayFormatTest()
         Dim code =
 <text>
@@ -117,12 +117,12 @@ End Class
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
         Dim symbol = testCode.Compilation.SourceModule.GlobalNamespace.GetTypeMembers("C2").First().GetMembers("M").First()
-        Assert.AreEqual(
+        Assert.Equal(
             "Public Shared Function C2.M(Of TSource)(source As C1(Of TSource), index As Integer) As TSource",
             symbol.ToDisplayString(displayFormat))
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub EnumerateSymbolsInCompilation()
         Dim file1 =
 <text>
@@ -161,7 +161,7 @@ End Class
                        "Public Sub New()" & vbCrLf &
                        "Public Overrides Sub MakeSound()" & vbCrLf
 
-        Assert.AreEqual(expected, builder.ToString())
+        Assert.Equal(expected, builder.ToString())
     End Sub
 
     Private Sub EnumSymbols(symbol As ISymbol, builder As StringBuilder)
@@ -181,7 +181,7 @@ End Class
         Return Enumerable.Empty(Of ISymbol)()
     End Function
 
-    <TestMethod()>
+    <Fact>
     Public Sub AnalyzeRegionControlFlow()
         Dim code =
 <text>
@@ -208,16 +208,16 @@ End Class
         testCode.GetStatementsBetweenMarkers(firstStatement, lastStatement)
 
         Dim controlFlowAnalysis1 = testCode.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement)
-        Assert.AreEqual(1, controlFlowAnalysis1.EntryPoints.Count())
-        Assert.AreEqual(1, controlFlowAnalysis1.ExitPoints.Count())
-        Assert.IsTrue(controlFlowAnalysis1.EndPointIsReachable)
+        Assert.Equal(1, controlFlowAnalysis1.EntryPoints.Count())
+        Assert.Equal(1, controlFlowAnalysis1.ExitPoints.Count())
+        Assert.True(controlFlowAnalysis1.EndPointIsReachable)
 
         Dim methodBlock = testCode.SyntaxTree.GetRoot().DescendantNodes().OfType(Of MethodBlockSyntax)().First()
         Dim controlFlowAnalysis2 = testCode.SemanticModel.AnalyzeControlFlow(methodBlock.Statements.First, methodBlock.Statements.Last)
-        Assert.IsFalse(controlFlowAnalysis2.EndPointIsReachable)
+        Assert.False(controlFlowAnalysis2.EndPointIsReachable)
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub AnalyzeRegionDataFlow()
         Dim code =
 <text>
@@ -245,10 +245,10 @@ End Class
         testCode.GetStatementsBetweenMarkers(firstStatement, lastStatement)
 
         Dim dataFlowAnalysis = testCode.SemanticModel.AnalyzeDataFlow(firstStatement, lastStatement)
-        Assert.AreEqual("b,x,y,z", String.Join(",", dataFlowAnalysis.VariablesDeclared.Select(Function(s) s.Name)))
+        Assert.Equal("b,x,y,z", String.Join(",", dataFlowAnalysis.VariablesDeclared.Select(Function(s) s.Name)))
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub SemanticFactsTests()
         Dim code =
 <text>
@@ -277,7 +277,7 @@ End Class
         ' Assert.IsTrue(Symbol.HaveSameSignature(method1, method2))
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub FailedOverloadResolution()
         Dim code =
 <text>
@@ -301,24 +301,24 @@ End Module
         Dim typeInfo = testCode.SemanticModel.GetTypeInfo(expression)
         Dim semanticInfo = testCode.SemanticModel.GetSymbolInfo(expression)
 
-        Assert.IsNull(typeInfo.Type)
-        Assert.IsNull(typeInfo.ConvertedType)
-        Assert.IsNull(semanticInfo.Symbol)
-        Assert.AreEqual(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason)
-        Assert.AreEqual(1, semanticInfo.CandidateSymbols.Count)
+        Assert.Null(typeInfo.Type)
+        Assert.Null(typeInfo.ConvertedType)
+        Assert.Null(semanticInfo.Symbol)
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason)
+        Assert.Equal(1, semanticInfo.CandidateSymbols.Count)
 
-        Assert.AreEqual("Public Sub F(i As Integer)", semanticInfo.CandidateSymbols(0).ToDisplayString())
-        Assert.AreEqual(SymbolKind.Method, semanticInfo.CandidateSymbols(0).Kind)
+        Assert.Equal("Public Sub F(i As Integer)", semanticInfo.CandidateSymbols(0).ToDisplayString())
+        Assert.Equal(SymbolKind.Method, semanticInfo.CandidateSymbols(0).Kind)
 
         Dim memberGroup = testCode.SemanticModel.GetMemberGroup(expression)
 
-        Assert.AreEqual(2, memberGroup.Count)
+        Assert.Equal(2, memberGroup.Count)
 
         Dim sortedMethodGroup = Aggregate s In memberGroup.AsEnumerable()
                                 Order By s.ToDisplayString()
                                 Into ToArray()
 
-        Assert.AreEqual("Public Sub F()", sortedMethodGroup(0).ToDisplayString())
-        Assert.AreEqual("Public Sub F(i As Integer)", sortedMethodGroup(1).ToDisplayString())
+        Assert.Equal("Public Sub F()", sortedMethodGroup(0).ToDisplayString())
+        Assert.Equal("Public Sub F(i As Integer)", sortedMethodGroup(1).ToDisplayString())
     End Sub
 End Class

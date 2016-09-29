@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicSpecialType()
             Dim source = <![CDATA[
 Namespace System
@@ -47,7 +47,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicSpecialTypeMember()
             Dim sourceTemplate = <![CDATA[
 Namespace System
@@ -94,7 +94,7 @@ End Namespace
 
         ' Document the fact that we don't reject type parameters with constraints (yet?).
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub GenericConstraintsOnSpecialType()
             Dim source = <![CDATA[
 Namespace System
@@ -131,7 +131,7 @@ End Namespace
         ' No special type members have type parameters that could (incorrectly) be constrained.
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicWellKnownType()
             Dim source = <![CDATA[
 Namespace System
@@ -171,7 +171,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicWellKnownType_Nested()
             Dim sourceTemplate = <![CDATA[
 Namespace System.Diagnostics
@@ -216,7 +216,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub NonPublicWellKnownTypeMember()
             Dim sourceTemplate = <![CDATA[
 Namespace System
@@ -270,7 +270,7 @@ End Namespace
 
         ' Document the fact that we don't reject type parameters with constraints (yet?).
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub GenericConstraintsOnWellKnownType()
             Dim source = <![CDATA[
 Namespace System
@@ -306,7 +306,7 @@ End Namespace
 
         ' Document the fact that we don't reject type parameters with constraints (yet?).
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub GenericConstraintsOnWellKnownTypeMember()
             Dim sourceTemplate = <![CDATA[
 Namespace System
@@ -362,7 +362,7 @@ End Namespace
         End Function
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub PublicVersusInternalWellKnownType()
             Dim corlibSource =
                 <compilation>
@@ -444,7 +444,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypes()
             Dim comp = CreateCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
 
@@ -456,7 +456,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypeMembers()
             Dim comp = CreateCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
 
@@ -479,7 +479,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypes()
             Dim refs As MetadataReference() =
             {
@@ -489,17 +489,26 @@ End Namespace
                 CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
-                SystemWindowsFormsRef
+                SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
+            Dim lastType = CType(WellKnownType.NextAvailable - 1, WellKnownType)
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
-            For wkt = WellKnownType.First To WellKnownType.Last
+            For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
                         ' Only present when embedding VB Core.
                         Continue For
-                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                    Case WellKnownType.System_FormattableString,
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
+                        Continue For
+                    Case WellKnownType.ExtSentinel
+                        ' Not a real type
+                        Continue For
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                        ' Not always available.
                         Continue For
                 End Select
 
@@ -509,7 +518,7 @@ End Namespace
             Next
 
             comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
-            For wkt = WellKnownType.First To WellKnownType.Last
+            For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CallType,
                          WellKnownType.Microsoft_VisualBasic_CompilerServices_Operators,
@@ -526,8 +535,15 @@ End Namespace
                          WellKnownType.Microsoft_VisualBasic_Interaction
                         ' Not embedded, so not available.
                         Continue For
-                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                    Case WellKnownType.System_FormattableString,
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
+                        Continue For
+                    Case WellKnownType.ExtSentinel
+                        ' Not a real type
+                        Continue For
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                        ' Not always available.
                         Continue For
                 End Select
 
@@ -538,7 +554,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "DevDiv")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypeMembers()
             Dim refs As MetadataReference() =
             {
@@ -548,7 +564,8 @@ End Namespace
                 CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
-                SystemWindowsFormsRef
+                SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
@@ -562,6 +579,9 @@ End Namespace
                         Continue For
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                        ' Not always available.
                         Continue For
                 End Select
 
@@ -639,6 +659,9 @@ End Namespace
                         Continue For
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                        ' Not always available.
                         Continue For
                 End Select
 

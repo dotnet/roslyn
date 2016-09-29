@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class InaccessibleOverridingTests
         Inherits BasicTestBase
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub EmitExplicitOverride()
             ' In order for Class3.f to override Class1.f (which it can because Class2.f is not
@@ -78,7 +78,7 @@ End Module
             proj3.VerifyDiagnostics()   ' no errors.
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub EmitExplicitOverrideOnProperty()
             ' In order for Class3.p to override Class1.p (which it can because Class2.p is not
@@ -149,7 +149,7 @@ End Module
             proj3.VerifyDiagnostics()   ' no errors.
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub OverrideWithInterveningFriendOverride()
             Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -220,7 +220,7 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
 </expected>)
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub OverridePropertyWithInterveningFriendOverride()
             Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -297,7 +297,7 @@ BC30981: 'Friend Overrides ReadOnly Property P As String' in class 'Class3' cann
 </expected>)
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub EmitExplicitOverrideMetadata()
             Dim p1AssemblyName = "P1" + Guid.NewGuid().ToString().Replace("-", "")
@@ -429,7 +429,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub OverrideWithInterveningFriendMetadata()
             Dim proj2ILText = <![CDATA[
@@ -558,7 +558,7 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
             End Using
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub CannotOverrideInAccessibleMemberInMetadata()
             Dim customIL = <![CDATA[
@@ -640,7 +640,7 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
             End Using
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub Bug14346()
             Dim customIL = <![CDATA[

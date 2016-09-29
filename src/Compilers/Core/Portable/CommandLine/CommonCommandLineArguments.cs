@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// command line were resolved against.
         /// </remarks>
         public string BaseDirectory { get; internal set; }
-        
+
         /// <summary>
         /// A list of pairs of paths. This stores the value of the command-line compiler
         /// option /pathMap:X1=Y1;X2=Y2... which causes a prefix of X1 followed by a path
@@ -91,7 +91,13 @@ namespace Microsoft.CodeAnalysis
         public string PdbPath { get; internal set; }
 
         /// <summary>
-        /// True to emit PDB file.
+        /// Path of the file containing information linking the compilation to source server that stores 
+        /// a snapshot of the source code included in the compilation.
+        /// </summary>
+        public string SourceLink { get; internal set; }
+
+        /// <summary>
+        /// True to emit PDB information (to a standalone PDB file or embedded into the PE file).
         /// </summary>
         public bool EmitPdb { get; internal set; }
 
@@ -111,7 +117,7 @@ namespace Microsoft.CodeAnalysis
         public string ErrorLogPath { get; internal set; }
 
         /// <summary>
-        /// An absolute path of the App.config file or null if not specified.
+        /// An absolute path of the app.config file or null if not specified.
         /// </summary>
         public string AppConfigPath { get; internal set; }
 
@@ -136,6 +142,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; internal set; }
 
+        /// <summary>
+        /// A set of files to embed in the PDB.
+        /// </summary>
+        public ImmutableArray<CommandLineSourceFile> EmbeddedFiles { get; internal set; }
+
         /// <value>
         /// Report additional information related to analyzers, such as analyzer execution time.
         /// </value>
@@ -152,6 +163,12 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="CommonCompiler.Run"/>
         /// </summary>
         public bool DisplayHelp { get; internal set; }
+
+        /// <summary>
+        /// If true, append the compiler version during
+        /// <see cref="CommonCompiler.Run"/>
+        /// </summary>
+        public bool DisplayVersion { get; internal set; }
 
         /// <summary>
         /// The path to a Win32 resource.
@@ -245,8 +262,6 @@ namespace Microsoft.CodeAnalysis
         /// Specify the preferred output language name.
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
-
-        internal Guid SqmSessionGuid { get; set; }
 
         internal CommandLineArguments()
         {
@@ -358,14 +373,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles, IAnalyzerAssemblyLoader analyzerLoader)
+        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+            string language,
+            List<DiagnosticInfo> diagnostics,
+            CommonMessageProvider messageProvider,
+            IAnalyzerAssemblyLoader analyzerLoader)
         {
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
                 var analyzerReference = o as AnalyzerFileReference;
-                DiagnosticInfo diagnostic = null;
+                DiagnosticInfo diagnostic;
                 switch (e.ErrorCode)
                 {
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
@@ -391,14 +410,16 @@ namespace Microsoft.CodeAnalysis
                 }
             };
 
+            var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
             foreach (var reference in AnalyzerReferences)
             {
                 var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
                 {
-                    resolvedReference.AnalyzerLoadFailed += errorHandler;
-                    resolvedReference.AddAnalyzers(builder, language);
-                    resolvedReference.AnalyzerLoadFailed -= errorHandler;
+                    resolvedReferences.Add(resolvedReference);
+
+                    // register the reference to the analyzer loader:
+                    analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
                 }
                 else
                 {
@@ -406,12 +427,22 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return builder.ToImmutable();
+            // All analyzer references are registered now, we can start loading them:
+            foreach (var resolvedReference in resolvedReferences)
+            {
+                resolvedReference.AnalyzerLoadFailed += errorHandler;
+                resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                resolvedReference.AnalyzerLoadFailed -= errorHandler;
+            }
+
+            resolvedReferences.Free();
+
+            return analyzerBuilder.ToImmutable();
         }
 
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: PortableShim.File.Exists);
+            string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
             if (resolvedPath != null)
             {
                 resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);

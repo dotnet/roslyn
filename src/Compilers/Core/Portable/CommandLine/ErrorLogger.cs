@@ -4,371 +4,469 @@ using System;
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Globalization;
-using System.Runtime.Serialization.Json;
+using System.Linq;
 using Roslyn.Utilities;
+
+#pragma warning disable RS0013 // We need to invoke Diagnostic.Descriptor here to log all the metadata properties of the diagnostic.
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
+    /// Base class for logging compiler diagnostics.
+    /// </summary>
+    internal abstract class ErrorLogger
+    {
+        public abstract void LogDiagnostic(Diagnostic diagnostic);
+    }
+
+    /// <summary>
     /// Used for logging all compiler diagnostics into a given <see cref="Stream"/>.
     /// This logger is responsible for closing the given stream on <see cref="Dispose"/>.
+    /// It is incorrect to use the logger concurrently from multiple threads.
+    ///
     /// The log format is SARIF (Static Analysis Results Interchange Format)
+    /// https://sarifweb.azurewebsites.net
     /// https://github.com/sarif-standard/sarif-spec
     /// </summary>
-    internal partial class ErrorLogger : IDisposable
+    internal sealed class StreamErrorLogger : ErrorLogger, IDisposable
     {
-        // Internal for testing purposes.
-        internal const string OutputFormatVersion = "0.1";
+        private readonly JsonWriter _writer;
+        private readonly DiagnosticDescriptorSet _descriptors;
+        private readonly CultureInfo _culture;
 
-        private const string indentDelta = "  ";
-        private const char groupStartChar = '{';
-        private const char groupEndChar = '}';
-        private const char listStartChar = '[';
-        private const char listEndChar = ']';
-
-        private readonly StreamWriter _writer;
-        private readonly DataContractJsonSerializer _jsonStringSerializer;
-
-        private string _currentIndent;
-        private bool _reportedAnyIssues;
-
-        public ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion)
+        public StreamErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.Position == 0);
 
-            _writer = new StreamWriter(stream);
-            _jsonStringSerializer = new DataContractJsonSerializer(typeof(string));
-            _currentIndent = string.Empty;
-            _reportedAnyIssues = false;
+            _writer = new JsonWriter(new StreamWriter(stream));
+            _descriptors = new DiagnosticDescriptorSet();
+            _culture = culture;
 
-            WriteHeader(toolName, toolFileVersion, toolAssemblyVersion);
+            _writer.WriteObjectStart(); // root
+            _writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0");
+            _writer.Write("version", "1.0.0");
+            _writer.WriteArrayStart("runs");
+            _writer.WriteObjectStart(); // run
+
+            _writer.WriteObjectStart("tool");
+            _writer.Write("name", toolName);
+            _writer.Write("version", toolAssemblyVersion.ToString());
+            _writer.Write("fileVersion", toolFileVersion);
+            _writer.Write("semanticVersion", toolAssemblyVersion.ToString(fieldCount: 3));
+            _writer.Write("language", culture.Name);
+            _writer.WriteObjectEnd(); // tool
+
+            _writer.WriteArrayStart("results");
         }
 
-        private void WriteHeader(string toolName, string toolFileVersion, Version toolAssemblyVersion)
+        public override void LogDiagnostic(Diagnostic diagnostic)
         {
-            StartGroup();
+            _writer.WriteObjectStart(); // result
+            _writer.Write("ruleId", diagnostic.Id);
 
-            WriteSimpleKeyValuePair(WellKnownStrings.OutputFormatVersion, OutputFormatVersion, isFirst: true);
-
-            WriteKey(WellKnownStrings.RunLogs, isFirst: false);
-            StartList();
-            StartNewEntry(isFirst: true);
-            StartGroup();
-
-            var toolInfo = GetToolInfo(toolName, toolFileVersion, toolAssemblyVersion);
-            WriteKeyValuePair(WellKnownStrings.ToolInfo, toolInfo, isFirst: true);
-
-            WriteKey(WellKnownStrings.Issues, isFirst: false);
-            StartList();
-        }
-
-        private Value GetToolInfo(string toolName, string toolFileVersion, Version toolAssemblyVersion)
-        {
-            var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ToolName, toolName));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ToolAssemblyVersion, toolAssemblyVersion.ToString(fieldCount: 3)));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ToolFileVersion, toolFileVersion));
-            return Value.Create(builder.ToImmutableAndFree(), this);
-        }
-
-
-        internal static void LogDiagnostic(Diagnostic diagnostic, CultureInfo culture, ErrorLogger errorLogger)
-        {
-            if (errorLogger != null)
+            string ruleKey = _descriptors.Add(diagnostic.Descriptor);
+            if (ruleKey != diagnostic.Id)
             {
-#pragma warning disable RS0013 // We need to invoke Diagnostic.Descriptor here to log all the metadata properties of the diagnostic.
-                var issue = new Issue(diagnostic.Id, diagnostic.GetMessage(culture),
-                    diagnostic.Descriptor.Description.ToString(culture), diagnostic.Descriptor.Title.ToString(culture),
-                    diagnostic.Category, diagnostic.Descriptor.HelpLinkUri, diagnostic.IsEnabledByDefault, diagnostic.IsSuppressed,
-                    diagnostic.DefaultSeverity, diagnostic.Severity, diagnostic.WarningLevel, diagnostic.Location,
-                    diagnostic.AdditionalLocations, diagnostic.CustomTags, diagnostic.Properties);
-#pragma warning restore RS0013
-
-                errorLogger.LogIssue(issue);
-            }
-        }
-
-        private void LogIssue(Issue issue)
-        {
-            var issueValue = GetIssueValue(issue);
-            WriteValue(issueValue, isFirst: !_reportedAnyIssues, valueInList: true);
-            _reportedAnyIssues = true;
-        }
-
-        private Value GetIssueValue(Issue issue)
-        {
-            var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.DiagnosticId, issue.Id));
-
-            var locationsValue = GetLocationsValue(issue.Location, issue.AdditionalLocations);
-            builder.Add(KeyValuePair.Create(WellKnownStrings.Locations, locationsValue));
-
-            var message = string.IsNullOrEmpty(issue.Message) ? WellKnownStrings.None : issue.Message;
-            var description = issue.Description;
-            if (string.IsNullOrEmpty(description))
-            {
-                builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.FullMessage, message));
-            }
-            else
-            {
-                builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ShortMessage, message));
-                builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.FullMessage, description));
+                _writer.Write("ruleKey", ruleKey);
             }
 
-            var propertiesValue = GetPropertiesValue(issue);
-            builder.Add(KeyValuePair.Create(WellKnownStrings.Properties, propertiesValue));
+            _writer.Write("level", GetLevel(diagnostic.Severity));
 
-            return Value.Create(builder.ToImmutableAndFree(), this);
-        }
-
-        private Value GetLocationsValue(Location location, IReadOnlyList<Location> additionalLocations)
-        {
-            var builder = ArrayBuilder<Value>.GetInstance();
-
-            var locationValue = GetLocationValue(location);
-            if (locationValue != null)
+            string message = diagnostic.GetMessage(_culture);
+            if (!string.IsNullOrEmpty(message))
             {
-                builder.Add(locationValue);
+                _writer.Write("message", message);
             }
 
-            if (additionalLocations?.Count > 0)
+            if (diagnostic.IsSuppressed)
             {
+                _writer.WriteArrayStart("suppressionStates");
+                _writer.Write("suppressedInSource");
+                _writer.WriteArrayEnd();
+            }
+
+            WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
+            WriteProperties(diagnostic);
+
+            _writer.WriteObjectEnd(); // result
+        }
+
+        private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations)
+        {
+            if (HasPath(location))
+            {
+                _writer.WriteArrayStart("locations");
+                _writer.WriteObjectStart(); // location
+                _writer.WriteKey("resultFile");
+
+                WritePhysicalLocation(location);
+
+                _writer.WriteObjectEnd(); // location
+                _writer.WriteArrayEnd(); // locations
+            }
+
+            // See https://github.com/dotnet/roslyn/issues/11228 for discussion around
+            // whether this is the correct treatment of Diagnostic.AdditionalLocations
+            // as SARIF relatedLocations.
+            if (additionalLocations != null &&
+                additionalLocations.Count > 0 &&
+                additionalLocations.Any(l => HasPath(l)))
+            {
+                _writer.WriteArrayStart("relatedLocations");
+
                 foreach (var additionalLocation in additionalLocations)
                 {
-                    locationValue = GetLocationValue(additionalLocation);
-                    if (locationValue != null)
+                    if (HasPath(additionalLocation))
                     {
-                        builder.Add(locationValue);
+                        _writer.WriteObjectStart(); // annotatedCodeLocation
+                        _writer.WriteKey("physicalLocation");
+
+                        WritePhysicalLocation(additionalLocation);
+
+                        _writer.WriteObjectEnd(); // annotatedCodeLocation
                     }
                 }
-            }
 
-            return Value.Create(builder.ToImmutableAndFree(), this);
+                _writer.WriteArrayEnd(); // relatedLocations
+            }
         }
 
-        private Value GetLocationValue(Location location)
+        private void WritePhysicalLocation(Location location)
         {
-            if (location.SourceTree == null)
-            {
-                return null;
-            }
+            Debug.Assert(HasPath(location));
 
-            var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSyntaxTreeUri, GetUri(location.SourceTree)));
+            FileLinePositionSpan span = location.GetLineSpan();
 
-            var spanInfoValue = GetSpanInfoValue(location.GetLineSpan());
-            builder.Add(KeyValuePair.Create(WellKnownStrings.LocationSpanInfo, spanInfoValue));
+            _writer.WriteObjectStart();
+            _writer.Write("uri", GetUri(span.Path));
 
-            var coreLocationValue = Value.Create(builder.ToImmutableAndFree(), this);
+            // Note that SARIF lines and columns are 1-based, but FileLinePositionSpan is 0-based
+            
+            _writer.WriteObjectStart("region");
+            _writer.Write("startLine", span.StartLinePosition.Line + 1);
+            _writer.Write("startColumn", span.StartLinePosition.Character + 1);
+            _writer.Write("endLine", span.EndLinePosition.Line + 1);
+            _writer.Write("endColumn", span.EndLinePosition.Character + 1);
+            _writer.WriteObjectEnd(); // region
 
-            // Our log format requires this to be wrapped.
-            var wrapperList = Value.Create(ImmutableArray.Create(coreLocationValue), this);
-            var wrapperKvp = KeyValuePair.Create(WellKnownStrings.Location, wrapperList);
-            return Value.Create(ImmutableArray.Create(wrapperKvp), this);
+            _writer.WriteObjectEnd();
         }
 
-        private static string GetUri(SyntaxTree syntaxTree)
+        private static bool HasPath(Location location)
         {
+            return !string.IsNullOrEmpty(location.GetLineSpan().Path);
+        }
+
+        private static readonly Uri _fileRoot = new Uri("file:///");
+
+        private static string GetUri(string path)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(path));
+
+            // Note that in general, these "paths" are opaque strings to be 
+            // interpreted by resolvers (see SyntaxTree.FilePath documentation).
+            
+            // Common case: absolute path -> absolute URI
             Uri uri;
-
-            if (!Uri.TryCreate(syntaxTree.FilePath, UriKind.RelativeOrAbsolute, out uri))
+            if (Uri.TryCreate(path, UriKind.Absolute, out uri))
             {
-                // The only constraint on SyntaxTree.FilePath is that it can be interpreted by
-                // various resolvers so there is no guarantee we can turn the arbitrary string
-                // in to a URI. If our attempt to do so fails, use the original string as the
-                // "URI".
-                return syntaxTree.FilePath;
+                // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString() 
+                // is unescaped (e.g. spaces remain unreplaced by %20) and therefore 
+                // not well-formed.
+                return uri.AbsoluteUri;
             }
 
-            return uri.ToString();
-        }
-
-        private Value GetSpanInfoValue(FileLinePositionSpan lineSpan)
-        {
-            // Note that SARIF region lines and columns are specified to be 1-based, but FileLinePositionSpan.Line and Character are 0-based.
-            var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanStartLine, lineSpan.StartLinePosition.Line + 1));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanStartColumn, lineSpan.StartLinePosition.Character + 1));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanEndLine, lineSpan.EndLinePosition.Line + 1));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanEndColumn, lineSpan.EndLinePosition.Character + 1));
-            return Value.Create(builder.ToImmutableAndFree(), this);
-        }
-
-        private Value GetPropertiesValue(Issue issue)
-        {
-            var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
-
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.Severity, issue.Severity.ToString()));
-            if (issue.Severity == DiagnosticSeverity.Warning)
+            // First fallback attempt: attempt to interpret as relative path/URI.
+            // (Perhaps the resolver works that way.)
+            if (Uri.TryCreate(path, UriKind.Relative, out uri))
             {
-                builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.WarningLevel, issue.WarningLevel.ToString()));
+                // There is no AbsoluteUri equivalent for relative URI references and ToString() 
+                // won't escape without this relative -> absolute -> relative trick.
+                return _fileRoot.MakeRelativeUri(new Uri(_fileRoot, uri)).ToString();
             }
 
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.DefaultSeverity, issue.DefaultSeverity.ToString()));
+            // Last resort: UrlEncode the whole opaque string.
+            return System.Net.WebUtility.UrlEncode(path);
+        }
 
-            if (!string.IsNullOrEmpty(issue.Title))
+        private void WriteProperties(Diagnostic diagnostic)
+        {
+            // Currently, the following are always inherited from the descriptor and therefore will be
+            // captured as rule metadata and need not be logged here. IsWarningAsError is also omitted
+            // because it can be inferred from level vs. defaultLevel in the log.
+            Debug.Assert(diagnostic.CustomTags.SequenceEqual(diagnostic.Descriptor.CustomTags));
+            Debug.Assert(diagnostic.Category == diagnostic.Descriptor.Category);
+            Debug.Assert(diagnostic.DefaultSeverity == diagnostic.Descriptor.DefaultSeverity);
+            Debug.Assert(diagnostic.IsEnabledByDefault == diagnostic.Descriptor.IsEnabledByDefault);
+
+            if (diagnostic.WarningLevel > 0 || diagnostic.Properties.Count > 0)
             {
-                builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.Title, issue.Title));
+                _writer.WriteObjectStart("properties");
+
+                if (diagnostic.WarningLevel > 0)
+                {
+                    _writer.Write("warningLevel", diagnostic.WarningLevel);
+                }
+
+                if (diagnostic.Properties.Count > 0)
+                {
+                    _writer.WriteObjectStart("customProperties");
+
+                    foreach (var pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
+                    {
+                        _writer.Write(pair.Key, pair.Value);
+                    }
+
+                    _writer.WriteObjectEnd();
+                }
+
+                _writer.WriteObjectEnd(); // properties
             }
+        }
 
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.Category, issue.Category));
-
-            if (!string.IsNullOrEmpty(issue.HelpLink))
+        private void WriteRules()
+        {
+            if (_descriptors.Count > 0)
             {
-                builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.HelpLink, issue.HelpLink));
+                _writer.WriteObjectStart("rules");
+
+                foreach (var pair in _descriptors.ToSortedList())
+                {
+                    DiagnosticDescriptor descriptor = pair.Value;
+
+                    _writer.WriteObjectStart(pair.Key); // rule
+                    _writer.Write("id", descriptor.Id);
+
+                    string shortDescription = descriptor.Title.ToString(_culture);
+                    if (!string.IsNullOrEmpty(shortDescription))
+                    {
+                        _writer.Write("shortDescription", shortDescription);
+                    }
+
+                    string fullDescription = descriptor.Description.ToString(_culture);
+                    if (!string.IsNullOrEmpty(fullDescription))
+                    {
+                        _writer.Write("fullDescription", fullDescription);
+                    }
+
+                    _writer.Write("defaultLevel", GetLevel(descriptor.DefaultSeverity));
+
+                    if (!string.IsNullOrEmpty(descriptor.HelpLinkUri))
+                    {
+                        _writer.Write("helpUri", descriptor.HelpLinkUri);
+                    }
+
+                    _writer.WriteObjectStart("properties");
+
+                    if (!string.IsNullOrEmpty(descriptor.Category))
+                    {
+                        _writer.Write("category", descriptor.Category);
+                    }
+
+                    _writer.Write("isEnabledByDefault", descriptor.IsEnabledByDefault);
+
+                    if (descriptor.CustomTags.Any())
+                    {
+                        _writer.WriteArrayStart("tags");
+
+                        foreach (string tag in descriptor.CustomTags)
+                        {
+                            _writer.Write(tag);
+                        }
+
+                        _writer.WriteArrayEnd(); // tags
+                    }
+
+                    _writer.WriteObjectEnd(); // properties
+                    _writer.WriteObjectEnd(); // rule
+                }
+
+                _writer.WriteObjectEnd(); // rules
             }
+        }
 
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.IsEnabledByDefault, issue.IsEnabledByDefault.ToString()));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.IsSuppressedInSource, issue.IsSuppressedInSource.ToString()));
-
-            if (issue.CustomTags.Count > 0)
+        private static string GetLevel(DiagnosticSeverity severity)
+        {
+            switch (severity)
             {
-                builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.CustomTags, issue.CustomTags.WhereNotNull().Join(";")));
+                case DiagnosticSeverity.Info:
+                    return "note";
+
+                case DiagnosticSeverity.Error:
+                    return "error";
+
+                case DiagnosticSeverity.Warning:
+                    return "warning";
+
+                case DiagnosticSeverity.Hidden:
+                default:
+                    // hidden diagnostics are not reported on the command line and therefore not currently given to 
+                    // the error logger. We could represent it with a custom property in the SARIF log if that changes.
+                    Debug.Assert(false);
+                    goto case DiagnosticSeverity.Warning;
             }
-
-            foreach (var kvp in issue.CustomProperties)
-            {
-                builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.CustomProperties + "." + kvp.Key, kvp.Value));
-            }
-
-            return Value.Create(builder.ToImmutableAndFree(), this);
         }
-
-        #region Helper methods for core logging
-
-        private void WriteKeyValuePair(KeyValuePair<string, Value> kvp, bool isFirst)
-        {
-            WriteKeyValuePair(kvp.Key, kvp.Value, isFirst);
-        }
-
-        private void WriteKeyValuePair(string key, Value value, bool isFirst)
-        {
-            WriteKey(key, isFirst);
-            WriteValue(value);
-        }
-
-        private void WriteSimpleKeyValuePair(string key, string value, bool isFirst)
-        {
-            WriteKey(key, isFirst);
-            WriteValue(value);
-        }
-
-        private void WriteKey(string key, bool isFirst)
-        {
-            StartNewEntry(isFirst);
-            _writer.Write($"\"{key}\": ");
-        }
-
-        private void WriteValue(Value value, bool isFirst = true, bool valueInList = false)
-        {
-            if (!isFirst || valueInList)
-            {
-                StartNewEntry(isFirst);
-            }
-
-            value.Write();
-        }
-
-        private void WriteValue(string value)
-        {
-            _writer.Flush();
-            _jsonStringSerializer.WriteObject(_writer.BaseStream, value);
-        }
-
-        private void WriteValue(int value)
-        {
-            _writer.Write(value);
-        }
-
-        private void StartNewEntry(bool isFirst)
-        {
-            if (!isFirst)
-            {
-                _writer.WriteLine(',');
-            }
-            else
-            {
-                _writer.WriteLine();
-            }
-
-            _writer.Write(_currentIndent);
-        }
-
-        private void StartGroup()
-        {
-            StartGroupOrListCommon(groupStartChar);
-        }
-
-        private void EndGroup()
-        {
-            EndGroupOrListCommon(groupEndChar);
-        }
-
-        private void StartList()
-        {
-            StartGroupOrListCommon(listStartChar);
-        }
-
-        private void EndList()
-        {
-            EndGroupOrListCommon(listEndChar);
-        }
-
-        private void StartGroupOrListCommon(char startChar)
-        {
-            _writer.Write(startChar);
-            IncreaseIndentation();
-        }
-
-        private void EndGroupOrListCommon(char endChar)
-        {
-            _writer.WriteLine();
-            DecreaseIndentation();
-            _writer.Write(_currentIndent + endChar);
-        }
-
-        private void IncreaseIndentation()
-        {
-            _currentIndent += indentDelta;
-        }
-
-        private void DecreaseIndentation()
-        {
-            _currentIndent = _currentIndent.Substring(indentDelta.Length);
-        }
-
-        private KeyValuePair<string, Value> CreateSimpleKeyValuePair(string key, string value)
-        {
-            var stringValue = Value.Create(value, this);
-            return KeyValuePair.Create(key, stringValue);
-        }
-
-        private KeyValuePair<string, Value> CreateSimpleKeyValuePair(string key, int value)
-        {
-            var intValue = Value.Create(value, this);
-            return KeyValuePair.Create(key, intValue);
-        }
-
-        #endregion
 
         public void Dispose()
         {
-            // End issues list.
-            EndList();
+            _writer.WriteArrayEnd();  // results
 
-            // End runLog entry.
-            EndGroup();
+            WriteRules();
 
-            // End runLogs list.
-            EndList();
-
-            // End dictionary for log file key-value pairs.
-            EndGroup();
-
+            _writer.WriteObjectEnd(); // run
+            _writer.WriteArrayEnd();  // runs
+            _writer.WriteObjectEnd(); // root
             _writer.Dispose();
+        }
+
+        /// <summary>
+        /// Represents a distinct set of <see cref="DiagnosticDescriptor"/>s and provides unique string keys 
+        /// to distinguish them.
+        ///
+        /// The first <see cref="DiagnosticDescriptor"/> added with a given <see cref="DiagnosticDescriptor.Id"/>
+        /// value is given that value as its unique key. Subsequent adds with the same ID will have .NNN
+        /// apppended to their with an auto-incremented numeric value.
+        /// </summary>
+        private sealed class DiagnosticDescriptorSet
+        {
+            // DiagnosticDescriptor.Id -> auto-incremented counter
+            private Dictionary<string, int> _counters = new Dictionary<string, int>();
+
+            // DiagnosticDescriptor -> unique key
+            private Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>(new Comparer());
+
+            /// <summary>
+            /// The total number of descriptors in the set.
+            /// </summary>
+            public int Count => _keys.Count;
+
+            /// <summary>
+            /// Adds a descriptor to the set if not already present.
+            /// </summary>
+            /// <returns>
+            /// The unique key assigned to the given descriptor.
+            /// </returns>
+            public string Add(DiagnosticDescriptor descriptor)
+            {
+                // Case 1: Descriptor has already been seen -> retrieve key from cache.
+                string key;
+                if (_keys.TryGetValue(descriptor, out key))
+                {
+                    return key;
+                }
+
+                // Case 2: First time we see a decriptor with a given ID -> use its ID as the key.
+                int counter;
+                if (!_counters.TryGetValue(descriptor.Id, out counter))
+                {
+                    _counters.Add(descriptor.Id, 0);
+                    _keys.Add(descriptor, descriptor.Id);
+                    return descriptor.Id;
+                }
+
+                // Case 3: We've already seen a different descriptor with the same ID -> generate a key.
+                //
+                // This will only need to loop in the corner case where there is an actual descriptor 
+                // with non-generated ID=X.NNN and more than one descriptor with ID=X.
+                do
+                {
+                    _counters[descriptor.Id] = ++counter;
+                    key = descriptor.Id + "-" + counter.ToString("000", CultureInfo.InvariantCulture);
+                } while (_counters.ContainsKey(key));
+
+                _keys.Add(descriptor, key);
+                return key;
+            }
+
+            /// <summary>
+            /// Converts the set to a list of (key, descriptor) pairs sorted by key.
+            /// </summary>
+            public List<KeyValuePair<string, DiagnosticDescriptor>> ToSortedList()
+            {
+                Debug.Assert(Count > 0);
+
+                var list = new List<KeyValuePair<string, DiagnosticDescriptor>>(Count);
+
+                foreach (var pair in _keys)
+                {
+                    Debug.Assert(list.Capacity > list.Count);
+                    list.Add(new KeyValuePair<string, DiagnosticDescriptor>(pair.Value, pair.Key));
+                }
+
+                Debug.Assert(list.Capacity == list.Count);
+                list.Sort((x, y) => string.CompareOrdinal(x.Key, y.Key));
+                return list;
+            }
+
+            /// <summary>
+            /// Compares descriptors by the values that we write to the log and nothing else.
+            ///
+            /// We cannot just use <see cref="DiagnosticDescriptor"/>'s built-in implementation
+            /// of <see cref="IEquatable{DiagnosticDescriptor}"/> for two reasons:
+            ///
+            /// 1. <see cref="DiagnosticDescriptor.MessageFormat"/> is part of that built-in 
+            ///    equatability, but we do not write it out, and so descriptors differing only
+            ///    by MessageFormat (common) would lead to duplicate rule metadata entries in
+            ///    the log.
+            ///
+            /// 2. <see cref="DiagnosticDescriptor.CustomTags"/> is *not* part of that built-in
+            ///    equatability, but we do write them out, and so descriptors differening only
+            ///    by CustomTags (rare) would cause only one set of tags to be reported in the
+            ///    log.
+            /// </summary>
+            private sealed class Comparer : IEqualityComparer<DiagnosticDescriptor>
+            {
+                public bool Equals(DiagnosticDescriptor x, DiagnosticDescriptor y)
+                {
+                    if (ReferenceEquals(x, y))
+                    {
+                        return true;
+                    }
+
+                    if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
+                    {
+                        return false;
+                    }
+
+                    // The properties are guaranteed to be non-null by DiagnosticDescriptor invariants.
+                    Debug.Assert(x.Description != null && x.Title != null && x.CustomTags != null);
+                    Debug.Assert(y.Description != null && y.Title != null && y.CustomTags != null);
+
+                    return (x.Category == y.Category
+                        && x.DefaultSeverity == y.DefaultSeverity
+                        && x.Description.Equals(y.Description)
+                        && x.HelpLinkUri == y.HelpLinkUri
+                        && x.Id == y.Id
+                        && x.IsEnabledByDefault == y.IsEnabledByDefault
+                        && x.Title.Equals(y.Title)
+                        && x.CustomTags.SequenceEqual(y.CustomTags));
+                }
+
+                public int GetHashCode(DiagnosticDescriptor obj)
+                {
+                    if (ReferenceEquals(obj, null))
+                    {
+                        return 0;
+                    }
+
+                    // The properties are guaranteed to be non-null by DiagnosticDescriptor invariants.
+                    Debug.Assert(obj.Category != null && obj.Description != null && obj.HelpLinkUri != null 
+                        && obj.Id != null && obj.Title != null && obj.CustomTags != null);
+
+                    return Hash.Combine(obj.Category.GetHashCode(),
+                        Hash.Combine(obj.DefaultSeverity.GetHashCode(),
+                        Hash.Combine(obj.Description.GetHashCode(),
+                        Hash.Combine(obj.HelpLinkUri.GetHashCode(),
+                        Hash.Combine(obj.Id.GetHashCode(),
+                        Hash.Combine(obj.IsEnabledByDefault.GetHashCode(),
+                        Hash.Combine(obj.Title.GetHashCode(),
+                        Hash.CombineValues(obj.CustomTags))))))));
+                }
+            }
         }
     }
 }
+
+#pragma warning restore RS0013

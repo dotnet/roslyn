@@ -620,7 +620,7 @@ End Class
                 Diagnostic("Token", "RaiseEvent"));
         }
 
-        [WorkItem(1103442)]
+        [WorkItem(1103442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103442")]
         [Fact]
         public async Task SuppressSyntaxDiagnosticsOnRaiseEventAccessorBasic()
         {
@@ -1131,7 +1131,7 @@ End Class
         }
 
         [Fact]
-        public async Task SuppressDuplicateAnalyzerExceptionDiagnostics()
+        public async Task AnalyzerExceptionDiagnosticsWithDifferentContext()
         {
             var exceptionDiagnostics = new HashSet<Diagnostic>();
 
@@ -1149,13 +1149,15 @@ public class C2
                 new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
                 onAnalyzerException: (ex, a, d) => exceptionDiagnostics.Add(d));
 
-            exceptionDiagnostics.Verify(
-                Diagnostic("AD0001", null)
+            var diagnostic = Diagnostic("AD0001", null)
                     .WithArguments(
                         "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
                         "System.Exception",
                         "ThrowExceptionAnalyzer exception")
-                    .WithLocation(1, 1));
+                    .WithLocation(1, 1);
+
+            // expect 3 different diagnostics with 3 different contexts.
+            exceptionDiagnostics.Verify(diagnostic, diagnostic, diagnostic);
         }
 
         #endregion

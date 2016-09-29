@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
             Return New ObjectBrowserLibraryManager(serviceProvider)
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestSimpleContent_NamespaceTypeAndMember() As Task
             Dim code =
 <Code>
@@ -53,7 +53,7 @@ namespace N
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestSimpleContent_NoNamespaceWithoutType() As Task
             Dim code =
 <Code>
@@ -72,8 +72,8 @@ namespace N
             End Using
         End Function
 
-        <WorkItem(932387)>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestContent_InheritedMembers1() As Task
             Dim code =
 <Code>
@@ -126,8 +126,8 @@ class C : B
             End Using
         End Function
 
-        <WorkItem(932387)>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestContent_InheritedMembers2() As Task
             Dim code =
 <Code>
@@ -181,8 +181,8 @@ class C : B
             End Using
         End Function
 
-        <WorkItem(932387)>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestContent_InheritedMembers3() As Task
             Dim code =
 <Code>
@@ -236,8 +236,8 @@ class C : B
             End Using
         End Function
 
-        <WorkItem(932387)>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestContent_HelpKeyword_Ctor() As Task
             Dim code =
 <Code>
@@ -262,7 +262,7 @@ namespace N
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Project() As Task
             Dim code =
 <Code>
@@ -273,11 +273,11 @@ namespace N { }
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
 
-                list.VerifyDescriptions($"{ServicesVSResources.Library_Project}CSharpAssembly1")
+                list.VerifyDescriptions($"{ServicesVSResources.Project}CSharpAssembly1")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Namespace() As Task
             Dim code =
 <Code>
@@ -294,11 +294,11 @@ namespace N
 
                 list.VerifyDescriptions(
 "namespace N" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Class1() As Task
             Dim code =
 <Code>
@@ -313,13 +313,13 @@ sealed class C : B { }
 
                 list.VerifyDescriptions(
 "internal abstract class B" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}",
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}",
 "internal sealed class C : B" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Class2() As Task
             Dim code =
 <Code>
@@ -333,11 +333,11 @@ static class C { }
 
                 list.VerifyDescriptions(
 "internal static class C" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_ClassWithConstraints() As Task
             Dim code =
 <Code>
@@ -361,11 +361,11 @@ class Z&lt;T,U,V&gt; : Dictionary&lt;U,V&gt;
 vbTab & "where T : struct" & vbCrLf &
 vbTab & "where U : V" & vbCrLf &
 vbTab & "where V : System.Collections.Generic.List<T>" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Interfaces() As Task
             Dim code =
 <Code>
@@ -381,15 +381,15 @@ interface I3 : I2, I1 { }
 
                 list.VerifyDescriptions(
 "internal interface I1" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}",
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}",
 "internal interface I2" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}",
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}",
 "internal interface I3" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Struct1() As Task
             Dim code =
 <Code>
@@ -403,11 +403,11 @@ struct S { }
 
                 list.VerifyDescriptions(
 "internal struct S" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Method() As Task
             Dim code =
 <Code>
@@ -427,12 +427,12 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M()" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <WorkItem(939739)>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <WorkItem(939739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939739")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_MethodInInterface() As Task
             Dim code =
 <Code>
@@ -452,11 +452,11 @@ interface I
 
                 list.VerifyImmediateMemberDescriptions(
 "void M()" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "I")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "I")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_ExtensionMethod() As Task
             Dim code =
 <Code>
@@ -476,11 +476,11 @@ static class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static void M(this C c)" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_MethodWithParameters() As Task
             Dim code =
 <Code>
@@ -503,11 +503,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private bool M(int x, ref string y, out System.Collections.Generic.List<int> z)" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_MethodWithOptionalParameter1() As Task
             Dim code =
 <Code>
@@ -527,11 +527,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([int x = 42])" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_MethodWithOptionalParameter2() As Task
             Dim code =
 <Code>
@@ -553,11 +553,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([double x = 3.14159265358979])" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_MethodWithOptionalParameter3() As Task
             Dim code =
 <Code>
@@ -577,11 +577,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([double? x = null])" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_MethodWithOptionalParameter4() As Task
             Dim code =
 <Code>
@@ -601,11 +601,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([double? x = 42])" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_MethodWithOptionalParameter5() As Task
             Dim code =
 <Code>
@@ -625,11 +625,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private void M([C c = null])" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_UnsafeMethod() As Task
             Dim code =
 <Code>
@@ -650,11 +650,11 @@ unsafe class UnsafeC
 
                 list.VerifyImmediateMemberDescriptions(
 "private unsafe int* M()" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "UnsafeC")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "UnsafeC")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_MethodWithConstraints() As Task
             Dim code =
 <Code>
@@ -682,11 +682,11 @@ class C
 vbTab & "where T : class, new()" & vbCrLf &
 vbTab & "where U : V" & vbCrLf &
 vbTab & "where V : System.Collections.Generic.List<T>" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_ReadOnlyField() As Task
             Dim code =
 <Code>
@@ -704,11 +704,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "internal readonly int x" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_ConstField() As Task
             Dim code =
 <Code>
@@ -726,11 +726,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "protected internal const int x" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Property1() As Task
             Dim code =
 <Code>
@@ -752,11 +752,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { get; set; }" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Property2() As Task
             Dim code =
 <Code>
@@ -777,11 +777,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { get; }" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Property3() As Task
             Dim code =
 <Code>
@@ -802,11 +802,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { set; }" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Property4() As Task
             Dim code =
 <Code>
@@ -824,11 +824,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { get; set; }" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Property5() As Task
             Dim code =
 <Code>
@@ -846,11 +846,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public int P { get; private set; }" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Property6() As Task
             Dim code =
 <Code>
@@ -868,11 +868,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "internal int P { get; private set; }" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Indexer1() As Task
             Dim code =
 <Code>
@@ -894,11 +894,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private int this[int index] { get; set; }" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Indexer2() As Task
             Dim code =
 <Code>
@@ -919,11 +919,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "private int this[int index] { get; }" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Indexer3() As Task
             Dim code =
 <Code>
@@ -944,11 +944,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "protected int this[int index] { set; }" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Enum1() As Task
             Dim code =
 <Code>
@@ -965,11 +965,11 @@ enum E
 
                 list.VerifyDescriptions(
 "internal enum E" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Enum2() As Task
             Dim code =
 <Code>
@@ -986,11 +986,11 @@ enum E : int
 
                 list.VerifyDescriptions(
 "internal enum E" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Enum3() As Task
             Dim code =
 <Code>
@@ -1007,11 +1007,11 @@ enum E : byte
 
                 list.VerifyDescriptions(
 "internal enum E : byte" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_EnumMember() As Task
             Dim code =
 <Code>
@@ -1029,11 +1029,11 @@ enum E
 
                 list.VerifyImmediateMemberDescriptions(
 "A" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "E")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "E")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Event1() As Task
             Dim code =
 <Code>
@@ -1052,11 +1052,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public event System.EventHandler E" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Event2() As Task
             Dim code =
 <Code>
@@ -1079,11 +1079,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public event System.EventHandler E" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_XmlDocComment() As Task
             Dim code =
 <Code>
@@ -1111,17 +1111,17 @@ class C
                 list.VerifyImmediateMemberDescriptions(
 "public TResult M<T, TResult>(T x, T y)" & vbCrLf &
 vbTab & "where TResult : class" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Library_Summary & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
 "The M method." & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Library_Returns & vbCrLf &
+ServicesVSResources.Returns_colon & vbCrLf &
 "Returns a TResult.")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Operator_Add() As Task
             Dim code =
 <Code>
@@ -1142,11 +1142,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static int operator +(C c, int i)" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Operator_Subtract() As Task
             Dim code =
 <Code>
@@ -1167,11 +1167,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static int operator -(C c, int i)" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Operator_Multiply() As Task
             Dim code =
 <Code>
@@ -1192,11 +1192,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static int operator *(C c, int i)" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Operator_Divide() As Task
             Dim code =
 <Code>
@@ -1217,11 +1217,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static int operator /(C c, int i)" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Operator_Implicit() As Task
             Dim code =
 <Code>
@@ -1242,11 +1242,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static implicit operator bool(C c)" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Operator_Explicit() As Task
             Dim code =
 <Code>
@@ -1267,11 +1267,11 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static explicit operator bool(C c)" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_ExternMethod() As Task
             Dim code =
 <Code>
@@ -1291,12 +1291,12 @@ class C
 
                 list.VerifyImmediateMemberDescriptions(
 "public static extern int MessageBox(System.IntPtr h, string m, string c, int type)" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Function
 
-        <WorkItem(942021)>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <WorkItem(942021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestNavInfo_Class() As Task
             Dim code =
 <Code>
@@ -1321,8 +1321,8 @@ namespace EditorFunctionalityHelper
             End Using
         End Function
 
-        <WorkItem(942021)>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <WorkItem(942021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestNavInfo_NestedEnum() As Task
             Dim code =
 <Code>

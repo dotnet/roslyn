@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2)
 
         <WorkItem(5483, "DevDiv_Projects/Roslyn")>
-        <WorkItem(527917, "DevDiv")>
+        <WorkItem(527917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527917")>
         <Fact>
         Public Sub ReferenceBinding_SymbolUsed()
             ' Identity: C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9
@@ -65,7 +65,7 @@ BC32207: The project currently contains references to more than one version of '
         End Sub
 
         <Fact>
-        <WorkItem(546080, "DevDiv")>
+        <WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080")>
         Public Sub ReferenceBinding_SymbolNotUsed()
             Dim v1 = MetadataReference.CreateFromImage(TestResources.General.C1.AsImmutableOrNull())
             Dim v2 = MetadataReference.CreateFromImage(TestResources.General.C2.AsImmutableOrNull())
@@ -178,7 +178,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(529808, "DevDiv"), WorkItem(546080, "DevDiv"), WorkItem(530246, "DevDiv")>
+        <WorkItem(529808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529808"), WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080"), WorkItem(530246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530246")>
         Public Sub VersionUnification_UseSiteErrors()
 
             Dim sourceLibV1 =
@@ -399,7 +399,7 @@ BC32207: The project currently contains references to more than one version of '
         End Sub
 
         <Fact>
-        <WorkItem(546080, "DevDiv"), WorkItem(530296, "DevDiv")>
+        <WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080"), WorkItem(530296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530296")>
         Public Sub VersionUnification_UseSiteErrors_Multiple()
             Dim sourceA1 =
 <compilation name="A">
@@ -493,7 +493,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(529808, "DevDiv"), WorkItem(546080, "DevDiv")>
+        <WorkItem(529808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529808"), WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080")>
         Public Sub VersionUnification_MemberRefsNotRemapped()
             Dim sourceLibV1 =
 <compilation name="Lib">
@@ -559,19 +559,13 @@ End Class
             CompileAndVerify(main, verify:=False, validator:=
                 Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
-                    Dim refs As List(Of String) = New List(Of String)()
 
-                    For Each assemblyRef In reader.AssemblyReferences
-                        Dim row = reader.GetAssemblyReference(assemblyRef)
-                        refs.Add(reader.GetString(row.Name) & " " & row.Version.Major & "." & row.Version.Minor)
-                    Next
-
-                    AssertEx.SetEqual({"mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0"}, refs)
+                    AssertEx.SetEqual({"mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0"}, reader.DumpAssemblyReferences())
                 End Sub)
         End Sub
 
         <Fact>
-        <WorkItem(546752, "DevDiv")>
+        <WorkItem(546752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546752")>
         Public Sub VersionUnification_NoPiaMissingCanonicalTypeSymbol()
 
             Dim sourceLibV1 =
@@ -653,7 +647,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
         ''' Two Framework identities with unified versions.
         ''' </summary>
         <Fact>
-        <WorkItem(546026, "DevDiv"), WorkItem(546169, "DevDiv")>
+        <WorkItem(546026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546026"), WorkItem(546169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546169")>
         Public Sub CS1703ERR_DuplicateImport()
             Dim text = "Namespace N" & vbCrLf & "End Namespace"
 
@@ -667,7 +661,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
                 Diagnostic(ERRID.ERR_DuplicateReferenceStrong).WithArguments(TestReferences.NetFx.v4_0_30319.System.Display, TestReferences.NetFx.v2_0_50727.System.Display))
         End Sub
 
-        <WorkItem(545062, "DevDiv")>
+        <WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")>
         <Fact()>
         Public Sub DuplicateReferences()
             Dim c As VisualBasicCompilation
@@ -716,7 +710,7 @@ BC31541: Reference to class 'C' is not allowed when its assembly is configured t
             Assert.NotNull(c.GetReferencedAssemblySymbol(r1))
         End Sub
 
-        <WorkItem(539495, "DevDiv")>
+        <WorkItem(539495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539495")>
         <Fact>
         Public Sub BC32208ERR_DuplicateReference2()
             Dim sourceLibV1 =
@@ -1069,7 +1063,7 @@ End Class
             c.VerifyDiagnostics()
             Dim symbolA2 = c.GetReferencedAssemblySymbol(refA2)
             Assert.True(TypeOf symbolA2 Is VisualBasic.Symbols.Metadata.PE.PEAssemblySymbol, "PE symbol expected")
-            Assert.Equal(1, (DirectCast(refA2.GetMetadata(), AssemblyMetadata)).CachedSymbols.WeakCount)
+            Assert.Equal(1, (DirectCast(refA2.GetMetadataNoCopy(), AssemblyMetadata)).CachedSymbols.WeakCount)
 
             GC.KeepAlive(symbolA2)
 
@@ -1157,7 +1151,7 @@ End Class
             Assert.NotSame(refA2_symbol1, refA2_symbol2)
         End Sub
 
-        <Fact(), WorkItem(530795, "DevDiv")>
+        <Fact(), WorkItem(530795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530795")>
         Public Sub ReferenceTwoVersionsOfSystem()
             Dim compilation = CreateCompilationWithReferences(
                 <compilation>
@@ -1179,7 +1173,7 @@ End Module
 
         ' NOTE: This does not work in dev11, but the code is shared with C# so there's
         ' no reason not to implement it in roslyn.
-        <Fact, WorkItem(546828, "DevDiv")>
+        <Fact, WorkItem(546828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546828")>
         Public Sub MetadataDependsOnSource()
             ' {0} is the body of the ReachFramework assembly reference.
             Dim ilTemplate = <![CDATA[
@@ -1287,7 +1281,7 @@ End Module
 
         ' NOTE: This does not work in dev11, but the code is shared with C# so there's
         ' no reason not to implement it in roslyn.
-        <Fact, WorkItem(546828, "DevDiv")>
+        <Fact, WorkItem(546828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546828")>
         Public Sub MetadataDependsOnMetadataOrSource()
             Dim il = <![CDATA[
 .assembly extern ReachFramework
@@ -1390,7 +1384,7 @@ End Namespace
             Assert.NotEqual(comp.Assembly.Identity, actualIdentity)
         End Sub
 
-        <Fact(), WorkItem(530303, "DevDiv")>
+        <Fact(), WorkItem(530303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530303")>
         Public Sub TestReferenceResolution()
             Dim vb1Compilation = CreateVisualBasicCompilation("VB1",
             <![CDATA[Public Class VB1
@@ -1426,7 +1420,7 @@ End Module]]>,
             vb4Compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(531537, "DevDiv")>
+        <Fact(), WorkItem(531537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531537")>
         Public Sub ModuleSymbolReuse()
             Dim assemblySource =
 <compilation name="lib1">
@@ -1490,7 +1484,7 @@ End Class
             AssertEx.Equal(moduleReferences1, moduleReferences2)
         End Sub
 
-        <Fact(), WorkItem(531537, "DevDiv")>
+        <Fact(), WorkItem(531537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531537")>
         Public Sub ModuleSymbolReuse_ImplicitType()
             Dim moduleSource =
     <compilation name="lib">
@@ -1603,20 +1597,20 @@ End Class
 
             Dim refa = AssemblyMetadata.CreateFromImage(a.EmitToArray()).GetReference(display:="A")
             Dim b = CreateCompilationWithMscorlibAndReferences(sourceB, {refa})
-            Dim refmetadata = DirectCast(refa.GetMetadata(), AssemblyMetadata)
+            Dim refmetadata = DirectCast(refa.GetMetadataNoCopy(), AssemblyMetadata)
 
             Dim CopyRefMetaData = refmetadata.Copy
             Assert.NotEqual(refmetadata, CopyRefMetaData)
             Assert.Equal(refmetadata.GetAssembly.ToString, CopyRefMetaData.GetAssembly.ToString)
 
-            Dim mca1 As Metadata = refa.GetMetadata()
+            Dim mca1 As Metadata = refa.GetMetadataNoCopy()
             Dim Copymca1 = mca1.Copy()
             Assert.NotEqual(mca1, Copymca1)
             Assert.Equal(mca1.ToString, Copymca1.ToString)
             Assert.Equal(mca1.Kind, Copymca1.Kind)
         End Sub
 
-        <Fact, WorkItem(905495, "DevDiv")>
+        <Fact, WorkItem(905495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905495")>
         Public Sub ReferenceWithNoMetadataSection()
             Dim c = CreateCompilationWithMscorlib(New String() {}, {New TestImageReference(TestResources.Basic.NativeApp, "NativeApp.exe")}, TestOptions.ReleaseDll)
             c.VerifyDiagnostics(
@@ -1653,7 +1647,7 @@ End Class
             Assert.Throws(Of ObjectDisposedException)(Function() c.GetTypeByMetadataName("System.Int64").GetMembers())
         End Sub
 
-        <Fact, WorkItem(43)>
+        <Fact, WorkItem(43, "https://roslyn.codeplex.com/workitem/43")>
         Public Sub ReusingCorLibManager()
             Dim corlib1 = VisualBasicCompilation.Create("Comp")
             Dim assembly1 = corlib1.Assembly

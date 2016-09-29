@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using System.Collections.Immutable;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class TypeVariablesExpansionTests : CSharpResultProviderTestBase
     {

@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                         Class A
                         End Class
                         Namespace Global
-                            Class A	'invalid
+                            Class A 'invalid
                             End Class
                         End Namespace
                     </file>
@@ -106,7 +106,7 @@ Class A
             CompilationUtils.AssertNoErrors(compilation1)
         End Sub
 
-        <WorkItem(527731, "DevDiv")>
+        <WorkItem(527731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527731")>
         <Fact>
         Public Sub GlobalInSourceVsGlobalInOptions()
             Dim source = <compilation name="comp1">
@@ -151,7 +151,7 @@ Class A
         End Sub
 
         ' Using escaped names for Global 
-        <WorkItem(527731, "DevDiv")>
+        <WorkItem(527731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527731")>
         <Fact>
         Public Sub EscapedGlobal()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -256,7 +256,7 @@ BC40056: Namespace or type specified in the Imports 'Global.Global' doesn't cont
         End Sub
 
         ' Global can't be used as type 
-        <WorkItem(527728, "DevDiv")>
+        <WorkItem(527728, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527728")>
         <Fact>
         Public Sub BC30183ERR_InvalidUseOfKeyword_GlobalAsType()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -299,7 +299,7 @@ BC30183: Keyword is not valid as an identifier.
         End Sub
 
         ' Global can't be used as identifier 
-        <WorkItem(527728, "DevDiv")>
+        <WorkItem(527728, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527728")>
         <Fact>
         Public Sub BC30183ERR_InvalidUseOfKeyword_GlobalAsIdentifier()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -343,7 +343,7 @@ Global Class C1(of T as class)
         End Sub
 
         ' Global namespace may not be nested in another namespace 
-        <WorkItem(539076, "DevDiv")>
+        <WorkItem(539076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539076")>
         <Fact>
         Public Sub BC31544ERR_NestedGlobalNamespace_NestedGlobal()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -492,7 +492,7 @@ BC30179: class 'C2' and class 'C2' conflict in namespace 'NS1.Global'.
         End Sub
 
         ' Global works on Compilation 
-        <WorkItem(539077, "DevDiv")>
+        <WorkItem(539077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539077")>
         <Fact>
         Public Sub BC30554ERR_AmbiguousInUnnamedNamespace1_GlobalOnCompilation()
             Dim opt1 = TestOptions.ReleaseDll.WithRootNamespace("NS1")
@@ -573,7 +573,7 @@ BC30554: 'C1' is ambiguous.
         End Sub
 
         <Fact>
-        <WorkItem(545787, "DevDiv")>
+        <WorkItem(545787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545787")>
         Public Sub NestedGlobalNS()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="NestedGlobalNS">

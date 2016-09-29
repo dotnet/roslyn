@@ -1546,7 +1546,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(545575, "DevDiv")>
+        <WorkItem(545575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545575")>
         Public Sub Bug14079()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -1579,7 +1579,7 @@ End Class
             CompilationUtils.AssertNoDiagnostics(compilation)
         End Sub
 
-        <Fact(), WorkItem(531293, "DevDiv")>
+        <Fact(), WorkItem(531293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531293")>
         Public Sub Bug17900()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2767,7 +2767,7 @@ BC30109: 'Module1.T1' is a class type and cannot be used as an expression.
             Next
         End Sub
 
-        <Fact()> <WorkItem(842056, "DevDiv")>
+        <Fact()> <WorkItem(842056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842056")>
         Public Sub AmbiguousNamespaces_11()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

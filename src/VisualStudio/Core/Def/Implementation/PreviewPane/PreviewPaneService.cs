@@ -7,11 +7,13 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -22,6 +24,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
     [ExportWorkspaceServiceFactory(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
     internal class PreviewPaneService : ForegroundThreadAffinitizedObject, IPreviewPaneService, IWorkspaceServiceFactory
     {
+        private readonly EnvDTE.DTE _dte;
+
+        [ImportingConstructor]
+        public PreviewPaneService(SVsServiceProvider serviceProvider)
+        {
+            _dte = serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+        }
+
         IWorkspaceService IWorkspaceServiceFactory.CreateService(HostWorkspaceServices workspaceServices)
         {
             return this;
@@ -74,14 +84,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             if (helpLink != null)
             {
                 helpLinkToolTipText =
-                    string.Format(ServicesVSResources.DiagnosticIdHyperlinkTooltipText, diagnostic.Id,
-                        isBing ? ServicesVSResources.FromBing : null, Environment.NewLine, helpLink);
+                    string.Format(ServicesVSResources.Get_help_for_0_1_2_3, diagnostic.Id,
+                        isBing ? ServicesVSResources.from_Bing : null, Environment.NewLine, helpLink);
             }
 
             return helpLink;
         }
 
-        object IPreviewPaneService.GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, IList<object> previewContent)
+        object IPreviewPaneService.GetPreviewPane(
+            DiagnosticData diagnostic, string language, string projectType, IReadOnlyList<object> previewContent)
         {
             var title = diagnostic?.Message;
 
@@ -96,11 +107,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
                 return new PreviewPane(
                     severityIcon: null, id: null, title: null, description: null, helpLink: null, helpLinkToolTipText: null,
-                    previewContent: previewContent, logIdVerbatimInTelemetry: false);
+                    previewContent: previewContent, logIdVerbatimInTelemetry: false, dte: _dte);
             }
 
             var helpLinkToolTipText = string.Empty;
             Uri helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
+
+            Guid optionPageGuid = default(Guid);
+            string optionName;
+            if (diagnostic.Properties.TryGetValue("OptionName", out optionName))
+            {
+                string optionLanguage = null;
+                diagnostic.Properties.TryGetValue("OptionLanguage", out optionLanguage);
+                optionPageGuid = GetOptionPageGuidForOptionName(optionName, optionLanguage);
+            }
 
             return new PreviewPane(
                 severityIcon: GetSeverityIconForDiagnostic(diagnostic),
@@ -109,7 +129,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 helpLink: helpLink,
                 helpLinkToolTipText: helpLinkToolTipText,
                 previewContent: previewContent,
-                logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry));
+                logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
+                dte: _dte,
+                optionPageGuid: optionPageGuid);
+        }
+
+        private Guid GetOptionPageGuidForOptionName(string optionName, string optionLanguage)
+        {
+            if (optionName == nameof(SimplificationOptions.NamingPreferences))
+            {
+                if (optionLanguage == LanguageNames.CSharp)
+                {
+                    return Guid.Parse(Guids.CSharpOptionPageNamingStyleIdString);
+                }
+                else if (optionLanguage == LanguageNames.VisualBasic)
+                {
+                    return Guid.Parse(Guids.VisualBasicOptionPageNamingStyleIdString);
+                }
+            }
+            else if (optionName == nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration))
+            {
+                if (optionLanguage == LanguageNames.CSharp)
+                {
+                    return Guid.Parse(Guids.CSharpOptionPageCodeStyleIdString);
+                }
+                else if (optionLanguage == LanguageNames.VisualBasic)
+                {
+                    return Guid.Parse(Guids.VisualBasicOptionPageVBSpecificIdString);
+                }
+            }
+
+            return default(Guid);
         }
     }
 }

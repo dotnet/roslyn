@@ -24,7 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewritten = Concat(RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(node.Syntax), rewritten)
             End If
 
-            Return MarkStatementWithSequencePoint(rewritten)
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenter.InstrumentGotoStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
     End Class
 End Namespace

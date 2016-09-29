@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -24,5 +25,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public virtual void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
         }
+
+        internal virtual void Apply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            this.Apply(workspace, cancellationToken);
+        }
+
+        /// <summary>
+        /// Operations may make all sorts of changes that may not be appropriate during testing
+        /// (like popping up UI). So, by default, we don't apply them unless the operation asks
+        /// for that to happen.
+        /// </summary>
+        internal virtual bool ApplyDuringTests => false;
     }
 }

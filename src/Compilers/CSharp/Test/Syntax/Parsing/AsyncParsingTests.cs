@@ -274,6 +274,75 @@ class C
             }
         }
 
+        [WorkItem(13090, "https://github.com/dotnet/roslyn/issues/13090")]
+        [Fact]
+        public void MethodAsyncVarAsync()
+        {
+            UsingTree(
+@"class C
+{
+    static async void M(object async)
+    {
+        async.F();
+    }
+}");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.ObjectKeyword);
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
+
         [Fact]
         public void IncompleteAsync()
         {
@@ -413,7 +482,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember01()
         {
@@ -453,7 +522,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember02()
         {
@@ -501,7 +570,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember03()
         {
@@ -550,7 +619,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember04()
         {
@@ -589,7 +658,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember05()
         {
@@ -630,7 +699,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember06()
         {

@@ -437,18 +437,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachComponentStatement:
                     // Note: if the user was in the body of the foreach, then we would have hit its
                     // nested statement on the way up.  If they were in the expression then we would
                     // have hit that on the way up as well. In "foreach(var f in expr)" we allow a
                     // bp on "foreach", "var f" and "in".
-                    var forEachStatement = (ForEachStatementSyntax)statement;
+                    var forEachStatement = (CommonForEachStatementSyntax)statement;
                     if (position < forEachStatement.OpenParenToken.Span.End || position > forEachStatement.CloseParenToken.SpanStart)
                     {
                         return CreateSpan(forEachStatement.ForEachKeyword);
                     }
                     else if (position < forEachStatement.InKeyword.FullSpan.Start)
                     {
-                        return CreateSpan(forEachStatement.Type, forEachStatement.Identifier);
+                        if (forEachStatement.Kind() == SyntaxKind.ForEachStatement)
+                        {
+                            var simpleForEachStatement = (ForEachStatementSyntax)statement;
+                            return CreateSpan(simpleForEachStatement.Type, simpleForEachStatement.Identifier);
+                        }
+                        else
+                        {
+                            return ((ForEachComponentStatementSyntax)statement).VariableComponent.Span;
+                        }
                     }
                     else if (position < forEachStatement.Expression.FullSpan.Start)
                     {
@@ -704,7 +713,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         forStatement.Incrementors.Contains(expression);
 
                 case SyntaxKind.ForEachStatement:
-                    var forEachStatement = (ForEachStatementSyntax)parent;
+                case SyntaxKind.ForEachComponentStatement:
+                    var forEachStatement = (CommonForEachStatementSyntax)parent;
                     return forEachStatement.Expression == expression;
 
                 default:

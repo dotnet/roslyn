@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
     public class StatementGenerationTests : AbstractCodeGenerationTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public void TestThrowStatement1()
         {
             Test(f => f.ThrowStatement(),
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "Throw");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public void TestThrowStatement2()
         {
             Test(f => f.ThrowStatement(
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "Throw e");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public void TestThrowStatement3()
         {
             Test(f => f.ThrowStatement(
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "Throw New NotImplementedException()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public void TestReturnStatement1()
         {
             Test(f => f.ReturnStatement(),
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "Return");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public void TestReturnStatement2()
         {
             Test(f => f.ReturnStatement(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "Return e");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public void TestReturnStatement3()
         {
             Test(f => f.ReturnStatement(

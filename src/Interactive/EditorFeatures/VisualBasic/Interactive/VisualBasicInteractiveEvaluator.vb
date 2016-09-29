@@ -56,10 +56,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
         End Property
 
         Protected Overrides Function GetSubmissionCompilationOptions(name As String, metadataReferenceResolver As MetadataReferenceResolver, sourceReferenceResolver As SourceReferenceResolver, [imports] As ImmutableArray(Of String)) As CompilationOptions
-            ' TODO: imports
+            Dim globalImports = [imports].Select(AddressOf GlobalImport.Parse)
             Return New VisualBasicCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 scriptClassName:=name,
+                globalImports:=globalImports,
                 metadataReferenceResolver:=metadataReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
@@ -70,8 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
                 Return True
             End If
 
-            ' TODO (tomat): Return Syntax.IsCompleteSubmission(SyntaxTree.ParseCompilationUnit(text, options:=ParseOptions))
-            Return True
+            Return SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(text, options:=ParseOptions))
         End Function
     End Class
 End Namespace

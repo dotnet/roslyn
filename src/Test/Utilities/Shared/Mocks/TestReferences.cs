@@ -141,6 +141,68 @@ public static class TestReferences
 
     public static class NetFx
     {
+        public static class Minimal
+        {
+            private static PortableExecutableReference s_mincorlib;
+            public static PortableExecutableReference mincorlib
+            {
+                get
+                {
+                    if (s_mincorlib == null)
+                    {
+                        s_mincorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib).GetReference(display: "mincorlib.dll");
+                    }
+
+                    return s_mincorlib;
+                }
+            }
+
+            private static PortableExecutableReference s_minasync;
+            public static PortableExecutableReference minasync
+            {
+                get
+                {
+                    if (s_minasync == null)
+                    {
+                        s_minasync = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.minasync).GetReference(display: "minasync.dll");
+                    }
+
+                    return s_minasync;
+                }
+            }
+
+            private static PortableExecutableReference s_minasynccorlib;
+            public static PortableExecutableReference minasynccorlib
+            {
+                get
+                {
+                    if (s_minasynccorlib == null)
+                    {
+                        s_minasynccorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.minasynccorlib).GetReference(display: "minasynccorlib.dll");
+                    }
+
+                    return s_minasynccorlib;
+                }
+            }
+        }
+
+        public static class ValueTuple
+        {
+            private static PortableExecutableReference s_tuplelib;
+            public static PortableExecutableReference tuplelib
+            {
+                get
+                {
+                    if (s_tuplelib == null)
+                    {
+                        s_tuplelib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib).GetReference(display: "System.ValueTuple.dll");
+                    }
+
+                    return s_tuplelib;
+                }
+            }
+        }
+
         public static class silverlight_v5_0_5_0
         {
             private static PortableExecutableReference s_system;
@@ -450,6 +512,23 @@ public static class TestReferences
                     }
 
                     return s_system_Runtime_Serialization;
+                }
+            }
+        }
+
+        public static class v4_0_30316_17626
+        {
+            private static PortableExecutableReference s_mscorlib;
+            public static PortableExecutableReference mscorlib
+            {
+                get
+                {
+                    if (s_mscorlib == null)
+                    {
+                        s_mscorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: @"mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri");
+                    }
+
+                    return s_mscorlib;
                 }
             }
         }

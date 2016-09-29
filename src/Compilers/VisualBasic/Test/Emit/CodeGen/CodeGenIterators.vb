@@ -1,5 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -7,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
-        <WorkItem(1081584)>
+        <WorkItem(1081584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081584")>
         Public Sub TestYieldInSelectCase()
             CompileAndVerify(
 <compilation>
@@ -1559,7 +1560,7 @@ End Module
 ]]>)
         End Sub
         <Fact>
-        <WorkItem(703361, "DevDiv")>
+        <WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")>
         Public Sub VerifyHelpers()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -1576,7 +1577,7 @@ End Class]]></file>
             Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il, StringComparison.Ordinal)
         End Sub
 
-        <WorkItem(835430, "DevDiv")>
+        <WorkItem(835430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835430")>
         <Fact>
         Public Sub YieldInWith()
             Dim source =
@@ -1616,6 +1617,217 @@ End Module
 </compilation>
 
             CompileAndVerify(source, expectedOutput:="420420")
+        End Sub
+
+        <Fact, WorkItem(9167, "https://github.com/dotnet/roslyn/issues/9167")>
+        Public Sub IteratorShouldCompileWithoutOptionalAttributes()
+
+#Region "IL For corlib without CompilerGeneratedAttribute Or DebuggerNonUserCodeAttribute"
+            Dim corlib = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class [Int32]
+    End Class
+    Public Class [Boolean]
+    End Class
+    Public Class [String]
+    End Class
+    Public Class Exception
+    End Class
+    Public Class NotSupportedException
+        Inherits Exception
+    End Class
+    Public Class ValueType
+    End Class
+    Public Class [Enum]
+    End Class
+    Public Class Void
+    End Class
+    Public Interface IDisposable
+        Sub Dispose()
+    End Interface
+End Namespace
+Namespace System.Collections
+    Public Interface IEnumerable
+        Function GetEnumerator() As IEnumerator
+    End Interface
+    Public Interface IEnumerator
+        Function MoveNext() As Boolean
+        Property Current As Object
+        Sub Reset()
+    End Interface
+    Namespace Generic
+        Public Interface IEnumerable(Of T)
+            Inherits IEnumerable
+            Overloads Function GetEnumerator() As IEnumerator(Of T)
+        End Interface
+        Public Interface IEnumerator(Of T)
+            Inherits IEnumerator
+            Overloads Property Current As T
+        End Interface
+    End Namespace
+End Namespace
+Namespace System.Threading
+    Public Class Thread
+        Shared Property CurrentThread As Thread
+        Property ManagedThreadId As Integer
+    End Class
+End Namespace
+"
+#End Region
+
+            Dim source = "
+Class C
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+        Yield Nothing
+    End Function
+End Class
+"
+            ' The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
+            Dim compilation = CompilationUtils.CreateCompilation({Parse(source), Parse(corlib)})
+            Dim verifier = CompileAndVerify(compilation, verify:=False)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")>
+        Public Sub IEnumerableIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
+            ' Note that IDisposable.Dispose, IEnumerator.Current and other types are missing
+            ' Also, IEnumerator(Of T) doesn't have a get accessor
+            Dim source = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class [Int32]
+    End Class
+    Public Class [Boolean]
+    End Class
+    Public Class [String]
+    End Class
+    Public Class Exception
+    End Class
+    Public Class ValueType
+    End Class
+    Public Class [Enum]
+    End Class
+    Public Class Void
+    End Class
+    Public Interface IDisposable
+    End Interface
+End Namespace
+
+Namespace System.Collections
+    Public Interface IEnumerable
+    End Interface
+    Public Interface IEnumerator
+    End Interface
+End Namespace
+
+Namespace System.Collections.Generic
+    Public Interface IEnumerator(Of T)
+        WriteOnly Property Current As T
+    End Interface
+End Namespace
+
+Class C
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+        Yield Nothing
+    End Function
+End Class
+"
+            Dim compilation = CreateCompilation({Parse(source)})
+
+            compilation.AssertTheseEmitDiagnostics(<expected>
+BC30002: Type 'System.Collections.Generic.IEnumerable' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30524: Property 'System.Collections.Generic.IEnumerator(Of T).Current' is 'WriteOnly'.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Collections.Generic.IEnumerable`1.GetEnumerator' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Collections.IEnumerable.GetEnumerator' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Collections.IEnumerator.Current' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Collections.IEnumerator.MoveNext' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Collections.IEnumerator.Reset' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.IDisposable.Dispose' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                </expected>)
+        End Sub
+
+        <Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")>
+        Public Sub IEnumeratorIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
+            ' Note that IDisposable.Dispose and other types are missing
+            ' Also IEnumerator.Current lacks a get accessor
+            Dim source = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class [Int32]
+    End Class
+    Public Class [Boolean]
+    End Class
+    Public Class [String]
+    End Class
+    Public Class Exception
+    End Class
+    Public Class ValueType
+    End Class
+    Public Class [Enum]
+    End Class
+    Public Class Void
+    End Class
+    Public Interface IDisposable
+    End Interface
+End Namespace
+
+Namespace System.Collections
+    Public Interface IEnumerable
+    End Interface
+    Public Interface IEnumerator
+        WriteOnly Property Current As Object
+    End Interface
+End Namespace
+
+Class C
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerator
+        Yield Nothing
+    End Function
+End Class
+"
+            Dim compilation = CreateCompilation({Parse(source)})
+
+            ' No error about IEnumerable
+            compilation.AssertTheseEmitDiagnostics(<expected>
+BC30002: Type 'System.Collections.Generic.IEnumerator' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerator
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30524: Property 'System.Collections.IEnumerator.Current' is 'WriteOnly'.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerator
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Collections.Generic.IEnumerator`1.Current' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerator
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Collections.IEnumerator.MoveNext' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerator
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Collections.IEnumerator.Reset' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerator
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.IDisposable.Dispose' is not defined.
+    Public Iterator Function SomeNumbers() As System.Collections.IEnumerator
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                </expected>)
         End Sub
 
     End Class

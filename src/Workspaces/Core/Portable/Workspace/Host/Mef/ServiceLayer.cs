@@ -12,21 +12,21 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// <summary>
         /// Service layer that overrides <see cref="Editor"/>, <see cref="Desktop"/> and <see cref="Default"/>.
         /// </summary>
-        public const string Host = "Host";
+        public const string Host = nameof(Host);
 
         /// <summary>
         /// Service layer that overrides <see cref="Desktop" /> and <see cref="Default"/>.
         /// </summary>
-        public const string Editor = "Editor";
+        public const string Editor = nameof(Editor);
 
         /// <summary>
         /// Service layer that overrides <see cref="Default"/>.
         /// </summary>
-        public const string Desktop = "Desktop";
+        public const string Desktop = nameof(Desktop);
 
         /// <summary>
         /// The base service layer.
         /// </summary>
-        public const string Default = "Default";
+        public const string Default = nameof(Default);
     }
 }

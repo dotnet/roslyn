@@ -568,7 +568,7 @@ BC42019: Operands of type Object used for operator 'Not'; runtime errors could o
 
         End Sub
 
-        <WorkItem(544620, "DevDiv")>
+        <WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")>
         <Fact()>
         Public Sub Bug13088()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

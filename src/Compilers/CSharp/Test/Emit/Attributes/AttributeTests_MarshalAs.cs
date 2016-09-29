@@ -1081,7 +1081,7 @@ public partial class X
             CompileAndVerifyFieldMarshal(source, blobs, isField: false);
         }
 
-        [WorkItem(544508, "DevDiv")]
+        [WorkItem(544508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544508")]
         [Fact]
         public void Parameters_Property_Accessors()
         {
@@ -1109,7 +1109,7 @@ public interface I
                 isField: false);
         }
 
-        [WorkItem(544508, "DevDiv")]
+        [WorkItem(544508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544508")]
         [Fact]
         public void Parameters_Event_Accessors()
         {
@@ -1180,7 +1180,7 @@ public class C
                 isField: false);
         }
 
-        [WorkItem(544509, "DevDiv")]
+        [WorkItem(544509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544509")]
         [Fact]
         public void Parameters_DelegateType()
         {
@@ -1308,7 +1308,7 @@ class X
             isField: false);
         }
 
-        [Fact, WorkItem(545374, "DevDiv")]
+        [Fact, WorkItem(545374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545374")]
         public void ImportOptionalMarshalAsParameter()
         {
             string text1 = @"

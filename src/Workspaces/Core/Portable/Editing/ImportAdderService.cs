@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         public async Task<Document> AddImportsAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options, CancellationToken cancellationToken)
         {
-            options = options ?? document.Project.Solution.Workspace.Options;
+            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = model.SyntaxTree.GetRoot();
+            var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
@@ -39,23 +39,24 @@ namespace Microsoft.CodeAnalysis.Editing
             var newDoc = document.WithSyntaxRoot(newRoot);
             var newModel = await newDoc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            newRoot = this.AddNamespaceImports(newDoc, newModel, options, namespacesToAdd);
+            newRoot = await this.AddNamespaceImportsAsync(newDoc, newModel, options, namespacesToAdd, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private SyntaxNode AddNamespaceImports(
+        private async Task<SyntaxNode> AddNamespaceImportsAsync(
             Document document,
             SemanticModel model,
             OptionSet options,
-            IEnumerable<INamespaceSymbol> namespaces)
+            IEnumerable<INamespaceSymbol> namespaces,
+            CancellationToken cancellationToken)
         {
             var existingNamespaces = new HashSet<INamespaceSymbol>();
-            this.GetExistingImportedNamespaces(document, model, existingNamespaces);
+            await this.GetExistingImportedNamespacesAsync(document, model, existingNamespaces, cancellationToken).ConfigureAwait(false);
 
-            var namespacesToAdd = new HashSet<INamespaceSymbol>(namespaces);
+            var namespacesToAdd = new HashSet<INamespaceSymbol>(namespaces, NamespaceEqualityComparer.Singleton);
             namespacesToAdd.RemoveAll(existingNamespaces);
 
-            var root = model.SyntaxTree.GetRoot();
+            var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             if (namespacesToAdd.Count == 0)
             {
                 return root;
@@ -72,11 +73,15 @@ namespace Microsoft.CodeAnalysis.Editing
             return newRoot;
         }
 
-        protected virtual void GetExistingImportedNamespaces(Document document, SemanticModel model, HashSet<INamespaceSymbol> namespaces)
+        protected virtual async Task GetExistingImportedNamespacesAsync(
+            Document document,
+            SemanticModel model,
+            HashSet<INamespaceSymbol> namespaces,
+            CancellationToken cancellationToken)
         {
             // only consider top level imports
             var gen = SyntaxGenerator.GetGenerator(document);
-            var root = model.SyntaxTree.GetRoot();
+            var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var imports = gen.GetNamespaceImports(root);
 
             var symbols = imports.Select(imp => GetImportedNamespaceSymbol(imp, model))
@@ -90,5 +95,39 @@ namespace Microsoft.CodeAnalysis.Editing
         protected abstract INamespaceSymbol GetImportedNamespaceSymbol(SyntaxNode import, SemanticModel model);
         protected abstract INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
         protected abstract SyntaxNode InsertNamespaceImport(SyntaxNode root, SyntaxGenerator gen, SyntaxNode import, OptionSet options);
+
+        private sealed class NamespaceEqualityComparer : IEqualityComparer<INamespaceSymbol>
+        {
+            public static readonly NamespaceEqualityComparer Singleton = new NamespaceEqualityComparer();
+
+            private NamespaceEqualityComparer()
+            {
+            }
+
+            public bool Equals(INamespaceSymbol x, INamespaceSymbol y)
+            {
+                if (object.ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+                if (object.ReferenceEquals(x, null) || object.ReferenceEquals(y, null))
+                {
+                    return false;
+                }
+
+                return x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ==
+                       y.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            }
+
+            public int GetHashCode(INamespaceSymbol obj)
+            {
+                if (object.ReferenceEquals(obj, null))
+                {
+                    return 0;
+                }
+
+                return obj.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).GetHashCode();
+            }
+        }
     }
 }

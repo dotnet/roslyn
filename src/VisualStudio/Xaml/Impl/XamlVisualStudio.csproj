@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- Explicitly set the language before anything else is imported. That way VSL.Settings.targets sees the right value
+         even in WPF's build of a temporary project, where it won't be able to determine it based on the file extension. -->
+    <ProjectLanguage>CSharp</ProjectLanguage>
+  </PropertyGroup>
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{971E832B-7471-48B5-833E-5913188EC0E4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.VisualStudio.LanguageServices.Xaml</RootNamespace>
+    <AssemblyName>Microsoft.VisualStudio.LanguageServices.Xaml</AssemblyName>
+    <DeployExtension>false</DeployExtension>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
+      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
+      <Name>Workspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
+      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
+      <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
+      <Name>TextEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\Def\ServicesVisualStudio.csproj">
+      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
+      <Name>ServicesVisualStudio</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CodeFixes\AddMissingNamespace\IXamlAddMissingNamespaceService.cs" />
+    <Compile Include="CodeFixes\AddMissingNamespace\XamlAddMissingNamespacePrefixCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\RemoveUnnecessaryUsings\XamlRemoveUnnecessaryUsingsCodeFixProvider.cs" />
+    <Compile Include="Diagnostics\Analyzers\IXamlDocumentAnalyzerService.cs" />
+    <Compile Include="Diagnostics\Analyzers\XamlDocumentDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\XamlDiagnosticIds.cs" />
+    <Compile Include="Features\DocumentSpan.cs" />
+    <Compile Include="Features\InlineRename\IXamlRenameInfoService.cs" />
+    <Compile Include="Features\InlineRename\IXamlRenameInfo.cs" />
+    <Compile Include="Features\InlineRename\XamlEditorInlineRenameService.cs" />
+    <Compile Include="Features\OrganizeImports\IXamlOrganizeNamespacesService.cs" />
+    <Compile Include="Features\OrganizeImports\IXamlRemoveUnnecessaryNamespacesService.cs" />
+    <Compile Include="Features\OrganizeImports\XamlOrganizeImportsService.cs" />
+    <Compile Include="Features\OrganizeImports\XamlRemoveUnnecessaryImportsService.cs" />
+    <Compile Include="Features\XamlContentTypeLanguageService.cs" />
+    <Compile Include="Implementation\XamlTextViewCreationListener_IVsRunningDocTableEvents3.cs" />
+    <Compile Include="Implementation\XamlTextViewCreationListener_IVsSolutionEvents.cs" />
+    <Compile Include="Implementation\XamlOleCommandTarget.cs" />
+    <Compile Include="Implementation\XamlTextViewCreationListener.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="StringConstants.cs" />
+    <Compile Include="Implementation\XamlProject.cs" />
+    <Compile Include="XamlStaticTypeDefinitions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

@@ -21,10 +21,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             public HashSet<AnalyzerAction> ProcessedActions { get; }
 
+            public static readonly AnalyzerStateData FullyProcessedInstance = CreateFullyProcessedInstance();
+
             public AnalyzerStateData()
             {
                 StateKind = StateKind.InProcess;
                 ProcessedActions = new HashSet<AnalyzerAction>();
+            }
+
+            private static AnalyzerStateData CreateFullyProcessedInstance()
+            {
+                var instance = new AnalyzerStateData();
+                instance.SetStateKind(StateKind.FullyProcessed);
+                return instance;
             }
 
             public virtual void SetStateKind(StateKind stateKind)

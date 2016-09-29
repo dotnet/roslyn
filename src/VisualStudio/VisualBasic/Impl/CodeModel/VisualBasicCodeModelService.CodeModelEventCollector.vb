@@ -58,8 +58,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 ' Namespaces and types
                 CompareChildren(
                     AddressOf CompareNamespacesOrTypes,
-                    GetMembers(oldRoot.Members),
-                    GetMembers(newRoot.Members),
+                    GetValidMembers(oldRoot),
+                    GetValidMembers(newRoot),
                     parent,
                     CodeModelEventType.Unknown,
                     eventQueue)
@@ -144,9 +144,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return False
             End Function
 
-            Private Shared Function GetMembers(members As SyntaxList(Of StatementSyntax)) As IReadOnlyList(Of DeclarationStatementSyntax)
-                Return members _
-                    .OfType(Of DeclarationStatementSyntax) _
+            Private Function GetValidMembers(node As SyntaxNode) As IReadOnlyList(Of DeclarationStatementSyntax)
+                Return VisualBasicCodeModelService _
+                    .GetChildMemberNodes(node) _
                     .Where(Function(m) IsValidTopLevelDeclaration(m)) _
                     .ToArray()
             End Function
@@ -307,7 +307,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         eventQueue)
                 End If
 
-                Debug.Fail(String.Format("Invalid node: {0}", oldNamespaceOrType.Kind))
                 Return False
             End Function
 
@@ -315,8 +314,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 If Not CompareNames(oldNamespace.NamespaceStatement.Name, newNamespace.NamespaceStatement.Name) Then
                     Dim change = CompareRenamedDeclarations(
                         AddressOf CompareNamespacesOrTypes,
-                        GetMembers(oldNamespace.Members),
-                        GetMembers(newNamespace.Members),
+                        GetValidMembers(oldNamespace),
+                        GetValidMembers(newNamespace),
                         oldNamespace,
                         newNamespace,
                         newNodeParent,
@@ -331,8 +330,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Return CompareChildren(
                     AddressOf CompareNamespacesOrTypes,
-                    GetMembers(oldNamespace.Members),
-                    GetMembers(newNamespace.Members),
+                    GetValidMembers(oldNamespace),
+                    GetValidMembers(newNamespace),
                     newNamespace,
                     CodeModelEventType.Unknown,
                     eventQueue)
@@ -397,8 +396,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
                         AddressOf CompareMemberDeclarations,
-                        GetMembers(oldType.Members),
-                        GetMembers(newType.Members),
+                        GetValidMembers(oldType),
+                        GetValidMembers(newType),
                         oldType,
                         newType,
                         newNodeParent, eventQueue)
@@ -431,8 +430,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Dim comp2 = CompareChildren(
                     AddressOf CompareMemberDeclarations,
-                    GetMembers(oldType.Members),
-                    GetMembers(newType.Members),
+                    GetValidMembers(oldType),
+                    GetValidMembers(newType),
                     newType,
                     CodeModelEventType.Unknown,
                     eventQueue)
@@ -460,8 +459,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
                         AddressOf CompareMemberDeclarations,
-                        GetMembers(oldEnum.Members),
-                        GetMembers(newEnum.Members),
+                        GetValidMembers(oldEnum),
+                        GetValidMembers(newEnum),
                         oldEnum,
                         newEnum,
                         newNodeParent, eventQueue)
@@ -489,8 +488,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Dim comp2 = CompareChildren(
                     AddressOf CompareMemberDeclarations,
-                    GetMembers(oldEnum.Members),
-                    GetMembers(newEnum.Members),
+                    GetValidMembers(oldEnum),
+                    GetValidMembers(newEnum),
                     newEnum,
                     CodeModelEventType.Unknown,
                     eventQueue)

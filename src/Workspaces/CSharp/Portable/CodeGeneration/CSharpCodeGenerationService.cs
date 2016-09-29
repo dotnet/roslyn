@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return destinationMember.ReplaceNode(block, newBlock);
             }
 
-            throw new ArgumentException(CSharpWorkspaceResources.NoAvailableLocationFoundTo);
+            throw new ArgumentException(CSharpWorkspaceResources.No_available_location_found_to_add_statements_to);
         }
 
         private static TDeclarationNode AddStatementsToMemberDeclaration<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, MemberDeclarationSyntax memberDeclaration) where TDeclarationNode : SyntaxNode

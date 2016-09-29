@@ -1,11 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Methods
 
-        [WpfFact]
+        [Fact]
         public void Method_Reorder1()
         {
             string src1 = @"
@@ -50,7 +48,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_Reorder2()
         {
             string src1 = @"
@@ -97,7 +95,7 @@ class Program
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_Update()
         {
             string src1 = @"
@@ -125,7 +123,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_LineChange1()
         {
             string src1 = @"
@@ -153,7 +151,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_LineChange2()
         {
             string src1 = @"
@@ -180,7 +178,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_Recompile1()
         {
             string src1 = @"
@@ -206,7 +204,7 @@ class C
                 new string[] { "static void Bar()" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_Recompile2()
         {
             string src1 = @"
@@ -233,7 +231,7 @@ class C
                 new string[] { "static void Bar()" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_Recompile3()
         {
             string src1 = @"
@@ -261,7 +259,7 @@ class C
                 new string[] { "static void Bar()" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_Recompile4()
         {
             string src1 = @"
@@ -298,7 +296,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Bar"), syntaxMap[0]) });
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_Recompile5()
         {
             string src1 = @"
@@ -313,7 +311,7 @@ class C { /*--*/static void Bar() { } }";
                 new string[] { "static void Bar() { }" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_RudeRecompile1()
         {
             string src1 = @"
@@ -339,10 +337,10 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        ", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        ", FeaturesResources.method));
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_RudeRecompile2()
         {
             string src1 = @"
@@ -367,10 +365,10 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", FeaturesResources.method));
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_RudeRecompile3()
         {
             string src1 = @"
@@ -395,10 +393,10 @@ class C
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "static void Bar<T>()" },
-                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", FeaturesResources.method));
         }
 
-        [WpfFact]
+        [Fact]
         public void Method_RudeRecompile4()
         {
             string src1 = @"
@@ -431,7 +429,7 @@ class C
 
         #region Constructors
 
-        [WpfFact]
+        [Fact]
         public void Constructor_Reorder()
         {
             string src1 = @"
@@ -463,7 +461,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Constructor_LineChange1()
         {
             string src1 = @"
@@ -490,7 +488,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Constructor_Recompile1()
         {
             string src1 = @"
@@ -517,7 +515,7 @@ class C
                 new string[] { "public C(int a)" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Constructor_Recompile2()
         {
             string src1 = @"
@@ -543,7 +541,7 @@ class C
                 new string[] { "public C(int a)" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Constructor_RudeRecompile1()
         {
             string src1 = @"
@@ -567,14 +565,14 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "public C(int a)" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "          ", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "          ", FeaturesResources.constructor));
         }
 
         #endregion
 
         #region Field Initializers
 
-        [WpfFact]
+        [Fact]
         public void ConstantField()
         {
             string src1 = @"
@@ -595,7 +593,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void NoInitializer()
         {
             string src1 = @"
@@ -616,7 +614,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_Reorder()
         {
             string src1 = @"
@@ -638,7 +636,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_LineChange1()
         {
             string src1 = @"
@@ -661,7 +659,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_LineChange2()
         {
             string src1 = @"
@@ -682,7 +680,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_LineChange3()
         {
             string src1 = @"
@@ -703,7 +701,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_Recompile1a()
         {
             string src1 = @"
@@ -724,7 +722,7 @@ class C
                 new string[] { "Foo = " });
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_Recompile1b()
         {
             string src1 = @"
@@ -745,7 +743,7 @@ class C
                 new string[] { "Foo " });
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_Recompile1c()
         {
             string src1 = @"
@@ -766,7 +764,7 @@ class C
                 new string[] { "Foo = 1" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_Recompile1d()
         {
             string src1 = @"
@@ -787,7 +785,7 @@ class C
                 new string[] { "Foo = 1" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_Recompile1e()
         {
             string src1 = @"
@@ -808,7 +806,7 @@ class C
                 new string[] { "Foo = 1" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_Recompile2()
         {
             string src1 = @"
@@ -828,7 +826,7 @@ class C
                 new string[] { "Foo = 1 +  1" });
         }
 
-        [WpfFact]
+        [Fact]
         public void Field_RudeRecompile2()
         {
             string src1 = @"
@@ -846,14 +844,14 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "Foo = 1 +  1" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field));
         }
 
         #endregion
 
         #region Properties
 
-        [WpfFact]
+        [Fact]
         public void Property1()
         {
             string src1 = @"
@@ -874,7 +872,7 @@ class C
                 new string[] { "get { return " });
         }
 
-        [WpfFact]
+        [Fact]
         public void Property2()
         {
             string src1 = @"
@@ -895,7 +893,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Property3()
         {
             string src1 = @"
@@ -916,7 +914,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Property_ExpressionBody1()
         {
             string src1 = @"
@@ -937,7 +935,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Property_Initializer1()
         {
             string src1 = @"
@@ -958,7 +956,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Property_Initializer2()
         {
             string src1 = @"
@@ -979,7 +977,7 @@ class C
                 Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void Property_Initializer3()
         {
             string src1 = @"

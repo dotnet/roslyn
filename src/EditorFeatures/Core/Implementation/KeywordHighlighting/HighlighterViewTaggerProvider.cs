@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            var options = document.Project.Solution.Workspace.Options;
-            if (!options.GetOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language))
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            if (!documentOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting))
             {
                 return;
             }

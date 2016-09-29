@@ -4,26 +4,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class Traits
     {
-        public const string Feature = "Feature";
+        public const string Feature = nameof(Feature);
         public static class Features
         {
-            public const string AddMissingTokens = "AddMissingTokens";
-            public const string AsyncLazy = "AsyncLazy";
-            public const string FindReferences = "FindReferences";
-            public const string FixIncorrectTokens = "FixIncorrectTokens";
-            public const string NormalizeModifiersOrOperators = "NormalizeModifiersOrOperators";
-            public const string ReduceTokens = "ReduceTokens";
-            public const string RemoveUnnecessaryLineContinuation = "RemoveUnnecessaryLineContinuation";
-            public const string Workspace = "Workspace";
-            public const string Diagnostics = "Diagnostics";
-            public const string Formatting = "Formatting";
-            public const string LinkedFileDiffMerging = "LinkedFileDiffMerging";
+            public const string AddMissingTokens = nameof(AddMissingTokens);
+            public const string AsyncLazy = nameof(AsyncLazy);
+            public const string FindReferences = nameof(FindReferences);
+            public const string FixIncorrectTokens = nameof(FixIncorrectTokens);
+            public const string NormalizeModifiersOrOperators = nameof(NormalizeModifiersOrOperators);
+            public const string ReduceTokens = nameof(ReduceTokens);
+            public const string RemoveUnnecessaryLineContinuation = nameof(RemoveUnnecessaryLineContinuation);
+            public const string Workspace = nameof(Workspace);
+            public const string Diagnostics = nameof(Diagnostics);
+            public const string Formatting = nameof(Formatting);
+            public const string LinkedFileDiffMerging = nameof(LinkedFileDiffMerging);
         }
 
-        public const string Environment = "Environment";
+        public const string Environment = nameof(Environment);
         public static class Environments
         {
-            public const string VSProductInstall = "VSProductInstall";
+            public const string VSProductInstall = nameof(VSProductInstall);
         }
     }
 }

@@ -1,71 +1,64 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class UntilAndWhileKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub UntilAfterDo()
-            VerifyRecommendationsContain(<MethodBody>Do |</MethodBody>, "Until")
-        End Sub
+        Public Async Function UntilAfterDoTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Do |</MethodBody>, "Until")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub WhileAfterDo()
-            VerifyRecommendationsContain(<MethodBody>Do |</MethodBody>, "While")
-        End Sub
+        Public Async Function WhileAfterDoTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Do |</MethodBody>, "While")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub UntilAfterLoop()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function UntilAfterLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop |</MethodBody>, "Until")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub WhileAfterLoop()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function WhileAfterLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop |</MethodBody>, "While")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub UntilAndWhileMissingInDoLoopTopTestBlock()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function UntilAndWhileMissingInDoLoopTopTestBlockTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Do Until True
 Loop |</MethodBody>, "While", "Until")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub UntilAndWhileMissingAfterInvalidLoop()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function UntilAndWhileMissingAfterInvalidLoopTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Loop |</MethodBody>, "While", "Until")
-        End Sub
+        End Function
 
-        <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterEol()
-            VerifyRecommendationsMissing(
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotAfterEolTest() As Task
+            Await VerifyRecommendationsMissingAsync(
 <MethodBody>Do 
 |</MethodBody>, "Until")
-        End Sub
+        End Function
 
-        <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterExplicitLineContinuation()
-            VerifyRecommendationsContain(
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTest() As Task
+            Await VerifyRecommendationsContainAsync(
 <MethodBody>Do _
 |</MethodBody>, "Until")
-        End Sub
+        End Function
     End Class
 End Namespace

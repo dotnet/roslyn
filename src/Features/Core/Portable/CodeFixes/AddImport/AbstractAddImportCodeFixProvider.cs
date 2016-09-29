@@ -1,40 +1,57 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
+    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax> : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
+        where TSimpleNameSyntax : SyntaxNode
     {
         private const int MaxResults = 3;
 
-        protected abstract bool IgnoreCase { get; }
+        private readonly IPackageInstallerService _packageInstallerService;
+        private readonly ISymbolSearchService _symbolSearchService;
+
+        /// <summary>Values for these parameters can be provided (during testing) for mocking purposes.</summary> 
+        protected AbstractAddImportCodeFixProvider(
+            IPackageInstallerService packageInstallerService = null,
+            ISymbolSearchService symbolSearchService = null)
+        {
+            _packageInstallerService = packageInstallerService;
+            _symbolSearchService = symbolSearchService;
+        }
 
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract bool CanAddImportForMethod(Diagnostic diagnostic, ISyntaxFactsService syntaxFacts, ref SyntaxNode node);
-        protected abstract bool CanAddImportForNamespace(Diagnostic diagnostic, ref SyntaxNode node);
-        protected abstract bool CanAddImportForQuery(Diagnostic diagnostic, ref SyntaxNode node);
-        protected abstract bool CanAddImportForType(Diagnostic diagnostic, ref SyntaxNode node);
+        protected abstract bool CanAddImportForMethod(Diagnostic diagnostic, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
+        protected abstract bool CanAddImportForNamespace(Diagnostic diagnostic, SyntaxNode node, out TSimpleNameSyntax nameNode);
+        protected abstract bool CanAddImportForQuery(Diagnostic diagnostic, SyntaxNode node);
+        protected abstract bool CanAddImportForType(Diagnostic diagnostic, SyntaxNode node, out TSimpleNameSyntax nameNode);
 
-        protected abstract ISet<INamespaceSymbol> GetNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract string GetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root);
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
         protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
-        internal abstract bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
-        internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
+
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
+
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
+
+        protected abstract string GetDescription(IReadOnlyList<string> nameParts);
+        protected abstract string TryGetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, bool checkForExistingImport);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -58,8 +75,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return;
             }
 
-            var placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(
-                OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = documentOptions.GetOption(
+                GenerationOptions.PlaceSystemNamespaceFirst);
 
             using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
             {
@@ -68,30 +86,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     if (this.CanAddImport(node, cancellationToken))
                     {
                         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        var allSymbolReferences = await FindResultsAsync(document, semanticModel, diagnostic, node, cancellationToken).ConfigureAwait(false);
 
-                        var allSymbolReferences = new List<SymbolReference>();
-
-                        var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnostic, node, cancellationToken);
-
-                        await FindResultsInCurrentProject(project, allSymbolReferences, finder).ConfigureAwait(false);
-                        await FindResultsInUnreferencedProjects(project, allSymbolReferences, finder, cancellationToken).ConfigureAwait(false);
-                        await FindResultsInUnreferencedMetadataReferences(project, allSymbolReferences, finder, cancellationToken).ConfigureAwait(false);
-
-                        if (allSymbolReferences.Count == 0)
+                        // Nothing found at all. No need to proceed.
+                        if (allSymbolReferences == null || allSymbolReferences.Count == 0)
                         {
                             return;
                         }
 
-                        cancellationToken.ThrowIfCancellationRequested();
-
                         foreach (var reference in allSymbolReferences)
                         {
-                            var description = this.GetDescription(reference.Symbol, semanticModel, node);
-                            if (description != null)
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            var codeAction = await reference.CreateCodeActionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                            if (codeAction != null)
                             {
-                                var action = new MyCodeAction(description, c =>
-                                    this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
-                                context.RegisterCodeFix(action, diagnostic);
+                                context.RegisterCodeFix(codeAction, diagnostic);
                             }
                         }
                     }
@@ -99,22 +109,95 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private async Task FindResultsInCurrentProject(Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder)
+        private async Task<IReadOnlyList<Reference>> FindResultsAsync(
+            Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
         {
-            AddRange(allSymbolReferences, await finder.FindInProjectAsync(project, includeDirectReferences: true).ConfigureAwait(false));
+            // Caches so we don't produce the same data multiple times while searching 
+            // all over the solution.
+            var project = document.Project;
+            var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
+            var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>(concurrencyLevel: 2, capacity: project.Solution.Projects.Sum(p => p.MetadataReferences.Count));
+
+            var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnostic, node, cancellationToken);
+
+            // Look for exact matches first:
+            var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (exactReferences?.Count > 0)
+            {
+                return exactReferences;
+            }
+
+            // No exact matches found.  Fall back to fuzzy searching.
+            // Only bother doing this for host workspaces.  We don't want this for 
+            // things like the Interactive workspace as this will cause us to 
+            // create expensive bktrees which we won't even be able to save for 
+            // future use.
+            if (!IsHostOrTestWorkspace(project))
+            {
+                return SpecializedCollections.EmptyReadOnlyList<Reference>();
+            }
+
+            var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (fuzzyReferences?.Count > 0)
+            {
+                return fuzzyReferences;
+            }
+
+            return null;
         }
 
-        private async Task<Solution> AddImportAndReferenceAsync(
-            SyntaxNode node, SymbolReference reference, Document document, bool placeSystemNamespaceFirst, CancellationToken c)
+        private static bool IsHostOrTestWorkspace(Project project)
         {
-            // Defer to the language to add the actual import/using.
-            var newDocument = await this.AddImportAsync(node, reference.Symbol, document, placeSystemNamespaceFirst, c).ConfigureAwait(false);
-
-            return reference.UpdateSolution(newDocument);
+            return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
+                   project.Solution.Workspace.Kind == "Test";
         }
 
-        private async Task FindResultsInUnreferencedProjects(
-            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, CancellationToken cancellationToken)
+        private async Task<List<Reference>> FindResultsAsync(
+            ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+            ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
+            Project project, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+        {
+            var allReferences = new List<Reference>();
+
+            // First search the current project to see if any symbols (source or metadata) match the 
+            // search string.
+            await FindResultsInAllSymbolsInStartingProjectAsync(
+                allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+
+            // Only bother doing this for host workspaces.  We don't want this for 
+            // things like the Interactive workspace as we can't even add project
+            // references to the interactive window.  We could consider adding metadata
+            // references with #r in the future.
+            if (IsHostOrTestWorkspace(project))
+            {
+                // Now search unreferenced projects, and see if they have any source symbols that match
+                // the search string.
+                await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+
+                // Finally, check and see if we have any metadata symbols that match the search string.
+                await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+
+                // We only support searching NuGet in an exact manner currently. 
+                if (exact)
+                {
+                    await finder.FindNugetOrReferenceAssemblyReferencesAsync(allReferences, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return allReferences;
+        }
+
+        private async Task FindResultsInAllSymbolsInStartingProjectAsync(
+            List<Reference> allSymbolReferences, SymbolReferenceFinder finder, 
+            bool exact, CancellationToken cancellationToken)
+        {
+            var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
+            AddRange(allSymbolReferences, references);
+        }
+
+        private async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
+            ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+            Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             // If we didn't find enough hits searching just in the project, then check 
             // in any unreferenced projects.
@@ -124,27 +207,38 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             var viableUnreferencedProjects = GetViableUnreferencedProjects(project);
-            foreach (var unreferencedProject in viableUnreferencedProjects)
+
+            // Search all unreferenced projects in parallel.
+            var findTasks = new HashSet<Task<List<SymbolReference>>>();
+
+            // Create another cancellation token so we can both search all projects in parallel,
+            // but also stop any searches once we get enough results.
+            using (var nestedTokenSource = new CancellationTokenSource())
+            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
             {
-                // Search in this unreferenced project.  But don't search in any of its'
-                // direct references.  i.e. we don't want to search in its metadata references
-                // or in the projects it references itself. We'll be searching those entities
-                // individually.
-                AddRange(allSymbolReferences, await finder.FindInProjectAsync(unreferencedProject, includeDirectReferences: false).ConfigureAwait(false));
-                if (allSymbolReferences.Count >= MaxResults)
+                foreach (var unreferencedProject in viableUnreferencedProjects)
                 {
-                    return;
+                    // Search in this unreferenced project.  But don't search in any of its'
+                    // direct references.  i.e. we don't want to search in its metadata references
+                    // or in the projects it references itself. We'll be searching those entities
+                    // individually.
+                    findTasks.Add(finder.FindInSourceSymbolsInProjectAsync(
+                        projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token));
                 }
+
+                await WaitForTasksAsync(allSymbolReferences, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task FindResultsInUnreferencedMetadataReferences(Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, CancellationToken cancellationToken)
+        private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
+            ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
+            Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact,
+            CancellationToken cancellationToken)
         {
             if (allSymbolReferences.Count > 0)
             {
-                // Only do this if none of the project searches produced any results.  We may have
-                // a lot of metadata to search through, and it would be good to avoid that if we
-                // can.
+                // Only do this if none of the project searches produced any results. We may have a 
+                // lot of metadata to search through, and it would be good to avoid that if we can.
                 return;
             }
 
@@ -154,59 +248,117 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             var seenReferences = new HashSet<PortableExecutableReference>(comparer: this);
             seenReferences.AddAll(project.MetadataReferences.OfType<PortableExecutableReference>());
 
-            // Check all the other projects in the system so see if they have a metadata reference
-            // with a potential result.
-            foreach (var otherProject in project.Solution.Projects)
+            var newReferences =
+                project.Solution.Projects.Where(p => p != project)
+                                         .SelectMany(p => p.MetadataReferences.OfType<PortableExecutableReference>())
+                                         .Distinct(comparer: this)
+                                         .Where(r => !seenReferences.Contains(r))
+                                         .Where(r => !IsInPackagesDirectory(r));
+
+            // Search all metadata references in parallel.
+            var findTasks = new HashSet<Task<List<SymbolReference>>>();
+
+            // Create another cancellation token so we can both search all projects in parallel,
+            // but also stop any searches once we get enough results.
+            using (var nestedTokenSource = new CancellationTokenSource())
+            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
             {
-                if (otherProject == project)
+                foreach (var reference in newReferences)
                 {
-                    continue;
-                }
-
-                await FindResultsInMetadataReferences(
-                    otherProject, allSymbolReferences, finder, seenReferences, cancellationToken).ConfigureAwait(false);
-                if (allSymbolReferences.Count >= MaxResults)
-                {
-                    break;
-                }
-            }
-        }
-
-        private async Task FindResultsInMetadataReferences(
-            Project otherProject,
-            List<SymbolReference> allSymbolReferences,
-            SymbolReferenceFinder finder,
-            HashSet<PortableExecutableReference> seenReferences,
-            CancellationToken cancellationToken)
-        {
-            // See if this project has a metadata reference we haven't already looked at.
-            var newMetadataReferences = otherProject.MetadataReferences.OfType<PortableExecutableReference>();
-
-            Compilation compilation = null;
-            foreach (var reference in newMetadataReferences)
-            {
-                // Make sure we don't check the same metadata reference multiple times from 
-                // different projects.
-                if (seenReferences.Add(reference))
-                {
-                    // Defer making the compilation until necessary.
-                    compilation = compilation ?? await otherProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = referenceToCompilation.GetOrAdd(reference, r => CreateCompilation(project, r));
 
                     // Ignore netmodules.  First, they're incredibly esoteric and barely used.
                     // Second, the SymbolFinder api doesn't even support searching them. 
                     var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
                     if (assembly != null)
                     {
-                        AddRange(allSymbolReferences, await finder.FindInMetadataAsync(otherProject.Solution, assembly, reference).ConfigureAwait(false));
+                        findTasks.Add(finder.FindInMetadataSymbolsAsync(
+                            assembly, reference, exact, linkedTokenSource.Token));
                     }
                 }
 
-                if (allSymbolReferences.Count >= MaxResults)
-                {
-                    break;
-                }
+                await WaitForTasksAsync(allSymbolReferences, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
             }
         }
+
+        private async Task WaitForTasksAsync(
+            List<Reference> allSymbolReferences,
+            HashSet<Task<List<SymbolReference>>> findTasks,
+            CancellationTokenSource nestedTokenSource,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (findTasks.Count > 0)
+                {
+                    // Keep on looping through the 'find' tasks, processing each when they finish.
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var doneTask = await Task.WhenAny(findTasks).ConfigureAwait(false);
+
+                    // One of the tasks finished.  Remove it from the list we're waiting on.
+                    findTasks.Remove(doneTask);
+
+                    // Add its results to the final result set we're keeping.
+                    AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false));
+
+                    // Once we get enough, just stop.
+                    if (allSymbolReferences.Count >= MaxResults)
+                    {
+                        return;
+                    }
+                }
+            }
+            finally
+            {
+                // Cancel any nested work that's still happening.
+                nestedTokenSource.Cancel();
+            }
+        }
+
+        /// <summary>
+        /// We ignore references that are in a directory that contains the names "Packages".
+        /// These directories are most likely the ones produced by NuGet, and we don't want
+        /// to offer to add .dll reference manually for dlls that are part of NuGet packages.
+        /// 
+        /// Note that this is only a heuristic (though a good one), and we should remove this
+        /// when we can get an API from NuGet that tells us if a reference is actually provided
+        /// by a nuget packages.
+        /// 
+        /// This heuristic will do the right thing in practically all cases for all. It 
+        /// prevents the very unpleasant experience of us offering to add a direct metadata 
+        /// reference to something that should only be referenced as a nuget package.
+        ///
+        /// It does mean that if the following is true:
+        /// You have a project that has a non-nuget metadata reference to something in a "packages"
+        /// directory, and you are in another project that uses a type name that would have matched
+        /// an accessible type from that dll. then we will not offer to add that .dll reference to
+        /// that other project.
+        /// 
+        /// However, that would be an exceedingly uncommon case that is degraded.  Whereas we're 
+        /// vastly improved in the common case. This is a totally acceptable and desirable outcome
+        /// for such a heuristic.
+        /// </summary>
+        private bool IsInPackagesDirectory(PortableExecutableReference reference)
+        {
+            return PathUtilities.ContainsPathComponent(reference.FilePath, "packages", ignoreCase: true);
+        }
+
+        /// <summary>
+        /// Called when when we want to search a metadata reference.  We create a dummy compilation
+        /// containing just that reference and we search that.  That way we can get actual symbols
+        /// returned.
+        /// 
+        /// We don't want to use the project that the reference is actually associated with as 
+        /// getting the compilation for that project may be extremely expensive.  For example,
+        /// in a large solution it may cause us to build an enormous amount of skeleton assemblies.
+        /// </summary>
+        private Compilation CreateCompilation(Project project, PortableExecutableReference reference)
+        {
+            var compilationService = project.LanguageServices.GetService<ICompilationFactoryService>();
+            var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions());
+            return compilation.WithReferences(reference);
+        }
+
 
         bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
         {
@@ -241,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return viableProjects;
         }
 
-        private void AddRange(List<SymbolReference> allSymbolReferences, List<SymbolReference> proposedReferences)
+        private void AddRange(List<Reference> allSymbolReferences, IReadOnlyList<Reference> proposedReferences)
         {
             if (proposedReferences != null)
             {
@@ -249,11 +401,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private bool IsViableExtensionMethod(
-            ITypeSymbol typeSymbol,
-            IMethodSymbol method)
+        protected bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
         {
-            return typeSymbol != null && method.ReduceExtensionMethod(typeSymbol) != null;
+            if (receiver == null || method == null)
+            {
+                return false;
+            }
+
+            // It's possible that the 'method' we're looking at is from a different language than
+            // the language we're currently in.  For example, we might find the extension method
+            // in an unreferenced VB project while we're in C#.  However, in order to 'reduce'
+            // the extension method, the compiler requires both the method and receiver to be 
+            // from the same language.
+            //
+            // So, if they're not from the same language, we simply can't proceed.  Now in this 
+            // case we decide that the method is not viable.  But we could, in the future, decide
+            // to just always consider such methods viable.
+
+            if (receiver.Language != method.Language)
+            {
+                return false;
+            }
+
+            return method.ReduceExtensionMethod(receiver) != null;
         }
 
         private static bool ArityAccessibilityAndAttributeContextAreCorrect(
@@ -268,429 +438,63 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                    && (!inAttributeContext || symbol.IsAttribute());
         }
 
-        private static void CalculateContext(SyntaxNode node, ISyntaxFactsService syntaxFacts, out string name, out int arity, out bool inAttributeContext, out bool hasIncompleteParentMember)
+        private static void CalculateContext(
+            TSimpleNameSyntax nameNode, ISyntaxFactsService syntaxFacts, out string name, out int arity,
+            out bool inAttributeContext, out bool hasIncompleteParentMember)
         {
             // Has to be a simple identifier or generic name.
-            syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+            syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
 
-            inAttributeContext = syntaxFacts.IsAttributeName(node);
-            hasIncompleteParentMember = syntaxFacts.HasIncompleteParentMember(node);
+            inAttributeContext = syntaxFacts.IsAttributeName(nameNode);
+            hasIncompleteParentMember = syntaxFacts.HasIncompleteParentMember(nameNode);
         }
 
         private static bool NotGlobalNamespace(SymbolReference reference)
         {
-            var symbol = reference.Symbol;
+            var symbol = reference.SymbolResult.Symbol;
             return symbol.IsNamespace ? !((INamespaceSymbol)symbol).IsGlobalNamespace : true;
         }
 
         private static bool NotNull(SymbolReference reference)
         {
-            return reference.Symbol != null;
+            return reference.SymbolResult.Symbol != null;
         }
 
-        private class MyCodeAction : CodeAction.SolutionChangeAction
+        private class OperationBasedCodeAction : CodeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
-                base(title, createChangedSolution, equivalenceKey: title)
+            private readonly string _title;
+            private readonly Glyph? _glyph;
+            private readonly CodeActionPriority _priority;
+            private readonly Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> _getOperations;
+            private readonly Func<Workspace, bool> _isApplicable;
+
+            public override string Title => _title;
+            internal override int? Glyph => _glyph.HasValue ? (int)_glyph.Value : (int?)null;
+            public override string EquivalenceKey => _title;
+            internal override CodeActionPriority Priority => _priority;
+
+            public OperationBasedCodeAction(
+                string title, Glyph? glyph, CodeActionPriority priority,
+                Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations,
+                Func<Workspace, bool> isApplicable)
             {
-            }
-        }
-
-        private class SymbolReferenceFinder
-        {
-            private readonly CancellationToken _cancellationToken;
-            private readonly Diagnostic _diagnostic;
-            private readonly Document _document;
-            private readonly SemanticModel _semanticModel;
-
-            private readonly INamedTypeSymbol _containingType;
-            private readonly ISymbol _containingTypeOrAssembly;
-            private readonly ISet<INamespaceSymbol> _namespacesInScope;
-            private readonly ISyntaxFactsService _syntaxFacts;
-            private readonly AbstractAddImportCodeFixProvider _owner;
-
-            private SyntaxNode _node;
-
-            public SymbolReferenceFinder(
-                AbstractAddImportCodeFixProvider owner,
-                Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
-            {
-                _owner = owner;
-                _document = document;
-                _semanticModel = semanticModel;
-                _diagnostic = diagnostic;
-                _node = node;
-                _cancellationToken = cancellationToken;
-
-                _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
-                _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
-                _namespacesInScope = owner.GetNamespacesInScope(semanticModel, node, cancellationToken);
-                _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                _title = title;
+                _glyph = glyph;
+                _priority = priority;
+                _getOperations = getOperations;
+                _isApplicable = isApplicable;
             }
 
-            internal Task<List<SymbolReference>> FindInProjectAsync(Project project, bool includeDirectReferences)
+            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var searchScope = new ProjectSearchScope(project, includeDirectReferences, _owner.IgnoreCase, _cancellationToken);
-                return DoAsync(searchScope);
+                return _getOperations(cancellationToken);
             }
 
-            internal Task<List<SymbolReference>> FindInMetadataAsync(Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference)
+            internal override bool PerformFinalApplicabilityCheck => _isApplicable != null;
+
+            internal override bool IsApplicable(Workspace workspace)
             {
-                var searchScope = new MetadataSearchScope(solution, assembly, metadataReference, _owner.IgnoreCase, _cancellationToken);
-                return DoAsync(searchScope);
-            }
-
-            private async Task<List<SymbolReference>> DoAsync(SearchScope searchScope)
-            {
-                // Spin off tasks to do all our searching.
-                var tasks = new[]
-                {
-                    this.GetNamespacesForMatchingTypesAsync(searchScope),
-                    this.GetMatchingTypesAsync(searchScope),
-                    this.GetNamespacesForMatchingNamespacesAsync(searchScope),
-                    this.GetNamespacesForMatchingExtensionMethodsAsync(searchScope),
-                    this.GetNamespacesForMatchingFieldsAndPropertiesAsync(searchScope),
-                    this.GetNamespacesForQueryPatternsAsync(searchScope)
-                };
-
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                List<SymbolReference> allReferences = null;
-                foreach (var task in tasks)
-                {
-                    var taskResult = task.Result;
-                    if (taskResult?.Count > 0)
-                    {
-                        allReferences = allReferences ?? new List<SymbolReference>();
-                        allReferences.AddRange(taskResult);
-                    }
-                }
-
-                return DeDupeAndSortReferences(allReferences);
-            }
-
-            private List<SymbolReference> DeDupeAndSortReferences(List<SymbolReference> allReferences)
-            {
-                if (allReferences == null)
-                {
-                    return null;
-                }
-
-                return allReferences
-                    .Distinct()
-                    .Where(NotNull)
-                    .Where(NotGlobalNamespace)
-                    .Order()
-                    .ToList();
-            }
-
-            private async Task<IList<SymbolReference>> GetNamespacesForMatchingTypesAsync(SearchScope searchScope)
-            {
-                if (!_owner.CanAddImportForType(_diagnostic, ref _node))
-                {
-                    return null;
-                }
-
-                string name;
-                int arity;
-                bool inAttributeContext, hasIncompleteParentMember;
-                CalculateContext(_node, _syntaxFacts, out name, out arity, out inAttributeContext, out hasIncompleteParentMember);
-
-                var symbols = await GetTypeSymbols(searchScope, name, inAttributeContext).ConfigureAwait(false);
-                if (symbols == null)
-                {
-                    return null;
-                }
-
-                return GetNamespacesForMatchingTypesAsync(searchScope, arity, inAttributeContext, hasIncompleteParentMember, symbols);
-            }
-
-            private async Task<IList<SymbolReference>> GetMatchingTypesAsync(SearchScope searchScope)
-            {
-                if (!_owner.CanAddImportForType(_diagnostic, ref _node))
-                {
-                    return null;
-                }
-
-                string name;
-                int arity;
-                bool inAttributeContext, hasIncompleteParentMember;
-                CalculateContext(_node, _syntaxFacts, out name, out arity, out inAttributeContext, out hasIncompleteParentMember);
-
-                var symbols = await GetTypeSymbols(searchScope, name, inAttributeContext).ConfigureAwait(false);
-                if (symbols == null)
-                {
-                    return null;
-                }
-
-                return GetMatchingTypes(searchScope, name, arity, inAttributeContext, symbols, hasIncompleteParentMember);
-            }
-
-            private async Task<IEnumerable<ITypeSymbol>> GetTypeSymbols(
-                SearchScope searchScope,
-                string name,
-                bool inAttributeContext)
-            {
-                if (_cancellationToken.IsCancellationRequested)
-                {
-                    return null;
-                }
-
-                if (ExpressionBinds(checkForExtensionMethods: false))
-                {
-                    return null;
-                }
-
-                var symbols = await searchScope.FindDeclarationsAsync(name, SymbolFilter.Type).ConfigureAwait(false);
-
-                // also lookup type symbols with the "Attribute" suffix.
-                if (inAttributeContext)
-                {
-                    symbols = symbols.Concat(
-                        await searchScope.FindDeclarationsAsync(name + "Attribute", SymbolFilter.Type).ConfigureAwait(false));
-                }
-
-                return symbols.OfType<ITypeSymbol>();
-            }
-
-            protected bool ExpressionBinds(bool checkForExtensionMethods)
-            {
-                // See if the name binds to something other then the error type. If it does, there's nothing further we need to do.
-                // For extension methods, however, we will continue to search if there exists any better matched method.
-                _cancellationToken.ThrowIfCancellationRequested();
-                var symbolInfo = _semanticModel.GetSymbolInfo(_node, _cancellationToken);
-                if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !checkForExtensionMethods)
-                {
-                    return true;
-                }
-
-                return symbolInfo.Symbol != null;
-            }
-
-            private async Task<IList<SymbolReference>> GetNamespacesForMatchingNamespacesAsync(SearchScope searchScope)
-            {
-                if (!_owner.CanAddImportForNamespace(_diagnostic, ref _node))
-                {
-                    return null;
-                }
-
-                string name;
-                int arity;
-                _syntaxFacts.GetNameAndArityOfSimpleName(_node, out name, out arity);
-
-                if (ExpressionBinds(checkForExtensionMethods: false))
-                {
-                    return null;
-                }
-
-                var symbols = await searchScope.FindDeclarationsAsync(name, SymbolFilter.Namespace).ConfigureAwait(false);
-
-                return GetProposedNamespaces(
-                    searchScope, symbols.OfType<INamespaceSymbol>().Select(n => n.ContainingNamespace));
-            }
-
-            private async Task<IList<SymbolReference>> GetNamespacesForMatchingExtensionMethodsAsync(SearchScope searchScope)
-            {
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, ref _node))
-                {
-                    return null;
-                }
-
-                var expression = _node.Parent;
-
-                var extensionMethods = SpecializedCollections.EmptyEnumerable<SymbolReference>();
-                var symbols = await GetSymbolsAsync(searchScope).ConfigureAwait(false);
-                if (symbols != null)
-                {
-                    extensionMethods = FilterForExtensionMethods(searchScope, expression, symbols);
-                }
-
-                var addMethods = SpecializedCollections.EmptyEnumerable<SymbolReference>();
-                var methodSymbols = await GetAddMethodsAsync(searchScope, expression).ConfigureAwait(false);
-                if (methodSymbols != null)
-                {
-                    addMethods = GetProposedNamespaces(searchScope, methodSymbols.Select(s => s.ContainingNamespace));
-                }
-
-                return extensionMethods.Concat(addMethods).ToList();
-            }
-
-            private async Task<IList<SymbolReference>> GetNamespacesForMatchingFieldsAndPropertiesAsync(
-                SearchScope searchScope)
-            {
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, ref _node))
-                {
-                    return null;
-                }
-
-                var expression = _node.Parent;
-
-                var symbols = await GetSymbolsAsync(searchScope).ConfigureAwait(false);
-
-                if (symbols != null)
-                {
-                    return FilterForFieldsAndProperties(searchScope, expression, symbols);
-                }
-
-                return null;
-            }
-
-            private async Task<IList<SymbolReference>> GetNamespacesForQueryPatternsAsync(SearchScope searchScope)
-            {
-                if (!_owner.CanAddImportForQuery(_diagnostic, ref _node))
-                {
-                    return null;
-                }
-
-                ITypeSymbol type = _owner.GetQueryClauseInfo(_semanticModel, _node, _cancellationToken);
-                if (type == null)
-                {
-                    return null;
-                }
-
-                // find extension methods named "Select"
-                var symbols = await searchScope.FindDeclarationsAsync("Select", SymbolFilter.Member).ConfigureAwait(false);
-
-                var extensionMethodSymbols = symbols
-                    .OfType<IMethodSymbol>()
-                    .Where(s => s.IsExtensionMethod && _owner.IsViableExtensionMethod(type, s))
-                    .ToList();
-
-                return GetProposedNamespaces(
-                    searchScope, extensionMethodSymbols.Select(s => s.ContainingNamespace));
-            }
-
-            private List<SymbolReference> GetMatchingTypes(
-                SearchScope searchScope, string name, int arity, bool inAttributeContext, IEnumerable<ITypeSymbol> symbols, bool hasIncompleteParentMember)
-            {
-                var accessibleTypeSymbols = symbols
-                    .Where(s => ArityAccessibilityAndAttributeContextAreCorrect(
-                                    _semanticModel, s, arity,
-                                    inAttributeContext, hasIncompleteParentMember))
-                    .ToList();
-
-                return GetProposedTypes(searchScope, name, accessibleTypeSymbols);
-            }
-
-            private List<SymbolReference> GetNamespacesForMatchingTypesAsync(
-                SearchScope searchScope, int arity, bool inAttributeContext, bool hasIncompleteParentMember, IEnumerable<ITypeSymbol> symbols)
-            {
-                var accessibleTypeSymbols = symbols
-                    .Where(s => s.ContainingSymbol is INamespaceSymbol
-                                && ArityAccessibilityAndAttributeContextAreCorrect(
-                                    _semanticModel, s, arity,
-                                    inAttributeContext, hasIncompleteParentMember))
-                    .ToList();
-
-                return GetProposedNamespaces(searchScope, accessibleTypeSymbols.Select(s => s.ContainingNamespace));
-            }
-
-            private List<SymbolReference> GetProposedNamespaces(SearchScope scope, IEnumerable<INamespaceSymbol> namespaces)
-            {
-                // We only want to offer to add a using if we don't already have one.
-                return
-                    namespaces.Where(n => !n.IsGlobalNamespace)
-                              .Select(n => _semanticModel.Compilation.GetCompilationNamespace(n) ?? n)
-                              .Where(n => n != null && !_namespacesInScope.Contains(n))
-                              .Select(n => scope.CreateReference(n))
-                              .ToList();
-            }
-
-            private List<SymbolReference> GetProposedTypes(SearchScope searchScope, string name, List<ITypeSymbol> accessibleTypeSymbols)
-            {
-                List<SymbolReference> result = null;
-                if (accessibleTypeSymbols != null)
-                {
-                    foreach (var typeSymbol in accessibleTypeSymbols)
-                    {
-                        if (typeSymbol?.ContainingType != null)
-                        {
-                            result = result ?? new List<SymbolReference>();
-                            result.Add(searchScope.CreateReference(typeSymbol.ContainingType));
-                        }
-                    }
-                }
-
-                return result;
-            }
-
-            private Task<IEnumerable<ISymbol>> GetSymbolsAsync(SearchScope searchScope)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                // See if the name binds.  If it does, there's nothing further we need to do.
-                if (ExpressionBinds(checkForExtensionMethods: true))
-                {
-                    return SpecializedTasks.EmptyEnumerable<ISymbol>();
-                }
-
-                string name;
-                int arity;
-                _syntaxFacts.GetNameAndArityOfSimpleName(_node, out name, out arity);
-                if (name == null)
-                {
-                    return SpecializedTasks.EmptyEnumerable<ISymbol>();
-                }
-
-                return searchScope.FindDeclarationsAsync(name, SymbolFilter.Member);
-            }
-
-            private IEnumerable<SymbolReference> FilterForExtensionMethods(
-                SearchScope searchScope, SyntaxNode expression, IEnumerable<ISymbol> symbols)
-            {
-                var extensionMethodSymbols = symbols
-                    .OfType<IMethodSymbol>()
-                    .Where(method => method.IsExtensionMethod &&
-                                     method.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                     _owner.IsViableExtensionMethod(method, expression, _semanticModel, _syntaxFacts, _cancellationToken))
-                    .ToList();
-
-                return GetProposedNamespaces(
-                    searchScope, extensionMethodSymbols.Select(s => s.ContainingNamespace));
-            }
-
-            private IList<SymbolReference> FilterForFieldsAndProperties(
-                SearchScope searchScope, SyntaxNode expression, IEnumerable<ISymbol> symbols)
-            {
-                var propertySymbols = symbols
-                    .OfType<IPropertySymbol>()
-                    .Where(property => property.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                       _owner.IsViableProperty(property, expression, _semanticModel, _syntaxFacts, _cancellationToken))
-                    .ToList();
-
-                var fieldSymbols = symbols
-                    .OfType<IFieldSymbol>()
-                    .Where(field => field.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                    _owner.IsViableField(field, expression, _semanticModel, _syntaxFacts, _cancellationToken))
-                    .ToList();
-
-                return GetProposedNamespaces(
-                    searchScope, propertySymbols.Select(s => s.ContainingNamespace).Concat(fieldSymbols.Select(s => s.ContainingNamespace)));
-            }
-
-            private async Task<IEnumerable<IMethodSymbol>> GetAddMethodsAsync(
-                SearchScope searchScope, SyntaxNode expression)
-            {
-                string name;
-                int arity;
-                _syntaxFacts.GetNameAndArityOfSimpleName(_node, out name, out arity);
-                if (name != null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<IMethodSymbol>();
-                }
-
-                if (_owner.IsAddMethodContext(_node, _semanticModel))
-                {
-                    var symbols = await searchScope.FindDeclarationsAsync("Add", SymbolFilter.Member).ConfigureAwait(false);
-                    return symbols
-                        .OfType<IMethodSymbol>()
-                        .Where(method => method.IsExtensionMethod &&
-                                         method.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                         _owner.IsViableExtensionMethod(method, expression, _semanticModel, _syntaxFacts, _cancellationToken));
-                }
-
-                return SpecializedCollections.EmptyEnumerable<IMethodSymbol>();
+                return _isApplicable == null ? true : _isApplicable(workspace);
             }
         }
     }

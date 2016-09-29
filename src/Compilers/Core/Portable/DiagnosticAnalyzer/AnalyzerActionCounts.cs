@@ -7,30 +7,62 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
     /// </summary>
     internal class AnalyzerActionCounts
     {
-        internal static AnalyzerActionCounts Empty = new AnalyzerActionCounts(AnalyzerActions.Empty);
-
-        internal static AnalyzerActionCounts Create(AnalyzerActions analyzerActions)
+        internal AnalyzerActionCounts(AnalyzerActions analyzerActions) :
+            this(
+                analyzerActions?.CompilationStartActionsCount ?? 0,
+                analyzerActions?.CompilationEndActionsCount ?? 0,
+                analyzerActions?.CompilationActionsCount ?? 0,
+                analyzerActions?.SyntaxTreeActionsCount ?? 0,
+                analyzerActions?.SemanticModelActionsCount ?? 0,
+                analyzerActions?.SymbolActionsCount ?? 0,
+                analyzerActions?.SyntaxNodeActionsCount ?? 0,
+                analyzerActions?.CodeBlockStartActionsCount ?? 0,
+                analyzerActions?.CodeBlockEndActionsCount ?? 0,
+                analyzerActions?.CodeBlockActionsCount ?? 0,
+                analyzerActions?.OperationActionsCount ?? 0,
+                analyzerActions?.OperationBlockStartActionsCount ?? 0,
+                analyzerActions?.OperationBlockEndActionsCount ?? 0,
+                analyzerActions?.OperationBlockActionsCount ?? 0)
         {
-            if (analyzerActions == null)
-            {
-                return Empty;
-            }
-
-            return new AnalyzerActionCounts(analyzerActions);
         }
 
-        private AnalyzerActionCounts(AnalyzerActions analyzerActions)
+        internal AnalyzerActionCounts(
+            int compilationStartActionsCount,
+            int compilationEndActionsCount,
+            int compilationActionsCount,
+            int syntaxTreeActionsCount,
+            int semanticModelActionsCount,
+            int symbolActionsCount,
+            int syntaxNodeActionsCount,
+            int codeBlockStartActionsCount,
+            int codeBlockEndActionsCount,
+            int codeBlockActionsCount,
+            int operationActionsCount,
+            int operationBlockStartActionsCount,
+            int operationBlockEndActionsCount,
+            int operationBlockActionsCount)
         {
-            CompilationStartActionsCount = analyzerActions.CompilationStartActionsCount;
-            CompilationEndActionsCount = analyzerActions.CompilationEndActionsCount;
-            CompilationActionsCount = analyzerActions.CompilationActionsCount;
-            SyntaxTreeActionsCount = analyzerActions.SyntaxTreeActionsCount;
-            SemanticModelActionsCount = analyzerActions.SemanticModelActionsCount;
-            SymbolActionsCount = analyzerActions.SymbolActionsCount;
-            SyntaxNodeActionsCount = analyzerActions.SyntaxNodeActionsCount;
-            CodeBlockStartActionsCount = analyzerActions.CodeBlockStartActionsCount;
-            CodeBlockEndActionsCount = analyzerActions.CodeBlockEndActionsCount;
-            CodeBlockActionsCount = analyzerActions.CodeBlockActionsCount;
+            CompilationStartActionsCount = compilationStartActionsCount;
+            CompilationEndActionsCount = compilationEndActionsCount;
+            CompilationActionsCount = compilationActionsCount;
+            SyntaxTreeActionsCount = syntaxTreeActionsCount;
+            SemanticModelActionsCount = semanticModelActionsCount;
+            SymbolActionsCount = symbolActionsCount;
+            SyntaxNodeActionsCount = syntaxNodeActionsCount;
+            CodeBlockStartActionsCount = codeBlockStartActionsCount;
+            CodeBlockEndActionsCount = codeBlockEndActionsCount;
+            CodeBlockActionsCount = codeBlockActionsCount;
+            OperationActionsCount = operationActionsCount;
+            OperationBlockStartActionsCount = operationBlockStartActionsCount;
+            OperationBlockEndActionsCount = operationBlockEndActionsCount;
+            OperationBlockActionsCount = operationBlockActionsCount;
+
+            HasAnyExecutableCodeActions = CodeBlockActionsCount > 0 ||
+                CodeBlockStartActionsCount > 0 ||
+                SyntaxNodeActionsCount > 0 ||
+                OperationActionsCount > 0 ||
+                OperationBlockActionsCount > 0 ||
+                OperationBlockStartActionsCount > 0;
         }
 
         /// <summary>
@@ -82,5 +114,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Count of code block actions.
         /// </summary>
         public int CodeBlockActionsCount { get; }
+
+        /// <summary>
+        /// Count of Operation actions.
+        /// </summary>
+        public int OperationActionsCount { get; }
+
+        /// <summary>
+        /// Count of Operation block start actions.
+        /// </summary>
+        public int OperationBlockStartActionsCount { get; }
+
+        /// <summary>
+        /// Count of Operation block end actions.
+        /// </summary>
+        public int OperationBlockEndActionsCount { get; }
+
+        /// <summary>
+        /// Count of Operation block actions.
+        /// </summary>
+        public int OperationBlockActionsCount { get; }
+
+        /// <summary>
+        /// Returns true if there are any actions that need to run on executable code.
+        /// </summary>
+        public bool HasAnyExecutableCodeActions { get; }
     }
 }

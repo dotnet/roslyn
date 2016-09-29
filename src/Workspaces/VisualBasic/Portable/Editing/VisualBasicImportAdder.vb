@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -15,11 +16,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
     Partial Friend Class VisualBasicImportAdder
         Inherits ImportAdderService
 
-        Protected Overrides Sub GetExistingImportedNamespaces(document As Document, model As SemanticModel, namespaces As HashSet(Of INamespaceSymbol))
+        Protected Overrides Async Function GetExistingImportedNamespacesAsync(
+                document As Document, model As SemanticModel, namespaces As HashSet(Of INamespaceSymbol), cancellationToken As CancellationToken) As Task
             namespaces.AddRange(model.Compilation.MemberImports.OfType(Of INamespaceSymbol))
 
             ' consider all imports clauses
-            Dim root = DirectCast(model.SyntaxTree.GetRoot(), CompilationUnitSyntax)
+            Dim root = DirectCast(Await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False), CompilationUnitSyntax)
             For Each import As ImportsStatementSyntax In root.Imports
                 For Each clause In import.ImportsClauses
                     Dim symbol = GetImportedNamespaceSymbol(clause, model)
@@ -28,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                     End If
                 Next
             Next
-        End Sub
+        End Function
 
         Protected Overrides Function GetImportedNamespaceSymbol(namespaceImport As SyntaxNode, model As SemanticModel) As INamespaceSymbol
             Select Case namespaceImport.Kind

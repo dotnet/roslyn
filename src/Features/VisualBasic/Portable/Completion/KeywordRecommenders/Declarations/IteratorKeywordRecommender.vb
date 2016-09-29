@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.IteratorFunction Or PossibleDeclarationTypes.IteratorProperty) AndAlso
                    modifiers.IteratorKeyword.Kind = SyntaxKind.None Then
 
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Iterator", VBFeaturesResources.IteratorKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Iterator", VBFeaturesResources.Indicates_an_iterator_method_that_can_use_the_Yield_statement))
                 End If
             End If
 

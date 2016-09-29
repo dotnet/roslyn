@@ -198,6 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                             break;
                         case SyntaxKind.ForStatement:
                         case SyntaxKind.ForEachStatement:
+                        case SyntaxKind.ForEachComponentStatement:
                         case SyntaxKind.IfStatement:
                         case SyntaxKind.CheckedStatement:
                         case SyntaxKind.UncheckedStatement:
@@ -251,7 +252,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                         AddLastStatementOfConstruct((statement as ForStatementSyntax).Statement);
                         break;
                     case SyntaxKind.ForEachStatement:
-                        AddLastStatementOfConstruct((statement as ForEachStatementSyntax).Statement);
+                    case SyntaxKind.ForEachComponentStatement:
+                        AddLastStatementOfConstruct((statement as CommonForEachStatementSyntax).Statement);
                         break;
                     case SyntaxKind.IfStatement:
                         var ifStatement = statement as IfStatementSyntax;

@@ -6,14 +6,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -33,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     {
         protected async Task AssertFormatAsync(string expected, string code, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, bool useTab = false, bool testWithTransformation = true)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var hostdoc = workspace.Documents.First();
 
@@ -62,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
                 options = options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTab);
 
-                var root = syntaxTree.GetRoot();
+                var root = await syntaxTree.GetRootAsync();
                 var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
 
                 AssertFormat(workspace, expected, options, rules, clonedBuffer, root);
@@ -113,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         protected async Task AssertFormatAsync(string expected, string code, IEnumerable<TextSpan> spans, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, int? baseIndentation = null)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var hostdoc = workspace.Documents.First();
                 var buffer = hostdoc.GetTextBuffer();
@@ -144,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                     }
                 }
 
-                var root = syntaxTree.GetRoot();
+                var root = await syntaxTree.GetRootAsync();
                 var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
                 AssertFormat(workspace, expected, options, rules, clonedBuffer, root, spans);
 
@@ -184,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
             editorOperationsFactoryService.Setup(s => s.GetEditorOperations(It.IsAny<ITextView>())).Returns(editorOperations.Object);
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithMarker))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker))
             {
                 // set up caret position
                 var testDocument = workspace.Documents.Single();
@@ -213,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         protected static async Task AssertFormatWithPasteOrReturnAsync(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges, bool isPaste = true)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithMarker))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker))
             {
                 workspace.CanApplyChangeDocument = allowDocumentChanges;
 
@@ -225,10 +222,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 // get original buffer
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var optionService = workspace.Services.GetService<IOptionService>();
                 if (isPaste)
                 {
-                    optionService.SetOptions(optionService.GetOptions().WithChangedOption(FeatureOnOffOptions.FormatOnPaste, LanguageNames.CSharp, true));
                     var commandHandler = new FormatCommandHandler(TestWaitIndicator.Default, null, null);
                     var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
                     commandHandler.ExecuteCommand(commandArgs, () => { });
@@ -268,6 +263,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 code,
             new List<TextSpan> { span },
             baseIndentation: baseIndentation);
+        }
+
+        /// <summary>
+        /// Asserts formatting on an arbitrary <see cref="SyntaxNode"/> that is not part of a <see cref="SyntaxTree"/> 
+        /// </summary>
+        /// <param name="node">the <see cref="SyntaxNode"/> to format.</param>
+        /// <remarks>uses an <see cref="AdhocWorkspace"/> for formatting context, since the <paramref name="node"/> is not associated with a <see cref="SyntaxTree"/> </remarks>
+        protected async Task AssertFormatOnArbitraryNodeAsync(SyntaxNode node, string expected)
+        {
+            var result = await Formatter.FormatAsync(node, new AdhocWorkspace());
+            var actual = result.GetText().ToString();
+
+            Assert.Equal(expected, actual);
         }
     }
 }

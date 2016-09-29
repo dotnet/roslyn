@@ -303,28 +303,74 @@ Class2`2[T,U]
 ]]>).Compilation
         End Sub
 
-        <Fact(Skip:="542581"), WorkItem(542581, "DevDiv")>
+        <Fact,
+         WorkItem(9850, "https://github.com/dotnet/roslyn/issues/9850"),
+         WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")>
         Public Sub CodeGen_GetType_InheritedNestedTypeThroughUnboundGeneric()
-            CompileAndVerify(
+            Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
 Imports System
 
-Class BaseNonGeneric
+Class C
     Public Class E
     End Class
 
+    Public Class E(Of V)
+    End Class
+
     Public Shared Sub Main()
-        Console.WriteLine(GetType(DerivedGeneric(Of ).E))
+        Dim t1 = GetType(D(Of ).E)
+        Console.WriteLine(t1)
+
+        Dim t2 = GetType(F(Of ).E)
+        Dim t3 = GetType(G(Of ).E)
+        Console.WriteLine(t2)
+        Console.WriteLine(t3)
+        Console.WriteLine(t2.Equals(t3))
+
+        Dim t4 = GetType(D(Of ).E(Of ))
+        Console.WriteLine(t4)
+
+        Dim t5 = GetType(F(Of ).E(Of ))
+        Dim t6 = GetType(G(Of ).E(Of ))
+        Console.WriteLine(t5)
+        Console.WriteLine(t6)
+        Console.WriteLine(t5.Equals(t6))
     End Sub
 End Class
 
-Class DerivedGeneric(Of T) 
-    Inherits BaseNonGeneric
+Class C(Of U)
+    Public Class E
+    End Class
+
+    Public Class E(Of V)
+    End Class
+End Class
+
+Class D(Of T) 
+    Inherits C
+End Class
+
+Class F(Of T) 
+    Inherits C(Of T)
+End Class
+
+Class G(Of T) 
+    Inherits C(Of Integer)
 End Class
     </file>
-</compilation>, expectedOutput:=<![CDATA[
-BaseNonGeneric+E
+</compilation>, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[
+C+E
+C`1+E[U]
+C`1+E[U]
+True
+C+E`1[V]
+C`1+E`1[U,V]
+C`1+E`1[U,V]
+True
 ]]>)
         End Sub
 

@@ -1,14 +1,43 @@
 {
-  "dependencies": {
-    "Microsoft.Composition": "1.0.27",
-    "System.Collections": "4.0.10",
-    "System.Diagnostics.Debug": "4.0.10",
-    "System.Globalization": "4.0.10",
-    "System.Runtime": "4.0.20",
-    "System.Runtime.Extensions": "4.0.10",
-    "System.Threading": "4.0.10"
-  },
-  "frameworks": {
-    "net46": { }
-  },
+    "dependencies": {
+        "Microsoft.VisualStudio.Editor": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Language.Intellisense": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Shell.14.0": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
+            "version": "14.3.25420",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Shell.Design": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+    },
+    "frameworks": {
+        "net46": { }
+    },
 }

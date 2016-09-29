@@ -1,0 +1,30 @@
+﻿{
+    "dependencies": {
+        "Microsoft.Build": "14.3.0-prerelease01",
+        "Microsoft.Build.Tasks.Core": "14.3.0-prerelease01",
+        "Microsoft.NETCore.Platforms": "1.0.1",
+        "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+        "Microsoft.Win32.Primitives": "4.0.1",
+        "System.AppContext": "4.1.0",
+        "System.Console": "4.0.0",
+        "System.Diagnostics.Process": "4.1.0",
+        "System.Diagnostics.Tools": "4.0.1",
+        "System.IO.FileSystem": "4.0.1",
+        "System.IO.FileSystem.DriveInfo": "4.0.0",
+        "System.IO.Pipes": "4.0.0",
+        "System.Runtime.InteropServices.RuntimeInformation": "4.0.0",
+        "System.Security.AccessControl": "4.0.0",
+        "System.Security.Cryptography.Algorithms": "4.2.0",
+        "System.Security.Principal.Windows": "4.0.0",
+        "System.Text.RegularExpressions": "4.1.0",
+        "System.Threading.Thread": "4.0.0"
+    },
+    "frameworks": {
+        "netstandard1.3": {
+            "imports": [
+                "portable-net452",
+                "dotnet5.4"
+            ]
+        }
+    }
+}

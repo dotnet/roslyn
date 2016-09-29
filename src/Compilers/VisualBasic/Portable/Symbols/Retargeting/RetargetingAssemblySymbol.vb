@@ -125,6 +125,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AssemblyVersionPattern As Version
+            Get
+                Return _underlyingAssembly.AssemblyVersionPattern
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property PublicKey As ImmutableArray(Of Byte)
             Get
                 Return _underlyingAssembly.PublicKey
@@ -245,6 +251,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End If
 
             Return Me.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
+        End Function
+
+        Public Overrides Function GetMetadata() As AssemblyMetadata
+            Return _underlyingAssembly.GetMetadata()
         End Function
     End Class
 End Namespace

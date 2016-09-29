@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         End Sub
 
-        <WorkItem(619267, "DevDiv")>
+        <WorkItem(619267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619267")>
         <Fact>
         Public Sub InvalidNestedArity_2()
             Dim ilSource = <![CDATA[

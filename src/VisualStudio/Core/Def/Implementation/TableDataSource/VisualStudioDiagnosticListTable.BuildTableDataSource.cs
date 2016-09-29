@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ChangeStableState(IsStable);
             }
 
-            public override string DisplayName => ServicesVSResources.BuildTableSourceName;
+            public override string DisplayName => ServicesVSResources.CSharp_VB_Build_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => IdentifierString;
             public override object GetItemKey(object data) => data;
@@ -233,9 +233,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectGuids;
                             return ((Guid[])content).Length > 0;
                         case SuppressionStateColumnDefinition.ColumnName:
-                            // Build doesn't report suppressed diagnostics.
+                            // Build doesn't support suppression.
                             Contract.ThrowIfTrue(data.IsSuppressed);
-                            content = ServicesVSResources.SuppressionStateActive;
+                            content = ServicesVSResources.NotApplicable;
                             return true;
                         default:
                             content = null;
@@ -257,8 +257,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return false;
                     }
 
-                    return TryNavigateTo(item.Workspace, item.DocumentId,
+                    return TryNavigateTo(item.Workspace, GetProperDocumentId(item),
                                          item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                }
+
+                private DocumentId GetProperDocumentId(DiagnosticData data)
+                {
+                    // check whether documentId still exist. it might have changed if project it belong to has reloaded.
+                    var solution = data.Workspace.CurrentSolution;
+                    if (solution.GetDocument(data.DocumentId) != null)
+                    {
+                        return data.DocumentId;
+                    }
+
+                    // okay, documentId no longer exist in current solution, find it by file path.
+                    if (string.IsNullOrWhiteSpace(data.DataLocation?.OriginalFilePath))
+                    {
+                        // we don't have filepath
+                        return null;
+                    }
+
+                    var documentIds = solution.GetDocumentIdsWithFilePath(data.DataLocation.OriginalFilePath);
+                    foreach (var id in documentIds)
+                    {
+                        // found right documentId;
+                        if (id.ProjectId == data.ProjectId)
+                        {
+                            return id;
+                        }
+                    }
+
+                    // okay, there is no right one, take the first one if there is any
+                    return documentIds.FirstOrDefault();
                 }
 
                 protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)

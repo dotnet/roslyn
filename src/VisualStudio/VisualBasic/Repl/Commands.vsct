@@ -38,10 +38,6 @@
       -->
     </Buttons>
   </Commands>
-
-  <VisibilityConstraints>
-    <VisibilityItem context="guidVBProjectContext" guid="guidVisualBasicInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
-  </VisibilityConstraints>
   
   <!-- https://github.com/dotnet/roslyn/issues/3941
   <KeyBindings>

@@ -307,7 +307,7 @@ class C
 }");
         }
 
-        [WorkItem(813428, "DevDiv")]
+        [WorkItem(813428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813428")]
         [Fact]
         public void TryCatchOptimized001()
         {
@@ -695,7 +695,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(854935, "DevDiv")]
+        [Fact, WorkItem(854935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
         public void LiftedExceptionVariableInGenericIterator()
         {
             var source = @"
@@ -726,7 +726,7 @@ class C
             CompileAndVerify(source, expectedOutput: "Hi");
         }
 
-        [Fact, WorkItem(854935, "DevDiv")]
+        [Fact, WorkItem(854935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
         public void GenericLiftedExceptionVariableInGenericIterator()
         {
             var source = @"
@@ -757,7 +757,7 @@ class C
             CompileAndVerify(source, expectedOutput: "Hi");
         }
 
-        [WorkItem(579778, "DevDiv")]
+        [WorkItem(579778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579778")]
         [Fact]
         public void Regression579778()
         {
@@ -1906,7 +1906,7 @@ class D
 }");
         }
 
-        [WorkItem(540716, "DevDiv")]
+        [WorkItem(540716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540716")]
         [Fact]
         public void ThrowInFinally()
         {
@@ -2605,7 +2605,7 @@ class C
 }");
         }
 
-        [WorkItem(541494, "DevDiv")]
+        [WorkItem(541494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541494")]
         [Fact]
         public void CatchT()
         {
@@ -2667,7 +2667,7 @@ Unhandled");
 ");
         }
 
-        [WorkItem(540664, "DevDiv")]
+        [WorkItem(540664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540664")]
         [Fact]
         public void ExceptionAlreadyCaught1()
         {
@@ -2725,7 +2725,7 @@ class Program
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(540666, "DevDiv")]
+        [WorkItem(540666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540666")]
         [Fact]
         public void EmptyTryFinally_Simple()
         {
@@ -2741,7 +2741,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(542002, "DevDiv")]
+        [WorkItem(542002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542002")]
         [Fact]
         public void ConditionInTry()
         {
@@ -2792,7 +2792,7 @@ class Program
 ");
         }
 
-        [Fact(), WorkItem(544911, "DevDiv")]
+        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
         public void UnreachableAfterTryFinally()
         {
             var source = @"
@@ -2845,7 +2845,7 @@ class Program
 ");
         }
 
-        [Fact(), WorkItem(544911, "DevDiv")]
+        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
         public void ReachableAfterBlockingCatch()
         {
             var source =
@@ -2900,7 +2900,7 @@ class Program
 }");
         }
 
-        [Fact(), WorkItem(544911, "DevDiv")]
+        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
         public void UnreachableAfterTryFinallyConditional()
         {
             var source = @"
@@ -3042,7 +3042,7 @@ class Program
         }
 
 
-        [Fact(), WorkItem(544911, "DevDiv")]
+        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
         public void ReachableAfterFinallyButNotFromTryConditional()
         {
             var source = @"
@@ -3125,7 +3125,7 @@ class Program
 ");
         }
 
-        [Fact(), WorkItem(713418, "DevDiv")]
+        [Fact(), WorkItem(713418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
         public void ConditionalUnconditionalBranches()
         {
             var source = @"
@@ -3202,7 +3202,7 @@ Out");
 ");
         }
 
-        [Fact(), WorkItem(713418, "DevDiv")]
+        [Fact(), WorkItem(713418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
         public void ConditionalUnconditionalBranches001()
         {
             var source = @"

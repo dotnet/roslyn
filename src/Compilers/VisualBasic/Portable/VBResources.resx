@@ -198,6 +198,9 @@
   <data name="ERR_MissingGuidForOption" xml:space="preserve">
     <value>Command-line syntax error: Missing Guid for option '{1}'</value>
   </data>
+  <data name="ERR_BadChecksumAlgorithm" xml:space="preserve">
+    <value>Algorithm '{0}' is not supported</value>
+  </data>
   <data name="WRN_BadSwitch" xml:space="preserve">
     <value>unrecognized option '{0}'; ignored</value>
   </data>
@@ -742,7 +745,7 @@
     <value>'{0}' is not valid on a local variable declaration.</value>
   </data>
   <data name="ERR_ExpectedConditionalDirective" xml:space="preserve">
-    <value>'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected.</value>
+    <value>'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', 'End' or 'R' expected.</value>
   </data>
   <data name="ERR_ExpectedEQ" xml:space="preserve">
     <value>'=' expected.</value>
@@ -817,6 +820,9 @@
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
     <value>Failed to emit module '{0}'.</value>
+  </data>
+  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_OverrideNotNeeded3" xml:space="preserve">
     <value>{0} '{1}' cannot be declared 'Overrides' because it does not override a {0} in a base class.</value>
@@ -1988,6 +1994,9 @@
   </data>
   <data name="ERR_TypeRefResolutionError3" xml:space="preserve">
     <value>Import of type '{0}' from assembly or module '{1}' failed.</value>
+  </data>
+  <data name="ERR_ValueTupleTypeRefResolutionError" xml:space="preserve">
+    <value>Predefined type '{0}' is not defined or imported.</value>
   </data>
   <data name="ERR_ParamArrayWrongType" xml:space="preserve">
     <value>ParamArray parameters must have an array type.</value>
@@ -4295,6 +4304,9 @@
   <data name="ERR_FriendRefSigningMismatch" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the strong name signing state of the output assembly does not match that of the granting assembly.</value>
   </data>
+  <data name="ERR_PublicSignNoKey" xml:space="preserve">
+    <value>Public sign was specified and requires a public key, but no public key was specified</value>
+  </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified.</value>
   </data>
@@ -4910,9 +4922,6 @@
   <data name="IDS_TheSystemCannotFindThePathSpecified" xml:space="preserve">
     <value>The system cannot find the path specified</value>
   </data>
-  <data name="IDS_UnrecognizedFileFormat" xml:space="preserve">
-    <value>Unrecognized file format.</value>
-  </data>
   <data name="ThereAreNoPointerTypesInVB" xml:space="preserve">
     <value>There are no pointer types in VB.</value>
   </data>
@@ -5048,10 +5057,15 @@
 /removeintchecks[+|-]             Remove integer checks. Default off.
 /debug[+|-]                       Emit debugging information.
 /debug:full                       Emit full debugging information (default).
-/debug:portable                   Emit debugging information in the portable format.
-/debug:pdbonly                    Emit PDB file only.
+/debug:pdbonly                    Emit full debugging information.
+/debug:portable                   Emit cross-platform debugging information.
+/debug:embedded                   Emit cross-platform debugging information into 
+                                  the target .dll or .exe.
 /deterministic                    Produce a deterministic assembly
                                   (including module version GUID and timestamp)
+/instrument:TestCoverage          Produce an assembly instrumented to collect
+                                  coverage information
+/sourcelink:&lt;file&gt;                Source link info to embed into Portable PDB.
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.
@@ -5064,8 +5078,8 @@
                                   diagnostics.
 /reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
-                                  - LANGUAGE -
 
+                                  - LANGUAGE -
 /define:&lt;symbol_list&gt;             Declare global conditional compilation 
                                   symbol(s). symbol_list:name=value,... 
                                   (Short form: /d)
@@ -5073,15 +5087,16 @@
                                   referenced metadata files. 
                                   import_list:namespace,...
 /langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0.
+                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|
+                                  15.0|default|latest
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
                                   declarations.
 /optionstrict[+|-]                Enforce strict language semantics.
-/optionstrict:custom              Warn when strict language semantics are not 
+/optionstrict:custom              Warn when strict language semantics are not
                                   respected.
-/optioncompare:binary             Specifies binary-style string comparisons. 
+/optioncompare:binary             Specifies binary-style string comparisons.
                                   This is the default.
 /optioncompare:text               Specifies text-style string comparisons.
 
@@ -5092,6 +5107,7 @@
 /quiet                            Quiet output mode.
 /verbose                          Display verbose messages.
 /parallel[+|-]                    Concurrent build. 
+/version                          Display the compiler version number and exit.
 
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
@@ -5103,6 +5119,8 @@
 /codepage:&lt;number&gt;                Specifies the codepage to use when opening 
                                   source files.
 /delaysign[+|-]                   Delay-sign the assembly using only the public
+                                  portion of the strong name key.
+/publicsign[+|-]                  Public-sign the assembly using only the public
                                   portion of the strong name key.
 /errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
@@ -5332,10 +5350,70 @@
   <data name="FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite" xml:space="preserve">
     <value>implementing read-only or write-only property with read-write property</value>
   </data>
+  <data name="FEATURE_DigitSeparators" xml:space="preserve">
+    <value>digit separators</value>
+  </data>
+  <data name="FEATURE_BinaryLiterals" xml:space="preserve">
+    <value>binary literals</value>
+  </data>
+  <data name="FEATURE_Tuples" xml:space="preserve">
+    <value>tuples</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
   <data name="ERR_InvalidPathMap" xml:space="preserve">
     <value>The pathmap option was incorrectly formatted.</value>
+  </data>
+  <data name="SyntaxTreeIsNotASubmission" xml:space="preserve">
+    <value>Syntax tree should be created from a submission.</value>
+  </data>
+  <data name="ERR_TooManyUserStrings" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string or XML literals.</value>
+  </data>
+  <data name="ERR_PeWritingFailure" xml:space="preserve">
+    <value>An error occurred while writing the output file: {0}</value>
+  </data>
+  <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
+    <value>Option '{0}' must be an absolute path.</value>
+  </data>
+  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
+  </data>
+  <data name="ERR_TupleDuplicateElementName" xml:space="preserve">
+    <value>Tuple element names must be unique.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
+  </data>
+  <data name="ERR_TupleReservedElementName" xml:space="preserve">
+    <value>Tuple element name '{0}' is only allowed at position {1}.</value>
+  </data>
+  <data name="ERR_TupleReservedElementNameAnyPosition" xml:space="preserve">
+    <value>Tuple element name '{0}' is disallowed at any position.</value>
+  </data>
+  <data name="ERR_TupleTooFewElements" xml:space="preserve">
+    <value>Tuple must contain at least two elements.</value>
+  </data>
+  <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
+    <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
+  </data>
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
+    <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
+  </data>
+  <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">
+    <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
+  </data>
+  <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
+    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+  </data>
+  <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
+  </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
   </data>
 </root>

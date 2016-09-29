@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     containingScopes.Add(scope);
                 }
 
-                foreach (var nested in scope.GetScopes())
+                foreach (var nested in scope.GetChildren())
                 {
                     stack.Push(nested);
                 }
@@ -59,9 +59,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <summary>
         /// Translates the value of a constant returned by <see cref="ISymUnmanagedConstant.GetValue(out object)"/> to a <see cref="ConstantValue"/>.
         /// </summary>
-        public static ConstantValue GetConstantValue(ITypeSymbol type, object symValue)
+        public static ConstantValue GetSymConstantValue(ITypeSymbol type, object symValue)
         {
-            Debug.Assert(type.TypeKind != TypeKind.Enum);
+            if (type.TypeKind == TypeKind.Enum)
+            {
+                type = ((INamedTypeSymbol)type).EnumUnderlyingType;
+            }
 
             short shortValue;
             switch (type.SpecialType)

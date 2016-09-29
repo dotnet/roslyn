@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Globalization;
 
 namespace Microsoft.CodeAnalysis
@@ -39,11 +38,11 @@ namespace Microsoft.CodeAnalysis
 
             return IsLetterChar(CharUnicodeInfo.GetUnicodeCategory(ch));
         }
-        
+
         /// <summary>
-         /// Returns true if the Unicode character can be a part of an identifier.
-         /// </summary>
-         /// <param name="ch">The Unicode character.</param>
+        /// Returns true if the Unicode character can be a part of an identifier.
+        /// </summary>
+        /// <param name="ch">The Unicode character.</param>
         public static bool IsIdentifierPartCharacter(char ch)
         {
             // identifier-part-character:

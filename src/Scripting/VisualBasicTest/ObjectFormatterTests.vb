@@ -10,19 +10,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
     Public Class ObjectFormatterTests
         Inherits ObjectFormatterTestBase
 
+        Private Shared ReadOnly s_formatter As ObjectFormatter = New TestVisualBasicObjectFormatter()
+
         <Fact()>
         Public Sub InlineCharacters()
-            Assert.Equal("ChrW(20)", VisualBasicObjectFormatter.Instance.FormatObject(ChrW(20), s_inline))
-            Assert.Equal("vbBack", VisualBasicObjectFormatter.Instance.FormatObject(ChrW(&H8), s_inline))
+            Assert.Equal("ChrW(20)", s_formatter.FormatObject(ChrW(20), SingleLineOptions))
+            Assert.Equal("vbBack", s_formatter.FormatObject(ChrW(&H8), SingleLineOptions))
         End Sub
 
         <Fact(Skip:="IDK")>
         Public Sub QuotedStrings()
             Dim s = "a" & ChrW(&HFFFE) & ChrW(&HFFFF) & vbCrLf & "b"
 
+            Dim options = New PrintOptions With {.NumberRadix = ObjectFormatterHelpers.NumberRadixHexadecimal}
+            Dim withQuotes = New TestVisualBasicObjectFormatter(quoteStringsAndCharacters:=True)
+            Dim withoutQuotes = New TestVisualBasicObjectFormatter(quoteStringsAndCharacters:=False)
+
             ' ObjectFormatter should substitute spaces for non-printable characters
-            Assert.Equal("""a"" & ChrW(&HABCF) & ChrW(&HABCD) & vbCrLf & ""b""", VisualBasicObjectFormatter.Instance.FormatObject(s, s_hexa.Copy(quoteStrings:=True)))
-            Assert.Equal("a    b", VisualBasicObjectFormatter.Instance.FormatObject(s, s_hexa.Copy(quoteStrings:=False)))
+            Assert.Equal("""a"" & ChrW(&HABCF) & ChrW(&HABCD) & vbCrLf & ""b""", withQuotes.FormatObject(s, options))
+            Assert.Equal("a    b", withoutQuotes.FormatObject(s, options))
         End Sub
 
         <Fact>
@@ -30,43 +36,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
             Dim str As String
             Dim nested As Object = New Outer.Nested(Of Integer)()
 
-            str = VisualBasicObjectFormatter.Instance.FormatObject(nested, s_inline)
+            str = s_formatter.FormatObject(nested, SingleLineOptions)
             Assert.Equal("Outer.Nested(Of Integer) { A=1, B=2 }", str)
 
-            str = VisualBasicObjectFormatter.Instance.FormatObject(nested, New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.NoMembers))
+            str = s_formatter.FormatObject(nested, HiddenOptions)
             Assert.Equal("Outer.Nested(Of Integer)", str)
 
-            str = VisualBasicObjectFormatter.Instance.FormatObject(A(Of Integer).X, New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.NoMembers))
+            str = s_formatter.FormatObject(A(Of Integer).X, HiddenOptions)
             Assert.Equal("A(Of Integer).B(Of Integer)", str)
 
             Dim obj As Object = New A(Of Integer).B(Of Boolean).C.D(Of String, Double).E()
-            str = VisualBasicObjectFormatter.Instance.FormatObject(obj, New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.NoMembers))
+            str = s_formatter.FormatObject(obj, HiddenOptions)
             Assert.Equal("A(Of Integer).B(Of Boolean).C.D(Of String, Double).E", str)
 
             Dim sort = New Sort()
-            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=51, memberFormat:=MemberDisplayFormat.Inline))
-            Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, a ...", str)
-            Assert.Equal(51, str.Length)
+            str = New TestVisualBasicObjectFormatter(maximumLineLength:=51).FormatObject(sort, SingleLineOptions)
+            Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1...", str)
+            Assert.Equal(51 + 3, str.Length)
 
-            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=5, memberFormat:=MemberDisplayFormat.Inline))
-            Assert.Equal("S ...", str)
-            Assert.Equal(5, str.Length)
+            str = New TestVisualBasicObjectFormatter(maximumLineLength:=5).FormatObject(sort, SingleLineOptions)
+            Assert.Equal("Sort ...", str)
+            Assert.Equal(5 + 3, str.Length)
 
-            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=4, memberFormat:=MemberDisplayFormat.Inline))
-            Assert.Equal("...", str)
+            str = New TestVisualBasicObjectFormatter(maximumLineLength:=4).FormatObject(sort, SingleLineOptions)
+            Assert.Equal("Sort...", str)
 
-            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=3, memberFormat:=MemberDisplayFormat.Inline))
-            Assert.Equal("...", str)
+            str = New TestVisualBasicObjectFormatter(maximumLineLength:=3).FormatObject(sort, SingleLineOptions)
+            Assert.Equal("Sor...", str)
 
-            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=2, memberFormat:=MemberDisplayFormat.Inline))
-            Assert.Equal("...", str)
+            str = New TestVisualBasicObjectFormatter(maximumLineLength:=2).FormatObject(sort, SingleLineOptions)
+            Assert.Equal("So...", str)
 
-            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=1, memberFormat:=MemberDisplayFormat.Inline))
-            Assert.Equal("...", str)
+            str = New TestVisualBasicObjectFormatter(maximumLineLength:=1).FormatObject(sort, SingleLineOptions)
+            Assert.Equal("S...", str)
 
-            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=80, memberFormat:=MemberDisplayFormat.Inline))
+            str = New TestVisualBasicObjectFormatter(maximumLineLength:=80).FormatObject(sort, SingleLineOptions)
             Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str)
         End Sub
+
+        <Fact>
+        Public Sub EscapeWithoutQuotes()
+            Dim primitiveFormatter As New TestPrimitiveObjectFormatter()
+            Assert.Throws(Of ArgumentException)(Sub() primitiveFormatter.TestEscapeStringWithoutQuotes())
+            Assert.Throws(Of ArgumentException)(Sub() primitiveFormatter.TestEscapeCharWithoutQuotes())
+        End Sub
+
+        Private Class TestPrimitiveObjectFormatter
+            Inherits VisualBasicPrimitiveFormatter
+
+            Public Sub TestEscapeStringWithoutQuotes()
+                FormatLiteral("a", useQuotes:=False, escapeNonPrintable:=True)
+            End Sub
+
+            Public Sub TestEscapeCharWithoutQuotes()
+                FormatLiteral("a"c, useQuotes:=False, escapeNonPrintable:=True)
+            End Sub
+        End Class
 
         ' TODO: port tests from C#
     End Class

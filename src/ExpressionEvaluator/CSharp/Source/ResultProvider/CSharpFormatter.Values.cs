@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Roslyn.Utilities;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
@@ -19,8 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 // We're showing the type of a value, so "dynamic" does not apply.
                 bool unused;
-                int index = 0;
-                AppendQualifiedTypeName(builder, typeToDisplayOpt, default(DynamicFlagsCustomTypeInfo), ref index, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused);
+                int index1 = 0;
+                int index2 = 0;
+                AppendQualifiedTypeName(
+                    builder,
+                    typeToDisplayOpt,
+                    null,
+                    ref index1,
+                    null,
+                    ref index2,
+                    escapeKeywordIdentifiers: true,
+                    sawInvalidIdentifier: out unused);
                 builder.Append('.');
                 AppendIdentifierEscapingPotentialKeywords(builder, name, sawInvalidIdentifier: out unused);
             }
@@ -30,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        internal override string GetArrayDisplayString(Type lmrType, ReadOnlyCollection<int> sizes, ReadOnlyCollection<int> lowerBounds, ObjectDisplayOptions options)
+        internal override string GetArrayDisplayString(DkmClrAppDomain appDomain, Type lmrType, ReadOnlyCollection<int> sizes, ReadOnlyCollection<int> lowerBounds, ObjectDisplayOptions options)
         {
             Debug.Assert(lmrType.IsArray);
 
@@ -48,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // We're showing the type of a value, so "dynamic" does not apply.
             bool unused;
-            builder.Append(GetTypeName(new TypeAndCustomInfo(lmrType), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused)); // NOTE: call our impl directly, since we're coupled anyway.
+            builder.Append(GetTypeName(new TypeAndCustomInfo(DkmClrType.Create(appDomain, lmrType)), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused)); // NOTE: call our impl directly, since we're coupled anyway.
 
             var numSizes = sizes.Count;
 
@@ -111,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return pooled.ToStringAndFree();
         }
 
-        internal override string GetCastExpression(string argument, string type, bool parenthesizeArgument = false, bool parenthesizeEntireExpression = false)
+        internal override string GetCastExpression(string argument, string type, bool parenthesizeArgument, bool parenthesizeEntireExpression)
         {
             Debug.Assert(!string.IsNullOrEmpty(argument));
             Debug.Assert(!string.IsNullOrEmpty(type));
@@ -131,6 +141,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 builder.Append(')');
             }
+
+            return pooled.ToStringAndFree();
+        }
+
+        internal override string GetTupleExpression(string[] values)
+        {
+            Debug.Assert(values != null);
+
+            var pooled = PooledStringBuilder.GetInstance();
+            var builder = pooled.Builder;
+
+            builder.Append('(');
+            bool any = false;
+            foreach (var value in values)
+            {
+                if (any)
+                {
+                    builder.Append(", ");
+                }
+                builder.Append(value);
+                any = true;
+            }
+            builder.Append(')');
 
             return pooled.ToStringAndFree();
         }
@@ -205,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override string FormatLiteral(int value, ObjectDisplayOptions options)
         {
-            return ObjectDisplay.FormatLiteral(value, options & ~ObjectDisplayOptions.UseQuotes);
+            return ObjectDisplay.FormatLiteral(value, options & ~(ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
         }
 
         internal override string FormatPrimitiveObject(object value, ObjectDisplayOptions options)
@@ -215,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override string FormatString(string str, ObjectDisplayOptions options)
         {
-            return ObjectDisplay.FormatString(str, useQuotes: options.IncludesOption(ObjectDisplayOptions.UseQuotes));
+            return ObjectDisplay.FormatLiteral(str, options);
         }
     }
 }

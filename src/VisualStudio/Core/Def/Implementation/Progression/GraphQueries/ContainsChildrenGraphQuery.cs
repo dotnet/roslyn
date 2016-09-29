@@ -53,9 +53,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                                 // even when its extension fails to say so. One option would be to call DTEWrapper.IsRegisteredForLangService,
                                 // which may not be called here however since deadlock could happen.
 
-                                string ext = Path.GetExtension(uri.AbsolutePath);
-                                if (!string.IsNullOrEmpty(ext) &&
-                                    (ext.Equals(".cs", StringComparison.OrdinalIgnoreCase) || ext.Equals(".vb", StringComparison.OrdinalIgnoreCase)))
+                                // The Uri returned by `GetNestedValueByName()` above isn't necessarily absolute and the `OriginalString` is
+                                // the only property that doesn't throw if the UriKind is relative, so `OriginalString` must be used instead
+                                // of `AbsolutePath`.
+                                string ext = Path.GetExtension(uri.OriginalString);
+                                if (ext.Equals(".cs", StringComparison.OrdinalIgnoreCase) || ext.Equals(".vb", StringComparison.OrdinalIgnoreCase))
                                 {
                                     graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, false);
                                 }

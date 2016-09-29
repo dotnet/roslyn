@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
@@ -35,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             End Sub
 
             Private Function IsReference(node As SimpleNameSyntax) As Boolean
-                If node.Identifier.ValueText <> _definition.Identifier.ValueText Then
+                If Not CaseInsensitiveComparison.Equals(node.Identifier.ValueText, _definition.Identifier.ValueText) Then
                     Return False
                 End If
 
@@ -49,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 If IsReference(node) Then
                     If HasConflict(node, _definition, _expressionToInline, _semanticModel) Then
                         Return node.Update(node.Identifier.WithAdditionalAnnotations(
-                            ConflictAnnotation.Create(VBFeaturesResources.ConflictsDetected)))
+                            ConflictAnnotation.Create(VBFeaturesResources.Conflict_s_detected)))
                     End If
 
                     ' Make sure we attach any trailing trivia from the identifier node we're replacing

@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function FormatPrimitive(obj As Object, quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As String
             Dim options = ObjectDisplayOptions.None
             If quoteStrings Then
-                options = options Or ObjectDisplayOptions.UseQuotes
+                options = options Or ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters
             End If
             If useHexadecimalNumbers Then
                 options = options Or ObjectDisplayOptions.UseHexadecimalNumbers
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sb = pooledBuilder.Builder
 
             Dim lastKind = -1
-            For Each token As Integer In ObjectDisplay.TokenizeString(str, quote:=True, useHexadecimalNumbers:=True)
+            For Each token As Integer In ObjectDisplay.TokenizeString(str, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.UseHexadecimalNumbers Or ObjectDisplayOptions.EscapeNonPrintableCharacters)
                 Dim kind = token >> 16
 
                 ' merge contiguous tokens of the same kind into a single part

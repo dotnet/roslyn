@@ -147,7 +147,7 @@ class Program
             CompileAndVerify(csSource, expectedOutput: "hello");
         }
 
-        [WorkItem(544427, "DevDiv")]
+        [WorkItem(544427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544427")]
         [Fact]
         public void WrongOrderConversion()
         {
@@ -181,7 +181,7 @@ public class Test
 }");
         }
 
-        [WorkItem(602009, "DevDiv")]
+        [WorkItem(602009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602009")]
         [Fact]
         public void DefaultParameterValue_DateTimeConstant()
         {
@@ -282,7 +282,7 @@ null
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(602009, "DevDiv")]
+        [WorkItem(602009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602009")]
         [Fact]
         public void DefaultParameterValue_DecimalConstant()
         {
@@ -380,7 +380,7 @@ null
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(659424, "DevDiv")]
+        [WorkItem(659424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/659424")]
         [Fact]
         public void FloatConversion001()
         {
@@ -411,7 +411,7 @@ public class Program
 }");
         }
 
-        [WorkItem(659424, "DevDiv")]
+        [WorkItem(659424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/659424")]
         [Fact]
         public void FloatConversion002()
         {
@@ -459,7 +459,7 @@ class Program
 }");
         }
 
-        [WorkItem(659424, "DevDiv")]
+        [WorkItem(659424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/659424")]
         [Fact]
         public void FloatConversion003()
         {
@@ -507,7 +507,7 @@ class Program
 }");
         }
 
-        [WorkItem(448900, "DevDiv")]
+        [WorkItem(448900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/448900")]
         [Fact]
         public void Regress448900()
         {
@@ -568,7 +568,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(448900, "DevDiv")]
+        [WorkItem(448900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/448900")]
         [Fact]
         public void Regress448900_Optimized()
         {
@@ -617,7 +617,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(448900, "DevDiv")]
+        [WorkItem(448900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/448900")]
         [Fact]
         public void Regress448900_Folded()
         {
@@ -657,7 +657,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(674803, "DevDiv")]
+        [WorkItem(674803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674803")]
         [Fact]
         public void CastFrom0ToExplicitConversionViaEnum01()
         {
@@ -678,7 +678,7 @@ class C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(844635, "DevDiv")]
+        [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
         [Fact]
         public void RuntimeTypeCheckForGenericEnum()
         {
@@ -727,8 +727,8 @@ class G<T>
 }");
         }
 
-        [WorkItem(864605, "DevDiv")]
-        [WorkItem(864740, "DevDiv")]
+        [WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
+        [WorkItem(864740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864740")]
         [Fact]
         public void MethodGroupIsExpression()
         {
@@ -751,7 +751,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1084278, "DevDiv")]
+        [WorkItem(1084278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084278")]
         public void NullableConversionFromConst()
         {
             var source =
@@ -917,6 +917,43 @@ class C
         }
 
         [Fact]
+        public void NullableNumericToIntPtr1()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Test()
+    {
+        byte? b = 0 + 1;
+        IntPtr p = (IntPtr)b;
+        Console.WriteLine(p);
+    }
+}";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Test()", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (byte? V_0) //b
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  conv.u1
+  IL_0004:  call       ""byte?..ctor(byte)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  call       ""byte byte?.Value.get""
+  IL_0010:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0015:  box        ""System.IntPtr""
+  IL_001a:  call       ""void System.Console.WriteLine(object)""
+  IL_001f:  ret
+}");
+        }
+
+
+        [Fact]
         public void NumericToNullableIntPtr()
         {
             var source =
@@ -951,7 +988,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1210529, "DevDiv")]
+        [WorkItem(1210529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1210529")]
         public void LiftedIntToIntPtr()
         {
             var source =
@@ -994,7 +1031,42 @@ class C
   IL_002b:  call       ""void C.Use(System.IntPtr?)""
   IL_0030:  ret
 }");
+        }
 
+        [Fact]
+        [WorkItem(11751, "https://github.com/dotnet/roslyn/issues/11751")]
+        public void ExprTreeCOM_IntPtr()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+using System.Runtime.InteropServices;
+
+unsafe class Program
+{
+
+    static void Main(string[] args)
+    {
+        IntPtr y = new IntPtr();
+                
+        IAaa i = null;
+
+        Expression<Action> e = () =>  i.Test((ulong)y, null);
+    }
+}
+
+[ComImport]
+[Guid(""A88A175D-2448-447A-B786-64682CBEF156"")]
+public interface IAaa
+{
+    void Test(ulong y, object z);
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            CompileAndVerify(compilation);
         }
     }
 }

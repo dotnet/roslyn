@@ -180,7 +180,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(531407, "DevDiv")]
+        [WorkItem(531407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531407")]
         public void FixedBufferPointer()
         {
             var text =
@@ -227,7 +227,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(587119, "DevDiv")]
+        [WorkItem(587119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
         public void FixedSizeBufferInFixedSizeBufferSize_Class()
         {
             var source = @"
@@ -250,7 +250,7 @@ unsafe class C
         }
 
         [Fact]
-        [WorkItem(587119, "DevDiv")]
+        [WorkItem(587119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
         public void FixedSizeBufferInFixedSizeBufferSize_Struct()
         {
             var source = @"
@@ -268,7 +268,7 @@ unsafe struct S
         }
 
         [Fact]
-        [WorkItem(586977, "DevDiv")]
+        [WorkItem(586977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586977")]
         public void FixedSizeBufferInFixedSizeBufferSize_Cycle()
         {
             var source = @"
@@ -287,7 +287,7 @@ unsafe struct S
         }
 
         [Fact]
-        [WorkItem(587000, "DevDiv")]
+        [WorkItem(587000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587000")]
         public void SingleDimensionFixedBuffersOnly()
         {
             var source = @"
@@ -301,7 +301,7 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
         }
 
-        [Fact, WorkItem(1171076, "DevDiv")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void UIntFixedBuffer()
         {
             var text =
@@ -358,7 +358,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(1171076, "DevDiv")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void ReadonlyFixedBuffer()
         {
             var text =
@@ -387,7 +387,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1171076, "DevDiv")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void StaticFixedBuffer()
         {
             var text =
@@ -416,7 +416,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1171076, "DevDiv")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void ConstFixedBuffer_01()
         {
             var text =
@@ -472,7 +472,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1171076, "DevDiv")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void ConstFixedBuffer_02()
         {
             var text =
@@ -513,7 +513,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1171076, "DevDiv")]
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
         public void VolatileFixedBuffer()
         {
             var text =

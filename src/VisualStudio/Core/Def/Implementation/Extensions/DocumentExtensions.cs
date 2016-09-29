@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 
             foreach (var line in text.Lines)
             {
-                var trivia = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetRoot(cancellationToken).FindTrivia(line.Start);
+                var trivia = document.GetSyntaxRootSynchronously(cancellationToken).FindTrivia(line.Start);
 
                 // We should only see structured trivia here
                 if (trivia.HasStructure)

@@ -2,12 +2,12 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
+Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicSignatureHelpCommandHandlerTests
 
-        <WorkItem(544551)>
+        <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestFilterOnNamedParameters1() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -47,7 +47,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(544551)>
+        <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestFilterOnNamedParameters2() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -85,7 +85,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(539100), WorkItem(530081)>
+        <WorkItem(539100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539100"), WorkItem(530081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530081")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpShowsOnBackspace() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -145,7 +145,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(1060850)>
+        <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpNotDismissedAfterQuote() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -168,7 +168,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(1060850)>
+        <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpDismissedAfterComment() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -190,7 +190,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(1082128)>
+        <WorkItem(1082128, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082128")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpNotDismissedAfterSpace() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -224,7 +224,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+                Await state.AssertSelectedSignatureHelpItem($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -244,7 +244,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+                Await state.AssertSelectedSignatureHelpItem($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -264,7 +264,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+                Await state.AssertSelectedSignatureHelpItem($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -281,7 +281,7 @@ End Class
                               </Document>)
 
                 ' disable implicit sig help then type a trigger character -> no session should be available
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, "Visual Basic", False)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, LanguageNames.VisualBasic, False)
                 state.SendTypeChars("(")
                 Await state.AssertNoSignatureHelpSession()
 

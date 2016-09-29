@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="eb2680f2-4e63-44a8-adf6-2e667d9f689c" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <DisplayName>Roslyn Insiders for VS 2015</DisplayName>
+    <Description>Pre-release build of Roslyn compilers and language services.</Description>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,]" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    
+    <Dependency d:ProjectName="CompilerExtension" 
+                DisplayName="|CompilerExtension;VSIXNameProjectOutputGroup|" 
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                d:Source="Project" 
+                d:InstallSource="Embed" 
+                d:VsixSubPath="Vsixes" 
+                Location="|CompilerExtension;VSIXContainerProjectOutputGroup|" 
+                Id="|CompilerExtension;VSIXIdentifierProjectOutputGroup|" />
+    
+    <Dependency d:ProjectName="VisualStudioSetup"
+                DisplayName="|VisualStudioSetup;VSIXNameProjectOutputGroup|"
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                d:Source="Project"
+                d:InstallSource="Embed"
+                d:VsixSubPath="Vsixes"
+                Location="|VisualStudioSetup;VSIXContainerProjectOutputGroup|"
+                Id="|VisualStudioSetup;VSIXIdentifierProjectOutputGroup|" />
+    
+    <Dependency d:ProjectName="VisualStudioInteractiveWindow" 
+                DisplayName="|VisualStudioInteractiveWindow;VSIXNameProjectOutputGroup|" 
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                d:Source="Project" 
+                d:InstallSource="Embed" 
+                d:VsixSubPath="Vsixes" 
+                Location="|VisualStudioInteractiveWindow;VSIXContainerProjectOutputGroup|" 
+                Id="|VisualStudioInteractiveWindow;VSIXIdentifierProjectOutputGroup|" />
+    
+    <Dependency d:ProjectName="VisualStudioInteractiveComponents" 
+                DisplayName="|VisualStudioInteractiveComponents;VSIXNameProjectOutputGroup|" 
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                d:Source="Project"  
+                d:InstallSource="Embed" 
+                d:VsixSubPath="Vsixes" 
+                Location="|VisualStudioInteractiveComponents;VSIXContainerProjectOutputGroup|" 
+                Id="|VisualStudioInteractiveComponents;VSIXIdentifierProjectOutputGroup|" />
+    
+    <Dependency d:ProjectName="VisualStudioSetupInteractive" 
+                DisplayName="|VisualStudioSetupInteractive;VSIXNameProjectOutputGroup|" 
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
+                d:Source="Project"  
+                d:InstallSource="Embed" 
+                d:VsixSubPath="Vsixes" 
+                Location="|VisualStudioSetupInteractive;VSIXContainerProjectOutputGroup|" 
+                Id="|VisualStudioSetupInteractive;VSIXIdentifierProjectOutputGroup|" />
+    
+    <Dependency  d:ProjectName="ExpressionEvaluatorPackage" 
+                 DisplayName="|ExpressionEvaluatorPackage;VSIXNameProjectOutputGroup|" 
+                 Version="[|%CurrentProject%;GetBuildVersion|,)"
+                 d:Source="Project" 
+                 d:InstallSource="Embed" 
+                 d:VsixSubPath="Vsixes" 
+                 Location="|ExpressionEvaluatorPackage;VSIXContainerProjectOutputGroup|" 
+                 Id="|ExpressionEvaluatorPackage;VSIXIdentifierProjectOutputGroup|" />
+
+    <Dependency  d:ProjectName="VisualStudioDiagnosticsWindow"
+                 DisplayName="|VisualStudioDiagnosticsWindow;VSIXNameProjectOutputGroup|"
+                 Version="[|%CurrentProject%;GetBuildVersion|,)"
+                 d:Source="Project"
+                 d:InstallSource="Embed"
+                 d:VsixSubPath="Vsixes"
+                 Location="|VisualStudioDiagnosticsWindow;VSIXContainerProjectOutputGroup|"
+                 Id="|VisualStudioDiagnosticsWindow;VSIXIdentifierProjectOutputGroup|" />
+  </Dependencies>
+</PackageManifest>

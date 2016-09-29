@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal delegate BoundStatement GenerateMethodBody(EEMethodSymbol method, DiagnosticBag diagnostics);
+    internal delegate BoundStatement GenerateMethodBody(EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals);
 
     /// <summary>
     /// Synthesized expression evaluation method.
@@ -260,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return this.SubstitutedSourceMethod.IsVararg; }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return this.SubstitutedSourceMethod.RefKind; }
+        }
+
         public override bool ReturnsVoid
         {
             get { return this.ReturnType.SpecialType == SpecialType.System_Void; }
@@ -397,7 +402,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            var body = _generateMethodBody(this, diagnostics);
+            ImmutableArray<LocalSymbol> declaredLocalsArray;
+            var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray);
             var compilation = compilationState.Compilation;
 
             _lazyReturnType = CalculateReturnType(compilation, body);
@@ -431,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 try
                 {
                     // Rewrite local declaration statement.
-                    body = (BoundStatement)LocalDeclarationRewriter.Rewrite(compilation, _container, declaredLocals, body);
+                    body = (BoundStatement)LocalDeclarationRewriter.Rewrite(compilation, _container, declaredLocals, body, declaredLocalsArray);
 
                     // Verify local declaration names.
                     foreach (var local in declaredLocals)
@@ -464,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Insert an implicit return statement if necessary.
                 if (body.Kind != BoundKind.ReturnStatement)
                 {
-                    statementsBuilder.Add(new BoundReturnStatement(syntax, expressionOpt: null));
+                    statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null));
                 }
 
                 var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -479,7 +485,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     if (!localsSet.Contains(local))
                     {
+                        Debug.Assert(!localsSet.Contains(local));
                         localsBuilder.Add(local);
+                        localsSet.Add(local);
                     }
                 }
                 localsSet.Free();
@@ -490,7 +498,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 Debug.Assert(!body.HasErrors);
 
                 bool sawLambdas;
+                bool sawLocalFunctions;
                 bool sawAwaitInExceptionHandler;
+                ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
                 body = LocalRewriter.Rewrite(
                     compilation: this.DeclaringCompilation,
                     method: this,
@@ -500,11 +510,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     compilationState: compilationState,
                     previousSubmissionFields: null,
                     allowOmissionOfConditionalCalls: false,
+                    instrumentForDynamicAnalysis: false,
+                    debugDocumentProvider: null,
+                    dynamicAnalysisSpans: ref dynamicAnalysisSpans,
                     diagnostics: diagnostics,
                     sawLambdas: out sawLambdas,
+                    sawLocalFunctions: out sawLocalFunctions,
                     sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
                 Debug.Assert(!sawAwaitInExceptionHandler);
+                Debug.Assert(dynamicAnalysisSpans.Length == 0);
 
                 if (body.HasErrors)
                 {
@@ -556,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return;
                 }
 
-                if (sawLambdas)
+                if (sawLambdas || sawLocalFunctions)
                 {
                     var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                     var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
@@ -567,6 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         thisParameter: _thisParameter,
                         method: this,
                         methodOrdinal: _methodOrdinal,
+                        substitutedSourceMethod: this.SubstitutedSourceMethod.OriginalDefinition,
                         closureDebugInfoBuilder: closureDebugInfoBuilder,
                         lambdaDebugInfoBuilder: lambdaDebugInfoBuilder,
                         slotAllocatorOpt: null,
@@ -599,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     localBuilder.Add(local);
                 }
 
-                body = block.Update(localBuilder.ToImmutableAndFree(), block.Statements);
+                body = block.Update(localBuilder.ToImmutableAndFree(), block.LocalFunctions, block.Statements);
                 TypeParameterChecker.Check(body, _allTypeParameters);
                 compilationState.AddSynthesizedMethod(this, body);
             }
@@ -624,6 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 case BoundKind.ExpressionStatement:
                 case BoundKind.LocalDeclaration:
                 case BoundKind.MultipleLocalDeclarations:
+                case BoundKind.LocalDeconstructionDeclaration:
                     return compilation.GetSpecialType(SpecialType.System_Void);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(bodyOpt.Kind);
@@ -634,13 +651,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             base.AddSynthesizedReturnTypeAttributes(ref attributes);
 
-            if (this.ReturnType.ContainsDynamic())
+            var compilation = this.DeclaringCompilation;
+            var returnType = this.ReturnType;
+
+            if (returnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
             {
-                var compilation = this.DeclaringCompilation;
-                if ((object)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null)
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
-                }
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length));
+            }
+
+            if (returnType.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(returnType));
             }
         }
 

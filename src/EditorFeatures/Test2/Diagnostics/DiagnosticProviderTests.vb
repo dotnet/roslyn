@@ -5,7 +5,6 @@ Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -29,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Const s_originalFileAttributeName As String = "OriginalFile"
         Private Const s_mappedFileAttributeName As String = "MappedFile"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestNoErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -42,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, Nothing)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSingleDeclarationError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -59,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestLineDirective()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -84,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSingleBindingError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -102,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestMultipleErrorsAndWarnings()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -133,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestBindingAndDeclarationErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -154,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         ' Diagnostics are ordered by project-id
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsFromMultipleProjects()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -192,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsFromTurnedOff()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -221,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False, enabled:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub WarningsAsErrors()
             Dim test =
                 <Workspace>
@@ -250,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub DiagnosticsInNoCompilationProjects()
             Dim test =
                 <Workspace>
@@ -273,15 +272,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         Private Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True, Optional enabled As Boolean = True)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
 
                 ' turn off diagnostic
                 If Not enabled Then
-                    Dim optionService = workspace.Services.GetService(Of IOptionService)()
-                    optionService.SetOptions(
-                        optionService.GetOptions().WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
+                    workspace.Options = workspace.Options _
+                                                  .WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
                                                   .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, False) _
-                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, False))
+                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, False)
                 End If
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()

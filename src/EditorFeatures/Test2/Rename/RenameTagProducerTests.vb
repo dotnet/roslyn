@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Function
 
         <WpfFact>
-        <WorkItem(922197)>
+        <WorkItem(922197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function UnresolvableConflictInModifiedDocument() As System.Threading.Tasks.Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -345,10 +345,10 @@ public class Class1
     void Test(int i) {{ }}
     void M()
     {{
-{{|conflict:{{|conflict:/* {String.Format(WorkspacesResources.UnmergedChangeFromProject, "CSharpAssembly1")}
-{WorkspacesResources.BeforeHeader}
+{{|conflict:{{|conflict:/* {String.Format(WorkspacesResources.Unmerged_change_from_project_0, "CSharpAssembly1")}
+{WorkspacesResources.Before_colon}
         Test(5);
-{WorkspacesResources.AfterHeader}
+{WorkspacesResources.After_colon}
         Test((long)5);
 *|}}|}}/
         Test((double)5);
@@ -374,7 +374,7 @@ public class Class1
         End Function
 
         <WpfFact>
-        <WorkItem(922197)>
+        <WorkItem(922197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function UnresolvableConflictInUnmodifiedDocument() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -410,7 +410,7 @@ public class Class1
         End Function
 
         <WpfFact>
-        <WorkItem(847467)>
+        <WorkItem(847467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847467")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ValidStateWithEmptyReplacementTextAfterConflictResolution() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -483,7 +483,7 @@ public class Class1
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(812789)>
+        <WorkItem(812789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812789")>
         Public Async Function RenamingEscapedIdentifiers() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
@@ -539,7 +539,7 @@ class C
         End Function
 
         <WpfFact>
-        <WorkItem(812795)>
+        <WorkItem(812795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812795")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function BackspacingAfterConflictResolutionPreservesTrackingSpans() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1136,7 +1136,7 @@ End Class
         End Function
 
         <WpfFact>
-        <WorkItem(771743)>
+        <WorkItem(771743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771743")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VerifyNoSelectionAfterCommit() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1352,6 +1352,7 @@ namespace N
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -1397,7 +1398,7 @@ class C
 {
     C Bar(int tag)
     {
-        {|Complexified:return E.{|Resolved:[|Bar|]|}(E.{|Resolved:[|Bar|]|}(this,1),2);|}
+        {|Complexified:return E.{|Resolved:[|Bar|]|}(E.{|Resolved:[|Bar|]|}(this, 1), 2);|}
     }
 }
                             </Document>
@@ -1582,7 +1583,7 @@ static class E
         End Function
 
         <WpfFact>
-        <WorkItem(530817)>
+        <WorkItem(530817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharpShowDeclarationConflictsImmediately() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1618,7 +1619,7 @@ static class E
         End Function
 
         <WpfFact>
-        <WorkItem(530817)>
+        <WorkItem(530817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VBShowDeclarationConflictsImmediately() As Task
             Using workspace = CreateWorkspaceWithWaiter(

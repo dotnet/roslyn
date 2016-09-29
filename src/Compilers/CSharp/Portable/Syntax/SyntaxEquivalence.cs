@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
@@ -110,11 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (topLevel)
             {
-                // Once we get down to the block level we don't need to go any further and we can
+                // Once we get down to the body level we don't need to go any further and we can
                 // consider these trees equivalent.
-                if ((SyntaxKind)before.RawKind == SyntaxKind.Block)
+                switch ((SyntaxKind)before.RawKind)
                 {
-                    return true;
+                    case SyntaxKind.Block:
+                    case SyntaxKind.ArrowExpressionClause:
+                        return true;
                 }
 
                 // If we're only checking top level equivalence, then we don't have to go down into
@@ -126,8 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     var fieldBefore = (Green.FieldDeclarationSyntax)before;
                     var fieldAfter = (Green.FieldDeclarationSyntax)after;
 
-                    var isConstBefore = fieldBefore.Modifiers.Any(SyntaxKind.ConstKeyword);
-                    var isConstAfter = fieldAfter.Modifiers.Any(SyntaxKind.ConstKeyword);
+                    var isConstBefore = fieldBefore.Modifiers.Any((int)SyntaxKind.ConstKeyword);
+                    var isConstAfter = fieldAfter.Modifiers.Any((int)SyntaxKind.ConstKeyword);
 
                     if (!isConstBefore && !isConstAfter)
                     {
@@ -148,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (ignoreChildNode != null)
             {
-                var e1 = ((Green.CSharpSyntaxNode)before).ChildNodesAndTokens().GetEnumerator();
-                var e2 = ((Green.CSharpSyntaxNode)after).ChildNodesAndTokens().GetEnumerator();
+                var e1 = before.ChildNodesAndTokens().GetEnumerator();
+                var e2 = after.ChildNodesAndTokens().GetEnumerator();
                 while (true)
                 {
                     GreenNode child1 = null;

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -398,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitCondBranchForSwitch(ILOpCode branchCode, ConstantValue constant, object targetLabel)
         {
-            Debug.Assert(branchCode.IsBranchToLabel());
+            Debug.Assert(branchCode.IsBranch());
             Debug.Assert(constant != null &&
                 SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant));
             Debug.Assert(targetLabel != null);

@@ -8,14 +8,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace APISampleUnitTestsCS
 {
-    [TestClass]
     public class SymbolsAndSemantics
     {
-        [TestMethod]
+        [Fact]
         public void GetExpressionType()
         {
             TestCode testCode = new TestCode(@"class Program
@@ -34,10 +33,10 @@ namespace APISampleUnitTestsCS
                 .Type;
 
             var semanticInfo = testCode.SemanticModel.GetTypeInfo(varNode);
-            Assert.AreEqual("String", semanticInfo.Type.Name);
+            Assert.Equal("String", semanticInfo.Type.Name);
         }
 
-        [TestMethod]
+        [Fact]
         public void BindNameToSymbol()
         {
             TestCode testCode = new TestCode("using System;");
@@ -47,26 +46,26 @@ namespace APISampleUnitTestsCS
             var semanticInfo = testCode.SemanticModel.GetSymbolInfo(node);
             var namespaceSymbol = semanticInfo.Symbol as INamespaceSymbol;
 
-            Assert.IsTrue(namespaceSymbol.GetNamespaceMembers().Any(
+            Assert.True(namespaceSymbol.GetNamespaceMembers().Any(
                 symbol => symbol.Name == "Collections"));
         }
 
-        [TestMethod]
+        [Fact]
         public void GetDeclaredSymbol()
         {
             TestCode testCode = new TestCode("namespace Acme { internal class C$lass1 { } }");
             var symbol = testCode.SemanticModel.GetDeclaredSymbol((TypeDeclarationSyntax)testCode.SyntaxNode);
 
-            Assert.AreEqual(true, symbol.CanBeReferencedByName);
-            Assert.AreEqual("Acme", symbol.ContainingNamespace.Name);
-            Assert.AreEqual(Accessibility.Internal, symbol.DeclaredAccessibility);
-            Assert.AreEqual(SymbolKind.NamedType, symbol.Kind);
-            Assert.AreEqual("Class1", symbol.Name);
-            Assert.AreEqual("Acme.Class1", symbol.ToDisplayString());
-            Assert.AreEqual("Acme.Class1", symbol.ToString());
+            Assert.Equal(true, symbol.CanBeReferencedByName);
+            Assert.Equal("Acme", symbol.ContainingNamespace.Name);
+            Assert.Equal(Accessibility.Internal, symbol.DeclaredAccessibility);
+            Assert.Equal(SymbolKind.NamedType, symbol.Kind);
+            Assert.Equal("Class1", symbol.Name);
+            Assert.Equal("Acme.Class1", symbol.ToDisplayString());
+            Assert.Equal("Acme.Class1", symbol.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void GetSymbolXmlDocComments()
         {
             TestCode testCode = new TestCode(@"
@@ -84,10 +83,10 @@ class C$lass1 { }");
     </summary>
 </member>
 ";
-            Assert.AreEqual(expectedXml, actualXml);
+            Assert.Equal(expectedXml, actualXml);
         }
 
-        [TestMethod]
+        [Fact]
         public void SymbolDisplayFormatTest()
         {
             TestCode testCode = new TestCode(@"
@@ -120,10 +119,10 @@ int index) {} }");
                 .GetTypeMembers("C2")[0]
                 .GetMembers("M")[0];
 
-            Assert.AreEqual("public static TSource C2.M<TSource>(this C1<TSource> source, int index)", symbol.ToDisplayString(format));
+            Assert.Equal("public static TSource C2.M<TSource>(this C1<TSource> source, int index)", symbol.ToDisplayString(format));
         }
 
-        [TestMethod]
+        [Fact]
         public void EnumerateSymbolsInCompilation()
         {
             string file1 = "public class Animal { public virtual void MakeSound() { } }";
@@ -137,7 +136,7 @@ int index) {} }");
             StringBuilder sb = new StringBuilder();
             EnumSymbols(globalNamespace, symbol => sb.AppendLine(symbol.ToString()));
 
-            Assert.AreEqual(@"<global namespace>
+            Assert.Equal(@"<global namespace>
 Animal
 Animal.MakeSound()
 Animal.Animal()
@@ -167,7 +166,7 @@ Cat.Cat()
             return Enumerable.Empty<ISymbol>();
         }
 
-        [TestMethod]
+        [Fact]
         public void AnalyzeRegionControlFlow()
         {
             TestCode testCode = new TestCode(@"
@@ -187,9 +186,9 @@ class C {
             ControlFlowAnalysis regionControlFlowAnalysis =
                 testCode.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
 
-            Assert.AreEqual(1, regionControlFlowAnalysis.EntryPoints.Count());
-            Assert.AreEqual(1, regionControlFlowAnalysis.ExitPoints.Count());
-            Assert.IsTrue(regionControlFlowAnalysis.EndPointIsReachable);
+            Assert.Equal(1, regionControlFlowAnalysis.EntryPoints.Count());
+            Assert.Equal(1, regionControlFlowAnalysis.ExitPoints.Count());
+            Assert.True(regionControlFlowAnalysis.EndPointIsReachable);
 
             BlockSyntax methodBody = testCode.SyntaxTree
                 .GetRoot()
@@ -200,10 +199,10 @@ class C {
 
             regionControlFlowAnalysis = testCode.SemanticModel.AnalyzeControlFlow(methodBody, methodBody);
 
-            Assert.IsFalse(regionControlFlowAnalysis.EndPointIsReachable);
+            Assert.False(regionControlFlowAnalysis.EndPointIsReachable);
         }
 
-        [TestMethod]
+        [Fact]
         public void AnalyzeRegionDataFlow()
         {
             TestCode testCode = new TestCode(@"
@@ -223,12 +222,12 @@ class C {
             testCode.GetStatementsBetweenMarkers(out firstStatement, out lastStatement);
             DataFlowAnalysis regionDataFlowAnalysis = testCode.SemanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
 
-            Assert.AreEqual("b,x,y,z", string.Join(",", regionDataFlowAnalysis
+            Assert.Equal("b,x,y,z", string.Join(",", regionDataFlowAnalysis
                 .VariablesDeclared
                 .Select(symbol => symbol.Name)));
         }
 
-        [TestMethod]
+        [Fact]
         public void FailedOverloadResolution()
         {
             TestCode testCode = new TestCode(@"
@@ -251,24 +250,24 @@ class X
             var typeInfo = testCode.SemanticModel.GetTypeInfo((ExpressionSyntax)testCode.SyntaxNode);
             var semanticInfo = testCode.SemanticModel.GetSymbolInfo((ExpressionSyntax)testCode.SyntaxNode);
 
-            Assert.IsNull(typeInfo.Type);
-            Assert.IsNull(typeInfo.ConvertedType);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
 
-            Assert.IsNull(semanticInfo.Symbol);
-            Assert.AreEqual(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
-            Assert.AreEqual(2, semanticInfo.CandidateSymbols.Length);
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+            Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(s => s.ToDisplayString()).ToArray();
-            Assert.AreEqual("X.f()", sortedCandidates[0].ToDisplayString());
-            Assert.AreEqual(SymbolKind.Method, sortedCandidates[0].Kind);
-            Assert.AreEqual("X.f(int)", sortedCandidates[1].ToDisplayString());
-            Assert.AreEqual(SymbolKind.Method, sortedCandidates[1].Kind);
+            Assert.Equal("X.f()", sortedCandidates[0].ToDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
+            Assert.Equal("X.f(int)", sortedCandidates[1].ToDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
 
             var memberGroup = testCode.SemanticModel.GetMemberGroup((ExpressionSyntax)testCode.SyntaxNode);
 
-            Assert.AreEqual(2, memberGroup.Length);
+            Assert.Equal(2, memberGroup.Length);
             var sortedMemberGroup = memberGroup.AsEnumerable().OrderBy(s => s.ToDisplayString()).ToArray();
-            Assert.AreEqual("X.f()", sortedMemberGroup[0].ToDisplayString());
-            Assert.AreEqual("X.f(int)", sortedMemberGroup[1].ToDisplayString());
+            Assert.Equal("X.f()", sortedMemberGroup[0].ToDisplayString());
+            Assert.Equal("X.f(int)", sortedMemberGroup[1].ToDisplayString());
         }
 
         /// <summary>

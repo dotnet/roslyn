@@ -1,0 +1,46 @@
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Stand-Alone Code Analysis Tool</Name>
+    <Description>Create a code analysis command-line application</Description>
+    <ProjectType>VisualBasic</ProjectType>
+    <ProjectSubType></ProjectSubType>
+    <SortOrder>950</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>ConsoleApplication</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>CodeAnalysisConsole.ico</Icon>
+    <RequiredFrameworkVersion>4.5.2</RequiredFrameworkVersion>
+    <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ConsoleApplication.vbproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true" OpenOrder="10">Module1.vb</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="My Project\AssemblyInfo.vb">AssemblyInfo.vb</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="My Project\Application.myapp">MyApplication.myapp</ProjectItem>
+      <ProjectItem ReplaceParameters="true"  TargetFileName="My Project\Application.Designer.vb">MyApplication.Designer.vb</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="My Project\Resources.resx">Resources.resx</ProjectItem>
+      <ProjectItem ReplaceParameters="true"  TargetFileName="My Project\Resources.Designer.vb">Resources.Designer.vb</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="My Project\Settings.settings">Settings.settings</ProjectItem>
+      <ProjectItem ReplaceParameters="true"  TargetFileName="My Project\Settings.Designer.vb">Settings.Designer.vb</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>NuGet.VisualStudio.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</Assembly>
+    <FullClassName>NuGet.VisualStudio.TemplateWizard</FullClassName>
+  </WizardExtension>
+  <WizardData>
+    <packages repository="extension"
+              repositoryId="3a012d4e-6057-4e7c-8123-6d4be1d4723c">
+      <package id="Microsoft.CodeAnalysis.Analyzers" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.Common" version="0.7.0-beta" skipAssemblyReferences="false"/>
+      <package id="Microsoft.CodeAnalysis.VisualBasic" version="0.7.0-beta" skipAssemblyReferences="false"/>
+      <package id="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="0.7.0-beta" skipAssemblyReferences="false"/>
+      <package id="Microsoft.CodeAnalysis.Workspaces.Common" version="0.7.0-beta" skipAssemblyReferences="false"/>
+      <package id="System.Collections.Immutable" version="1.1.34-rc" skipAssemblyReferences="false" />
+      <package id="System.Reflection.Metadata" version="1.0.19-rc" skipAssemblyReferences="false" />
+      <package id="Microsoft.Composition" version="1.0.27" skipAssemblyReferences="false" />
+    </packages>
+  </WizardData>
+</VSTemplate>

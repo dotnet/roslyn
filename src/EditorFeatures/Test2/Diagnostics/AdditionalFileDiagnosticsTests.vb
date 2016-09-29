@@ -1,7 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -37,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(input)
+            Using workspace = Await TestWorkspace.CreateAsync(input)
                 Dim project = workspace.Projects.First()
                 Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(project.Id), "App.Config", SourceText.From("false"))
                 workspace.TryApplyChanges(newSln)
@@ -54,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
 
                 Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
 
-                AssertEx.Equal("true", actual)
+                Assert.Equal("true", actual)
             End Using
         End Function
     End Class
@@ -77,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
         Private Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
             Dim serializationAllowed = False
             For Each item In options.AdditionalFiles
-                If item.Path.EndsWith("App.config", StringComparison.OrdinalIgnoreCase) Then
+                If item.Path.EndsWith("app.config", StringComparison.OrdinalIgnoreCase) Then
                     Dim text = item.GetText()
                     Boolean.TryParse(text.Lines(0).ToString(), serializationAllowed)
                 End If

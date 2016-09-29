@@ -2905,7 +2905,7 @@ BC30516: Overload resolution failed because no accessible 'New' accepts this num
 </expected>)
         End Sub
 
-        <WorkItem(539691, "DevDiv")>
+        <WorkItem(539691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539691")>
         <Fact>
         Public Sub DiagnosticsOnInvalidConstructorCall()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -4699,7 +4699,7 @@ BC30517: Overload resolution failed because no 'Test2' is accessible.
 </expected>)
         End Sub
 
-        <WorkItem(543719, "DevDiv")>
+        <WorkItem(543719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543719")>
         <Fact()>
         Public Sub CallByRefWithTwoArgs()
             Dim compilationDef =
@@ -4728,7 +4728,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(544511, "DevDiv")>
+        <Fact, WorkItem(544511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544511")>
         Public Sub Bug12877_1()
             Dim source =
 <compilation name="AscW">
@@ -4817,7 +4817,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545521, "DevDiv")>
+        <Fact, WorkItem(545521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545521")>
         Public Sub Bug14020()
             Dim source =
 <compilation name="AscW">
@@ -4850,7 +4850,7 @@ Foo(Of T)(x As T)
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545522, "DevDiv")>
+        <Fact, WorkItem(545522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545522")>
         Public Sub Bug14021()
             Dim source =
 <compilation name="AscW">
@@ -4889,7 +4889,7 @@ Foo(x As Object, y As Integer)
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545522, "DevDiv")>
+        <Fact, WorkItem(545522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545522")>
         Public Sub Bug14021_2()
             Dim source =
 <compilation name="AscW">
@@ -4929,7 +4929,7 @@ Foo(x As Object, y As Integer)
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545524, "DevDiv")>
+        <Fact, WorkItem(545524, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545524")>
         Public Sub Bug14024()
             Dim source =
 <compilation name="AscW">
@@ -4967,7 +4967,7 @@ Function Foo() As Integer()
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545524, "DevDiv")>
+        <Fact, WorkItem(545524, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545524")>
         Public Sub Bug14024_2()
             Dim source =
 <compilation name="AscW">
@@ -5003,7 +5003,7 @@ BC30057: Too many arguments to 'Public Overloads Function Foo(Of T)() As Integer
 
         End Sub
 
-        <Fact, WorkItem(546006, "DevDiv")>
+        <Fact, WorkItem(546006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546006")>
         Public Sub Bug14936()
             Dim source =
 <compilation name="Bug14936">
@@ -5044,7 +5044,7 @@ BC42017: Late bound resolution; runtime errors could occur.
 </expected>)
         End Sub
 
-        <Fact, WorkItem(547132, "DevDiv")>
+        <Fact, WorkItem(547132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547132")>
         Public Sub Bug18047()
             Dim source =
 <compilation>
@@ -5100,7 +5100,7 @@ S1
 ]]>)
         End Sub
 
-        <Fact, WorkItem(531448, "DevDiv")>
+        <Fact, WorkItem(531448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531448")>
         Public Sub Bug18133_1()
             Dim source =
 <compilation>
@@ -5129,7 +5129,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(531448, "DevDiv")>
+        <Fact, WorkItem(531448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531448")>
         Public Sub Bug18133_2()
             Dim source =
 <compilation>
@@ -5165,7 +5165,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(531413, "DevDiv")>
+        <Fact, WorkItem(531413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531413")>
         Public Sub Bug18089()
             Dim source =
 <compilation>
@@ -5215,7 +5215,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(570936, "DevDiv")>
+        <Fact, WorkItem(570936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570936")>
         Public Sub Bug570936()
             Dim source =
 <compilation>
@@ -5361,7 +5361,7 @@ End Interface
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(758861, "DevDiv")>
+        <Fact(), WorkItem(758861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/758861")>
         Public Sub Bug758861()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5415,7 +5415,7 @@ End Module
             Assert.Equal("DefaultValue2", CStr(cnt.Value))
         End Sub
 
-        <Fact(), WorkItem(762717, "DevDiv")>
+        <Fact(), WorkItem(762717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762717")>
         Public Sub Bug762717()
 
             Dim library = CreateCompilationWithMscorlib(
@@ -5484,7 +5484,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(1040093, "DevDiv"), WorkItem(1026678, "DevDiv")>
+        <Fact(), WorkItem(1040093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040093"), WorkItem(1026678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1026678")>
         Public Sub ParenthesizedVariableAsAReceiver_01()
 
             Dim compilationDef =
@@ -5627,7 +5627,7 @@ Array element : Changed
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(1040093, "DevDiv"), WorkItem(1026678, "DevDiv")>
+        <Fact(), WorkItem(1040093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040093"), WorkItem(1026678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1026678")>
         Public Sub ParenthesizedVariableAsAReceiver_02()
 
             Dim compilationDef =

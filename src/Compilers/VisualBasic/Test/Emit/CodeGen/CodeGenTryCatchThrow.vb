@@ -754,7 +754,7 @@ End Module
 }]]>)
         End Sub
 
-        <WorkItem(542208, "DevDiv")>
+        <WorkItem(542208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542208")>
         <Fact()>
         Public Sub OverlappingCatch()
             CompileAndVerify(
@@ -775,7 +775,7 @@ End Module
             expectedOutput:="")
         End Sub
 
-        <WorkItem(542208, "DevDiv")>
+        <WorkItem(542208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542208")>
         <Fact>
         Public Sub DuplicateCatch()
             CompileAndVerify(
@@ -859,7 +859,7 @@ Unhandled
 ]]>)
         End Sub
 
-        <WorkItem(542510, "DevDiv")>
+        <WorkItem(542510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542510")>
         <Fact()>
         Public Sub ExitTryFromCatch()
             CompileAndVerify(
@@ -921,38 +921,98 @@ expectedOutput:="Finally 1 Try 2 Try 3").
             VerifyIL("EmitTest.Main",
             <![CDATA[
 {
-  // Code size       59 (0x3b)
+  // Code size       60 (0x3c)
   .maxstack  1
+  IL_0000:  nop
   .try
   {
-    IL_0000:  leave.s    IL_000d
+    IL_0001:  leave.s    IL_000e
   }
   finally
   {
-    IL_0002:  ldstr      "Finally 1 "
-    IL_0007:  call       "Sub System.Console.Write(String)"
-    IL_000c:  endfinally
+    IL_0003:  ldstr      "Finally 1 "
+    IL_0008:  call       "Sub System.Console.Write(String)"
+    IL_000d:  endfinally
   }
-  IL_000d:  nop
+  IL_000e:  nop
   .try
   {
-    IL_000e:  ldstr      "Try 2 "
-    IL_0013:  call       "Sub System.Console.Write(String)"
-    IL_0018:  leave.s    IL_0030
+    IL_000f:  ldstr      "Try 2 "
+    IL_0014:  call       "Sub System.Console.Write(String)"
+    IL_0019:  leave.s    IL_0031
   }
   catch System.Exception
   {
-    IL_001a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_001f:  ldstr      "Catch 2 "
-    IL_0024:  call       "Sub System.Console.Write(String)"
-    IL_0029:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_002e:  leave.s    IL_0030
+    IL_001b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0020:  ldstr      "Catch 2 "
+    IL_0025:  call       "Sub System.Console.Write(String)"
+    IL_002a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_002f:  leave.s    IL_0031
   }
-  IL_0030:  ldstr      "Try 3"
-  IL_0035:  call       "Sub System.Console.Write(String)"
-  IL_003a:  ret
+  IL_0031:  ldstr      "Try 3"
+  IL_0036:  call       "Sub System.Console.Write(String)"
+  IL_003b:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact, WorkItem(7144, "https://github.com/dotnet/roslyn/issues/7144")>
+        Public Sub ExitTryNoCatchEmptyFinally_01()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Module EmitTest
+
+    Sub Main()
+        Try
+            For Each x In {""}
+                Exit Try
+            Next
+
+            Throw New System.NotSupportedException()    
+        Finally
+        End Try
+
+        System.Console.WriteLine("Exited Try")
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+
+            CompileAndVerify(compilation, expectedOutput:="Exited Try")
+
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:="Exited Try")
+        End Sub
+
+        <Fact, WorkItem(7144, "https://github.com/dotnet/roslyn/issues/7144")>
+        Public Sub ExitTryNoCatchEmptyFinally_02()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Module EmitTest
+
+    Sub Main()
+        Try
+            Exit Try
+            Throw New System.NotSupportedException()    
+        Finally
+        End Try
+
+        System.Console.WriteLine("Exited Try")
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+
+            CompileAndVerify(compilation, expectedOutput:="Exited Try")
+
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:="Exited Try")
         End Sub
 
     End Class

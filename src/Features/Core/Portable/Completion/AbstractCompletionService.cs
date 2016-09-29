@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // the snippet item doesn't have its preselect bit set.
             // We'll special case this by not preferring later items
             // if they are snippets and the other candidate is preselected.
-            if (existingItem.Preselect && item.CompletionProvider is ISnippetCompletionProvider)
+            if (existingItem.MatchPriority != MatchPriority.Default && item.CompletionProvider is ISnippetCompletionProvider)
             {
                 return existingItem;
             }
@@ -277,10 +278,38 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken)
         {
             var context = new CompletionListContext(document, position, triggerInfo, options, cancellationToken);
-
-            await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
+            if (document.SupportsSyntaxTree)
+            {
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                if (!root.FullSpan.IntersectsWith(position))
+                {
+                    try
+                    {
+                        // Trying to track down source of https://github.com/dotnet/roslyn/issues/9325
+                        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        ReportException(position, root, sourceText);
+                    }
+                    catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                    {
+                    }
+                }
+                else
+                {
+                    await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
+            }
 
             return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
+        }
+
+        private static void ReportException(int position, SyntaxNode root, SourceText sourceText)
+        {
+            throw new InvalidOperationException(
+                $"Position '{position}' is not contained in SyntaxTree Span '{root.FullSpan}' source text length '{sourceText.Length}'");
         }
 
         public bool IsTriggerCharacter(SourceText text, int characterPosition, IEnumerable<CompletionListProvider> completionProviders, OptionSet options)
@@ -315,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var snippetInfoService = workspace.Services.GetLanguageServices(GetLanguageName()).GetService<ISnippetInfoService>();
             if (snippetInfoService != null && snippetInfoService.SnippetShortcutExists_NonBlocking(insertionText))
             {
-                return Task.FromResult(string.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, insertionText));
+                return Task.FromResult(string.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, insertionText));
             }
 
             return SpecializedTasks.Default<string>();

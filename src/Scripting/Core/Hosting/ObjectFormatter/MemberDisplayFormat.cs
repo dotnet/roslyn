@@ -2,37 +2,36 @@
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    internal enum MemberDisplayFormat
+    // TODO (https://github.com/dotnet/roslyn/issues/6689): change default to SeparateLines
+    public enum MemberDisplayFormat
     {
-        /// <summary>
-        /// Display just a simple description of the object, like type name or ToString(). Don't
-        /// display any members or items of the object.
-        /// </summary>
-        NoMembers,
-
         /// <summary>
         /// Display structure of the object on a single line.
         /// </summary>
-        Inline,
-
-        /// <summary>
-        /// Display structure of the object on a single line, where the object is displayed as a value of its container's member.
-        /// E.g. { a = ... }
-        /// </summary>
-        InlineValue,
+        SingleLine,
 
         /// <summary>
         /// Displays a simple description of the object followed by list of members. Each member is
         /// displayed on a separate line.
         /// </summary>
-        List,
+        SeparateLines,
+
+        /// <summary>
+        /// Display just a simple description of the object, like type name or ToString(). Don't
+        /// display any members of the object.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="CommonObjectFormatter"/> does not apply this format to collections elements - 
+        /// they are shown regardless.
+        /// </remarks>
+        Hidden,
     }
 
-    internal static partial class EnumBounds
+    internal static partial class MemberDisplayFormatExtensions
     {
         internal static bool IsValid(this MemberDisplayFormat value)
         {
-            return value >= MemberDisplayFormat.NoMembers && value <= MemberDisplayFormat.List;
+            return MemberDisplayFormat.SingleLine <= value && value <= MemberDisplayFormat.Hidden;
         }
     }
 }

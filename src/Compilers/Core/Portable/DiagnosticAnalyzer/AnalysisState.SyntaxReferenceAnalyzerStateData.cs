@@ -24,11 +24,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// Partial analysis state for operation block actions executed on the declaration.
             /// </summary>
             public OperationBlockAnalyzerStateData OperationBlockAnalysisState { get; }
-            
+
+            public new static readonly DeclarationAnalyzerStateData FullyProcessedInstance = CreateFullyProcessedInstance();
+
             public DeclarationAnalyzerStateData()
             {
                 CodeBlockAnalysisState = new CodeBlockAnalyzerStateData();
                 OperationBlockAnalysisState = new OperationBlockAnalyzerStateData();
+            }
+
+            private static DeclarationAnalyzerStateData CreateFullyProcessedInstance()
+            {
+                var instance = new DeclarationAnalyzerStateData();
+                instance.SetStateKind(StateKind.FullyProcessed);
+                return instance;
             }
 
             public override void SetStateKind(StateKind stateKind)
@@ -141,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal sealed class CodeBlockAnalyzerStateData : BlockAnalyzerStateData<CodeBlockAnalyzerAction, SyntaxNodeAnalyzerStateData>
         {
-            }
+        }
 
         /// <summary>
         /// Stores the partial analysis state for operation block actions executed on the declaration.

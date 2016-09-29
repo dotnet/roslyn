@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (string.IsNullOrEmpty(projectName))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.StringIsNullOrEmpty, "projectName"));
+                throw new ArgumentException(string.Format(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, "projectName"));
             }
 
             if (string.IsNullOrEmpty(projectPath))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.StringIsNullOrEmpty, "projectPath"));
+                throw new ArgumentException(string.Format(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, "projectPath"));
             }
 
             _projectTypeGuid = projectTypeGuid;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             if (scanner.ReadUpToAndEat("(\"") != "Project")
             {
-                throw new Exception(string.Format(WorkspacesResources.InvalidProjectBlockInSolutionFile4, "Project"));
+                throw new Exception(string.Format(WorkspacesResources.Expected_0, "Project"));
             }
 
             var projectTypeGuid = Guid.Parse(scanner.ReadUpToAndEat("\")"));
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // Read chars up to next quote, must contain "=" with optional leading/trailing whitespaces.
             if (scanner.ReadUpToAndEat("\"").Trim() != "=")
             {
-                throw new Exception(WorkspacesResources.InvalidProjectBlockInSolutionFile);
+                throw new Exception(WorkspacesResources.Invalid_project_block_expected_after_Project);
             }
 
             var projectName = scanner.ReadUpToAndEat("\"");
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // Read chars up to next quote, must contain "," with optional leading/trailing whitespaces.
             if (scanner.ReadUpToAndEat("\"").Trim() != ",")
             {
-                throw new Exception(WorkspacesResources.InvalidProjectBlockInSolutionFile2);
+                throw new Exception(WorkspacesResources.Invalid_project_block_expected_after_project_name);
             }
 
             var projectPath = scanner.ReadUpToAndEat("\"");
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // Read chars up to next quote, must contain "," with optional leading/trailing whitespaces.
             if (scanner.ReadUpToAndEat("\"").Trim() != ",")
             {
-                throw new Exception(WorkspacesResources.InvalidProjectBlockInSolutionFile3);
+                throw new Exception(WorkspacesResources.Invalid_project_block_expected_after_project_path);
             }
 
             var projectGuid = Guid.Parse(scanner.ReadUpToAndEat("\""));
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (reader.ReadLine() != "EndProject")
                 {
-                    throw new Exception(string.Format(WorkspacesResources.InvalidProjectBlockInSolutionFile4, "EndProject"));
+                    throw new Exception(string.Format(WorkspacesResources.Expected_0, "EndProject"));
                 }
             }
 

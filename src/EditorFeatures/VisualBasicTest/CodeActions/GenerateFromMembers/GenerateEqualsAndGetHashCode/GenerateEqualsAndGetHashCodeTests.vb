@@ -1,24 +1,18 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.GenerateEqualsAndGetHashCode
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateFromMembers.GenerateEqualsAndGetHashCode
-Imports Roslyn.Test.Utilities
-
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateFromMembers
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As Object
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
             Return New GenerateEqualsAndGetHashCodeCodeRefactoringProvider()
         End Function
 
-        <WorkItem(541991)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestEqualsOnSingleField() As Task
             Await TestAsync(
 NewLines("Class Z \n [|Private a As Integer|] \n End Class"),
@@ -26,8 +20,8 @@ NewLines("Imports System.Collections.Generic \n Class Z \n Private a As Integer 
 index:=0)
         End Function
 
-        <WorkItem(541991)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestGetHashCodeOnSingleField() As Task
             Await TestAsync(
 NewLines("Class Z \n [|Private a As Integer|] \n End Class"),
@@ -35,8 +29,8 @@ NewLines("Imports System.Collections.Generic \n Class Z \n Private a As Integer 
 index:=1)
         End Function
 
-        <WorkItem(541991)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestBothOnSingleField() As Task
             Await TestAsync(
 NewLines("Class Z \n [|Private a As Integer|] \n End Class"),
@@ -44,8 +38,8 @@ NewLines("Imports System.Collections.Generic \n Class Z \n Private a As Integer 
 index:=2)
         End Function
 
-        <WorkItem(545205)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestTypeWithNumberInName() As Task
             Await TestAsync(
 NewLines("Partial Class c1(Of V As {New}, U) \n [|Dim x As New V|] \n End Class"),

@@ -2383,7 +2383,7 @@ BC30487: Operator '-' is not defined for type 'M1.S1?'.
 </expected>)
         End Sub
 
-        <WorkItem(545765, "DevDiv")>
+        <WorkItem(545765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545765")>
         <Fact>
         Public Sub Bug14415()
             Dim compilationDef =
@@ -2443,7 +2443,7 @@ h And a = nothing
 
         End Sub
 
-        <WorkItem(545765, "DevDiv")>
+        <WorkItem(545765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545765")>
         <Fact>
         Public Sub Bug14415_2()
             Dim compilationDef =
@@ -2513,7 +2513,7 @@ a And h = 0
 
         End Sub
 
-        <WorkItem(546782, "DevDiv")>
+        <WorkItem(546782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546782")>
         <Fact>
         Public Sub Bug16815()
             Dim compilationDef =

@@ -1,5 +1,0 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <RoslynSemanticVersion>1.2.0</RoslynSemanticVersion>
-  </PropertyGroup>
-</Project>

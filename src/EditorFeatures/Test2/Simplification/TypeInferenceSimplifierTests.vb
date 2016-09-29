@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis.Simplification
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class TypeInferenceSimplifierTests
         Inherits AbstractSimplificationTests
-        <WorkItem(734369)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(734369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplify1() As Task
             Dim input =
         <Workspace>
@@ -73,8 +73,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WorkItem(734369)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(734369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplify_ArrayElementConversion() As Task
             Dim input =
         <Workspace>
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplify_Using() As Task
             Dim input =
         <Workspace>
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplify_For_0() As Task
             Dim input =
         <Workspace>
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplify_For_1() As Task
             Dim input =
         <Workspace>
@@ -258,8 +258,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WorkItem(734377)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplify1() As Task
             Dim input =
         <Workspace>
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplify2() As Task
             Dim input =
         <Workspace>
@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplify_For_1() As Task
             Dim input =
         <Workspace>
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "Type Argument Expand/Reduce for Generic Method Calls - 639136"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplify_For_GenericMethods() As Task
             Dim input =
         <Workspace>
@@ -472,7 +472,7 @@ class D : C
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplify_For_GenericMethods_VB() As Task
             Dim input =
         <Workspace>
@@ -527,8 +527,8 @@ End Class
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WorkItem(734377)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_ExplicitTypeDecl_FieldDecl() As Task
             Dim input =
         <Workspace>
@@ -573,8 +573,8 @@ End Namespace
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WorkItem(860111)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(860111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860111")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_ExplicitTypeDecl_MustGetNewSMForAnyReducer() As Task
             Dim input =
         <Workspace>

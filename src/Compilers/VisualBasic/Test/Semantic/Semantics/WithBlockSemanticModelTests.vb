@@ -75,7 +75,7 @@ End Module
             Assert.Equal(0, semanticInfo.MemberGroup.Length)
         End Sub
 
-        <Fact(), WorkItem(544083, "DevDiv")>
+        <Fact(), WorkItem(544083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
         Public Sub WithSpeculativeSymbolInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
@@ -274,6 +274,55 @@ End Module
             model.GetAliasInfo(name)
 
             Assert.Equal("theCustomer As Program.Customer", model.GetSymbolInfo(withBlock.WithStatement.Expression).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(187910, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=187910&_a=edit")>
+        Public Sub Bug187910()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Class ClassWithField
+    Public field1 As String = "a"
+End Class
+Class WithAliasedStaticField
+    Sub Test(parameter as ClassWithField)
+        With parameter
+            System.Console.WriteLine(.field1)
+        End With
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim compilationB = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="b.vb">
+Class WithAliasedStaticField1
+    Sub Test(parameter as ClassWithField)
+        With parameter
+            System.Console.WriteLine(.field1)
+        End With
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim treeA = compilation.SyntaxTrees.Single()
+            Dim modelA = compilation.GetSemanticModel(treeA)
+            Dim parameter = treeA.GetCompilationUnitRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "parameter").First()
+
+            Assert.Equal("Sub WithAliasedStaticField.Test(parameter As ClassWithField)", modelA.GetEnclosingSymbol(parameter.SpanStart).ToTestDisplayString())
+
+            Dim treeB = compilationB.SyntaxTrees.Single()
+            Dim withBlockB = treeB.GetCompilationUnitRoot().DescendantNodes().OfType(Of WithBlockSyntax)().Single()
+
+            Dim modelAB As SemanticModel = Nothing
+            Assert.True(modelA.TryGetSpeculativeSemanticModel(parameter.Parent.Parent.SpanStart, withBlockB, modelAB))
+
+            Assert.Equal("Sub WithAliasedStaticField.Test(parameter As ClassWithField)", modelAB.GetEnclosingSymbol(withBlockB.WithStatement.Expression.SpanStart).ToTestDisplayString())
         End Sub
 
     End Class

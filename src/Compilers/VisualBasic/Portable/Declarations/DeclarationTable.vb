@@ -31,20 +31,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Partial Friend Class DeclarationTable
         Public Shared ReadOnly Empty As DeclarationTable = New DeclarationTable(
-                                                           ImmutableHashSet.Create(Of DeclarationTableEntry)(),
+                                                           ImmutableSetWithInsertionOrder(Of DeclarationTableEntry).Empty,
                                                            latestLazyRootDeclaration:=Nothing,
                                                            cache:=Nothing)
 
         ' All our root declarations.  We split these so we can separate out the unchanging 'older'
         ' declarations from the constantly changing 'latest' declaration.
-        Private ReadOnly _allOlderRootDeclarations As ImmutableHashSet(Of DeclarationTableEntry)
+        Private ReadOnly _allOlderRootDeclarations As ImmutableSetWithInsertionOrder(Of DeclarationTableEntry)
         Private ReadOnly _latestLazyRootDeclaration As DeclarationTableEntry
 
         ' The cache of computed values for the old declarations.
         Private ReadOnly _cache As Cache
 
         ' The lazily computed total merged declaration.
-        Private ReadOnly _mergedRoot As Lazy(Of MergedNamespaceDeclaration)
+        Private _mergedRoot As MergedNamespaceDeclaration
 
         Private ReadOnly _typeNames As Lazy(Of ICollection(Of String))
         Private ReadOnly _namespaceNames As Lazy(Of ICollection(Of String))
@@ -52,13 +52,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _lazyAllRootDeclarations As ImmutableArray(Of RootSingleNamespaceDeclaration)
 
-        Private Sub New(allOlderRootDeclarations As ImmutableHashSet(Of DeclarationTableEntry),
+        Private Sub New(allOlderRootDeclarations As ImmutableSetWithInsertionOrder(Of DeclarationTableEntry),
                         latestLazyRootDeclaration As DeclarationTableEntry,
                         cache As Cache)
             Me._allOlderRootDeclarations = allOlderRootDeclarations
             Me._latestLazyRootDeclaration = latestLazyRootDeclaration
             Me._cache = If(cache, New Cache(Me))
-            Me._mergedRoot = New Lazy(Of MergedNamespaceDeclaration)(AddressOf GetMergedRoot)
             Me._typeNames = New Lazy(Of ICollection(Of String))(AddressOf GetMergedTypeNames)
             Me._namespaceNames = New Lazy(Of ICollection(Of String))(AddressOf GetMergedNamespaceNames)
             Me._referenceDirectives = New Lazy(Of ICollection(Of ReferenceDirective))(AddressOf GetMergedReferenceDirectives)
@@ -75,6 +74,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' and don't reuse the cache.
                 Return New DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration), lazyRootDeclaration, cache:=Nothing)
             End If
+        End Function
+
+        Public Function Contains(rootDeclaration As DeclarationTableEntry) As Boolean
+            Return rootDeclaration IsNot Nothing AndAlso
+                 (_allOlderRootDeclarations.Contains(rootDeclaration) OrElse _latestLazyRootDeclaration Is rootDeclaration)
         End Function
 
         Public Function RemoveRootDeclaration(lazyRootDeclaration As DeclarationTableEntry) As DeclarationTable
@@ -107,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Sub GetOlderNamespaces(builder As ArrayBuilder(Of RootSingleNamespaceDeclaration))
-            For Each olderRootDeclaration In _allOlderRootDeclarations
+            For Each olderRootDeclaration In _allOlderRootDeclarations.InInsertionOrder
                 Dim declOpt = olderRootDeclaration.Root.Value
                 If declOpt IsNot Nothing Then
                     builder.Add(declOpt)
@@ -124,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function SelectManyFromOlderDeclarationsNoEmbedded(Of T)(selector As Func(Of RootSingleNamespaceDeclaration, ImmutableArray(Of T))) As ImmutableArray(Of T)
-            Return _allOlderRootDeclarations.Where(Function(d) Not d.IsEmbedded AndAlso d.Root.Value IsNot Nothing).SelectMany(Function(d) selector(d.Root.Value)).AsImmutable()
+            Return _allOlderRootDeclarations.InInsertionOrder.Where(Function(d) Not d.IsEmbedded AndAlso d.Root.Value IsNot Nothing).SelectMany(Function(d) selector(d.Root.Value)).AsImmutable()
         End Function
 
         ' The merged-tree-reuse story goes like this. We have a "forest" of old declarations, and
@@ -140,7 +144,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' old merged root new merged root
         ' / | | | \ \
         ' old singles forest new single tree
-        Private Function GetMergedRoot() As MergedNamespaceDeclaration
+        Public Function GetMergedRoot(compilation As VisualBasicCompilation) As MergedNamespaceDeclaration
+            Debug.Assert(compilation.Declarations Is Me)
+            If _mergedRoot Is Nothing Then
+                Interlocked.CompareExchange(_mergedRoot, CalculateMergedRoot(compilation), Nothing)
+            End If
+            Return _mergedRoot
+        End Function
+
+        ' Internal for unit tests only.
+        Friend Function CalculateMergedRoot(compilation As VisualBasicCompilation) As MergedNamespaceDeclaration
             Dim oldRoot = Me._cache.MergedRoot.Value
             Dim latestRoot = GetLatestRootDeclarationIfAny(includeEmbedded:=True)
             If latestRoot Is Nothing Then
@@ -148,9 +161,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf oldRoot Is Nothing Then
                 Return MergedNamespaceDeclaration.Create(latestRoot)
             Else
-                Return MergedNamespaceDeclaration.Create(oldRoot, latestRoot)
+                Dim oldRootDeclarations = oldRoot.Declarations
+                Dim builder = ArrayBuilder(Of SingleNamespaceDeclaration).GetInstance(oldRootDeclarations.Length + 1)
+                builder.AddRange(oldRootDeclarations)
+                builder.Add(_latestLazyRootDeclaration.Root.Value)
+                ' Sort the root namespace declarations to match the order of SyntaxTrees.
+                If compilation IsNot Nothing Then
+                    builder.Sort(New RootNamespaceLocationComparer(compilation))
+                End If
+                Return MergedNamespaceDeclaration.Create(builder.ToImmutableAndFree())
             End If
         End Function
+
+        Private NotInheritable Class RootNamespaceLocationComparer
+            Implements IComparer(Of SingleNamespaceDeclaration)
+
+            Private ReadOnly _compilation As VisualBasicCompilation
+
+            Friend Sub New(compilation As VisualBasicCompilation)
+                _compilation = compilation
+            End Sub
+
+            Public Function Compare(x As SingleNamespaceDeclaration, y As SingleNamespaceDeclaration) As Integer Implements IComparer(Of SingleNamespaceDeclaration).Compare
+                Return _compilation.CompareSourceLocations(x.Location, y.Location)
+            End Function
+        End Class
 
         Private Function GetMergedTypeNames() As ICollection(Of String)
             Dim cachedTypeNames = Me._cache.TypeNames.Value
@@ -222,12 +257,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result.AsCaseInsensitiveCollection()
         End Function
 
-        Public ReadOnly Property MergedRoot As MergedNamespaceDeclaration
-            Get
-                Return _mergedRoot.Value
-            End Get
-        End Property
-
         Public ReadOnly Property TypeNames As ICollection(Of String)
             Get
                 Return _typeNames.Value
@@ -246,14 +275,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Function ContainsName(predicate As Func(Of String, Boolean), filter As SymbolFilter, cancellationToken As CancellationToken) As Boolean
+        Public Shared Function ContainsName(
+            mergedRoot As MergedNamespaceDeclaration,
+            predicate As Func(Of String, Boolean),
+            filter As SymbolFilter,
+            cancellationToken As CancellationToken) As Boolean
 
             Dim includeNamespace = (filter And SymbolFilter.Namespace) = SymbolFilter.Namespace
             Dim includeType = (filter And SymbolFilter.Type) = SymbolFilter.Type
             Dim includeMember = (filter And SymbolFilter.Member) = SymbolFilter.Member
 
             Dim stack = New Stack(Of MergedNamespaceOrTypeDeclaration)()
-            stack.Push(Me.MergedRoot)
+            stack.Push(mergedRoot)
 
             While stack.Count > 0
                 cancellationToken.ThrowIfCancellationRequested()

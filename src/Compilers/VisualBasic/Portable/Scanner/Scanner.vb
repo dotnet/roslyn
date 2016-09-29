@@ -15,6 +15,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
+Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -24,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class Scanner
         Implements IDisposable
 
-        Private Delegate Function ScanTriviaFunc() As SyntaxList(Of VisualBasicSyntaxNode)
+        Private Delegate Function ScanTriviaFunc() As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
 
         Private Shared ReadOnly s_scanNoTriviaFunc As ScanTriviaFunc = Function() Nothing
         Private ReadOnly _scanSingleLineTriviaFunc As ScanTriviaFunc = AddressOf ScanSingleLineTrivia
@@ -74,10 +76,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private ReadOnly _literalTable As CachingFactory(Of TokenParts, SyntaxToken) = s_literalTablePool.Allocate
 
-        Private Shared ReadOnly s_wslTablePool As New ObjectPool(Of CachingFactory(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode)))(
-            Function() New CachingFactory(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode))(TABLE_LIMIT, s_wsListFactory, s_wsListKeyHasher, s_wsListKeyEquality))
+        Private Shared ReadOnly s_wslTablePool As New ObjectPool(Of CachingFactory(Of SyntaxListBuilder, CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)))(
+            Function() New CachingFactory(Of SyntaxListBuilder, CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))(TABLE_LIMIT, s_wsListFactory, s_wsListKeyHasher, s_wsListKeyEquality))
 
-        Private ReadOnly _wslTable As CachingFactory(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode)) = s_wslTablePool.Allocate
+        Private ReadOnly _wslTable As CachingFactory(Of SyntaxListBuilder, CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) = s_wslTablePool.Allocate
 
         Private Shared ReadOnly s_wsTablePool As New ObjectPool(Of CachingFactory(Of TriviaKey, SyntaxTrivia))(
             Function() CreateWsTable())
@@ -190,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #If DEBUG Then
             Dim oldOffset = _lineBufferOffset
 #End If
-            Dim leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
+            Dim leadingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
 
             If allowLeadingMultilineTrivia Then
                 leadingTrivia = ScanMultilineTrivia()
@@ -223,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return token
         End Function
 
-        Private Function ScanNextCharAsToken(leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function ScanNextCharAsToken(leadingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Dim token As SyntaxToken
 
             If Not CanGet() Then
@@ -504,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Accept a CR/LF pair or either in isolation as a newline.
         ''' Make it a statement separator
         ''' </summary>
-        Private Function ScanNewlineAsStatementTerminator(startCharacter As Char, precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function ScanNewlineAsStatementTerminator(startCharacter As Char, precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             If _lineBufferOffset < _endOfTerminatorTrivia Then
                 Dim width = LengthOfLineBreak(startCharacter)
                 Return MakeStatementTerminatorToken(precedingTrivia, width)
@@ -513,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
-        Private Function ScanColonAsStatementTerminator(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
+        Private Function ScanColonAsStatementTerminator(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
             If _lineBufferOffset < _endOfTerminatorTrivia Then
                 Return MakeColonToken(precedingTrivia, charIsFullWidth)
             Else
@@ -600,7 +602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Consumes all trivia until a nontrivia char is found
         ''' </summary>
-        Friend Function ScanMultilineTrivia() As SyntaxList(Of VisualBasicSyntaxNode)
+        Friend Function ScanMultilineTrivia() As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             If Not CanGet() Then
                 Return Nothing
             End If
@@ -711,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Will check for whitespace, comment, EoL, implicit line break
         ''' EoL may be consumed as whitespace only as a part of line continuation ( _ )
         ''' </summary>
-        Friend Function ScanSingleLineTrivia() As SyntaxList(Of VisualBasicSyntaxNode)
+        Friend Function ScanSingleLineTrivia() As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             Dim tList = _triviaListPool.Allocate()
             ScanSingleLineTrivia(tList)
             Dim result = MakeTriviaArray(tList)
@@ -754,7 +756,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Private Function ScanLeadingTrivia() As SyntaxList(Of VisualBasicSyntaxNode)
+        Private Function ScanLeadingTrivia() As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             Dim tList = _triviaListPool.Allocate()
             ScanWhitespaceAndLineContinuations(tList)
             Dim result = MakeTriviaArray(tList)
@@ -771,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Private Function ScanSingleLineTrivia(includeFollowingBlankLines As Boolean) As SyntaxList(Of VisualBasicSyntaxNode)
+        Private Function ScanSingleLineTrivia(includeFollowingBlankLines As Boolean) As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             Dim tList = _triviaListPool.Allocate()
             ScanSingleLineTrivia(tList)
 
@@ -810,11 +812,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Private Shared Function IsBlankLine(tList As SyntaxListBuilder) As Boolean
             Dim n = tList.Count
-            If n = 0 OrElse tList(n - 1).Kind <> SyntaxKind.EndOfLineTrivia Then
+            If n = 0 OrElse tList(n - 1).RawKind <> SyntaxKind.EndOfLineTrivia Then
                 Return False
             End If
             For i = 0 To n - 2
-                If tList(i).Kind <> SyntaxKind.WhitespaceTrivia Then
+                If tList(i).RawKind <> SyntaxKind.WhitespaceTrivia Then
                     Return False
                 End If
             Next
@@ -995,7 +997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #End Region
 
-        Private Function ScanTokenCommon(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char, fullWidth As Boolean) As SyntaxToken
+        Private Function ScanTokenCommon(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ch As Char, fullWidth As Boolean) As SyntaxToken
             Dim lengthWithMaybeEquals As Integer = 1
             Select Case ch
                 Case CARRIAGE_RETURN, LINE_FEED
@@ -1202,14 +1204,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' at this point it is very likely that we are located at the beginning of a token
-        Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function TryScanToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             If CanGet() Then
                 Return ScanTokenCommon(precedingTrivia, Peek(), False)
             End If
             Return MakeEofToken(precedingTrivia)
         End Function
 
-        Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
+        Private Function ScanTokenFullWidth(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
             Return ScanTokenCommon(precedingTrivia, ch, True)
         End Function
 
@@ -1236,7 +1238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return False
         End Function
 
-        Private Function ScanRightAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
+        Private Function ScanRightAngleBracket(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
             Debug.Assert(CanGet)  ' >
             Debug.Assert(Peek() = ">"c OrElse Peek() = FULLWIDTH_GREATER_THAN_SIGN)
 
@@ -1263,7 +1265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MakeGreaterThanToken(precedingTrivia, charIsFullWidth)
         End Function
 
-        Private Function ScanLeftAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean, scanTrailingTrivia As ScanTriviaFunc) As SyntaxToken
+        Private Function ScanLeftAngleBracket(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean, scanTrailingTrivia As ScanTriviaFunc) As SyntaxToken
             Debug.Assert(CanGet)  ' <
             Debug.Assert(Peek() = "<"c OrElse Peek() = FULLWIDTH_LESS_THAN_SIGN)
 
@@ -1358,7 +1360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Private Function ScanIdentifierOrKeyword(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function ScanIdentifierOrKeyword(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Debug.Assert(CanGet)
             Debug.Assert(IsIdentifierStartCharacter(Peek))
             Debug.Assert(PeekStartComment(0) = 0) ' comment should be handled by caller
@@ -1469,14 +1471,14 @@ FullWidthRepeat:
         End Function
 
         Private Function TokenOfStringCached(spelling As String) As SyntaxKind
-            If spelling.Length = 1 OrElse spelling.Length > 16 Then
+            If spelling.Length > 16 Then
                 Return SyntaxKind.IdentifierToken
             End If
 
             Return _KeywordsObjs.GetOrMakeValue(spelling)
         End Function
 
-        Private Function ScanBracketedIdentifier(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function ScanBracketedIdentifier(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Debug.Assert(CanGet)  ' [
             Debug.Assert(Peek() = "["c OrElse Peek() = FULLWIDTH_LEFT_SQUARE_BRACKET)
 
@@ -1549,11 +1551,13 @@ FullWidthRepeat:
             [Decimal]
         End Enum
 
-        Private Function ScanNumericLiteral(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function ScanNumericLiteral(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Debug.Assert(CanGet)
 
             Dim Here As Integer = 0
             Dim IntegerLiteralStart As Integer
+            Dim UnderscoreInWrongPlace As Boolean
+            Dim UnderscoreUsed As Boolean = False
 
             Dim Base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
@@ -1576,26 +1580,54 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Hexadecimal
 
+                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
                         While CanGet(Here)
                             ch = Peek(Here)
-                            If Not IsHexDigit(ch) Then
+                            If Not IsHexDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
+                            End If
+                            If ch = "_"c Then
+                                UnderscoreUsed = True
                             End If
                             Here += 1
                         End While
+                        UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
+
+                    Case "B"c, "b"c
+                        Here += 1
+                        IntegerLiteralStart = Here
+                        Base = LiteralBase.Binary
+
+                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        While CanGet(Here)
+                            ch = Peek(Here)
+                            If Not IsBinaryDigit(ch) AndAlso ch <> "_"c Then
+                                Exit While
+                            End If
+                            If ch = "_"c Then
+                                UnderscoreUsed = True
+                            End If
+                            Here += 1
+                        End While
+                        UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
 
                     Case "O"c, "o"c
                         Here += 1
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Octal
 
+                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
                         While CanGet(Here)
                             ch = Peek(Here)
-                            If Not IsOctalDigit(ch) Then
+                            If Not IsOctalDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
+                            End If
+                            If ch = "_"c Then
+                                UnderscoreUsed = True
                             End If
                             Here += 1
                         End While
+                        UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
 
                     Case Else
                         If IsFullWidth(ch) Then
@@ -1608,13 +1640,20 @@ FullWidthRepeat:
             Else
                 ' no base specifier - just go through decimal digits.
                 IntegerLiteralStart = Here
+                UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
                 While CanGet(Here)
                     ch = Peek(Here)
-                    If Not IsDecimalDigit(ch) Then
+                    If Not IsDecimalDigit(ch) AndAlso ch <> "_"c Then
                         Exit While
+                    End If
+                    If ch = "_"c Then
+                        UnderscoreUsed = True
                     End If
                     Here += 1
                 End While
+                If Here <> IntegerLiteralStart Then
+                    UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
+                End If
             End If
 
             ' we may have a dot, and then it is a float, but if this is an integral, then we have seen it all.
@@ -1634,11 +1673,12 @@ FullWidthRepeat:
                     ' all following decimal digits belong to the literal (fractional part)
                     While CanGet(Here)
                         ch = Peek(Here)
-                        If Not IsDecimalDigit(ch) Then
+                        If Not IsDecimalDigit(ch) AndAlso ch <> "_"c Then
                             Exit While
                         End If
                         Here += 1
                     End While
+                    UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
                     literalKind = NumericLiteralKind.Float
                 End If
 
@@ -1659,11 +1699,12 @@ FullWidthRepeat:
                         Here += 1
                         While CanGet(Here)
                             ch = Peek(Here)
-                            If Not IsDecimalDigit(ch) Then
+                            If Not IsDecimalDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
                             End If
                             Here += 1
                         End While
+                        UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
                     Else
                         Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidLiteralExponent)
                     End If
@@ -1806,12 +1847,16 @@ FullWidthRepeat2:
                 If IntegerLiteralStart = IntegerLiteralEnd Then
                     Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_Syntax)
                 Else
-                    IntegralValue = IntegralLiteralCharacterValue(Peek(IntegerLiteralStart))
+                    IntegralValue = 0
 
                     If Base = LiteralBase.Decimal Then
                         ' Init For loop
-                        For LiteralCharacter As Integer = IntegerLiteralStart + 1 To IntegerLiteralEnd - 1
-                            Dim NextCharacterValue As UInteger = IntegralLiteralCharacterValue(Peek(LiteralCharacter))
+                        For LiteralCharacter As Integer = IntegerLiteralStart To IntegerLiteralEnd - 1
+                            Dim LiteralCharacterValue As Char = Peek(LiteralCharacter)
+                            If LiteralCharacterValue = "_"c Then
+                                Continue For
+                            End If
+                            Dim NextCharacterValue As UInteger = IntegralLiteralCharacterValue(LiteralCharacterValue)
 
                             If IntegralValue < 1844674407370955161UL OrElse
                               (IntegralValue = 1844674407370955161UL AndAlso NextCharacterValue <= 5UI) Then
@@ -1827,16 +1872,21 @@ FullWidthRepeat2:
                             Overflows = True
                         End If
                     Else
-                        Dim Shift As Integer = If(Base = LiteralBase.Hexadecimal, 4, 3)
-                        Dim OverflowMask As UInt64 = If(Base = LiteralBase.Hexadecimal, &HF000000000000000UL, &HE000000000000000UL)
+                        Dim Shift As Integer = If(Base = LiteralBase.Hexadecimal, 4, If(Base = LiteralBase.Octal, 3, 1))
+                        Dim OverflowMask As UInt64 = If(Base = LiteralBase.Hexadecimal, &HF000000000000000UL, If(Base = LiteralBase.Octal, &HE000000000000000UL, &H8000000000000000UL))
 
                         ' Init For loop
-                        For LiteralCharacter As Integer = IntegerLiteralStart + 1 To IntegerLiteralEnd - 1
+                        For LiteralCharacter As Integer = IntegerLiteralStart To IntegerLiteralEnd - 1
+                            Dim LiteralCharacterValue As Char = Peek(LiteralCharacter)
+                            If LiteralCharacterValue = "_"c Then
+                                Continue For
+                            End If
+
                             If (IntegralValue And OverflowMask) <> 0 Then
                                 Overflows = True
                             End If
 
-                            IntegralValue = (IntegralValue << Shift) + IntegralLiteralCharacterValue(Peek(LiteralCharacter))
+                            IntegralValue = (IntegralValue << Shift) + IntegralLiteralCharacterValue(LiteralCharacterValue)
                         Next
                     End If
 
@@ -1879,7 +1929,9 @@ FullWidthRepeat2:
                 Dim scratch = GetScratch()
                 For i = 0 To literalWithoutTypeChar - 1
                     Dim curCh = Peek(i)
-                    scratch.Append(If(IsFullWidth(curCh), MakeHalfWidth(curCh), curCh))
+                    If curCh <> "_"c Then
+                        scratch.Append(If(IsFullWidth(curCh), MakeHalfWidth(curCh), curCh))
+                    End If
                 Next
                 Dim LiteralSpelling = GetScratchTextInterned(scratch)
 
@@ -1907,17 +1959,26 @@ FullWidthRepeat2:
             Dim result As SyntaxToken
             Select Case literalKind
                 Case NumericLiteralKind.Integral
-                    result = MakeIntegerLiteralToken(precedingTrivia, Base, TypeCharacter, If(Overflows, 0UL, IntegralValue), Here)
+                    result = MakeIntegerLiteralToken(precedingTrivia, Base, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0UL, IntegralValue), Here)
                 Case NumericLiteralKind.Float
-                    result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows, 0.0F, FloatingValue), Here)
+                    result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0.0F, FloatingValue), Here)
                 Case NumericLiteralKind.Decimal
-                    result = MakeDecimalLiteralToken(precedingTrivia, TypeCharacter, If(Overflows, 0D, DecimalValue), Here)
+                    result = MakeDecimalLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0D, DecimalValue), Here)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(literalKind)
             End Select
 
             If Overflows Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
+            ElseIf UnderscoreInWrongPlace Then
+                result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
+            End If
+
+            If UnderscoreUsed Then
+                result = CheckFeatureAvailability(result, Feature.DigitSeparators)
+            End If
+            If Base = LiteralBase.Binary Then
+                result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
             End If
 
             Return result
@@ -1982,7 +2043,7 @@ FullWidthRepeat2:
             Return True
         End Function
 
-        Private Function ScanDateLiteral(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function ScanDateLiteral(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Debug.Assert(CanGet)
             Debug.Assert(IsHash(Peek()))
 
@@ -2299,13 +2360,13 @@ baddate:
             End If
         End Function
 
-        Private Function ScanStringLiteral(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function ScanStringLiteral(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Debug.Assert(CanGet)
             Debug.Assert(IsDoubleQuote(Peek))
 
             Dim length As Integer = 1
             Dim ch As Char
-            Dim followingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
+            Dim followingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
 
             ' // Check for a Char literal, which can be of the form:
             ' // """"c or "<anycharacter-except-">"c
@@ -2469,6 +2530,29 @@ baddate:
 
         Private Function IsIdentifierStartCharacter(c As Char) As Boolean
             Return (_isScanningForExpressionCompiler AndAlso c = "$"c) OrElse SyntaxFacts.IsIdentifierStartCharacter(c)
+        End Function
+
+        Private Function CheckFeatureAvailability(token As SyntaxToken, feature As Feature) As SyntaxToken
+            If CheckFeatureAvailability(feature) Then
+                Return token
+            End If
+            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(feature.GetResourceId()))
+            Return DirectCast(token.AddError(errorInfo), SyntaxToken)
+        End Function
+
+        Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
+            Return CheckFeatureAvailability(Me.Options, feature)
+        End Function
+
+        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
+            Dim featureFlag = feature.GetFeatureFlag()
+            If featureFlag IsNot Nothing Then
+                Return parseOptions.Features.ContainsKey(featureFlag)
+            End If
+
+            Dim required = feature.GetLanguageVersion()
+            Dim actual = parseOptions.LanguageVersion
+            Return CInt(required) <= CInt(actual)
         End Function
     End Class
 End Namespace

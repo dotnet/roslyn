@@ -50,6 +50,25 @@ namespace Microsoft.CodeAnalysis
 
         internal const int PublicKeyTokenSize = 8;
 
+        private AssemblyIdentity(AssemblyIdentity other, Version version)
+        {
+            Debug.Assert((object)other != null);
+            Debug.Assert((object)version != null);
+
+            _contentType = other.ContentType;
+            _name = other._name;
+            _cultureName = other._cultureName;
+            _publicKey = other._publicKey;
+            _lazyPublicKeyToken = other._lazyPublicKeyToken;
+            _isRetargetable = other._isRetargetable;
+
+            _version = version;
+            _lazyDisplayName = null;
+            _lazyHashCode = 0;
+        }
+
+        internal AssemblyIdentity WithVersion(Version version) => (version == _version) ? this : new AssemblyIdentity(this, version);
+
         /// <summary>
         /// Constructs an <see cref="AssemblyIdentity"/> from its constituent parts.
         /// </summary>
@@ -185,7 +204,7 @@ namespace Microsoft.CodeAnalysis
             //
             // 2) The implementation of AssemblyName.CultureName on Mono incorrectly returns "neutral" for invariant culture identities.
 
-            return cultureName == null || AssemblyIdentityComparer.CultureComparer.Equals(cultureName, InvariantCultureDisplay) ? 
+            return cultureName == null || AssemblyIdentityComparer.CultureComparer.Equals(cultureName, InvariantCultureDisplay) ?
                 string.Empty : cultureName;
         }
 
@@ -208,7 +227,7 @@ namespace Microsoft.CodeAnalysis
         {
             // The native compiler doesn't enforce that the culture be anything in particular. 
             // AssemblyIdentity should preserve user input even if it is of dubious utility.
-            
+
             // Note: If these checks change, the error messages emitted by the compilers when
             // this case is detected will also need to change. They currently directly
             // name the presence of the NUL character as the reason that the culture name is invalid.
@@ -388,14 +407,20 @@ namespace Microsoft.CodeAnalysis
             {
                 // Do not include PK/PKT in the hash - collisions on PK/PKT are rare (assembly identities differ only in PKT/PK)
                 // and we can't calculate hash of PKT if only PK is available
-                _lazyHashCode = Hash.Combine(AssemblyIdentityComparer.SimpleNameComparer.GetHashCode(_name),
-                               Hash.Combine(_version.GetHashCode(),
-                               Hash.Combine((int)_contentType,
-                               Hash.Combine(_isRetargetable,
-                                            AssemblyIdentityComparer.CultureComparer.GetHashCode(_cultureName)))));
+                _lazyHashCode =
+                    Hash.Combine(AssemblyIdentityComparer.SimpleNameComparer.GetHashCode(_name),
+                    Hash.Combine(_version.GetHashCode(), GetHashCodeIgnoringNameAndVersion()));
             }
 
             return _lazyHashCode;
+        }
+
+        internal int GetHashCodeIgnoringNameAndVersion()
+        {
+            return 
+                Hash.Combine((int)_contentType, 
+                Hash.Combine(_isRetargetable, 
+                AssemblyIdentityComparer.CultureComparer.GetHashCode(_cultureName)));
         }
 
         // internal for testing
@@ -434,16 +459,21 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            if (x._version.Equals(y._version) &&
-                x._isRetargetable == y._isRetargetable &&
-                x.ContentType == y.ContentType &&
-                AssemblyIdentityComparer.CultureComparer.Equals(x._cultureName, y._cultureName) &&
-                KeysEqual(x, y))
+            if (x._version.Equals(y._version) && EqualIgnoringNameAndVersion(x, y))
             {
                 return true;
             }
 
             return null;
+        }
+
+        internal static bool EqualIgnoringNameAndVersion(AssemblyIdentity x, AssemblyIdentity y)
+        {
+            return
+                x.IsRetargetable == y.IsRetargetable &&
+                x.ContentType == y.ContentType &&
+                AssemblyIdentityComparer.CultureComparer.Equals(x.CultureName, y.CultureName) &&
+                KeysEqual(x, y);
         }
 
         internal static bool KeysEqual(AssemblyIdentity x, AssemblyIdentity y)
@@ -500,7 +530,7 @@ namespace Microsoft.CodeAnalysis
             // AssemblyDef always has full key or no key:
             var publicKeyBytes = name.GetPublicKey();
             ImmutableArray<byte> publicKey = (publicKeyBytes != null) ? ImmutableArray.Create(publicKeyBytes) : ImmutableArray<byte>.Empty;
-            
+
             return new AssemblyIdentity(
                 name.Name,
                 name.Version,

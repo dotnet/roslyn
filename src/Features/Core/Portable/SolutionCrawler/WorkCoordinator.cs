@@ -136,9 +136,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
 
-                // TODO: remove this once prototype is done
-                //       it is here just because it was convenient to add per workspace option change monitoring 
-                //       for incremental analyzer
+                // Changing the UseV2Engine option is a no-op as we have a single engine now.
                 if (e.Option == Diagnostics.InternalDiagnosticsOptions.UseDiagnosticEngineV2)
                 {
                     _documentAndProjectWorkerProcessor.ChangeDiagnosticsEngine((bool)e.Value);
@@ -512,10 +510,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectParseOptionChanged);
                 }
 
-                if (projectChanges.GetAddedMetadataReferences().Any() || projectChanges.GetAddedProjectReferences().Any() || projectChanges.GetAddedAnalyzerReferences().Any() ||
-                    projectChanges.GetRemovedMetadataReferences().Any() || projectChanges.GetRemovedProjectReferences().Any() || projectChanges.GetRemovedAnalyzerReferences().Any() ||
+                if (projectChanges.GetAddedMetadataReferences().Any() || 
+                    projectChanges.GetAddedProjectReferences().Any() ||
+                    projectChanges.GetAddedAnalyzerReferences().Any() ||
+                    projectChanges.GetRemovedMetadataReferences().Any() ||
+                    projectChanges.GetRemovedProjectReferences().Any() ||
+                    projectChanges.GetRemovedAnalyzerReferences().Any() ||
                     !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
                     !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
+                    !object.Equals(oldProject.Name, newProject.Name) ||
                     !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);

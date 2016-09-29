@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub New(branch As BoundStatement, state As LocalState, nesting As BlockNesting)
                 Me.Branch = branch
-                Me.State = state
+                Me.State = state.Clone()
                 Me.Nesting = nesting
             End Sub
         End Class

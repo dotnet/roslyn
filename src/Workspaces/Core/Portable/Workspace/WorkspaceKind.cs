@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -9,11 +8,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public static class WorkspaceKind
     {
-        public const string Host = "Host";
-        public const string Debugger = "Debugger";
-        public const string Interactive = "Interactive";
-        public const string MetadataAsSource = "MetadataAsSource";
-        public const string MiscellaneousFiles = "MiscellaneousFiles";
-        public const string Preview = "Preview";
+        public const string Host = nameof(Host);
+        public const string Debugger = nameof(Debugger);
+        public const string Interactive = nameof(Interactive);
+        public const string MetadataAsSource = nameof(MetadataAsSource);
+        public const string MiscellaneousFiles = nameof(MiscellaneousFiles);
+        public const string Preview = nameof(Preview);
+        internal const string AnyCodeRoslynWorkspace = nameof(AnyCodeRoslynWorkspace);
     }
 }

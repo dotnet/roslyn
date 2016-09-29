@@ -157,10 +157,10 @@ namespace Microsoft.CodeAnalysis.Scripting {
         ///  Escape        Clear the current submission.
         ///  UpArrow       Replace the current submission with a previous submission.
         ///  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+        ///  Ctrl-C        Exit the REPL.
         ///REPL commands:
         ///  #help         Display help on available commands and key bindings.
-        ///Script directives:
-        ///  #r            Add a metad [rest of string was truncated]&quot;;.
+        ///Script directiv [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string HelpText {
             get {

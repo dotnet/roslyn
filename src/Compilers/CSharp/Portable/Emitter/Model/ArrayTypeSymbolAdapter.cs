@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
@@ -35,136 +36,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<int> Cci.IArrayTypeReference.LowerBounds
-        {
-            get
-            {
-                var lowerBounds = this.LowerBounds;
-
-                if (lowerBounds.IsDefault)
-                {
-                    return DefaultLowerBounds(this.Rank);
-                }
-                else
-                {
-                    return lowerBounds;
-                }
-            }
-        }
-
-        private static IEnumerable<int> DefaultLowerBounds(int rank)
-        {
-            for (int i = 0; i < rank; ++i)
-                yield return 0;
-        }
-
-        uint Cci.IArrayTypeReference.Rank
-        {
-            get
-            {
-                return (uint)this.Rank;
-            }
-        }
-
-        IEnumerable<ulong> Cci.IArrayTypeReference.Sizes
-        {
-            get
-            {
-                if (this.Sizes.IsEmpty)
-                {
-                    return SpecializedCollections.EmptyEnumerable<ulong>();
-                }
-
-                return GetSizes();
-            }
-        }
-
-        private IEnumerable<ulong> GetSizes()
-        {
-            foreach (var size in this.Sizes)
-            {
-                yield return (ulong)size;
-            }
-        }
-
-        bool Cci.ITypeReference.IsEnum
-        {
-            get { return false; }
-        }
-
-        bool Cci.ITypeReference.IsValueType
-        {
-            get { return false; }
-        }
-
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
-        {
-            return null;
-        }
-
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
-        {
-            return Cci.PrimitiveTypeCode.NotPrimitive;
-        }
-
-        TypeDefinitionHandle Cci.ITypeReference.TypeDef
-        {
-            get { return default(TypeDefinitionHandle); }
-        }
-
-        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference
-        {
-            get { return null; }
-        }
-
-        Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference
-        {
-            get { return null; }
-        }
-
-        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference
-        {
-            get { return null; }
-        }
-
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
-
-        Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference
-        {
-            get { return null; }
-        }
-
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
-
-        Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference
-        {
-            get { return null; }
-        }
-
-        Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference
-        {
-            get { return null; }
-        }
-
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
+        ImmutableArray<int> Cci.IArrayTypeReference.LowerBounds => LowerBounds;
+        int Cci.IArrayTypeReference.Rank => Rank;
+        ImmutableArray<int> Cci.IArrayTypeReference.Sizes => Sizes;
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit((Cci.IArrayTypeReference)this);
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            return null;
-        }
+        bool Cci.ITypeReference.IsEnum => false;
+        bool Cci.ITypeReference.IsValueType => false;
+
+        TypeDefinitionHandle Cci.ITypeReference.TypeDef => default(TypeDefinitionHandle);
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context) => Cci.PrimitiveTypeCode.NotPrimitive;
+
+        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context) => null;
+        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference => null;
+        Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference => null;
+        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference => null;
+        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => null;
+        Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference => null;
+        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
+        Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference => null;
+        Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference => null;
+        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context) => null;
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context) => null;
     }
 }

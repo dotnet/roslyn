@@ -13,6 +13,7 @@ using Xunit;
 using MemoryStream = System.IO.MemoryStream;
 using System;
 using Microsoft.CodeAnalysis.Emit;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -1463,7 +1464,7 @@ class UsePia4
 
                     SignatureHeader signatureHeader;
                     BadImageFormatException mrEx;
-                    ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out signatureHeader, out mrEx);
+                    ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out signatureHeader, out mrEx, allowByRefReturn: true);
                     Assert.Null(mrEx);
                     Assert.Equal((byte)SignatureCallingConvention.Default | (byte)SignatureAttributes.Instance, signatureHeader.RawValue);
                     Assert.Equal(1, paramInfo.Length);
@@ -4875,18 +4876,17 @@ class UsePia5
 } 
 ";
 
-            DiagnosticDescription[] expected = {
-                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
-                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
-                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1)
-                                               };
-
             var compilation1 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2, embedInteropTypes: true) });
-            VerifyEmitDiagnostics(compilation1, false, expected);
+            compilation1.VerifyEmitDiagnostics(
+                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
+                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
+                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
+                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1));
         }
 
         [Fact]
@@ -5018,6 +5018,85 @@ class UsePia5
         }
 
         [Fact]
+        public void ErrorType_Tuple()
+        {
+            string pia1 = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA1.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest33
+{
+}
+";
+
+            var piaCompilation1 = CreateCompilationWithMscorlib(pia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            CompileAndVerify(piaCompilation1);
+
+            string pia2 = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA2.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58290"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest34
+{
+    List<(ITest33, ITest33)> M();
+}
+";
+
+            var piaCompilation2 = CreateCompilationWithMscorlib(pia2, options: TestOptions.ReleaseDll, assemblyName: "Pia2",
+                references: new MetadataReference[] { piaCompilation1.EmitToImageReference(embedInteropTypes: true), ValueTupleRef, SystemRuntimeFacadeRef });
+
+            CompileAndVerify(piaCompilation2);
+
+            string consumer = @"
+using System;
+using System.Collections.Generic;
+
+public class UsePia5 : ITest34
+{
+    public List<(ITest33, ITest33)> M()
+    {
+        throw new System.Exception();
+    } 
+}
+";
+
+            DiagnosticDescription[] expected = {
+                // (5,24): error CS1769: Type 'List<ValueTuple<ITest33, ITest33>>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // public class UsePia5 : ITest34
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "ITest34").WithArguments("System.Collections.Generic.List<ValueTuple<ITest33, ITest33>>", "Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 24)
+            };
+
+            var compilation1 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { piaCompilation2.ToMetadataReference(embedInteropTypes: true), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            VerifyEmitDiagnostics(compilation1, metadataOnlyShouldSucceed: false, expectedFullBuildDiagnostics: expected);
+
+            var compilation2 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { piaCompilation2.EmitToImageReference(embedInteropTypes: true), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            VerifyEmitDiagnostics(compilation2, metadataOnlyShouldSucceed: false, expectedFullBuildDiagnostics: expected);
+
+            var compilation3 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { piaCompilation2.ToMetadataReference(), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            VerifyEmitDiagnostics(compilation3, metadataOnlyShouldSucceed: false, expectedFullBuildDiagnostics: expected);
+
+            var compilation4 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { piaCompilation2.EmitToImageReference(), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            VerifyEmitDiagnostics(compilation4, metadataOnlyShouldSucceed: false, expectedFullBuildDiagnostics: expected);
+        }
+
+        [Fact]
         public void ErrorType9()
         {
             string pia1 = @"
@@ -5099,7 +5178,7 @@ class UsePia5
             CompileAndVerify(compilation4, verify: false);
         }
 
-        [Fact, WorkItem(611578, "DevDiv")]
+        [Fact, WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
         public void Bug611578()
         {
             string IEvent_cs = @"
@@ -5320,7 +5399,7 @@ E02");
             }
         }
 
-        [Fact, WorkItem(651240, "DevDiv")]
+        [Fact, WorkItem(651240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651240")]
         public void Bug651240()
         {
             string pia = @"
@@ -5378,7 +5457,7 @@ namespace NoPiaTestApp
             VerifyEmitDiagnostics(compilation2, false, expected, expectedMEtadataOnly);
         }
 
-        [Fact, WorkItem(651408, "DevDiv")]
+        [Fact, WorkItem(651408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651408")]
         public void Bug651408()
         {
             string pia = @"
@@ -5492,7 +5571,7 @@ namespace NetImplNS2
             VerifyEmitDiagnostics(compilation2, true, expected);
         }
 
-        [Fact, WorkItem(673546, "DevDiv")]
+        [Fact, WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")]
         public void MissingComAwareEventInfo()
         {
             string pia = @"
@@ -5685,6 +5764,84 @@ class B : IA
                     var tmp = p.ExplicitDefaultValue;
                 });
             }).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(8088, "https://github.com/dotnet/roslyn/issues/8088")]
+        public void ParametersWithoutNames()
+        {
+            var source = @"
+class Program
+{
+    public void M(I1 x)
+    {
+        x.M1(1, 2, 3);
+    }
+
+    public void M1(int value)
+    {
+    }
+
+    public void M2(int Param)
+    {
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source,
+                             references: new MetadataReference[]
+                                {
+                                    AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.NoPia.ParametersWithoutNames).
+                                        GetReference(display: "ParametersWithoutNames.dll", embedInteropTypes:true)
+                                },
+                             options: TestOptions.ReleaseDll);
+
+            AssertParametersWithoutNames(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1").GetMember<MethodSymbol>("M1").Parameters, false);
+
+            CompileAndVerify(compilation,
+                             symbolValidator: module =>
+                             {
+                                 ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+                                 AssertParametersWithoutNames(module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1").GetMember<MethodSymbol>("M1").Parameters, true);
+
+                                 PEParameterSymbol p;
+                                 p = (PEParameterSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetMember<MethodSymbol>("M").Parameters[0];
+                                 Assert.Equal("x", ((PEModuleSymbol)module).Module.GetParamNameOrThrow(p.Handle));
+                                 Assert.Equal("x", p.Name);
+                                 Assert.Equal("x", p.MetadataName);
+                                 p = (PEParameterSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetMember<MethodSymbol>("M1").Parameters[0];
+                                 Assert.Equal("value", ((PEModuleSymbol)module).Module.GetParamNameOrThrow(p.Handle));
+                                 Assert.Equal("value", p.Name);
+                                 Assert.Equal("value", p.MetadataName);
+                                 p = (PEParameterSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetMember<MethodSymbol>("M2").Parameters[0];
+                                 Assert.Equal("Param", ((PEModuleSymbol)module).Module.GetParamNameOrThrow(p.Handle));
+                                 Assert.Equal("Param", p.Name);
+                                 Assert.Equal("Param", p.MetadataName);
+                             }).VerifyDiagnostics();
+        }
+
+        private static void AssertParametersWithoutNames(ImmutableArray<ParameterSymbol> parameters, bool isEmbedded)
+        {
+            Assert.True(((PEParameterSymbol)parameters[0]).Handle.IsNil);
+
+            var p1 = (PEParameterSymbol)parameters[1];
+            Assert.True(p1.IsMetadataOptional);
+            Assert.False(p1.Handle.IsNil);
+            Assert.True(((PEModuleSymbol)p1.ContainingModule).Module.MetadataReader.GetParameter(p1.Handle).Name.IsNil);
+
+            var p2 = (PEParameterSymbol)parameters[2];
+            if (isEmbedded)
+            {
+                Assert.True(p2.Handle.IsNil);
+            }
+            else
+            {
+                Assert.True(((PEModuleSymbol)p2.ContainingModule).Module.MetadataReader.GetParameter(p2.Handle).Name.IsNil);
+            }
+
+            foreach (var p in parameters)
+            {
+                Assert.Equal("value", p.Name);
+                Assert.Equal("", p.MetadataName);
+            }
         }
     }
 }

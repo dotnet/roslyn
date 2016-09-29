@@ -10,11 +10,11 @@ using Roslyn.Test.Utilities;
 using System;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     internal class AccessibilityTests : CSharpResultProviderTestBase
     {
-        [WorkItem(889710)]
+        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         [Fact]
         public void HideNonPublicMembersBaseClass()
         {
@@ -175,7 +175,7 @@ class C
                 EvalResult("PAD", "null", "object", "(new C()).a.PAD"));
         }
 
-        [WorkItem(889710)]
+        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         [Fact]
         public void HideNonPublicMembersDerivedClass()
         {

@@ -3,12 +3,13 @@
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
+Imports System.Threading.Tasks
 Imports Xunit
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class InheritsGraphQueryTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Async Function BaseTypesOfSimpleType() As Threading.Tasks.Task
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function BaseTypesOfSimpleType() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -18,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritsGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
@@ -39,9 +40,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WorkItem(546199)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Async Function TestErrorBaseType() As Threading.Tasks.Task
+        <WorkItem(546199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546199")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function TestErrorBaseType() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -51,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritsGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
@@ -71,8 +72,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Async Function TestSolutionWithMultipleProjects() As Threading.Tasks.Task
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function TestSolutionWithMultipleProjects() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
@@ -88,7 +89,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritsGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(

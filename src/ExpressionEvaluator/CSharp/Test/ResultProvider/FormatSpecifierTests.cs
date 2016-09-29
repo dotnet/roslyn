@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class FormatSpecifierTests : CSharpResultProviderTestBase
     {
@@ -156,9 +156,7 @@ class C
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(
-                    value: type.Instantiate(),
-                    type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoQuotes));
                 Verify(evalResult,
                     EvalResult("o", "f+103 g", "C", "o", DkmEvaluationResultFlags.Expandable));
@@ -229,9 +227,7 @@ class Program
                 var type = runtime.GetType("C");
 
                 // Non-null value.
-                var value = CreateDkmClrValue(
-                    value: type.Instantiate(),
-                    type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", "o, raw", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ShowValueRaw));
                 Verify(evalResult,
                     EvalResult("o", "{C}", "C", "o, raw", DkmEvaluationResultFlags.Expandable));
@@ -319,12 +315,10 @@ class C : IEnumerable
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(
-                    value: type.Instantiate(),
-                    type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", "o, results, d", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
-                    EvalResult("o", "{C}", "C", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                    EvalResult("o", "{C}", "C", "o, results, d", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
                 var children = GetChildren(evalResult);
                 // ResultsOnly is not inherited.
                 Verify(children,
@@ -359,9 +353,7 @@ struct S<T> : IEnumerable<T>
             using (runtime.Load())
             {
                 var type = runtime.GetType("S`1").MakeGenericType(runtime.GetType(typeof(int)));
-                var value = CreateDkmClrValue(
-                    value: type.Instantiate(2),
-                    type: type);
+                var value = type.Instantiate(2);
                 var evalResult = FormatResult("o", "o, results", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalResult("o", "{S<int>}", "S<int>", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
@@ -399,7 +391,7 @@ class C
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", "o", value);
                 Verify(evalResult,
                     EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
@@ -412,9 +404,9 @@ class C
                 // GetChildren with ResultsOnly
                 children = GetChildren(evalResult, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(children,
-                    EvalResult("F", "{C.<get_F>d__1}", "System.Collections.Generic.IEnumerable<int> {C.<get_F>d__1}", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
-                    EvalResult("G", "{C.<get_G>d__3}", "System.Collections.IEnumerable {C.<get_G>d__3}", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
-                    EvalResult("H", "3", "int", "o.H", DkmEvaluationResultFlags.ReadOnly));
+                    EvalResult("F", "{C.<get_F>d__1}", "System.Collections.Generic.IEnumerable<int> {C.<get_F>d__1}", "o.F, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
+                    EvalResult("G", "{C.<get_G>d__3}", "System.Collections.IEnumerable {C.<get_G>d__3}", "o.G, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
+                    EvalFailedResult("H", "Only Enumerable types can have Results View", fullName: null));
             }
         }
 
@@ -449,9 +441,7 @@ class P
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(
-                    value: type.Instantiate(),
-                    type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", "o, results", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalResult("o", "{C}", "C", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
@@ -486,7 +476,7 @@ class C
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", "o.P, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
@@ -536,7 +526,7 @@ class C
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", "o.P, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
@@ -564,9 +554,7 @@ class C : IEnumerable
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(
-                    value: type.Instantiate(),
-                    type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", "o, results", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalFailedResult("o", "Results View requires System.Core.dll to be referenced"));

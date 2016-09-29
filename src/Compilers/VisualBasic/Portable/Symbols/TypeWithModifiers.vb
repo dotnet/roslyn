@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return TypeOf obj Is TypeWithModifiers AndAlso Equals(DirectCast(obj, TypeWithModifiers))
         End Function
 
-        Overloads Function Equals(other As TypeWithModifiers) As Boolean Implements IEquatable(Of TypeWithModifiers).Equals
+        Public Overloads Function Equals(other As TypeWithModifiers) As Boolean Implements IEquatable(Of TypeWithModifiers).Equals
             Return Me.Type = other.Type AndAlso
                    If(Me.CustomModifiers.IsDefault,
                       other.CustomModifiers.IsDefault,
@@ -46,12 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Hash.Combine(Me.Type, Hash.CombineValues(Me.CustomModifiers))
         End Function
 
-        Function [Is](other As TypeSymbol) As Boolean
+        Public Function [Is](other As TypeSymbol) As Boolean
             Return Me.Type = other AndAlso Me.CustomModifiers.IsEmpty
         End Function
 
         <Obsolete("Use Is method.", True)>
-        Overloads Function Equals(other As TypeSymbol) As Boolean
+        Public Overloads Function Equals(other As TypeSymbol) As Boolean
             Return Me.Is(other)
         End Function
 
@@ -60,12 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The method asserts otherwise.
         ''' </summary>
         ''' <returns></returns>
-        Function AsTypeSymbolOnly() As TypeSymbol
+        Public Function AsTypeSymbolOnly() As TypeSymbol
             Debug.Assert(Me.CustomModifiers.IsEmpty)
             Return Me.Type
         End Function
 
-        Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
+        Public Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
             Dim newCustomModifiers = If(substitution IsNot Nothing, substitution.SubstituteCustomModifiers(Me.CustomModifiers), Me.CustomModifiers)
             Dim newTypeWithModifiers As TypeWithModifiers = Me.Type.InternalSubstituteTypeParameters(substitution)
             If Not newTypeWithModifiers.Is(Me.Type) OrElse newCustomModifiers <> Me.CustomModifiers Then

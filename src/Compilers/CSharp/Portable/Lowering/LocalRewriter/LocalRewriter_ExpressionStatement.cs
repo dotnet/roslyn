@@ -11,8 +11,35 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
         {
-            var syntax = node.Syntax;
+            // NOTE: not using a BoundNoOpStatement, since we don't want a nop to be emitted.
+            // CONSIDER: could use a BoundNoOpStatement (DevDiv #12943).
+            return RewriteExpressionStatement(node) ?? BoundStatementList.Synthesized(node.Syntax);
+        }
+
+        private BoundStatement RewriteExpressionStatement(BoundExpressionStatement node, bool suppressInstrumentation = false)
+        {
             var loweredExpression = VisitUnusedExpression(node.Expression);
+
+            if (loweredExpression == null)
+            {
+                return null;
+            }
+            else
+            {
+                BoundStatement result = node.Update(loweredExpression);
+                if (!suppressInstrumentation && this.Instrument && !node.WasCompilerGenerated)
+                {
+                    result = _instrumenter.InstrumentExpressionStatement(node, result);
+                }
+
+                return result;
+            }
+        }
+
+        public override BoundNode VisitLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration node)
+        {
+            var syntax = node.Syntax;
+            var loweredExpression = VisitUnusedExpression(node.Assignment);
 
             if (loweredExpression == null)
             {
@@ -22,7 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return AddSequencePoint(node.Update(loweredExpression));
+                BoundStatement result = new BoundExpressionStatement(loweredExpression.Syntax, loweredExpression, node.HasErrors);
+                result.WasCompilerGenerated = node.WasCompilerGenerated;
+                if (this.Instrument && !node.WasCompilerGenerated)
+                {
+                    result = _instrumenter.InstrumentLocalDeconstructionDeclaration(node, result);
+                }
+
+                return result;
             }
         }
 

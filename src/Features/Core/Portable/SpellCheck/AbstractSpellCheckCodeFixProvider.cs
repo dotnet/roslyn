@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -52,35 +52,43 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private async Task CreateSpellCheckCodeIssueAsync(CodeFixContext context, TSimpleName nameNode, string nameText, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            var completionList = await CompletionService.GetCompletionListAsync(
-                document, nameNode.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var service = CompletionService.GetService(document);
+
+            // Disable snippets from ever appearing in the completion items. It's
+            // very unlikely the user would ever mispell a snippet, then use spell-
+            // checking to fix it, then try to invoke the snippet.
+            var originalOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = originalOptions.WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude);
+
+            var completionList = await service.GetCompletionsAsync(
+                document, nameNode.SpanStart, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionList == null)
             {
                 return;
             }
 
-            var completionRules = CompletionService.GetCompletionRules(document);
             var onlyConsiderGenerics = IsGeneric(nameNode);
             var results = new MultiDictionary<double, string>();
 
-            int closeMatchThreshold = EditDistance.GetCloseMatchThreshold(nameText);
-
-            foreach (var item in completionList.Items)
+            using (var similarityChecker = new WordSimilarityChecker(nameText, substringsAreSimilar: true))
             {
-                if (onlyConsiderGenerics && !IsGeneric(item))
+                foreach (var item in completionList.Items)
                 {
-                    continue;
-                }
+                    if (onlyConsiderGenerics && !IsGeneric(item))
+                    {
+                        continue;
+                    }
 
-                var candidateText = item.FilterText;
-                double matchCost;
-                if (!EditDistance.IsCloseMatch(nameText, candidateText, closeMatchThreshold, out matchCost))
-                {
-                    continue;
-                }
+                    var candidateText = item.FilterText;
+                    double matchCost;
+                    if (!similarityChecker.AreSimilar(candidateText, out matchCost))
+                    {
+                        continue;
+                    }
 
-                var insertionText = completionRules.GetTextChange(item).NewText;
-                results.Add(matchCost, insertionText);
+                    var insertionText = await GetInsertionTextAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    results.Add(matchCost, insertionText);
+                }
             }
 
             var matches = results.OrderBy(kvp => kvp.Key)
@@ -91,10 +99,18 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             context.RegisterFixes(matches, context.Diagnostics);
         }
 
+        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            var service = CompletionService.GetService(document);
+            var change = await service.GetChangeAsync(document, item, null, cancellationToken).ConfigureAwait(false);
+
+            return change.TextChange.NewText;
+        }
+
         private SpellCheckCodeAction CreateCodeAction(TSimpleName nameNode, string oldName, string newName, Document document)
         {
             return new SpellCheckCodeAction(
-                string.Format(FeaturesResources.ChangeTo, oldName, newName),
+                string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => Update(document, nameNode, newName, c),
                 equivalenceKey: newName);
         }

@@ -248,7 +248,7 @@ world.";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(306), WorkItem(308)]
+        [Fact, WorkItem(306, "https://github.com/dotnet/roslyn/issues/306"), WorkItem(308, "https://github.com/dotnet/roslyn/issues/308")]
         public void DynamicInterpolation()
         {
             string source =
@@ -523,7 +523,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1119878, "DevDiv")]
+        [Fact, WorkItem(1119878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119878")]
         public void NoFillIns01()
         {
             string source =
@@ -848,7 +848,7 @@ class Program {
                 );
         }
 
-        [WorkItem(1097388, "DevDiv")]
+        [WorkItem(1097388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097388")]
         [Fact]
         public void InterpolationExpressionMustBeValue01()
         {
@@ -894,7 +894,7 @@ class Program {
                 );
         }
 
-        [WorkItem(1097428, "DevDiv")]
+        [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
         [Fact]
         public void BadCorelib01()
         {
@@ -925,7 +925,7 @@ class Program {
             );
         }
 
-        [WorkItem(1097428, "DevDiv")]
+        [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
         [Fact]
         public void BadCorelib02()
         {
@@ -1015,7 +1015,7 @@ class Program {
 }");
         }
 
-        [WorkItem(1097386, "DevDiv")]
+        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Syntax01()
         {
@@ -1040,7 +1040,7 @@ class Program
                 );
         }
 
-        [WorkItem(1097941, "DevDiv")]
+        [WorkItem(1097941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097941")]
         [Fact]
         public void Syntax02()
         {
@@ -1057,7 +1057,7 @@ class C
             Assert.True(SyntaxFactory.ParseSyntaxTree(text).GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
         }
 
-        [WorkItem(1097386, "DevDiv")]
+        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Syntax03()
         {
@@ -1079,7 +1079,7 @@ class Program
                 );
         }
 
-        [WorkItem(1099105, "DevDiv")]
+        [WorkItem(1099105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099105")]
         [Fact]
         public void NoUnexpandedForm()
         {
@@ -1101,7 +1101,7 @@ class Program {
 -System.String[]-");
         }
 
-        [WorkItem(1097386, "DevDiv")]
+        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Dynamic01()
         {
@@ -1124,7 +1124,7 @@ class Program {
                 );
         }
 
-        [WorkItem(1099238, "DevDiv")]
+        [WorkItem(1099238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099238")]
         [Fact]
         public void Syntax04()
         {
@@ -1150,7 +1150,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1098612, "DevDiv")]
+        [Fact, WorkItem(1098612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098612")]
         public void MissingConversionFromFormattableStringToIFormattable()
         {
             var text =

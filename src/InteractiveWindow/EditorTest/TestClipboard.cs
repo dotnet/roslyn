@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
     internal sealed class TestClipboard : InteractiveWindowClipboard
     {
-        DataObject _data = null;
+        private DataObject _data = null;
 
         internal void Clear() => _data = null;
 

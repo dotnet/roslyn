@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -27,10 +27,9 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Temporarily stores text and streams in memory mapped files.
         /// </summary>
-        internal class TemporaryStorageService : ITemporaryStorageService
+        internal class TemporaryStorageService : ITemporaryStorageService2
         {
             private readonly ITextFactoryService _textFactory;
-            private readonly MemoryMappedFileManager _memoryMappedFileManager = new MemoryMappedFileManager();
 
             public TemporaryStorageService(ITextFactoryService textFactory)
             {
@@ -42,12 +41,22 @@ namespace Microsoft.CodeAnalysis.Host
                 return new TemporaryTextStorage(this);
             }
 
+            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long size, Encoding encoding, CancellationToken cancellationToken)
+            {
+                return new TemporaryTextStorage(this, storageName, size, encoding);
+            }
+
             public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
             {
                 return new TemporaryStreamStorage(this);
             }
 
-            private class TemporaryTextStorage : ITemporaryTextStorage
+            public ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long size, CancellationToken cancellationToken)
+            {
+                return new TemporaryStreamStorage(this, storageName, size);
+            }
+
+            private class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
                 private Encoding _encoding;
@@ -57,6 +66,16 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     _service = service;
                 }
+
+                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long size, Encoding encoding)
+                {
+                    _service = service;
+                    _encoding = encoding;
+                    _memoryMappedInfo = new MemoryMappedInfo(storageName, size);
+                }
+
+                public string Name => _memoryMappedInfo?.Name;
+                public long Size => _memoryMappedInfo.Size;
 
                 public void Dispose()
                 {
@@ -121,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                         // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
                         var size = Encoding.Unicode.GetMaxByteCount(text.Length);
-                        _memoryMappedInfo = _service._memoryMappedFileManager.CreateViewInfo(size);
+                        _memoryMappedInfo = new MemoryMappedInfo(size);
 
                         // Write the source text out as Unicode. We expect that to be cheap.
                         using (var stream = _memoryMappedInfo.CreateWritableStream())
@@ -204,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
-            private class TemporaryStreamStorage : ITemporaryStreamStorage
+            private class TemporaryStreamStorage : ITemporaryStreamStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
                 private MemoryMappedInfo _memoryMappedInfo;
@@ -213,6 +232,15 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     _service = service;
                 }
+
+                public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long size)
+                {
+                    _service = service;
+                    _memoryMappedInfo = new MemoryMappedInfo(storageName, size);
+                }
+
+                public string Name => _memoryMappedInfo?.Name;
+                public long Size => _memoryMappedInfo.Size;
 
                 public void Dispose()
                 {
@@ -263,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_memoryMappedInfo != null)
                     {
-                        throw new InvalidOperationException(WorkspacesResources.TemporaryStorageCannotBeWrittenMultipleTimes);
+                        throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
                     }
 
                     if (stream.Length == 0)
@@ -274,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Host
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
                     {
                         var size = stream.Length;
-                        _memoryMappedInfo = _service._memoryMappedFileManager.CreateViewInfo(size);
+                        _memoryMappedInfo = new MemoryMappedInfo(size);
                         using (var viewStream = _memoryMappedInfo.CreateWritableStream())
                         {
                             var buffer = SharedPools.ByteArray.Allocate();

@@ -176,7 +176,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_If1()
             CompileAndVerify(
@@ -196,7 +196,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_If2()
             CompileAndVerify(
@@ -216,7 +216,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_If3()
             CompileAndVerify(
@@ -236,7 +236,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional1()
             CompileAndVerify(
@@ -254,7 +254,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional2()
             CompileAndVerify(
@@ -272,7 +272,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional3()
             CompileAndVerify(
@@ -290,7 +290,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional4()
             CompileAndVerify(
@@ -308,7 +308,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional5()
             CompileAndVerify(
@@ -328,7 +328,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional_CollInitializer1()
             CompileAndVerify(
@@ -346,7 +346,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243, "DevDiv")>
+        <WorkItem(544243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544243")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional_CollInitializer2()
             CompileAndVerify(
@@ -368,7 +368,7 @@ expectedOutput:="VB$AnonymousType_0`1[T0]")
         Public Sub TestAnonymousType_ToString()
             ' test AnonymousType_ToString() itself
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
 
                 CompileAndVerify(
@@ -654,7 +654,7 @@ New XCData(<![CDATA[
 
         End Sub
 
-        <WorkItem(531571, "DevDiv")>
+        <WorkItem(531571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531571")>
         <Fact()>
         Public Sub Bug_531571()
             CompileAndVerify(
@@ -734,7 +734,7 @@ expectedOutput:=<![CDATA[
         Public Sub TestAnonymousType_LocalAsNewWith()
             ' AnonymousType ToString
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
 
                 CompileAndVerify(

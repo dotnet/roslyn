@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     public sealed class MetadataShadowCopyProvider : IDisposable
     {
         private readonly CultureInfo _documentationCommentsCulture;
-        
+
         // normalized absolute path
         private readonly string _baseDirectory;
 

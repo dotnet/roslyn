@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             return values;
         }
 
-        [WpfFact]
+        [Fact]
         public void TestDo()
         {
             var elements = Enumerable(1, 2, 3);
@@ -28,27 +28,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.True(elements.SequenceEqual(result));
         }
 
-        [WpfFact]
+        [Fact]
         public void TestConcat()
         {
             var elements = Enumerable(1, 2, 3);
             Assert.True(Enumerable(1, 2, 3, 4).SequenceEqual(elements.Concat(4)));
         }
 
-        [WpfFact]
+        [Fact]
         public void TestSetEquals()
         {
             Assert.True(Enumerable(1, 2, 3, 4).SetEquals(Enumerable(4, 2, 3, 1)));
         }
 
-        [WpfFact]
+        [Fact]
         public void TestIsEmpty()
         {
             Assert.True(Enumerable<int>().IsEmpty());
             Assert.False(Enumerable(0).IsEmpty());
         }
 
-        [WpfFact]
+        [Fact]
         public void TestAll()
         {
             Assert.True(Enumerable<bool>().All());
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.False(Enumerable(false, true).All());
         }
 
-        [WpfFact]
+        [Fact]
         public void TestJoin()
         {
             Assert.Equal(string.Empty, Enumerable<string>().Join(", "));
@@ -70,14 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal("a, b, c", Enumerable("a", "b", "c").Join(", "));
         }
 
-        [WpfFact]
+        [Fact]
         public void TestFlatten()
         {
             var sequence = Enumerable(Enumerable("a", "b"), Enumerable("c", "d"), Enumerable("e", "f"));
             Assert.True(sequence.Flatten().SequenceEqual(Enumerable("a", "b", "c", "d", "e", "f")));
         }
 
-        [WpfFact]
+        [Fact]
         public void TestSequenceEqualWithFunction()
         {
             Func<int, int, bool> equality = (a, b) => a == b;

@@ -672,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function IsInvalidSelectCaseRange(lbConstantValue As ConstantValue, ubConstantValue As ConstantValue) As Boolean
+        Private Shared Function IsInvalidSelectCaseRange(lbConstantValue As ConstantValue, ubConstantValue As ConstantValue) As Boolean
             Debug.Assert(lbConstantValue IsNot Nothing)
             Debug.Assert(ubConstantValue IsNot Nothing)
 

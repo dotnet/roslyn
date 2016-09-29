@@ -15,23 +15,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend MustInherit Class StructuredTriviaSyntax
         Friend Sub New(reader As ObjectReader)
             MyBase.New(reader)
-            Me.SetFlags(NodeFlags.ContainsStructuredTrivia)
+            Initialize()
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind)
             MyBase.New(kind)
-            Me.SetFlags(NodeFlags.ContainsStructuredTrivia)
+            Initialize()
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            Me.SetFlags(NodeFlags.ContainsStructuredTrivia)
+            Initialize()
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors As DiagnosticInfo(), ByVal annotations As SyntaxAnnotation())
             MyBase.New(kind, errors, annotations)
+            Initialize()
+        End Sub
+
+        Private Sub Initialize()
             Me.SetFlags(NodeFlags.ContainsStructuredTrivia)
+
+            If Kind = SyntaxKind.SkippedTokensTrivia Then
+                Me.SetFlags(NodeFlags.ContainsSkippedText)
+            End If
         End Sub
 
     End Class

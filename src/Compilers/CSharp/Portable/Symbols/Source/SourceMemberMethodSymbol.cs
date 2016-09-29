@@ -2,8 +2,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly string _name;
         private readonly bool _isExpressionBodied;
+        private readonly RefKind _refKind;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
@@ -37,14 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private SourceMemberMethodSymbol _otherPartOfPartial;
 
-        /// <summary>
-        /// A binder to use for binding generic constraints. The field is only non-null while the .ctor
-        /// is executing, and allows constraints to be bound before the method is added to the
-        /// containing type. (Until the method symbol has been added to the container, we cannot
-        /// get a binder for the method without triggering a recursive attempt to bind the method.)
-        /// </summary>
-        private readonly Binder _constraintClauseBinder;
-
         public static SourceMemberMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
             Binder bodyBinder,
@@ -63,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? MethodKind.Ordinary
                 : MethodKind.ExplicitInterfaceImplementation;
 
-            return new SourceMemberMethodSymbol(containingType, explicitInterfaceType, name, location, bodyBinder, syntax, methodKind, diagnostics);
+            return new SourceMemberMethodSymbol(containingType, explicitInterfaceType, name, location, syntax, methodKind, diagnostics);
         }
 
         private SourceMemberMethodSymbol(
@@ -71,7 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string name,
             Location location,
-            Binder bodyBinder,
             MethodDeclarationSyntax syntax,
             MethodKind methodKind,
             DiagnosticBag diagnostics) :
@@ -103,28 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
 
-            // NOTE: by creating a WithMethodTypeParametersBinder, we are effectively duplicating the
-            // functionality of the BinderFactory.  Unfortunately, we cannot use the BinderFactory
-            // because it depends on having access to the member list of our containing type and
-            // that list cannot be complete because we're not finished constructing this member.
-            // TODO: at least keep this in sync with BinderFactory.VisitMethodDeclaration.
-            bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
-
-            Binder withTypeParamsBinder;
-            if (syntax.Arity == 0)
-            {
-                withTypeParamsBinder = bodyBinder;
-                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else
-            {
-                var parameterBinder = new WithMethodTypeParametersBinder(this, bodyBinder);
-                withTypeParamsBinder = parameterBinder;
-                _typeParameters = MakeTypeParameters(syntax, diagnostics);
-            }
+            _typeParameters = (syntax.Arity == 0) ?
+                ImmutableArray<TypeParameterSymbol>.Empty :
+                MakeTypeParameters(syntax, diagnostics);
 
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            syntax.ReturnType.SkipRef(out _refKind);
 
             if (hasBlockBody || _isExpressionBodied)
             {
@@ -135,23 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (info != null)
             {
                 diagnostics.Add(info, location);
-            }
-
-            if (this.IsPartial)
-            {
-                // Partial methods must be completed early because they are matched up
-                // by signature while producing the enclosing type's member list. However,
-                // that means any type parameter constraints will be bound before the method
-                // is added to the containing type. To enable binding of constraints before the
-                // .ctor completes we hold on to the current binder while the .ctor is executing.
-                // If we change the handling of partial methods, so that partial methods are
-                // completed lazily, the 'constraintClauseBinder' field should be removed.
-                _constraintClauseBinder = withTypeParamsBinder;
-
-                state.NotePartComplete(CompletionPart.StartMethodChecks);
-                MethodChecks(syntax, withTypeParamsBinder, diagnostics);
-                state.NotePartComplete(CompletionPart.FinishMethodChecks);
-                _constraintClauseBinder = null;
             }
         }
 
@@ -175,9 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-            _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics);
+            _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            _lazyReturnType = signatureBinder.BindType(syntax.ReturnType, diagnostics);
+            RefKind refKind;
+            var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             if (_lazyReturnType.IsRestrictedType())
             {
@@ -193,8 +155,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
+            if (this.RefKind != RefKind.None && returnsVoid)
+            {
+                Debug.Assert(returnTypeSyntax.HasErrors);
+            }
+
             // set ReturnsVoid flag
-            this.SetReturnsVoid(_lazyReturnType.SpecialType == SpecialType.System_Void);
+            this.SetReturnsVoid(returnsVoid);
 
             var location = this.Locations[0];
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
@@ -359,25 +327,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
-        internal static void ReportAsyncParameterErrors(MethodSymbol method, DiagnosticBag diagnostics, Location location)
+        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
         {
-            if (method.IsAsync)
+            foreach (var parameter in parameters)
             {
-                foreach (var parameter in method.Parameters)
+                var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
+                if (parameter.RefKind != RefKind.None)
                 {
-                    var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
-                    if (parameter.RefKind != RefKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
-                    }
-                    else if (parameter.Type.IsUnsafe())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
-                    }
-                    else if (parameter.Type.IsRestrictedType())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
-                    }
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
+                }
+                else if (parameter.Type.IsUnsafe())
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
+                }
+                else if (parameter.Type.IsRestrictedType())
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
                 }
             }
         }
@@ -390,19 +355,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsAsync)
             {
-                state.NotePartComplete(CompletionPart.StartAsyncMethodChecks);
-                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
-                {
-                    DeclaringCompilation.SymbolDeclaredEvent(this);
-                }
-
+                CompleteAsyncMethodChecks(diagnosticsOpt: null, cancellationToken: cancellationToken);
                 return;
             }
 
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             Location errorLocation = this.Locations[0];
 
-            if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
+            if (this.RefKind != RefKind.None)
+            {
+                var returnTypeSyntax = GetSyntax().ReturnType;
+                if (!returnTypeSyntax.HasErrors)
+                {
+                    var refKeyword = returnTypeSyntax.GetFirstToken();
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
+                }
+            }
+            else if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
             {
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
@@ -425,30 +394,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (diagnostics.IsEmptyWithoutResolution)
             {
-                ReportAsyncParameterErrors(this, diagnostics, errorLocation);
+                ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
             }
 
+            CompleteAsyncMethodChecks(diagnostics, cancellationToken);
+            diagnostics.Free();
+        }
+
+        private void CompleteAsyncMethodChecks(DiagnosticBag diagnosticsOpt, CancellationToken cancellationToken)
+        {
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
-                AddDeclarationDiagnostics(diagnostics);
-                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
+                if (diagnosticsOpt != null)
+                {
+                    AddDeclarationDiagnostics(diagnosticsOpt);
+                }
+                if (IsPartialDefinition && (object)PartialImplementationPart == null)
                 {
                     DeclaringCompilation.SymbolDeclaredEvent(this);
                 }
+                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
             }
             else
             {
                 state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
             }
-
-            diagnostics.Free();
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType);
-            MethodChecks(syntax, withTypeParamsBinder, diagnostics);
+            var withTypeParametersBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
+            MethodChecks(syntax, withTypeParametersBinder, diagnostics);
         }
 
         internal MethodDeclarationSyntax GetSyntax()
@@ -506,17 +483,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntaxTree = syntax.SyntaxTree;
-
-            // If we're binding these constraints before the method has been
-            // fully constructed (see partial method comment in .ctor), we have
-            // a binder. Otherwise, lookup the binder in the BinderFactory.
-            var binder = _constraintClauseBinder;
-            if (binder == null)
-            {
-                var compilation = this.DeclaringCompilation;
-                var binderFactory = compilation.GetBinderFactory(syntaxTree);
-                binder = binderFactory.GetBinder(constraintClauses[0]);
-            }
+            var compilation = this.DeclaringCompilation;
+            var binderFactory = compilation.GetBinderFactory(syntaxTree);
+            var binder = binderFactory.GetBinder(constraintClauses[0]);
 
             // Wrap binder from factory in a generic constraints specific binder
             // to avoid checking constraints when binding type names.
@@ -559,6 +528,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 LazyMethodChecks();
                 return _lazyParameters;
+            }
+        }
+
+        internal override RefKind RefKind
+        {
+            get
+            {
+                return _refKind;
             }
         }
 
@@ -820,10 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;
 
-                if (name == this.Name)
-                {
-                    diagnostics.Add(ErrorCode.ERR_TypeVariableSameAsParent, location, name);
-                }
+                // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
 
                 for (int i = 0; i < result.Count; i++)
                 {
@@ -900,6 +874,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
             }
+            else if (IsSealed && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.SealedKeyword));
+            }
             else if (!ContainingType.IsInterfaceType() && _lazyReturnType.IsStatic)
             {
                 // '{0}': static types cannot be used as return types
@@ -916,6 +895,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsAbstract && IsVirtual)
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this);
+            }
+            else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.AbstractKeyword));
+            }
+            else if (IsVirtual && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
             }
             else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {

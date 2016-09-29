@@ -724,7 +724,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(606015, "DevDiv")]
+        [WorkItem(606015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606015")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixFullWidthSingleQuotes()
         {
@@ -751,7 +751,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(707135, "DevDiv")]
+        [WorkItem(707135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707135")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public async Task FixFullWidthSingleQuotes2()
         {

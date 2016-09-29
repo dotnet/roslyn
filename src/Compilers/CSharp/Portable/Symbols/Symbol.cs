@@ -438,6 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (method.MethodKind)
                         {
                             case MethodKind.Ordinary:
+                            case MethodKind.LocalFunction:
                             case MethodKind.ReducedExtension:
                                 break;
                             case MethodKind.Destructor:
@@ -496,6 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (method.MethodKind)
                     {
                         case MethodKind.Ordinary:
+                        case MethodKind.LocalFunction:
                         case MethodKind.DelegateInvoke:
                         case MethodKind.Destructor: // See comment in CanBeReferencedByName.
                             return true;
@@ -937,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var modifierType = (NamedTypeSymbol)modifier.Modifier;
 
                 // Unbound generic type is valid as a modifier, let's not report any use site diagnostics because of that.
-                if (modifierType.IsUnboundGenericType )
+                if (modifierType.IsUnboundGenericType)
                 {
                     modifierType = modifierType.OriginalDefinition;
                 }

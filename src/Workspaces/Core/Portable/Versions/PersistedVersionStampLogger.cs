@@ -7,16 +7,16 @@ namespace Microsoft.CodeAnalysis.Versions
     internal static class PersistedVersionStampLogger
     {
         // we have 6 different versions to track various changes
-        private const string Text = "Text";
-        private const string SyntaxTree = "SyntaxTree";
-        private const string Project = "Project";
-        private const string DependentProject = "DependentProject";
-        private const string Semantic = "Semantic";
-        private const string DependentSemantic = "DependentSemantic";
+        private const string Text = nameof(Text);
+        private const string SyntaxTree = nameof(SyntaxTree);
+        private const string Project = nameof(Project);
+        private const string DependentProject = nameof(DependentProject);
+        private const string Semantic = nameof(Semantic);
+        private const string DependentSemantic = nameof(DependentSemantic);
 
-        private const string ProjectCount = "ProjectCount";
-        private const string InitialSemanticVersionCount = "InitialSemanticVersionCount";
-        private const string InitialDependentSemanticVersionCount = "InitialDependentSemanticVersionCount";
+        private const string ProjectCount = nameof(ProjectCount);
+        private const string InitialSemanticVersionCount = nameof(InitialSemanticVersionCount);
+        private const string InitialDependentSemanticVersionCount = nameof(InitialDependentSemanticVersionCount);
 
         private static readonly LogAggregator s_logAggregator = new LogAggregator();
 

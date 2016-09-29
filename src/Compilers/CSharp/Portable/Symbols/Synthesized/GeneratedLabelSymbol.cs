@@ -9,9 +9,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class GeneratedLabelSymbol : LabelSymbol
     {
+        private readonly string _name;
+
         public GeneratedLabelSymbol(string name)
-            : base(LabelName(name))
         {
+            _name = LabelName(name);
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return _name;
+            }
         }
 
 #if DEBUG

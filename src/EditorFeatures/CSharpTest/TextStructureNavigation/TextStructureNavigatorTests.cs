@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 {
     public class TextStructureNavigatorTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public async Task Empty()
         {
             await AssertExtentAsync(
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 start: 12, length: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public async Task NewLine()
         {
             await AssertExtentAsync(
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 
         private static async Task AssertExtentAsync(string code, int pos, bool isSignificant, int start, int length, CSharpParseOptions options)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, options))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             int endLength,
             CSharpParseOptions options)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, options))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 

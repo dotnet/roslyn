@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -662,7 +663,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public void Serialize(Cci.BlobBuilder writer)
+        public void Serialize(BlobBuilder writer)
         {
             switch (this.Discriminator)
             {

@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ImplementInterface
             End If
         End Function
 
-        <WorkItem(545692)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WorkItem(545692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545692")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function Test_EnumsWithConflictingNames1() As Task
             Dim input =
                 <Workspace>
@@ -61,8 +61,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545743)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WorkItem(545743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545743")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function Test_EnumsWithConflictingNames2() As Task
             Dim input =
                 <Workspace>
@@ -103,8 +103,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545788), WorkItem(715013)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WorkItem(545788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545788"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function Test_EnumsWithConflictingNames3() As Task
             Dim input =
                 <Workspace>
@@ -150,8 +150,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545699)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WorkItem(545699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545699")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function Test_OptionalWithNoDefaultValue() As Task
             Dim input =
                 <Workspace>
@@ -189,8 +189,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545820)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WorkItem(545820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545820")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function Test_IndexerWithNoRequiredParameters() As Task
             Dim input =
                 <Workspace>
@@ -228,8 +228,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545868)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WorkItem(545868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545868")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function Test_ConflictingParameterNames1() As Task
             Dim input =
                 <Workspace>
@@ -265,8 +265,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(545868)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WorkItem(545868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545868")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function Test_ConflictingParameterNames2() As Task
             Dim input =
                 <Workspace>

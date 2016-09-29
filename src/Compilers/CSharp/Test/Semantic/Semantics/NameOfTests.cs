@@ -293,7 +293,7 @@ class Test<T>
                 // (28,20): error CS0103: The name 'List2' does not exist in the current context
                 //         s = nameof(List2<>.Add);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List2<>").WithArguments("List2").WithLocation(28, 20),
-                // (31,20): error CS8083: An alias-qualified name is not an expression.
+                // (31,20): error CS8149: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
                 // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
@@ -305,7 +305,7 @@ class Test<T>
                 // (33,20): error CS0841: Cannot use local variable 'b' before it is declared
                 //         s = nameof(b); // cannot use before declaration
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(33, 20),
-                // (35,20): error CS8084: Type parameters are not allowed on a method group as an argument to 'nameof'.
+                // (35,20): error CS8150: Type parameters are not allowed on a method group as an argument to 'nameof'.
                 //         s = nameof(System.Linq.Enumerable.Select<int, int>); // type parameters not allowed on method group in nameof
                 Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "System.Linq.Enumerable.Select<int, int>").WithLocation(35, 20),
                 // (43,13): error CS0103: The name 'nameof' does not exist in the current context
@@ -593,7 +593,7 @@ class C
             CompileAndVerify(source, expectedOutput: @"Contains");
         }
 
-        [Fact, WorkItem(1013334, "DevDiv")]
+        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation()
         {
             var source = @"
@@ -617,7 +617,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: @"12");
         }
 
-        [Fact, WorkItem(1013334, "DevDiv")]
+        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation02()
         {
             var source = @"
@@ -641,7 +641,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: @"12");
         }
 
-        [Fact, WorkItem(1013334, "DevDiv")]
+        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation03()
         {
             var source = @"
@@ -663,7 +663,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1013334, "DevDiv")]
+        [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
         public void TestCompatStatementExpressionInvocation04()
         {
             var source = @"
@@ -689,7 +689,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1023539, "DevDiv")]
+        [WorkItem(1023539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1023539")]
         public void SymbolInfoForMethodGroup01()
         {
             var source =
@@ -711,7 +711,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1023539, "DevDiv")]
+        [WorkItem(1023539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1023539")]
         public void SymbolInfoForMethodGroup02()
         {
             var source =
@@ -737,7 +737,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup03()
         {
             var source =
@@ -773,7 +773,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup04()
         {
             var source =
@@ -820,7 +820,7 @@ namespace N1
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForEmptyMethodGroup()
         {
             var source =
@@ -857,7 +857,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForTypeFromInstance()
         {
             var source =
@@ -893,7 +893,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup05()
         {
             var source =
@@ -939,7 +939,7 @@ namespace N1
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForNothingFound()
         {
             var source =
@@ -1109,7 +1109,7 @@ public class Program
         }
 
         [Fact]
-        [WorkItem(1077150, "DevDiv")]
+        [WorkItem(1077150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077150")]
         public void SymbolInfoForMethodGroup06()
         {
             var source =
@@ -1152,8 +1152,8 @@ public class Program
         System.Console.WriteLine(N1 + N2);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            var comp = CompileAndVerify(source, expectedOutput: @"N1N2");
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"N1N2");
         }
 
         [Fact, WorkItem(42, "github.com/dotnet/roslyn")]
@@ -1167,6 +1167,164 @@ public class Program
   ) { }
 }";
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(10467, "https://github.com/dotnet/roslyn/issues/10467")]
+        public void NameofFixedBuffer()
+        {
+            var source =
+@"
+using System;
+unsafe struct Struct1
+{
+    public fixed char MessageType[50];
+
+    public override string ToString()
+    {
+        return nameof(MessageType);
+    }
+
+    public void DoSomething(out char[] x)
+    {
+        x = new char[] { };
+        Action a = () => { System.Console.Write($"" {nameof(x)} ""); };
+        a();
+    }
+
+    public static void Main()
+    {
+        Struct1 myStruct = default(Struct1);
+        Console.Write(myStruct.ToString());
+        char[] o;
+        myStruct.DoSomething(out o);
+        Console.Write(Other.GetFromExternal());
+    }
+}
+
+class Other {
+    public static string GetFromExternal() {
+        Struct1 myStruct = default(Struct1);
+        return nameof(myStruct.MessageType);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput:
+                "MessageType x MessageType").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(10467, "https://github.com/dotnet/roslyn/issues/10467")]
+        public void NameofMethodFixedBuffer()
+        {
+            var source =
+@"
+using System;
+
+unsafe struct Struct1
+{
+  public fixed char MessageType[50];
+  public static string nameof(char[] mt)
+  {
+    return """";
+  }
+
+  public override string ToString()
+  {
+    return nameof(MessageType);
+  }
+
+  public void DoSomething(out char[] x)
+  {
+    x = new char[] {};
+    Action a = () => { System.Console.WriteLine(nameof(x)); };
+  }
+
+  class Other {
+    public static string GetFromExternal() {
+        Struct1 myStruct = default(Struct1);
+        return nameof(myStruct.MessageType);
+    }
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, null,
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (14,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     return nameof(MessageType);
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "MessageType").WithLocation(14, 19),
+                // (20,29): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
+                //     Action a = () => nameof(x);
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(20, 56),
+                // (26,23): error CS1503: Argument 1: cannot convert from 'char*' to 'char[]'
+                //         return nameof(myStruct.MessageType);
+                Diagnostic(ErrorCode.ERR_BadArgType, "myStruct.MessageType").WithArguments("1", "char*", "char[]").WithLocation(26, 23));
+        }
+
+
+        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        public void FixedFieldAccessInsideNameOf()
+        {
+            var source =
+@"
+using System;
+
+struct MyType
+{
+  public static string a = nameof(MyType.normalField);
+  public static string b = nameof(MyType.fixedField);
+  public static string c = nameof(fixedField);
+
+  public int normalField;
+  public unsafe fixed short fixedField[6];
+
+  public MyType(int i) {
+      this.normalField = i;
+  }
+}
+
+class EntryPoint
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(MyType.a + "" "");
+        Console.Write(MyType.b + "" "");
+        Console.Write(MyType.c);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        public void FixedFieldAccessFromInnerClass()
+        {
+            var source =
+@"
+using System;
+
+public struct MyType
+{
+  public static class Inner
+  {
+     public static string a = nameof(normalField);
+     public static string b = nameof(fixedField);
+  }
+
+  public int normalField;
+  public unsafe fixed short fixedField[6];
+}
+
+class EntryPoint
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(MyType.Inner.a + "" "");
+        Console.Write(MyType.Inner.b);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
         }
     }
 }

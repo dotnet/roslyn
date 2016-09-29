@@ -7806,7 +7806,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(531506, "DevDiv")>
+        <Fact(), WorkItem(531506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531506")>
         Public Sub Bug18218()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -7975,7 +7975,7 @@ Imports System.Runtime.InteropServices
 
         End Sub
 
-        <Fact, WorkItem(664574, "DevDiv")>
+        <Fact, WorkItem(664574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/664574")>
         Public Sub Bug664574()
             Dim compilationDef =
 <compilation>
@@ -8085,7 +8085,7 @@ End Class
                                                              End Sub).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(664583, "DevDiv")>
+        <Fact, WorkItem(664583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/664583")>
         Public Sub Bug664583()
             Dim compilationDef =
 <compilation>
@@ -8133,7 +8133,7 @@ End Class
                                                              End Sub).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(700050, "DevDiv")>
+        <Fact, WorkItem(700050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700050")>
         Public Sub Bug700050()
             Dim compilationDef =
 <compilation>

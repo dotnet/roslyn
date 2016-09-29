@@ -1,9 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+
 namespace Roslyn.Utilities
 {
     internal class ObjectReaderWriterBase
     {
+        // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
+        protected static readonly ImmutableDictionary<Type, DataKind> s_typeMap = ImmutableDictionary.CreateRange<Type, DataKind>(
+            new KeyValuePair<Type, DataKind>[]
+            {
+                KeyValuePair.Create(typeof(bool), DataKind.BooleanType),
+                KeyValuePair.Create(typeof(char), DataKind.Char),
+                KeyValuePair.Create(typeof(string), DataKind.StringType),
+                KeyValuePair.Create(typeof(sbyte), DataKind.Int8),
+                KeyValuePair.Create(typeof(short), DataKind.Int16),
+                KeyValuePair.Create(typeof(int), DataKind.Int32),
+                KeyValuePair.Create(typeof(long), DataKind.Int64),
+                KeyValuePair.Create(typeof(byte), DataKind.UInt8),
+                KeyValuePair.Create(typeof(ushort), DataKind.UInt16),
+                KeyValuePair.Create(typeof(uint), DataKind.UInt32),
+                KeyValuePair.Create(typeof(ulong), DataKind.UInt64),
+                KeyValuePair.Create(typeof(float), DataKind.Float4),
+                KeyValuePair.Create(typeof(double), DataKind.Float8),
+                KeyValuePair.Create(typeof(decimal), DataKind.Decimal),
+            });
+
+        protected static readonly ImmutableDictionary<DataKind, Type> s_reverseTypeMap = s_typeMap.ToImmutableDictionary(kv => kv.Value, kv => kv.Key);
+
         internal enum DataKind : byte
         {
             Null,
@@ -43,7 +69,9 @@ namespace Roslyn.Utilities
             Array_0,    // array with zero elements
             Array_1,    // array with one element
             Array_2,    // array with two elements
-            Array_3     // array with three elements
+            Array_3,    // array with three elements
+            BooleanType,    // boolean type marker
+            StringType      // string type marker
         }
 
         internal static readonly byte ByteMarkerMask = 3 << 6;

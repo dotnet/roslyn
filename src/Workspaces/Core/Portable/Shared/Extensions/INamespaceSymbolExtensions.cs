@@ -150,6 +150,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static INamespaceSymbol GetQualifiedNamespace(
+            this INamespaceSymbol globalNamespace,
+            string namespaceName)
+        {
+            var namespaceSymbol = globalNamespace;
+            foreach (var name in namespaceName.Split('.'))
+            {
+                var members = namespaceSymbol.GetMembers(name);
+                namespaceSymbol = members.Count() == 1
+                        ? members.First() as INamespaceSymbol
+                        : null;
+
+                if ((object)namespaceSymbol == null)
+                {
+                    break;
+                }
+            }
+            return namespaceSymbol;
+        }
+
         private static bool ContainsAccessibleTypesOrNamespacesWorker(
             this INamespaceSymbol namespaceSymbol,
             IAssemblySymbol assembly,

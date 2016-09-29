@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
         public AsynchronousWorkerTests()
         {
+            WpfTestCase.RequireWpfFact($"Tests are testing {nameof(AsynchronousSerialWorkQueue)} which is designed to run methods on the UI thread");
             TestWorkspace.ResetThreadAffinity();
             _foregroundSyncContext = SynchronizationContext.Current;
             Assert.NotNull(_foregroundSyncContext);

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions: options))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: options))
             {
                 var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarAtTypeMemberLevel()
         {
             await TestAsync(@"class C { var foo }",
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarAsLocalVariableType()
         {
             await TestInMethodAsync("var foo = 42",
@@ -54,21 +55,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Number("42"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarOptimisticallyColored()
         {
             await TestInMethodAsync("var",
                 Keyword("var"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarNotColoredInClass()
         {
             await TestInClassAsync("var",
                 Identifier("var"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarInsideLocalAndExpressions()
         {
             await TestInMethodAsync(@"var var = (var)var as var;",
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarAsMethodParameter()
         {
             await TestAsync(@"class C { void M(var v) { } }",
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task YieldYield()
         {
             await TestAsync(@"using System.Collections.Generic;
@@ -144,7 +145,7 @@ class yield {
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task YieldReturn()
         {
             await TestInMethodAsync("yield return 42",
@@ -153,7 +154,7 @@ class yield {
                 Number("42"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task YieldFixed()
         {
             await TestInMethodAsync(@"yield return this.items[0]; yield break; fixed (int* i = 0) { }",
@@ -181,7 +182,7 @@ class yield {
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PartialClass()
         {
             await TestAsync("public partial class Foo",
@@ -191,7 +192,7 @@ class yield {
                 Class("Foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PartialMethod()
         {
             await TestInClassAsync("public partial void M() { }",
@@ -208,8 +209,8 @@ class yield {
         /// <summary>
         /// Partial is only valid in a type declaration
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        [WorkItem(536313)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(536313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536313")]
         public async Task PartialAsLocalVariableType()
         {
             await TestInMethodAsync("partial p1 = 42;",
@@ -220,7 +221,7 @@ class yield {
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PartialClassStructInterface()
         {
             await TestAsync(@"partial class T1 { }
@@ -248,7 +249,7 @@ partial interface T3 { }",
         /// <summary>
         /// Check for items only valid within a method declaration
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ContextualKeywordsOnlyValidInMethods()
         {
             foreach (var kw in s_contextualKeywordsOnlyValidInMethods)
@@ -259,7 +260,7 @@ partial interface T3 { }",
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiterals1()
         {
             await TestInMethodAsync(@"@""foo""",
@@ -269,7 +270,7 @@ partial interface T3 { }",
         /// <summary>
         /// Should show up as soon as we get the @\" typed out
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiterals2()
         {
             await TestAsync(@"@""",
@@ -279,7 +280,7 @@ partial interface T3 { }",
         /// <summary>
         /// Parser does not currently support strings of this type
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiteral3()
         {
             await TestAsync(@"foo @""",
@@ -290,7 +291,7 @@ partial interface T3 { }",
         /// <summary>
         /// Uncompleted ones should span new lines
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiteral4()
         {
             var code = @"
@@ -304,7 +305,7 @@ partial interface T3 { }",
 "));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiteral5()
         {
             var code = @"
@@ -321,7 +322,7 @@ on a new line """),
                 Identifier("stuff"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiteral6()
         {
             await TestAsync(@"string s = @""""""/*"";",
@@ -332,21 +333,21 @@ on a new line """),
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task StringLiteral1()
         {
             await TestAsync(@"""foo""",
                 String(@"""foo"""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task StringLiteral2()
         {
             await TestAsync(@"""""",
                 String(@""""""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CharacterLiteral1()
         {
             var code = @"'f'";
@@ -354,7 +355,7 @@ on a new line """),
                 String("'f'"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqFrom1()
         {
             var code = @"from it in foo";
@@ -365,7 +366,7 @@ on a new line """),
                 Identifier("foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqFrom2()
         {
             var code = @"from it in foo.Bar()";
@@ -380,7 +381,7 @@ on a new line """),
                 Punctuation.CloseParen);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqFrom3()
         {
             // query expression are not statement expressions, but the parser parses them anyways to give better errors
@@ -391,7 +392,7 @@ on a new line """),
                 Keyword("in"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqFrom4()
         {
             var code = @"from it in ";
@@ -401,7 +402,7 @@ on a new line """),
                 Keyword("in"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqWhere1()
         {
             var code = "from it in foo where it > 42";
@@ -416,7 +417,7 @@ on a new line """),
                 Number("42"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqWhere2()
         {
             var code = @"from it in foo where it > ""bar""";
@@ -431,7 +432,7 @@ on a new line """),
                 String(@"""bar"""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarContextualKeywordAtNamespaceLevel()
         {
             var code = @"var foo = 2;";
@@ -444,7 +445,7 @@ on a new line """),
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAtNamespaceLevel()
         {
             // the contextual keywords are actual keywords since we parse top level field declaration and only give a semantic error
@@ -496,7 +497,7 @@ select foo;",
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ContextualKeywordsAsFieldName()
         {
             await TestAsync(@"class C { int yield, get, set, value, add, remove, global, partial, where, alias; }",
@@ -527,7 +528,7 @@ select foo;",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsInFieldInitializer()
         {
             await TestAsync(@"class C { int a = from a in a 
@@ -582,7 +583,7 @@ select a; }",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAsTypeName()
         {
             await TestAsync(@"class var { }
@@ -657,7 +658,7 @@ class select { }",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAsMethodParameters()
         {
             await TestAsync(@"class C { orderby M(var foo, from foo, join foo, on foo, equals foo, group foo, by foo, into foo, let foo, where foo, orderby foo, ascending foo, descending foo, select foo) { } }",
@@ -714,7 +715,7 @@ class select { }",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsInLocalVariableDeclarations()
         {
             await TestAsync(@"class C { void M() {
@@ -863,7 +864,7 @@ class select { }",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAsFieldNames()
         {
             await TestAsync(@"class C { int var, from, join, on, into, equals, let, orderby, ascending, descending, select, group, by, partial; }",
@@ -902,7 +903,7 @@ class select { }",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAtFieldLevelInvalid()
         {
             await TestAsync(@"class C { string Property { from a in a 
@@ -958,7 +959,7 @@ select a; } }",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentSingle()
         {
             var code = "// foo";
@@ -967,7 +968,7 @@ select a; } }",
                 Comment("// foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentAsTrailingTrivia1()
         {
             var code = "class Bar { // foo";
@@ -978,7 +979,7 @@ select a; } }",
                 Comment("// foo"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentAsLeadingTrivia1()
         {
             var code = @"
@@ -1000,7 +1001,7 @@ class Bar {
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ShebangAsFirstCommentInScript()
         {
             var code = @"#!/usr/bin/env scriptcs
@@ -1020,7 +1021,7 @@ System.Console.WriteLine();";
             await TestAsync(code, code, expected, Options.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ShebangAsFirstCommentInNonScript()
         {
             var code = @"#!/usr/bin/env scriptcs
@@ -1041,7 +1042,7 @@ System.Console.WriteLine();";
             await TestAsync(code, code, expected, Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ShebangNotAsFirstCommentInScript()
         {
             var code = @" #!/usr/bin/env scriptcs
@@ -1062,7 +1063,7 @@ System.Console.WriteLine();";
             await TestAsync(code, code, expected, Options.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentAsMethodBodyContent()
         {
             var code = @"
@@ -1085,7 +1086,7 @@ class Bar {
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentMix1()
         {
             await TestAsync(@"// comment1 /*
@@ -1099,7 +1100,7 @@ class cl { }
                 Comment("//comment2 */"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentMix2()
         {
             await TestInMethodAsync(@"/**/int /**/i = 0;",
@@ -1112,7 +1113,7 @@ class cl { }
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocCommentOnClass()
         {
             var code = @"
@@ -1134,7 +1135,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocCommentOnClassWithIndent()
         {
             var code = @"
@@ -1161,7 +1162,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_EntityReference()
         {
             var code = @"
@@ -1183,7 +1184,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_ExteriorTriviaInsideCloseTag()
         {
             var code = @"
@@ -1208,8 +1209,8 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(531155)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(531155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_ExteriorTriviaInsideCRef()
         {
             var code = @"
@@ -1239,7 +1240,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocCommentOnClassWithExteriorTrivia()
         {
             var code = @"
@@ -1266,7 +1267,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_ExteriorTriviaNoText()
         {
             var code =
@@ -1291,7 +1292,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_EmptyElement()
         {
             var code = @"
@@ -1310,7 +1311,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_Attribute()
         {
             var code = @"
@@ -1339,7 +1340,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_AttributeInEmptyElement()
         {
             var code = @"
@@ -1364,7 +1365,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_ExtraSpaces()
         {
             var code = @"
@@ -1392,7 +1393,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_XmlComment()
         {
             var code = @"
@@ -1409,7 +1410,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_XmlCommentWithExteriorTrivia()
         {
             var code = @"
@@ -1429,7 +1430,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_XmlCommentInElement()
         {
             var code = @"
@@ -1452,7 +1453,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task MultilineXmlDocComment_ExteriorTrivia()
         {
             var code =
@@ -1478,7 +1479,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_CDataWithExteriorTrivia()
         {
             var code = @"
@@ -1498,7 +1499,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_ProcessingDirective()
         {
             await TestAsync(@"/// <summary><?foo
@@ -1535,8 +1536,8 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        [WorkItem(536321)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(536321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536321")]
         public async Task KeywordTypeParameters()
         {
             var code = @"class C<int> { }";
@@ -1550,8 +1551,8 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        [WorkItem(536853)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(536853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536853")]
         public async Task TypeParametersWithAttribute()
         {
             var code = @"class C<[Attr] T> { }";
@@ -1568,7 +1569,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ClassTypeDeclaration1()
         {
             var code = "class C1 { } ";
@@ -1579,7 +1580,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ClassTypeDeclaration2()
         {
             var code = "class ClassName1 { } ";
@@ -1590,7 +1591,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task StructTypeDeclaration1()
         {
             var code = "struct Struct1 { }";
@@ -1601,7 +1602,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task InterfaceDeclaration1()
         {
             var code = "interface I1 { }";
@@ -1612,7 +1613,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task EnumDeclaration1()
         {
             var code = "enum Weekday { }";
@@ -1624,7 +1625,7 @@ public class Program
         }
 
         [WorkItem(4302, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ClassInEnum()
         {
             var code = "enum E { Min = System.Int32.MinValue }";
@@ -1642,7 +1643,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DelegateDeclaration1()
         {
             var code = "delegate void Action();";
@@ -1655,7 +1656,7 @@ public class Program
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GenericTypeArgument()
         {
             await TestInMethodAsync("C<T>", "M", "default(T)",
@@ -1665,7 +1666,7 @@ public class Program
                 Punctuation.CloseParen);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GenericParameter()
         {
             var code = "class C1<P1> {}";
@@ -1679,7 +1680,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GenericParameters()
         {
             var code = "class C1<P1,P2> {}";
@@ -1695,7 +1696,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GenericParameter_Interface()
         {
             var code = "interface I1<P1> {}";
@@ -1709,7 +1710,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GenericParameter_Struct()
         {
             var code = "struct S1<P1> {}";
@@ -1723,7 +1724,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GenericParameter_Delegate()
         {
             var code = "delegate void D1<P1> {}";
@@ -1738,7 +1739,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GenericParameter_Method()
         {
             await TestInClassAsync(@"T M<T>(T t) { return default(T); }",
@@ -1761,7 +1762,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TernaryExpression()
         {
             await TestInExpressionAsync("true ? 1 : 0",
@@ -1772,7 +1773,7 @@ public class Program
                 Number("0"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task BaseClass()
         {
             await TestAsync("class C : B { }",
@@ -1784,7 +1785,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task Label()
         {
             await TestInMethodAsync("foo:",
@@ -1792,7 +1793,7 @@ public class Program
                 Punctuation.Colon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task Attribute()
         {
             await TestAsync("[assembly: Foo]",
@@ -1803,7 +1804,7 @@ public class Program
                 Punctuation.CloseBracket);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestAngleBracketsOnGenericConstraints_Bug932262()
         {
             await TestAsync(@"class C<T> where T : A<T> { }",
@@ -1823,7 +1824,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestYieldPositive()
         {
             await TestInMethodAsync(
@@ -1835,7 +1836,7 @@ public class Program
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestYieldNegative()
         {
             await TestInMethodAsync(
@@ -1846,7 +1847,7 @@ public class Program
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestFromPositive()
         {
             await TestInExpressionAsync(
@@ -1858,7 +1859,7 @@ public class Program
                 Identifier("y"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestFromNegative()
         {
             await TestInMethodAsync(
@@ -1869,7 +1870,7 @@ public class Program
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersModule()
         {
             await TestAsync(@"[module: Obsolete]",
@@ -1880,7 +1881,7 @@ public class Program
                 Punctuation.CloseBracket);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersAssembly()
         {
             await TestAsync(@"[assembly: Obsolete]",
@@ -1891,7 +1892,7 @@ public class Program
                 Punctuation.CloseBracket);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnDelegate()
         {
             await TestInClassAsync(@"[type: A] [return: A] delegate void M();",
@@ -1913,7 +1914,7 @@ public class Program
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnMethod()
         {
             await TestInClassAsync(@"[return: A] [method: A] void M() { }",
@@ -1935,7 +1936,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnCtor()
         {
             await TestAsync(@"class C { [method: A] C() { } }",
@@ -1955,7 +1956,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnDtor()
         {
             await TestAsync(@"class C {  [method: A] ~C() { } }",
@@ -1976,7 +1977,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnOperator()
         {
             await TestInClassAsync(@"[method: A] [return: A] static T operator +(T a, T b) { }",
@@ -2005,7 +2006,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnEventDeclaration()
         {
             await TestInClassAsync(@"[event: A] event A E {
@@ -2054,7 +2055,7 @@ remove { } }
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnPropertyAccessors()
         {
             await TestInClassAsync(@"int P {
@@ -2096,7 +2097,7 @@ set{ } }",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnIndexers()
         {
             await TestInClassAsync(@"[property: A] int this[int i] { get; set; }",
@@ -2119,7 +2120,7 @@ set{ } }",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnIndexerAccessors()
         {
             await TestInClassAsync(@"int this[int i] {
@@ -2165,7 +2166,7 @@ set { } }",
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnField()
         {
             await TestInClassAsync(@"[field: A]
@@ -2183,7 +2184,7 @@ const int a = 0;",
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestAllKeywords()
         {
             await TestAsync(@"using System;
@@ -2777,7 +2778,7 @@ namespace MyNamespace
                 PPText("TaoRegion"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestAllOperators()
         {
             await TestAsync(@"using IO = System.IO;
@@ -3084,7 +3085,7 @@ public class Foo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestPartialMethodWithNamePartial()
         {
             await TestAsync(@"partial class C
@@ -3139,7 +3140,7 @@ public class Foo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ValueInSetterAndAnonymousTypePropertyName()
         {
             await TestAsync(@"class C { int P { set { var t = new { value = value }; } } }",
@@ -3166,8 +3167,8 @@ public class Foo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(538680)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(538680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestValueInLabel()
         {
             await TestAsync(@"class C
@@ -3194,8 +3195,8 @@ public class Foo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541150)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestGenericVar()
         {
             await TestAsync(@"using System;
@@ -3239,8 +3240,8 @@ class var<T> { }
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541154)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestInaccessibleVar()
         {
             await TestAsync(@"using System;
@@ -3290,8 +3291,8 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541613)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(541613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestEscapedVar()
         {
             await TestAsync(@"class Program
@@ -3323,8 +3324,8 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(542432)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVar()
         {
             await TestAsync(@"class Program
@@ -3388,8 +3389,8 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(543123)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVar2()
         {
             await TestAsync(@"class Program
@@ -3425,7 +3426,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task InterpolatedStrings1()
         {
             var code = @"
@@ -3450,7 +3451,7 @@ var y = $""Hello, {x}"";
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task InterpolatedStrings2()
         {
             var code = @"
@@ -3484,7 +3485,7 @@ var c = $""{a}, {b}"";
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task InterpolatedStrings3()
         {
             var code = @"
@@ -3518,7 +3519,7 @@ var c = $@""{a}, {b}"";
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ExceptionFilter1()
         {
             var code = @"
@@ -3542,7 +3543,7 @@ catch when (true)
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ExceptionFilter2()
         {
             var code = @"
@@ -3571,7 +3572,7 @@ catch (System.Exception) when (true)
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task OutVar()
         {
             var code = @"
@@ -3585,7 +3586,7 @@ F(out var);";
                 Punctuation.Semicolon);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ReferenceDirective()
         {
             var code = @"
@@ -3596,7 +3597,7 @@ F(out var);";
                 String("\"file.dll\""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LoadDirective()
         {
             var code = @"
@@ -3607,7 +3608,7 @@ F(out var);";
                 String("\"file.csx\""));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task IncompleteAwaitInNonAsyncContext()
         {
             var code = @"
@@ -3628,7 +3629,7 @@ void M()
                 Punctuation.CloseCurly);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CompleteAwaitInNonAsyncContext()
         {
             var code = @"
@@ -3648,6 +3649,72 @@ void M()
                 Identifier("await"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TupleDeclaration()
+        {
+            await TestInMethodAsync("(int, string) x",
+                TestOptions.Regular,
+                Options.Script,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Punctuation.Comma,
+                Keyword("string"),
+                Punctuation.CloseParen,
+                Identifier("x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TupleDeclarationWithNames()
+        {
+            await TestInMethodAsync("(int a, string b) x",
+                TestOptions.Regular,
+                Options.Script,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Identifier("a"),
+                Punctuation.Comma,
+                Keyword("string"),
+                Identifier("b"),
+                Punctuation.CloseParen,
+                Identifier("x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TupleLiteral()
+        {
+            await TestInMethodAsync("var values = (1, 2)",
+                TestOptions.Regular,
+                Options.Script,
+                Keyword("var"),
+                Identifier("values"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TupleLiteralWithNames()
+        {
+            await TestInMethodAsync("var values = (a: 1, b: 2)",
+                TestOptions.Regular,
+                Options.Script,
+                Keyword("var"),
+                Identifier("values"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Identifier("a"),
+                Punctuation.Colon,
+                Number("1"),
+                Punctuation.Comma,
+                Identifier("b"),
+                Punctuation.Colon,
+                Number("2"),
+                Punctuation.CloseParen);
         }
     }
 }

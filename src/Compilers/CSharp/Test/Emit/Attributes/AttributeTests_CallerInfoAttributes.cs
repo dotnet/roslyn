@@ -652,7 +652,7 @@ partial class D
                 Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
         }
 
-        [Fact, WorkItem(531044, "DevDiv")]
+        [Fact, WorkItem(531044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531044")]
         public void TestUnconsumedCallerInfoAttributes()
         {
             string source = @"
@@ -897,7 +897,7 @@ partial class D
                 Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
         }
 
-        [WorkItem(689618, "DevDiv")]
+        [WorkItem(689618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689618")]
         [Fact]
         public void TestCallerMemberNameUnconsumedBadType()
         {
@@ -933,7 +933,7 @@ partial class D
             CompileAndVerify(compilation, expectedOutput: "");
         }
 
-        [WorkItem(689618, "DevDiv")]
+        [WorkItem(689618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689618")]
         [Fact]
         public void TestCallerMemberNameUnconsumedBadType02()
         {
@@ -1828,7 +1828,7 @@ name: C:\file.cs
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(546977, "DevDiv")]
+        [Fact, WorkItem(546977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546977")]
         public void Bug_17433()
         {
             var source = @"using System.Reflection;
@@ -1859,7 +1859,7 @@ class Driver
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(531036, "DevDiv")]
+        [Fact, WorkItem(531036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531036")]
         public void Repro_17443()
         {
             var source = @"
@@ -1910,7 +1910,7 @@ CallerInfoAttributed: (, 22, Property1)
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(531036, "DevDiv")]
+        [Fact, WorkItem(531036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531036")]
         public void CallerMemberNameAttributedAttributeOnNonMethodMembers()
         {
             var source = @"
@@ -1980,7 +1980,7 @@ MyMethod
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(531040, "DevDiv")]
+        [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
         public void Repro_17449()
         {
             var source = @"
@@ -2014,7 +2014,7 @@ class Program
         }
 
 
-        [Fact, WorkItem(531040, "DevDiv")]
+        [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
         public void TestBadAttributeParameterTypeWithCallerLineNumber()
         {
             var source = @"
@@ -2058,7 +2058,7 @@ class Program
         }
 
 
-        [Fact, WorkItem(531043, "DevDiv")]
+        [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void Repro_17457()
         {
             var source = @"
@@ -2099,7 +2099,7 @@ class Test
         }
 
 
-        [Fact, WorkItem(531043, "DevDiv")]
+        [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void InvalidDecimalInCustomAttributeParameterWithCallerLineNumber()
         {
             var source = @"
@@ -2130,7 +2130,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2DecimalAttribute").WithArguments("lineNumber", "decimal"));
         }
 
-        [Fact, WorkItem(531043, "DevDiv")]
+        [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void AllLegalConversionForCallerLineNumber()
         {
             var source = @"
@@ -2217,7 +2217,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(531046, "DevDiv")]
+        [Fact, WorkItem(531046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531046")]
         public void TestUserDefinedImplicitConversion()
         {
             var source = @"
@@ -2261,7 +2261,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "Test"));
         }
 
-        [Fact, WorkItem(546980, "DevDiv")]
+        [Fact, WorkItem(546980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546980")]
         public void TestBaseCtorInvocation()
         {
             var source = @"
@@ -2367,7 +2367,7 @@ query path : C:\filename
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(531034, "DevDiv")]
+        [Fact, WorkItem(531034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531034")]
         public void WarnOnCallerInfoCollision()
         {
             var source = @"
@@ -2461,7 +2461,7 @@ C:\filename
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(531034, "DevDiv")]
+        [Fact, WorkItem(531034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531034")]
         public void WarnOnCallerInfoCollisionWithBadType()
         {
             var source = @"
@@ -2499,7 +2499,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s"));
         }
 
-        [WorkItem(604367, "DevDiv")]
+        [WorkItem(604367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604367")]
         [Fact]
         public void TestCallerInfoInQuery()
         {
@@ -2574,7 +2574,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(949118, "DevDiv")]
+        [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
         [WorkItem(152, "CodePlex")]
         [Fact]
         public void Bug949118_1()
@@ -2610,7 +2610,7 @@ F2";
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(949118, "DevDiv")]
+        [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
         [WorkItem(152, "CodePlex")]
         [Fact]
         public void Bug949118_2()
@@ -2646,7 +2646,7 @@ F2";
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(949118, "DevDiv")]
+        [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
         [WorkItem(152, "CodePlex")]
         [Fact]
         public void Bug949118_3()
@@ -2690,7 +2690,7 @@ public class Foo : I1
         /// We also provide caller information to an invocation of an <c>Add</c> method generated for an element-initializer in a collection-initializer
         /// to match the native compiler behavior and user requests. 
         /// </summary>
-        [WorkItem(991476, "DevDiv")]
+        [WorkItem(991476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991476")]
         [WorkItem(171, "CodePlex")]
         [Fact]
         public void Bug991476_1()
@@ -2747,7 +2747,7 @@ C:\filename";
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(991476, "DevDiv")]
+        [WorkItem(991476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991476")]
         [WorkItem(171, "CodePlex")]
         [Fact]
         public void Bug991476_2()
@@ -2807,7 +2807,7 @@ Main
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(1006447, "DevDiv")]
+        [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
         [Fact]
         public void Bug1006447_1()
         {
@@ -2868,7 +2868,7 @@ Get X(""C:\filename"")
 ");
         }
 
-        [WorkItem(1006447, "DevDiv")]
+        [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
         [Fact]
         public void Bug1006447_2()
         {
@@ -2901,7 +2901,7 @@ class C
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(1006447, "DevDiv")]
+        [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
         [Fact]
         public void Bug1006447_3()
         {

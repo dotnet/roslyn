@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
 
         public static ImmutableArray<string> s_rootLocations;
 
-        public static ImmutableArray<string> RootLocations 
+        public static ImmutableArray<string> RootLocations
         {
             get
             {

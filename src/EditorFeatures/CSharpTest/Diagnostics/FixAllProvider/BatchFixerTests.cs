@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
 
         #region "Fix all occurrences tests"
 
-        [Fact, WorkItem(320)]
+        [Fact, WorkItem(320, "https://github.com/dotnet/roslyn/issues/320")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument_QualifyWithThis()
         {

@@ -3,7 +3,7 @@
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class ArrayExpansionTests : Inherits VisualBasicResultProviderTestBase
 

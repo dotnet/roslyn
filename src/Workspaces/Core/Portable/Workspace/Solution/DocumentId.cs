@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -21,14 +19,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly string _debugName;
 
-        private DocumentId(ProjectId projectId, string debugName)
-        {
-            this.ProjectId = projectId;
-            this.Id = Guid.NewGuid();
-            _debugName = debugName;
-        }
-
-        internal DocumentId(ProjectId projectId, Guid guid, string debugName)
+        private DocumentId(ProjectId projectId, Guid guid, string debugName)
         {
             this.ProjectId = projectId;
             this.Id = guid;
@@ -47,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            return new DocumentId(projectId, debugName);
+            return new DocumentId(projectId, Guid.NewGuid(), debugName);
         }
 
         public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string debugName = null)
@@ -65,12 +56,12 @@ namespace Microsoft.CodeAnalysis
             return new DocumentId(projectId, id, debugName);
         }
 
+        internal string DebugName => _debugName;
+
         internal string GetDebuggerDisplay()
         {
             return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
         }
-
-        internal string DebugName { get { return _debugName; } }
 
         public override string ToString()
         {

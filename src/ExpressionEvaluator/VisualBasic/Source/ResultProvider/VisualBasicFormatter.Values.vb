@@ -1,10 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.ObjectModel
-Imports System.Globalization
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Roslyn.Utilities
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
 
@@ -21,15 +20,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Sub AppendEnumTypeAndName(builder As StringBuilder, typeToDisplayOpt As Type, name As String)
             If typeToDisplayOpt IsNot Nothing Then
-                Dim index As Integer = 0
-                AppendQualifiedTypeName(builder, typeToDisplayOpt, Nothing, index, escapeKeywordIdentifiers:=True, sawInvalidIdentifier:=Nothing)
+                Dim index1 As Integer = 0
+                Dim index2 As Integer = 0
+                AppendQualifiedTypeName(
+                    builder,
+                    typeToDisplayOpt,
+                    Nothing,
+                    index1,
+                    Nothing,
+                    index2,
+                    escapeKeywordIdentifiers:=True,
+                    sawInvalidIdentifier:=Nothing)
                 builder.Append("."c)
             End If
 
             builder.Append(name)
         End Sub
 
-        Friend Overrides Function GetArrayDisplayString(lmrType As Type, sizes As ReadOnlyCollection(Of Integer), lowerBounds As ReadOnlyCollection(Of Integer), options As ObjectDisplayOptions) As String
+        Friend Overrides Function GetArrayDisplayString(appDomain As DkmClrAppDomain, lmrType As Type, sizes As ReadOnlyCollection(Of Integer), lowerBounds As ReadOnlyCollection(Of Integer), options As ObjectDisplayOptions) As String
             Debug.Assert(lmrType.IsArray)
 
             ' Strip off additional array types (jagged arrays).  We'll only show the size of the "first" array.
@@ -76,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return pooled.ToStringAndFree()
         End Function
 
-        Friend Overrides Function GetCastExpression(argument As String, type As String, Optional parenthesizeArgument As Boolean = False, Optional parenthesizeEntireExpression As Boolean = False) As String
+        Friend Overrides Function GetCastExpression(argument As String, type As String, parenthesizeArgument As Boolean, parenthesizeEntireExpression As Boolean) As String
             Debug.Assert(Not String.IsNullOrEmpty(argument))
             Debug.Assert(Not String.IsNullOrEmpty(type))
 
@@ -87,6 +95,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             builder.Append(argument)
             builder.Append(", ")
             builder.Append(type)
+            builder.Append(")"c)
+
+            Return pooled.ToStringAndFree()
+        End Function
+
+        Friend Overrides Function GetTupleExpression(values() As String) As String
+            Debug.Assert(values IsNot Nothing)
+
+            Dim pooled = PooledStringBuilder.GetInstance()
+            Dim builder = pooled.Builder
+
+            builder.Append("("c)
+            Dim any As Boolean = False
+            For Each value In values
+                If any Then
+                    builder.Append(", ")
+                End If
+                builder.Append(value)
+                any = True
+            Next
             builder.Append(")"c)
 
             Return pooled.ToStringAndFree()

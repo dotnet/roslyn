@@ -3,7 +3,7 @@
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             compilationOptions As CompilationOptions
         ) As Task(Of TestWorkspace)
 
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(
+            Return TestWorkspace.CreateVisualBasicAsync(
                 definition,
                 parseOptions,
                 If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
@@ -33,15 +33,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Return input.Replace("\n", vbCrLf)
         End Function
 
-        Protected Overloads Async Function TestAsync(initialMarkup As XElement, expected As XElement, Optional index As Integer = 0, Optional compareTokens As Boolean = True) As Threading.Tasks.Task
+        Friend Overloads Async Function TestAsync(
+                initialMarkup As XElement, expected As XElement, Optional index As Integer = 0,
+                Optional compareTokens As Boolean = True, Optional priority As CodeActionPriority? = Nothing) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
 
-            Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions, index:=index, compareTokens:=compareTokens)
+            Await MyBase.TestAsync(initialMarkupStr, expectedStr,
+                                   parseOptions:=Nothing, compilationOptions:=_compilationOptions,
+                                   index:=index, compareTokens:=compareTokens,
+                                   priority:=priority)
         End Function
 
         Protected Overloads Async Function TestMissingWithWorkspaceXmlAsync(initialMarkup As XElement) As Threading.Tasks.Task
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(initialMarkup)
+            Using workspace = TestWorkspace.CreateWorkspace(initialMarkup)
                 Dim diagnostics = Await GetDiagnosticAndFixAsync(workspace)
                 Assert.Null(diagnostics)
             End Using

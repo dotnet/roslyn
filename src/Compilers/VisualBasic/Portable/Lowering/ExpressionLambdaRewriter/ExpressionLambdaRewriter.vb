@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _recursionDepth As Integer
 
         Private Sub New(currentMethod As MethodSymbol, compilationState As TypeCompilationState, typeMap As TypeSubstitution, binder As Binder,
-                        node As VisualBasicSyntaxNode, recursionDepth As Integer, diagnostics As DiagnosticBag)
+                        node As SyntaxNode, recursionDepth As Integer, diagnostics As DiagnosticBag)
             _binder = binder
             _typeMap = typeMap
             _factory = New SyntheticBoundNodeFactory(Nothing, currentMethod, node, compilationState, diagnostics)
@@ -187,7 +187,7 @@ lSelect:
             End If
 
             ' Set the syntax node for bound nodes we are generating.
-            Dim old As VisualBasicSyntaxNode = _factory.Syntax
+            Dim old As SyntaxNode = _factory.Syntax
             _factory.Syntax = node.Syntax
             Dim result = VisitInternal(node)
             _factory.Syntax = old
@@ -217,7 +217,11 @@ lSelect:
                 Case BoundKind.DirectCast
                     Return VisitDirectCast(DirectCast(node, BoundDirectCast))
                 Case BoundKind.FieldAccess
-                    Return VisitFieldAccess(DirectCast(node, BoundFieldAccess))
+                    Dim fieldAccess = DirectCast(node, BoundFieldAccess)
+                    If fieldAccess.FieldSymbol.IsCapturedFrame Then
+                        Return CreateLiteralExpression(node)
+                    End If
+                    Return VisitFieldAccess(fieldAccess)
                 Case BoundKind.Lambda
                     Return VisitLambda(DirectCast(node, BoundLambda))
                 Case BoundKind.NewT
@@ -680,8 +684,9 @@ lSelect:
                                 node.Expression,
                                 ImmutableArray(Of BoundExpression).Empty,
                                 Nothing,
-                                True,
-                                resultType))
+                                isLValue:=False,
+                                suppressObjectClone:=True,
+                                type:=resultType))
             Else
                 Return ConvertRuntimeHelperToExpressionTree("ArrayLength", Visit(node.Expression))
             End If

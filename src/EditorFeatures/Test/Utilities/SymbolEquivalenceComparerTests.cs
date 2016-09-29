@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
             WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
 
-        [WpfFact]
+        [Fact]
         public async Task TestArraysAreEquivalent()
         {
             var csharpCode =
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     System.Int32 int32Field2;
 }";
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(csharpCode))
             {
                 var type = (ITypeSymbol)(await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestArraysInDifferentLanguagesAreEquivalent()
         {
             var csharpCode =
@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     dim int32Field1 as System.Int32
 end class";
 
-            using (var csharpWorkspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode))
-            using (var vbWorkspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode))
+            using (var csharpWorkspace = await TestWorkspace.CreateCSharpAsync(csharpCode))
+            using (var vbWorkspace = await TestWorkspace.CreateVisualBasicAsync(vbCode))
             {
                 var csharpType = (ITypeSymbol)(await csharpWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
                 var vbType = (await vbWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
@@ -162,7 +162,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestFields()
         {
             var csharpCode1 =
@@ -190,8 +190,8 @@ class Type2
     bool field3;
     string field2;
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type2_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
@@ -217,8 +217,8 @@ class Type2
             }
         }
 
-        [WorkItem(538124)]
-        [WpfFact]
+        [WorkItem(538124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538124")]
+        [Fact]
         public async Task TestFieldsAcrossLanguages()
         {
             var csharpCode1 =
@@ -244,8 +244,8 @@ class Type2
     dim field3 as Boolean;
     dim field2 as String;
 end class";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode1))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateVisualBasicAsync(vbCode1))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type2_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
@@ -268,7 +268,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestFieldsInGenericTypes()
         {
             var code =
@@ -286,7 +286,7 @@ class D
 }
 ";
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var typeC = (await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
                 var typeD = (await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("D").Single();
@@ -317,7 +317,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentReturnTypeNotEquivalent()
         {
             var csharpCode1 =
@@ -331,8 +331,8 @@ class D
 {
     int Foo() {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -344,7 +344,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentNamesAreNotEquivalent()
         {
             var csharpCode1 =
@@ -358,8 +358,8 @@ class D
 {
     void Foo1() {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -371,7 +371,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentAritiesAreNotEquivalent()
         {
             var csharpCode1 =
@@ -385,8 +385,8 @@ class D
 {
     void Foo<T>() {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -398,7 +398,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentParametersAreNotEquivalent()
         {
             var csharpCode1 =
@@ -412,8 +412,8 @@ class D
 {
     void Foo(int a) {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -425,7 +425,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentTypeParameters()
         {
             var csharpCode1 =
@@ -439,8 +439,8 @@ class D
 {
     void Foo<B>(B a) {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -454,7 +454,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithSameParameters()
         {
             var csharpCode1 =
@@ -468,8 +468,8 @@ class D
 {
     void Foo(int a) {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -483,7 +483,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentParameterNames()
         {
             var csharpCode1 =
@@ -497,8 +497,8 @@ class D
 {
     void Foo(int b) {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -512,7 +512,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsAreEquivalentOutToRef()
         {
             var csharpCode1 =
@@ -526,8 +526,8 @@ class D
 {
     void Foo(ref int a) {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -539,7 +539,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsNotEquivalentRemoveOut()
         {
             var csharpCode1 =
@@ -553,8 +553,8 @@ class D
 {
     void Foo(int a) {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -566,7 +566,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsAreEquivalentIgnoreParams()
         {
             var csharpCode1 =
@@ -580,8 +580,8 @@ class D
 {
     void Foo(int[] a) {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -595,7 +595,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsNotEquivalentDifferentParameterTypes()
         {
             var csharpCode1 =
@@ -609,8 +609,8 @@ class D
 {
     void Foo(string[] a) {}
 }";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -622,7 +622,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsAcrossLanguages()
         {
             var csharpCode1 =
@@ -645,8 +645,8 @@ class Type1
     sub Quux()
     end sub
 end class";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode1))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateVisualBasicAsync(vbCode1))
             {
                 var csharpType1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var vbType1 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -669,7 +669,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsInGenericTypesAcrossLanguages()
         {
             var csharpCode1 =
@@ -692,8 +692,8 @@ class Type1(of M)
     sub Bar(x as Object)
     end sub
 end class";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode1))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateVisualBasicAsync(vbCode1))
             {
                 var csharpType1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var vbType1 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -716,7 +716,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestObjectAndDynamicAreNotEqualNormally()
         {
             var csharpCode1 =
@@ -726,7 +726,7 @@ end class";
     dynamic field2;
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
@@ -738,7 +738,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestObjectAndDynamicAreEqualInSignatures()
         {
             var csharpCode1 =
@@ -753,8 +753,8 @@ end class";
     void Foo(dynamic o1) { }
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -769,7 +769,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestUnequalGenericsInSignatures()
         {
             var csharpCode1 =
@@ -790,8 +790,8 @@ class Type1
     void Foo(IList<string> o1) { }
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -804,7 +804,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGenericsWithDynamicAndObjectInSignatures()
         {
             var csharpCode1 =
@@ -825,8 +825,8 @@ class Type1
     void Foo(IList<dynamic> o1) { }
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -841,7 +841,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestDynamicAndUnrelatedTypeInSignatures()
         {
             var csharpCode1 =
@@ -862,8 +862,8 @@ class Type1
     void Foo(string o1) { }
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -876,7 +876,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamespaces()
         {
             var csharpCode1 =
@@ -895,8 +895,8 @@ class Type1
 }
 ";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
             {
                 var outer1 = (INamespaceSymbol)(await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetMembers("Outer").Single();
                 var outer2 = (INamespaceSymbol)(await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetMembers("Outer").Single();
@@ -949,7 +949,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesEquivalent()
         {
             var csharpCode1 =
@@ -974,8 +974,8 @@ class Type2<Y>
 {
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -997,7 +997,7 @@ class Type2<Y>
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesDifferentIfNameChanges()
         {
             var csharpCode1 =
@@ -1013,8 +1013,8 @@ class Type2
   void Foo();
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
@@ -1024,7 +1024,7 @@ class Type2
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesDifferentIfTypeKindChanges()
         {
             var csharpCode1 =
@@ -1040,8 +1040,8 @@ class Type1
   void Foo();
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -1051,7 +1051,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesDifferentIfArityChanges()
         {
             var csharpCode1 =
@@ -1067,8 +1067,8 @@ class Type1<T>
   void Foo();
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -1078,7 +1078,7 @@ class Type1<T>
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesDifferentIfContainerDifferent()
         {
             var csharpCode1 =
@@ -1100,8 +1100,8 @@ class Other
     }
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var outer = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Outer").Single();
                 var other = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Other").Single();
@@ -1113,7 +1113,7 @@ class Other
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestAliasedTypes1()
         {
             var csharpCode1 =
@@ -1132,8 +1132,8 @@ class Type1
     void Foo(int o1) { }
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -1149,7 +1149,7 @@ class Type1
         }
 
         [WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")]
-        [WpfFact]
+        [Fact]
         public async Task TestRefVersusOut()
         {
             var csharpCode1 =
@@ -1166,8 +1166,8 @@ class C
     void M(ref int i) { }
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
@@ -1189,7 +1189,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestCSharpReducedExtensionMethodsAreEquivalent()
         {
             var code = @"
@@ -1241,8 +1241,8 @@ class Test
     } 
 }
 ";
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
                 var comp2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync());
@@ -1255,7 +1255,7 @@ class Test
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestVisualBasicReducedExtensionMethodsAreEquivalent()
         {
             var code = @"
@@ -1317,8 +1317,8 @@ Class Test
     End Sub
 End Class
 ";
-            using (var workspace1 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
-            using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace1 = await TestWorkspace.CreateVisualBasicAsync(code))
+            using (var workspace2 = await TestWorkspace.CreateVisualBasicAsync(code))
             {
                 var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
                 var comp2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync());
@@ -1331,7 +1331,7 @@ End Class
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestDifferentModules()
         {
             var csharpCode =
@@ -1342,8 +1342,8 @@ End Class
     }
 }";
 
-            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { csharpCode }, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "FooModule")))
-            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { csharpCode }, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "BarModule")))
+            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "FooModule")))
+            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "BarModule")))
             {
                 var namespace1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");
                 var namespace2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");
@@ -1358,7 +1358,7 @@ End Class
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void AssemblyComparer1()
         {
             var references = new[] { TestReferences.NetFx.v4_0_30319.mscorlib };
@@ -1418,7 +1418,7 @@ End Class
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void CustomModifiers_Methods1()
         {
             const string ilSource = @"

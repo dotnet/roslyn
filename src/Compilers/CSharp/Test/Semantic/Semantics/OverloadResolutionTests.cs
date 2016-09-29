@@ -472,7 +472,562 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Threading.T
         }
 
         [Fact]
-        public void BetterDelegateType()
+        public void BetterTasklikeType()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        h(async () => { await (Task)null; return 1; });
+    }
+    static void h<T>(Func<Task<T>> lambda) { }
+    static void h<T>(Func<MyTask<T>> lambda) { }
+}
+[AsyncMethodBuilder(typeof(MyTaskBuilder<>))]
+public class MyTask<T> { }
+public class MyTaskBuilder<T>
+{
+    public static MyTaskBuilder<T> Create() => null;
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public MyTask<T> Task => default(MyTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
+                //         h(async () => { await (Task)null; return 1; });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h<T>(System.Func<System.Threading.Tasks.Task<T>>)", "C.h<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
+                );
+
+            string source2 = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        k(async () => { await (Task)null; return 1; });
+    }
+    static void k<T>(Func<YourTask<T>> lambda) { }
+    static void k<T>(Func<MyTask<T>> lambda) { }
+}
+[AsyncMethodBuilder(typeof(MyTaskBuilder<>))]
+public class MyTask<T> { }
+public class MyTaskBuilder<T>
+{
+    public static MyTaskBuilder<T> Create() => null;
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public MyTask<T> Task => default(MyTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+[AsyncMethodBuilder(typeof(YourTask<>))]
+public class YourTask<T> { }
+public class YourTaskBuilder<T>
+{
+    public static YourTaskBuilder<T> Create() => null;
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public YourTask<T> Task => default(YourTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
+                //         k(async () => { await (Task)null; return 1; });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "k").WithArguments("C.k<T>(System.Func<YourTask<T>>)", "C.k<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+class A<T>
+{
+    internal struct B<U> { }
+}
+unsafe class C<T, U>
+{
+#pragma warning disable CS0169
+    static MyTask F0;
+    static MyTask<T> F1;
+    static C<MyTask, MyTask[]>[,] F2;
+    static A<MyTask<MyTask>>.B<C<int, MyTask>> F3;
+    static int* F4;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+}
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<T>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<T>", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("C<MyTask, MyTask[]>[,]", type.ToTestDisplayString());
+            Assert.Equal("C<System.Threading.Tasks.Task, System.Threading.Tasks.Task[]>[,]", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F3").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("A<MyTask<MyTask>>.B<C<System.Int32, MyTask>>", type.ToTestDisplayString());
+            Assert.Equal("A<System.Threading.Tasks.Task<System.Threading.Tasks.Task>>.B<C<System.Int32, System.Threading.Tasks.Task>>", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F4").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("System.Int32*", type.ToTestDisplayString());
+            Assert.Equal("System.Int32*", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Tuples()
+        {
+            string source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C<T, U>
+{
+#pragma warning disable CS0169
+    static MyTask<ValueTuple<MyTask, T>> F0;
+    static ((MyTask a, T b) c, MyTask<(U, MyTask<T>)[]> d) F1;
+    static Task<(Task, object)[]> F2;
+    static (MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>) F3;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+}
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+    }
+    struct ValueTuple<T1, T2, T3>
+    {
+    }
+    struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>
+    {
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] names) { }
+    }
+
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<(MyTask, T)>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<(System.Threading.Tasks.Task, T)>", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("((MyTask a, T b) c, MyTask<(U, MyTask<T>)[]> d)", type.ToTestDisplayString());
+            Assert.Equal("((System.Threading.Tasks.Task a, T b) c, System.Threading.Tasks.Task<(U, System.Threading.Tasks.Task<T>)[]> d)", normalized.ToTestDisplayString());
+
+            // No changes.
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("System.Threading.Tasks.Task<(System.Threading.Tasks.Task, System.Object)[]>", type.ToTestDisplayString());
+            Assert.Same(type, normalized);
+
+            // Nested System.ValueTuple<>.
+            type = compilation.GetMember<FieldSymbol>("C.F3").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("(MyTask, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, MyTask<T>)", type.ToTestDisplayString());
+            Assert.Equal("(System.Threading.Tasks.Task, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.Threading.Tasks.Task<T>)", normalized.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.UInt32, System.Int64, MyTask<T>>", GetUnderlyingTupleTypeRest(type).ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.UInt32, System.Int64, System.Threading.Tasks.Task<T>>", GetUnderlyingTupleTypeRest(normalized).ToTestDisplayString());
+        }
+
+        // Return the underlying type of the most-nested part of the TupleTypeSymbol.
+        private static NamedTypeSymbol GetUnderlyingTupleTypeRest(TypeSymbol type)
+        {
+            while (type.IsTupleType)
+            {
+                var underlyingType = type.TupleUnderlyingType;
+                var typeArgs = underlyingType.TypeArguments;
+                if (typeArgs.Length < 8)
+                {
+                    return underlyingType;
+                }
+                type = typeArgs[7];
+            }
+            return null;
+        }
+
+        // Preserve type argument custom modifiers.
+        [WorkItem(592, "https://github.com/dotnet/roslyn/issues/12615")]
+        [Fact]
+        public void NormalizeTaskTypes_TypeArgumentCustomModifiers()
+        {
+            var ilSource =
+@".class public C
+{
+  .field public static class MyTask`1<class MyTask modopt(class MyTask`1<object>)> F0
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask`1<T>
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder`1) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder`1<T>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncMethodBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
+}
+";
+            var source =
+@"";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<MyTask modopt(MyTask<System.Object>)>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<System.Threading.Tasks.Task modopt(MyTask<System.Object>)>", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Pointers()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+unsafe class C<T>
+{
+#pragma warning disable CS0169
+    static C<MyTask<int>>* F0;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            compilation.VerifyDiagnostics(
+                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
+                //     static C<MyTask<int>>* F0;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C<MyTask<int>>*").WithArguments("C<MyTask<int>>").WithLocation(6, 12));
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("C<MyTask<System.Int32>>*", type.ToTestDisplayString());
+            Assert.Equal("C<System.Threading.Tasks.Task<System.Int32>>*", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_PointersCustomModifiers()
+        {
+            var ilSource =
+@".class public C
+{
+  .field public static class MyTask modopt(class MyTask) *[] F0
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncMethodBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
+}
+";
+            var source =
+@"";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask modopt(MyTask) *[]", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task modopt(MyTask) *[]", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Errors()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+class C
+{
+#pragma warning disable CS0169
+    static A<int, MyTask> F0;
+    static MyTask<B> F1;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+}
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics(
+                // (5,19): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //     static MyTask<B> F1;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 19),
+                // (4,12): error CS0246: The type or namespace name 'A<,>' could not be found (are you missing a using directive or an assembly reference?)
+                //     static A<int, MyTask> F0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<int, MyTask>").WithArguments("A<,>").WithLocation(6, 12));
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            Assert.Equal(TypeKind.Error, type.TypeKind);
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("A<System.Int32, MyTask>", type.ToTestDisplayString());
+            Assert.Equal("A<System.Int32, System.Threading.Tasks.Task>", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            Assert.Equal(TypeKind.Error, ((NamedTypeSymbol)type).TypeArguments[0].TypeKind);
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<B>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<B>", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Inner()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+class C<T, U>
+{
+#pragma warning disable CS0169
+    static MyTask<U> F0;
+    static C<U, MyTask>.MyTask F1;
+    static C<T, MyTask<U>>.Inner F2;
+#pragma warning restore CS0169
+    class Inner
+    {
+    }
+    [AsyncMethodBuilder(typeof(C<,>.MyTaskMethodBuilder))]
+    class MyTask { }
+    [AsyncMethodBuilder(typeof(C<,>.MyTaskMethodBuilder<>))]
+    class MyTask<V> { }
+    class MyTaskMethodBuilder
+    {
+        public static MyTaskMethodBuilder Create() => null;
+    }
+    class MyTaskMethodBuilder<V>
+    {
+        public static MyTaskMethodBuilder<V> Create() => null;
+    }
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("C<T, U>.MyTask<U>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<U>", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("C<U, C<T, U>.MyTask>.MyTask", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("C<T, C<T, U>.MyTask<U>>.Inner", type.ToTestDisplayString());
+            Assert.Equal("C<T, System.Threading.Tasks.Task<U>>.Inner", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Outer()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+class C
+{
+#pragma warning disable CS0169
+    static MyTask<MyTask.A> F0;
+    static MyTask<MyTask<object>>.B F1;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+class MyTask
+{
+    internal class A { }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+class MyTask<V>
+{
+    internal class B { }
+}
+class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => null;
+}
+class MyTaskMethodBuilder<V>
+{
+    public static MyTaskMethodBuilder<V> Create() => null;
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<MyTask.A>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<MyTask.A>", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<MyTask<System.Object>>.B", type.ToTestDisplayString());
+            Assert.Equal("MyTask<System.Threading.Tasks.Task<System.Object>>.B", normalized.ToTestDisplayString());
+        }
+
+        /// <summary>
+        /// Normalize should have no effect if System.Threading.Tasks.Task
+        /// and System.Threading.Tasks.Task&lt;T&gt; are not available.
+        /// </summary>
+        [Fact]
+        public void NormalizeTaskTypes_MissingWellKnownTypes()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+class C
+{
+#pragma warning disable CS0169
+    static MyTask<MyTask> F;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+}
+struct MyTaskMethodBuilder<T>
+{
+    public MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilation(source, references: new[] { MscorlibRef_v20 });
+            compilation.VerifyDiagnostics();
+            var type = compilation.GetMember<FieldSymbol>("C.F").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<MyTask>", type.ToTestDisplayString());
+            Assert.Equal("MyTask<MyTask>", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void BetterDelegateType_01()
         {
             string source1 = @"
 using System;
@@ -520,12 +1075,67 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("P.M2(System.Func<int>, 
                 );
         }
 
+        [Fact, WorkItem(6560, "https://github.com/dotnet/roslyn/issues/6560")]
+        public void BetterDelegateType_02()
+        {
+            string source1 = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Run1(() => MethodReturnsVoid());
+        Run1(MethodReturnsVoid);
+        Run2(() => MethodReturnsVoid());
+        Run2(MethodReturnsVoid);
+    }
+
+    public static object Run1(Action action)
+    {
+        Console.WriteLine(""Run1(Action action)"");
+        action();
+        return null;
+    }
+
+    public static object Run1(Func<object> action, bool optional = false)
+    {
+        Console.WriteLine(""Run1(Func<object> action, bool optional = false)"");
+        return action();
+    }
+
+    public static object Run2(Func<object> action, bool optional = false)
+    {
+        Console.WriteLine(""Run2(Func<object> action, bool optional = false)"");
+        return action();
+    }
+
+    public static object Run2(Action action)
+    {
+        Console.WriteLine(""Run2(Action action)"");
+        action();
+        return null;
+    }
+
+    private static void MethodReturnsVoid()
+    {
+    }
+}
+";
+
+            CompileAndVerify(source1, expectedOutput:
+@"Run1(Action action)
+Run1(Action action)
+Run2(Action action)
+Run2(Action action)");
+        }
+
         [Fact]
         public void TestBug9851()
         {
             // We should ensure that we do not report "no method M takes n parameters" if in fact
             // there is any method M that could take n parameters.
-            TestAllErrors(
+            var source =
 @"
 class C
 {
@@ -535,16 +1145,17 @@ class C
     {
         J(123.0, 456.0m);
     }
-}",
-"'J' error CS0411: The type arguments for method 'C.J<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly."
-
-);
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,9): error CS0411: The type arguments for method 'C.J<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         J(123.0, 456.0m);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "J").WithArguments("C.J<T>(T, T)").WithLocation(8, 9));
         }
 
         [Fact]
         public void TestLambdaErrorReporting()
         {
-            TestAllErrors(
+            var source =
 @"
 using System;
 class C
@@ -591,18 +1202,65 @@ class C
 
         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
     }
-}",
-          "'ToStrign' error CS1061: 'string' does not contain a definition for 'ToStrign' and no extension method 'ToStrign' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)",
-          "'y / 4.5' error CS0019: Operator '/' cannot be applied to operands of type 'string' and 'double'",
-          "'y == string.Empty' error CS0019: Operator '==' cannot be applied to operands of type 'int' and 'string'",
-          "'z - 4.5' error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'double'",
-          "'z == string.Empty' error CS0019: Operator '==' cannot be applied to operands of type 'double' and 'string'"
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (26,36): error CS1061: 'string' does not contain a definition for 'ToStrign' and no extension method 'ToStrign' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         J(x=>{ Console.WriteLine(x.ToStrign(), x.Length, x * 2); });
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToStrign").WithArguments("string", "ToStrign").WithLocation(26, 36),
+                // (30,34): error CS0019: Operator '==' cannot be applied to operands of type 'int' and 'string'
+                //         J(y=>{ Console.WriteLine(y == string.Empty, y / 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y == string.Empty").WithArguments("==", "int", "string").WithLocation(30, 34),
+                // (30,53): error CS0019: Operator '/' cannot be applied to operands of type 'string' and 'double'
+                //         J(y=>{ Console.WriteLine(y == string.Empty, y / 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y / 4.5").WithArguments("/", "string", "double").WithLocation(30, 53),
+                // (45,53): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'double'
+                //         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "z - 4.5").WithArguments("-", "string", "double").WithLocation(45, 53),
+                // (45,34): error CS0019: Operator '==' cannot be applied to operands of type 'double' and 'string'
+                //         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "z == string.Empty").WithArguments("==", "double", "string").WithLocation(45, 34));
+        }
 
-);
+        [Fact]
+        public void TestRefOutAnonymousDelegate()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+class p
+{
+    static void Foo<T>(ref Func<T,T> a) { }
+    static void Bar<T>(out Func<T, T> a) { a = null; }
+
+    static void Foo2<T>(ref Expression<Func<T,T>> a) { }
+    static void Bar2<T>(out Expression<Func<T, T>> a) { a = null; }
+
+    static void Main()
+    {
+        Foo<string>(x => x);
+        Bar<string>(x => x);
+        Foo2<string>(x => x);
+        Bar2<string>(x => x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (14,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Func<string, string>'
+                //         Foo<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Func<string, string>").WithLocation(14, 21),
+                // (15,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Func<string, string>'
+                //         Bar<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Func<string, string>").WithLocation(15, 21),
+                // (16,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Expression<Func<string, string>>'
+                //         Foo2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(16, 22),
+                // (17,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Expression<Func<string, string>>'
+                //         Bar2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(17, 22));
         }
 
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TestOverloadResolutionTiebreaker()
         {
             // Testing that we get the same ambiguity error as the one reported by the native compiler. 
@@ -628,7 +1286,7 @@ class C
         }
 
         [Fact]
-        private void TestConstraintViolationApplicabilityErrors()
+        public void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
             // *on a formal parameter type* is not met then the candidate is not applicable. But if a constraint
@@ -640,7 +1298,7 @@ class C
             // error to report. We only report the violation on the formal parameter if the constraint
             // is not violated on the method type parameter.
 
-            TestAllErrors(
+            var source =
 @"
 class C
 {
@@ -709,20 +1367,35 @@ class C
     static void Test4(object x) {}
     static void Test5<Y>(Y y, N<Y> ny) { }
     static void Test6<Z>(N<Z> nz) where Z : struct {}
-}",
-"'ny' error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'",
-"'Test1<string>' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'C.Test1<U>(U, C.N<U>)'",
-"'Test2' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'V' in the generic type or method 'C.Test2<V>(V, C.N<V>)'",
-"'Test4' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'X' in the generic type or method 'C.Test4<X>(X)'",
-"'Test5' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'",
-"'string' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'",
-"'Test6<L<string>>' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'");
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (67,36): error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
+                //     static void Test5<Y>(Y y, N<Y> ny) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ny").WithArguments("C.N<T>", "T", "Y").WithLocation(67, 36),
+                // (17,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'C.Test1<U>(U, C.N<U>)'
+                //         Test1<string>(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test1<string>").WithArguments("C.Test1<U>(U, C.N<U>)", "U", "string").WithLocation(17, 9),
+                // (21,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'V' in the generic type or method 'C.Test2<V>(V, C.N<V>)'
+                //         Test2(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test2").WithArguments("C.Test2<V>(V, C.N<V>)", "V", "string").WithLocation(21, 9),
+                // (36,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'X' in the generic type or method 'C.Test4<X>(X)'
+                //         Test4(s);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test4").WithArguments("C.Test4<X>(X)", "X", "string").WithLocation(36, 9),
+                // (47,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
+                //         Test5(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test5").WithArguments("C.N<T>", "T", "string").WithLocation(47, 9),
+                // (58,17): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'
+                //         Test6<L<string>>(null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("C.L<S>", "S", "string").WithLocation(58, 17),
+                // (58,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'
+                //         Test6<L<string>>(null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test6<L<string>>").WithArguments("C.L<S>", "S", "string").WithLocation(58, 9));
         }
         [Fact]
 
-        private void TestBug9583()
+        public void TestBug9583()
         {
-            TestErrors(
+            var source =
 @"
 class C
 {
@@ -731,15 +1404,17 @@ class C
         Foo();
     }
     static void Foo<T>(params T[] x) { }
-}",
-
-"'Foo' error CS0411: The type arguments for method 'C.Foo<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.");
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'C.Foo<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Foo();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("C.Foo<T>(params T[])").WithLocation(6, 9));
         }
 
         [Fact]
         public void TestMoreOverloadResolutionErrors()
         {
-            TestErrors(@"
+            var source = @"
 class C 
 { 
     static void VoidReturning() {}
@@ -748,15 +1423,18 @@ class C
         byte b = new byte(1);
         System.Console.WriteLine(VoidReturning());
     }
-}",
-"'byte' error CS1729: 'byte' does not contain a constructor that takes 1 arguments",
-//"'System.Console.WriteLine' error CS1502: The best overloaded method match for 'System.Console.WriteLine(bool)' has some invalid arguments",  //specifically omitted by roslyn
-"'VoidReturning()' error CS1503: Argument 1: cannot convert from 'void' to 'bool'"
-               );
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,22): error CS1729: 'byte' does not contain a constructor that takes 1 arguments
+                //         byte b = new byte(1);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "byte").WithArguments("byte", "1").WithLocation(7, 22),
+                // (8,34): error CS1503: Argument 1: cannot convert from 'void' to 'bool'
+                //         System.Console.WriteLine(VoidReturning());
+                Diagnostic(ErrorCode.ERR_BadArgType, "VoidReturning()").WithArguments("1", "void", "bool").WithLocation(8, 34));
         }
         [Fact]
 
-        private void TestBug6156()
+        public void TestBug6156()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -804,7 +1482,7 @@ class Out2 : Ref2
 
 
 
-        private void TestGenericMethods()
+        public void TestGenericMethods()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -828,7 +1506,7 @@ class C
         [Fact]
 
 
-        private void TestDelegateBetterness()
+        public void TestDelegateBetterness()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -890,7 +1568,7 @@ class C
         }
         [Fact]
 
-        private void TestTieBreakers()
+        public void TestTieBreakers()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -962,7 +1640,7 @@ class C
 ");
         }
 
-        [WorkItem(540153, "DevDiv")]
+        [WorkItem(540153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540153")]
         [Fact]
         public void TestOverridingMismatchedParamsErrorCase_Source()
         {
@@ -1065,8 +1743,8 @@ class Test2
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
 
-        [WorkItem(540153, "DevDiv")]
-        [WorkItem(540406, "DevDiv")]
+        [WorkItem(540153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540153")]
+        [WorkItem(540406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540406")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverridingMismatchedParamsErrorCase_Metadata()
         {
@@ -1162,7 +1840,7 @@ class Test2
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers()
+        public void TestBaseAccessForAbstractMembers()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1217,7 +1895,7 @@ class Base4<U, V> : Base3<U, V>
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers1()
+        public void TestBaseAccessForAbstractMembers1()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1244,7 +1922,7 @@ class Base2<A, B> : Base<A, B>
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers2()
+        public void TestBaseAccessForAbstractMembers2()
         {
             var source = @"
 namespace A
@@ -1361,7 +2039,7 @@ long
 ");
         }
 
-        [Fact, WorkItem(546694, "DevDiv")]
+        [Fact, WorkItem(546694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546694")]
         public void Bug16581_ConstructorOverloadResolution_BaseClass()
         {
             var source = @"
@@ -1399,7 +2077,7 @@ class B: A
 PASS");
         }
 
-        [Fact, WorkItem(529847, "DevDiv")]
+        [Fact, WorkItem(529847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529847")]
         public void Bug14585_ConstructorOverloadResolution_BaseClass()
         {
             var source = @"
@@ -1574,7 +2252,7 @@ class Test
             CompileAndVerify(source, expectedOutput: @"20");
         }
 
-        [WorkItem(546733, "DevDiv")]
+        [WorkItem(546733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546733")]
         [Fact]
         public void RefOmittedComCall_Iterator()
         {
@@ -1884,7 +2562,7 @@ class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(530747, "DevDiv")]
+        [Fact, WorkItem(530747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530747")]
         public void RefOmittedComCall_Unsafe()
         {
             // Native compiler generates invalid IL for ref omitted argument of pointer type, while Roslyn generates correct IL.
@@ -2151,7 +2829,7 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(7, 26));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void TestComImportOverloadResolutionCantOmitRef()
         {
             string source = @"
@@ -2186,7 +2864,7 @@ class D : C
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_BaseTypeComImport()
         {
             string source = @"
@@ -2293,7 +2971,7 @@ class J : I
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("I", "M"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_DerivedComImport()
         {
             string source = @"
@@ -2344,7 +3022,7 @@ class C: B
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_TypeParameterConstrainedToComImportType()
         {
             string source = @"
@@ -2374,7 +3052,7 @@ class H<T> where T: K, new()
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_StaticMethod1()
         {
             string source = @"
@@ -2406,7 +3084,7 @@ class Y
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_StaticMethod2()
         {
             string source = @"
@@ -2445,7 +3123,7 @@ class Y
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "E").WithArguments("E").WithLocation(22, 11));
         }
 
-        [Fact, WorkItem(546122, "DevDiv"), WorkItem(842476, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122"), WorkItem(842476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842476")]
         public void RefOmittedComCall_ExtensionMethod()
         {
             string source = @"
@@ -3005,7 +3683,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("1", "ref long", "ref char"));
         }
 
-        [Fact, WorkItem(546176, "DevDiv")]
+        [Fact, WorkItem(546176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546176")]
         public void RefOmittedComCall_OverloadResolution_SingleArgument_IndexedProperties()
         {
             var source1 =
@@ -3764,7 +4442,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(546176, "DevDiv")]
+        [Fact, WorkItem(546176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546176")]
         public void RefOmittedComCall_OverloadResolution_SingleArgument_IndexedProperties_ErrorCases()
         {
             var source1 =
@@ -5608,8 +6286,8 @@ public class AggTest {
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("AggTest.B1.M3<S, T>(G1<G2<S, T>>)"));
         }
 
-        [WorkItem(528425, "DevDiv")]
-        [WorkItem(528425, "DevDiv")]
+        [WorkItem(528425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528425")]
+        [WorkItem(528425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528425")]
         [Fact(Skip = "528425")]
         public void ExactInaccessibleMatch()
         {
@@ -5640,7 +6318,7 @@ public class D
                 Diagnostic(ErrorCode.ERR_BadAccess, "d.M"));
         }
 
-        [WorkItem(545382, "DevDiv")]
+        [WorkItem(545382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545382")]
         [Fact]
         public void Whidbey133503a()
         {
@@ -5702,7 +6380,7 @@ class baz
                 );
         }
 
-        [WorkItem(545382, "DevDiv")]
+        [WorkItem(545382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545382")]
         [Fact]
         public void Whidbey133503b()
         {
@@ -5776,7 +6454,7 @@ public class Q
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Ambig.F(P1)", "Ambig.F(P2)"));
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda1()
         {
@@ -5903,7 +6581,7 @@ class MainClass
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda2()
         {
@@ -5937,7 +6615,7 @@ class MainClass
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "r + ((MainClass x) => x + (MainClass)((MainClass y) => (y + null)))").WithArguments("+", "MainClass", "lambda expression"));
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda3()
         {
@@ -5984,7 +6662,7 @@ class MainClass
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + (y => y)").WithArguments("+", "MainClass", "lambda expression"));
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda4()
         {
@@ -6018,8 +6696,8 @@ class MainClass
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "r + ((MainClass x) => x + (MainClass)((MainClass y) => (y + null)))").WithArguments("+", "MainClass", "lambda expression"));
         }
 
-        [WorkItem(546875, "DevDiv")]
-        [WorkItem(530930, "DevDiv")]
+        [WorkItem(546875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546875")]
+        [WorkItem(530930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530930")]
         [Fact]
         public void BigVisitor()
         {
@@ -6043,7 +6721,7 @@ public class Test
             Assert.InRange(elapsed.TotalSeconds, 0, 10.0); // Was originally over 30 minutes, so we have some wiggle room here.
         }
 
-        [WorkItem(546730, "DevDiv"), WorkItem(546739, "DevDiv")]
+        [WorkItem(546730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546730"), WorkItem(546739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546739")]
         [Fact]
         public void TestNamedParamsParam()
         {
@@ -6071,7 +6749,7 @@ class C
 }", expectedOutput: "2").VerifyDiagnostics();
         }
 
-        [WorkItem(531173, "DevDiv")]
+        [WorkItem(531173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531173")]
         [Fact]
         public void InvokeMethodOverridingNothing()
         {
@@ -6095,8 +6773,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Override").WithArguments("C.Override<T>(T)"));
         }
 
-        [WorkItem(547186, "DevDiv")]
-        [Fact, WorkItem(531613, "DevDiv")]
+        [WorkItem(547186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547186")]
+        [Fact, WorkItem(531613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531613")]
         public void IndexerWithoutAccessors()
         {
             var source = @"
@@ -6186,7 +6864,7 @@ public class C
             TestOverloadResolutionWithDiff(source);
         }
 
-        [Fact, WorkItem(624410, "DevDiv")]
+        [Fact, WorkItem(624410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624410")]
         public void DynamicTypeInferenceAndPointer()
         {
             string source = @"
@@ -6211,7 +6889,7 @@ class D<T>
             CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(598032, "DevDiv"), WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(598032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598032"), WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void GenericVsOptionalParameter()
         {
             string source = @"
@@ -6232,7 +6910,7 @@ class C
             CompileAndVerify(compilation, expectedOutput: "0");
         }
 
-        [WorkItem(598029, "DevDiv")]
+        [WorkItem(598029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598029")]
         [Fact]
         public void TypeParameterInterfaceVersusNonInterface()
         {
@@ -6257,7 +6935,7 @@ class C : IA
             TestOverloadResolutionWithDiff(source);
         }
 
-        [WorkItem(649807, "DevDiv")]
+        [WorkItem(649807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649807")]
         [Fact]
         public void OverloadResolution649807()
         {
@@ -6294,7 +6972,7 @@ public class Test
                 );
         }
 
-        [WorkItem(662641, "DevDiv")]
+        [WorkItem(662641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/662641")]
         [Fact]
         public void GenericMethodConversionToDelegateWithDynamic()
         {
@@ -6329,7 +7007,7 @@ public struct start
                 );
         }
 
-        [WorkItem(690966, "DevDiv")]
+        [WorkItem(690966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690966")]
         [Fact]
         public void OptionalParameterInDelegateConversion()
         {
@@ -6361,7 +7039,7 @@ class C
                 model.GetSymbolInfo(callSyntax).Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(718294, "DevDiv")]
+        [WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
         [Fact]
         public void MethodGroupConversion_BetterCandidateHasOptionalParameter()
         {
@@ -6400,7 +7078,7 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
         }
 
-        [WorkItem(718294, "DevDiv")]
+        [WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
         [Fact]
         public void MethodGroupConversion_BetterCandidateHasParameterArray()
         {
@@ -6439,7 +7117,7 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
         }
 
-        [WorkItem(709114, "DevDiv")]
+        [WorkItem(709114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709114")]
         [Fact]
         public void RenameTypeParameterInOverride()
         {
@@ -6472,7 +7150,7 @@ public class Derived : Base
         }
 
         [Fact]
-        [WorkItem(675327, "DevDiv")]
+        [WorkItem(675327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675327")]
         public void OverloadInheritanceAsync()
         {
             string source = @"
@@ -6510,7 +7188,7 @@ class TestCase : Test
         }
 
         [Fact]
-        [WorkItem(675327, "DevDiv")]
+        [WorkItem(675327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675327")]
         public void OverloadInheritance001()
         {
             string source = @"
@@ -6538,7 +7216,7 @@ class TestCase : Test
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(718294, "DevDiv")]
+        [Fact, WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
         public void ResolveExtensionMethodGroupOverloadWithOptional()
         {
             string source = @"
@@ -6575,7 +7253,7 @@ static class Extensions
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667132, "DevDiv")]
+        [Fact, WorkItem(667132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667132")]
         public void ExtensionMethodOnComInterfaceMissingRefToken()
         {
             string source = @"using System;
@@ -6606,7 +7284,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void Repro737971a()
         {
             var source = @"
@@ -6647,7 +7325,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void Repro737971b()
         {
             var source = @"
@@ -6688,7 +7366,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(754406, "DevDiv")]
+        [WorkItem(754406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754406")]
         public void TestBug754406()
         {
             string source =
@@ -6717,7 +7395,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(528811, "DevDiv")]
+        [WorkItem(528811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528811")]
         public void TestBug528811()
         {
             string source =
@@ -6804,7 +7482,7 @@ class Program
 
 
         [Fact]
-        [WorkItem(655409, "DevDiv")]
+        [WorkItem(655409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655409")]
         public void TestBug655409()
         {
             string source =
@@ -6835,7 +7513,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_01()
         {
             string source1 = @"
@@ -6856,7 +7534,7 @@ class C
 2");
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_02()
         {
             string source1 = @"
@@ -6882,7 +7560,7 @@ class C
 1");
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_03()
         {
             string source1 = @"
@@ -7000,7 +7678,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1079899, "DevDiv")]
+        [WorkItem(1079899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079899")]
         [WorkItem(364, "CodePlex")]
         public void TestBug1079899()
         {
@@ -7051,7 +7729,7 @@ namespace C
             Assert.Equal("(30,19): error CS0121: The call is ambiguous between the following methods or properties: 'A.B.X.Test(int)' and 'A.C.X.Test(int)'", DiagnosticFormatter.Instance.Format(comp.GetDiagnostics()[0], EnsureEnglishUICulture.PreferredOrNull));
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_0()
         {
             string source1 = @"
@@ -7089,7 +7767,7 @@ namespace ConsoleApplication2
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, bool> filter)");
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_1()
         {
             string source1 = @"
@@ -7131,7 +7809,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_2()
         {
             string source1 = @"
@@ -7169,7 +7847,7 @@ namespace ConsoleApplication2
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)");
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_3()
         {
             string source1 = @"
@@ -7211,7 +7889,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_4()
         {
             string source1 = @"
@@ -7253,7 +7931,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_5()
         {
             string source1 = @"
@@ -7295,7 +7973,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_6()
         {
             string source1 = @"
@@ -7335,7 +8013,7 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
         public void Bug1081302_0()
         {
             string source1 = @"
@@ -7374,7 +8052,7 @@ namespace ConsoleApplication2
 IfNotNull<T, U>(this T? source, Func<T, U> selector)");
         }
 
-        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
         public void Bug1081302_1()
         {
             string source1 = @"
@@ -7407,18 +8085,10 @@ namespace ConsoleApplication2
 ";
 
             var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
-    // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])' and 'Foo.IfNotNull<T, U>(T?, Func<T, U>)'
-    //             var d1 = val.IfNotNull(v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])", "ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)").WithLocation(23, 26),
-    // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])' and 'Foo.IfNotNull<T, U>(T?, Func<T, U>)'
-    //             var d2 = Foo.IfNotNull(val, v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])", "ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)").WithLocation(24, 26)
-                );
+            compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
         public void Bug1081302_2()
         {
             string source1 = @"
@@ -7451,15 +8121,7 @@ namespace ConsoleApplication2
 ";
 
             var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
-    // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T?, Func<T, U>)' and 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])'
-    //             var d1 = val.IfNotNull(v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)", "ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])").WithLocation(23, 26),
-    // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T?, Func<T, U>)' and 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])'
-    //             var d2 = Foo.IfNotNull(val, v => v / 100);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)", "ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])").WithLocation(24, 26)
-                );
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -7497,7 +8159,7 @@ class CTest
         }
 
         [Fact]
-        [WorkItem(1034429, "DevDiv")]
+        [WorkItem(1034429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034429")]
         public void TestBug1034429()
         {
             string source =
@@ -7605,16 +8267,16 @@ class Program
             CompileAndVerify(source, expectedOutput: @"pass
 pass").VerifyDiagnostics();
             CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
-                // (12,36): error CS1657: Cannot pass 'M' as a ref or out argument because it is a 'method group'
-                //         Action a1 = new Action(ref M);
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),
-                // (14,36): error CS0149: Method name expected
-                //         Action a2 = new Action(out a1);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "a1").WithLocation(14, 36)
+    // (12,36): error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'
+    //         Action a1 = new Action(ref M);
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),
+    // (14,36): error CS0149: Method name expected
+    //         Action a2 = new Action(out a1);
+    Diagnostic(ErrorCode.ERR_MethodNameExpected, "a1").WithLocation(14, 36)
                 );
         }
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void ParamsAndOptionals()
         {
             string source1 = @"
@@ -7698,7 +8360,7 @@ int Properties2(this IFirstInterface source)
 void Test2(params int[] x)");
         }
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TieBreakOnNumberOfDeclaredParameters_01()
         {
             string source1 = @"
@@ -7749,7 +8411,7 @@ void Test3(int x, int y, params int[] z)
 void Test3(int x, int y, params int[] z)");
         }
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TieBreakOnNumberOfDeclaredParameters_02()
         {
             string source1 = @"
@@ -7792,7 +8454,7 @@ namespace VS2015CompilerBug
 void Test3(int x, int y = 0, int z = 0)");
         }
 
-        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TieBreakOnNumberOfDeclaredParameters_03()
         {
             string source1 = @"
@@ -7920,7 +8582,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: @"2");
         }
 
-        [Fact, WorkItem(1099752, "DevDiv"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
+        [Fact, WorkItem(1099752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099752"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
         public void BetterErrorMessage_01()
         {
             string source1 = @"
@@ -8124,7 +8786,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(1171723, "DevDiv"), WorkItem(2985, "https://github.com/dotnet/roslyn/issues/2985")]
+        [Fact, WorkItem(1171723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171723"), WorkItem(2985, "https://github.com/dotnet/roslyn/issues/2985")]
         public void BetterErrorMessage_02()
         {
             string source1 = @"
@@ -8230,7 +8892,7 @@ public static class Class
         System.Console.WriteLine(""RemoveDetail"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options:TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"RemoveDetail
 RemoveDetail
@@ -8239,7 +8901,7 @@ RemoveDetail");
         }
 
         [Fact, WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")]
-        public void GetSymbolOnfo_Inaccessible()
+        public void GetSymbolInfo_Inaccessible()
         {
             var source =
 @"
@@ -8279,5 +8941,132 @@ class D
             Assert.Equal("void D.M(System.Double d)", candidates[1].ToTestDisplayString());
         }
 
+        [Fact, WorkItem(12061, "https://github.com/dotnet/roslyn/issues/12061")]
+        public void RecursiveBetterBetterness01()
+        {
+            string source = @"
+delegate Del1 Del1();
+delegate Del2 Del2();
+
+class Program
+{
+    static void Method(Del1 del1) { }
+    static void Method(Del2 del2) { }
+    static void Main()
+    {
+        Method(() => null);
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1)' and 'Program.Method(Del2)'
+                //         Method(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact, WorkItem(12061, "https://github.com/dotnet/roslyn/issues/12061")]
+        public void RecursiveBetterBetterness02()
+        {
+            string source = @"
+delegate Del2 Del1();
+delegate Del1 Del2();
+
+class Program
+{
+    static void Method(Del1 del1) { }
+    static void Method(Del2 del2) { }
+    static void Main()
+    {
+        Method(() => null);
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1)' and 'Program.Method(Del2)'
+                //         Method(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact, WorkItem(12061, "https://github.com/dotnet/roslyn/issues/12061")]
+        public void RecursiveBetterBetterness03()
+        {
+            string source = @"
+delegate Del2<Del1<T>> Del1<T>();
+delegate Del1<Del2<T>> Del2<T>();
+
+class Program
+{
+    static void Method(Del1<string> del1) { }
+    static void Method(Del2<string> del2) { }
+    static void Main()
+    {
+        Method(() => null);
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1<string>)' and 'Program.Method(Del2<string>)'
+                //         Method(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1<string>)", "Program.Method(Del2<string>)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact, WorkItem(12061, "https://github.com/dotnet/roslyn/issues/12061")]
+        public void RecursiveBetterBetterness04()
+        {
+            string source = @"
+using System.Threading.Tasks;
+delegate Task<Del2> Del1();
+delegate Task<Del1> Del2();
+
+class Program
+{
+    static void Method(Del1 del1) { }
+    static void Method(Del2 del2) { }
+    static void Main()
+    {
+        Method(() => null);
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1)' and 'Program.Method(Del2)'
+                //         Method(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(12, 9)
+                );
+        }
+
+        [Fact, WorkItem(13380, "https://github.com/dotnet/roslyn/issues/13380")]
+        public void ImplicitNullableOperatorInEquality()
+        {
+            string source =
+@"public class Class1
+{
+    public static void Main(string[] args)
+    {
+        var a = default(Registration<Something>);
+        var x = (a == Something.Bad); //this line fails in VS2015.3
+        System.Console.WriteLine(x);
+    }
+}
+
+public struct Registration<T> where T : struct
+{
+    public static implicit operator T? (Registration<T> registration)
+    {
+        return null;
+    }
+}
+
+public enum Something
+{
+    Good,
+    Bad
+}";
+            // should be NO errors.
+            CompileAndVerify(source, expectedOutput: @"False");
+        }
     }
 }

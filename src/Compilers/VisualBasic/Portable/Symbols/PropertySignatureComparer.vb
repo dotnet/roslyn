@@ -2,10 +2,6 @@
 
 Imports System.Collections.Generic
 Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -15,16 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend NotInheritable Class PropertySignatureComparer
         Implements IEqualityComparer(Of PropertySymbol)
-
-        ''' <summary>
-        ''' This instance is used to compare all aspects.
-        ''' </summary>
-        Public Shared ReadOnly AllAspectsSignatureComparer As PropertySignatureComparer =
-            New PropertySignatureComparer(considerName:=True,
-                                          considerType:=True,
-                                          considerReadWriteModifiers:=True,
-                                          considerOptionalParameters:=True,
-                                          considerCustomModifiers:=True)
 
         ''' <summary>
         ''' This instance is intended to reflect the definition of signature equality used by the runtime (ECMA 335 Section 8.6.1.6).
@@ -171,8 +157,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch)) <> 0 Then
-                results = results Or MethodSignatureComparer.DetailedReturnTypeCompare(New TypeWithModifiers(prop1.Type, prop1.TypeCustomModifiers), Nothing,
-                                                                                       New TypeWithModifiers(prop2.Type, prop2.TypeCustomModifiers), Nothing,
+                results = results Or MethodSignatureComparer.DetailedReturnTypeCompare(prop1.ReturnsByRef,
+                                                                                       New TypeWithModifiers(prop1.Type, prop1.TypeCustomModifiers),
+                                                                                       Nothing,
+                                                                                       prop2.ReturnsByRef,
+                                                                                       New TypeWithModifiers(prop2.Type, prop2.TypeCustomModifiers),
+                                                                                       Nothing,
                                                                                        comparisons)
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done
@@ -202,6 +192,10 @@ Done:
 #End Region
 
         Private Shared Function HaveSameTypes(prop1 As PropertySymbol, prop2 As PropertySymbol, considerCustomModifiers As Boolean) As Boolean
+            If prop1.ReturnsByRef <> prop2.ReturnsByRef Then
+                Return False
+            End If
+
             Dim type1 = prop1.Type
             Dim type2 = prop2.Type
 

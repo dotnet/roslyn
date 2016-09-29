@@ -62,11 +62,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Dim recommendations As New List(Of RecommendedKeyword)()
 
             If getAllowed Then
-                recommendations.Add(New RecommendedKeyword("Get", VBFeaturesResources.GetPropertyKeywordToolTip))
+                recommendations.Add(New RecommendedKeyword("Get", VBFeaturesResources.Declares_a_Get_property_procedure_that_is_used_to_return_the_current_value_of_a_property))
             End If
 
             If setAllowed Then
-                recommendations.Add(New RecommendedKeyword("Set", VBFeaturesResources.SetPropertyKeywordToolTip))
+                recommendations.Add(New RecommendedKeyword("Set", VBFeaturesResources.Declares_a_Set_property_procedure_that_is_used_to_assign_a_value_to_a_property))
             End If
 
             Return recommendations

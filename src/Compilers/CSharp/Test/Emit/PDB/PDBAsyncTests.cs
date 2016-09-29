@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     public class PDBAsyncTests : CSharpTestBase
     {
         [Fact]
-        [WorkItem(1137300, "DevDiv")]
-        [WorkItem(631350, "DevDiv")]
-        [WorkItem(643501, "DevDiv")]
-        [WorkItem(689616, "DevDiv")]
+        [WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
+        [WorkItem(631350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631350")]
+        [WorkItem(643501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/643501")]
+        [WorkItem(689616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689616")]
         public void TestAsyncDebug()
         {
             var text = @"
@@ -331,7 +331,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         }
 
         [Fact]
-        [WorkItem(734596, "DevDiv")]
+        [WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")]
         public void TestAsyncDebug2()
         {
             var text = @"
@@ -505,8 +505,8 @@ namespace ConsoleApplication1
         }
 
         [Fact]
-        [WorkItem(1137300, "DevDiv")]
-        [WorkItem(690180, "DevDiv")]
+        [WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
+        [WorkItem(690180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690180")]
         public void TestAsyncDebug3()
         {
             var text = @"
@@ -708,8 +708,8 @@ sequencePoints: "C.F");
 ", sequencePoints: "C+<F>d__0.MoveNext");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [Fact]
         public void DisplayClass_InBetweenSuspensionPoints_Release()
         {
@@ -795,8 +795,8 @@ class C
 </symbols>");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [Fact]
         public void DisplayClass_InBetweenSuspensionPoints_Debug()
         {
@@ -892,8 +892,8 @@ class C
 </symbols>");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [Fact]
         public void DisplayClass_AcrossSuspensionPoints_Release()
         {
@@ -978,8 +978,8 @@ class C
 </symbols>");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [Fact]
         public void DisplayClass_AcrossSuspensionPoints_Debug()
         {
@@ -1075,8 +1075,8 @@ class C
 </symbols>");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [Fact]
         public void DynamicLocal_AcrossSuspensionPoints_Debug()
         {
@@ -1163,9 +1163,9 @@ class C
 ");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
-        [WorkItem(1070519, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
+        [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
         [Fact]
         public void DynamicLocal_InBetweenSuspensionPoints_Release()
         {
@@ -1242,7 +1242,7 @@ class C
 ");
         }
 
-        [WorkItem(1070519, "DevDiv")]
+        [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
         [Fact]
         public void DynamicLocal_InBetweenSuspensionPoints_Debug()
         {

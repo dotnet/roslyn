@@ -632,7 +632,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544520, "DevDiv")]
+        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveByVal1()
         {
@@ -650,7 +650,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544520, "DevDiv")]
+        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveByVal2()
         {
@@ -668,7 +668,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544520, "DevDiv")]
+        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task RemoveByVal_LineContinuation()
         {
@@ -817,7 +817,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544300, "DevDiv")]
+        [WorkItem(544300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544300")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NormalizedOperator_StructuredTrivia()
         {
@@ -829,7 +829,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544520, "DevDiv")]
+        [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task DontRemoveByVal()
         {
@@ -853,7 +853,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544561, "DevDiv")]
+        [WorkItem(544561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544561")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NormalizeOperator_Text()
         {
@@ -877,7 +877,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544557, "DevDiv")]
+        [WorkItem(544557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544557")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task NormalizeOperator_OperatorStatement()
         {
@@ -893,7 +893,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544574, "DevDiv")]
+        [WorkItem(544574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544574")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task Reorder_OperatorTokenAndModifiers()
         {
@@ -909,7 +909,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(546521, "DevDiv")]
+        [WorkItem(546521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546521")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task SkippedTokenOperator()
         {
@@ -929,7 +929,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(547255, "DevDiv")]
+        [WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task ReorderAsyncModifier()
         {
@@ -965,7 +965,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(547255, "DevDiv")]
+        [WorkItem(547255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task ReorderIteratorModifier()
         {
@@ -1001,7 +1001,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(611766, "DevDiv")]
+        [WorkItem(611766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611766")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task ReorderDuplicateModifiers()
         {
@@ -1029,7 +1029,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(530058, "DevDiv")]
+        [WorkItem(530058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530058")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public async Task TestBadOperatorToken()
         {

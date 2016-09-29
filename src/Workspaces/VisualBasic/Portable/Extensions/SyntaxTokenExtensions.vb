@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function IsWord(token As SyntaxToken) As Boolean
-            Return New VisualBasicSyntaxFactsService().IsWord(token)
+            Return VisualBasicSyntaxFactsService.Instance.IsWord(token)
         End Function
 
         <Extension()>
@@ -288,21 +288,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             token As SyntaxToken,
             trivia As IEnumerable(Of SyntaxTrivia)) As SyntaxToken
             Return token.WithAppendedTrailingTrivia(trivia.ToSyntaxTriviaList())
-        End Function
-
-        <Extension>
-        Public Function GetNextTokenOrEndOfFile(
-            token As SyntaxToken,
-            Optional includeZeroWidth As Boolean = False,
-            Optional includeSkipped As Boolean = False,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Dim nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments)
-
-            Return If(nextToken.Kind = SyntaxKind.None,
-                      token.GetAncestor(Of CompilationUnitSyntax).EndOfFileToken,
-                      nextToken)
         End Function
 
         <Extension>

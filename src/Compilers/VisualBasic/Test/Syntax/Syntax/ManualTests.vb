@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Null(tp2.TypeParameterConstraintClause)
         End Sub
 
-        <Fact, WorkItem(546397, "DevDiv")>
+        <Fact, WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestConstructClassBlock()
             Dim c = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("C").AddTypeParameterListParameters(SyntaxFactory.TypeParameter("T"))) _
                           .AddImplements(SyntaxFactory.ImplementsStatement(SyntaxFactory.ParseTypeName("X"), SyntaxFactory.ParseTypeName("Y")))
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(3, arrayRankSpecifier.CommaTokens.Count)
         End Sub
 
-        <WorkItem(543310, "DevDiv")>
+        <WorkItem(543310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543310")>
         <Fact()>
         Public Sub SyntaxDotParseCompilationUnitContainingOnlyWhitespace()
             Dim node = SyntaxFactory.ParseCompilationUnit("  ")
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("  ", node.GetLeadingTrivia().First().ToString())
         End Sub
 
-        <WorkItem(543310, "DevDiv")>
+        <WorkItem(543310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543310")>
         <Fact()>
         Public Sub SyntaxTreeDotParseCompilationUnitContainingOnlyWhitespace()
             Dim node = VisualBasicSyntaxTree.ParseText("  ").GetRoot()
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("  ", node.GetLeadingTrivia().First().ToString())
         End Sub
 
-        <WorkItem(529624, "DevDiv")>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact()>
         Public Sub SyntaxTreeIsHidden_Bug13776()
             Dim source = <![CDATA[
@@ -145,7 +145,7 @@ End Module
             Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(source.IndexOf("c()", StringComparison.Ordinal)))
         End Sub
 
-        <WorkItem(546586, "DevDiv")>
+        <WorkItem(546586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546586")>
         <Fact()>
         Public Sub KindsWithSameNameAsTypeShouldNotDropKindWhenUpdating_Bug16244()
             Dim assignmentStatement = GeneratedTests.GenerateRedAddAssignmentStatement()
@@ -210,7 +210,7 @@ End Module
 
         End Sub
 
-        <Fact(), WorkItem(701158, "DevDiv")>
+        <Fact(), WorkItem(701158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/701158")>
         Public Sub FindTokenOnStartOfContinuedLine()
             Dim code =
                 <code>
@@ -224,6 +224,12 @@ End Module
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim token = tree.GetRoot().FindToken(text.Lines.Item(3).Start)
             Assert.Equal(">", token.ToString())
+        End Sub
+
+        <Fact, WorkItem(7182, "https://github.com/dotnet/roslyn/issues/7182")>
+        Public Sub WhenTextContainsTrailingTrivia_SyntaxNode_ContainsSkippedText_ReturnsTrue()
+            Dim parsedTypeName = SyntaxFactory.ParseTypeName("System.Collections.Generic.List(Of Integer), mscorlib")
+            Assert.True(parsedTypeName.ContainsSkippedText)
         End Sub
     End Class
 End Namespace

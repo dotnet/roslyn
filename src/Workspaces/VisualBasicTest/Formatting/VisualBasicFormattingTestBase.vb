@@ -49,16 +49,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 Dim spans = New List(Of TextSpan)()
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
-                Dim changes = Await Formatter.GetFormattedTextChangesAsync(syntaxTree.GetRoot(CancellationToken.None), workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
+                Dim changes = Await Formatter.GetFormattedTextChangesAsync(Await syntaxTree.GetRootAsync(), workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
-                changes = Await Formatter.GetFormattedTextChangesAsync(syntaxTree.GetRoot(), syntaxTree.GetRoot(CancellationToken.None).FullSpan, workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
+                changes = Await Formatter.GetFormattedTextChangesAsync(Await syntaxTree.GetRootAsync(), (Await syntaxTree.GetRootAsync()).FullSpan, workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 spans = New List(Of TextSpan)()
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
-                changes = Await Formatter.GetFormattedTextChangesAsync(syntaxTree.GetRoot(CancellationToken.None), spans, workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
+                changes = Await Formatter.GetFormattedTextChangesAsync(Await syntaxTree.GetRootAsync(), spans, workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 ' format with node and transform

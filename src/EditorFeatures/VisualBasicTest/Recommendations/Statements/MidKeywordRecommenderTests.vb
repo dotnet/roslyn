@@ -2,45 +2,45 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class MidKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub MidHelpText()
-            VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "Mid",
-$"{VBFeaturesResources.MidStatement}
-{ReplacesChars}
-Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}")
-        End Sub
+        Public Async Function MidHelpTextTest() As Task
+            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "Mid",
+$"{VBFeaturesResources.Mid_statement}
+{VBWorkspaceResources.Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string}
+Mid({VBWorkspaceResources.stringName}, {VBWorkspaceResources.startIndex}, [{VBWorkspaceResources.length}]) = {VBWorkspaceResources.stringExpression}")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub MidInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Mid")
-        End Sub
+        Public Async Function MidInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Mid")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub MidAfterStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function MidAfterStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x 
 |</MethodBody>, "Mid")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub MidMissingInClassBlock()
-            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Mid")
-        End Sub
+        Public Async Function MidMissingInClassBlockTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "Mid")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub MidInSingleLineLambda()
-            VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "Mid")
-        End Sub
+        Public Async Function MidInSingleLineLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "Mid")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub MidNotInSingleLineFunctionLambda()
-            VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "Mid")
-        End Sub
+        Public Async Function MidNotInSingleLineFunctionLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "Mid")
+        End Function
     End Class
 End Namespace

@@ -172,7 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // map local id to the previous id, if available:
                             int previousSlotIndex;
-                            if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(declaratorSyntax, F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics), synthesizedKind, id, out previousSlotIndex))
+                            if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
+                                declaratorSyntax, 
+                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics), 
+                                synthesizedKind, 
+                                id, 
+                                diagnostics,
+                                out previousSlotIndex))
                             {
                                 slotIndex = previousSlotIndex;
                             }

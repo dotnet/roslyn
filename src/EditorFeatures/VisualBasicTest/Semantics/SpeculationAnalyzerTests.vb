@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
-Imports System.Runtime.CompilerServices
-Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Semantics
     Public Class SpeculationAnalyzerTests
         Inherits SpeculationAnalyzerTestsBase
 
-        <WpfFact, WorkItem(672396)>
+        <Fact, WorkItem(672396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")>
         Public Sub SpeculationAnalyzerExtensionMethodExplicitInvocation()
             Test(<Code>
 Module Oombr

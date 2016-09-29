@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// among the set filtered by <paramref name="architectures"/></param>
         /// <exception cref="PlatformNotSupportedException">The platform doesn't support GAC.</exception>
         public GacFileResolver(
-            ImmutableArray<ProcessorArchitecture> architectures = default(ImmutableArray<ProcessorArchitecture>), 
+            ImmutableArray<ProcessorArchitecture> architectures = default(ImmutableArray<ProcessorArchitecture>),
             CultureInfo preferredCulture = null)
         {
             if (!IsAvailable)
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         public string Resolve(string assemblyName)
         {
             string path;
-            GlobalAssemblyCache.ResolvePartialName(assemblyName, out path, Architectures, this.PreferredCulture);
+            GlobalAssemblyCache.Instance.ResolvePartialName(assemblyName, out path, Architectures, this.PreferredCulture);
             return File.Exists(path) ? path : null;
         }
 

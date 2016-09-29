@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,16 +18,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
-        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.QualifiedName,
+        private static readonly SyntaxKind[] s_kindsOfInterest = new[]
+        {
+            SyntaxKind.QualifiedName,
             SyntaxKind.AliasQualifiedName,
             SyntaxKind.GenericName,
             SyntaxKind.IdentifierName,
             SyntaxKind.SimpleMemberAccessExpression,
-            SyntaxKind.QualifiedCref);
+            SyntaxKind.QualifiedCref
+        };
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, s_kindsOfInterest.ToArray());
+            analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, s_kindsOfInterest);
         }
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -134,11 +139,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     return false;
                 }
 
-                if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                // set proper diagnostic ids.
+                if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
+                {
+                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId;
+                }
+                else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+                {
+                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId;
+                }
+                else if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)expression;
                     diagnosticId = memberAccess.Expression.Kind() == SyntaxKind.ThisExpression ?
-                        IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId :
+                        IDEDiagnosticIds.RemoveQualificationDiagnosticId :
                         IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
                 }
             }

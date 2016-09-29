@@ -7,6 +7,7 @@ Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -266,12 +267,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicSyntaxNode.DoGetSyntaxErrors(tree, token)
         End Function
 
-        <Extension>
-        Friend Function AddError(node As GreenNode, diagnostic As DiagnosticInfo) As GreenNode
-            Dim green = TryCast(node, InternalSyntax.VisualBasicSyntaxNode)
-            Return green.AddError(diagnostic)
-        End Function
-
         ''' <summary>
         ''' Checks to see if SyntaxToken is a bracketed identifier.
         ''' </summary>
@@ -396,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If list.Count = 0 Then
                 Return SyntaxFactory.TokenList(items)
             Else
-                Dim builder = New Syntax.SyntaxTokenListBuilder(list.Count + items.Length)
+                Dim builder = New SyntaxTokenListBuilder(list.Count + items.Length)
                 If index > 0 Then
                     builder.Add(list, 0, index)
                 End If

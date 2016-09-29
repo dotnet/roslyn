@@ -1074,7 +1074,7 @@ class C : ILErrors.InterfaceEvents
                 );
         }
 
-        [Fact, WorkItem(531090, "DevDiv")]
+        [Fact, WorkItem(531090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531090")]
         public void Constructor()
         {
             string srcLib1 = @"
@@ -1112,7 +1112,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.Func<,>", "System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation()
         {
             var xSource = @"
@@ -1145,7 +1145,7 @@ class B : C, I { }
                 Diagnostic(ErrorCode.ERR_MissingTypeInSource, "B").WithArguments("X"));
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void NoSynthesizedInterfaceImplementation()
         {
             var xSource = @"
@@ -1174,7 +1174,7 @@ class B : C, I { }
             main.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_Indexer()
         {
             var xSource = @"
@@ -1209,7 +1209,7 @@ class B : C, I { }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("X", "X, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_ModOpt()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1223,7 +1223,7 @@ class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
             CompileAndVerify(main);
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void NoSynthesizedInterfaceImplementation_ModOpt()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1237,7 +1237,7 @@ class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
             CompileAndVerify(main);
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_ModReq()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1613,7 +1613,7 @@ namespace System.Security
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "SecurityAction").WithArguments("System.Int32"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors()
         {
@@ -1709,7 +1709,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "new Indexer2()[2]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_LessDerived()
         {
@@ -1762,7 +1762,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "d[1]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_NoCorrespondingParameter()
         {
@@ -1819,7 +1819,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[""A""]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_NameUsedForPositional()
         {
@@ -1876,7 +1876,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[""A"", null]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_RequiredParameterMissing()
         {
@@ -1933,7 +1933,52 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[null, ""A""]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [Fact]
+        public void OverloadResolutionWithUseSiteErrors_WithParamsArguments_ReturnsUseSiteErrors()
+        {
+            var missingSource = @"
+public class Missing { }
+";
+
+            var libSource = @"
+public class C
+{
+    public static Missing GetMissing(params int[] args) { return null; }
+    public static void SetMissing(params Missing[] args) { }
+    public static Missing GetMissing(string firstArgument, params int[] args) { return null; }
+    public static void SetMissing(string firstArgument, params Missing[] args) { }
+}
+";
+
+            var testSource = @"
+class Test
+{
+    static void Main()
+    {
+        C.GetMissing();
+        C.GetMissing(1, 1);
+        C.SetMissing();
+        C.GetMissing(string.Empty);
+        C.GetMissing(string.Empty, 1, 1);
+        C.SetMissing(string.Empty);
+    }
+}
+";
+            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilationWithMscorlib(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var getMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.GetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            var setMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.SetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+                getMissingDiagnostic,
+                getMissingDiagnostic,
+                setMissingDiagnostic,
+                getMissingDiagnostic,
+                getMissingDiagnostic,
+                setMissingDiagnostic);
+        }
+
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedExists()
         {
@@ -2056,7 +2101,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedDoesNotExist()
         {
@@ -2151,7 +2196,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[?]", "Indexers.get_Item(?)"));
         }
 
-        [WorkItem(939928, "DevDiv")]
+        [WorkItem(939928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939928")]
         [WorkItem(132, "CodePlex")]
         [Fact]
         public void MissingBaseTypeForCatch()

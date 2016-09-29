@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis
             return status != Status.Overflow;
         }
 
-        private readonly static BigInteger BigZero = BigInteger.Zero;
-        private readonly static BigInteger BigOne = BigInteger.One;
-        private readonly static BigInteger BigTwo = new BigInteger(2);
-        private readonly static BigInteger BigTen = new BigInteger(10);
+        private readonly static BigInteger s_bigZero = BigInteger.Zero;
+        private readonly static BigInteger s_bigOne = BigInteger.One;
+        private readonly static BigInteger s_bigTwo = new BigInteger(2);
+        private readonly static BigInteger s_bigTen = new BigInteger(10);
 
         /// <summary>
         /// Properties of an IEEE floating-point representation.
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis
             BigInteger fractionalNumerator = AccumulateDecimalDigitsIntoBigInteger(data, fractionalFirstIndex, fractionalLastIndex);
             Debug.Assert(!fractionalNumerator.IsZero);
 
-            BigInteger fractionalDenominator = BigOne;
+            BigInteger fractionalDenominator = s_bigOne;
             MultiplyByPowerOfTen(ref fractionalDenominator, fractionalDenominatorExponent);
 
             // Because we are using only the fractional part of the mantissa here, the  
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The BigInteger result</returns>
         private static BigInteger AccumulateDecimalDigitsIntoBigInteger(DecimalFloatingPointString data, uint integer_first_index, uint integer_last_index)
         {
-            if (integer_first_index == integer_last_index) return BigZero;
+            if (integer_first_index == integer_last_index) return s_bigZero;
             var valueString = data.Mantissa.Substring((int)integer_first_index, (int)(integer_last_index - integer_first_index));
             return BigInteger.Parse(valueString);
         }
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="shift">The power of two to multiply it by</param>
         private static void ShiftLeft(ref BigInteger number, uint shift)
         {
-            var powerOfTwo = BigInteger.Pow(BigTwo, (int)shift);
+            var powerOfTwo = BigInteger.Pow(s_bigTwo, (int)shift);
             number = number * powerOfTwo;
         }
 
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="power">The power of ten to multiply it by</param>
         private static void MultiplyByPowerOfTen(ref BigInteger number, uint power)
         {
-            var powerOfTen = BigInteger.Pow(BigTen, (int)power);
+            var powerOfTen = BigInteger.Pow(s_bigTen, (int)power);
             number = number * powerOfTen;
         }
 

@@ -45,13 +45,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         ///     {|Selection:SomeMethodCall()
         ///     AnotherMethodCall()$$|}
         /// End Sub
+        ///
+        /// You can use multiple selection spans to create box selections.
+        ///
+        /// Sub Foo
+        ///     {|Selection:$$box|}11111
+        ///     {|Selection:sel|}111
+        ///     {|Selection:ect|}1
+        ///     {|Selection:ion|}1111111
+        /// End Sub
         /// </summary>
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
             ExportProvider exportProvider,
             string workspaceKind)
         {
-            this.Workspace = TestWorkspaceFactory.CreateWorkspace(
+            this.Workspace = TestWorkspace.CreateWorkspace(
                 workspaceElement,
                 exportProvider: exportProvider,
                 workspaceKind: workspaceKind);
@@ -64,26 +73,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out selectionSpanList))
             {
-                var span = selectionSpanList.First();
+                var firstSpan = selectionSpanList.First();
+                var lastSpan = selectionSpanList.Last();
                 var cursorPosition = cursorDocument.CursorPosition.Value;
 
-                Assert.True(cursorPosition == span.Start || cursorPosition == span.Start + span.Length,
+                Assert.True(cursorPosition == firstSpan.Start || cursorPosition == firstSpan.End
+                            || cursorPosition == lastSpan.Start || cursorPosition == lastSpan.End,
                     "cursorPosition wasn't at an endpoint of the 'Selection' annotated span");
 
-                _textView.Selection.Select(
-                    new SnapshotSpan(_subjectBuffer.CurrentSnapshot, new Span(span.Start, span.Length)),
-                    isReversed: cursorPosition == span.Start);
+                _textView.Selection.Mode = selectionSpanList.Count > 1
+                    ? TextSelectionMode.Box
+                    : TextSelectionMode.Stream;
 
-                if (selectionSpanList.Count > 1)
+                SnapshotPoint boxSelectionStart, boxSelectionEnd;
+                bool isReversed;
+
+                if (cursorPosition == firstSpan.Start || cursorPosition == lastSpan.End)
                 {
-                    _textView.Selection.Mode = TextSelectionMode.Box;
-                    foreach (var additionalSpan in selectionSpanList.Skip(1))
-                    {
-                        _textView.Selection.Select(
-                            new SnapshotSpan(_subjectBuffer.CurrentSnapshot, new Span(additionalSpan.Start, additionalSpan.Length)),
-                            isReversed: false);
-                    }
+                    // Top-left and bottom-right corners used as anchor points.
+                    boxSelectionStart = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, firstSpan.Start);
+                    boxSelectionEnd = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, lastSpan.End);
+                    isReversed = cursorPosition == firstSpan.Start;
                 }
+                else
+                {
+                    // Top-right and bottom-left corners used as anchor points.
+                    boxSelectionStart = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, firstSpan.End);
+                    boxSelectionEnd = new SnapshotPoint(_subjectBuffer.CurrentSnapshot, lastSpan.Start);
+                    isReversed = cursorPosition == firstSpan.End;
+                }
+
+                _textView.Selection.Select(
+                        new SnapshotSpan(boxSelectionStart, boxSelectionEnd),
+                        isReversed: isReversed);
             }
             else
             {

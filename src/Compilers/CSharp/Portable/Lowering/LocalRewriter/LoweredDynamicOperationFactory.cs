@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // that redefines these constants and is not supposed to run existing programs.
 
         /// <summary>
-        /// Corresponds to <see cref="Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags"/>.
+        /// Corresponds to Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.
         /// </summary>
         [Flags]
         private enum CSharpBinderFlags
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Corresponds to <see cref="Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags"/>.
+        /// Corresponds to Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.
         /// </summary>
         [Flags]
         private enum CSharpArgumentInfoFlags
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // type arguments:
                 typeArguments.IsDefaultOrEmpty ?
                     _factory.Null(_factory.WellKnownArrayType(WellKnownType.System_Type)) :
-                    _factory.Array(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArguments)),
+                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArguments)),
 
                 // context:
                 _factory.TypeofDynamicOperationContextType(),
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal LoweredDynamicOperation MakeDynamicConstructorInvocation(
-        CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             TypeSymbol type,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<string> argumentNames,
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 infos[j++] = GetArgumentInfo(argumentInfoFactory, loweredRight, NoName, RefKind.None, isStaticType: false);
             }
 
-            return _factory.Array(argumentInfoFactory.ContainingType, infos);
+            return _factory.ArrayOrEmpty(argumentInfoFactory.ContainingType, infos);
         }
 
         internal LoweredDynamicOperation MakeDynamicOperation(
@@ -754,8 +754,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int parameterCount = delegateSignature.Length - (returnsVoid ? 0 : 1);
-
-            return _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid).Construct(delegateSignature);
+            int generation = _factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
+            var synthesizedType = _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid, generation);
+            return synthesizedType.Construct(delegateSignature);
         }
 
         internal BoundExpression GetArgumentInfo(

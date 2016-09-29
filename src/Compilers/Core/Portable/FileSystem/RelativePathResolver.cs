@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -45,10 +46,10 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(fullPath != null);
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return PortableShim.File.Exists(fullPath);
+            return File.Exists(fullPath);
         }
 
-        public RelativePathResolver WithSearchPaths(ImmutableArray<string> searchPaths) => 
+        public RelativePathResolver WithSearchPaths(ImmutableArray<string> searchPaths) =>
             new RelativePathResolver(searchPaths, BaseDirectory);
 
         public RelativePathResolver WithBaseDirectory(string baseDirectory) =>

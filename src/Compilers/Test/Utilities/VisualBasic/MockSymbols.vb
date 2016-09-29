@@ -191,12 +191,6 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Public Overrides ReadOnly Property EnumUnderlyingType As NamedTypeSymbol
-        Get
-            Throw New InvalidOperationException()
-        End Get
-    End Property
-
     Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
         Return ImmutableArray.Create(Of VisualBasicAttributeData)()
     End Function
@@ -371,6 +365,10 @@ Friend Class MockNamedTypeSymbol
     Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
         Throw New InvalidOperationException()
     End Sub
+
+    Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+        Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+    End Function
 End Class
 
 Friend Class MockMethodSymbol
@@ -573,6 +571,12 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property ReturnsByRef As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property ReturnType As TypeSymbol
         Get
             Return Nothing ' Not really kosher, but its a MOCK...
@@ -597,7 +601,7 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+    Friend Overrides ReadOnly Property Syntax As SyntaxNode
         Get
             Return Nothing
         End Get
@@ -706,6 +710,10 @@ Friend Class MockModuleSymbol
             Return Nothing
         End Get
     End Property
+
+    Public Overrides Function GetMetadata() As ModuleMetadata
+        Return Nothing
+    End Function
 End Class
 
 Friend Class MockAssemblySymbol
@@ -722,6 +730,12 @@ Friend Class MockAssemblySymbol
     Public Overrides ReadOnly Property Identity As AssemblyIdentity
         Get
             Return New AssemblyIdentity(_name)
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property AssemblyVersionPattern As Version
+        Get
+            Return Nothing
         End Get
     End Property
 
@@ -800,6 +814,10 @@ Friend Class MockAssemblySymbol
     End Property
 
     Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
+        Return Nothing
+    End Function
+
+    Public Overrides Function GetMetadata() As AssemblyMetadata
         Return Nothing
     End Function
 End Class

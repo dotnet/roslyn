@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     public class EventTests : CSharpTestBase
     {
         #region Positive Cases
-        [WorkItem(537323, "DevDiv")]
+        [WorkItem(537323, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537323")]
         [Fact]
         public void EventInStructFollowedByClassDecl()
         {
@@ -39,7 +40,7 @@ class main1
             Assert.Equal("main1, Test1", actual);
         }
 
-        [WorkItem(537401, "DevDiv")]
+        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -305,7 +306,7 @@ public class E
             Assert.NotNull(eventSymbol2);
         }
 
-        [WorkItem(542748, "DevDiv")]
+        [WorkItem(542748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542748")]
         [Fact()]
         public void FieldLikeEventAccessorIsSynthesized()
         {
@@ -325,6 +326,486 @@ class C
             Assert.True(fevent.RemoveMethod.IsImplicitlyDeclared, "FieldLikeEvent RemoveAccessor");
         }
 
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventWithDynamicAttribute_DynamicAttributeIsSynthesized()
+        {
+            var source = @"
+class A
+{
+        public event System.Action<dynamic> E1;
+        public event System.Action<dynamic> E2 { add {} remove {} }
+        public System.Action<dynamic> P { get; set; }
+}";
+            Action<ModuleSymbol> validator = module =>
+            {
+                var peModule = (PEModuleSymbol)module;
+                var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+                var e1 = type.GetMember<EventSymbol>("E1");
+                var e2 = type.GetMember<EventSymbol>("E2");
+                var p = type.GetMember<PropertySymbol>("P");
+
+                Assert.Equal("System.Action<dynamic>", e1.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", e2.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", p.Type.ToTestDisplayString());
+
+                Assert.Equal(1, e1.AddMethod.ParameterTypes.Length);
+                Assert.Equal("System.Action<dynamic>", e1.AddMethod.ParameterTypes[0].ToTestDisplayString());
+
+                Assert.Equal(1, e1.RemoveMethod.ParameterTypes.Length);
+                Assert.Equal("System.Action<dynamic>", e1.RemoveMethod.ParameterTypes[0].ToTestDisplayString());
+
+                Assert.Equal(1, e2.AddMethod.ParameterTypes.Length);
+                Assert.Equal("System.Action<dynamic>", e2.AddMethod.ParameterTypes[0].ToTestDisplayString());
+
+                Assert.Equal(1, e2.RemoveMethod.ParameterTypes.Length);
+                Assert.Equal("System.Action<dynamic>", e2.RemoveMethod.ParameterTypes[0].ToTestDisplayString());
+
+                Assert.Equal(1, e1.GetAttributes(AttributeDescription.DynamicAttribute).Count());
+                Assert.Equal(1, e2.GetAttributes(AttributeDescription.DynamicAttribute).Count());
+                Assert.Equal(1, p.GetAttributes(AttributeDescription.DynamicAttribute).Count());
+            };
+            CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef }, symbolValidator: validator);
+        }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventFieldWithDynamicAttribute_CannotCompileWithoutSystemCore()
+        {
+            var source = @"
+public class A
+{
+    public event System.Action<dynamic> E1;
+}";
+            var libComp = CreateCompilationWithMscorlib(text: source).VerifyDiagnostics(
+                // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                //     public event System.Action<dynamic> E1;
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32),
+                // (4,41): warning CS0067: The event 'A.E1' is never used
+                //     public event System.Action<dynamic> E1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("A.E1").WithLocation(4, 41));
+        }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventWithDynamicAttribute_CannotCompileWithoutSystemCore()
+        {
+            var source = @"
+public class A
+{
+    public event System.Action<dynamic> E1 { add {} remove {} }
+}";
+            var libComp = CreateCompilationWithMscorlib(text: source).VerifyDiagnostics(
+                // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                //     public event System.Action<dynamic> E1 { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32));
+        }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventFieldWithDynamicAttribute_IsLoadedAsDynamic()
+        {
+            var libText = @"
+public class C 
+{
+    public event System.Action<dynamic> E1;
+    public void RaiseEvent() => E1(this); 
+    public void Print() => System.Console.WriteLine(""Print method ran.""); 
+}";
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef }).VerifyDiagnostics();
+            var libAssemblyRef = libComp.EmitToImageReference();
+
+            var source = @"
+class LambdaConsumer
+{
+    static void Main()
+    {
+        var c = new C();
+        c.E1 += f => f.Print();
+        c.RaiseEvent();
+    }
+}";
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
+                Assert.Equal("f => f.Print()", lambdaSyntax.ToFullString());
+
+                var lambdaTypeInfo = model.GetTypeInfo(lambdaSyntax);
+                Assert.Equal("System.Action<dynamic>", lambdaTypeInfo.ConvertedType.ToTestDisplayString());
+
+                var parameterSyntax = lambdaSyntax.DescendantNodes().OfType<ParameterSyntax>().First();
+                var parameterSymbol = model.GetDeclaredSymbol(parameterSyntax);
+                Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
+            };
+
+            CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef },
+                                                    expectedOutput: "Print method ran.", sourceSymbolValidator: validator);
+        }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventWithDynamicAttribute_IsLoadedAsDynamic()
+        {
+            var libText = @"
+public class C {
+    private System.Action<dynamic> _e1;
+    public event System.Action<dynamic> E1 { add { _e1 = value; } remove {} }
+    public void RaiseEvent() => _e1(this); 
+    public void Print() => System.Console.WriteLine(""Print method ran.""); 
+}";
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            libComp.VerifyDiagnostics();
+            var libAssemblyRef = libComp.EmitToImageReference();
+
+            var source = @"
+class D
+{
+    static void Main()
+    {
+        var c = new C();
+        c.E1 += f => f.Print();
+        c.RaiseEvent();
+    }
+}";
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = module.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
+                Assert.Equal("f => f.Print()", lambdaSyntax.ToFullString());
+
+                var lambdaTypeInfo = model.GetTypeInfo(lambdaSyntax);
+                Assert.Equal("System.Action<dynamic>", lambdaTypeInfo.ConvertedType.ToTestDisplayString());
+
+                var parameterSyntax = lambdaSyntax.DescendantNodes().OfType<ParameterSyntax>().First();
+                var parameterSymbol = model.GetDeclaredSymbol(parameterSyntax);
+                Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
+            };
+
+            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef }, 
+                                                    expectedOutput: "Print method ran.");
+        }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventFieldWithDynamicAttribute_IsLoadedAsDynamicViaCompilationRef()
+        {
+            var libText = @"
+public class C 
+{
+    public event System.Action<dynamic> E1;
+    public void RaiseEvent() => E1(this); 
+    public void Print() => System.Console.WriteLine(""Print method ran.""); 
+}";
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libCompRef = new CSharpCompilationReference(libComp);
+            var source = @"
+class D
+{
+    static void Main()
+    {
+        var c = new C();
+        c.E1 += f => f.Print();
+        c.RaiseEvent();
+    }
+}";
+            var expectedOutput = "Print method ran.";
+            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libCompRef },
+                                                    expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventFieldWithDynamicAttribute_CanBeOverridden()
+        {
+            var libText = @"
+public class C 
+{
+    public virtual event System.Action<dynamic> E1 { add { System.Console.WriteLine(""Not called""); } remove {} }
+    public virtual event System.Action<dynamic> E2 { add { System.Console.WriteLine(""Not called""); } remove {} }
+    public virtual event System.Action<object> E3 { add { System.Console.WriteLine(""Not called""); } remove {} }
+}";
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libAssemblyRef = libComp.EmitToImageReference();
+            var source = @"
+class B : C
+{
+    public override event System.Action<dynamic> E1;
+    public override event System.Action<object> E2;
+    public override event System.Action<dynamic> E3;
+    public void RaiseE1(object s) => E1(s);
+    public void RaiseE2(string s) => E2(s);
+    public void RaiseE3(string s) => E3(s);
+}
+class A
+{
+    static void Main()
+    {
+        var b1 = new B();
+        b1.E1 += f => System.Console.WriteLine(f.Insert(0, ""Success1: ""));
+        b1.E2 += f => System.Console.WriteLine(""Success2"");
+        b1.E3 += f => System.Console.WriteLine(f.Insert(0, ""Success3: ""));
+        b1.RaiseE1(""Alice"");
+        b1.RaiseE2(""Bob"");
+        b1.RaiseE3(""Charlie"");
+
+        var b2 = new B();
+        b2.E1 += Print;
+        b2.E2 += Print;
+        b2.E3 += Print;
+        b2.RaiseE1(""Alice"");
+        b2.RaiseE2(""Bob"");
+        b2.RaiseE3(""Charlie"");
+    }
+
+    static void Print(object o) => System.Console.WriteLine(""Printed: "" + (System.String)o);
+}";
+            var expectedOutput =
+@"Success1: Alice
+Success2
+Success3: Charlie
+Printed: Alice
+Printed: Bob
+Printed: Charlie
+";
+            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef },
+                                                    expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventWithDynamicAttribute_OverriddenTypeDoesntLeak()
+        {
+            var libText = @"
+public class CL1
+{
+    public virtual event System.Action<dynamic> E1 { add {} remove {} }
+    public virtual event System.Action<dynamic> E2 { add {} remove {} }
+}";
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libAssemblyRef = libComp.EmitToImageReference();
+
+            var source = @"
+public class CL2 : CL1
+{
+    public override event System.Action<object> E1;
+    public override event System.Action<object> E2 { add {} remove {} }
+}";
+            Action<ModuleSymbol> validator = module =>
+            {
+                var peModule = (PEModuleSymbol)module;
+                var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("CL2");
+                var e1 = type.GetMember<EventSymbol>("E1");
+                var e2 = type.GetMember<EventSymbol>("E2");
+
+                Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
+            };
+
+            CompileAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
+        }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventFieldWithDynamicAttribute_OverriddenTypeDoesntLeak()
+        {
+            var libText = @"
+public class CL1
+{
+    public virtual event System.Action<dynamic> E1;
+    public virtual event System.Action<dynamic> E2;
+}";
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libAssemblyRef = libComp.EmitToImageReference();
+
+            var source = @"
+public class CL2 : CL1
+{
+    public override event System.Action<object> E1;
+    public override event System.Action<object> E2 { add {} remove {} }
+}";
+            Action<ModuleSymbol> validator = module =>
+            {
+                var peModule = (PEModuleSymbol)module;
+                var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("CL2");
+                var e1 = type.GetMember<EventSymbol>("E1");
+                var e2 = type.GetMember<EventSymbol>("E2");
+
+                Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
+            };
+
+            CompileAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
+        }
+
+        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        public void EventWithoutDynamicAttributeFromLegacyCompiler()
+        {
+            #region IL for class C
+            // This is most of the IL generated by the native compiler (4.6) when compiling class C below:
+            //  public class C
+            //  {
+            //      public event System.Action<dynamic> E;
+            //      public void Raise() { E("Event raised"); }
+            //  }
+            // The important thing here is that the .event doesn't have a DynamicAttribute, but the add and remove accessors do.
+            // Because of that the event will only be loaded as Action<object>, not Action<dynamic>
+
+            var ilSource = @"
+.assembly extern System.Core
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+  .field private class [mscorlib]System.Action`1<object> E
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+  .method public hidebysig specialname instance void 
+          add_E(class [mscorlib]System.Action`1<object> 'value') cil managed
+  {
+    .param [1]
+    .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    // Code size       48 (0x30)
+    .maxstack  3
+    .locals init (class [mscorlib]System.Action`1<object> V_0,
+             class [mscorlib]System.Action`1<object> V_1,
+             class [mscorlib]System.Action`1<object> V_2,
+             bool V_3)
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      class [mscorlib]System.Action`1<object> C::E
+    IL_0006:  stloc.0
+    IL_0007:  ldloc.0
+    IL_0008:  stloc.1
+    IL_0009:  ldloc.1
+    IL_000a:  ldarg.1
+    IL_000b:  call       class [mscorlib]System.Delegate [mscorlib]System.Delegate::Combine(class [mscorlib]System.Delegate,
+                                                                                            class [mscorlib]System.Delegate)
+    IL_0010:  castclass  class [mscorlib]System.Action`1<object>
+    IL_0015:  stloc.2
+    IL_0016:  ldarg.0
+    IL_0017:  ldflda     class [mscorlib]System.Action`1<object> C::E
+    IL_001c:  ldloc.2
+    IL_001d:  ldloc.1
+    IL_001e:  call       !!0 [mscorlib]System.Threading.Interlocked::CompareExchange<class [mscorlib]System.Action`1<object>>(!!0&,
+                                                                                                                              !!0,
+                                                                                                                              !!0)
+    IL_0023:  stloc.0
+    IL_0024:  ldloc.0
+    IL_0025:  ldloc.1
+    IL_0026:  ceq
+    IL_0028:  ldc.i4.0
+    IL_0029:  ceq
+    IL_002b:  stloc.3
+    IL_002c:  ldloc.3
+    IL_002d:  brtrue.s   IL_0007
+
+    IL_002f:  ret
+  } // end of method C::add_E
+
+  .method public hidebysig specialname instance void 
+          remove_E(class [mscorlib]System.Action`1<object> 'value') cil managed
+  {
+    .param [1]
+    .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    // Code size       48 (0x30)
+    .maxstack  3
+    .locals init (class [mscorlib]System.Action`1<object> V_0,
+             class [mscorlib]System.Action`1<object> V_1,
+             class [mscorlib]System.Action`1<object> V_2,
+             bool V_3)
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      class [mscorlib]System.Action`1<object> C::E
+    IL_0006:  stloc.0
+    IL_0007:  ldloc.0
+    IL_0008:  stloc.1
+    IL_0009:  ldloc.1
+    IL_000a:  ldarg.1
+    IL_000b:  call       class [mscorlib]System.Delegate [mscorlib]System.Delegate::Remove(class [mscorlib]System.Delegate,
+                                                                                           class [mscorlib]System.Delegate)
+    IL_0010:  castclass  class [mscorlib]System.Action`1<object>
+    IL_0015:  stloc.2
+    IL_0016:  ldarg.0
+    IL_0017:  ldflda     class [mscorlib]System.Action`1<object> C::E
+    IL_001c:  ldloc.2
+    IL_001d:  ldloc.1
+    IL_001e:  call       !!0 [mscorlib]System.Threading.Interlocked::CompareExchange<class [mscorlib]System.Action`1<object>>(!!0&,
+                                                                                                                              !!0,
+                                                                                                                              !!0)
+    IL_0023:  stloc.0
+    IL_0024:  ldloc.0
+    IL_0025:  ldloc.1
+    IL_0026:  ceq
+    IL_0028:  ldc.i4.0
+    IL_0029:  ceq
+    IL_002b:  stloc.3
+    IL_002c:  ldloc.3
+    IL_002d:  brtrue.s   IL_0007
+
+    IL_002f:  ret
+  } // end of method C::remove_E
+
+  .method public hidebysig instance void 
+          Raise() cil managed
+  {
+    // Code size       19 (0x13)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldfld      class [mscorlib]System.Action`1<object> C::E
+    IL_0007:  ldstr      ""Event raised""
+    IL_000c: callvirt instance void class [mscorlib]
+        System.Action`1<object>::Invoke(!0)
+    IL_0011:  nop
+    IL_0012:  ret
+    } // end of method C::Raise
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+    {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call instance void [mscorlib]
+        System.Object::.ctor()
+    IL_0006:  ret
+    } // end of method C::.ctor
+
+  .event class [mscorlib]
+    System.Action`1<object> E
+  {
+    .addon instance void C::add_E(class [mscorlib]
+    System.Action`1<object>)
+    .removeon instance void C::remove_E(class [mscorlib]
+    System.Action`1<object>)
+  } // end of event C::E
+} // end of class C
+";
+            #endregion
+
+            var source = @"
+class D
+{
+    static void Main()
+    {
+        C x = new C();
+        x.E += Print;
+        x.Raise();
+    }
+    static void Print(object o) {
+        System.Console.WriteLine(o.ToString());
+    }
+}
+";
+            var compVerifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef, CompileIL(ilSource) }, 
+                                                expectedOutput: "Event raised");
+
+            var comp = compVerifier.Compilation;
+            var classSymbol = (PENamedTypeSymbol)comp.GetTypeByMetadataName("C");
+            var eventSymbol = (PEEventSymbol)classSymbol.GetMember("E");
+            Assert.Equal("System.Action<System.Object>", eventSymbol.Type.ToTestDisplayString());
+        }
         #endregion
 
         #region Error cases
@@ -623,7 +1104,7 @@ class E : Interface
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("D.e"));
         }
 
-        [WorkItem(541704, "DevDiv")]
+        [WorkItem(541704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541704")]
         [Fact]
         public void OperationsInDeclaringType()
         {
@@ -830,7 +1311,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This"));
         }
 
-        [WorkItem(546356, "DevDiv")]
+        [WorkItem(546356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]
         [Fact]
         public void StructEvent2()
         {
@@ -865,7 +1346,7 @@ struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S.E"));
         }
 
-        [WorkItem(546356, "DevDiv")]
+        [WorkItem(546356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]
         [Fact]
         public void StructEvent3()
         {
@@ -926,7 +1407,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E"));
         }
 
-        [WorkItem(542570, "DevDiv")]
+        [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
         [Fact]
         public void UseMissingAccessorInInterface()
         {
@@ -1346,7 +1827,7 @@ class C
             Assert.Equal(Accessibility.Public, event3.RemoveMethod.DeclaredAccessibility);
         }
 
-        [WorkItem(538956, "DevDiv")]
+        [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
         [Fact]
         public void EventAccessorDoesNotHideMethod()
         {
@@ -1369,7 +1850,7 @@ class Program {
             CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538956, "DevDiv")]
+        [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
         [Fact]
         public void EventAccessorDoesNotConflictWithMethod()
         {
@@ -1394,7 +1875,7 @@ class Program {
             CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538992, "DevDiv")]
+        [WorkItem(538992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538992")]
         [Fact]
         public void CannotAccessEventThroughParenthesizedType()
         {
@@ -1445,7 +1926,7 @@ class Outer
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Q").WithArguments("Outer.Foo.Q"));
         }
 
-        [WorkItem(542461, "DevDiv")]
+        [WorkItem(542461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542461")]
         [Fact]
         public void EventMustDelegate()
         {
@@ -1518,7 +1999,7 @@ namespace TestEvents
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "Changed"));
         }
 
-        [WorkItem(543791, "DevDiv")]
+        [WorkItem(543791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]
         [Fact]
         public void MultipleDeclaratorsOneError()
         {
@@ -1541,7 +2022,7 @@ class A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "b").WithArguments("A.b"));
         }
 
-        [WorkItem(545682, "DevDiv")]
+        [WorkItem(545682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545682")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void EventHidingMethod()
         {
@@ -1586,7 +2067,7 @@ class A
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E1").WithArguments("B.E1").WithLocation(5, 11));
         }
 
-        [WorkItem(547071, "DevDiv")]
+        [WorkItem(547071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547071")]
         [Fact]
         public void InvalidEventDeclarations()
         {
@@ -1814,7 +2295,7 @@ class Derived2 : Base
             Assert.Equal("myRemove", event2.RemoveMethod.Name);
         }
 
-        [Fact, WorkItem(570905, "DevDiv")]
+        [Fact, WorkItem(570905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570905")]
         public void OverriddenAccessorName_BaseMissingAccessor()
         {
             var source = @"
@@ -1860,7 +2341,7 @@ class Derived2 : Base
             Assert.Equal("remove_E", event2.RemoveMethod.Name);
         }
 
-        [WorkItem(850168, "DevDiv")]
+        [WorkItem(850168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850168")]
         [Fact]
         public void AbstractFieldLikeEvent()
         {

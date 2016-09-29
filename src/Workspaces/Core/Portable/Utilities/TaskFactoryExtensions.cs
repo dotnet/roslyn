@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities
 {
-    [SuppressMessage("ApiDesign", "RS0011", Justification = "Matching TPL Signatures")]
+    [SuppressMessage("ApiDesign", "CA1068", Justification = "Matching TPL Signatures")]
     internal static partial class TaskFactoryExtensions
     {
         public static Task SafeStartNew(this TaskFactory factory, Action action, CancellationToken cancellationToken, TaskScheduler scheduler)

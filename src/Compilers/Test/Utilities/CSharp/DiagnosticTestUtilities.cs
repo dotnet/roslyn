@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
+        [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnostics(string source, params string[] diagStrings)
         {
             var comp = CSharpTestBase.CreateCompilationWithMscorlib(source);
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
+        [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnosticsExact(string source, params string[] diagStrings)
         {
             var comp = CSharpTestBase.CreateCompilationWithMscorlib(source);
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, params ErrorDescription[] expectedErrorDesp)
+        public static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, params ErrorDescription[] expectedErrorDesp)
         {
             return VerifyErrorsAndGetCompilationWithMscorlib(new string[] { text }, expectedErrorDesp);
         }
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                              Column = lineSpan.IsValid ? lineSpan.StartLinePosition.Character + 1 : 0,
                                              IsWarning = e.Severity == DiagnosticSeverity.Warning,
                                              Parameters = (e.Arguments != null && e.Arguments.Count > 0 && e.Arguments[0] != null) ?
-                                                e.Arguments.Select(x => x != null ? x.ToString() : null).ToArray() : SpecializedCollections.EmptyArray<string>()
+                                                e.Arguments.Select(x => x != null ? x.ToString() : null).ToArray() : Array.Empty<string>()
                                          })
                                     orderby ae.Code, ae.Line, ae.Column
                                     select ae).ToList();

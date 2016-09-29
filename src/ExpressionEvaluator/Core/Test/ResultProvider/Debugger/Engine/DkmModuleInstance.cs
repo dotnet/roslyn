@@ -3,6 +3,7 @@
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
 #endregion
+
 using Microsoft.VisualStudio.Debugger.Symbols;
 
 namespace Microsoft.VisualStudio.Debugger

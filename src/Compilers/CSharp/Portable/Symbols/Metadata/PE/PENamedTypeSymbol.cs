@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal abstract class PENamedTypeSymbol : NamedTypeSymbol
     {
-        private static readonly Dictionary<string, ImmutableArray<PENamedTypeSymbol>> s_emptyNestedTypes = new Dictionary<string, ImmutableArray<PENamedTypeSymbol>>();
+        private static readonly Dictionary<string, ImmutableArray<PENamedTypeSymbol>> s_emptyNestedTypes = new Dictionary<string, ImmutableArray<PENamedTypeSymbol>>(EmptyComparer.Instance);
 
         private readonly NamespaceOrTypeSymbol _container;
         private readonly TypeDefinitionHandle _handle;
@@ -431,7 +431,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (!token.IsNil)
                     {
                         TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
-                        return (NamedTypeSymbol)DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
+                        decodedType = DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
+                        return (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType,
+                                                                                              _handle,
+                                                                                              moduleSymbol);
                     }
                 }
                 catch (BadImageFormatException mrEx)
@@ -460,6 +463,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         EntityHandle interfaceHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface;
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
+
+                        typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceHandle, moduleSymbol);
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol;
                         symbols[i++] = (object)namedTypeSymbol != null ? namedTypeSymbol : new UnsupportedMetadataTypeSymbol(); // interface tmpList contains a bad type
@@ -1585,10 +1590,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (_lazyKind == TypeKind.Unknown)
-                {
-                    TypeKind result;
+                TypeKind result = _lazyKind;
 
+                if (result == TypeKind.Unknown)
+                {
                     if (_flags.IsInterface())
                     {
                         result = TypeKind.Interface;
@@ -1603,22 +1608,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             SpecialType baseCorTypeId = @base.SpecialType;
 
-                            // Code is cloned from MetaImport::DoImportBaseAndImplements()
-                            if (baseCorTypeId == SpecialType.System_Enum)
+                            switch (baseCorTypeId)
                             {
-                                // Enum
-                                result = TypeKind.Enum;
-                            }
-                            else if (baseCorTypeId == SpecialType.System_MulticastDelegate)
-                            {
-                                // Delegate
-                                result = TypeKind.Delegate;
-                            }
-                            else if (baseCorTypeId == SpecialType.System_ValueType &&
-                                     this.SpecialType != SpecialType.System_Enum)
-                            {
-                                // Struct
-                                result = TypeKind.Struct;
+                                case SpecialType.System_Enum:
+                                    // Enum
+                                    result = TypeKind.Enum;
+                                    break;
+
+                                case SpecialType.System_MulticastDelegate:
+                                    // Delegate
+                                    result = TypeKind.Delegate;
+                                    break;
+
+                                case SpecialType.System_ValueType:
+                                    // System.Enum is the only class that derives from ValueType
+                                    if (this.SpecialType != SpecialType.System_Enum)
+                                    {
+                                        // Struct
+                                        result = TypeKind.Struct;
+                                    }
+                                    break;
                             }
                         }
                     }
@@ -1626,7 +1635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _lazyKind = result;
                 }
 
-                return _lazyKind;
+                return result;
             }
         }
 
@@ -1873,7 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private static Dictionary<string, ImmutableArray<Symbol>> GroupByName(ArrayBuilder<Symbol> symbols)
         {
-            return symbols.ToDictionary(s => s.Name);
+            return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
         }
 
         private static Dictionary<string, ImmutableArray<PENamedTypeSymbol>> GroupByName(ArrayBuilder<PENamedTypeSymbol> symbols)
@@ -1883,7 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return s_emptyNestedTypes;
             }
 
-            return symbols.ToDictionary(s => s.Name);
+            return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
         }
 
 

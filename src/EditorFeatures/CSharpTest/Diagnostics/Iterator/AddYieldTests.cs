@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpAddYieldCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldIEnumerableReturnNull()
         {
             var initial =
@@ -34,7 +34,7 @@ class Program
             await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldIEnumerableReturnObject()
         {
             var initial =
@@ -62,7 +62,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldIEnumeratorReturnObject()
         {
             var initial =
@@ -90,7 +90,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldIEnumeratorReturnGenericList()
         {
             var initial =
@@ -120,7 +120,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldGenericIEnumeratorReturnObject()
         {
             var initial =
@@ -150,7 +150,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldGenericIEnumerableReturnObject()
         {
             var initial =
@@ -180,7 +180,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldIEnumerableReturnGenericList()
         {
             var initial =
@@ -198,7 +198,7 @@ class Program
             await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldGenericIEnumeratorReturnDefault()
         {
             var initial =
@@ -228,7 +228,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldGenericIEnumerableReturnConvertibleToObject()
         {
             var initial =
@@ -258,7 +258,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldGenericIEnumerableReturnConvertibleToFloat()
         {
             var initial =
@@ -288,7 +288,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldGenericIEnumeratorNonConvertableType()
         {
             var initial =
@@ -306,7 +306,7 @@ class Program
             await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldGenericIEnumeratorConvertableTypeDateTime()
         {
             var initial =
@@ -336,7 +336,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldNoTypeArguments()
         {
             var initial =

@@ -20,10 +20,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class ImportAliasesBinder
         Inherits Binder
 
-        Private ReadOnly _importedAliases As Dictionary(Of String, AliasAndImportsClausePosition)
+        Private ReadOnly _importedAliases As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition)
 
-        Public Sub New(containingBinder As Binder, importedAliases As Dictionary(Of String, AliasAndImportsClausePosition))
+        Public Sub New(containingBinder As Binder, importedAliases As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition))
             MyBase.New(containingBinder)
+
+            Debug.Assert(importedAliases IsNot Nothing)
+
             _importedAliases = importedAliases
 
             ' Binder.Lookup relies on the following invariant.

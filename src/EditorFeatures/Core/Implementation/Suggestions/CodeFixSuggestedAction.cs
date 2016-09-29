@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -7,9 +8,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -29,8 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeFix fix,
             CodeAction action,
             object provider,
-            SuggestedActionSet fixAllSuggestedActionSet)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, action, provider)
+            SuggestedActionSet fixAllSuggestedActionSet,
+            IAsynchronousOperationListener operationListener)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, action, provider, operationListener)
         {
             _fix = fix;
             _fixAllSuggestedActionSet = fixAllSuggestedActionSet;
@@ -43,13 +45,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal static SuggestedActionSet GetFixAllSuggestedActionSet(
             CodeAction action,
             int actionCount,
-            FixAllCodeActionContext fixAllCodeActionContext,
+            FixAllState fixAllState,
+            IEnumerable<FixAllScope> supportedScopes,
+            Diagnostic firstDiagnostic,
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator)
+            IWaitIndicator waitIndicator,
+            IAsynchronousOperationListener operationListener)
         {
-            if (fixAllCodeActionContext == null)
+            if (fixAllState == null)
             {
                 return null;
             }
@@ -59,17 +64,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
-            var fixAllSuggestedActions = ImmutableArray.CreateBuilder<FixAllSuggestedAction>();
-            foreach (var scope in fixAllCodeActionContext.SupportedScopes)
+            var fixAllSuggestedActions = ArrayBuilder<FixAllSuggestedAction>.GetInstance();
+            foreach (var scope in supportedScopes)
             {
-                var fixAllContext = fixAllCodeActionContext.GetContextForScopeAndActionId(scope, action.EquivalenceKey);
-                var fixAllAction = new FixAllCodeAction(fixAllContext, fixAllCodeActionContext.FixAllProvider, showPreviewChangesDialog: true);
-                var fixAllSuggestedAction = new FixAllSuggestedAction(workspace, subjectBuffer, editHandler, waitIndicator,
-                    fixAllAction, fixAllCodeActionContext.FixAllProvider, fixAllCodeActionContext.OriginalDiagnostics.First());
+                var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
+                var fixAllAction = new FixAllCodeAction(fixAllStateForScope, showPreviewChangesDialog: true);
+                var fixAllSuggestedAction = new FixAllSuggestedAction(
+                    workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction,
+                    fixAllStateForScope.FixAllProvider, firstDiagnostic, operationListener);
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
 
-            return new SuggestedActionSet(fixAllSuggestedActions.ToImmutable(), title: EditorFeaturesResources.FixAllOccurrencesIn);
+            return new SuggestedActionSet(
+                fixAllSuggestedActions.ToImmutableAndFree(),
+                title: EditorFeaturesResources.Fix_all_occurrences_in);
         }
 
         public string GetDiagnosticID()

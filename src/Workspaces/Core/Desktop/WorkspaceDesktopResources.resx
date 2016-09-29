@@ -117,10 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="InvalidAssemblyName" xml:space="preserve">
+  <data name="Invalid_assembly_name" xml:space="preserve">
     <value>Invalid assembly name</value>
   </data>
-  <data name="InvalidCharactersInAssemblyName" xml:space="preserve">
+  <data name="Invalid_characters_in_assembly_name" xml:space="preserve">
     <value>Invalid characters in assembly name</value>
   </data>
 </root>

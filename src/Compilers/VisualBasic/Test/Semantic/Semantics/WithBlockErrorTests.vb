@@ -987,7 +987,7 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 </errors>)
         End Sub
 
-        <WorkItem(543921, "DevDiv")>
+        <WorkItem(543921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543921")>
         <Fact()>
         Public Sub WithNewT()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1008,7 +1008,7 @@ End Module
             compilation.AssertNoErrors()
         End Sub
 
-        <Fact(), WorkItem(544195, "DevDiv")>
+        <Fact(), WorkItem(544195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544195")>
         Public Sub WithMeMyClassMyBase()
             CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>

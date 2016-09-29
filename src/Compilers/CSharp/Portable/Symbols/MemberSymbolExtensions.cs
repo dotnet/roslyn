@@ -423,19 +423,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsPartialMethod(this Symbol member)
         {
             var sms = member as SourceMethodSymbol;
-            return (object)sms != null && sms.IsPartial;
+            return sms?.IsPartial == true;
         }
 
         internal static bool IsPartialImplementation(this Symbol member)
         {
             var sms = member as SourceMemberMethodSymbol;
-            return (object)sms != null && sms.IsPartialImplementation;
+            return sms?.IsPartialImplementation == true;
         }
 
         internal static bool IsPartialDefinition(this Symbol member)
         {
             var sms = member as SourceMemberMethodSymbol;
-            return (object)sms != null && sms.IsPartialDefinition;
+            return sms?.IsPartialDefinition == true;
         }
 
         internal static ImmutableArray<Symbol> GetExplicitInterfaceImplementations(this Symbol member)
@@ -450,43 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((EventSymbol)member).ExplicitInterfaceImplementations.Cast<EventSymbol, Symbol>();
                 default:
                     return ImmutableArray<Symbol>.Empty;
-            }
-        }
-
-        internal static TypeSymbol GetTypeOrReturnType(this Symbol member)
-        {
-            TypeSymbol returnType;
-            ImmutableArray<CustomModifier> returnTypeCustomModifiers;
-            GetTypeOrReturnType(member, out returnType, out returnTypeCustomModifiers);
-            return returnType;
-        }
-
-        internal static void GetTypeOrReturnType(this Symbol member, out TypeSymbol returnType, out ImmutableArray<CustomModifier> returnTypeCustomModifiers)
-        {
-            switch (member.Kind)
-            {
-                case SymbolKind.Field:
-                    FieldSymbol field = (FieldSymbol)member;
-                    returnType = field.Type;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-                    break;
-                case SymbolKind.Method:
-                    MethodSymbol method = (MethodSymbol)member;
-                    returnType = method.ReturnType;
-                    returnTypeCustomModifiers = method.ReturnTypeCustomModifiers;
-                    break;
-                case SymbolKind.Property:
-                    PropertySymbol property = (PropertySymbol)member;
-                    returnType = property.Type;
-                    returnTypeCustomModifiers = property.TypeCustomModifiers;
-                    break;
-                case SymbolKind.Event:
-                    EventSymbol @event = (EventSymbol)member;
-                    returnType = @event.Type;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 

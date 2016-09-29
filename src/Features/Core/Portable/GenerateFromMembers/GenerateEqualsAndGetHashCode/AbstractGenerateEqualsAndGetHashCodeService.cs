@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,13 +19,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateEqualsAndGetHashCod
     {
         private const string EqualsName = "Equals";
         private const string GetHashCodeName = "GetHashCode";
-        private const string ObjName = "ObjName";
+        private const string ObjName = nameof(ObjName);
 
         protected AbstractGenerateEqualsAndGetHashCodeService()
         {
         }
 
-        public async Task<IGenerateEqualsAndGetHashCodeResult> GenerateEqualsAndGetHashCodeAsync(
+        public async Task<ImmutableArray<CodeAction>> GenerateEqualsAndGetHashCodeAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -49,16 +50,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateEqualsAndGetHashCod
 
                         if (!hasEquals || !hasGetHashCode)
                         {
-                            var codeRefactoring = CreateCodeRefactoring(
-                                info.SelectedDeclarations,
-                                CreateActions(document, textSpan, info.ContainingType, info.SelectedMembers, hasEquals, hasGetHashCode));
-
-                            return new GenerateEqualsAndGetHashCodeResult(codeRefactoring);
+                            return CreateActions(
+                                document, textSpan, info.ContainingType, info.SelectedMembers, hasEquals, hasGetHashCode).AsImmutableOrNull();
                         }
                     }
                 }
 
-                return GenerateEqualsAndGetHashCodeResult.Failure;
+                return default(ImmutableArray<CodeAction>);
             }
         }
 

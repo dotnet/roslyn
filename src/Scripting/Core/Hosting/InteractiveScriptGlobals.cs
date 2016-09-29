@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         public IList<string> ReferencePaths { get; }
         public IList<string> SourcePaths { get; }
 
-        internal ObjectFormattingOptions PrintOptions { get; set; }
+        public PrintOptions PrintOptions { get; }
 
         public InteractiveScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
         {
@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             SourcePaths = new SearchPaths();
             Args = new List<string>();
 
-            PrintOptions = ObjectFormattingOptions.Default;
+            PrintOptions = new PrintOptions();
+
             _outputWriter = outputWriter;
             _objectFormatter = objectFormatter;
         }

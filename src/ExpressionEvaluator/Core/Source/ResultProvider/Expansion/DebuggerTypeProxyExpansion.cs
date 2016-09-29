@@ -2,7 +2,6 @@
 
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.Debugger.Metadata;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             formatSpecifiers,
                             flags,
                             editableValue,
-                            resultProvider.Formatter);
+                            resultProvider);
                     }
                 }
             }
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return null;
         }
 
-        private readonly EvalResultDataItem _proxyItem;
+        private readonly EvalResult _proxyItem;
         private readonly string _name;
         private readonly TypeAndCustomInfo _typeDeclaringMemberAndInfoOpt;
         private readonly TypeAndCustomInfo _declaredTypeAndInfo;
@@ -107,10 +106,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReadOnlyCollection<string> formatSpecifiers,
             DkmEvaluationResultFlags flags,
             string editableValue,
-            Formatter formatter)
+            ResultProvider resultProvider)
         {
             Debug.Assert(proxyValue != null);
-            var proxyType = proxyValue.Type.GetLmrType();
+            var proxyType = proxyValue.Type;
             var proxyTypeAndInfo = new TypeAndCustomInfo(proxyType);
             var proxyMembers = MemberExpansion.CreateExpansion(
                 inspectionContext,
@@ -118,25 +117,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 proxyValue,
                 ExpansionFlags.IncludeBaseMembers,
                 TypeHelpers.IsPublic,
-                formatter);
+                resultProvider);
             if (proxyMembers != null)
             {
                 string proxyMemberFullNamePrefix = null;
                 if (childFullNamePrefix != null)
                 {
-                    bool sawInvalidIdentifier;
-                    var proxyTypeName = formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
-                    if (!sawInvalidIdentifier)
-                    {
-                        proxyMemberFullNamePrefix = formatter.GetObjectCreationExpression(proxyTypeName, childFullNamePrefix);
-                    }
+                    proxyMemberFullNamePrefix = resultProvider.FullNameProvider.GetClrObjectCreationExpression(inspectionContext, proxyTypeAndInfo.ClrType, proxyTypeAndInfo.Info, childFullNamePrefix);
                 }
-                _proxyItem = new EvalResultDataItem(
+                _proxyItem = new EvalResult(
                     ExpansionKind.Default,
                     name: string.Empty,
                     typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
                     declaredTypeAndInfo: proxyTypeAndInfo,
-                    parent: null,
+                    useDebuggerDisplay: false,
                     value: proxyValue,
                     displayValue: null,
                     expansion: proxyMembers,
@@ -164,7 +158,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<EvalResultDataItem> rows,
+            ArrayBuilder<EvalResult> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -175,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (_proxyItem != null)
             {
-                _proxyItem.Expansion.GetRows(resultProvider, rows, inspectionContext, _proxyItem, _proxyItem.Value, startIndex, count, visitAll, ref index);
+                _proxyItem.Expansion.GetRows(resultProvider, rows, inspectionContext, _proxyItem.ToDataItem(), _proxyItem.Value, startIndex, count, visitAll, ref index);
             }
 
             if (InRange(startIndex, count, index))
@@ -186,16 +180,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             index++;
         }
 
-        private EvalResultDataItem CreateRawViewRow(
+        private EvalResult CreateRawViewRow(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext)
         {
-            return new EvalResultDataItem(
+            return new EvalResult(
                 ExpansionKind.RawView,
                 _name,
                 _typeDeclaringMemberAndInfoOpt,
                 _declaredTypeAndInfo,
-                parent: null,
+                useDebuggerDisplay: false,
                 value: _value,
                 displayValue: null,
                 expansion: CreateRawView(resultProvider, inspectionContext, _declaredTypeAndInfo, _value),

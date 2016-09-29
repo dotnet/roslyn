@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundBinaryOperator
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             operatorKind As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operatorKind, left, right, checked, ConstantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operatorKind, left, right, checked, constantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors)
 
         End Sub
 

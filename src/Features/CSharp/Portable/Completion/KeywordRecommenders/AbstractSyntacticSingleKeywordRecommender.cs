@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -26,36 +28,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             this.ShouldFormatOnCommit = shouldFormatOnCommit;
         }
 
-        protected abstract bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
+        protected virtual Task<bool> IsValidContextAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(IsValidContext(position, context, cancellationToken));
+        }
 
-        public IEnumerable<RecommendedKeyword> RecommendKeywords(
+        protected virtual bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
+
+        public async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
             int position,
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
-            var syntaxKind = this.RecommendKeyword(position, context, cancellationToken);
+            var syntaxKind = await this.RecommendKeywordAsync(position, context, cancellationToken).ConfigureAwait(false);
             if (syntaxKind.HasValue)
             {
                 return SpecializedCollections.SingletonEnumerable(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), shouldFormatOnCommit: this.ShouldFormatOnCommit));
+                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), 
+                        shouldFormatOnCommit: this.ShouldFormatOnCommit, 
+                        matchPriority: ShouldPreselect(context, cancellationToken) ? SymbolMatchPriority.Keyword : MatchPriority.Default));
             }
 
             return null;
         }
 
-        internal IEnumerable<RecommendedKeyword> RecommendKeywords_Test(int position, CSharpSyntaxContext context)
-        {
-            var syntaxKind = this.RecommendKeyword(position, context, CancellationToken.None);
+        protected virtual bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
+
+        internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync_Test(int position, CSharpSyntaxContext context)
+        { 
+            var syntaxKind = await this.RecommendKeywordAsync(position, context, CancellationToken.None).ConfigureAwait(false);
             if (syntaxKind.HasValue)
             {
+                var matchPriority = ShouldPreselect(context, CancellationToken.None) ? SymbolMatchPriority.Keyword : MatchPriority.Default;
                 return SpecializedCollections.SingletonEnumerable(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value)));
+                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), matchPriority: matchPriority));
             }
 
             return null;
         }
 
-        private SyntaxKind? RecommendKeyword(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private async Task<SyntaxKind?> RecommendKeywordAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // NOTE: The collector ensures that we're not in "NonUserCode" like comments, strings, inactive code
             // for perf reasons.
@@ -66,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return null;
             }
 
-            if (!IsValidContext(position, context, cancellationToken))
+            if (!await IsValidContextAsync(position, context, cancellationToken).ConfigureAwait(false))
             {
                 return null;
             }

@@ -23,16 +23,36 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.CSharp.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll")]
 
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "System.Reflection.Metadata",
-    OldVersionLowerBound = "1.0.0.0",
-    OldVersionUpperBound = "1.0.99.0",
-    NewVersion = "1.1.0.0",
-    PublicKeyToken = "b03f5f7f11d50a3a",
-    GenerateCodeBase = true)]
+[assembly: ProvideRoslynBindingRedirection("System.Reflection.Metadata.dll")]
+[assembly: ProvideRoslynBindingRedirection("System.Collections.Immutable.dll")]
+[assembly: ProvideRoslynBindingRedirection("Esent.Interop.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.DiaSymReader.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.DiaSymReader.PortablePdb.dll")]
 
-[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Esent.Interop.dll")]
-[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.DiaSymReader.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Convention.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.TypedParts.dll")]
+
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.AppContext.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Console.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Diagnostics.FileVersionInfo.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Diagnostics.Process.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.Compression.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.DriveInfo.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.Primitives.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.Pipes.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Runtime.InteropServices.RuntimeInformation.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.AccessControl.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Claims.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.Algorithms.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.Encoding.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.Primitives.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.X509Certificates.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Principal.Windows.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Text.Encoding.CodePages.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Threading.Thread.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Xml.XmlDocument.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Xml.XPath.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Xml.XPath.XDocument.dll")]

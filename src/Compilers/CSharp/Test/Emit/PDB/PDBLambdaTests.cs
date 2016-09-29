@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBLambdaTests : CSharpPDBTestBase
     {
-        [WorkItem(539898, "DevDiv")]
+        [WorkItem(539898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539898")]
         [Fact]
         public void SequencePoints_Body()
         {
@@ -66,7 +66,7 @@ class C
 </symbols>");
         }
 
-        [Fact, WorkItem(543479, "DevDiv")]
+        [Fact, WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
         public void Nested()
         {
             var source = @"
@@ -189,7 +189,7 @@ class Test
 </symbols>");
         }
 
-        [Fact, WorkItem(543479, "DevDiv")]
+        [Fact, WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
         public void InitialSequencePoints()
         {
             var source = @"
@@ -246,7 +246,7 @@ class Test
 </symbols>");
         }
 
-        [Fact, WorkItem(543479, "DevDiv")]
+        [Fact, WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
         public void Nested_InitialSequencePoints()
         {
             var source = @"
@@ -543,6 +543,7 @@ class C : B
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x14"" startLine=""13"" startColumn=""30"" endLine=""13"" endColumn=""43"" />
         <entry offset=""0x27"" hidden=""true"" />
         <entry offset=""0x2d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
         <entry offset=""0x2e"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" />
@@ -553,8 +554,8 @@ class C : B
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x6c"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x6c"" attributes=""0"" />
-        <scope startOffset=""0x27"" endOffset=""0x6b"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x27"" il_end=""0x6b"" attributes=""0"" />
+        <scope startOffset=""0x27"" endOffset=""0x6c"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x27"" il_end=""0x6c"" attributes=""0"" />
         </scope>
       </scope>
     </method>

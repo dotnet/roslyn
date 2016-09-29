@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -19,12 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private ExpressionSyntax ParseExpression(string text, ParseOptions options = null)
         {
             return SyntaxFactory.ParseExpression(text, options: options);
-        }
-
-        private ExpressionSyntax ParseExpressionExperimental(string text)
-        {
-            var experimentalFeatures = new SmallDictionary<string, string>(); // no experimental features to enable
-            return SyntaxFactory.ParseExpression(text, options: CSharpParseOptions.Default.WithFeatures(experimentalFeatures));
         }
 
         [Fact]
@@ -135,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.StringLiteralToken, us.Token.Kind());
         }
 
-        [WorkItem(540379, "DevDiv")]
+        [WorkItem(540379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540379")]
         [Fact]
         public void TestVerbatimLiteralExpression()
         {
@@ -340,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        private void TestConditionalAccessNotVersion5()
+        public void TestConditionalAccessNotVersion5()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
             var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -355,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        private void TestConditionalAccess()
+        public void TestConditionalAccess()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
             var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -1178,6 +1173,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSimpleLambdaWithRefReturn()
+        {
+            var text = "a => ref b";
+            var expr = this.ParseExpression(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.SimpleLambdaExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var lambda = (SimpleLambdaExpressionSyntax)expr;
+            Assert.NotNull(lambda.Parameter.Identifier);
+            Assert.False(lambda.Parameter.Identifier.IsMissing);
+            Assert.Equal("a", lambda.Parameter.Identifier.ToString());
+            Assert.Equal(SyntaxKind.RefExpression, lambda.Body.Kind());
+            Assert.Equal("ref b", lambda.Body.ToString());
+        }
+
+        [Fact]
         public void TestSimpleLambdaWithBlock()
         {
             var text = "a => { }";
@@ -1215,6 +1228,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, lambda.ParameterList.Parameters.Count);
             Assert.NotNull(lambda.Body);
             Assert.Equal("b", lambda.Body.ToString());
+        }
+
+        [Fact]
+        public void TestLambdaWithNoParametersAndRefReturn()
+        {
+            var text = "() => ref b";
+            var expr = this.ParseExpression(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var lambda = (ParenthesizedLambdaExpressionSyntax)expr;
+            Assert.NotNull(lambda.ParameterList.OpenParenToken);
+            Assert.NotNull(lambda.ParameterList.CloseParenToken);
+            Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
+            Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
+            Assert.Equal(0, lambda.ParameterList.Parameters.Count);
+            Assert.Equal(SyntaxKind.RefExpression, lambda.Body.Kind());
+            Assert.Equal("ref b", lambda.Body.ToString());
         }
 
         [Fact]
@@ -1340,6 +1373,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.RefKeyword, ps.Modifiers[0].Kind());
             Assert.NotNull(lambda.Body);
             Assert.Equal("b", lambda.Body.ToString());
+        }
+
+        [Fact]
+        public void TestTupleWithTwoArguments()
+        {
+            var text = "(a, a2)";
+            var expr = this.ParseExpression(text, options: TestOptions.Regular);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var tuple = (TupleExpressionSyntax)expr;
+            Assert.NotNull(tuple.OpenParenToken);
+            Assert.NotNull(tuple.CloseParenToken);
+            Assert.False(tuple.OpenParenToken.IsMissing);
+            Assert.False(tuple.CloseParenToken.IsMissing);
+            Assert.Equal(2, tuple.Arguments.Count);
+            Assert.Equal(SyntaxKind.IdentifierName, tuple.Arguments[0].Expression.Kind());
+            Assert.Null(tuple.Arguments[1].NameColon);
+        }
+
+        [Fact]
+        public void TestTupleWithTwoNamedArguments()
+        {
+            var text = "(arg1: (a, a2), arg2: a2)";
+            var expr = this.ParseExpression(text, options: TestOptions.Regular);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var tuple = (TupleExpressionSyntax)expr;
+            Assert.NotNull(tuple.OpenParenToken);
+            Assert.NotNull(tuple.CloseParenToken);
+            Assert.False(tuple.OpenParenToken.IsMissing);
+            Assert.False(tuple.CloseParenToken.IsMissing);
+            Assert.Equal(2, tuple.Arguments.Count);
+            Assert.Equal(SyntaxKind.TupleExpression, tuple.Arguments[0].Expression.Kind());
+            Assert.NotNull(tuple.Arguments[0].NameColon.Name);
+            Assert.Equal("arg2", tuple.Arguments[1].NameColon.Name.ToString());
         }
 
         [Fact]
@@ -2058,7 +2132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("y", gs.ByExpression.ToString());
         }
 
-        [WorkItem(543075, "DevDiv")]
+        [WorkItem(543075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543075")]
         [Fact]
         public void UnterminatedRankSpecifier()
         {
@@ -2072,7 +2146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, arrayCreation.Type.RankSpecifiers.Single().Rank);
         }
 
-        [WorkItem(543075, "DevDiv")]
+        [WorkItem(543075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543075")]
         [Fact]
         public void UnterminatedTypeArgumentList()
         {
@@ -2086,7 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, ((NameSyntax)objectCreation.Type).Arity);
         }
 
-        [WorkItem(675602, "DevDiv")]
+        [WorkItem(675602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675602")]
         [Fact]
         public void QueryKeywordInObjectInitializer()
         {
@@ -2113,7 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ElementAccessExpression, parenExp.Expression.Kind());
         }
 
-        [WorkItem(543993, "DevDiv")]
+        [WorkItem(543993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543993")]
         [Fact]
         public void ShiftOperator()
         {
@@ -2166,7 +2240,7 @@ class C
             }
         }
 
-        [WorkItem(1091974, "DevDiv")]
+        [WorkItem(1091974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091974")]
         [Fact]
         public void ParseBigExpression()
         {

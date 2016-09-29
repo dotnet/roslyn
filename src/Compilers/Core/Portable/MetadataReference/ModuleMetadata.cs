@@ -22,20 +22,20 @@ namespace Microsoft.CodeAnalysis
         private readonly PEModule _module;
 
         private ModuleMetadata(PEReader peReader)
-            : base(isImageOwner: true)
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
-            _module = new PEModule(peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
+            _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
         }
 
         private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes)
-            : base(isImageOwner: true)
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
-            _module = new PEModule(peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
+            _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
         }
 
         // creates a copy
         private ModuleMetadata(ModuleMetadata metadata)
-            : base(isImageOwner: false)
+            : base(isImageOwner: false, id: metadata.Id)
         {
             _module = metadata.Module;
         }
@@ -290,10 +290,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
         /// <exception cref="BadImageFormatException">When an invalid module name is encountered.</exception>
-        internal MetadataReader MetadataReader
-        {
-            get { return Module.MetadataReader; }
-        }
+        public MetadataReader GetMetadataReader() => MetadataReader;
+
+        internal MetadataReader MetadataReader => Module.MetadataReader;
 
         /// <summary>
         /// Creates a reference to the module metadata.

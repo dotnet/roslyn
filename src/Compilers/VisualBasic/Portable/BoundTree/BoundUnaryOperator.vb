@@ -6,17 +6,17 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundUnaryOperator
+    Partial Friend Class BoundUnaryOperator
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             operatorKind As UnaryOperatorKind,
             operand As BoundExpression,
             checked As Boolean,
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operatorKind, operand, checked, ConstantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors OrElse operand.HasErrors())
+            Me.New(syntax, operatorKind, operand, checked, constantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors OrElse operand.HasErrors())
         End Sub
 
 #If DEBUG Then
@@ -47,6 +47,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
     End Class
-
 End Namespace
-

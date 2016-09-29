@@ -29,7 +29,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeActions
     }
 }";
 
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(text))
+            using (var workspace = TestWorkspace.CreateWorkspaceFromFile(text))
             {
                 var textBuffer = workspace.Documents.First().TextBuffer;
                 var issueProducer = new CodeIssueTagProducer(

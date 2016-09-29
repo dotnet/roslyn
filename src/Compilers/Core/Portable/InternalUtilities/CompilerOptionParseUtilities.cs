@@ -12,21 +12,14 @@ namespace Roslyn.Utilities
         /// Parse the value provided to an MSBuild Feature option into a list of entries.  This will 
         /// leave name=value in their raw form.
         /// </summary>
-        public  static IList<string> ParseFeatureFromMSBuild(string features)
+        public static IList<string> ParseFeatureFromMSBuild(string features)
         {
             if (string.IsNullOrEmpty(features))
             {
                 return SpecializedCollections.EmptyList<string>();
             }
 
-            var all = features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            var list = new List<string>(capacity: all.Length);
-            foreach (var feature in all)
-            {
-                list.Add(feature);
-            }
-
-            return list;
+            return features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         public static ImmutableDictionary<string, string> ParseFeatures(List<string> values)

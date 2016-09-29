@@ -11,9 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 'TODO - This is copied from C# and should be moved to common assemble.
 Namespace Microsoft.CodeAnalysis.VisualBasic
-
     Friend Module FunctionExtensions
-
         <Extension()>
         Public Function TransitiveClosure(Of T)(relation As Func(Of T, IEnumerable(Of T)), item As T) As HashSet(Of T)
             Dim closure = New HashSet(Of T)()
@@ -29,31 +27,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End While
             Return closure
         End Function
-
-        <Extension()>
-        Public Function ToLanguageSpecific(predicate As Func(Of SyntaxToken, Boolean)) As Func(Of SyntaxToken, Boolean)
-            If (predicate = SyntaxToken.Any) Then
-                Return SyntaxToken.Any
-            ElseIf (predicate = SyntaxToken.NonZeroWidth) Then
-                Return SyntaxToken.NonZeroWidth
-            End If
-
-            If predicate IsNot Nothing Then
-                Return Function(t) predicate(CType(t, SyntaxToken))
-            Else
-                Return Nothing
-            End If
-        End Function
-
-        <Extension()>
-        Public Function ToLanguageSpecific(predicate As Func(Of SyntaxTrivia, Boolean)) As Func(Of SyntaxTrivia, Boolean)
-            If predicate IsNot Nothing Then
-                Return Function(t) predicate(CType(t, SyntaxTrivia))
-            Else
-                Return Nothing
-            End If
-        End Function
-
     End Module
 End Namespace
-

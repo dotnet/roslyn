@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class ScriptSemanticsTests : CSharpTestBase
     {
-        [WorkItem(543890)]
+        [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
         [Fact]
         public void ThisIndexerAccessInScript()
         {
@@ -45,7 +45,7 @@ this[1]
             Assert.Equal(0, summary.MethodGroup.Length);
         }
 
-        [WorkItem(540875)]
+        [WorkItem(540875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540875")]
         [Fact]
         public void MainInScript2()
         {
@@ -68,7 +68,7 @@ this[1]
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(540875)]
+        [WorkItem(540875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540875")]
         [Fact]
         public void MainInScript1()
         {
@@ -330,7 +330,7 @@ object y = x;";
             Assert.Same(symbol0, symbol1);
         }
 
-        [WorkItem(543890)]
+        [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
         [Fact]
         public void ThisIndexerAccessInSubmission()
         {
@@ -362,8 +362,8 @@ this[1]
         /// <summary>
         /// LookupSymbols should not include the submission class.
         /// </summary>
-        [WorkItem(530986)]
-        [WorkItem(1010871)]
+        [WorkItem(530986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530986")]
+        [WorkItem(1010871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010871")]
         [Fact]
         public void LookupSymbols()
         {
@@ -404,7 +404,7 @@ this[1]
             submission.VerifyDiagnostics();
         }
 
-        [WorkItem(543370)]
+        [WorkItem(543370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
         [Fact]
         public void CheckedDecimalAddition()
         {
@@ -416,7 +416,7 @@ decimal d = checked(2M + 1M);
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(543370)]
+        [WorkItem(543370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
         [Fact]
         public void CheckedEnumAddition()
         {
@@ -429,7 +429,7 @@ FileAccess fa = checked(FileAccess.Read + 1);
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(543370)]
+        [WorkItem(543370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
         [Fact]
         public void DelegateAddition()
         {
@@ -441,7 +441,7 @@ a += null;
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(870885)]
+        [WorkItem(870885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870885")]
         [Fact]
         public void Bug870885()
         {
@@ -454,7 +454,7 @@ a += null;
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "o").WithArguments("o"));
         }
 
-        [WorkItem(949595)]
+        [WorkItem(949595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949595")]
         [Fact]
         public void GlobalAttributes()
         {
@@ -742,13 +742,11 @@ static int Baz = w;
             c.VerifyDiagnostics(
                 // (1,22): error CS0841: Cannot use local variable 'x' before it is declared
                 // var x = 1; { var x = x;}
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(1, 22),
-                // (1,22): error CS0165: Use of unassigned local variable 'x'
-                // var x = 1; { var x = x;}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(1, 22));
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(1, 22)
+                );
         }
 
-        [WorkItem(550)]
+        [WorkItem(550, "https://github.com/dotnet/roslyn/issues/550")]
         [Fact]
         public void ERR_VariableUsedBeforeDeclaration_02()
         {
@@ -773,7 +771,7 @@ void F()
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "c").WithArguments("c").WithLocation(5, 16));
         }
 
-        [WorkItem(550)]
+        [WorkItem(550, "https://github.com/dotnet/roslyn/issues/550")]
         [Fact]
         public void ERR_UseDefViolation()
         {
@@ -815,7 +813,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference"));
         }
 
-        [WorkItem(529387)]
+        [WorkItem(529387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529387")]
         [Fact]
         public void IsVariable_PreviousSubmission()
         {
@@ -839,7 +837,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(1, 1));
         }
 
-        [WorkItem(530404)]
+        [WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
         [Fact]
         public void DiagnosticsPass()
         {
@@ -852,7 +850,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(1, 65));
         }
 
-        [WorkItem(527850)]
+        [WorkItem(527850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527850")]
         [Fact]
         public void ArithmeticOperators_MultiplicationExpression()
         {
@@ -867,9 +865,9 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i* i"));
         }
 
-        [WorkItem(527850)]
-        [WorkItem(522569)]
-        [WorkItem(4737)]
+        [WorkItem(527850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527850")]
+        [WorkItem(522569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522569")]
+        [WorkItem(4737, "https://github.com/dotnet/roslyn/issues/4737")]
         [Fact(Skip = "4737")]
         public void TopLevelLabel()
         {
@@ -880,7 +878,7 @@ goto Label;");
             s0.VerifyDiagnostics();
         }
 
-        [WorkItem(541210)]
+        [WorkItem(541210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541210")]
         [Fact]
         public void TopLevelGoto()
         {
@@ -891,7 +889,7 @@ goto Label;");
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "Object").WithArguments("Object"));
         }
 
-        [WorkItem(541166)]
+        [WorkItem(541166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541166")]
         [Fact]
         public void DefineExtensionMethods()
         {
@@ -912,6 +910,52 @@ goto Label;");
             s2.VerifyDiagnostics(
                 // error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic"));
+        }
+
+        [Fact]
+        [WorkItem(13590, "https://github.com/dotnet/roslyn/issues/13590")]
+        public void FixedBuffer_01()
+        {
+            string source =
+@"fixed int x[3];
+";
+            var tree = Parse(source, options: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+
+            compilation.VerifyDiagnostics(
+                // (1,11): error CS1642: Fixed size buffer fields may only be members of structs
+                // fixed int x[3];
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "x").WithLocation(1, 11),
+                // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed int x[3];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[3]").WithLocation(1, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13590, "https://github.com/dotnet/roslyn/issues/13590")]
+        public void FixedBuffer_02()
+        {
+            string source =
+@"fixed var x[3] = 1;
+";
+            var tree = Parse(source, options: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+
+            compilation.VerifyDiagnostics(
+                // (1,16): error CS1003: Syntax error, ',' expected
+                // fixed var x[3] = 1;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 16),
+                // (1,11): error CS1642: Fixed size buffer fields may only be members of structs
+                // fixed var x[3] = 1;
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "x").WithLocation(1, 11),
+                // (1,7): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                // fixed var x[3] = 1;
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "var").WithLocation(1, 7),
+                // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed var x[3] = 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[3]").WithLocation(1, 11)
+                );
         }
     }
 }

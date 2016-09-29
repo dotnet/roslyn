@@ -5,7 +5,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+    [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
     internal struct BinaryOperatorAnalysisResult
     {
         public readonly Conversion LeftConversion;

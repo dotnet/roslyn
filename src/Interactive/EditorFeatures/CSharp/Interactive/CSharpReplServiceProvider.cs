@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         {
         }
 
-        public override ObjectFormatter ObjectFormatter => CSharpObjectFormatter.Instance;
+        public override ObjectFormatter ObjectFormatter { get; } = CSharpObjectFormatter.Instance;
         public override CommandLineParser CommandLineParser => CSharpCommandLineParser.ScriptRunner;
         public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         {
             get
             {
-                return string.Format(CSharpInteractiveEditorResources.MicrosoftRoslynCSharpCompiler,
+                return string.Format(CSharpInteractiveEditorResources.Microsoft_R_Roslyn_CSharp_Compiler_version_0,
                 FileVersionInfo.GetVersionInfo(typeof(CSharpCommandLineArguments).Assembly.Location).FileVersion);
             }
         }

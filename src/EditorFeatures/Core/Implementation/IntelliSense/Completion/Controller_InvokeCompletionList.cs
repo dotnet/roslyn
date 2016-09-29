@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            StartNewModelComputation(completionService, filterItems: false, dismissIfEmptyAllowed: false);
+            StartNewModelComputation(
+                completionService, filterItems: false, dismissIfEmptyAllowed: false);
         }
     }
 }

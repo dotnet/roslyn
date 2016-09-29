@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
@@ -21,7 +20,6 @@ using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -32,10 +30,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
+    internal partial class InteractiveWindow : IInteractiveWindow2, IInteractiveWindowOperations2
     {
-        internal const string ClipboardFormat = "89344A36-9821-495A-8255-99A63969F87D";
-
         // The following two field definitions have to stay in sync with VS editor implementation
 
         /// <summary>
@@ -50,8 +46,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         internal const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
 
-        internal int LanguageBufferCounter = 0;
-
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 
         PropertyCollection IPropertyOwner.Properties { get; } = new PropertyCollection();
@@ -62,7 +56,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// WARNING: Members of this object should only be accessed from the UI thread.
         /// </remarks>
         private readonly UIThreadOnly _uiOnly;
-                     
+
         // Setter for InteractiveWindowClipboard is a test hook.  
         internal InteractiveWindowClipboard InteractiveWindowClipboard { get; set; } = new SystemClipboard();
 
@@ -242,6 +236,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.AddInput(command));
         }
 
+        void IInteractiveWindow2.AddToHistory(string input)
+        {
+            UIThread(uiOnly => uiOnly.AddToHistory(input));
+        }
+
         void IInteractiveWindow.FlushOutput()
         {
             UIThread(uiOnly => uiOnly.FlushOutput());
@@ -382,6 +381,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.Copy());
         }
 
+        void IInteractiveWindowOperations2.CopyCode()
+        {
+            UIThread(uiOnly => uiOnly.CopyCode());
+        }
+
         bool IInteractiveWindowOperations.Backspace()
         {
             return UIThread(uiOnly => uiOnly.Backspace());
@@ -400,7 +404,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         bool IInteractiveWindowOperations.Return()
         {
             return UIThread(uiOnly => uiOnly.Return());
-        }   
+        }
 
         void IInteractiveWindowOperations2.DeleteLine()
         {

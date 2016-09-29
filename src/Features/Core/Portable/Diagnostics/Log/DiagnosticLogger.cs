@@ -6,10 +6,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
     internal static class DiagnosticLogger
     {
-        private const string From = "From";
-        private const string Id = "Id";
-        private const string HasDescription = "HasDescription";
-        private const string Uri = "Uri";
+        private const string From = nameof(From);
+        private const string Id = nameof(Id);
+        private const string HasDescription = nameof(HasDescription);
+        private const string Uri = nameof(Uri);
 
         public static void LogHyperlink(
             string from,

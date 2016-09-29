@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override BoundExpression FramePointer(CSharpSyntaxNode syntax, NamedTypeSymbol frameClass)
+        protected override BoundExpression FramePointer(SyntaxNode syntax, NamedTypeSymbol frameClass)
         {
             var oldSyntax = F.Syntax;
             F.Syntax = syntax;
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Must remain in sync with <see cref="MakeStateMachineScope"/>.
         /// </remarks>
-        internal bool TryUnwrapBoundStateMachineScope(ref BoundStatement statement, out ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        internal static bool TryUnwrapBoundStateMachineScope(ref BoundStatement statement, out ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
         {
             if (statement.Kind == BoundKind.Block)
             {
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyAvailableReusableHoistedFields == null)
                 {
-                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicComparer);
+                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
                 }
 
                 _lazyAvailableReusableHoistedFields.Add(field.Type, fields = new ArrayBuilder<StateMachineFieldSymbol>());
@@ -550,7 +550,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
                         // However, it may happen that the type changes, in which case we need to allocate a new slot.
                         int slotIndex;
-                        if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(awaitSyntaxOpt, F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics), kind, id, out slotIndex))
+                        if (slotAllocatorOpt == null || 
+                            !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
+                                awaitSyntaxOpt, 
+                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics), 
+                                kind,
+                                id, 
+                                Diagnostics,
+                                out slotIndex))
                         {
                             slotIndex = _nextFreeHoistedLocalSlot++;
                         }

@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "Normal CSharp Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyTypeName() As Task
             Dim input =
         <Workspace>
@@ -45,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyReceiver1() As Task
             Dim input =
         <Workspace>
@@ -76,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyReceiver2() As Task
             Dim input =
         <Workspace>
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType() As Task
             Dim input =
         <Workspace>
@@ -167,7 +168,7 @@ static class M
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType2() As Task
             ' Simplified type is in a different namespace.
 
@@ -238,7 +239,7 @@ static class M
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType3() As Task
             ' Simplified type is in a different namespace, whose names have been imported with a usings statement.
 
@@ -319,7 +320,7 @@ namespace R
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType4() As Task
             ' Highly nested type simplified to another highly nested type.
 
@@ -447,7 +448,7 @@ namespace R
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType5() As Task
             ' Name requiring multiple iterations of nested type simplification.
 
@@ -585,7 +586,7 @@ namespace R
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -639,7 +640,7 @@ static class M
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -699,7 +700,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyAliasStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -763,7 +764,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate1() As Task
             Dim input =
         <Workspace>
@@ -807,7 +808,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate2() As Task
             Dim input =
         <Workspace>
@@ -853,7 +854,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate3() As Task
             Dim input =
         <Workspace>
@@ -899,8 +900,8 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(552722)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Async Function TestSimplifyNot_Action() As Task
             Dim input =
         <Workspace>
@@ -943,8 +944,8 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(552722)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Async Function TestSimplifyNot_Func() As Task
             Dim input =
         <Workspace>
@@ -987,7 +988,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Inheritance() As Task
             Dim input =
         <Workspace>
@@ -1027,7 +1028,7 @@ class B : A
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyDoNothingWithFailedOverloadResolution() As Task
             Dim input =
         <Workspace>
@@ -1061,8 +1062,8 @@ class A
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(609496)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(609496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609496")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpDoNotSimplifyNameInNamespaceDeclaration() As Task
             Dim input =
         <Workspace>
@@ -1085,8 +1086,8 @@ namespace System.Foo
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608197)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCS_EscapeAliasReplacementIfNeeded() As Task
             Dim input =
 <Workspace>
@@ -1119,8 +1120,8 @@ namespace System.Foo
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(529989)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529989")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCS_AliasReplacementKeepsUnicodeEscaping() As Task
             Dim input =
 <Workspace>
@@ -1155,7 +1156,7 @@ namespace System.Foo
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_Simplify_Cast_Type_Name() As Task
             Dim input =
 <Workspace>
@@ -1195,7 +1196,7 @@ class C
 
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestAliasedNameWithMethod() As Task
             Dim input =
 <Workspace>
@@ -1235,8 +1236,8 @@ class Program
 
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(554010)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")>
         Public Async Function TestSimplificationForDelegateCreation() As Task
             Dim input =
 <Workspace>
@@ -1269,8 +1270,8 @@ class Test
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(554010)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")>
         Public Async Function TestSimplificationForDelegateCreation2() As Task
             Dim input =
 <Workspace>
@@ -1297,8 +1298,8 @@ class Test
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(576970)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(576970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576970")>
         Public Async Function TestCSRemoveThisWouldBeConsideredACast_1() As Task
             Dim input =
 <Workspace>
@@ -1337,8 +1338,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(576970)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(576970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576970")>
         Public Async Function TestCSRemoveThisWouldBeConsideredACast_2() As Task
             Dim input =
 <Workspace>
@@ -1377,8 +1378,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(576970)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(576970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576970")>
         Public Async Function TestCSRemoveThisWouldBeConsideredACast_3() As Task
             Dim input =
 <Workspace>
@@ -1427,7 +1428,7 @@ public class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(50, "https://github.com/dotnet/roslyn/issues/50")>
         Public Async Function TestCSRemoveThisPreservesTrivia() As Task
             Dim input =
@@ -1463,8 +1464,8 @@ class C1
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(649385)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
 
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
@@ -1529,9 +1530,9 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WorkItem(734445)>
-        <WorkItem(649385)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(734445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734445")>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
 
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
@@ -1576,8 +1577,8 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WorkItem(649385)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarDontSimplify() As Task
 
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
@@ -1639,7 +1640,7 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWhenParentHasSimplifyAnnotation() As Task
             Dim input =
         <Workspace>
@@ -1672,7 +1673,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWithExplicitSimplifySpan_MutuallyExclusive() As Task
             Dim input =
         <Workspace>
@@ -1705,7 +1706,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWithExplicitSimplifySpan_Inclusive() As Task
             Dim input =
         <Workspace>
@@ -1739,7 +1740,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWithExplicitSimplifySpan_OverlappingPositive() As Task
             Dim input =
         <Workspace>
@@ -1772,7 +1773,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWithExplicitSimplifySpan_OverlappingNegative() As Task
             Dim input =
         <Workspace>
@@ -1805,7 +1806,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864735")>
         Public Async Function TestBugFix864735_CSharp_SimplifyNameInIncompleteIsExpression() As Task
             Dim input =
         <Workspace>
@@ -1840,8 +1841,8 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(813566)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(813566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813566")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyQualifiedCref() As Task
             Dim input =
         <Workspace>
@@ -1874,8 +1875,8 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyToGenericNameCSharp() As Task
             Dim input =
         <Workspace>
@@ -1934,8 +1935,8 @@ class E
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDoSimplifyToGenericName() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
 
@@ -1996,7 +1997,7 @@ class E
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyAllNodes_SimplifyNestedType() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
 
@@ -2058,57 +2059,7 @@ static class M
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestDontSimplifyAwayThisExpression() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.CSharp), True}}
-
-            Dim input =
-        <Workspace>
-            <Project Language="C#" CommonReferences="true">
-                <Document>
-                    <![CDATA[
-using System;
-
-class Program
-{
-    private int s;
-    static void Main(string[] args)
-    {
-        
-    }
-
-    public int give()
-    {
-        return {|SimplifyParent:this.s|};
-    }
-}]]>
-                </Document>
-            </Project>
-        </Workspace>
-
-            Dim expected =
-              <text>
-                  <![CDATA[
-using System;
-
-class Program
-{
-    private int s;
-    static void Main(string[] args)
-    {
-        
-    }
-
-    public int give()
-    {
-        return this.s;
-    }
-}]]></text>
-
-            Await TestAsync(input, expected, simplificationOption)
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameInCodeWithSyntaxErrors() As Task
             Dim input =
         <Workspace>
@@ -2151,7 +2102,7 @@ class C
 
             Await TestAsync(input, expected)
         End Function
-        <WpfFact, WorkItem(653601), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(653601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653601"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCrefSimplification_1() As Task
             Dim input =
         <Workspace>
@@ -2195,7 +2146,7 @@ namespace A
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(653601), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(653601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653601"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCrefSimplification_2() As Task
             Dim input =
         <Workspace>
@@ -2239,7 +2190,7 @@ namespace A
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(966633), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(966633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/966633"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DontSimplifyNullableQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -2269,7 +2220,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(965240), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(965240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965240"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DontSimplifyOpenGenericNullable() As Task
             Dim input =
         <Workspace>
@@ -2307,7 +2258,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(1067214), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(1067214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067214"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyTypeNameInExpressionBody_Property() As Task
             Dim input =
         <Workspace>
@@ -2341,7 +2292,7 @@ namespace N
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(1067214), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(1067214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067214"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyTypeNameInExpressionBody_Method() As Task
             Dim input =
         <Workspace>
@@ -2375,7 +2326,7 @@ namespace N
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DontSimplifyToPredefinedTypeNameInQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -2451,11 +2402,799 @@ class C
 
             Await TestAsync(input, expected)
         End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_AsLHS_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        {|Simplify:this.i|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        this.i = 1;
+    }
+}
+]]>
+                </text>
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_AsRHS_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        int x = {|Simplify:this.i|};
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        int x = this.i;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_AsMethodArgument_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i;
+    void M(int ii)
+    {
+        M({|Simplify:this.i|});
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i;
+    void M(int ii)
+    {
+        M(this.i);
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_ChainedAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        var s = {|Simplify:this.i|}.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i;
+    void M()
+    {
+        var s = this.i.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithThis_ConditionalAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    string s;
+    void M()
+    {
+        var x = {|Simplify:this.s|}?.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    string s;
+    void M()
+    {
+        var x = this.s?.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_AsLHS_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        {|Simplify:this.i|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        this.i = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_AsRHS_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        int x = {|Simplify:this.i|};
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        int x = this.i;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_AsMethodArgument_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M(int ii)
+    {
+        M({|Simplify:this.i|});
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M(int ii)
+    {
+        M(this.i);
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_ChainedAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        var s = {|Simplify:this.i|}.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int i { get; set; }
+    void M()
+    {
+        var s = this.i.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithThis_ConditionalAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    string s { get; set; }
+    void M()
+    {
+        var x = {|Simplify:this.s|}?.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    string s { get; set; }
+    void M()
+    {
+        var x = this.s?.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_AsVoidCallWithArguments_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    void M(int i)
+    {
+        {|Simplify:this.M|}(0);
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    void M(int i)
+    {
+        this.M(0);
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_WithReturnType_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int M()
+    {
+        return {|Simplify:this.M|}();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int M()
+    {
+        return this.M();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_ChainedAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int M()
+    {
+        var s = {|Simplify:this.M|}().ToString();
+        return 0;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int M()
+    {
+        var s = this.M().ToString();
+        return 0;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_ConditionalAccess_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    string M()
+    {
+        return {|Simplify:this.M|}()?.ToString();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    string M()
+    {
+        return this.M()?.ToString();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithThis_EventSubscription_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void Handler(object sender, EventArgs args)
+    {
+        e += {|Simplify:this.Handler|};
+        e -= {|Simplify:this.Handler|};
+
+        e += new EventHandler({|Simplify:this.Handler|});
+        e -= new EventHandler({|Simplify:this.Handler|});
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void Handler(object sender, EventArgs args)
+    {
+        e += this.Handler;
+        e -= this.Handler;
+
+        e += new EventHandler(this.Handler);
+        e -= new EventHandler(this.Handler);
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyEventAccessWithThis_AddAndRemoveHandler_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void Handler(object sender, EventArgs args)
+    {
+        {|Simplify:this.e|} += Handler;
+        {|Simplify:this.e|} -= Handler;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void Handler(object sender, EventArgs args)
+    {
+        this.e += Handler;
+        this.e -= Handler;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyEventAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyEventAccessWithThis_InvokeEvent_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void OnSomeEvent()
+    {
+        {|Simplify:this.e|}(this, new EventArgs());
+        {|Simplify:this.e|}.Invoke(this, new EventArgs());
+        {|Simplify:this.e|}?.Invoke(this, new EventArgs());
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+using System;
+class C
+{
+    event EventHandler e;
+    void OnSomeEvent()
+    {
+        this.e(this, new EventArgs());
+        this.e.Invoke(this, new EventArgs());
+        this.e?.Invoke(this, new EventArgs());
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyEventAccessOption(LanguageNames.CSharp))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        {|Simplify:Property|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        Property = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.None))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionInfo_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        {|Simplify:this.Property|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        this.Property = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Suggestion))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionWarning_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        {|Simplify:this.Property|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        this.Property = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Warning))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionError_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        {|Simplify:this.Property|} = 1;
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+class C
+{
+    int Property { get; set; }
+    void M()
+    {
+        this.Property = 1;
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Error))
+        End Function
 #End Region
 
 #Region "Normal Visual Basic Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyTypeName() As Task
             Dim input =
         <Workspace>
@@ -2484,8 +3223,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Array_1() As Task
             Dim input =
                     <Workspace>
@@ -2516,8 +3255,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Array_2() As Task
             Dim input =
                     <Workspace>
@@ -2548,8 +3287,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver1() As Task
             Dim input =
                     <Workspace>
@@ -2577,8 +3316,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver2() As Task
             Dim input =
                     <Workspace>
@@ -2605,8 +3344,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver3() As Task
             Dim input =
                     <Workspace>
@@ -2637,7 +3376,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType() As Task
             Dim input =
         <Workspace>
@@ -2685,7 +3424,7 @@ End Class]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType2() As Task
             ' Simplified type is in a different namespace.
 
@@ -2741,7 +3480,7 @@ End Class</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType3() As Task
             ' Simplified type is in a different namespace, whose names have been imported with an Imports statement.
 
@@ -2805,7 +3544,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType4() As Task
             ' Highly nested type simplified to another highly nested type.
 
@@ -2899,7 +3638,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType5() As Task
             ' Name requiring multiple iterations of nested type simplification.
 
@@ -3001,7 +3740,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -3043,7 +3782,7 @@ End Class</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -3091,7 +3830,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyAliasStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -3141,7 +3880,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate1_VB() As Task
             Dim input =
         <Workspace>
@@ -3179,7 +3918,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate2_VB() As Task
             Dim input =
         <Workspace>
@@ -3219,9 +3958,9 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(570986)>
-        <WorkItem(552722)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(570986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570986")>
+        <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Async Function TestSimplifyNot_Action_VB() As Task
             Dim input =
         <Workspace>
@@ -3260,7 +3999,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyBaseInheritanceVB() As Task
             Dim input =
         <Workspace>
@@ -3298,8 +4037,8 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(588099)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(588099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588099")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_EscapeReservedNamesInAttributes() As Task
             Dim input =
 <Workspace>
@@ -3344,7 +4083,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_OmitModuleNameInMemberAccess() As Task
             Dim input =
 <Workspace>
@@ -3395,7 +4134,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_OmitModuleNameInQualifiedName() As Task
             Dim input =
 <Workspace>
@@ -3448,8 +4187,8 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(601160)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(601160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601160")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestExpandMultilineLambdaWithImports() As Task
             Dim input =
 <Workspace>
@@ -3465,7 +4204,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(input)
+            Using workspace = Await TestWorkspace.CreateAsync(input)
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim root = Await document.GetSyntaxRootAsync()
@@ -3485,8 +4224,8 @@ End Module
             End Using
         End Function
 
-        <WorkItem(609496)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(609496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609496")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVB_DoNotReduceNamesInNamespaceDeclarations() As Task
             Dim input =
 <Workspace>
@@ -3509,8 +4248,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608197)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVB_EscapeAliasReplacementIfNeeded() As Task
             Dim input =
 <Workspace>
@@ -3535,8 +4274,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608197)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVB_NoNREForOmittedReceiverInWithBlock() As Task
             Dim input =
 <Workspace>
@@ -3575,8 +4314,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(639971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(639971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639971")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestBugFix639971_VisualBasic_FalseUnnecessaryBaseQualifier() As Task
             Dim input =
 <Workspace>
@@ -3625,8 +4364,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(639971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(639971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639971")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestBugFix639971_CSharp_FalseUnnecessaryBaseQualifier() As Task
             Dim input =
 <Workspace>
@@ -3687,7 +4426,7 @@ class D : C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWhenParentHasSimplifyAnnotation() As Task
             Dim input =
         <Workspace>
@@ -3716,7 +4455,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWithExplicitSimplifySpan_MutuallyExclusive() As Task
             Dim input =
         <Workspace>
@@ -3745,7 +4484,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWithExplicitSimplifySpan_Inclusive() As Task
             Dim input =
         <Workspace>
@@ -3775,7 +4514,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWithExplicitSimplifySpan_OverlappingPositive() As Task
             Dim input =
         <Workspace>
@@ -3804,7 +4543,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWithExplicitSimplifySpan_OverlappingNegative() As Task
             Dim input =
         <Workspace>
@@ -3833,8 +4572,8 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(769354)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(769354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769354")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameInCrefCausesConflict() As Task
             Dim input =
         <Workspace>
@@ -3885,7 +4624,7 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864735")>
         Public Async Function TestBugFix864735_VisualBasic_SimplifyNameInIncompleteIsExpression() As Task
             Dim input =
         <Workspace>
@@ -3916,8 +4655,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(813566)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(813566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813566")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyQualifiedCref() As Task
             Dim input =
         <Workspace>
@@ -3948,8 +4687,8 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyToGenericName() As Task
             Dim input =
         <Workspace>
@@ -4000,8 +4739,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DoSimplifyToGenericName() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
 
@@ -4054,7 +4793,7 @@ End Class
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestDontSimplifyAllNodes_SimplifyNestedType() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
 
@@ -4104,45 +4843,7 @@ End Class]]></text>
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestVisualBasic_TestDontSimplifyAwayMeExpression() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.VisualBasic), True}}
-
-            Dim input =
-        <Workspace>
-            <Project Language="Visual Basic" CommonReferences="true">
-                <Document>
-                    <![CDATA[
-Imports System
-Class Program
-    Private s As Integer
-    Shared Sub Main(args As String())
-    End Sub
-    Public Function give() As Integer
-        Return {|SimplifyParent:Me.s|}
-    End Function
-End Class]]>
-                </Document>
-            </Project>
-        </Workspace>
-
-            Dim expected =
-              <text>
-                  <![CDATA[
-Imports System
-Class Program
-    Private s As Integer
-    Shared Sub Main(args As String())
-    End Sub
-    Public Function give() As Integer
-        Return Me.s
-    End Function
-End Class]]></text>
-
-            Await TestAsync(input, expected, simplificationOption)
-        End Function
-
-        <WpfFact, WorkItem(881746), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(881746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881746"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_SimplyToAlias() As Task
 
             Dim input =
@@ -4179,7 +4880,7 @@ End Class]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(881746), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(881746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881746"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyAlias() As Task
 
             Dim input =
@@ -4216,7 +4917,7 @@ End Class]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(966633), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(966633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/966633"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyNullableQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -4250,7 +4951,7 @@ End Module]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(965240), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(965240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965240"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyOpenGenericNullable() As Task
             Dim input =
         <Workspace>
@@ -4284,7 +4985,7 @@ End Module]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(Skip:="1019361"), WorkItem(1019361), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(Skip:="1019361"), WorkItem(1019361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019361"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_Bug1019361() As Task
             Dim input =
         <Workspace>
@@ -4328,7 +5029,7 @@ End Module]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyToPredefinedTypeNameInQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -4390,6 +5091,763 @@ End Class
 
             Await TestAsync(input, expected)
         End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_AsLHS_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        {|Simplify:Me.i|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Me.i = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_AsRHS_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim x = {|Simplify:Me.i|}
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim x = Me.i
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_AsMethodArgument_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M(ii As Integer)
+        M({|Simplify:Me.i|})
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M(ii As Integer)
+        M(Me.i)
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_ChainedAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim s = {|Simplify:Me.i|}.ToString()
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim i As Integer
+    Sub M()
+        Dim s = Me.i.ToString()
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyFieldAccessWithMe_ConditionalAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Dim s As String
+    Sub M()
+        Dim x = {|Simplify:Me.s|}?.ToString()
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Dim s As String
+    Sub M()
+        Dim x = Me.s?.ToString()
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyFieldAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_AsLHS_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        {|Simplify:Me.i|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Me.i = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_AsRHS_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Dim x = {|Simplify:Me.i|}
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Dim x = Me.i
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_AsMethodArgument_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property i As Integer
+    Sub M(ii As Integer)
+        M({|Simplify:Me.i|})
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property i As Integer
+    Sub M(ii As Integer)
+        M(Me.i)
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_ChainedAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Dim s = {|Simplify:Me.i|}.ToString()
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property i As Integer
+    Sub M()
+        Dim s = Me.i.ToString()
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyPropertyAccessWithMe_ConditionalAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property s As String
+    Sub M()
+        Dim x = {|Simplify:Me.s|}?.ToString()
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property s As String
+    Sub M()
+        Dim x = Me.s?.ToString()
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_AsSubCallWithArguments_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Sub M(i As Integer)
+        {|Simplify:Me.M|}(0)
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Sub M(i As Integer)
+        Me.M(0)
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_WithReturnType_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Function M() As Integer
+        Return {|Simplify:Me.M|}()
+    End Function
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Function M() As Integer
+        Return Me.M()
+    End Function
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_ChainedAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Function M() As Integer
+        Dim s = {|Simplify:Me.M|}().ToString()
+        Return 0
+    End Function
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Function M() As Integer
+        Dim s = Me.M().ToString()
+        Return 0
+    End Function
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_ConditionalAccess_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Function M() As String
+        Return {|Simplify:Me.M|}()?.ToString()
+    End Function
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Function M() As String
+        Return Me.M()?.ToString()
+    End Function
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMethodAccessWithMe_EventSubscription_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Imports System
+Class C
+    Event e As EventHandler
+    Sub Handler(sender As Object, args As EventArgs)
+        AddHandler e, AddressOf {|Simplify:Me.Handler|}
+        RemoveHandler e, AddressOf {|Simplify:Me.Handler|}
+
+        AddHandler e, New EventHandler(AddressOf {|Simplify:Me.Handler|})
+        RemoveHandler e, New EventHandler(AddressOf {|Simplify:Me.Handler|})
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Imports System
+Class C
+    Event e As EventHandler
+    Sub Handler(sender As Object, args As EventArgs)
+        AddHandler e, AddressOf Me.Handler
+        RemoveHandler e, AddressOf Me.Handler
+
+        AddHandler e, New EventHandler(AddressOf Me.Handler)
+        RemoveHandler e, New EventHandler(AddressOf Me.Handler)
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyEventAccessWithMe_AddAndRemoveHandler_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Imports System
+Class C
+    Event e As EventHandler
+    Sub Handler(sender As Object, args As EventArgs)
+        AddHandler {|Simplify:Me.e|}, AddressOf Handler
+        RemoveHandler {|Simplify:Me.e|}, AddressOf Handler
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Imports System
+Class C
+    Event e As EventHandler
+    Sub Handler(sender As Object, args As EventArgs)
+        AddHandler Me.e, AddressOf Handler
+        RemoveHandler Me.e, AddressOf Handler
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyEventAccessOption(LanguageNames.VisualBasic))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        {|Simplify:I|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        I = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.None))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionInfo_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        {|Simplify:Me.I|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        Me.I = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Suggestion))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionWarning_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        {|Simplify:Me.I|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        Me.I = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Warning))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function QualifyMemberAccessOnNotificationOptionError_VisualBasic() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        {|Simplify:Me.I|} = 1
+    End Sub
+End Class
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+Class C
+    Property I As Integer
+    Sub M()
+        Me.I = 1
+    End Sub
+End Class
+]]>
+                </text>
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Error))
+        End Function
+
+        <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function UsePredefinedTypeKeywordIfTextIsTheSame() As Task
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As {|Simplify:[String]|})
+    End Sum
+End Class
+]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As String)
+    End Sum
+End Class
+]]></text>
+
+            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+        End Function
+
+        <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function DontUsePredefinedTypeKeyword() As Task
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As {|Simplify:Int32|})
+    End Sum
+End Class
+]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As Int32)
+    End Sum
+End Class
+]]></text>
+
+            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+        End Function
+
+#End Region
+
+#Region "Helpers"
+
+        Protected Function QualifyFieldAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyFieldAccess, languageName), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
+        End Function
+
+        Protected Function QualifyPropertyAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
+            Return QualifyPropertyAccessOptionWithNotification(languageName, NotificationOption.Error)
+        End Function
+
+        Protected Function QualifyMethodAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyMethodAccess, languageName), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
+        End Function
+
+        Protected Function QualifyEventAccessOption(languageName As String) As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyEventAccess, languageName), New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)}}
+        End Function
+
+        Protected Function QualifyPropertyAccessOptionWithNotification(languageName As String, notification As NotificationOption) As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyPropertyAccess, languageName), New CodeStyleOption(Of Boolean)(True, notification)}}
+        End Function
+
+        Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), CodeStyleOption(Of Boolean).Default}}
+
 #End Region
 
     End Class

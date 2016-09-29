@@ -28,16 +28,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
         Public Overrides ReadOnly Property Logo As String
             Get
-                Return String.Format(VBInteractiveEditorResources.VBReplLogo,
+                Return String.Format(VBInteractiveEditorResources.Microsoft_R_Roslyn_Visual_Basic_Compiler_version_0,
                                      FileVersionInfo.GetVersionInfo(GetType(VisualBasicCommandLineArguments).Assembly.Location).FileVersion)
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ObjectFormatter As ObjectFormatter
-            Get
-                Return VisualBasicObjectFormatter.Instance
-            End Get
-        End Property
+        Public Overrides ReadOnly Property ObjectFormatter As ObjectFormatter = VisualBasicObjectFormatter.Instance
 
         Public Overrides Function CreateScript(Of T)(code As String, options As ScriptOptions, globalsTypeOpt As Type, assemblyLoader As InteractiveAssemblyLoader) As Script(Of T)
             Return VisualBasicScript.Create(Of T)(code, options, globalsTypeOpt, assemblyLoader)

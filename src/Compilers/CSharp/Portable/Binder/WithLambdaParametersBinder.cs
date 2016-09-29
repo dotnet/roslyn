@@ -45,8 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override TypeSymbol GetCurrentReturnType()
+        protected override TypeSymbol GetCurrentReturnType(out RefKind refKind)
         {
+            refKind = lambdaSymbol.RefKind;
             return lambdaSymbol.ReturnType;
         }
 
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
             if (parameter.Locations[0] == newLocation)
             {
@@ -135,13 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
-            {
-                // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
-                return true;
-            }
-
             if (newSymbolKind == SymbolKind.RangeVariable)
             {
                 // The range variable '{0}' conflicts with a previous declaration of '{0}'
@@ -164,6 +158,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

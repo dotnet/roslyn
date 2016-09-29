@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 {
     public class TodoCommentTests
     {
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Colon()
         {
             var code = @"// [|TODO:test|]";
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Space()
         {
             var code = @"// [|TODO test|]";
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Underscore()
         {
             var code = @"// TODO_test";
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Number()
         {
             var code = @"// TODO1 test";
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Quote()
         {
             var code = @"// ""TODO test""";
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Middle()
         {
             var code = @"// Hello TODO test";
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Document()
         {
             var code = @"///    [|TODO test|]";
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Preprocessor1()
         {
             var code = @"#if DEBUG // [|TODO test|]";
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Preprocessor2()
         {
             var code = @"#if DEBUG ///    [|TODO test|]";
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_Region()
         {
             var code = @"#region // TODO test";
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_EndRegion()
         {
             var code = @"#endregion // [|TODO test|]";
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SingleLineTodoComment_TrailingSpan()
         {
             var code = @"// [|TODO test                        |]";
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MultilineTodoComment_Singleline()
         {
             var code = @"/* [|TODO: hello    |]*/";
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MultilineTodoComment_Singleline_Document()
         {
             var code = @"/** [|TODO: hello    |]*/";
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MultilineTodoComment_Multiline()
         {
             var code = @"
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task MultilineTodoComment_Multiline_DocComment()
         {
             var code = @"
@@ -153,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             await TestAsync(code);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SinglelineDocumentComment_Multiline()
         {
             var code = @"
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 
         private static async Task TestAsync(string codeWithMarker)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithMarker))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker))
             {
                 var commentTokens = new TodoCommentTokens();
                 var provider = new TodoCommentIncrementalAnalyzerProvider(commentTokens);
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
                 var document = workspace.Documents.First();
                 var documentId = document.Id;
                 var reasons = new InvocationReasons(PredefinedInvocationReasons.DocumentAdded);
-                worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), CancellationToken.None).Wait();
+                await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), InvocationReasons.Empty, CancellationToken.None);
 
                 var todoLists = worker.GetItems_TestingOnly(documentId);
                 var expectedLists = document.SelectedSpans;

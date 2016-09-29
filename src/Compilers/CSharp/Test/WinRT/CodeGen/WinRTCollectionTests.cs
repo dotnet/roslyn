@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         };
 
 
-        [Fact, WorkItem(762316, "DevDiv")]
+        [Fact, WorkItem(762316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762316")]
         public void InheritFromTypeWithProjections()
         {
             var source = @"
@@ -7390,7 +7390,7 @@ namespace Test2
 }");
         }
 
-        [Fact, WorkItem(1034461, "DevDiv")]
+        [Fact, WorkItem(1034461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034461")]
         public void Bug1034461()
         {
             var source = @"

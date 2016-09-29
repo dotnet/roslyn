@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    return ((AssemblyMetadata)peReference.GetMetadata()).GetAssembly().Identity;
+                    return ((AssemblyMetadata)peReference.GetMetadataNoCopy()).GetAssembly().Identity;
                 }
                 catch (Exception e) when (e is BadImageFormatException || e is IOException)
                 {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(ExistingReferencesResolver other)
             {
-                return _resolver.Equals(other._resolver) && 
+                return _resolver.Equals(other._resolver) &&
                        _availableReferences.SequenceEqual(other._availableReferences);
             }
 

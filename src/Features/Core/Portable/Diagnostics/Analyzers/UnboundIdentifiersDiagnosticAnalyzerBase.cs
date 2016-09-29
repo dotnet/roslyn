@@ -19,13 +19,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
         protected abstract bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel semanticModel);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(DiagnosticDescriptor, DiagnosticDescriptor2);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor, DiagnosticDescriptor2);
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -45,10 +40,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if ((context.Node is TLambdaExpressionSyntax && context.Node.ContainsDiagnostics) || context.Node is TIncompleteMemberSyntax)
+            if (IsBrokenLambda(context) || context.Node is TIncompleteMemberSyntax)
             {
                 ReportUnboundIdentifierNames(context, context.Node);
             }
+        }
+
+        private static bool IsBrokenLambda(SyntaxNodeAnalysisContext context)
+        {
+            if (context.Node is TLambdaExpressionSyntax)
+            {
+                if (context.Node.ContainsDiagnostics)
+                {
+                    return true;
+                }
+
+                var lastToken = context.Node.GetLastToken();
+                return lastToken.GetNextToken(includeZeroWidth: true).IsMissing;
+            }
+
+            return false;
         }
 
         private void ReportUnboundIdentifierNames(SyntaxNodeAnalysisContext context, SyntaxNode member)

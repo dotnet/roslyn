@@ -106,19 +106,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Add file-level member imports.
             Dim memberImports = sourceFile.MemberImports
-            If memberImports.Length > 0 Then
+            If Not memberImports.IsEmpty Then
                 sourceFileBinder = New TypesOfImportedNamespacesMembersBinder(sourceFileBinder, memberImports)
                 sourceFileBinder = New ImportedTypesAndNamespacesMembersBinder(sourceFileBinder, memberImports)
             End If
 
             'Add file-level alias imports.
-            Dim aliasImports = sourceFile.AliasImports
+            Dim aliasImports = sourceFile.AliasImportsOpt
             If aliasImports IsNot Nothing Then
                 sourceFileBinder = New ImportAliasesBinder(sourceFileBinder, aliasImports)
             End If
 
             ' Add file-level xmlns imports.
-            Dim xmlNamespaces = sourceFile.XmlNamespaces
+            Dim xmlNamespaces = sourceFile.XmlNamespacesOpt
             If xmlNamespaces IsNot Nothing Then
                 sourceFileBinder = New XmlNamespaceImportsBinder(sourceFileBinder, xmlNamespaces)
             End If
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' before it. Method type parameters and parameters are in scope.
         ' If Option Explicit Off is in effect, an ImplicitVariableBinder
         ' is created also.
-        Public Shared Function CreateBinderForMethodBody(methodSymbol As MethodSymbol, root As VisualBasicSyntaxNode, containingBinder As Binder) As Binder
+        Public Shared Function CreateBinderForMethodBody(methodSymbol As MethodSymbol, root As SyntaxNode, containingBinder As Binder) As Binder
             Debug.Assert(TypeOf VBSemanticModel.StripSemanticModelBinder(containingBinder) Is NamedTypeBinder)
 
             Dim methodDeclBinder As Binder = CreateBinderForMethodDeclaration(methodSymbol, containingBinder)

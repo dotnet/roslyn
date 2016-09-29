@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class ExpansionTests : Inherits VisualBasicResultProviderTestBase
 
@@ -92,8 +92,7 @@ End Class"
                 EvalResult("F", "1", "Object {Integer}", "(New C()).s1.F"))
         End Sub
 
-        <WorkItem(321, "https://github.com/dotnet/roslyn/issues/321")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/321")>
+        <Fact>
         Public Sub Pointers()
             Dim source =
 ".class private auto ansi beforefieldinit C
@@ -296,7 +295,7 @@ End Class
                 EvalResult("s", quotedString, "String", "s", editableValue:=quotedString, flags:=DkmEvaluationResultFlags.RawString))
         End Sub
 
-        <Fact, WorkItem(1002381)>
+        <Fact, WorkItem(1002381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002381")>
         Public Sub BaseTypeEditableValue()
             Dim source = "
 Imports System
@@ -329,7 +328,7 @@ End Class"
         ''' <remarks>
         ''' As in dev11, the FullName expressions don't parse.
         ''' </remarks> 
-        <Fact, WorkItem(1010498)>
+        <Fact, WorkItem(1010498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010498")>
         Public Sub HiddenMembers()
             Dim source =
 ".class public A
@@ -403,7 +402,7 @@ End Class"
                 EvalResult("Shared members", Nothing, "", "A", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
             children = GetChildren(children(children.Length - 1))
             Verify(children,
-                EvalResult("[>]", "Nothing", "Object", fullName:=Nothing),
+                EvalResult(">", "Nothing", "Object", fullName:=Nothing),
                 EvalResult("><", "Nothing", "Object", fullName:=Nothing))
 
             type = assembly.GetType("B")
@@ -420,11 +419,11 @@ End Class"
                 EvalResult("Shared members", Nothing, "", "B", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
             children = GetChildren(children(children.Length - 1))
             Verify(children,
-                EvalResult("[>]", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
+                EvalResult(">", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("><", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly))
         End Sub
 
-        <Fact, WorkItem(965892)>
+        <Fact, WorkItem(965892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965892")>
         Public Sub DeclaredTypeAndRuntimeTypeDifferent()
             Dim source = "
 Class A
@@ -703,7 +702,7 @@ End Class"
                 EvalResult("_p", "3", "Integer", "DirectCast(c, D)._p"))
         End Sub
 
-        <WorkItem(1016895)>
+        <WorkItem(1016895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")>
         <Fact>
         Public Sub RootVersusInternal()
             Const source = "

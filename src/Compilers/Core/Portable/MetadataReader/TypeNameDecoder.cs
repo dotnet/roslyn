@@ -209,8 +209,8 @@ namespace Microsoft.CodeAnalysis
                 foreach (int rank in fullName.ArrayRanks)
                 {
                     Debug.Assert(rank > 0);
-                    container = rank == 1 ? 
-                                GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) : 
+                    container = rank == 1 ?
+                                GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) :
                                 GetMDArrayTypeSymbol(rank, container, default(ImmutableArray<ModifierInfo<TypeSymbol>>), ImmutableArray<int>.Empty, default(ImmutableArray<int>));
                 }
             }

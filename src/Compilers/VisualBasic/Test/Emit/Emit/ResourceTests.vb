@@ -348,7 +348,7 @@ End Module
             Dim expected As String =
 "<?xml version=""1.0"" encoding=""utf-16""?>" & vbCrLf &
 "<VersionResource Size=""964"">" & vbCrLf &
-"  <VS_FIXEDFILEINFO FileVersionMS=""00050006"" FileVersionLS=""00070008"" ProductVersionMS=""00000000"" ProductVersionLS=""00000000"" />" & vbCrLf &
+"  <VS_FIXEDFILEINFO FileVersionMS=""00050006"" FileVersionLS=""00070008"" ProductVersionMS=""00010002"" ProductVersionLS=""00030000"" />" & vbCrLf &
 "  <KeyValuePair Key=""Comments"" Value=""A classic of magical realist literature"" />" & vbCrLf &
 "  <KeyValuePair Key=""CompanyName"" Value=""MossBrain"" />" & vbCrLf &
 "  <KeyValuePair Key=""FileDescription"" Value=""One Hundred Years of Solitude"" />" & vbCrLf &
@@ -368,7 +368,7 @@ End Module
 
 
 
-        <WorkItem(543501, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_DuplicateMainfestResourceIdentifier()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -653,7 +653,7 @@ BC31502: Resource name 'some.dotted.NAME' cannot be used more than once.
 
         End Sub
 
-        <WorkItem(543501, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_DuplicateMainfestResourceIdentifier_EmbeddedResource()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -688,7 +688,7 @@ End Module
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DuplicateResourceName1).WithArguments("A"))
         End Sub
 
-        <WorkItem(543501, "DevDiv"), WorkItem(546298, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501"), WorkItem(546298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546298")>
         <Fact()>
         Public Sub BC35003_DuplicateMainfestResourceFileName()
             Dim c1 As Compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -736,7 +736,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543501, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub NoDuplicateMainfestResourceFileNameDiagnosticForEmbeddedResources()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -769,7 +769,7 @@ End Module
             result.Diagnostics.Verify()
         End Sub
 
-        <WorkItem(543501, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_BC35003_DuplicateMainfestResourceDiagnostics()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(

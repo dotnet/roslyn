@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
@@ -28,17 +29,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
             return tuple.Item2;
         }
 
-        protected async Task<CodeAnalysis.Solution> GetCurrentSolutionAsync()
+        protected async Task<Microsoft.CodeAnalysis.Solution> GetCurrentSolutionAsync()
         {
             return (await GetWorkspaceAsync()).CurrentSolution;
         }
 
-        protected async Task<CodeAnalysis.Project> GetCurrentProjectAsync()
+        protected async Task<Microsoft.CodeAnalysis.Project> GetCurrentProjectAsync()
         {
             return (await GetCurrentSolutionAsync()).Projects.Single();
         }
 
-        protected async Task<CodeAnalysis.Document> GetCurrentDocumentAsync()
+        protected async Task<Microsoft.CodeAnalysis.Document> GetCurrentDocumentAsync()
         {
             return (await GetCurrentProjectAsync()).Documents.Single();
         }
@@ -55,9 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
         protected async Task<CodeElement> GetCodeElementAsync(params object[] path)
         {
+            WpfTestCase.RequireWpfFact("Tests create CodeElements which use the affinitized CleanableWeakComHandleTable");
+
             if (path.Length == 0)
             {
-                throw new ArgumentException("path must be non-empty.", "path");
+                throw new ArgumentException("path must be non-empty.", nameof(path));
             }
 
             CodeElement codeElement = (await GetCodeModelAsync()).CodeElements.Item(path[0]);

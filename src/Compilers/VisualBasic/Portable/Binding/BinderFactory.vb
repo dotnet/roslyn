@@ -43,16 +43,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._binderFactoryVisitorPool = New ObjectPool(Of BinderFactoryVisitor)(Function() New BinderFactoryVisitor(Me))
         End Sub
 
-        Private Function MakeBinder(node As VisualBasicSyntaxNode, position As Integer) As Binder
-            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse node.Kind = SyntaxKind.CompilationUnit Then
+        Private Function MakeBinder(node As SyntaxNode, position As Integer) As Binder
+            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse
+               node.Kind = SyntaxKind.CompilationUnit Then
+
                 Dim visitor = _binderFactoryVisitorPool.Allocate()
                 visitor.Position = position
-                Dim result = node.Accept(visitor)
+                Dim result = visitor.Visit(node)
                 _binderFactoryVisitorPool.Free(visitor)
                 Return result
-            Else
-                Return Nothing
             End If
+
+            Return Nothing
         End Function
 
         ' Get binder for interior of a namespace block
@@ -83,12 +85,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Find the binder to use for a position in the tree. The position should have been adjusted
         ' already to be at the start of a token.
-        Public Function GetBinderForPosition(node As VisualBasicSyntaxNode, position As Integer) As Binder
+        Public Function GetBinderForPosition(node As SyntaxNode, position As Integer) As Binder
             Return GetBinderAtOrAbove(node, position)
         End Function
 
         ' Find the binder for a node or above at a given position
-        Private Function GetBinderAtOrAbove(node As VisualBasicSyntaxNode, position As Integer) As Binder
+        Private Function GetBinderAtOrAbove(node As SyntaxNode, position As Integer) As Binder
             ' Go up the tree until we find a node that has a corresponding binder.
             Do
                 Dim binder As Binder = MakeBinder(node, position)
@@ -147,7 +149,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return BinderBuilder.CreateBinderForNamespace(_sourceModule, _tree, _sourceModule.RootNamespace)
 
                 Case NodeUsage.ImplicitClass
-                    Dim implicitType = DirectCast(containingBinder.ContainingNamespaceOrType.GetMembers(TypeSymbol.ImplicitTypeName).Single(), NamedTypeSymbol)
+                    Dim implicitType As NamedTypeSymbol
+                    If node.Kind <> SyntaxKind.CompilationUnit OrElse _tree.Options.Kind = SourceCodeKind.Regular Then
+                        implicitType = DirectCast(containingBinder.ContainingNamespaceOrType.GetMembers(TypeSymbol.ImplicitTypeName).Single(), NamedTypeSymbol)
+                    Else
+                        implicitType = _sourceModule.ContainingSourceAssembly.DeclaringCompilation.SourceScriptClass
+                    End If
                     Return New NamedTypeBinder(containingBinder, implicitType)
 
                 Case NodeUsage.ScriptCompilationUnit
@@ -377,7 +384,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case SyntaxKind.FunctionLambdaHeader,
                                  SyntaxKind.SubLambdaHeader,
                                  SyntaxKind.SetAccessorStatement,
-                                 SyntaxKind.GetAccessorStatement
+                                 SyntaxKind.GetAccessorStatement,
+                                 SyntaxKind.AddHandlerAccessorStatement,
+                                 SyntaxKind.RemoveHandlerAccessorStatement,
+                                 SyntaxKind.RaiseEventAccessorStatement
                                 ' Default values are not valid (and not bound) for lambda parameters or property accessors
                                 Return Nothing
 
@@ -534,7 +544,7 @@ lAgain:
             If node IsNot Nothing AndAlso (node.Kind = SyntaxKind.NamespaceBlock OrElse node.Kind = SyntaxKind.CompilationUnit) Then
                 Return DirectCast(
                     GetBinderForNodeAndUsage(node, NodeUsage.ImplicitClass,
-                                             containingBinder:=DirectCast(containingBinder, NamespaceBinder)), NamedTypeBinder)
+                                             containingBinder:=containingBinder), NamedTypeBinder)
             End If
 
             Return Nothing

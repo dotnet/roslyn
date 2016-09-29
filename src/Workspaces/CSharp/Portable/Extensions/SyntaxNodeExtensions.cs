@@ -21,6 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return node != null && CodeAnalysis.CSharpExtensions.IsKind(node.Parent, kind);
         }
 
+        public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2)
+        {
+            return node != null && IsKind(node.Parent, kind1, kind2);
+        }
+
+        public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
+        {
+            return node != null && IsKind(node.Parent, kind1, kind2, kind3);
+        }
+
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2)
         {
             if (node == null)
@@ -65,6 +75,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5;
         }
 
+        public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5, SyntaxKind kind6)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            var csharpKind = node.Kind();
+            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5 || csharpKind == kind6;
+        }
+
         /// <summary>
         /// Returns the list of using directives that affect <paramref name="node"/>. The list will be returned in
         /// top down order.  
@@ -75,6 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                        .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
                                    .Reverse()
                                    .SelectMany(n => n.Usings));
+        }
+
+        public static IEnumerable<ExternAliasDirectiveSyntax> GetEnclosingExternAliasDirectives(this SyntaxNode node)
+        {
+            return node.GetAncestorOrThis<CompilationUnitSyntax>().Externs
+                       .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
+                                   .Reverse()
+                                   .SelectMany(n => n.Externs));
         }
 
         public static bool IsUnsafeContext(this SyntaxNode node)
@@ -111,7 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
 
                 case SyntaxKind.PropertyDeclaration:
-                    return node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
+                    return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword) ||
+                        node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
 
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
@@ -223,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachComponentStatement:
                     return true;
             }
 
@@ -237,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachComponentStatement:
                     return true;
             }
 
@@ -250,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
@@ -349,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return node.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
         }
 
-        public static TNode ConvertToSingleLine<TNode>(this TNode node)
+        public static TNode ConvertToSingleLine<TNode>(this TNode node, bool useElasticTrivia = false)
             where TNode : SyntaxNode
         {
             if (node == null)
@@ -357,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return node;
             }
 
-            var rewriter = new SingleLineRewriter();
+            var rewriter = new SingleLineRewriter(useElasticTrivia);
             return (TNode)rewriter.Visit(node);
         }
 
@@ -717,7 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsLeftSideOfAnyAssignExpression(this SyntaxNode node)
         {
-            return node.Parent.IsAnyAssignExpression() &&
+            return node != null &&
+                node.Parent.IsAnyAssignExpression() &&
                 ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 
@@ -752,78 +786,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 current = current.Parent;
             }
-        }
-
-        /// <summary>
-        /// Look inside a trivia list for a skipped token that contains the given position.
-        /// </summary>
-        private static readonly Func<SyntaxTriviaList, int, SyntaxToken> s_findSkippedTokenForward =
-            (l, p) => FindTokenHelper.FindSkippedTokenForward(GetSkippedTokens(l), p);
-
-        /// <summary>
-        /// Look inside a trivia list for a skipped token that contains the given position.
-        /// </summary>
-        private static readonly Func<SyntaxTriviaList, int, SyntaxToken> s_findSkippedTokenBackward =
-            (l, p) => FindTokenHelper.FindSkippedTokenBackward(GetSkippedTokens(l), p);
-
-        /// <summary>
-        /// return only skipped tokens
-        /// </summary>
-        private static IEnumerable<SyntaxToken> GetSkippedTokens(SyntaxTriviaList list)
-        {
-            // PERF: Avoid allocations in the most common case of no skipped tokens.
-            if (!HasSkippedTokens(list))
-            {
-                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
-            }
-
-            return list.Where(trivia => trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
-                       .SelectMany(t => ((SkippedTokensTriviaSyntax)t.GetStructure()).Tokens);
-        }
-
-        private static bool HasSkippedTokens(SyntaxTriviaList list)
-        {
-            foreach (var trivia in list)
-            {
-                if (trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// If the position is inside of token, return that token; otherwise, return the token to the right.
-        /// </summary>
-        public static SyntaxToken FindTokenOnRightOfPosition(
-            this SyntaxNode root,
-            int position,
-            bool includeSkipped = true,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : null;
-
-            return FindTokenHelper.FindTokenOnRightOfPosition<CompilationUnitSyntax>(
-                root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
-        /// <summary>
-        /// If the position is inside of token, return that token; otherwise, return the token to the left.
-        /// </summary>
-        public static SyntaxToken FindTokenOnLeftOfPosition(
-            this SyntaxNode root,
-            int position,
-            bool includeSkipped = true,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : null;
-
-            return FindTokenHelper.FindTokenOnLeftOfPosition<CompilationUnitSyntax>(
-                root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -934,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (WhileStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (DoStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (ForStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ForEachStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
+                (CommonForEachStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (UsingStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (FixedStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (LockStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
@@ -964,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                    node is DoStatementSyntax ||
                    node is ElseClauseSyntax ||
                    node is FixedStatementSyntax ||
-                   node is ForEachStatementSyntax ||
+                   node is CommonForEachStatementSyntax ||
                    node is ForStatementSyntax ||
                    node is IfStatementSyntax ||
                    node is LabeledStatementSyntax ||
@@ -979,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (DoStatementSyntax n) => n.Statement,
                 (ElseClauseSyntax n) => n.Statement,
                 (FixedStatementSyntax n) => n.Statement,
-                (ForEachStatementSyntax n) => n.Statement,
+                (CommonForEachStatementSyntax n) => n.Statement,
                 (ForStatementSyntax n) => n.Statement,
                 (IfStatementSyntax n) => n.Statement,
                 (LabeledStatementSyntax n) => n.Statement,
@@ -1179,51 +1141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();
-        }
-
-        public static IEnumerable<SyntaxNode> GetBodies(this SyntaxNode node)
-        {
-            var constructor = node as ConstructorDeclarationSyntax;
-            if (constructor != null)
-            {
-                var result = SpecializedCollections.SingletonEnumerable<SyntaxNode>(constructor.Body).WhereNotNull();
-                var initializer = constructor.Initializer;
-                if (initializer != null)
-                {
-                    result = result.Concat(initializer.ArgumentList.Arguments.Select(a => (SyntaxNode)a.Expression).WhereNotNull());
-                }
-
-                return result;
-            }
-
-            var method = node as BaseMethodDeclarationSyntax;
-            if (method != null)
-            {
-                return SpecializedCollections.SingletonEnumerable<SyntaxNode>(method.Body).WhereNotNull();
-            }
-
-            var property = node as BasePropertyDeclarationSyntax;
-            if (property != null && property.AccessorList != null)
-            {
-                return property.AccessorList.Accessors.Select(a => a.Body).WhereNotNull();
-            }
-
-            var @enum = node as EnumMemberDeclarationSyntax;
-            if (@enum != null)
-            {
-                if (@enum.EqualsValue != null)
-                {
-                    return SpecializedCollections.SingletonEnumerable(@enum.EqualsValue.Value).WhereNotNull();
-                }
-            }
-
-            var field = node as BaseFieldDeclarationSyntax;
-            if (field != null)
-            {
-                return field.Declaration.Variables.Where(v => v.Initializer != null).Select(v => v.Initializer.Value).WhereNotNull();
-            }
-
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
         public static ConditionalAccessExpressionSyntax GetParentConditionalAccessExpression(this SyntaxNode node)

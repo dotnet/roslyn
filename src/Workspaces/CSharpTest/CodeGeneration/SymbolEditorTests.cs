@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
     public class SymbolEditorTests
     {
@@ -305,7 +305,7 @@ internal partial class C
 }";
 
             var solution = GetSolution(code1, code2);
-            var comp = solution.Projects.First().GetCompilationAsync().Result;
+            var comp = await solution.Projects.First().GetCompilationAsync();
             var symbol = comp.GlobalNamespace.GetMembers("C").First();
 
             var editor = SymbolEditor.Create(solution);

@@ -3518,7 +3518,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(546132, "DevDiv")>
+        <WorkItem(546132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546132")>
         <Fact()>
         Public Sub SymbolnfoForFunctionAggregationSyntax()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -3570,7 +3570,7 @@ End Module
             Assert.Equal(2, info.CandidateSymbols.Length)
         End Sub
 
-        <WorkItem(542521, "DevDiv")>
+        <WorkItem(542521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542521")>
         <Fact()>
         Public Sub AddressOfOperatorInQuery()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -3596,7 +3596,7 @@ End Module
             Assert.NotEmpty(diagnostics)
         End Sub
 
-        <WorkItem(542823, "DevDiv")>
+        <WorkItem(542823, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542823")>
         <Fact()>
         Public Sub DefaultAggregateClauseInfo()
             Dim aggrClauseSymInfo = New AggregateClauseSymbolInfo()
@@ -3607,7 +3607,7 @@ End Module
             Assert.Equal(0, aggrClauseSymInfo.Select2.CandidateSymbols.Length)
         End Sub
 
-        <WorkItem(543084, "DevDiv")>
+        <WorkItem(543084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543084")>
         <Fact()>
         Public Sub MissingIdentifierNameSyntaxInIncompleteLetClause()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -3637,7 +3637,7 @@ End Module
             Assert.Equal(TypeInfo.None, info)
         End Sub
 
-        <WorkItem(542914, "DevDiv")>
+        <WorkItem(542914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542914")>
         <Fact()>
         Public Sub Bug10356()
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
@@ -3669,7 +3669,7 @@ End Module
             Assert.Equal("Function (z As System.Int32) As <anonymous type: Key z As System.Int32, Key Group As ?>", DirectCast(containingSymbol, Symbol).ToTestDisplayString())
         End Sub
 
-        <WorkItem(543161, "DevDiv")>
+        <WorkItem(543161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543161")>
         <Fact()>
         Public Sub InaccessibleQueryMethodOnCollectionType()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -3728,7 +3728,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(546165, "DevDiv")>
+        <WorkItem(546165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546165")>
         <Fact()>
         Public Sub QueryInsideEnumMemberDecl()
             Dim compilation = CreateCompilationWithMscorlib(

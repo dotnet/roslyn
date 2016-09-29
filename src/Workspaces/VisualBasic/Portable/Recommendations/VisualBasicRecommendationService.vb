@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -17,15 +16,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
     Friend Class VisualBasicRecommendationService
         Inherits AbstractRecommendationService
 
-        Protected Overrides Function GetRecommendedSymbolsAtPositionWorker(
+        Protected Overrides Async Function GetRecommendedSymbolsAtPositionWorkerAsync(
             workspace As Workspace,
             semanticModel As SemanticModel,
             position As Integer,
             options As OptionSet,
             cancellationToken As CancellationToken
-        ) As Tuple(Of IEnumerable(Of ISymbol), AbstractSyntaxContext)
+        ) As Tasks.Task(Of Tuple(Of IEnumerable(Of ISymbol), SyntaxContext))
 
-            Dim context = VisualBasicSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken)
+            Dim context = Await VisualBasicSyntaxContext.CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
 
             Dim filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language)
             Dim symbols = GetSymbolsWorker(context, filterOutOfScopeLocals, cancellationToken)
@@ -33,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language)
             symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation)
 
-            Return Tuple.Create(Of IEnumerable(Of ISymbol), AbstractSyntaxContext)(symbols, context)
+            Return Tuple.Create(Of IEnumerable(Of ISymbol), SyntaxContext)(symbols, context)
         End Function
 
         Private Function GetSymbolsWorker(
@@ -48,7 +47,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim node = context.TargetToken.Parent
-            If context.IsRightOfNameSeparator Then
+            If context.IsGlobalStatementContext Then
+                Return GetSymbolsForGlobalStatementContext(context, cancellationToken)
+            ElseIf context.IsRightOfNameSeparator Then
                 If node.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                     Return GetSymbolsForMemberAccessExpression(context, DirectCast(node, MemberAccessExpressionSyntax), cancellationToken)
                 ElseIf node.Kind = SyntaxKind.QualifiedName Then
@@ -66,9 +67,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 Return GetUnqualifiedSymbolsForLabelContext(context, cancellationToken)
             ElseIf context.SyntaxTree.IsRaiseEventContext(context.Position, context.TargetToken, cancellationToken) Then
                 Return GetUnqualifiedSymbolsForRaiseEvent(context, cancellationToken)
+            ElseIf context.TargetToken.IsKind(SyntaxKind.ForKeyword) Then
+                Dim symbols = GetUnqualifiedSymbolsForExpressionOrStatementContext(context, filterOutOfScopeLocals, cancellationToken) _
+                    .Where(AddressOf IsWritableFieldOrLocal)
+                Return symbols
+            ElseIf context.IsNamespaceDeclarationNameContext Then
+                Return GetUnqualifiedSymbolsForNamespaceDeclarationNameContext(context, cancellationToken)
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
+        End Function
+
+        Private Function GetUnqualifiedSymbolsForNamespaceDeclarationNameContext(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+            Dim declarationSyntax = context.TargetToken.GetAncestor(Of NamespaceBlockSyntax)
+
+            If declarationSyntax Is Nothing Then
+                Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
+            End If
+
+            Return GetRecommendedNamespaceNameSymbols(context.SemanticModel, declarationSyntax, cancellationToken)
+        End Function
+
+        Private Function IsWritableFieldOrLocal(symbol As ISymbol) As Boolean
+            If symbol.Kind() = SymbolKind.Field Then
+                Dim field = DirectCast(symbol, IFieldSymbol)
+                Return Not field.IsReadOnly AndAlso Not field.IsConst
+            End If
+
+            If symbol.Kind() = SymbolKind.Local Then
+                Dim local = DirectCast(symbol, ILocalSymbol)
+                Return Not local.IsConst
+            End If
+
+            Return False
+        End Function
+
+        Private Function GetSymbolsForGlobalStatementContext(
+            context As VisualBasicSyntaxContext,
+            cancellationToken As CancellationToken
+        ) As IEnumerable(Of ISymbol)
+            Return context.SemanticModel.LookupSymbols(context.TargetToken.Span.End)
         End Function
 
         Private Function GetUnqualifiedSymbolsForQueryIntoContext(
@@ -143,7 +181,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 symbols = symbols.Where(Function(s) Not IsInEligibleDelegate(s))
             End If
 
-
             ' Hide backing fields and events
             Return symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
         End Function
@@ -163,11 +200,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             cancellationToken As CancellationToken
         ) As IEnumerable(Of ISymbol)
 
-            ' We shouldn't show completion if we're inside of a namespace statement.
-            If context.TargetToken.Parent.FirstAncestorOrSelf(Of NamespaceStatementSyntax)() IsNot Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
-            End If
-
             ' We're in a name-only context, since if we were an expression we'd be a
             ' MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             Dim leftHandSymbolInfo = context.SemanticModel.GetSymbolInfo(node.Left, cancellationToken)
@@ -185,6 +217,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Else
                 symbols = context.SemanticModel _
                     .LookupNamespacesAndTypes(position:=node.SpanStart, container:=leftHandSymbol)
+
+                If context.IsNamespaceDeclarationNameContext Then
+                    Dim declarationSyntax = node.GetAncestor(Of NamespaceBlockSyntax)
+                    symbols = symbols.Where(Function(symbol) IsNonIntersectingNamespace(symbol, declarationSyntax))
+                End If
             End If
 
             Return FilterToValidAccessibleSymbols(symbols, context, cancellationToken)
@@ -210,7 +247,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim inNameOfExpression = node.IsParentKind(SyntaxKind.NameOfExpression)
 
             Dim container = DirectCast(leftHandTypeInfo.Type, INamespaceOrTypeSymbol)
-            If leftHandTypeInfo.Type.IsErrorType AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then
+            If container Is Nothing AndAlso TypeOf (leftHandTypeInfo.ConvertedType) Is IArrayTypeSymbol Then
+                container = DirectCast(leftHandTypeInfo.ConvertedType, INamespaceOrTypeSymbol)
+            End If
+            If container.IsErrorType() AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then
                 ' TODO remove this when 531549 which causes leftHandTypeInfo to be an error type is fixed
                 container = leftHandSymbolInfo.Symbol.GetSymbolType()
             End If
@@ -340,11 +380,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Return symbolInfo.CandidateSymbols.Any() AndAlso symbolInfo.CandidateSymbols.All(Function(s) s.IsNamespace())
         End Function
 
-        Private Function LookupSymbolsInContainer(container As INamespaceOrTypeSymbol, semanticModel As SemanticModel, position As Integer, excludeInstance As Boolean) As ImmutableArray(Of ISymbol)
-            Return If(
-                    excludeInstance,
-                    semanticModel.LookupStaticMembers(position, container),
-                    semanticModel.LookupSymbols(position, container, includeReducedExtensionMethods:=True))
+        Private Function LookupSymbolsInContainer(container As INamespaceOrTypeSymbol, semanticModel As SemanticModel, position As Integer, excludeInstance As Boolean) As IEnumerable(Of ISymbol)
+            If excludeInstance Then
+                Return semanticModel.LookupStaticMembers(position, container)
+            Else
+                Return SuppressDefaultTupleElements(
+                        container,
+                        semanticModel.LookupSymbols(position, container, includeReducedExtensionMethods:=True))
+            End If
         End Function
 
         ''' <summary>

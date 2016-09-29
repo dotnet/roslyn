@@ -7,19 +7,15 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Tagging
-Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
     Public MustInherit Class AbstractKeywordHighlightingTests
         Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(test)
+            Using workspace = Await TestWorkspace.CreateAsync(test)
                 Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim buffer = testDocument.TextBuffer
                 Dim snapshot = testDocument.InitialTextSnapshot
@@ -28,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
                 workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
 
+                WpfTestCase.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
+
                 Dim highlightingService = workspace.GetService(Of IHighlightingService)()
                 Dim tagProducer = New HighlighterViewTaggerProvider(
                     highlightingService,
@@ -35,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                     AggregateAsynchronousOperationListener.EmptyListeners)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))
-                tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait()
+                Await tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context)
 
                 Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start

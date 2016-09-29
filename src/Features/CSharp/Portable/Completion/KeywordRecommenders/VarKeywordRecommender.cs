@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -25,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return context.IsLocalVariableDeclarationContext;
         }
 
-        public IEnumerable<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        public Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             if (IsValidContext(context))
             {
-                return SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("var"));
+                return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("var")));
             }
 
-            return null;
+            return Task.FromResult<IEnumerable<RecommendedKeyword>>(null);
         }
     }
 }

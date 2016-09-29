@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// For some well-known attributes, the latter case will return string stored in <see cref="StringMissingValue"/>
         /// field.
         /// </summary>
-        public static readonly string StringMissingValue = "StringMissingValue";
+        public static readonly string StringMissingValue = nameof(StringMissingValue);
 
 #if DEBUG
         private bool _isSealed;

@@ -5,7 +5,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
     Public Class AutomaticBraceCompletionTests
@@ -97,7 +96,7 @@ End Class</code>
 
         Friend Overloads Async Function CreateSessionASync(code As String) As Threading.Tasks.Task(Of Holder)
             Return CreateSession(
-                Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code),
+                Await TestWorkspace.CreateVisualBasicAsync(code),
                 BraceCompletionSessionProvider.CurlyBrace.OpenCharacter, BraceCompletionSessionProvider.CurlyBrace.CloseCharacter)
         End Function
     End Class

@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion.Sessions
 
             ' Next, check to see if the token we're typing is part of an existing interpolated string.
             '
-            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
             Dim token = tree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(position)
 
             If Not token.Span.IntersectsWith(position) Then

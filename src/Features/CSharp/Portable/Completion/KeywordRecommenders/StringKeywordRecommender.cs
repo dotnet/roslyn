@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class StringKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class StringKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
     {
         public StringKeywordRecommender()
             : base(SyntaxKind.StringKeyword)
@@ -43,5 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
+
+        protected override SpecialType SpecialType => SpecialType.System_String;
     }
 }

@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis
 
         #region AssemblyVersionAttributeSetting
         private Version _assemblyVersionAttributeSetting;
+
+        /// <summary>
+        /// Raw assembly version as specified in the AssemblyVersionAttribute, or Nothing if none specified.
+        /// If the string passed to AssemblyVersionAttribute contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
+        /// </summary>
         public Version AssemblyVersionAttributeSetting
         {
             get
@@ -265,8 +270,8 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region AssemblyFlagsAttributeSetting
-        private AssemblyNameFlags _assemblyFlagsAttributeSetting;
-        public AssemblyNameFlags AssemblyFlagsAttributeSetting
+        private AssemblyFlags _assemblyFlagsAttributeSetting;
+        public AssemblyFlags AssemblyFlagsAttributeSetting
         {
             get
             {

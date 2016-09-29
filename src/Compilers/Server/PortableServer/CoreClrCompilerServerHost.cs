@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
 
         internal CoreClrCompilerServerHost(string clientDirectory)
-            :base(clientDirectory : clientDirectory, sdkDirectory: null)
+            : base(clientDirectory: clientDirectory, sdkDirectory: null)
         {
             AssemblyReferenceProvider = (path, properties) => new CachingMetadataReference(path, properties);
-            AnalyzerAssemblyLoader = CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault();
+            AnalyzerAssemblyLoader = new CoreClrAnalyzerAssemblyLoader();
         }
 
         public override bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)

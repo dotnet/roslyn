@@ -2222,7 +2222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function GetQueryLambdaParameterSyntax(syntaxNode As VisualBasicSyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol)) As VisualBasicSyntaxNode
+        Private Shared Function GetQueryLambdaParameterSyntax(syntaxNode As VisualBasicSyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol)) As VisualBasicSyntaxNode
             If rangeVariables.Length = 1 Then
                 Return rangeVariables(0).Syntax
             End If
@@ -2237,12 +2237,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntaxNode As VisualBasicSyntaxNode,
             rangeVariables As ImmutableArray(Of RangeVariableSymbol)
         ) As BoundLambdaParameterSymbol
-            syntaxNode = Me.GetQueryLambdaParameterSyntax(syntaxNode, rangeVariables)
+            syntaxNode = GetQueryLambdaParameterSyntax(syntaxNode, rangeVariables)
             Dim param = New BoundLambdaParameterSymbol(name, ordinal, type, isByRef:=False, syntaxNode:=syntaxNode, location:=syntaxNode.GetLocation())
             Return param
         End Function
 
-        Private Function CreateQueryLambdaParameterSymbol(
+        Private Shared Function CreateQueryLambdaParameterSymbol(
             name As String,
             ordinal As Integer,
             type As TypeSymbol,
@@ -4646,7 +4646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Note, returned group might have ResultKind = "Inaccessible".
         ''' </summary>
         Private Function LookupQueryOperator(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             source As BoundExpression,
             operatorName As String,
             typeArgumentsOpt As BoundTypeArguments,
@@ -4684,7 +4684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private Function BindQueryOperatorCall(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             source As BoundExpression,
             operatorName As String,
             arguments As ImmutableArray(Of BoundExpression),
@@ -4701,7 +4701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindQueryOperatorCall(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             source As BoundExpression,
             operatorName As String,
             typeArgumentsOpt As BoundTypeArguments,
@@ -4722,7 +4722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' [methodGroup] can be Nothing if lookup didn't find anything.
         ''' </summary>
         Private Function BindQueryOperatorCall(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             source As BoundExpression,
             operatorName As String,
             methodGroup As BoundMethodGroup,

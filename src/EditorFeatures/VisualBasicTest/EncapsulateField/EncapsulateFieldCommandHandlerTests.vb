@@ -77,7 +77,7 @@ End Class</File>.ConvertTestSourceTag()
             End Using
         End Function
 
-        <WorkItem(1086632)>
+        <WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function EncapsulateTwoFields() As System.Threading.Tasks.Task
             Dim text = "
@@ -133,7 +133,7 @@ End Class
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(
+            Using workspace = Await TestWorkspace.CreateAsync(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C

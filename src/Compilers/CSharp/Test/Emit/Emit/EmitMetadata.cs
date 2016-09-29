@@ -188,7 +188,7 @@ public class Test : Class2
             });
         }
 
-        [WorkItem(687434, "DevDiv")]
+        [WorkItem(687434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687434")]
         [Fact()]
         public void Bug687434()
         {
@@ -198,7 +198,7 @@ public class Test : Class2
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
-        [Fact, WorkItem(529006, "DevDiv")]
+        [Fact, WorkItem(529006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529006")]
         public void AddModule()
         {
             var netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(filePath: Path.GetFullPath("netModule1.netmodule"));
@@ -230,7 +230,18 @@ public class Test : Class1
                 var moduleRefName = reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(1)).Name;
                 Assert.Equal("netModule1.netmodule", reader.GetString(moduleRefName));
 
-                Assert.Equal(5, reader.GetTableRowCount(TableIndex.ExportedType));
+                var actual = from h in reader.ExportedTypes
+                             let et = reader.GetExportedType(h)
+                             select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+                AssertEx.Equal(new[]
+                {
+                    ".Class1 0x26000001 (AssemblyFile) 0x0001",
+                    ".Class3 0x27000001 (ExportedType) 0x0002",
+                    "NS1.Class4 0x26000001 (AssemblyFile) 0x0001",
+                    ".Class7 0x27000003 (ExportedType) 0x0002",
+                    ".Class2 0x26000002 (AssemblyFile) 0x0001"
+                }, actual);
             });
         }
 
@@ -893,7 +904,7 @@ class C
         Console.Write(c.R);
         Console.Write(C.S);
     }
-}", parseOptions: TestOptions.ExperimentalParseOptions,
+}", parseOptions: TestOptions.Regular,
     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
             Action<ModuleSymbol> validator = module =>
             {
@@ -963,7 +974,7 @@ struct S
         Console.Write(s.R);
         Console.Write(S.T);
     }
-}", parseOptions: TestOptions.ExperimentalParseOptions,
+}", parseOptions: TestOptions.Regular,
     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             Action<ModuleSymbol> validator = module =>
@@ -1148,7 +1159,7 @@ public class C : I
         // Property/method override should succeed (and should reference
         // the correct base method, even if there is a method/property
         // with the same name in an intermediate class.
-        [WorkItem(538720, "DevDiv")]
+        [WorkItem(538720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538720")]
         [Fact]
         public void TestPropertyOverrideGet()
         {
@@ -1912,7 +1923,7 @@ True
 ");
         }
 
-        [WorkItem(540581, "DevDiv")]
+        [WorkItem(540581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540581")]
         [Fact]
         public void RefEmit_DependencyGraphAndCachedTypeReferences()
         {
@@ -2149,7 +2160,8 @@ class Program
                 Assert.Null(member);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190"), WorkItem(90)]
+        [WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")]
+        [Fact]
         public void EmitWithNoResourcesAllPlatforms()
         {
             var comp = CreateCompilationWithMscorlib("class Test { static void Main() { } }");
@@ -2162,24 +2174,16 @@ class Program
             VerifyEmitWithNoResources(comp, Platform.X86);
         }
 
-        private static void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
+        private void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
         {
             var options = TestOptions.ReleaseExe.WithPlatform(platform);
-
-            using (var outputStream = new MemoryStream())
-            {
-                var success = comp.WithOptions(options).Emit(outputStream).Success;
-                Assert.True(success);
-
-                var peVerifyOutput = CLRHelpers.PeVerify(outputStream.ToImmutable()).Join(Environment.NewLine);
-                Assert.Equal(string.Empty, peVerifyOutput);
-            }
+            CompileAndVerify(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_" + platform.ToString()).WithOptions(options));
         }
 
         [Fact]
         public unsafe void PEHeaders1()
         {
-            var options = EmitOptions.Default.WithFileAlignment(8192);
+            var options = EmitOptions.Default.WithFileAlignment(0x2000);
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
 
             var peStream = CreateCompilationWithMscorlib(
@@ -2259,7 +2263,7 @@ class Program
             var importAddressTableDirectoryBytes = new byte[peHeader.ImportAddressTableDirectory.Size];
             peStream.Position = importAddressTableDirectoryOffset;
             peStream.Read(importAddressTableDirectoryBytes, 0, importAddressTableDirectoryBytes.Length);
-            AssertEx.Equal(new byte[] 
+            AssertEx.Equal(new byte[]
             {
                 0x60, 0x23, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00

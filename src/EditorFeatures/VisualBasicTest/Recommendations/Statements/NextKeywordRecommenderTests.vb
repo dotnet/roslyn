@@ -1,51 +1,44 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class NextKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NextNotInMethodBody()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Next")
-        End Sub
+        Public Async Function NextNotInMethodBodyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Next")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NextNotInLambda()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function NextNotInLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Dim x = Sub()
 |
         End Sub</MethodBody>, "Next")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NextNotAfterStatement()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function NextNotAfterStatementTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Dim x
 |</MethodBody>, "Next")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NextAfterForStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function NextAfterForStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 For i = 1 To 10
 |</MethodBody>, "Next")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NextAfterForEachStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function NextAfterForEachStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 For i = 1 To 10
 |</MethodBody>, "Next")
-        End Sub
+        End Function
     End Class
 End Namespace

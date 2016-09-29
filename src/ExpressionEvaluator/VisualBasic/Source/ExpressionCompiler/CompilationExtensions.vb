@@ -1,10 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Collections.ObjectModel
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -18,14 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         <Extension>
-        Friend Function [GetType](compilation As VisualBasicCompilation, moduleVersionId As Guid, typeToken As Integer, <Out> ByRef metadataDecoder As MetadataDecoder) As PENamedTypeSymbol
-            Dim [module] = compilation.GetModule(moduleVersionId)
-            CheckModule([module], moduleVersionId)
-            Dim reader = [module].Module.MetadataReader
-            Dim typeHandle = CType(MetadataTokens.Handle(typeToken), TypeDefinitionHandle)
-            Dim type = [GetType]([module], typeHandle)
-            metadataDecoder = New MetadataDecoder([module], type)
-            Return type
+        Friend Function [GetType](compilation As VisualBasicCompilation, moduleVersionId As Guid, typeToken As Integer) As PENamedTypeSymbol
+            Return [GetType](compilation.GetModule(moduleVersionId), CType(MetadataTokens.Handle(typeToken), TypeDefinitionHandle))
         End Function
 
         <Extension>
@@ -58,7 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         <Extension>
         Friend Function GetMethod(compilation As VisualBasicCompilation, moduleVersionId As Guid, methodHandle As MethodDefinitionHandle) As PEMethodSymbol
             Dim [module] = compilation.GetModule(moduleVersionId)
-            CheckModule([module], moduleVersionId)
             Dim reader = [module].Module.MetadataReader
             Dim typeHandle = reader.GetMethodDefinition(methodHandle).GetDeclaringType()
             Dim type = [GetType]([module], typeHandle)
@@ -79,14 +72,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Next
             Next
 
-            Return Nothing
+            Throw New ArgumentException($"No module found with MVID '{moduleVersionId}'", NameOf(moduleVersionId))
         End Function
-
-        Private Sub CheckModule([module] As PEModuleSymbol, moduleVersionId As Guid)
-            If [module] Is Nothing Then
-                Throw New ArgumentException($"No module found with MVID '{moduleVersionId}'", NameOf(moduleVersionId))
-            End If
-        End Sub
 
         <Extension>
         Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock)) As VisualBasicCompilation
@@ -108,6 +95,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 options:=s_compilationOptions)
         End Function
 
+        <Extension>
+        Friend Function GetCustomTypeInfoPayload(compilation As VisualBasicCompilation, type As TypeSymbol) As ReadOnlyCollection(Of Byte)
+            Dim builder = ArrayBuilder(Of String).GetInstance()
+            Dim names = If(VisualBasicCompilation.TupleNamesEncoder.TryGetNames(type, builder) AndAlso compilation.HasTupleNamesAttributes,
+                New ReadOnlyCollection(Of String)(builder.ToArray()),
+                Nothing)
+            builder.Free()
+            Return CustomTypeInfo.Encode(Nothing, names)
+        End Function
+
         Friend ReadOnly IdentityComparer As AssemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default
 
         ' XML file references, #r directives not supported:
@@ -117,6 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             optimizationLevel:=OptimizationLevel.Release,
             assemblyIdentityComparer:=IdentityComparer).
             WithMetadataImportOptions(MetadataImportOptions.All).
+            WithReferencesSupersedeLowerVersions(True).
             WithSuppressEmbeddedDeclarations(True)
 
     End Module

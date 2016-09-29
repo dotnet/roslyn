@@ -42,8 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override BoundNode VisitBlock(BoundBlock node)
         {
             var rewrittenLocals = node.Locals.WhereAsArray(local => local.IsCompilerGenerated || local.Name == null || this.GetVariable(local.Name) == null);
+            var rewrittenLocalFunctions = node.LocalFunctions;
             var rewrittenStatements = VisitList(node.Statements);
-            return node.Update(rewrittenLocals, rewrittenStatements);
+            return node.Update(rewrittenLocals, rewrittenLocalFunctions, rewrittenStatements);
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -112,21 +113,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundConversion(
                 syntax,
                 rewrittenParameter,
-                conversion.Kind,
-                conversion.ResultKind,
+                conversion,
                 isBaseConversion: true,
-                symbolOpt: conversion.Method,
                 @checked: false,
                 explicitCastInCode: false,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: null,
                 type: baseType,
                 hasErrors: !conversion.IsValid)
             { WasCompilerGenerated = true };
         }
 
-        private BoundExpression RewriteParameter(CSharpSyntaxNode syntax, ParameterSymbol symbol, BoundExpression node)
+        private BoundExpression RewriteParameter(SyntaxNode syntax, ParameterSymbol symbol, BoundExpression node)
         {
             // This can happen in error scenarios (e.g. user binds "this" in a lambda in a static method).
             if ((object)symbol == null)
@@ -158,12 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var result = variable.ToBoundExpression(syntax);
             Debug.Assert(node.Kind == BoundKind.BaseReference
-                ? result.Type.BaseType.Equals(node.Type, ignoreDynamic: true)
-                : result.Type.Equals(node.Type, ignoreDynamic: true));
+                ? result.Type.BaseType.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames)
+                : result.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
             return result;
         }
 
-        private void ReportMissingThis(BoundKind boundKind, CSharpSyntaxNode syntax)
+        private void ReportMissingThis(BoundKind boundKind, SyntaxNode syntax)
         {
             Debug.Assert(boundKind == BoundKind.ThisReference || boundKind == BoundKind.BaseReference);
             var errorCode = boundKind == BoundKind.BaseReference

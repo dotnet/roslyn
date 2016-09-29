@@ -1,11 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
-
-#Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class LineEditTests
@@ -21,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
 #Region "Methods"
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_Update1()
             Dim src1 = ToCode(<text>
 Class C
@@ -45,7 +42,7 @@ End Class
             edits.VerifyLineEdits({}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_Reorder1()
             Dim src1 = ToCode(<text>
 Class C
@@ -75,7 +72,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 6), New LineChange(6, 2)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_Reorder2()
             Dim src1 = ToCode(<text>
 Class Program
@@ -115,7 +112,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 6), New LineChange(7, 2)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
@@ -139,7 +136,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 4)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_LineChangeWithLambda1()
             Dim src1 = ToCode(<text>
 Class C
@@ -163,7 +160,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 4)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
@@ -186,7 +183,7 @@ End Class
             edits.VerifyLineEdits({}, {"Shared Sub _"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_Recompile2()
             Dim src1 = ToCode(<text>
 Class C
@@ -208,7 +205,7 @@ End Class
             edits.VerifyLineEdits({}, {"Shared Sub Bar()"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_Recompile3()
             Dim src1 = ToCode(<text>
 Class C
@@ -231,7 +228,7 @@ End Class
             edits.VerifyLineEdits({}, {"Shared Sub Bar()"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_Recompile4()
             Dim src1 = ToCode(<text>
 Class C
@@ -257,7 +254,7 @@ End Class
             edits.VerifyLineEdits({}, {"Shared Sub Bar()"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_Recompile5()
             Dim src1 = "
 Class C
@@ -288,7 +285,7 @@ End Class
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"), syntaxMap(0))})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_Recompile6()
             Dim src1 = ToCode(<![CDATA[
 Class C
@@ -306,7 +303,7 @@ End Class
             edits.VerifyLineEdits({}, {"Shared Sub Bar() : End Sub"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_RudeRecompile1()
             Dim src1 = ToCode(<text>
 Class C(Of T)
@@ -328,10 +325,10 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Shared Sub Bar()"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "        ", FeaturesResources.Method))
+                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "        ", FeaturesResources.method))
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_RudeRecompile2()
             Dim src1 = ToCode(<text>
 Class C(Of T)
@@ -351,10 +348,10 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Shared Sub Bar()"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", FeaturesResources.Method))
+                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", FeaturesResources.method))
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_RudeRecompile3()
             Dim src1 = ToCode(<text>
 Class C
@@ -375,10 +372,10 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Shared Sub Bar(Of T)()"},
-                                  Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", FeaturesResources.Method))
+                                  Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", FeaturesResources.method))
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Method_RudeRecompile4()
             Dim src1 = ToCode(<text>
 Class C
@@ -406,7 +403,7 @@ End Class
 
 #Region "Constructors"
 
-        <WpfFact>
+        <Fact>
         Public Sub Constructor_Recompile1()
             Dim src1 =
 "Class C" & vbCrLf &
@@ -427,7 +424,7 @@ End Class
             edits.VerifyLineEdits({}, {"Shared Sub _" & vbLf & "New()"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Constructor_Recompile2()
             Dim src1 =
 "Class C" & vbCrLf &
@@ -452,7 +449,7 @@ End Class
 
 #Region "Fields"
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_Init_Reorder1()
             Dim src1 = ToCode(<text>
 Class C
@@ -470,7 +467,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3), New LineChange(3, 2)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_AsNew_Reorder1()
             Dim src1 = ToCode(<text>
 Class C
@@ -488,7 +485,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3), New LineChange(3, 2)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_AsNew_Reorder2()
             Dim src1 = ToCode(<text>
 Class C
@@ -511,7 +508,7 @@ End Class
                                    New LineChange(3, 2)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_Init_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
@@ -530,7 +527,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 4)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_Init_LineChange2()
             Dim src1 = ToCode(<text>
 Class C
@@ -548,7 +545,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_AsNew_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
@@ -567,7 +564,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_AsNew_LineChange2()
             Dim src1 = ToCode(<text>
 Class C
@@ -586,7 +583,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_AsNew_LineChange_WithLambda()
             Dim src1 = ToCode(<text>
 Class C
@@ -605,7 +602,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3)}, {"Foo"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_ArrayInit_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
@@ -624,7 +621,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 4)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_ArrayInit_LineChange2()
             Dim src1 = ToCode(<text>
 Class C
@@ -642,7 +639,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_Init_Recompile1a()
             Dim src1 = ToCode(<text>
 Class C
@@ -661,7 +658,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo = _"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_Init_Recompile1b()
             Dim src1 = ToCode(<text>
 Class C
@@ -680,7 +677,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo _ "})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_Init_Recompile1c()
             Dim src1 = ToCode(<text>
 Class C
@@ -699,7 +696,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo _"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_Init_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
@@ -717,7 +714,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo =  1"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_Init_Recompile2()
             Dim src1 = ToCode(<text>
 Class C
@@ -735,7 +732,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo As Integer = 1 +  1"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_SingleAsNew_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
@@ -754,7 +751,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo As _"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_SingleAsNew_Recompile2()
             Dim src1 = ToCode(<text>
 Class C
@@ -773,7 +770,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo _"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_MultiAsNew_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
@@ -794,7 +791,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3)}, {"Foo"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_MultiAsNew_Recompile2()
             Dim src1 = ToCode(<text>
 Class C
@@ -814,7 +811,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo", "Bar"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_MultiAsNew_Recompile3()
             Dim src1 = ToCode(<text>
 Class C
@@ -832,7 +829,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo", "Bar"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_MultiAsNew_Recompile4()
             Dim src1 = ToCode(<text>
 Class C
@@ -851,7 +848,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo", "Bar"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_ArrayInit_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
@@ -868,7 +865,7 @@ End Class
             edits.VerifyLineEdits({}, {"Foo(1)"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Field_RudeRecompile1()
             Dim src1 = ToCode(<text>
 Class C(Of T)
@@ -885,12 +882,12 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Foo As Integer = 1 +  1"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.Field))
+                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field))
         End Sub
 #End Region
 
 #Region "Auto-Properties"
-        <WpfFact>
+        <Fact>
         Public Sub Property_NoChange1()
             Dim src1 = ToCode(<text>
 Class C
@@ -909,7 +906,26 @@ End Class
             edits.VerifyLineEdits({}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
+        Public Sub PropertyTypeChar_NoChange1()
+            Dim src1 = ToCode(<text>
+Class C
+    Property Foo$ = "" Implements I.P
+End Class
+</text>)
+
+            Dim src2 = ToCode(<text>
+Class C
+    Property Foo$ = "" _
+                       Implements I.P
+End Class
+</text>)
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits({}, {})
+        End Sub
+
+        <Fact>
         Public Sub PropertyAsNew_NoChange1()
             Dim src1 = ToCode(<text>
 Class C
@@ -928,7 +944,7 @@ End Class
             edits.VerifyLineEdits({}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Property_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
@@ -947,7 +963,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Property_LineChange2()
             Dim src1 = ToCode(<text>
 Class C
@@ -966,7 +982,26 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
+        Public Sub PropertyTypeChar_LineChange2()
+            Dim src1 = ToCode(<text>
+Class C
+    Property Foo$ = ""
+End Class
+</text>)
+
+            Dim src2 = ToCode(<text>
+Class C
+    Property _
+             Foo$ = ""
+End Class
+</text>)
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+        End Sub
+
+        <Fact>
         Public Sub PropertyAsNew_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
@@ -985,7 +1020,7 @@ End Class
             edits.VerifyLineEdits({New LineChange(2, 3)}, {})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Property_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
@@ -1004,7 +1039,7 @@ End Class
             edits.VerifyLineEdits({}, {"Property Foo _"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Property_Recompile2()
             Dim src1 = ToCode(<text>
 Class C
@@ -1023,7 +1058,7 @@ End Class
             edits.VerifyLineEdits({}, {"Property Foo As _"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Property_Recompile3()
             Dim src1 = ToCode(<text>
 Class C
@@ -1042,7 +1077,7 @@ End Class
             edits.VerifyLineEdits({}, {"Property Foo As Integer _"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub Property_Recompile4()
             Dim src1 = ToCode(<text>
 Class C
@@ -1061,7 +1096,7 @@ End Class
             edits.VerifyLineEdits({}, {"Property Foo As Integer = _"})
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub PropertyAsNew_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
@@ -1078,6 +1113,25 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({}, {"Property Foo As _"})
+        End Sub
+
+        <Fact>
+        Public Sub PropertyTypeChar_Recompile1()
+            Dim src1 = ToCode(<text>
+Class C
+    Property Foo$ = ""
+End Class
+</text>)
+
+            Dim src2 = ToCode(<text>
+Class C
+    Property Foo$ = _
+                    ""
+End Class
+</text>)
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits({}, {"Property Foo$ = _"})
         End Sub
 #End Region
 

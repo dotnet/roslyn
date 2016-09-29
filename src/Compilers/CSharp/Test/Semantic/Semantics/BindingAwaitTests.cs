@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class BindingAwaitTests : CompilingTestBase
     {
-        [WorkItem(547172, "DevDiv")]
-        [Fact, WorkItem(531516, "DevDiv")]
+        [WorkItem(547172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547172")]
+        [Fact, WorkItem(531516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531516")]
         public void Bug18241()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(" class C { void M() { await X() on ");
@@ -1661,7 +1661,7 @@ class Awaiter4
                 Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "await new D()").WithArguments("Awaiter4", "System.Runtime.CompilerServices.INotifyCompletion"));
         }
 
-        [WorkItem(770448, "DevDiv")]
+        [WorkItem(770448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770448")]
         [Fact]
         public void AwaiterImplementsINotifyCompletion_Constraint()
         {
@@ -1723,7 +1723,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "await new Awaitable<T6>()").WithArguments("T6", "System.Runtime.CompilerServices.INotifyCompletion").WithLocation(42, 9));
         }
 
-        [WorkItem(770448, "DevDiv")]
+        [WorkItem(770448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770448")]
         [Fact]
         public void AwaiterImplementsINotifyCompletion_InheritedConstraint()
         {
@@ -1791,7 +1791,7 @@ class D3 : C<S>
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "await new Awaitable<T3>()").WithArguments("T3", "IsCompleted").WithLocation(52, 9));
         }
 
-        [WorkItem(770448, "DevDiv")]
+        [WorkItem(770448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770448")]
         [Fact]
         public void AwaiterImplementsINotifyCompletion_UserDefinedConversion()
         {
@@ -2665,7 +2665,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await foo()"));
         }
 
-        [Fact, WorkItem(531356, "DevDiv")]
+        [Fact, WorkItem(531356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531356")]
         public void Repro_17997()
         {
             var source = @"
@@ -2695,7 +2695,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(627123, "DevDiv")]
+        [Fact, WorkItem(627123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627123")]
         public void Repro_627123()
         {
             var source = @"
@@ -2729,7 +2729,7 @@ class D
                 );
         }
 
-        [Fact, WorkItem(1091911, "DevDiv")]
+        [Fact, WorkItem(1091911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091911")]
         public void Repro_1091911()
         {
             const string source = @"

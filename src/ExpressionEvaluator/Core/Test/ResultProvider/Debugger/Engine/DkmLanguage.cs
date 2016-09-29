@@ -3,6 +3,7 @@
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
 #endregion
+
 namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
     public class DkmLanguage

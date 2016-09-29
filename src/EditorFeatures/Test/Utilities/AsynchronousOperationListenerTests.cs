@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void Operation()
         {
             using (var sleepHelper = new SleepHelper())
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void QueuedOperation()
         {
             using (var sleepHelper = new SleepHelper())
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact(/*Skip = "Throwing ContractFailure on a TPL thread?"*/)]
+        [Fact(/*Skip = "Throwing ContractFailure on a TPL thread?"*/)]
         public void Cancel()
         {
             using (var sleepHelper = new SleepHelper())
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void Nested()
         {
             using (var sleepHelper = new SleepHelper())
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void MultipleEnqueues()
         {
             using (var sleepHelper = new SleepHelper())
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void IgnoredCancel()
         {
             using (var sleepHelper = new SleepHelper())
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void SecondCompletion()
         {
             using (var sleepHelper = new SleepHelper())

@@ -4,12 +4,8 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -584,7 +580,7 @@ $$", @"         using
 }", completionActive: true);
         }
 
-        [WorkItem(530352)]
+        [WorkItem(530352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task EmbededStatement3()
         {
@@ -604,7 +600,7 @@ $$", @"         using
 }");
         }
 
-        [WorkItem(530716)]
+        [WorkItem(530716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530716")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task DontAssertOnMultilineToken()
         {
@@ -618,7 +614,7 @@ $$
 }");
         }
 
-        [WorkItem(530718)]
+        [WorkItem(530718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530718")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task AutomaticLineFormat()
         {
@@ -703,7 +699,7 @@ $$
 }");
         }
 
-        [WorkItem(150480)]
+        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task DelegatedInEmptyBlock()
         {
@@ -722,7 +718,7 @@ $$
 }", assertNextHandlerInvoked: true);
         }
 
-        [WorkItem(150480)]
+        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task DelegatedInEmptyBlock2()
         {
@@ -741,7 +737,7 @@ $$
 }", assertNextHandlerInvoked: true);
         }
 
-        [WorkItem(150480)]
+        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task NotDelegatedOutsideEmptyBlock()
         {
@@ -761,7 +757,7 @@ $$
 }");
         }
 
-        [WorkItem(150480)]
+        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task NotDelegatedAfterOpenBraceAndMissingCloseBrace()
         {
@@ -781,7 +777,7 @@ $$
 }");
         }
 
-        [WorkItem(150480)]
+        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task NotDelegatedInNonEmptyBlock()
         {
@@ -801,7 +797,7 @@ $$
 }");
         }
 
-        [WorkItem(150480)]
+        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
         {
@@ -821,7 +817,7 @@ $$
 }");
         }
 
-        [WorkItem(150480)]
+        [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task NotDelegatedAfterOpenBraceObjectCreationExpression()
         {
@@ -841,9 +837,9 @@ $$
 }");
         }
 
-        protected override Task<TestWorkspace> CreateWorkspaceAsync(string[] code)
+        protected override Task<TestWorkspace> CreateWorkspaceAsync(string code)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code);
+            return TestWorkspace.CreateCSharpAsync(code);
         }
 
         protected override Action CreateNextHandler(TestWorkspace workspace)

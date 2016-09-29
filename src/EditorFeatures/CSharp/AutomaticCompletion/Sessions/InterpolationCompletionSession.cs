@@ -4,6 +4,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.BraceCompletion;
 using Roslyn.Utilities;
 
@@ -65,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             }
 
             // Next, check to see if we're typing in an interpolated string
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var token = tree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var token = root.FindTokenOnLeftOfPosition(position);
 
             if (!token.Span.IntersectsWith(position))
             {

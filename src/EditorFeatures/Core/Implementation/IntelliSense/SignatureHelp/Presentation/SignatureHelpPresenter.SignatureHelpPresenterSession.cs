@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             private ISignatureHelpSession _editorSessionOpt;
             private bool _ignoreSelectionStatusChangedEvent;
+
+            public bool EditorSessionIsActive => _editorSessionOpt?.IsDismissed == false;
 
             public SignatureHelpPresenterSession(
                 ISignatureHelpBroker sigHelpBroker,

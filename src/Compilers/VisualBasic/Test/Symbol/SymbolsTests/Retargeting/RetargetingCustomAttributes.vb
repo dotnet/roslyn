@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
         End Sub
 
         <Fact>
-        <WorkItem(569089, "DevDiv")>
+        <WorkItem(569089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089")>
         Public Sub NullArrays()
             Dim source1 =
 <compilation>

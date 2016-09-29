@@ -468,7 +468,7 @@ enum En
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithArguments("FieldOffset"));
         }
 
-        [Fact, WorkItem(546660, "DevDiv"), WorkItem(546662, "DevDiv")]
+        [Fact, WorkItem(546660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546660"), WorkItem(546662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546662")]
         public void SequentialLayout_Partials()
         {
             string source = @"
@@ -522,7 +522,7 @@ partial struct S
                 Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "C").WithArguments("C"));
         }
 
-        [Fact, WorkItem(631467, "DevDiv")]
+        [Fact, WorkItem(631467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631467")]
         public void SequentialLayout_Partials_02()
         {
             string source = @"

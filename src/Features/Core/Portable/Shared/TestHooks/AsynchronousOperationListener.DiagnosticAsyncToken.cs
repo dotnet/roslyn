@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             public string FilePath { get; }
             public int LineNumber { get; }
             public object Tag { get; }
-            public string StackTrace { get; }
             public Task Task { get; set; }
 
             public DiagnosticAsyncToken(
@@ -29,11 +28,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 int lineNumber)
                 : base(listener)
             {
-                Name = Name;
+                Name = name;
                 Tag = tag;
                 FilePath = filePath;
                 LineNumber = lineNumber;
-                StackTrace = PortableShim.StackTrace.GetString();
             }
 
             internal void AssociateWithTask(Task task)

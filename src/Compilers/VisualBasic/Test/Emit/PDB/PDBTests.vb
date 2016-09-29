@@ -195,16 +195,6 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <methods>
-        <method containingType="C1" name="Method">
-            <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17"/>
-                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="50"/>
-                <entry offset="0xc" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xd">
-                <currentnamespace name=""/>
-            </scope>
-        </method>
         <method containingType="My.MyComputer" name=".ctor">
             <sequencePoints>
                 <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25"/>
@@ -213,6 +203,17 @@ End Class
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
+            </scope>
+        </method>
+        <method containingType="My.MyProject" name=".cctor">
+            <sequencePoints>
+                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97"/>
+                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95"/>
+                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136"/>
+                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x29">
+                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_Computer">
@@ -279,15 +280,14 @@ End Class
                 <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
             </scope>
         </method>
-        <method containingType="My.MyProject" name=".cctor">
+        <method containingType="C1" name="Method">
             <sequencePoints>
-                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97"/>
-                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95"/>
-                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136"/>
-                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17"/>
+                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="50"/>
+                <entry offset="0xc" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x29">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+            <scope startOffset="0x0" endOffset="0xd">
+                <currentnamespace name=""/>
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Equals" parameterNames="o">
@@ -302,7 +302,7 @@ End Class
                 <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x12">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <currentnamespace name="My"/>
                 <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
             </scope>
         </method>
@@ -318,7 +318,7 @@ End Class
                 <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
             </scope>
         </method>
@@ -334,7 +334,7 @@ End Class
                 <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
             </scope>
         </method>
@@ -350,7 +350,7 @@ End Class
                 <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
             </scope>
         </method>
@@ -371,7 +371,7 @@ End Class
                 <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1d">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
             </scope>
         </method>
@@ -382,7 +382,7 @@ End Class
                 <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name=".ctor">
@@ -392,7 +392,7 @@ End Class
                 <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
             </scope>
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name="get_GetInstance">
@@ -411,7 +411,7 @@ End Class
                 <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
             </scope>
         </method>
@@ -422,7 +422,119 @@ End Class
                 <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact()>
+        Public Sub ConstructorsWithoutInitializers()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class C
+    Sub New()
+        Dim o As Object
+    End Sub
+    Sub New(x As Object)
+        Dim y As Object = x
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            compilation.VerifyPdb("C..ctor",
+<symbols>
+    <methods>
+        <method containingType="C" name=".ctor">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14"/>
+                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x9">
+                <currentnamespace name=""/>
+                <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
+            </scope>
+        </method>
+        <method containingType="C" name=".ctor" parameterNames="x">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="25"/>
+                <entry offset="0x8" startLine="6" startColumn="13" endLine="6" endColumn="28"/>
+                <entry offset="0xf" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x10">
+                <importsforward declaringType="C" methodName=".ctor"/>
+                <local name="y" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact()>
+        Public Sub ConstructorsWithInitializers()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class C
+    Shared G As Object = 1
+    Private F As Object = G
+    Sub New()
+        Dim o As Object
+    End Sub
+    Sub New(x As Object)
+        Dim y As Object = x
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            compilation.VerifyPdb("C..ctor",
+<symbols>
+    <methods>
+        <method containingType="C" name=".ctor">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="14"/>
+                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28"/>
+                <entry offset="0x18" startLine="6" startColumn="5" endLine="6" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x19">
+                <importsforward declaringType="C" methodName=".cctor"/>
+                <local name="o" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
+            </scope>
+        </method>
+        <method containingType="C" name=".ctor" parameterNames="x">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="25"/>
+                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28"/>
+                <entry offset="0x18" startLine="8" startColumn="13" endLine="8" endColumn="28"/>
+                <entry offset="0x1f" startLine="9" startColumn="5" endLine="9" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x20">
+                <importsforward declaringType="C" methodName=".cctor"/>
+                <local name="y" il_index="0" il_start="0x0" il_end="0x20" attributes="0"/>
             </scope>
         </method>
     </methods>
@@ -1879,7 +1991,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(527647, "DevDiv")>
+        <WorkItem(527647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527647")>
         <Fact>
         Public Sub ExtraSequencePointForEndIf()
             Dim source =
@@ -1936,7 +2048,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(538821, "DevDiv")>
+        <WorkItem(538821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538821")>
         <Fact()>
         Public Sub MissingSequencePointForOptimizedIfThen()
             Dim source =
@@ -2108,7 +2220,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(538944, "DevDiv")>
+        <WorkItem(538944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538944")>
         <Fact()>
         Public Sub MissingEndWhileSequencePoint()
             Dim source =
@@ -3097,7 +3209,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(727419, "DevDiv")>
+        <WorkItem(727419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/727419")>
         <Fact()>
         Public Sub Bug727419()
             Dim source =
@@ -3187,7 +3299,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(722627, "DevDiv")>
+        <WorkItem(722627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722627")>
         <Fact()>
         Public Sub Bug722627()
             Dim source =
@@ -3235,7 +3347,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(543703, "DevDiv")>
+        <WorkItem(543703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543703")>
         <Fact()>
         Public Sub DontIncludeMethodAttributesInSeqPoint()
             Dim source =
@@ -3285,7 +3397,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(529300, "DevDiv")>
+        <Fact(), WorkItem(529300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529300")>
         Public Sub DontShowOperatorNameCTypeInLocals()
             Dim source =
 <compilation>
@@ -3368,7 +3480,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(760994, "DevDiv")>
+        <WorkItem(760994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760994")>
         <Fact()>
         Public Sub Bug760994()
             Dim source =
@@ -3509,7 +3621,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(797482, "DevDiv")>
+        <Fact(), WorkItem(797482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797482")>
         Public Sub Bug797482()
             Dim source =
 <compilation>
@@ -3567,7 +3679,7 @@ End Module
         ''' the method must have a sequence point at
         ''' offset 0 for correct stepping behavior.
         ''' </summary>
-        <WorkItem(804681, "DevDiv")>
+        <WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")>
         <Fact()>
         Public Sub DefaultConstructorWithInitializer()
             Dim source =
@@ -3711,8 +3823,8 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(846228, "DevDiv")>
-        <WorkItem(845078, "DevDiv")>
+        <WorkItem(846228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846228")>
+        <WorkItem(845078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/845078")>
         <Fact()>
         Public Sub RaiseEvent001()
             Dim source =
@@ -3759,26 +3871,6 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <methods>
-        <method containingType="IntervalUpdate" name="Update">
-            <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="31"/>
-                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="37"/>
-                <entry offset="0x11" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x12">
-                <currentnamespace name=""/>
-            </scope>
-        </method>
-        <method containingType="IntervalUpdate" name="Main">
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="22"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="17"/>
-                <entry offset="0x7" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x8">
-                <importsforward declaringType="IntervalUpdate" methodName="Update"/>
-            </scope>
-        </method>
         <method containingType="My.MyComputer" name=".ctor">
             <sequencePoints>
                 <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25"/>
@@ -3787,6 +3879,17 @@ End Class
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
+            </scope>
+        </method>
+        <method containingType="My.MyProject" name=".cctor">
+            <sequencePoints>
+                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97"/>
+                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95"/>
+                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136"/>
+                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x29">
+                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
         </method>
         <method containingType="My.MyProject" name="get_Computer">
@@ -3853,15 +3956,24 @@ End Class
                 <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
             </scope>
         </method>
-        <method containingType="My.MyProject" name=".cctor">
+        <method containingType="IntervalUpdate" name="Update">
             <sequencePoints>
-                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97"/>
-                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95"/>
-                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136"/>
-                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="31"/>
+                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="37"/>
+                <entry offset="0x11" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x29">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+            <scope startOffset="0x0" endOffset="0x12">
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+        <method containingType="IntervalUpdate" name="Main">
+            <sequencePoints>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="22"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="17"/>
+                <entry offset="0x7" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x8">
+                <importsforward declaringType="IntervalUpdate" methodName="Update"/>
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Equals" parameterNames="o">
@@ -3876,7 +3988,7 @@ End Class
                 <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x12">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <currentnamespace name="My"/>
                 <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
             </scope>
         </method>
@@ -3892,7 +4004,7 @@ End Class
                 <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
             </scope>
         </method>
@@ -3908,7 +4020,7 @@ End Class
                 <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
             </scope>
         </method>
@@ -3924,7 +4036,7 @@ End Class
                 <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
             </scope>
         </method>
@@ -3945,7 +4057,7 @@ End Class
                 <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1d">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
             </scope>
         </method>
@@ -3956,7 +4068,7 @@ End Class
                 <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name=".ctor">
@@ -3966,7 +4078,7 @@ End Class
                 <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
             </scope>
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name="get_GetInstance">
@@ -3985,7 +4097,7 @@ End Class
                 <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
                 <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
             </scope>
         </method>
@@ -3996,14 +4108,14 @@ End Class
                 <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
-                <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+                <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
             </scope>
         </method>
     </methods>
 </symbols>)
         End Sub
 
-        <WorkItem(876518)>
+        <WorkItem(876518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876518")>
         <Fact>
         Public Sub WinFormMain()
             Dim source =

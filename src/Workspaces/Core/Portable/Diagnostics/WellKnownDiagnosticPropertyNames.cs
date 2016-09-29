@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Predefined name of diagnostic property which shows in what compilation stage the diagnostic is created. 
         /// </summary>
-        public const string Origin = "Origin";
+        public const string Origin = nameof(Origin);
     }
 }

@@ -22,17 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _isWritable; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return RewriteLocalInternal(compilation, container, syntax, this);
         }
 
-        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, LocalSymbol local)
+        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, LocalSymbol local)
         {
             return RewriteLocalInternal(compilation, container, syntax, local);
         }
 
-        private static BoundExpression RewriteLocalInternal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, LocalSymbol local)
+        private static BoundExpression RewriteLocalInternal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, LocalSymbol local)
         {
             return new BoundPseudoVariable(
                 syntax,
@@ -65,7 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // so the return type of GetVariableAddress(Of T)(name As String)
                 // is an error type. Since the method is only used for emit, an
                 // updated placeholder method is used instead.
-                Debug.Assert(method.ReturnType.TypeKind == TypeKind.Error); // If byref return types are supported in the future, use method as is.
+
+                // TODO: refs are available
+                // Debug.Assert(method.ReturnType.TypeKind == TypeKind.Error); // If byref return types are supported in the future, use method as is.
                 method = new PlaceholderMethodSymbol(
                     method.ContainingType,
                     method.Name,
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name);
             }
 
-            private static BoundExpression InvokeGetMethod(MethodSymbol method, CSharpSyntaxNode syntax, string name)
+            private static BoundExpression InvokeGetMethod(MethodSymbol method, SyntaxNode syntax, string name)
             {
                 var argument = new BoundLiteral(
                     syntax,

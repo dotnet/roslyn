@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return String.Format(VBFeaturesResources.GeneratedeventnameTargets, _generatedEvent.Name, _targetSymbol.Name)
+                    Return String.Format(VBFeaturesResources.Create_event_0_in_1, _generatedEvent.Name, _targetSymbol.Name)
                 End Get
             End Property
 

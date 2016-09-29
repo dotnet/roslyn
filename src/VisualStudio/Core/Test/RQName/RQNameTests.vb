@@ -13,7 +13,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
     Public Class RQNameTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForNamespace() As Task
             Dim markup = "namespace $$MyNamespace { }"
             Dim expectedRQName = "Ns(NsName(MyNamespace))"
@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForDottedNamespace() As Task
             Dim markup = "namespace MyNamespace1.MyNamespace2.$$MyNamespace3 { }"
             Dim expectedRQName = "Ns(NsName(MyNamespace1),NsName(MyNamespace2),NsName(MyNamespace3))"
@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForInterface() As Task
             Dim markup = "interface $$IMyInterface { }"
             Dim expectedRQName = "Agg(AggName(IMyInterface,TypeVarCnt(0)))"
@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForInterfaceWithOneTypeParameter() As Task
             Dim markup = "interface $$IMyInterface<T> { }"
             Dim expectedRQName = "Agg(AggName(IMyInterface,TypeVarCnt(1)))"
@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForInterfaceWithMultipleTypeParameters() As Task
             Dim markup = "interface $$IMyInterface<T, U, V> { }"
             Dim expectedRQName = "Agg(AggName(IMyInterface,TypeVarCnt(3)))"
@@ -53,7 +53,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForDelegateType() As Task
             Dim markup = "delegate void $$MyDelegate();"
             Dim expectedRQName = "Agg(AggName(MyDelegate,TypeVarCnt(0)))"
@@ -61,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForField() As Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -73,7 +73,7 @@ class MyClass
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForFieldInNamespace() As Task
             Dim markup = <Text><![CDATA[
 namespace MyNamespace
@@ -88,7 +88,7 @@ namespace MyNamespace
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForEvent() As Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -100,7 +100,7 @@ class MyClass
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForMethod() As Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -112,7 +112,7 @@ class MyClass
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForMethodWithArrayParameter() As Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -124,8 +124,8 @@ class MyClass
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(608534)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WorkItem(608534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608534")>
         Public Async Function TestRQNameClassInModule() As Task
             Dim markup = <Text><![CDATA[
 Module Module1
@@ -144,7 +144,7 @@ End Module
             Await TestWorkerAsync(markup, LanguageNames.VisualBasic, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForIndexer() As Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -155,8 +155,8 @@ class MyClass
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(792487)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WorkItem(792487, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792487")>
         Public Async Function TestRQNameForOperator() As Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -176,8 +176,7 @@ class MyClass
         End Function
 
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(7924037)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForAnonymousTypeReturnsNull() As Task
             Dim markup = <Text><![CDATA[
 class Program
@@ -192,8 +191,8 @@ class Program
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(837914)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WorkItem(837914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837914")>
         Public Async Function TestRQNameForMethodInConstructedTypeReturnsNull() As Task
             Dim markup = <Text><![CDATA[
 class G<T>
@@ -218,8 +217,8 @@ class C
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(885151)>
+        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WorkItem(885151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/885151")>
         Public Async Function TestRQNameForAlias() As Task
             Dim markup = <Text><![CDATA[
 using d = System.Globalization.DigitShapes;
@@ -247,13 +246,14 @@ class G<T>
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
                 Dim doc = workspace.Documents.Single()
 
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
-                Dim token = (Await workspaceDoc.GetSyntaxTreeAsync()).GetTouchingWord(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim tree = Await workspaceDoc.GetSyntaxTreeAsync()
+                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
 
-                Dim symbol = SymbolFinder.FindSymbolAtPosition(Await workspaceDoc.GetSemanticModelAsync(), token.SpanStart, workspace, CancellationToken.None)
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(Await workspaceDoc.GetSemanticModelAsync(), token.SpanStart, workspace).ConfigureAwait(False)
                 If symbol Is Nothing Then
                     symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
                 End If

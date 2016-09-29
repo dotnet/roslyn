@@ -366,7 +366,7 @@ End Enum
 
 #Region "Comment tests"
 
-        <WorkItem(638909)>
+        <WorkItem(638909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638909")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestComment1() As Task
             Dim code =
@@ -577,7 +577,7 @@ End Class
 
 #Region "Name tests"
 
-        <WorkItem(638224)>
+        <WorkItem(638224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638224")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestName_EnumMember() As Task
             Dim code =
@@ -863,7 +863,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(1087167)>
+        <WorkItem(1087167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute2() As Task
             Dim code =

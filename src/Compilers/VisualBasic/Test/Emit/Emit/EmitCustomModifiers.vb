@@ -54,7 +54,7 @@ M4
         End Sub
 
         <Fact>
-        <WorkItem(737971, "DevDiv")>
+        <WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")>
         Public Sub ByRefBeforeCustomModifiers()
             Dim il = <![CDATA[
 .class public auto ansi beforefieldinit C

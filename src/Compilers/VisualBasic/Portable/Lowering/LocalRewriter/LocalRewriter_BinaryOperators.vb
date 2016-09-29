@@ -1297,8 +1297,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                        operatorCall.ReceiverOpt,
                                                                        ImmutableArray.Create(Of BoundExpression)(leftCallInput, rightCallInput),
                                                                        operatorCall.ConstantValueOpt,
-                                                                       operatorCall.SuppressObjectClone,
-                                                                       operatorCall.Method.ReturnType)
+                                                                       isLValue:=operatorCall.IsLValue,
+                                                                       suppressObjectClone:=operatorCall.SuppressObjectClone,
+                                                                       type:=operatorCall.Method.ReturnType)
 
             If Not whenHasValue.Type.IsSameTypeIgnoringCustomModifiers(resultType) Then
                 whenHasValue = WrapInNullable(whenHasValue, resultType)

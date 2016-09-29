@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
             Assert.Same(assemblies[1], assemblies[0].Modules[0].CorLibrary());
         }
 
-        [Fact, WorkItem(760148, "DevDiv")]
+        [Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")]
         public void Bug760148_1()
         {
             var corLib = CreateCompilation(@"
@@ -47,7 +47,7 @@ public class Test
             Assert.Same(obj, consumer.GetSpecialType(SpecialType.System_Object));
         }
 
-        [Fact, WorkItem(760148, "DevDiv")]
+        [Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")]
         public void Bug760148_2()
         {
             var corLib = CreateCompilation(@"

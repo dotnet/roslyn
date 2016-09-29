@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseSimpleName("a'b, Version=1.0.0.0", expected: null);
             TestParseSimpleName("'', Version=1.0.0.0", expected: null);
             TestParseSimpleName("''a'', Version=1.0.0.0", expected: null);
-            
+
             // Unicode quotes
             TestParseSimpleName("\u201ca\u201d", expected: "\u201ca\u201d");
             TestParseSimpleName("\\u201c;a\\u201d;", expected: "\u201ca\u201d");

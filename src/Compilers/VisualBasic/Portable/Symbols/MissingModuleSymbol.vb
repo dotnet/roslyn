@@ -165,6 +165,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End Get
         End Property
+
+        Public Overrides Function GetMetadata() As ModuleMetadata
+            Return Nothing
+        End Function
     End Class
 
     Friend Class MissingModuleSymbolWithName
@@ -200,5 +204,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return other IsNot Nothing AndAlso m_Assembly.Equals(other.m_Assembly) AndAlso String.Equals(_name, other._name, StringComparison.OrdinalIgnoreCase)
         End Function
     End Class
-
 End Namespace

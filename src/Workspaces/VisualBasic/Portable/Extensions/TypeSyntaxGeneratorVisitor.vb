@@ -17,9 +17,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private ReadOnly _addGlobal As Boolean
 
-        Public Sub New(addGlobal As Boolean)
+        Private Shared ReadOnly AddGlobalInstance As TypeSyntaxGeneratorVisitor = New TypeSyntaxGeneratorVisitor(addGlobal:=True)
+        Private Shared ReadOnly NotAddGlobalInstance As TypeSyntaxGeneratorVisitor = New TypeSyntaxGeneratorVisitor(addGlobal:=False)
+
+        Private Sub New(addGlobal As Boolean)
             Me._addGlobal = addGlobal
         End Sub
+
+        Public Shared Function Create(addGlobal As Boolean) As TypeSyntaxGeneratorVisitor
+            Return If(addGlobal, AddGlobalInstance, NotAddGlobalInstance)
+        End Function
 
         Public Overrides Function DefaultVisit(node As ISymbol) As TypeSyntax
             Throw New NotImplementedException()
@@ -95,6 +102,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("DateTime"))
             End Select
 
+            If symbol.IsTupleType Then
+                Return CreateTupleTypeSyntax(symbol)
+            End If
+
             If symbol.Name = String.Empty OrElse symbol.IsAnonymousType Then
                 Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"))
             End If
@@ -110,6 +121,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return SyntaxFactory.GenericName(
                 symbol.Name.ToIdentifierToken,
                 SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(symbol.TypeArguments.[Select](Function(t) t.Accept(Me)))))
+        End Function
+
+        Private Shared Function CreateTupleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
+            Dim types = symbol.TupleElementTypes
+            Dim names = symbol.TupleElementNames
+            Dim hasNames = Not names.IsDefault
+
+            Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(
+                types.Select(Function(t, i) SyntaxFactory.TupleElement(
+                    If(hasNames AndAlso names(i) IsNot Nothing, SyntaxFactory.IdentifierName(names(i)), Nothing),
+                    If(hasNames AndAlso names(i) IsNot Nothing, SyntaxFactory.Token(SyntaxKind.AsKeyword), Nothing),
+                    t.GenerateTypeSyntax()))))
         End Function
 
         Public Overrides Function VisitNamedType(symbol As INamedTypeSymbol) As TypeSyntax

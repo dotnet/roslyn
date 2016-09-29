@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                Debug.Assert(PathUtilities.IsAbsolute(keyFilePath));
-                var fileContent = ImmutableArray.Create(PortableShim.File.ReadAllBytes(keyFilePath));
+                var fileContent = ImmutableArray.Create(File.ReadAllBytes(keyFilePath));
 
                 return CreateHelper(fileContent, keyFilePath);
             }

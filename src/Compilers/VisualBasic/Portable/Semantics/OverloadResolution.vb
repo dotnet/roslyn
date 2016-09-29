@@ -798,7 +798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             binder As Binder,
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
             Optional includeEliminatedCandidates As Boolean = False,
             Optional forceExpandedForm As Boolean = False
@@ -861,7 +861,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             binder As Binder,
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
             Optional includeEliminatedCandidates As Boolean = False,
             Optional delegateReturnType As TypeSymbol = Nothing,
@@ -992,7 +992,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             binder As Binder,
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
             Optional includeEliminatedCandidates As Boolean = False
         ) As OverloadResolutionResult
@@ -1059,7 +1059,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             lateBindingIsAllowed As Boolean,
             binder As Binder,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             forceExpandedForm As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As OverloadResolutionResult
@@ -2586,7 +2586,7 @@ Done:
             binder As Binder,
             <Out()> ByRef applicableNarrowingCandidates As Integer,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             forceExpandedForm As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As Integer
@@ -2836,7 +2836,7 @@ Bailout:
             argumentNames As ImmutableArray(Of String),
             binder As Binder,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             forceExpandedForm As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         )
@@ -3393,8 +3393,8 @@ Bailout:
             Return True
         End Function
 
-        Private Shared Function IsWithinAppliedAttributeName(syntax As VisualBasicSyntaxNode) As Boolean
-            Dim parent As VisualBasicSyntaxNode = syntax.Parent
+        Private Shared Function IsWithinAppliedAttributeName(syntax As SyntaxNode) As Boolean
+            Dim parent As SyntaxNode = syntax.Parent
 
             While parent IsNot Nothing
                 If parent.Kind = SyntaxKind.Attribute Then

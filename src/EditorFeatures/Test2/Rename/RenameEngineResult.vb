@@ -2,14 +2,12 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -54,8 +52,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _renameTo = renameTo
         End Sub
 
-        Public Shared Function Create(workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
-            Dim workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+        Public Shared Function Create(helper As ITestOutputHelper, workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
+            workspace.SetTestLogger(AddressOf helper.WriteLine)
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -68,8 +67,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
-
+                Dim symbolAndProjectId = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
+                Dim symbol = symbolAndProjectId.Symbol
                 If symbol Is Nothing Then
                     AssertEx.Fail("The symbol touching the $$ could not be found.")
                 End If
@@ -82,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Next
                 End If
 
-                Dim locations = RenameLocations.FindAsync(symbol, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
+                Dim locations = RenameLocations.FindAsync(symbolAndProjectId, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
                 Dim originalName = symbol.Name.Split("."c).Last()
 
                 Dim result = ConflictResolver.ResolveConflictsAsync(locations, originalName, renameTo, optionSet, hasConflict:=Nothing, cancellationToken:=CancellationToken.None).Result
@@ -101,6 +100,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             Return engineResult
         End Function
+
+        Private Shared Sub AssertIsComplete(currentSolution As Solution)
+            ' Ensure we don't have a partial solution. This is to detect for possible root causes of
+            ' https://github.com/dotnet/roslyn/issues/9298
+
+            If currentSolution.Projects.Any(Function(p) Not p.HasSuccessfullyLoadedAsync().Result) Then
+                AssertEx.Fail("We have an incomplete project floating around which we should not.")
+            End If
+        End Sub
 
         Friend ReadOnly Property ConflictResolution As ConflictResolution
             Get

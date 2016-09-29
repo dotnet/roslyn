@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -52,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Rename
             string replacementText,
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
-            IEnumerable<ISymbol> referencedSymbols,
+            IEnumerable<SymbolAndProjectId> referencedSymbols,
             Solution baseSolution,
             Solution newSolution,
             IDictionary<Location, Location> reverseMappedLocations,
@@ -66,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="implicitReferenceLocations">All implicit reference locations.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of implicit conflicts.</returns>
-        IEnumerable<Location> ComputeImplicitReferenceConflicts(
+        Task<IEnumerable<Location>> ComputeImplicitReferenceConflictsAsync(
             ISymbol renameSymbol,
             ISymbol renamedSymbol,
             IEnumerable<ReferenceLocation> implicitReferenceLocations,

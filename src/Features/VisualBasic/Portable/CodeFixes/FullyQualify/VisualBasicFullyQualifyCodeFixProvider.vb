@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.CaseCorrection
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
@@ -88,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
             Return Nothing
         End Function
 
-        Protected Overrides Function ReplaceNode(node As SyntaxNode, containerName As String, cancellationToken As CancellationToken) As SyntaxNode
+        Protected Overrides Async Function ReplaceNodeAsync(node As SyntaxNode, containerName As String, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim simpleName = DirectCast(node, SimpleNameSyntax)
 
             Dim leadingTrivia = simpleName.GetLeadingTrivia()
@@ -99,7 +98,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
             qualifiedName = qualifiedName.WithAdditionalAnnotations(Formatter.Annotation, CaseCorrector.Annotation)
 
             Dim tree = simpleName.SyntaxTree
-            Return tree.GetRoot(cancellationToken).ReplaceNode(simpleName, qualifiedName)
+            Dim root = Await tree.GetRootAsync(cancellationToken).ConfigureAwait(False)
+            Return root.ReplaceNode(simpleName, qualifiedName)
         End Function
     End Class
 End Namespace

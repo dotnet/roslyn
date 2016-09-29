@@ -142,6 +142,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Ignore duplicate types from the cor library.
         ''' </summary>
         IgnoreCorLibraryDuplicatedTypes = 1 << 17
+
+        ''' <summary>
+        ''' Handle a case of being able to refer to System.Int32 through System.Integer.
+        ''' Same for other intrinsic types with intrinsic name different from emitted name.
+        ''' </summary>
+        AllowIntrinsicAliases = 1 << 18
     End Enum
 
     Friend Module LookupOptionExtensions

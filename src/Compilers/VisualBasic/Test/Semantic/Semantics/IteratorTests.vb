@@ -861,7 +861,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <Fact(), WorkItem(629565, "DevDiv")>
+        <Fact(), WorkItem(629565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629565")>
         Public Sub Bug629565()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                     <compilation>
@@ -907,7 +907,7 @@ Object
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(1006315, "DevDiv")>
+        <Fact(), WorkItem(1006315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006315")>
         Public Sub BadAsyncSingleLineLambda()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                     <compilation>
@@ -936,7 +936,7 @@ BC36947: Single-line lambdas cannot have the 'Iterator' modifier. Use a multilin
 </errors>)
         End Sub
 
-        <Fact(), WorkItem(1173145, "DevDiv"), WorkItem(2862, "https://github.com/dotnet/roslyn/issues/2862")>
+        <Fact(), WorkItem(1173145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1173145"), WorkItem(2862, "https://github.com/dotnet/roslyn/issues/2862")>
         Public Sub CompoundAssignmentToAField()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                     <compilation>
@@ -989,6 +989,51 @@ End Class
             CompileAndVerify(compilation, expected)
 
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expected)
+        End Sub
+
+        <Fact>
+        <WorkItem(11531, "https://github.com/dotnet/roslyn/issues/11531")>
+        <WorkItem(220696, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=220696")>
+        Public Sub WritableIteratorProperty()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+MustInherit Class A
+    MustOverride Iterator Property P As IEnumerable(Of Object)
+End Class
+Class B
+    Private _p As IEnumerable(Of Object)
+    Iterator Property P As IEnumerable(Of Object)
+        Get
+            For Each o in _p
+                Yield o
+            Next
+        End Get
+        Set
+            _p = value
+        End Set
+    End Property
+    Shared Sub Main()
+        Dim b As New B()
+        b.P = {1, 2, 3}
+        For Each o in b.P
+            Console.Write(o)
+        Next
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugExe) ' generate debug info
+            compilation.AssertTheseEmitDiagnostics(<expected/>)
+            Dim [property] = compilation.GetMember(Of PropertySymbol)("A.P")
+            Assert.True([property].GetMethod.IsIterator)
+            Assert.False([property].SetMethod.IsIterator)
+            [property] = compilation.GetMember(Of PropertySymbol)("B.P")
+            Assert.True([property].GetMethod.IsIterator)
+            Assert.False([property].SetMethod.IsIterator)
+            CompileAndVerify(compilation, expectedOutput:="123")
         End Sub
 
     End Class

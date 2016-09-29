@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                         _referencedAssemblies[i],
                         assemblies,
                         definitionStartIndex,
-                        assemblyIdentityComparer); 
+                        assemblyIdentityComparer);
                 }
 
                 return boundReferences;

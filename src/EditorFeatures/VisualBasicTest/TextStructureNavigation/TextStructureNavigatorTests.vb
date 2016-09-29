@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -12,7 +11,7 @@ Imports Microsoft.VisualStudio.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavigation
     Public Class TextStructureNavigatorTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Async Function TestEmpty() As Task
             Await AssertExtentAsync(
                 String.Empty,
@@ -51,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 start:=8, length:=6)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Async Function TestNewLine() As Task
             Await AssertExtentAsync(
                 "Module Module1" & vbCrLf & vbCrLf & "End Module",
@@ -228,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             start As Integer,
             length As Integer) As Task
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 Dim provider = New TextStructureNavigatorProvider(

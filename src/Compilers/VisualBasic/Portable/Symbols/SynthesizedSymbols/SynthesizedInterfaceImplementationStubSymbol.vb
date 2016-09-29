@@ -186,6 +186,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())
         End Sub
 
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            Dim compilation = Me.DeclaringCompilation
+            If Me.ReturnType.ContainsTupleNames() AndAlso
+                compilation.HasTupleNamesAttributes AndAlso
+                compilation.CanEmitSpecialType(SpecialType.System_String) Then
+
+                AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Me.ReturnType))
+            End If
+        End Sub
+
         Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
             Get
                 Return False

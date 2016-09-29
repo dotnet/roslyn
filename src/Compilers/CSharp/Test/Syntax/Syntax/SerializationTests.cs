@@ -267,7 +267,7 @@ class C { }");
             RoundTrip(@"public class C { string c = ""\U0002A6A5𪚥""; }");
         }
 
-        [Fact, WorkItem(1038237)]
+        [Fact, WorkItem(1038237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")]
         public void RoundTripPragmaDirective()
         {
             var text = @"#pragma disable warning CS0618";

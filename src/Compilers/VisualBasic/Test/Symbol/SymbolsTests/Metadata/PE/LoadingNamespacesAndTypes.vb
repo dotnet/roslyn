@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     Public Class LoadingNamespacesAndTypes
         Inherits BasicTestBase
 
-        <Fact(Skip:="873386")>
+        <Fact>
         Public Sub Test1()
             Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
             Dim dumpXML As XElement = LoadChildNamespace1(assembly.Modules(0).GlobalNamespace)
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(dumpXML.ToString(), baseLine.ToString())
         End Sub
 
-        <Fact(Skip:="873386")>
+        <Fact>
         Public Sub Test2()
             Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
             Dim dumpXML As XElement = LoadChildNamespace2(assembly.Modules(0).GlobalNamespace)

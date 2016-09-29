@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -15,12 +13,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
+    <Compile Include="EmbeddedTextTests.cs" />
     <Compile Include="AnalyzerFileReferenceTests.cs" />
     <Compile Include="AssemblyUtilitiesTests.cs" />
     <Compile Include="AsyncQueueTests.cs" />
@@ -28,6 +27,9 @@
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Collections\ByteSequenceComparerTests.cs" />
     <Compile Include="CryptoBlobParserTests.cs" />
+    <Compile Include="Diagnostics\CompilationWithAnalyzersTests.cs" />
+    <Compile Include="Diagnostics\ErrorLoggerTests.cs" />
+    <Compile Include="Diagnostics\AnalysisContextInfoTests.cs" />
     <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
     <Compile Include="Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
@@ -37,16 +39,18 @@
     <Compile Include="Diagnostics\FieldCouldBeReadOnlyAnalyzer.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
+    <Compile Include="FileSystem\PathUtilitiesTests.cs" />
+    <Compile Include="InternalUtilities\SpecializedCollectionsTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
+    <Compile Include="InternalUtilities\JsonWriterTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
-    <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
-    <Compile Include="PEWriter\BlobTests.cs" />
+    <Compile Include="MetadataReferences\AssemblyIdentityMapTests.cs" />
     <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />
     <Compile Include="RealParserTests.cs" />
-    <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
+    <Compile Include="DesktopAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="SourceFileResolverTest.cs" />
-    <Compile Include="Text\LargeEncodedTextTests.cs" />
+    <Compile Include="Text\LargeTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
   </ItemGroup>
@@ -82,7 +86,6 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <NoWarn>1591;RS0007</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
@@ -150,7 +153,7 @@
     </Compile>
     <Compile Include="StringTableTests.cs" />
     <Compile Include="StrongNameProviderTests.cs" />
-    <Compile Include="Text\EncodedStringTextTests.cs" />
+    <Compile Include="Text\StringTextDecodingTests.cs" />
     <Compile Include="Text\SourceTextTests.cs" />
     <Compile Include="Text\StringText_LineTest.cs" />
     <Compile Include="Text\StringTextTest.cs" />
@@ -175,7 +178,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources/default.win32manifest" />
     <None Include="Resources/nativeWithStringIDsAndTypesAndIntTypes.res" />
@@ -185,8 +187,6 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

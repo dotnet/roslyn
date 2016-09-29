@@ -585,7 +585,7 @@ End Module
         End Sub
 
 
-        <Fact(), WorkItem(545772, "DevDiv")>
+        <Fact(), WorkItem(545772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545772")>
         Public Sub VbCoreMyNamespace()
             Dim source =
 <compilation>

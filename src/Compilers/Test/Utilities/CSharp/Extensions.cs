@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -366,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return typeSym.Name == expType.Name;
                 }
                 // generic
-                if (!(expType.IsGenericType))
+                if (!(expType.GetTypeInfo().IsGenericType))
                 {
                     return false;
                 }
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     return false;
                 }
-                if (!IsEqual(arySym.BaseType, expType.BaseType))
+                if (!IsEqual(arySym.BaseType, expType.GetTypeInfo().BaseType))
                 {
                     return false;
                 }

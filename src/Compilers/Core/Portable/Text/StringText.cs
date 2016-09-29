@@ -12,13 +12,18 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Implementation of SourceText based on a <see cref="String"/> input
     /// </summary>
-    internal sealed partial class StringText : SourceText
+    internal sealed class StringText : SourceText
     {
         private readonly string _source;
         private readonly Encoding _encodingOpt;
 
-        internal StringText(string source, Encoding encodingOpt, ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-            : base(checksum, checksumAlgorithm)
+        internal StringText(
+            string source,
+            Encoding encodingOpt,
+            ImmutableArray<byte> checksum = default(ImmutableArray<byte>),
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
+            ImmutableArray<byte> embeddedTextBlob = default(ImmutableArray<byte>)) 
+            : base(checksum, checksumAlgorithm, embeddedTextBlob)
         {
             Debug.Assert(source != null);
 

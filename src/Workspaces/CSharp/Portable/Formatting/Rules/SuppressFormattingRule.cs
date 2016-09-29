@@ -2,9 +2,11 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -42,6 +44,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            var constructorInitializerNode = node as ConstructorInitializerSyntax;
+            if (constructorInitializerNode != null)
+            {
+                var constructorDeclarationNode = constructorInitializerNode.Parent as ConstructorDeclarationSyntax;
+                if (constructorDeclarationNode?.Body != null)
+                {
+                    AddSuppressWrappingIfOnSingleLineOperation(list, constructorInitializerNode.ColonToken, constructorDeclarationNode.Body.CloseBraceToken);
+                }
+
+                return;
+            }
+
             var whileStatementNode = node as DoStatementSyntax;
             if (whileStatementNode != null)
             {
@@ -52,13 +66,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var memberDeclNode = node as MemberDeclarationSyntax;
             if (memberDeclNode != null)
             {
+                // Attempt to keep the part of a member that follows hte attributes on a single
+                // line if that's how it's currently written.
                 var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
+                
+                var attributes = memberDeclNode.GetAttributes();
+                if (attributes.Count > 0)
+                {
+                    // Also, If the member is on single line with its attributes on it, then keep 
+                    // it on a single line.  This is for code like the following:
+                    //
+                    //      [Import] public int Field1;
+                    //      [Import] public int Field2;
+                    AddSuppressWrappingIfOnSingleLineOperation(list,
+                        node.GetFirstToken(includeZeroWidth: true),
+                        node.GetLastToken(includeZeroWidth: true));
+                }
+
                 var propertyDeclNode = node as PropertyDeclarationSyntax;
                 if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, propertyDeclNode.AccessorList.GetLastToken());
                 }
+
                 return;
             }
 
@@ -143,6 +174,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
                 }
+            }
+
+            var interpolatedStringExpression = node as InterpolatedStringExpressionSyntax;
+            if (interpolatedStringExpression != null)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, interpolatedStringExpression.StringStartToken, interpolatedStringExpression.StringEndToken);
             }
         }
 

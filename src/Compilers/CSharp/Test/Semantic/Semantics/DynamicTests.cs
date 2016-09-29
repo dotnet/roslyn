@@ -42,8 +42,8 @@ public unsafe class C
         {
             var c = CreateCompilationWithMscorlib("", new[] { CSharpRef, SystemCoreRef });
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var dynamicToObject = c.Conversions.ClassifyConversion(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
-            var objectToDynamic = c.Conversions.ClassifyConversion(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
+            var dynamicToObject = c.Conversions.ClassifyConversionFromType(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
+            var objectToDynamic = c.Conversions.ClassifyConversionFromType(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
 
             Assert.Equal(ConversionKind.Identity, dynamicToObject.Kind);
             Assert.Equal(ConversionKind.Identity, objectToDynamic.Kind);
@@ -338,7 +338,7 @@ class B<T> : A<dynamic>, I<object>
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667053, "DevDiv")]
+        [Fact, WorkItem(667053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667053")]
         public void OverrideChangesTypeAndParameterNames()
         {
             string source = @"
@@ -367,7 +367,7 @@ class Program
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667053, "DevDiv")]
+        [Fact, WorkItem(667053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667053")]
         public void OverrideChangesTypeGeneric()
         {
             string source = @"
@@ -835,7 +835,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(624322, "DevDiv")]
+        [WorkItem(624322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624322")]
         public void BinaryOps_VoidArgument()
         {
             string source = @"
@@ -1137,25 +1137,28 @@ public unsafe class C
 
     static void M()
     {
-        var x = s1 ? d1 : s2;  
-        var y = s1 ? d2 : M;  
-        var z = s1 ? M : d2;  
-        var v = s1 ? ptr : d2;  
-        var w = s1 ? d2 : ptr;  
+        var x = s1 ? d1 : s2; // ok
+        var y = s1 ? d2 : M;
+        var z = s1 ? M : d2;
+        var v = s1 ? ptr : d2;
+        var w = s1 ? d2 : ptr;
     }
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (11,17): error CS0172: Type of conditional expression cannot be determined because 'dynamic[]' and 'object[]' implicitly convert to one another
-                Diagnostic(ErrorCode.ERR_AmbigQM, "s1 ? d1 : s2").WithArguments("dynamic[]", "object[]"),
-                // (12,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group"),
-                // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'dynamic'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? M : d2").WithArguments("method group", "dynamic"),
-                // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'void*' and 'dynamic'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? ptr : d2").WithArguments("void*", "dynamic"),
+                // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
+                //         var y = s1 ? d2 : M;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group").WithLocation(13, 17),
+                // (14,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'dynamic'
+                //         var z = s1 ? M : d2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? M : d2").WithArguments("method group", "dynamic").WithLocation(14, 17),
+                // (15,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'void*' and 'dynamic'
+                //         var v = s1 ? ptr : d2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? ptr : d2").WithArguments("void*", "dynamic").WithLocation(15, 17),
                 // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'void*'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*"));
+                //         var w = s1 ? d2 : ptr;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*").WithLocation(16, 17)
+                );
         }
 
         #endregion
@@ -1356,7 +1359,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(608628, "DevDiv")]
+        [WorkItem(608628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608628")]
         public void MoreSpecificType()
         {
             string source = @"
@@ -1459,7 +1462,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(624410, "DevDiv")]
+        [Fact, WorkItem(624410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624410")]
         public void CompileTimeChecking_Elision3()
         {
             string source = @"
@@ -1499,7 +1502,7 @@ public class C
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(627101, "DevDiv")]
+        [Fact, WorkItem(627101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627101")]
         public void CompileTimeChecking_MethodConstraints_Elided1()
         {
             string source = @"
@@ -1521,7 +1524,7 @@ class C
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(624684, "DevDiv")]
+        [Fact, WorkItem(624684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624684")]
         public void CompileTimeChecking_MethodConstraints_Elided2()
         {
             string source = @"
@@ -1545,7 +1548,7 @@ class Program
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(624684, "DevDiv")]
+        [Fact, WorkItem(624684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624684")]
         public void CompileTimeChecking_MethodConstraints_Explicit2()
         {
             string source = @"
@@ -1618,7 +1621,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(598621, "DevDiv")]
+        [WorkItem(598621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598621")]
         public void DynamicOverloadApplicability_ExplicitTypeArguments_ApplicabilitySucceeds_FinalValidationFails()
         {
             string source = @"
@@ -1851,7 +1854,7 @@ public class Derived : Base<List<dynamic>, List<object>>
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(633857, "DevDiv")]
+        [Fact, WorkItem(633857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633857")]
         public void Erasure_InterfaceSet()
         {
             string source = @"
@@ -2463,7 +2466,7 @@ class C : List<int>
             TestTypes(source);
         }
 
-        [Fact, WorkItem(578404, "DevDiv")]
+        [Fact, WorkItem(578404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578404")]
         public void ExpressionTrees()
         {
             string source = @"
@@ -2587,7 +2590,7 @@ class C : List<int>
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "new string(x)"));
         }
 
-        [Fact, WorkItem(578401, "DevDiv")]
+        [Fact, WorkItem(578401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578401")]
         public void ExpressionTrees_ByRefDynamic()
         {
             string source = @"
@@ -3119,7 +3122,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(693741, "DevDiv")]
+        [WorkItem(693741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693741")]
         public void DynamicAndNull()
         {
             var source = @"
@@ -3186,7 +3189,6 @@ class C
                                     //-thisReference: C
                                     //-fieldAccess: dynamic
                                     //-unaryOperator: bool
-                                    //-sequencePointExpression: bool
         {
         }
     }
@@ -3220,7 +3222,7 @@ class C
 
         #endregion
 
-        [Fact, WorkItem(922611, "DevDiv"), WorkItem(56, "CodePlex")]
+        [Fact, WorkItem(922611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922611"), WorkItem(56, "CodePlex")]
         public void Bug922611_01()
         {
             string source = @"
@@ -3251,7 +3253,7 @@ class Test
             Assert.Equal("void Test.Foo<dynamic>(System.Collections.Generic.IEnumerable<dynamic> source, System.Action<dynamic> action)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(922611, "DevDiv"), WorkItem(56, "CodePlex")]
+        [Fact, WorkItem(922611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922611"), WorkItem(56, "CodePlex")]
         public void Bug922611_02()
         {
             string source = @"
@@ -3284,7 +3286,7 @@ class Test
             Assert.Equal("void Test.Foo<dynamic>(System.Action<dynamic> action, System.Collections.Generic.IEnumerable<dynamic> source)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(875140, "DevDiv")]
+        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_01()
         {
             string source = @"
@@ -3311,7 +3313,7 @@ class Program
             Assert.Equal("System.Object Program.Foo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(875140, "DevDiv")]
+        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_02()
         {
             string source = @"
@@ -3338,7 +3340,7 @@ class Program
             Assert.Equal("System.Object Program.Foo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(875140, "DevDiv")]
+        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_03()
         {
             string source = @"
@@ -3363,7 +3365,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(875140, "DevDiv")]
+        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_04()
         {
             string source = @"
@@ -3389,7 +3391,7 @@ class Program
             Assert.Equal("dynamic Program.Foo<dynamic>(System.Func<dynamic, dynamic> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(1149588, "DevDiv")]
+        [Fact, WorkItem(1149588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1149588")]
         public void AccessPropertyWithoutArguments()
         {
             string source1 = @"
@@ -3432,6 +3434,59 @@ class Test
             var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation2, expectedOutput: @"4");
+        }
+
+        [Fact, WorkItem(9945, "https://github.com/dotnet/roslyn/issues/9945")]
+        public void DynamicGetOnlyProperty()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        I i = null;
+        System.Type t = i.d.GetType();
+    }
+
+    interface I
+    {
+        dynamic d { set; }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            // crash happens during emit if not detected, so VerifyDiagnostics (no Emit) doesn't catch the crash.
+            compilation.VerifyEmitDiagnostics(
+                // (7,25): error CS0154: The property or indexer 'Program.I.d' cannot be used in this context because it lacks the get accessor
+                //         System.Type t = i.d.GetType();
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "i.d").WithArguments("Program.I.d").WithLocation(7, 25)
+            );
+        }
+
+        [Fact, WorkItem(9945, "https://github.com/dotnet/roslyn/issues/9945")]
+        public void DynamicGetOnlyPropertyIndexer()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        I i = null;
+        System.Type t = i[null].GetType();
+    }
+
+    interface I
+    {
+        dynamic this[string s] { set; }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (7,25): error CS0154: The property or indexer 'Program.I.this[string]' cannot be used in this context because it lacks the get accessor
+                //         System.Type t = i[null].GetType();
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "i[null]").WithArguments("Program.I.this[string]").WithLocation(7, 25)
+            );
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -3496,6 +3551,261 @@ class Test
             Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type);
             Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type);
             Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type);
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        public void SuppressDynamicIndexerAccessOffOfType_01()
+        {
+            var iLSource = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.assembly Microsoft.Office.Interop.Excel
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ImportedFromTypeLibAttribute::.ctor(string) = ( 01 00 05 45 78 63 65 6C 00 00 )                   // ...Excel..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute::.ctor(int32,
+                                                                                                        int32) = ( 01 00 01 00 00 00 08 00 00 00 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 30 30 30 32 30 38 31 33 2D 30 30 30 30   // ..$00020813-0000
+                                                                                                  2D 30 30 30 30 2D 63 30 30 30 2D 30 30 30 30 30   // -0000-c000-00000
+                                                                                                  30 30 30 30 30 34 36 00 00 )                      // 0000046..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.TypeLibVersionAttribute::.ctor(int32,
+                                                                                                int32) = ( 01 00 01 00 00 00 08 00 00 00 00 00 ) 
+  .hash algorithm 0x00008004
+  .ver 15:0:0:0
+}
+.module Excel.dll
+// MVID: {C7C599B3-5C80-48BC-9637-7CADFEF6DEB8}
+.imagebase 0x00400000
+.file alignment 0x00001000
+.stackreserve 0x00100000
+.subsystem 0x0003       // WINDOWS_CUI
+.corflags 0x00000009    //  ILONLY
+// Image base: 0x050E0000
+
+.class interface public abstract auto ansi import Microsoft.Office.Interop.Excel.Worksheet
+       implements Microsoft.Office.Interop.Excel._Worksheet
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 30 30 30 32 30 38 44 38 2D 30 30 30 30   // ..$000208D8-0000
+                                                                                                  2D 30 30 30 30 2D 43 30 30 30 2D 30 30 30 30 30   // -0000-C000-00000
+                                                                                                  30 30 30 30 30 34 36 00 00 )                      // 0000046..
+} // end of class Microsoft.Office.Interop.Excel.Worksheet
+
+.class interface public abstract auto ansi import Microsoft.Office.Interop.Excel._Worksheet
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.TypeLibTypeAttribute::.ctor(int16) = ( 01 00 C0 10 00 00 ) 
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 30 30 30 32 30 38 44 38 2D 30 30 30 30   // ..$000208D8-0000
+                                                                                                  2D 30 30 30 30 2D 43 30 30 30 2D 30 30 30 30 30   // -0000-C000-00000
+                                                                                                  30 30 30 30 30 34 36 00 00 )                      // 0000046..
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance class Microsoft.Office.Interop.Excel.Range 
+          marshal( interface ) 
+          get_Range([in] object  marshal( struct) Cell1,
+                    [in][opt] object  marshal( struct) Cell2) runtime managed internalcall
+  {
+    .custom instance void [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor(int32) = ( 01 00 C5 00 00 00 00 00 ) 
+  } // end of method _Worksheet::get_Range
+
+  .property class Microsoft.Office.Interop.Excel.Range
+          Range(object,
+                object)
+  {
+    .custom instance void [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor(int32) = ( 01 00 C5 00 00 00 00 00 ) 
+    .get instance class Microsoft.Office.Interop.Excel.Range Microsoft.Office.Interop.Excel._Worksheet::get_Range(object,
+                                                                                                                  object)
+  } // end of property _Worksheet::Range
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance class Microsoft.Office.Interop.Excel.Range 
+          marshal( interface ) 
+          MRange([in] object  marshal( struct) Cell1,
+                    [in][opt] object  marshal( struct) Cell2) runtime managed internalcall
+  {
+    .custom instance void [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor(int32) = ( 01 00 C5 00 00 00 00 00 ) 
+  } // end of method _Worksheet::get_Range
+}
+
+.class interface public abstract auto ansi import Microsoft.Office.Interop.Excel.Range
+       implements [mscorlib]System.Collections.IEnumerable
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor(int16) = ( 01 00 02 00 00 00 ) 
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 08 5F 44 65 66 61 75 6C 74 00 00 )          // ..._Default..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 30 30 30 32 30 38 34 36 2D 30 30 30 30   // ..$00020846-0000
+                                                                                                  2D 30 30 30 30 2D 43 30 30 30 2D 30 30 30 30 30   // -0000-C000-00000
+                                                                                                  30 30 30 30 30 34 36 00 00 )                      // 0000046..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.TypeLibTypeAttribute::.ctor(int16) = ( 01 00 00 10 00 00 ) 
+}
+";
+
+            MetadataReference reference = CompileIL(iLSource, appendDefaultHeader: false, embedInteropTypes: false);
+
+            string consumer1 = @"
+using Microsoft.Office.Interop.Excel;
+
+class Test
+{
+    public static void Main()
+    {
+        dynamic x = 1;
+        dynamic y = 1;
+        
+        var z2 = Worksheet.MRange(x, y);
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib(consumer1, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
+
+            compilation1.VerifyDiagnostics(
+                // (11,18): error CS0120: An object reference is required for the non-static field, method, or property '_Worksheet.MRange(object, object)'
+                //         var z2 = Worksheet.MRange(x, y);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Worksheet.MRange(x, y)").WithArguments("Microsoft.Office.Interop.Excel._Worksheet.MRange(object, object)").WithLocation(11, 18)
+                );
+
+            string consumer2 = @"
+using Microsoft.Office.Interop.Excel;
+
+class Test
+{
+    public static void Main()
+    {
+        dynamic x = 1;
+        dynamic y = 1;
+        var z1 = Worksheet.Range[x, y];
+    }
+}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
+
+            compilation2.VerifyDiagnostics(
+                // (10,18): error CS0120: An object reference is required for the non-static field, method, or property '_Worksheet.Range[object, object]'
+                //         var z1 = Worksheet.Range[x, y];
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Worksheet.Range[x, y]").WithArguments("Microsoft.Office.Interop.Excel._Worksheet.Range[object, object]").WithLocation(10, 18)
+                );
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        public void SuppressDynamicIndexerAccessOffOfType_02()
+        {
+            var iLSource = @"
+.class public auto ansi WithIndexer
+       extends [mscorlib]System.Object
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method WithIndexer::.ctor
+
+  .method public specialname static object 
+          get_Indexer(object x,
+                      object y) cil managed
+  {
+    // Code size       18 (0x12)
+    .maxstack  1
+    .locals init (object V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""Indexer""
+    IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000b:  nop
+    IL_000c:  ldnull
+    IL_000d:  stloc.0
+    IL_000e:  br.s       IL_0010
+
+    IL_0010:  ldloc.0
+    IL_0011:  ret
+  } // end of method WithIndexer::get_Indexer
+
+  .method public specialname static void 
+          set_Indexer(object x,
+                      object y,
+                      object 'value') cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method WithIndexer::set_Indexer
+
+  .method public static object  MIndexer(object x,
+                                         object y) cil managed
+  {
+    // Code size       18 (0x12)
+    .maxstack  1
+    .locals init (object V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""MIndexer""
+    IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000b:  nop
+    IL_000c:  ldnull
+    IL_000d:  stloc.0
+    IL_000e:  br.s       IL_0010
+
+    IL_0010:  ldloc.0
+    IL_0011:  ret
+  } // end of method WithIndexer::MIndexer
+
+  .property object Indexer(object,
+                           object)
+  {
+    .get object WithIndexer::get_Indexer(object,
+                                         object)
+    .set void WithIndexer::set_Indexer(object,
+                                       object,
+                                       object)
+  } // end of property WithIndexer::Indexer
+} // end of class WithIndexer
+";
+
+            MetadataReference reference = CompileIL(iLSource, appendDefaultHeader: true, embedInteropTypes: false);
+
+            string consumer1 = @"
+class Test
+{
+    public static void Main()
+    {
+        dynamic x = 1;
+        dynamic y = 1;
+        var z2 = WithIndexer.MIndexer(x, y);
+    }
+}";
+
+            var compilation1 = CreateCompilationWithMscorlib(consumer1, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
+
+            CompileAndVerify(compilation1, expectedOutput: "MIndexer").VerifyDiagnostics();
+
+            string consumer2 = @"
+class Test
+{
+    public static void Main()
+    {
+        dynamic x = 1;
+        dynamic y = 1;
+        var z1 = WithIndexer.Indexer[x, y];
+    }
+}";
+
+            var compilation2 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
+
+            compilation2.VerifyDiagnostics(
+                // (8,30): error CS1545: Property, indexer, or event 'WithIndexer.Indexer[object, object]' is not supported by the language; try directly calling accessor methods 'WithIndexer.get_Indexer(object, object)' or 'WithIndexer.set_Indexer(object, object, object)'
+                //         var z1 = WithIndexer.Indexer[x, y];
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Indexer").WithArguments("WithIndexer.Indexer[object, object]", "WithIndexer.get_Indexer(object, object)", "WithIndexer.set_Indexer(object, object, object)").WithLocation(8, 30)
+                );
         }
     }
 }

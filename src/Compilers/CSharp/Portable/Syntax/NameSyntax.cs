@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </returns>
         internal abstract SimpleNameSyntax GetUnqualifiedName();
 
+        /// <summary>
+        /// Return the name in string form, without trivia or generic arguments, for use in diagnostics.
+        /// </summary>
+        internal abstract string ErrorDisplayName();
+
         /// <remarks>
         /// This inspection is entirely syntactic.  We are not trying to find the alias corresponding to the assembly symbol
         /// containing the explicitly implemented interface symbol - there may be more than one.  We just want to know

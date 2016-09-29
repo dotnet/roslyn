@@ -271,9 +271,9 @@ Class2`2[T,U]");
 }");
         }
 
-        [WorkItem(542581, "DevDiv")]
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
         [Fact]
-        public void TestTypeofInheritedNestedTypeThroughUnboundGeneric()
+        public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_01()
         {
             var source = @"
 using System;
@@ -330,7 +330,66 @@ H`2[T,System.Int32]";
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(542581, "DevDiv")]
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
+        [WorkItem(9850, "https://github.com/dotnet/roslyn/issues/9850")]
+        [Fact]
+        public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_02()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public class E { }
+    public class E<V> { }
+
+    static void Main()
+    {
+        var t1 = typeof(D<>.E);
+        Console.WriteLine(t1);
+
+        var t2 = typeof(F<>.E);
+        var t3 = typeof(G<>.E);
+        Console.WriteLine(t2);
+        Console.WriteLine(t3);
+        Console.WriteLine(t2.Equals(t3));
+
+        var t4 = typeof(D<>.E<>);
+        Console.WriteLine(t4);
+
+        var t5 = typeof(F<>.E<>);
+        var t6 = typeof(G<>.E<>);
+        Console.WriteLine(t5);
+        Console.WriteLine(t6);
+        Console.WriteLine(t5.Equals(t6));
+    }
+}
+
+class C<U>
+{
+    public class E { }
+    public class E<V> { }
+}
+
+class D<T> : C { }
+class F<T> : C<T> { }
+class G<T> : C<int> { }
+";
+            var expected = @"C+E
+C`1+E[U]
+C`1+E[U]
+True
+C+E`1[V]
+C`1+E`1[U,V]
+C`1+E`1[U,V]
+True";
+
+            var comp = CompileAndVerify(source, expectedOutput: expected);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
         [Fact]
         public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_Attribute()
         {
@@ -569,7 +628,7 @@ Outer`1+Inner`1[System.Int32,System.Byte]");
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(541600, "DevDiv")]
+        [WorkItem(541600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541600")]
         [Fact]
         public void TestTypeOfAlias4TypeMemberOfGeneric()
         {
@@ -597,7 +656,7 @@ public class mem178
             CompileAndVerify(source, expectedOutput: @"TestClass`1+TestEnum[System.String]");
         }
 
-        [WorkItem(541618, "DevDiv")]
+        [WorkItem(541618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541618")]
         [Fact]
         public void TestTypeOfAlias5TypeMemberOfGeneric()
         {
