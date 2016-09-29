@@ -39,7 +39,7 @@ def generate(boolean isPr) {
         TriggerBuilder prTrigger = TriggerBuilder.triggerOnPullRequest()
         prTrigger.permitOrg('Microsoft')
         prTrigger.permitOrg('dotnet')
-        prTrigger.setCustomTriggerPhrase("(?i).*test\\W+perf.*" )
+        prTrigger.setCustomTriggerPhrase("(?i)^\\s*(@dotnet-bot\\s+)?test\\s+perf(\\s+please)?\\s*$" )
         prTrigger.triggerForBranch('master');
         prTrigger.setGithubContext('Performance Test Run')
         prTrigger.emitTrigger(myJob)

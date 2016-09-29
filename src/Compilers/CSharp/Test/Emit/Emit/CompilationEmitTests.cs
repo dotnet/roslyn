@@ -2997,5 +2997,35 @@ public class X
 
             Assert.Throws<OperationCanceledException>(() => compilation.Emit(broken));
         }
+
+        [Fact]
+        [WorkItem(11691, "https://github.com/dotnet/roslyn/issues/11691")]
+        public void ObsoleteAttributeOverride()
+        {
+            string source = @"
+using System;
+public abstract class BaseClass<T>
+{
+    public abstract int Method(T input);
+}
+
+public class DerivingClass<T> : BaseClass<T>
+{
+    [Obsolete(""Deprecated"")]
+    public override void Method(T input)
+    {
+        throw new NotImplementedException();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(
+                // (11,26): warning CS0809: Obsolete member 'DerivingClass<T>.Method(T)' overrides non-obsolete member 'BaseClass<T>.Method(T)'
+                //     public override void Method(T input)
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "Method").WithArguments("DerivingClass<T>.Method(T)", "BaseClass<T>.Method(T)").WithLocation(11, 26),
+                // (11,26): error CS0508: 'DerivingClass<T>.Method(T)': return type must be 'int' to match overridden member 'BaseClass<T>.Method(T)'
+                //     public override void Method(T input)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Method").WithArguments("DerivingClass<T>.Method(T)", "BaseClass<T>.Method(T)", "int").WithLocation(11, 26));
+        }
     }
 }
