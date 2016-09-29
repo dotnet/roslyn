@@ -59,7 +59,6 @@
   <ItemGroup>
     <Compile Include="CodeLens\CodeLensArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
-    <Compile Include="FindReferences\FindReferencesArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_FindReferences.cs" />
     <Compile Include="Services\CodeAnalysisService_NavigateTo.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
