@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
             {
                 var workspace = await base.CreateWorkspaceFromFileAsync(definition, parseOptions, compilationOptions);
                 workspace.Options = workspace.Options
-                    .WithChangedOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
-                    .WithChangedOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);
+                    .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
+                    .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);
                 return workspace;
             }
 
