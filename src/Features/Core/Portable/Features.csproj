@@ -384,9 +384,7 @@
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
     <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
-    <Compile Include="Shared\Options\AddImportOptionsProvider.cs" />
     <Compile Include="Shared\Extensions\ProjectExtensions.cs" />
-    <Compile Include="Shared\Options\AddImportOptions.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptionsProvider.cs" />

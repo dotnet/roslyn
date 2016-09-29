@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Protected Overrides Async Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions, compilationOptions As CompilationOptions) As Task(Of TestWorkspace)
                 Dim workspace = Await MyBase.CreateWorkspaceFromFileAsync(definition, parseOptions, compilationOptions)
                 workspace.Options = workspace.Options.
-                    WithChangedOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic, True).
-                    WithChangedOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic, True)
+                    WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic, True).
+                    WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic, True)
                 Return workspace
             End Function
 

@@ -266,9 +266,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 var options = workspaceServices.Workspace.Options;
                 var searchReferenceAssemblies = options.GetOption(
-                    AddImportOptions.SuggestForTypesInReferenceAssemblies, language);
+                    SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, language);
                 var searchNugetPackages = options.GetOption(
-                    AddImportOptions.SuggestForTypesInNuGetPackages, language);
+                    SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
 
                 if (symbolSearchService != null &&
                     searchReferenceAssemblies)

@@ -87,9 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             string localSettingsDirectory,
             Func<Exception, bool> reportAndSwallowException,
             CancellationTokenSource cancellationTokenSource) 
-            : base(workspace, ServiceComponentOnOffOptions.SymbolSearch,
-                              AddImportOptions.SuggestForTypesInReferenceAssemblies,
-                              AddImportOptions.SuggestForTypesInNuGetPackages)
+            : base(workspace, SymbolSearchOptions.Enabled,
+                              SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
+                              SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             if (remoteControlService == null)
             {

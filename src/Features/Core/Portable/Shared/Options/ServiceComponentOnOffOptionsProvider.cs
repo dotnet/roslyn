@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     internal class ServiceComponentOnOffOptionsProvider : IOptionProvider
     {
         private readonly IEnumerable<IOption> _options = ImmutableArray.Create(
-            ServiceComponentOnOffOptions.DiagnosticProvider,
-            ServiceComponentOnOffOptions.SymbolSearch);
+            ServiceComponentOnOffOptions.DiagnosticProvider);
 
         public IEnumerable<IOption> GetOptions() => _options;
     }
