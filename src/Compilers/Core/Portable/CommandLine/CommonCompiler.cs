@@ -55,8 +55,6 @@ namespace Microsoft.CodeAnalysis
             consoleOutput.WriteLine(GetAssemblyFileVersion());
         }
 
-        internal abstract string GetToolName();
-
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
@@ -92,6 +90,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract Type Type { get; }
 
+        /// <summary>
+        /// The assembly file version of this compiler, used in logo and /version output.
+        /// </summary>
         internal virtual string GetAssemblyFileVersion()
         {
             if (_clientDirectory != null)
@@ -104,6 +105,14 @@ namespace Microsoft.CodeAnalysis
             return "";
         }
 
+        /// <summary>
+        /// Tool name used, along with assembly version, for error logging.
+        /// </summary>
+        internal abstract string GetToolName();
+
+        /// <summary>
+        /// Tool version identifier used for error logging.
+        /// </summary>
         internal Version GetAssemblyVersion()
         {
             return Type.GetTypeInfo().Assembly.GetName().Version;

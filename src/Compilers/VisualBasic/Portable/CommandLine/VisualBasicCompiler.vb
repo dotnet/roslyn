@@ -193,6 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property Type As Type
             Get
+                ' We do not use Me.GetType() so that we don't break mock subtypes
                 Return GetType(VisualBasicCompiler)
             End Get
         End Property
