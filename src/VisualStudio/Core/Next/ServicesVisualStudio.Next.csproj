@@ -79,6 +79,9 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
       <Link>Diagnostics\DiagnosticResultSerializer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\FindReferences\FindReferencesArguments.cs">
+      <Link>FindSymbols\FindReferencesArguments.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>
     </Compile>
@@ -106,6 +109,7 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
+    <Compile Include="FindSymbols\VisualStudioSymbolFinderEngineService.cs" />
     <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />
@@ -117,6 +121,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ServicesVisualStudioNextResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="FindSymbols\VisualStudioSymbolFinderEngineService.ServerCallback.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ServicesVisualStudioNextResources.resx">
@@ -129,5 +134,6 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

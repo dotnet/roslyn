@@ -15,10 +15,10 @@ You may use the contextual keyword `var` for the variable's type.
 The scope will be the same as for a *pattern-variable* introduced via pattern-matching.
 
 According to Language Specification (section 7.6.7 Element access)
-The argument-list of an element-access is not allowed to contain ref or out arguments.
-However, due to backward compatibility, compiler overlooks this restriction during parsing
-and even ignores out/ref modifiers in element access during binding.
-We will enforce that language rule for out variables declarations at the syntax level.
+the argument-list of an element-access (indexing expression)
+does not contain ref or out arguments.
+However, they are permitted by the compiler for various scenarios, for example indexers
+declared in metadata that accept `out`.
 
 Within the scope of a local variable introduced by a local-variable-declaration, 
 it is a compile-time error to refer to that local variable in a textual position 
@@ -27,10 +27,23 @@ that precedes its declaration.
 It is also an error to reference implicitly-typed (§8.5.1) out variable in the same argument list that immediately 
 contains its declaration.
 
-For the purposes of overload resolution (see sections 7.5.3.2 Better function member and 7.5.3.3 Better conversion from expression),
-neither conversion is considered better when corresponding argument is an implicitly-typed out variable declaration.
-Once overload resolution succeeds, the type of implicitly-typed out variable is set to be equal to the type of the 
-corresponding parameter in the signature of the method.
+Overload resolution is modified as follows:
+
+We add a new conversion:
+
+> There is a *conversion from expression* from an implicitly-typed out variable declaration to every type.
+
+Also
+
+> The type of an explicitly-typed out variable argument is the declared type.
+
+and
+
+> An implicitly-typed out variable argument has no type.
+
+Neither conversion from expression is better when the argument is an implicitly-typed out variable declaration. (this needs to be woven into the form of the specification) 
+
+The type of an implicitly-typed out variable is the type of the corresponding parameter in the signature of the method.
 
 The new syntax node `DeclarationExpressionSyntax` is added to represent the declaration in an out var argument.
 

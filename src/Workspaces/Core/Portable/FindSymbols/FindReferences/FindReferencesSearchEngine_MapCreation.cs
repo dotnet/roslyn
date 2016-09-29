@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var child in symbols)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
-                    symbolTasks.Add(Task.Run(async () => await DetermineAllSymbolsCoreAsync(child, result).ConfigureAwait(false), _cancellationToken));
+                    symbolTasks.Add(Task.Run(() => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken));
                 }
             }
         }

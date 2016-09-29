@@ -85,6 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim displayLogo As Boolean = True
             Dim displayHelp As Boolean = False
+            Dim displayVersion As Boolean = False
             Dim outputLevel As OutputLevel = OutputLevel.Normal
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
@@ -193,6 +194,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         displayHelp = True
+                        Continue For
+
+                    Case "version"
+                        If value IsNot Nothing Then
+                            Exit Select
+                        End If
+
+                        displayVersion = True
                         Continue For
 
                     Case "r", "reference"
@@ -1386,6 +1395,7 @@ lVbRuntimePlus:
                 .NoWin32Manifest = noWin32Manifest,
                 .DisplayLogo = displayLogo,
                 .DisplayHelp = displayHelp,
+                .DisplayVersion = displayVersion,
                 .ManifestResources = managedResources.AsImmutable(),
                 .CompilationOptions = options,
                 .ParseOptions = If(IsScriptRunner, scriptParseOptions, parseOptions),

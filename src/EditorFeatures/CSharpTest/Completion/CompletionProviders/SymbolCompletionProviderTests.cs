@@ -3394,7 +3394,7 @@ public class XAttribute : Attribute
 class Class3 { }
 ";
             await VerifyItemExistsAsync(code, "X");
-            await Assert.ThrowsAsync<Xunit.Sdk.TrueException>(async () => await VerifyItemExistsAsync(code, "XAttribute"));
+            await Assert.ThrowsAsync<Xunit.Sdk.TrueException>(() => VerifyItemExistsAsync(code, "XAttribute"));
         }
 
         [WorkItem(544928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544928")]
