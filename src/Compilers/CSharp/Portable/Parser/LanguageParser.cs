@@ -8561,7 +8561,7 @@ tryAgain:
             }
 
             // the two forms of component are
-            // (1) type deginator
+            // (1) type designation
             // (2) ( component ... )
             VariableComponentSyntax result;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
@@ -10676,7 +10676,13 @@ tryAgain:
                         SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
                 }
 
-                return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+                var objectCreation = _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+                if (type.Kind == SyntaxKind.TupleType)
+                {
+                    objectCreation = this.AddError(objectCreation, objectCreation, ErrorCode.ERR_NewWithTupleTypeSyntax, type.ToString());
+                }
+
+                return objectCreation;
             }
         }
 

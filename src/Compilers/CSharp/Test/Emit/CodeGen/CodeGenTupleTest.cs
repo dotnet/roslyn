@@ -926,8 +926,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int a, int b)(1, 2) { a = 3, Item2 = 4}").WithArguments("(int a, int b)").WithLocation(9, 18),
                 // (12,18): error CS8181: "new" cannot be used with tuple type '(int a, (int b, int c) d)'. Use a tuple literal expression instead.
                 //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}}").WithArguments("(int a, (int b, int c) d)").WithLocation(12, 18)
-
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}}").WithArguments("(int a, (int b, int c) d)").WithLocation(12, 18),
+                // (12,51): error CS8181: "new" cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int)(2, 3)").WithArguments("(int, int)").WithLocation(12, 51)
                 );
         }
 

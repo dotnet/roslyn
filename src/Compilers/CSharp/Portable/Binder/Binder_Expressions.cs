@@ -3183,7 +3183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Type.Kind() == SyntaxKind.TupleType)
             {
-                Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, node, type);
+                Debug.Assert(node.HasErrors, "new <tuple type> should be a syntax error");
                 return BadExpression(node, LookupResultKind.NotCreatable);
             }
 
