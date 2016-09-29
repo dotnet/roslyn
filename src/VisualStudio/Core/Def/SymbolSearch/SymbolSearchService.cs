@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -140,21 +141,21 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
             IAddReferenceDatabaseWrapper databaseWrapper;
             if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
             {
-                // Don't have a database to search.  
-                yield break;
+                // Don't have a database to search.
+                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                yield break;
+                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
@@ -184,13 +185,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     }
                 }
 
-                var result = new List<Symbol>();
+                var result = ArrayBuilder<PackageWithTypeResult>.GetInstance();
 
                 // We always returm types from packages that we've use elsewhere in the project.
-                int? bestRank = null;
                 foreach (var type in typesFromPackagesUsedInOtherProjects)
                 {
-                    yield return CreateResult(database, type);
+                    result.AddRange(CreateResult(database, type));
                 }
 
                 // For all other hits include as long as the popularity is high enough.  
@@ -198,6 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 // one rank, then one is at least twice as popular as the next.  Two 
                 // ranks would be four times as popular.  Three ranks = 8 times,  etc. 
                 // etc.  We keep packages that within 1 rank of the best package we find.
+                int? bestRank = null;
                 foreach (var type in typesFromPackagesNotUsedInOtherProjects)
                 {
                     var rank = GetRank(type);
@@ -205,15 +206,19 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
                     if (Math.Abs(bestRank.Value - rank) > 1)
                     {
-                        yield break;
+                        break;
                     }
 
-                    yield return CreateResult(database, type);
+                    result.Add(CreateResult(database, type));
                 }
+
+                return Task.FromResult(result.ToImmutableAndFree());
             }
+
+            return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
         }
 
-        public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
@@ -221,19 +226,20 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out databaseWrapper))
             {
                 // Don't have a database to search.  
-                yield break;
+                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                yield break;
+                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
             var symbols = new PartialArray<Symbol>(100);
 
+            var result = ArrayBuilder<ReferenceAssemblyWithTypeResult>.GetInstance();
             if (query.TryFindMembers(database, ref symbols))
             {
                 var types = FilterToViableTypes(symbols);
@@ -245,11 +251,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     {
                         var nameParts = new List<string>();
                         GetFullName(nameParts, type.FullName.Parent);
-                        yield return new ReferenceAssemblyWithTypeResult(
-                            type.AssemblyName.ToString(), type.Name.ToString(), containingNamespaceNames: nameParts);
+                        result.Add(new ReferenceAssemblyWithTypeResult(
+                            type.AssemblyName.ToString(), type.Name.ToString(), containingNamespaceNames: nameParts));
                     }
                 }
             }
+
+            return Task.FromResult(result.ToImmutableAndFree());
         }
 
         private List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)
