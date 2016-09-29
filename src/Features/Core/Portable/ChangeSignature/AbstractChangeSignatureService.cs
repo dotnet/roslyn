@@ -172,22 +172,26 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return changeSignatureOptionsService.GetChangeSignatureOptions(context.Symbol, context.ParameterConfiguration, notificationService);
         }
 
-        private static async Task<IEnumerable<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
             SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ChangeSignature, cancellationToken))
             {
+                var streamingProgress = new StreamingProgressCollector(
+                    StreamingFindReferencesProgress.Instance);
+
                 IImmutableSet<Document> documents = null;
                 var engine = new FindReferencesSearchEngine(
                     solution,
                     documents,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
-                    StreamingFindReferencesProgress.Instance,
+                    streamingProgress,
                     cancellationToken);
 
-                return await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
+                await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
+                return streamingProgress.GetReferencedSymbols();
             }
         }
 
