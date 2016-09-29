@@ -75,6 +75,7 @@
     <Compile Include="AssemblyAttributes.vb" />
     <Compile Include="Attributes\AssemblyAttributes.vb" />
     <Compile Include="Attributes\AttributeTests.vb" />
+    <Compile Include="Attributes\AttributeTests_Tuples.vb" />
     <Compile Include="Attributes\AttributeTests_Conditional.vb" />
     <Compile Include="Attributes\AttributeTests_MarshalAs.vb" />
     <Compile Include="Attributes\AttributeTests_ObsoleteAttribute.vb" />

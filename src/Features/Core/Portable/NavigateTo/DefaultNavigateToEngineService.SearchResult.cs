@@ -2,14 +2,13 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal sealed partial class NavigateToSearchResultProvider
+    internal partial class DefaultNavigateToEngineService
     {
         private class SearchResult : INavigateToSearchResult
         {
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public string Summary => _lazySummary.Value;
 
             public string Kind { get; }
-            public MatchKind MatchKind { get; }
+            public NavigateToMatchKind MatchKind { get; }
             public INavigableItem NavigableItem { get; }
             public string SecondarySort { get; }
             public bool IsCaseSensitive { get; }
@@ -28,7 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly Lazy<string> _lazyAdditionalInfo;
             private readonly Lazy<string> _lazySummary;
 
-            public SearchResult(Document document, DeclaredSymbolInfo declaredSymbolInfo, string kind, MatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem)
+            public SearchResult(
+                Document document, DeclaredSymbolInfo declaredSymbolInfo, string kind, 
+                NavigateToMatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem)
             {
                 _document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
@@ -51,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         case DeclaredSymbolInfoKind.Interface:
                         case DeclaredSymbolInfoKind.Module:
                         case DeclaredSymbolInfoKind.Struct:
-                            return EditorFeaturesResources.project + document.Project.Name;
+                            return FeaturesResources.project_space + document.Project.Name;
                         default:
-                            return EditorFeaturesResources.type + declaredSymbolInfo.ContainerDisplayName;
+                            return FeaturesResources.type_space + declaredSymbolInfo.ContainerDisplayName;
                     }
                 });
             }

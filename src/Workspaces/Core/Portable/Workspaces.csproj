@@ -476,6 +476,7 @@
     <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
+    <Compile Include="FindSymbols\StreamingProgressCollector.cs" />
     <Compile Include="SymbolKey\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolKey\SymbolKey.PropertySymbolKey.cs" />

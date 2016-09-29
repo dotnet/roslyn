@@ -76,7 +76,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var normalReferences = await FindReferencesInDocumentWorkerAsync(methodSymbol, document, findParentNode, cancellationToken).ConfigureAwait(false);
             var nonAliasTypeReferences = await NamedTypeSymbolReferenceFinder.FindNonAliasReferencesAsync(methodSymbol.ContainingType, document, cancellationToken).ConfigureAwait(false);
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasTypeReferences, methodSymbol, document, cancellationToken, findParentNode).ConfigureAwait(false);
+            var aliasReferences = await FindAliasReferencesAsync(
+                nonAliasTypeReferences, methodSymbol, document, 
+                findParentNode, cancellationToken).ConfigureAwait(false);
             return normalReferences.Concat(aliasReferences);
         }
 
@@ -105,7 +107,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var name = symbol.ContainingType.Name;
-            return FindReferencesInDocumentUsingIdentifierAsync(symbol, name, document, cancellationToken, findParentNode);
+            return FindReferencesInDocumentUsingIdentifierAsync(
+                symbol, name, document, findParentNode, cancellationToken);
         }
 
         private Task<ImmutableArray<ReferenceLocation>> FindPredefinedTypeReferencesAsync(

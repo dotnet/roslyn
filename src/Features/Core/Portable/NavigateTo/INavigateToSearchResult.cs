@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Editor.Navigation;
-using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.CodeAnalysis.Navigation;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal interface INavigateToSearchResult
     {
         string AdditionalInformation { get; }
         string Kind { get; }
-        MatchKind MatchKind { get; }
+        NavigateToMatchKind MatchKind { get; }
         bool IsCaseSensitive { get; }
         string Name { get; }
         string SecondarySort { get; }

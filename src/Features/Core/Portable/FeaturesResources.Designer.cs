@@ -2059,6 +2059,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to project .
+        /// </summary>
+        internal static string project_space {
+            get {
+                return ResourceManager.GetString("project_space", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         internal static string Properties {
@@ -2610,6 +2619,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Type_Sharphelp_for_more_information {
             get {
                 return ResourceManager.GetString("Type_Sharphelp_for_more_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type .
+        /// </summary>
+        internal static string type_space {
+            get {
+                return ResourceManager.GetString("type_space", resourceCulture);
             }
         }
         
