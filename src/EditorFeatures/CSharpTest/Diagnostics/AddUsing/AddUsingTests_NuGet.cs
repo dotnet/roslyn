@@ -252,9 +252,7 @@ class C
             }
 
             private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
-            {
-                return Task.FromResult(results.ToImmutableArray());
-            }
+                => Task.FromResult(ImmutableArray.Create(results));
 
             private IReadOnlyList<string> CreateNameParts(params string[] parts) => parts;
         }
