@@ -1222,7 +1222,7 @@ End module
 
             comp.AssertTheseDiagnostics(
 <errors>
-    BC30269: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures.
+BC37270: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
     Sub Test(x as (a as integer, b as Integer))
         ~~~~
 </errors>)
@@ -1248,7 +1248,7 @@ End module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30269: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures.
+BC37270: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures with different tuple element names.
     Sub Test(x as (integer,Integer))
         ~~~~
 </errors>)
@@ -13351,16 +13351,16 @@ additionalRefs:=s_valueTupleRefs)
 BC30269: 'Public Sub M1(x As (A As Integer, B As Integer))' has multiple definitions with identical signatures.
     Public Sub M1(x As (A As Integer, B As Integer))
                ~~
-BC30269: 'Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))' has multiple definitions with identical signatures.
+BC37270: 'Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))' has multiple definitions with identical signatures with different tuple element names.
     Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))
                ~~
-BC30269: 'Public Sub M3(x As (notA As Integer, notB As Integer)())' has multiple definitions with identical signatures.
+BC37270: 'Public Sub M3(x As (notA As Integer, notB As Integer)())' has multiple definitions with identical signatures with different tuple element names.
     Public Sub M3(x As (notA As Integer, notB As Integer)())
                ~~
-BC30269: 'Public Sub M4(x As (notA As Integer, notB As Integer)?)' has multiple definitions with identical signatures.
+BC37270: 'Public Sub M4(x As (notA As Integer, notB As Integer)?)' has multiple definitions with identical signatures with different tuple element names.
     Public Sub M4(x As (notA As Integer, notB As Integer)?)
                ~~
-BC30269: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' has multiple definitions with identical signatures.
+BC37270: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' has multiple definitions with identical signatures with different tuple element names.
     Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
                ~~
 </errors>)
@@ -13653,6 +13653,91 @@ BC37270: 'Private Sub M1(x As (a As Integer, b As Integer))' has multiple defini
 BC37270: 'Private Sub M2(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
     Private Partial Sub M2(x As (a As Integer, b As Integer))
                         ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub PartialClassWithDifferentTupleNamesInBaseInterfaces()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Interface I0(Of T)
+End Interface
+
+Public Partial Class C
+    Implements I0(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class C
+    Implements I0(Of (notA As Integer, notB As Integer))
+End Class
+Public Partial Class C
+    Implements I0(Of (Integer, Integer))
+End Class
+
+Public Partial Class D
+    Implements I0(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class D
+    Implements I0(Of (a As Integer, b As Integer))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37269: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (notA As Integer, notB As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37269: Interface 'I0(Of (Integer, Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (Integer, Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub PartialClassWithDifferentTupleNamesInBaseTypes()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class Base(Of T)
+End Class
+Public Partial Class C1
+    Inherits Base(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class C1
+    Inherits Base(Of (notA As Integer, notB As Integer))
+End Class
+
+Public Partial Class C2
+    Inherits Base(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class C2
+    Inherits Base(Of (Integer, Integer))
+End Class
+
+Public Partial Class C3
+    Inherits Base(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class C3
+    Inherits Base(Of (a As Integer, b As Integer))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30928: Base class 'Base(Of (notA As Integer, notB As Integer))' specified for class 'C1' cannot be different from the base class 'Base(Of (a As Integer, b As Integer))' of one of its other partial types.
+    Inherits Base(Of (notA As Integer, notB As Integer))
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30928: Base class 'Base(Of (Integer, Integer))' specified for class 'C2' cannot be different from the base class 'Base(Of (a As Integer, b As Integer))' of one of its other partial types.
+    Inherits Base(Of (Integer, Integer))
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
 
         End Sub

@@ -1219,7 +1219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' give errors for multiple base classes
-            Dim interfacesInThisPartial As New Dictionary(Of TypeSymbol, TypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
+            Dim interfacesInThisPartial As New Dictionary(Of TypeSymbol, TypeSymbol)()
 
             For Each baseDeclaration In baseSyntax
                 Dim types = DirectCast(baseDeclaration, ImplementsStatementSyntax).Types
@@ -1228,12 +1228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Dim other As TypeSymbol = Nothing
                     If interfacesInThisPartial.TryGetValue(typeSymbol, other) Then
-                        If other.IsSameType(typeSymbol, TypeCompareKind.ConsiderEverything) Then
-                            Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InterfaceImplementedTwice1, typeSymbol)
-                        Else
-                            Binder.ReportDiagnostic(diagBag, baseClassSyntax,
-                                    ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames, typeSymbol, other)
-                        End If
+                        Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InterfaceImplementedTwice1, typeSymbol)
                     Else
                         interfacesInThisPartial.Add(typeSymbol, typeSymbol)
 
@@ -1247,6 +1242,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 Continue For
 
                             Case TypeKind.Interface, TypeKind.Error
+                                For Each seenInterface In basesInOtherPartials
+                                    If Not typeSymbol.IsSameType(seenInterface, TypeCompareKind.ConsiderEverything) AndAlso
+                                        typeSymbol.IsSameType(seenInterface, TypeCompareKind.IgnoreTupleNames) Then
+
+                                        Binder.ReportDiagnostic(diagBag, baseClassSyntax,
+                                            ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames, typeSymbol, seenInterface)
+                                        Exit For
+                                    End If
+                                Next
+
                                 basesInOtherPartials.Add(DirectCast(typeSymbol, NamedTypeSymbol))
 
                             Case Else
@@ -2577,29 +2582,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
         End Sub
-
-        Private Class EqualsIgnoringComparer
-            Inherits EqualityComparer(Of TypeSymbol)
-
-            Public Shared ReadOnly Property InstanceIgnoringTupleNames As EqualsIgnoringComparer =
-                New EqualsIgnoringComparer(TypeCompareKind.IgnoreTupleNames)
-
-            Private ReadOnly _comparison As TypeCompareKind
-
-            Public Sub New(comparison As TypeCompareKind)
-                _comparison = comparison
-            End Sub
-
-            Public Overrides Function Equals(type1 As TypeSymbol, type2 As TypeSymbol) As Boolean
-                Return If(type1 Is Nothing,
-                    type2 Is Nothing,
-                    type1.IsSameType(type2, _comparison))
-            End Function
-
-            Public Overrides Function GetHashCode(obj As TypeSymbol) As Integer
-                Return obj.GetHashCode()
-            End Function
-        End Class
 
     End Class
 End Namespace
