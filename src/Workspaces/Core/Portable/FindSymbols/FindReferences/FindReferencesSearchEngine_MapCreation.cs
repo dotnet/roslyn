@@ -162,8 +162,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 await _progress.OnDefinitionFoundAsync(searchSymbolAndProjectId).ConfigureAwait(false);
 
-                _foundReferences.GetOrAdd(searchSymbolAndProjectId, s_createSymbolLocations);
-
                 // get project to search
                 var projects = GetProjectScope();
 
@@ -210,7 +208,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var child in symbols)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
-                    symbolTasks.Add(Task.Run(async () => await DetermineAllSymbolsCoreAsync(child, result).ConfigureAwait(false), _cancellationToken));
+                    symbolTasks.Add(Task.Run(() => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken));
                 }
             }
         }

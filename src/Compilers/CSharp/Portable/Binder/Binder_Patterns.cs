@@ -249,11 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operand != null && operandType != (object)null);
 
-            if (InConstructorInitializer || InFieldInitializer)
-            {
-                Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
-            }
-
             var typeSyntax = node.Type;
             var identifier = node.Identifier;
 
@@ -279,39 +274,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 hasErrors |= CheckValidPatternType(typeSyntax, operand, operandType, declType,
-                                                  isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
+                                                   isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
-            // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
-            // This occurs through the semantic model.  In that case concoct a plausible result.
-            if (localSymbol == (object)null)
+            if (localSymbol != (object)null)
             {
-                localSymbol = SourceLocalSymbol.MakeLocal(
-                    ContainingMemberOrLambda,
-                    this,
-                    false, // do not allow ref
-                    typeSyntax,
-                    identifier,
-                    LocalDeclarationKind.PatternVariable);
+                if (InConstructorInitializer || InFieldInitializer)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
+                }
+
+                localSymbol.SetType(declType);
+
+                // Check for variable declaration errors.
+                hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+
+                if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
+                    && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
+                    && declType.IsRestrictedType()
+                    && !hasErrors)
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
+                    hasErrors = true;
+                }
+
+                return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
             }
-
-            localSymbol.SetType(declType);
-
-            // Check for variable declaration errors.
-            hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
-
-            if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                && declType.IsRestrictedType()
-                && !hasErrors)
+            else
             {
-                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
-                hasErrors = true;
+                // We should have the right binder in the chain for a script or interactive, so we use the field for the pattern.
+                Debug.Assert(node.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
+                GlobalExpressionVariable expressionVariableField = LookupDeclaredField(node);
+                DiagnosticBag tempDiagnostics = DiagnosticBag.GetInstance();
+                expressionVariableField.SetType(declType, tempDiagnostics);
+                tempDiagnostics.Free();
+                BoundExpression receiver = SynthesizeReceiver(node, expressionVariableField, diagnostics);
+                var variableAccess = new BoundFieldAccess(node, receiver, expressionVariableField, null, hasErrors);
+                return new BoundDeclarationPattern(node, expressionVariableField, variableAccess, boundDeclType, isVar, hasErrors);
             }
-
-            return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
         }
+
     }
 }

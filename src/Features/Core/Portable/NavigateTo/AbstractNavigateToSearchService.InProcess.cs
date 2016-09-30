@@ -2,23 +2,20 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    [Export(typeof(INavigateToSearchResultProvider)), Shared]
-    internal sealed partial class NavigateToSearchResultProvider : INavigateToSearchResultProvider
+    internal abstract partial class AbstractNavigateToSearchService
     {
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
+        public static async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
             Project project, string searchPattern, CancellationToken cancellationToken)
         {
             var results = await FindNavigableDeclaredSymbolInfos(
@@ -26,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             return ProcessResult(searchPattern, results);
         }
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(
+        public static async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
             Document document, string searchPattern, CancellationToken cancellationToken)
         {
             var results = await FindNavigableDeclaredSymbolInfos(
@@ -34,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             return ProcessResult(searchPattern, results);
         }
 
-        private ImmutableArray<INavigateToSearchResult> ProcessResult(
-            string searchPattern, 
+        private static ImmutableArray<INavigateToSearchResult> ProcessResult(
+            string searchPattern,
             ImmutableArray<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>> results)
         {
             var containsDots = searchPattern.IndexOf('.') >= 0;
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
         }
 
-        private INavigateToSearchResult ConvertResult(
+        private static INavigateToSearchResult ConvertResult(
             bool containsDots, ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
         {
             var declaredSymbolInfo = result.Item1;
@@ -141,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
         }
 
-        private static MatchKind GetNavigateToMatchKind(bool containsDots, IEnumerable<PatternMatch> matchResult)
+        private static NavigateToMatchKind GetNavigateToMatchKind(bool containsDots, IEnumerable<PatternMatch> matchResult)
         {
             // NOTE(cyrusn): Unfortunately, the editor owns how sorting of NavigateToItems works,
             // and they only provide four buckets for sorting items before they sort by the name
@@ -167,11 +164,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     switch (lastResult.Value.Kind)
                     {
                         case PatternMatchKind.Exact:
-                            return MatchKind.Exact;
+                            return NavigateToMatchKind.Exact;
                         case PatternMatchKind.Prefix:
-                            return MatchKind.Prefix;
+                            return NavigateToMatchKind.Prefix;
                         case PatternMatchKind.Substring:
-                            return MatchKind.Substring;
+                            return NavigateToMatchKind.Substring;
                     }
                 }
             }
@@ -183,21 +180,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 // we make the result as good as any constituent part.
                 if (matchResult.Any(r => r.Kind == PatternMatchKind.Exact))
                 {
-                    return MatchKind.Exact;
+                    return NavigateToMatchKind.Exact;
                 }
 
                 if (matchResult.Any(r => r.Kind == PatternMatchKind.Prefix))
                 {
-                    return MatchKind.Prefix;
+                    return NavigateToMatchKind.Prefix;
                 }
 
                 if (matchResult.Any(r => r.Kind == PatternMatchKind.Substring))
                 {
-                    return MatchKind.Substring;
+                    return NavigateToMatchKind.Substring;
                 }
             }
 
-            return MatchKind.Regular;
+            return NavigateToMatchKind.Regular;
         }
     }
 }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -359,14 +360,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AddImport_SuggestForTypesInReferenceAssemblies
         {
-            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies); }
-            set { SetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, value); }
+            get { return GetBooleanOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies); }
+            set { SetBooleanOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, value); }
         }
 
         public int AddImport_SuggestForTypesInNuGetPackages
         {
-            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages); }
-            set { SetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages, value); }
+            get { return GetBooleanOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages); }
+            set { SetBooleanOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, value); }
         }
 
         public int Space_AfterBasesColon

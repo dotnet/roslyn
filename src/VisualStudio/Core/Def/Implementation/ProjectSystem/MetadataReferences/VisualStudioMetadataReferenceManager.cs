@@ -335,11 +335,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 moduleBuilder.Add(metadata);
             }
 
-            var modules = moduleBuilder.Count > 0
-                ? moduleBuilder.ToImmutable()
-                : ImmutableArray.Create(manifestModule);
-            moduleBuilder.Free();
-            return AssemblyMetadata.Create(modules);
+            if (moduleBuilder.Count == 0)
+            {
+                moduleBuilder.Add(manifestModule);
+            }
+
+            return AssemblyMetadata.Create(
+                moduleBuilder.ToImmutableAndFree());
         }
     }
 }

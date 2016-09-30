@@ -34,6 +34,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestRenameFileWithFolders()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document Folders=""A\B""> 
+[||]class Class1
+{ 
+    class Inner { }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expectedDocumentName = "Class1.cs";
+
+            await TestRenameFileToMatchTypeAsync(code, expectedDocumentName,
+                destinationDocumentContainers: new[] { "A", "B" });
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestMissing_TypeNameMatchesFileName_RenameFile()
         {
             // testworkspace creates files like test1.cs, test2.cs and so on.. 

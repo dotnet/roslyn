@@ -24,14 +24,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Function GetSymbolsWorker(
+                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             If context.TargetToken.Kind = SyntaxKind.None Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             If context.SyntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             ' We only care about Methods, Properties, and Events
@@ -51,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             ' We couldn't find a declaration. Bail.
             If memberKindKeyword = Nothing Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
-            Dim result As IEnumerable(Of ISymbol) = Nothing
+            Dim result = ImmutableArray(Of ISymbol).Empty
 
             ' Valid positions: Immediately after 'Implements, after  ., or after a ,
             If context.TargetToken.Kind = SyntaxKind.ImplementsKeyword AndAlso context.TargetToken.Parent.IsKind(SyntaxKind.ImplementsClause) Then
@@ -69,11 +70,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 result = GetDottedMembers(position, DirectCast(context.TargetToken.Parent, QualifiedNameSyntax), context.SemanticModel, memberKindKeyword, cancellationToken)
             End If
 
-            If result IsNot Nothing Then
-                Return Task.FromResult(result.Where(Function(s) MatchesMemberKind(s, memberKindKeyword)))
+            If result.Length > 0 Then
+                Return Task.FromResult(result.WhereAsArray(Function(s) MatchesMemberKind(s, memberKindKeyword)))
             End If
 
-            Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+            Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
         End Function
 
         Private Function MatchesMemberKind(symbol As ISymbol, memberKindKeyword As SyntaxKind) As Boolean
@@ -101,10 +102,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return memberKindKeyword = SyntaxKind.EventKeyword
         End Function
 
-        Private Function GetDottedMembers(position As Integer, qualifiedName As QualifiedNameSyntax, semanticModel As SemanticModel, memberKindKeyword As SyntaxKind, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+        Private Function GetDottedMembers(position As Integer, qualifiedName As QualifiedNameSyntax, semanticModel As SemanticModel, memberKindKeyword As SyntaxKind, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
             Dim containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken)
             If containingType Is Nothing Then
-                Return Nothing
+                Return ImmutableArray(Of ISymbol).Empty
             End If
 
             Dim unimplementedInterfacesAndMembers = From item In containingType.GetAllUnimplementedMembersInThis(containingType.Interfaces, cancellationToken)
@@ -142,11 +143,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
             Dim symbols = semanticModel.LookupSymbols(position, container)
 
-            Return New HashSet(Of ISymbol)(symbols.ToArray() _
+            Dim hashSet = New HashSet(Of ISymbol)(symbols.ToArray() _
                                            .Where(Function(s As ISymbol) interfacesAndContainers.Contains(s, SymbolEquivalenceComparer.Instance) OrElse
                                                       (TypeOf (s) Is INamespaceSymbol AndAlso namespaces.Contains(TryCast(s, INamespaceSymbol), INamespaceSymbolExtensions.EqualityComparer)) OrElse
                                                       members.Contains(s)))
-
+            Return hashSet.ToImmutableArray()
         End Function
 
         Private Function interfaceMemberGetter([interface] As ITypeSymbol, within As ISymbol) As ImmutableArray(Of ISymbol)
@@ -154,10 +155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 .AddRange([interface].GetMembers())
         End Function
 
-        Private Function GetInterfacesAndContainers(position As Integer, node As SyntaxNode, semanticModel As SemanticModel, kind As SyntaxKind, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+        Private Function GetInterfacesAndContainers(position As Integer, node As SyntaxNode, semanticModel As SemanticModel, kind As SyntaxKind, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
             Dim containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken)
             If containingType Is Nothing Then
-                Return Nothing
+                Return ImmutableArray(Of ISymbol).Empty
             End If
 
             Dim interfaceWithUnimplementedMembers = containingType.GetAllUnimplementedMembersInThis(containingType.Interfaces, AddressOf interfaceMemberGetter, cancellationToken) _
@@ -171,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim symbols = semanticModel.LookupSymbols(position)
 
-            Dim result = TryAddGlobalTo(interfacesAndContainers.Intersect(symbols.ToArray()))
+            Dim result = TryAddGlobalTo(interfacesAndContainers.Intersect(symbols.ToArray()).ToImmutableArray())
 
             ' Even if there's not anything left to implement, we'll show the list of interfaces, 
             ' the global namespace, and the project root namespace (if any), as long as the class implements something.
@@ -182,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     defaultListing.Add(containingType.ContainingNamespace)
                     AddAliasesAndContainers(containingType.ContainingNamespace, defaultListing, node, semanticModel)
                 End If
-                Return defaultListing
+                Return defaultListing.ToImmutableArray()
             End If
 
             Return result
@@ -220,10 +221,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return [namespace] IsNot Nothing AndAlso [namespace].IsGlobalNamespace
         End Function
 
-        Private Function TryAddGlobalTo(symbols As IEnumerable(Of ISymbol)) As IEnumerable(Of ISymbol)
+        Private Function TryAddGlobalTo(symbols As ImmutableArray(Of ISymbol)) As ImmutableArray(Of ISymbol)
             Dim withGlobalContainer = symbols.FirstOrDefault(Function(s) s.ContainingNamespace.IsGlobalNamespace)
             If withGlobalContainer IsNot Nothing Then
-                Return symbols.Concat(SpecializedCollections.SingletonEnumerable(withGlobalContainer.ContainingNamespace))
+                Return symbols.Concat(ImmutableArray.Create(Of ISymbol)(withGlobalContainer.ContainingNamespace))
             End If
 
             Return symbols

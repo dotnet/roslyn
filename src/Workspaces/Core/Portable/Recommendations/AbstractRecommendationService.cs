@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     internal abstract class AbstractRecommendationService : IRecommendationService
     {
-        protected abstract Task<Tuple<IEnumerable<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
+        protected abstract Task<Tuple<ImmutableArray<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken);
 
-        public async Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+        public async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var result = await GetRecommendedSymbolsAtPositionWorkerAsync(workspace, semanticModel, position, options, cancellationToken).ConfigureAwait(false);
@@ -25,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var symbols = result.Item1;
             var context = new ShouldIncludeSymbolContext(result.Item2, cancellationToken);
 
-            symbols = symbols.Where(context.ShouldIncludeSymbol);
+            symbols = symbols.WhereAsArray(context.ShouldIncludeSymbol);
             return symbols;
         }
 
-        protected static IEnumerable<ISymbol> GetRecommendedNamespaceNameSymbols(
+        protected static ImmutableArray<ISymbol> GetRecommendedNamespaceNameSymbols(
             SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
         {
             if (declarationSyntax == null)
@@ -41,12 +42,13 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 semanticModel.GetEnclosingNamespace(declarationSyntax.SpanStart, cancellationToken));
 
             var symbols = semanticModel.LookupNamespacesAndTypes(declarationSyntax.SpanStart, containingNamespaceSymbol)
-                                       .Where(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
+                                       .WhereAsArray(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
 
             return symbols;
         }
 
-        protected static bool IsNonIntersectingNamespace(ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
+        protected static bool IsNonIntersectingNamespace(
+            ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
         {
             //
             // Apart from filtering out non-namespace symbols, this also filters out the symbol
@@ -76,8 +78,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
         /// the suppression of the corresponding default name (ItemN).
         /// In that case, Rest is also removed.
         /// </summary>
-        protected static IEnumerable<ISymbol> SuppressDefaultTupleElements(INamespaceOrTypeSymbol container,
-            IEnumerable<ISymbol> symbols)
+        protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(
+            INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
         {
             if (!container.IsType)
             {
@@ -102,7 +104,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var fieldsToRemove = elementNames.Select((n, i) => IsFriendlyName(i, n) ? "Item" + (i + 1) : null)
                 .Where(n => n != null).Concat("Rest").ToSet();
 
-            return symbols.Where(s => s.Kind != SymbolKind.Field || elementNames.Contains(s.Name) || !fieldsToRemove.Contains(s.Name));
+            return symbols.WhereAsArray(
+                s => s.Kind != SymbolKind.Field ||
+                     elementNames.Contains(s.Name) || 
+                     !fieldsToRemove.Contains(s.Name));
         }
 
         private static bool IsFriendlyName(int i, string elementName)

@@ -158,7 +158,6 @@
     <Compile Include="LineCommit\ContainingStatementInfo.vb" />
     <Compile Include="LineCommit\ICommitFormatter.vb" />
     <Compile Include="LineSeparators\VisualBasicLineSeparatorService.vb" />
-    <Compile Include="NavigateTo\VisualBasicNavigateToSearchService.vb" />
     <Compile Include="NavigationBar\AbstractGenerateCodeItem.vb" />
     <Compile Include="NavigationBar\GenerateDefaultConstructorItem.vb" />
     <Compile Include="NavigationBar\GenerateEventHandlerItem.vb" />

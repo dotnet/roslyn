@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public const string CodeAnalysisService = "codeAnalysisService";
         public const string CodeAnalysisService_CalculateDiagnosticsAsync = "CalculateDiagnosticsAsync";
+
+        // CodeLens methods.
         public const string CodeAnalysisService_GetReferenceCountAsync = "GetReferenceCountAsync";
         public const string CodeAnalysisService_FindReferenceLocationsAsync = "FindReferenceLocationsAsync";
         public const string CodeAnalysisService_FindReferenceMethodsAsync = "FindReferenceMethodsAsync";

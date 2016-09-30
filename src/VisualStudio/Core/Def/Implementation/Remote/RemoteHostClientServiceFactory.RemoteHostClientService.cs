@@ -265,7 +265,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private bool CodeLenEnabled()
             {
+#if false
                 return _globalEditorOptions.GetOptionValue(CodeLensOptions.IsCodeLensEnabledOptionKey);
+#endif
+                return false;
             }
         }
     }

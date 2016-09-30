@@ -88,12 +88,8 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
       <Link>Shared\ServerDirectStream.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\WellKnownServiceHubServices.cs">
-      <Link>Shared\WellKnownServiceHubServices.cs</Link>
-    </Compile>
     <Compile Include="CodeLens\RemoteCodeLensReferencesService.cs" />
     <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
-    <Compile Include="Extensions\RemoteHostClientExtensions.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
@@ -129,5 +125,6 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

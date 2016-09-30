@@ -126,8 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
             using (Logger.LogBlock(FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags, cancellationToken))
             {
-                var result = new List<ITagSpan<NavigableHighlightTag>>();
-
                 if (document != null)
                 {
                     var documentHighlightsService = document.Project.LanguageServices.GetService<IDocumentHighlightsService>();
@@ -141,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                         {
                             foreach (var documentHighlights in documentHighlightsList)
                             {
-                                await AddTagSpansAsync(context, solution, result, documentHighlights).ConfigureAwait(false);
+                                await AddTagSpansAsync(context, solution, documentHighlights).ConfigureAwait(false);
                             }
                         }
                     }
@@ -152,7 +150,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         private async Task AddTagSpansAsync(
             TaggerContext<NavigableHighlightTag> context,
             Solution solution,
-            List<ITagSpan<NavigableHighlightTag>> tags,
             DocumentHighlights documentHighlights)
         {
             var cancellationToken = context.CancellationToken;
