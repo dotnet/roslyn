@@ -2,14 +2,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Remote.Arguments;
+using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class VisualStudioSymbolFinderEngineService : ISymbolFinderEngineService
+    public static partial class SymbolFinder
     {
+
         /// <summary>
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
@@ -21,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
             private readonly CancellationToken _cancellationToken;
 
             public ServerCallback(
-                Solution solution, 
+                Solution solution,
                 IStreamingFindReferencesProgress progress,
                 CancellationToken cancellationToken)
             {

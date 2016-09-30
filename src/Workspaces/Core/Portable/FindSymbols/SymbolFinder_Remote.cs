@@ -1,27 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Remote.Arguments;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    [ExportWorkspaceService(typeof(ISymbolFinderEngineService), ServiceLayer.Host), Shared]
-    internal partial class VisualStudioSymbolFinderEngineService : ISymbolFinderEngineService
+    public static partial class SymbolFinder
     {
-        public async Task FindReferencesAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, 
+        internal static async Task FindReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
+            Solution solution,
             IStreamingFindReferencesProgress progress,
-            IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            IImmutableSet<Document> documents,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
@@ -29,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
                 {
                     // This is a call through our old public API.  We don't have the necessary
                     // data to effectively run the call out of proc.
-                    await DefaultSymbolFinderEngineService.FindReferencesInCurrentProcessAsync(
+                    await FindReferencesInCurrentProcessAsync(
                         symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
                 }
                 else
@@ -40,11 +36,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
             }
         }
 
-        private async Task FindReferencesInServiceProcessAsync(
+        internal static Task FindReferencesInCurrentProcessAsync(
+            SymbolAndProjectId symbolAndProjectId, Solution solution,
+            IStreamingFindReferencesProgress progress, IImmutableSet<Document> documents,
+            CancellationToken cancellationToken)
+        {
+            var finders = ReferenceFinders.DefaultReferenceFinders;
+            progress = progress ?? StreamingFindReferencesProgress.Instance;
+            var engine = new FindReferencesSearchEngine(
+                solution, documents, finders, progress, cancellationToken);
+            return engine.FindReferencesAsync(symbolAndProjectId);
+        }
+
+        private static async Task FindReferencesInServiceProcessAsync(
             SymbolAndProjectId symbolAndProjectId,
-            Solution solution, 
-            IStreamingFindReferencesProgress progress, 
-            IImmutableSet<Document> documents, 
+            Solution solution,
+            IStreamingFindReferencesProgress progress,
+            IImmutableSet<Document> documents,
             CancellationToken cancellationToken)
         {
             var clientService = solution.Workspace.Services.GetService<IRemoteHostClientService>();
@@ -52,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
 
             if (client == null)
             {
-                await DefaultSymbolFinderEngineService.FindReferencesInCurrentProcessAsync(
+                await FindReferencesInCurrentProcessAsync(
                     symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
                 return;
             }
@@ -66,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
                 solution, serverCallback, cancellationToken).ConfigureAwait(false))
             {
                 await session.InvokeAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService_FindReferencesAsync,
+                    nameof(IRemoteSymbolFinder.FindReferencesAsync),
                     SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
                     documents?.Select(SerializableDocumentId.Dehydrate).ToArray()).ConfigureAwait(false);
             }

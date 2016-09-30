@@ -2,10 +2,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -69,17 +71,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 SymbolAndProjectId.Create(symbol, projectId: null),
                 solution, streamingProgress, documents, cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();
-        }
-
-        internal static Task FindReferencesAsync(
-            SymbolAndProjectId symbolAndProjectId,
-            Solution solution,
-            IStreamingFindReferencesProgress progress,
-            IImmutableSet<Document> documents,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var engineService = solution.Workspace.Services.GetService<ISymbolFinderEngineService>();
-            return engineService.FindReferencesAsync(symbolAndProjectId, solution, progress, documents, cancellationToken);
         }
 
         internal static async Task<ImmutableArray<ReferencedSymbol>> FindRenamableReferencesAsync(

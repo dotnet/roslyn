@@ -2,12 +2,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -15,21 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    [ExportWorkspaceService(typeof(INavigateToEngineService), layer: ServiceLayer.Default), Shared]
-    internal sealed partial class DefaultNavigateToEngineService : INavigateToEngineService
+    internal abstract partial class AbstractNavigateToSearchService
     {
-        public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
-            Project project, string searchPattern, CancellationToken cancellationToken)
-        {
-            return SearchProjectInCurrentProcessAsync(project, searchPattern, cancellationToken);
-        }
-
-        public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(
-            Document document, string searchPattern, CancellationToken cancellationToken)
-        {
-            return SearchDocumentInCurrentProcessAsync(document, searchPattern, cancellationToken);
-        }
-
         public static async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
             Project project, string searchPattern, CancellationToken cancellationToken)
         {
