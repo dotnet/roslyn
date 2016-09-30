@@ -91,8 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             {
                 if (_updateEngine == null)
                 {
-                    var engineFactory = _workspace.Services.GetService<ISymbolSearchUpdateEngineFactory>();
-                    _updateEngine = await engineFactory.CreateEngineAsync(
+                    _updateEngine = await SymbolSearchUpdateEngineFactory.CreateEngineAsync(
                         _workspace, _logService, cancellationToken).ConfigureAwait(false);
                 }
 

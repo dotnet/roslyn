@@ -5,24 +5,21 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Remote.Arguments;
-using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.VisualStudio.LanguageServices.Remote;
-using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
-    /// Implementation of the <see cref="ISymbolSearchUpdateEngineFactory"/> that attempts to connect
-    /// to the ServiceHub service to offload the work to.
+    /// Factory that will produce the <see cref="ISymbolSearchUpdateEngine"/>.  The default
+    /// implementation produces an engine that will run in-process.  Implementations at
+    /// other layers can behave differently (for example, running the engine out-of-process).
     /// </summary>
-    [ExportWorkspaceService(typeof(ISymbolSearchUpdateEngineFactory), ServiceLayer.Host), Shared]
-    internal class VisualStudioSymbolSearchUpdateEngineFactory : ISymbolSearchUpdateEngineFactory
+    internal static class SymbolSearchUpdateEngineFactory
     {
-        public async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
-            CodeAnalysis.Workspace workspace, ISymbolSearchLogService logService, CancellationToken cancellationToken)
+        public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
+            Workspace workspace, ISymbolSearchLogService logService, CancellationToken cancellationToken)
         {
             var clientService = workspace.Services.GetService<IRemoteHostClientService>();
             if (clientService == null)
@@ -64,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 string source, string name, int arity)
             {
                 var results = await _session.InvokeAsync<SerializablePackageWithTypeResult[]>(
-                    WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine_FindPackagesWithTypeAsync,
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     source, name, arity).ConfigureAwait(false);
 
                 return results.Select(r => r.Rehydrate()).ToImmutableArray();
@@ -74,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 string name, int arity)
             {
                 var results = await _session.InvokeAsync<SerializableReferenceAssemblyWithTypeResult[]>(
-                    WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine_FindReferenceAssembliesWithTypeAsync,
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     name, arity).ConfigureAwait(false);
 
                 return results.Select(r => r.Rehydrate()).ToImmutableArray();
@@ -84,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 string sourceName, string localSettingsDirectory)
             {
                 return _session.InvokeAsync(
-                    WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine_UpdateContinuouslyAsync,
+                    nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                     sourceName, localSettingsDirectory);
             }
         }

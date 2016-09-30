@@ -506,7 +506,9 @@
     <Compile Include="SymbolKey\SymbolKey.ArrayTypeSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyWriter.cs" />
     <Compile Include="SymbolKey\SymbolKey.cs" />
+    <Compile Include="SymbolSearch\IRemoteSymbolSearchUpdateEngine.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchLogService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchUpdateEngine.cs" />
     <Compile Include="SymbolSearch\SymbolSearchOptions.cs" />
     <Compile Include="SymbolSearch\SymbolSearchOptionsProvider.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
