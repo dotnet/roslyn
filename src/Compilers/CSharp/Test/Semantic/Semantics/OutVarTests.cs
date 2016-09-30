@@ -850,6 +850,7 @@ public class Cls
         {
             var variableDeclaratorSyntax = GetVariableDesignation(decl);
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
+            Assert.NotNull(symbol);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
@@ -983,6 +984,8 @@ public class Cls
             {
                 var local = (SourceLocalSymbol)symbol;
                 var parent = local.IdentifierToken.Parent;
+
+                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>());
 
                 if (parent.Kind() == SyntaxKind.VariableDeclarator)
                 {
@@ -10651,7 +10654,7 @@ public class X
                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
                   select TakeOutParam(12, out var y12) && y12 > 0
                   into s
-                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12;
+                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12 + (TakeOutParam(13, out var y13) ? y13 : 0);
 
         Dummy(y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12); 
     }
@@ -10729,8 +10732,6 @@ public class X
 
                 switch (i)
                 {
-                    case 1:
-                    case 3:
                     case 12:
                         // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
                         //VerifyNotAnOutLocal(model, yRef[1]);
@@ -10740,6 +10741,11 @@ public class X
                         break;
                 }
             }
+
+            var y13Decl = GetOutVarDeclarations(tree, "y13").Single();
+            var y13Ref = GetReference(tree, "y13");
+            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+            //VerifyModelForOutVar(model, y13Decl, y13Ref);
         }
 
         [Fact]
