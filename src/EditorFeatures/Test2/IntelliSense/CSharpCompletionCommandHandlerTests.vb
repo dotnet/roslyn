@@ -2121,6 +2121,25 @@ class Program
             End Using
         End Function
 
+        <WorkItem(14085, "https://github.com/dotnet/roslyn/issues/14085")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionExactMatching() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.IO.
+class Program
+{
+    void Main()
+    {
+        string path = Path$$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("Path", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
         Public Async Function TestAnonymousTypeDescription() As Task
