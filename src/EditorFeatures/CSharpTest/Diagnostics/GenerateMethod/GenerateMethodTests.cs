@@ -3239,5 +3239,38 @@ class C
 }",
 parseOptions: TestOptions.Regular);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        public async Task TestDeconstruction4()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int) = [|Method|]();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int) = Method();
+    }
+
+    private (int x, int) Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
+        }
     }
 }
