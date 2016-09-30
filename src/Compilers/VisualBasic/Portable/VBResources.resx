@@ -785,6 +785,9 @@
   <data name="ERR_DuplicateProcDef1" xml:space="preserve">
     <value>'{0}' has multiple definitions with identical signatures.</value>
   </data>
+  <data name="ERR_DuplicateProcDefWithDifferentTupleNames" xml:space="preserve">
+    <value>'{0}' has multiple definitions with identical signatures with different tuple element names.</value>
+  </data>
   <data name="ERR_BadInterfaceMethodFlags1" xml:space="preserve">
     <value>'{0}' is not valid on an interface method declaration.</value>
   </data>

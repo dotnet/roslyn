@@ -10887,6 +10887,101 @@ BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
 
         End Sub
 
+        <Fact>
+        Public Sub ImplicitAndExplicitInterfaceImplementationWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Imports System
+
+Public Interface I0(Of T)
+    Function Pop() As T
+    Sub Push(x As T)
+End Interface
+
+Public Class C1
+    Implements I0(Of (a As Integer, b As Integer))
+
+    Public Function Pop() As (a As Integer, b As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
+        Throw New Exception()
+    End Function
+    Public Sub Push(x As (a As Integer, b As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
+    End Sub
+End Class
+
+
+Public Class C2
+    Inherits C1
+    Implements I0(Of (a As Integer, b As Integer))
+
+    Public Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
+        Throw New Exception()
+    End Function
+    Public Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40003: function 'Pop' shadows an overloadable member declared in the base class 'C1'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Public Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
+                    ~~~
+BC30401: 'Pop' cannot implement 'Pop' because there is no matching function on interface 'I0(Of (a As Integer, b As Integer))'.
+    Public Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
+                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC40003: sub 'Push' shadows an overloadable member declared in the base class 'C1'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Public Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
+               ~~~~
+BC30401: 'Push' cannot implement 'Push' because there is no matching sub on interface 'I0(Of (a As Integer, b As Integer))'.
+    Public Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
+                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub PartialMethodsWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Partial Class C1
+    Private Partial Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+    Private Partial Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+    Private Partial Sub M3(x As (a As Integer, b As Integer))
+    End Sub
+End Class
+
+Public Partial Class C1
+    Private Sub M1(x As (notA As Integer, notB As Integer))
+    End Sub
+    Private Sub M2(x As (Integer, Integer))
+    End Sub
+    Private Sub M3(x As (a As Integer, b As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37270: 'Private Sub M1(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
+    Private Partial Sub M1(x As (a As Integer, b As Integer))
+                        ~~
+BC37270: 'Private Sub M2(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
+    Private Partial Sub M2(x As (a As Integer, b As Integer))
+                        ~~
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace

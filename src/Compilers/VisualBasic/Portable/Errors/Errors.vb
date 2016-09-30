@@ -1703,6 +1703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_ValueTupleTypeRefResolutionError = 37267
         ERR_InvalidOverrideDueToTupleNames = 37268
         ERR_InterfaceImplementedTwiceWithDifferentTupleNames = 37269
+        ERR_DuplicateProcDefWithDifferentTupleNames = 37270
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
