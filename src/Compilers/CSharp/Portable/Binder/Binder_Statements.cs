@@ -2377,6 +2377,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, expression.Syntax, targetType);
                 }
+                else
+                {
+                    return expression;
+                }
             }
             else if (!conversion.IsImplicit || !conversion.IsValid)
             {
@@ -3322,6 +3326,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversion.Kind != ConversionKind.Identity)
                     {
                         Error(diagnostics, ErrorCode.ERR_RefReturnMustHaveIdentityConversion, argument.Syntax, returnType);
+                    }
+                    else
+                    {
+                        return argument;
                     }
                 }
                 else if (!conversion.IsImplicit || !conversion.IsValid)
