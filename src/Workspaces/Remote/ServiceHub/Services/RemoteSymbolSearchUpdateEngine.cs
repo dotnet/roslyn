@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteSymbolSearchUpdateEngine(Stream stream, IServiceProvider serviceProvider) 
             : base(stream, serviceProvider)
         {
-            _updateEngine = new SymbolSearchUpdateEngine(new LogService(this), _cancellationTokenSource);
+            _updateEngine = new SymbolSearchUpdateEngine(
+                new LogService(this), updateCancellationToken: this.CancellationToken);
         }
 
         public Task UpdateContinuouslyAsync(

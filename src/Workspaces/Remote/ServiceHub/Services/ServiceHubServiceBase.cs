@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_instanceId;
 
-        protected readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
         protected readonly JsonRpc Rpc;
         protected readonly CancellationToken CancellationToken;

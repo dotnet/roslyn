@@ -28,14 +28,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchUpdateEngine(ISymbolSearchLogService logService)
-            : this(logService, new CancellationTokenSource())
+            : this(logService, CancellationToken.None)
         {
-
         }
 
         public SymbolSearchUpdateEngine(
             ISymbolSearchLogService logService, 
-            CancellationTokenSource cancellationTokenSource)
+            CancellationToken updateCancellationToken)
             : this(logService,
                    new RemoteControlService(),
                    new DelayService(),
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
                    FatalError.ReportWithoutCrash,
-                   cancellationTokenSource)
+                   updateCancellationToken)
         {
         }
 
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
             Func<Exception, bool> reportAndSwallowException,
-            CancellationTokenSource cancellationTokenSource)
+            CancellationToken updateCancellationToken)
         {
             _delayService = delayService;
             _ioService = ioService;
@@ -69,8 +68,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _databaseFactoryService = databaseFactoryService;
             _reportAndSwallowException = reportAndSwallowException;
 
-            _cancellationTokenSource = cancellationTokenSource;
-            _cancellationToken = _cancellationTokenSource.Token;
+            _updateCancellationToken = updateCancellationToken;
         }
 
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
