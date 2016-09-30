@@ -9,11 +9,10 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -583,12 +582,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // If we created a project for this while in deferred project load mode, let's close it
             // now that we're being asked to make a "real" project for it, so that we'll prefer the
             // "real" project
-            if (_workspaceServices.GetService<IDeferredProjectWorkspaceService>()?.IsDeferredProjectLoadEnabled == true)
+            if (IsDeferredSolutionLoadEnabled())
             {
                 var existingProject = GetProject(projectId);
                 Debug.Assert(existingProject is IWorkspaceProjectContext);
                 existingProject?.Disconnect();
             }
+        }
+
+        private bool IsDeferredSolutionLoadEnabled()
+        {
+            // NOTE: It is expected that the "as" will fail on Dev14, as IVsSolution7 was
+            // introduced in Dev15.  Be sure to handle the null result here.
+            var solution7 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
+            return solution7?.IsSolutionLoadDeferred() == true;
         }
     }
 }
