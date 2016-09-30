@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal abstract partial class AbstractNavigateToSearchService : INavigateToSearchService
+    internal abstract partial class AbstractNavigateToSearchService
     {
         private async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInRemoteProcessAsync(
             RemoteHostClient client, Document document, string searchPattern, CancellationToken cancellationToken)
