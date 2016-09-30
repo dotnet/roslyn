@@ -8,7 +8,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     {
         private const string LocalRegistryPath = @"Roslyn\Features\NavigateTo\";
 
-        public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(nameof(NavigateToOptions), nameof(OutOfProcessAllowed), defaultValue: true,
+        public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
+            nameof(NavigateToOptions), nameof(OutOfProcessAllowed), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
     }
 }
