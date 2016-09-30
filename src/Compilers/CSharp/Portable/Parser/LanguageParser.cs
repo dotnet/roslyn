@@ -8561,7 +8561,7 @@ tryAgain:
             }
 
             // the two forms of component are
-            // (1) type deginator
+            // (1) type designator
             // (2) ( component ... )
             VariableComponentSyntax result;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
