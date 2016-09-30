@@ -1326,5 +1326,27 @@ class EntryPoint
             var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(1720, "https://github.com/dotnet/roslyn/issues/1720")]
+        public void GetSymbolsOnResultOfNameof()
+        {
+            var source = @"
+class C
+{
+    public C(int i)
+    {
+        typeof(C).GetField("" "").SetValue(null, new C(0));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = (ObjectCreationExpressionSyntax) tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "new C(0)").Last();
+            var identifierName = node.Type;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.False(symbolInfo.IsEmpty);
+        }
     }
 }
