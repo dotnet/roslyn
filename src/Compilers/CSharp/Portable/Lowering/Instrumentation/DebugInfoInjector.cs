@@ -395,13 +395,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
         }
 
-        public override BoundStatement InstrumentPatternSwitchWhenClause(BoundExpression original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             WhenClauseSyntax whenClause = (WhenClauseSyntax)original.Syntax.Parent;
 
             return new BoundSequencePointWithSpan(
                 syntax: whenClause,
-                statementOpt: base.InstrumentPatternSwitchWhenClause(original, rewritten),
+                statementOpt: base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody),
                 span: whenClause.Span);
         }
 

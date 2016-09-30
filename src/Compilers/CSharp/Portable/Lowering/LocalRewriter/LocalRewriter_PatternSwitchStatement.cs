@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement translatedSwitch = _factory.Block(pslr.DeclaredTemps.ToImmutableArray().Concat(node.InnerLocals), node.InnerLocalFunctions, result.ToImmutableAndFree());
 
             // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-            if (this.Instrument && !node.WasCompilerGenerated)
+            if (!node.WasCompilerGenerated && this.Instrument)
             {
                 translatedSwitch = _instrumenter.InstrumentPatternSwitchStatement(node, translatedSwitch);
             }
@@ -310,11 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var guardTest = _factory.ConditionalGoto(LocalRewriter.VisitExpression(guarded.Guard), targetLabel, true);
 
-                    // Create the sequence point if generating debug info and
-                    // node is not compiler generated
-                    if (this.LocalRewriter.Instrument && !guarded.Guard.WasCompilerGenerated)
+                    // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
+                    if (!guarded.Guard.WasCompilerGenerated && this.LocalRewriter.Instrument)
                     {
-                        guardTest = this.LocalRewriter._instrumenter.InstrumentPatternSwitchWhenClause(guarded.Guard, guardTest);
+                        guardTest = this.LocalRewriter._instrumenter.InstrumentPatternSwitchWhenClauseConditionalGotoBody(guarded.Guard, guardTest);
                     }
 
                     sectionBuilder.Add(guardTest);

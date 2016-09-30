@@ -225,11 +225,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentPatternSwitchStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentPatternSwitchWhenClause(BoundExpression original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             // TODO: Desired behavior for a switch when clause has not been specified.
             // See also https://github.com/dotnet/roslyn/issues/14156
-            return base.InstrumentPatternSwitchWhenClause(original, rewritten);
+            return base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)

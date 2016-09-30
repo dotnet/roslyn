@@ -248,10 +248,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InstrumentStatement(original, rewritten);
         }
 
-        public virtual BoundStatement InstrumentPatternSwitchWhenClause(BoundExpression original, BoundStatement rewritten)
+        /// <summary>
+        /// Instrument a switch case when clause, which is translated to a conditional branch to the body of the case block.
+        /// </summary>
+        /// <param name="original">the bound expression of the when clause</param>
+        /// <param name="ifConditionGotoBody">the lowered conditional branch into the case block</param>
+        public virtual BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
+            Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Parent.Kind() == SyntaxKind.WhenClause);
-            return rewritten;
+            return ifConditionGotoBody;
         }
 
         public virtual BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
