@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Text.RegularExpressions;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -265,22 +266,23 @@ namespace Microsoft.CodeAnalysis.Rename
             /// <summary>
             /// Given a ISymbol, returns the renameable locations for a given symbol.
             /// </summary>
-            public static async Task<IEnumerable<RenameLocation>> GetRenamableDefinitionLocationsAsync(ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, CancellationToken cancellationToken)
+            public static async Task<ImmutableArray<RenameLocation>> GetRenamableDefinitionLocationsAsync(
+                ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, CancellationToken cancellationToken)
             {
                 var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, false, cancellationToken).ConfigureAwait(false);
                 if (!shouldIncludeSymbol)
                 {
-                    return SpecializedCollections.EmptyEnumerable<RenameLocation>();
+                    return ImmutableArray<RenameLocation>.Empty;
                 }
 
                 // Namespaces are definitions and references all in one. Since every definition
                 // location is also a reference, we'll ignore it's definitions.
                 if (referencedSymbol.Kind == SymbolKind.Namespace)
                 {
-                    return SpecializedCollections.EmptyEnumerable<RenameLocation>();
+                    return ImmutableArray<RenameLocation>.Empty;
                 }
 
-                var results = new List<RenameLocation>();
+                var results = ArrayBuilder<RenameLocation>.GetInstance();
 
                 // If the original symbol was an alias, then the definitions will just be the
                 // location of the alias, always
@@ -288,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     var location = originalSymbol.Locations.Single();
                     results.Add(new RenameLocation(location, solution.GetDocument(location.SourceTree).Id));
-                    return results;
+                    return results.ToImmutableAndFree();
                 }
 
                 var isRenamableAccessor = await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false);
@@ -328,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     }
                 }
 
-                return results;
+                return results.ToImmutableAndFree();
             }
 
             internal static async Task<IEnumerable<RenameLocation>> GetRenamableReferenceLocationsAsync(ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, CancellationToken cancellationToken)

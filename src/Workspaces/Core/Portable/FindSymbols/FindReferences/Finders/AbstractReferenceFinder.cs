@@ -484,12 +484,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
         }
 
-        protected virtual async Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
+        protected virtual Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
             TSymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
-            var result = await DependentProjectsFinder.GetDependentProjectsAsync(
-                symbol, solution, projects, cancellationToken).ConfigureAwait(false);
-            return result.ToImmutableArray();
+            return DependentProjectsFinder.GetDependentProjectsAsync(
+                symbol, solution, projects, cancellationToken);
         }
 
         protected virtual Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(

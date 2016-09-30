@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
             }
 
-            private async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+            private async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var newSolution = await UpdateSolutionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);

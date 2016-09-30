@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_instanceId;
 
-        private readonly CancellationTokenSource _source;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
         protected readonly JsonRpc Rpc;
         protected readonly CancellationToken CancellationToken;
@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Stream = stream;
 
-            _source = new CancellationTokenSource();
-            CancellationToken = _source.Token;
+            _cancellationTokenSource = new CancellationTokenSource();
+            CancellationToken = _cancellationTokenSource.Token;
 
             Rpc = JsonRpc.Attach(stream, this);
             Rpc.Disconnected += OnRpcDisconnected;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // raise cancellation
-            _source.Cancel();
+            _cancellationTokenSource.Cancel();
 
             OnDisconnected(e);
 

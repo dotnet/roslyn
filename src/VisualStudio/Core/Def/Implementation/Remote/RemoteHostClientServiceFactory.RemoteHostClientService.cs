@@ -54,7 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                    // We enable the remote host if either RemoteHostTest or RemoteHost are on.
+                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest) &&
+                        !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
                     {
                         // not turned on
                         return;

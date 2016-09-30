@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
             Dim accessibleConstructors = attributeType.InstanceConstructors.
-                                                       Where(Function(c) c.IsAccessibleWithin(within)).
+                                                       WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
                                                        FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                                        Sort(symbolDisplayService, semanticModel, attribute.SpanStart)
 

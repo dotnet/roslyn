@@ -167,23 +167,9 @@
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
     <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
     <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
-    <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
-    <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
-    <Compile Include="SymbolSearch\IDelayService.cs" />
-    <Compile Include="SymbolSearch\IIOService.cs" />
-    <Compile Include="SymbolSearch\ILogService.cs" />
-    <Compile Include="SymbolSearch\IPatchService.cs" />
-    <Compile Include="SymbolSearch\IRemoteControlService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.Update.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.DatabaseFactoryService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.DelayService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.IOService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.LogService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.RemoteControlService.cs" />
-    <Compile Include="SymbolSearch\Patching\Delta.cs" />
+    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -193,6 +179,7 @@
     <Compile Include="Shared\LogicalStringComparer.cs" />
     <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
+    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.LogService.cs" />
     <Compile Include="Telemetry\CodeMarkerLogger.cs" />
     <Compile Include="Telemetry\ProjectTypeLookupService.cs" />
     <Compile Include="Telemetry\ProjectTelemetryIncrementalAnalyzerProvider.cs" />
@@ -716,7 +703,6 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SymbolSearch\SymbolSearchService.PatchService.cs" />
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>

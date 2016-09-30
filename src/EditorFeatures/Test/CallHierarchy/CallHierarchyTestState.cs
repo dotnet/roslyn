@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
                 .WithPart(typeof(CallHierarchyProvider))
                 .WithPart(typeof(SymbolMappingServiceFactory))
                 .WithPart(typeof(EditorNotificationServiceFactory))
-                .WithPart(typeof(DefaultSymbolFinderEngineService))
                 .WithParts(additionalTypes);
 
             return MinimalTestExportProvider.CreateExportProvider(catalog);

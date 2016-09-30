@@ -51,6 +51,13 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngineFactory.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DelayService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.IOService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.PatchService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.RemoteControlService.cs" />
     <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
     <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
     <Compile Include="Options\ExportOptionAttribute.cs" />
@@ -58,6 +65,14 @@
     <Compile Include="Log\EtwLogger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
+    <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
+    <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\IDelayService.cs" />
+    <Compile Include="SymbolSearch\IIOService.cs" />
+    <Compile Include="SymbolSearch\IPatchService.cs" />
+    <Compile Include="SymbolSearch\IRemoteControlService.cs" />
+    <Compile Include="SymbolSearch\Patching\Delta.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.Update.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
     <Compile Include="Utilities\ReferencePathUtilities_Desktop.cs" />
     <Compile Include="WorkspaceDesktopResources.Designer.cs">
@@ -143,15 +158,18 @@
     <InternalsVisibleTo Include="MonoDevelop.Refactoring" />
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
     <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
-    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
