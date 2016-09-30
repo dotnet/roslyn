@@ -97,20 +97,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Const exactMatchIgnoringCustomModifiersMask As SymbolComparisonResults =
                 SymbolComparisonResults.TotalParameterCountMismatch Or SymbolComparisonResults.OptionalParameterTypeMismatch
 
-            Const exactMatchMask As SymbolComparisonResults = exactMatchIgnoringCustomModifiersMask Or SymbolComparisonResults.CustomModifierMismatch Or SymbolComparisonResults.TupleNamesMismatch
+            Const exactMatchMask As SymbolComparisonResults = exactMatchIgnoringCustomModifiersMask Or SymbolComparisonResults.CustomModifierMismatch
 
             Dim results As SymbolComparisonResults = DetailedSignatureCompare(sym1, sym2, mismatchesForOverriding)
 
+            ' Differences in tuple names does not affect matching signatures, it will only be used to report diagnostics
+            Dim resultsIgnoringTupleNames = results And Not SymbolComparisonResults.TupleNamesMismatch
+
             ' no match
-            If (results And Not exactMatchMask) <> 0 Then
+            If (resultsIgnoringTupleNames And Not exactMatchMask) <> 0 Then
                 exactMatch = False
                 exactMatchIgnoringCustomModifiers = False
                 Return False
             End If
 
             ' match
-            exactMatch = (results And exactMatchMask) = 0
-            exactMatchIgnoringCustomModifiers = (results And exactMatchIgnoringCustomModifiersMask) = 0
+            exactMatch = (resultsIgnoringTupleNames And exactMatchMask) = 0
+            exactMatchIgnoringCustomModifiers = (resultsIgnoringTupleNames And exactMatchIgnoringCustomModifiersMask) = 0
 
             Debug.Assert(Not exactMatch OrElse exactMatchIgnoringCustomModifiers)
             Return True
