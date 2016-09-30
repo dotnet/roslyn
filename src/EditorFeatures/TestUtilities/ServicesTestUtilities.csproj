@@ -29,6 +29,10 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
+      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
       <Name>TestUtilities.Desktop</Name>
