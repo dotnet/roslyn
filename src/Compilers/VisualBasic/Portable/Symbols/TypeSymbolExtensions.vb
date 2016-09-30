@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        array1.ElementType.IsSameType(array2.ElementType, compareKind)
 
             ElseIf t1.IsAnonymousType AndAlso t2.IsAnonymousType Then
-                Return AnonymousTypeManager.EqualsIgnoringCustomModifiers(t1, t2)
+                Return AnonymousTypeManager.IsSameType(t1, t2, compareKind)
 
             ElseIf kind = SymbolKind.NamedType OrElse kind = SymbolKind.ErrorType Then
                 Dim t1IsDefinition = t1.IsDefinition
