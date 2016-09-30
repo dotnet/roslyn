@@ -3800,7 +3800,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If (Me.Locations.Length > 1 AndAlso Not Me.IsPartial) Then
                 ' if there was an error with the enclosing class, suppress these diagnostics
             ElseIf comparisonResults = 0 Then
-                diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDef1, firstMember), location)
+                Dim comparisonWithTupleNames As SymbolComparisonResults = OverrideHidingHelper.DetailedSignatureCompare(
+                                        firstMember,
+                                        secondMember,
+                                        SymbolComparisonResults.AllMismatches And Not (SymbolComparisonResults.CallingConventionMismatch Or SymbolComparisonResults.ConstraintMismatch))
+                If comparisonWithTupleNames = 0 Then
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDef1, firstMember), location)
+                Else
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDefWithDifferentTupleNames, firstMember), location)
+                End If
             Else
                 ' TODO: maybe rewrite these diagnostics to if/elseifs to report just one diagnostic per
                 ' symbol. This would reduce the error count, but may lead to a new diagnostics once the 
