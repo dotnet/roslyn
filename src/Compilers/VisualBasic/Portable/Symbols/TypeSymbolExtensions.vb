@@ -243,6 +243,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension()>
         Friend Function IsSameType(t1 As TypeSymbol, t2 As TypeSymbol, compareKind As TypeCompareKind) As Boolean
+            Debug.Assert(compareKind <> 0 And
+                         (compareKind And Not (TypeCompareKind.IgnoreCustomModifiers Or TypeCompareKind.IgnoreTupleNames)) = 0)
 
             If (compareKind And TypeCompareKind.IgnoreTupleNames) = 0 AndAlso Not HasSameTupleNames(t1, t2) Then
                 Return False
