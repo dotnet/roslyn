@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsExtensionMethod() As Boolean
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return False
             End Get
         End Property
 

@@ -11227,6 +11227,158 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
 
         End Sub
 
+        <Fact>
+        Public Sub InheritFromMetadataWithDifferentNames()
+
+            Dim il =
+"
+.assembly extern mscorlib { }
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
+  .ver 4:0:1:0
+}
+
+.class public auto ansi beforefieldinit Base
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot virtual
+          instance class [System.ValueTuple]System.ValueTuple`2<int32,int32>
+          M() cil managed
+  {
+    .param [0]
+    // = (int a, int b)
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = ( 01 00 02 00 00 00 01 61 01 62 00 00 )
+    // Code size       13 (0xd)
+    .maxstack  2
+    .locals init (class [System.ValueTuple]System.ValueTuple`2<int32,int32> V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  ldc.i4.2
+    IL_0003:  newobj     instance void class [System.ValueTuple]System.ValueTuple`2<int32,int32>::.ctor(!0,
+                                                                                                        !1)
+    IL_0008:  stloc.0
+    IL_0009:  br.s       IL_000b
+
+    IL_000b:  ldloc.0
+    IL_000c:  ret
+  } // end of method Base::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Base::.ctor
+
+} // end of class Base
+
+.class public auto ansi beforefieldinit Base2
+       extends Base
+{
+  .method public hidebysig virtual instance class [System.ValueTuple]System.ValueTuple`2<int32,int32>
+          M() cil managed
+  {
+    .param [0]
+    // = (int notA, int notB)
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = (
+			01 00 02 00 00 00 04 6e 6f 74 41 04 6e 6f 74 42 00 00 )
+    // Code size       13 (0xd)
+    .maxstack  2
+    .locals init (class [System.ValueTuple]System.ValueTuple`2<int32,int32> V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  ldc.i4.2
+    IL_0003:  newobj     instance void class [System.ValueTuple]System.ValueTuple`2<int32,int32>::.ctor(!0,
+                                                                                                        !1)
+    IL_0008:  stloc.0
+    IL_0009:  br.s       IL_000b
+
+    IL_000b:  ldloc.0
+    IL_000c:  ret
+  } // end of method Base2::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void Base::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Base2::.ctor
+
+} // end of class Base2
+"
+
+            Dim compMatching = CreateCompilationWithCustomILSource(
+<compilation>
+    <file name="a.vb">
+            Public Class C
+                Inherits Base2
+
+                Public Overrides Function M() As (notA As Integer, notB As Integer)
+                    Return (1, 2)
+                End Function
+            End Class
+                </file>
+</compilation>,
+il,
+additionalReferences:=s_valueTupleRefs)
+
+            compMatching.AssertTheseDiagnostics()
+
+            Dim compDifferent1 = CreateCompilationWithCustomILSource(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Inherits Base2
+
+    Public Overrides Function M() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+il,
+additionalReferences:=s_valueTupleRefs)
+
+            compDifferent1.AssertTheseDiagnostics(
+<errors>
+BC37268: 'Public Overrides Function M() As (a As Integer, b As Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
+    Public Overrides Function M() As (a As Integer, b As Integer)
+                              ~
+</errors>)
+
+            Dim compDifferent2 = CreateCompilationWithCustomILSource(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Inherits Base2
+
+    Public Overrides Function M() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+il,
+additionalReferences:=s_valueTupleRefs)
+
+            compDifferent2.AssertTheseDiagnostics(
+<errors>
+BC37268: 'Public Overrides Function M() As (Integer, Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
+    Public Overrides Function M() As (Integer, Integer)
+                              ~
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace
