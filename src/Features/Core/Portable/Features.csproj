@@ -103,6 +103,7 @@
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.cs" />
     <Compile Include="NavigateTo\INavigateToSearchResult.cs" />
     <Compile Include="NavigateTo\INavigateToSearchService.cs" />
+    <Compile Include="NavigateTo\NavigateToOptions.cs" />
     <Compile Include="Navigation\INavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.cs" />
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />

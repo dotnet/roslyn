@@ -386,6 +386,7 @@
     <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
+    <Compile Include="FindSymbols\SymbolFinderOptions.cs" />
     <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />

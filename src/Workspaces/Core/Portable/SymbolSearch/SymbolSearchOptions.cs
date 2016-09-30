@@ -6,7 +6,15 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     internal static class SymbolSearchOptions
     {
-        public static readonly Option<bool> Enabled = new Option<bool>(nameof(SymbolSearchOptions), nameof(Enabled), defaultValue: true);
+        private const string LocalRegistryPath = @"Roslyn\Features\SymbolSearch\";
+
+        public static readonly Option<bool> Enabled = new Option<bool>(
+            nameof(SymbolSearchOptions), nameof(Enabled), defaultValue: true,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Enabled)));
+
+        public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
+            nameof(SymbolSearchOptions), nameof(OutOfProcessAllowed), defaultValue: true,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
 
         public static PerLanguageOption<bool> SuggestForTypesInReferenceAssemblies =
             new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: false,
