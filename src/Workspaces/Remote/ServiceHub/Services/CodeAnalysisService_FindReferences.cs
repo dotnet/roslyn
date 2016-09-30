@@ -3,15 +3,16 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Remote.Arguments;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     // root level service for all Roslyn services
-    internal partial class CodeAnalysisService
+    internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
         public async Task FindReferencesAsync(
             SerializableSymbolAndProjectId symbolAndProjectIdArg, SerializableDocumentId[] documentArgs, 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
                                          .ToImmutableHashSet();
 
             var progressCallback = new ProgressCallback(this);
-            await DefaultSymbolFinderEngineService.FindReferencesInCurrentProcessAsync(
+            await SymbolFinder.FindReferencesInCurrentProcessAsync(
                 symbolAndProjectId, solution, progressCallback, documents, CancellationToken).ConfigureAwait(false);
         }
 
@@ -69,5 +70,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     SerializableReferenceLocation.Dehydrate(reference));
             }
         }
+
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -770,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return false;
         }
 
-        public async Task<IEnumerable<Location>> ComputeDeclarationConflictsAsync(
+        public async Task<ImmutableArray<Location>> ComputeDeclarationConflictsAsync(
             string replacementText,
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
@@ -782,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             try
             {
-                var conflicts = new List<Location>();
+                var conflicts = ArrayBuilder<Location>.GetInstance();
 
                 // If we're renaming a named type, we can conflict with members w/ our same name.  Note:
                 // this doesn't apply to enums.
@@ -840,7 +841,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         }
                     }
 
-                    ConflictResolver.AddConflictingParametersOfProperties(properties.Distinct(), replacementText, conflicts);
+                    ConflictResolver.AddConflictingParametersOfProperties(
+                        properties.Distinct(), replacementText, conflicts);
                 }
                 else if (renamedSymbol.Kind == SymbolKind.Alias)
                 {
@@ -904,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                 }
 
-                return conflicts;
+                return conflicts.ToImmutableAndFree();
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -941,7 +943,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
         }
 
-        private void AddSymbolSourceSpans(List<Location> conflicts, IEnumerable<ISymbol> symbols, IDictionary<Location, Location> reverseMappedLocations)
+        private void AddSymbolSourceSpans(
+            ArrayBuilder<Location> conflicts, IEnumerable<ISymbol> symbols,
+            IDictionary<Location, Location> reverseMappedLocations)
         {
             foreach (var symbol in symbols)
             {
@@ -959,7 +963,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
         }
 
-        public async Task<IEnumerable<Location>> ComputeImplicitReferenceConflictsAsync(ISymbol renameSymbol, ISymbol renamedSymbol, IEnumerable<ReferenceLocation> implicitReferenceLocations, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Location>> ComputeImplicitReferenceConflictsAsync(
+            ISymbol renameSymbol, ISymbol renamedSymbol, IEnumerable<ReferenceLocation> implicitReferenceLocations, CancellationToken cancellationToken)
         {
             // Handle renaming of symbols used for foreach
             bool implicitReferencesMightConflict = renameSymbol.Kind == SymbolKind.Property &&
@@ -983,16 +988,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         switch (token.Kind())
                         {
                             case SyntaxKind.ForEachKeyword:
-                                return SpecializedCollections.SingletonEnumerable(((CommonForEachStatementSyntax)token.Parent).Expression.GetLocation());
+                                return ImmutableArray.Create(((CommonForEachStatementSyntax)token.Parent).Expression.GetLocation());
                         }
                     }
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<Location>();
+            return ImmutableArray<Location>.Empty;
         }
 
-        public IEnumerable<Location> ComputePossibleImplicitUsageConflicts(
+        public ImmutableArray<Location> ComputePossibleImplicitUsageConflicts(
             ISymbol renamedSymbol,
             SemanticModel semanticModel,
             Location originalDeclarationLocation,
@@ -1029,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                             {
                                 if (!method.ReturnsVoid && !method.Parameters.Any() && method.ReturnType.SpecialType == SpecialType.System_Boolean)
                                 {
-                                    return SpecializedCollections.SingletonEnumerable(originalDeclarationLocation);
+                                    return ImmutableArray.Create(originalDeclarationLocation);
                                 }
                             }
                             else if (symbol.Name == "GetEnumerator")
@@ -1039,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                 if (!method.ReturnsVoid &&
                                     !method.Parameters.Any())
                                 {
-                                    return SpecializedCollections.SingletonEnumerable(originalDeclarationLocation);
+                                    return ImmutableArray.Create(originalDeclarationLocation);
                                 }
                             }
                         }
@@ -1049,14 +1054,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                             if (!property.Parameters.Any() && !property.IsWriteOnly)
                             {
-                                return SpecializedCollections.SingletonEnumerable(originalDeclarationLocation);
+                                return ImmutableArray.Create(originalDeclarationLocation);
                             }
                         }
                     }
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<Location>();
+            return ImmutableArray<Location>.Empty;
         }
 
         #endregion

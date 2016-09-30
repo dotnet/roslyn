@@ -135,22 +135,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetNameEqualsItemsAsync(CompletionContext context, SemanticModel semanticModel,
+        private async Task<ImmutableArray<CompletionItem>> GetNameEqualsItemsAsync(
+            CompletionContext context, SemanticModel semanticModel,
             SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
             var attributeNamedParameters = GetAttributeNamedParameters(semanticModel, context.Position, attributeSyntax, context.CancellationToken);
             var unspecifiedNamedParameters = attributeNamedParameters.Where(p => !existingNamedParameters.Contains(p.Name));
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
-            return from p in attributeNamedParameters
-                   where !existingNamedParameters.Contains(p.Name)
-                   select SymbolCompletionItem.Create(
+            var q = from p in attributeNamedParameters
+                    where !existingNamedParameters.Contains(p.Name)
+                    select SymbolCompletionItem.Create(
                        displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                        insertionText: null,
                        symbol: p,
                        contextPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: CompletionItemRules.Default);
+            return q.ToImmutableArray();
         }
 
         private async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(

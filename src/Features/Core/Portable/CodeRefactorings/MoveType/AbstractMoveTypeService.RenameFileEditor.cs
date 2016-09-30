@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
             }
 
-            internal override Task<IEnumerable<CodeActionOperation>> GetOperationsAsync()
+            internal override Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
             {
                 return Task.FromResult(RenameFileToMatchTypeName());
             }
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// <summary>
             /// Renames the file to match the type contained in it.
             /// </summary>
-            private IEnumerable<CodeActionOperation> RenameFileToMatchTypeName()
+            private ImmutableArray<CodeActionOperation> RenameFileToMatchTypeName()
             {
                 var oldDocument = SemanticDocument.Document;
                 var solution = oldDocument.Project.Solution;
@@ -38,11 +39,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var newSolution = solution.RemoveDocument(oldDocumentId);
                 newSolution = newSolution.AddDocument(newDocumentId, FileName, text, oldDocument.Folders);
 
-                return new CodeActionOperation[]
-                {
+                return ImmutableArray.Create<CodeActionOperation>(
                     new ApplyChangesOperation(newSolution),
-                    new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true)
-                };
+                    new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
             }
         }
     }
