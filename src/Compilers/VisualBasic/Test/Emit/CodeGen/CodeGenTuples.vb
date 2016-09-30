@@ -11379,6 +11379,40 @@ BC37268: 'Public Overrides Function M() As (Integer, Integer)' cannot override '
 
         End Sub
 
+        <Fact>
+        Public Sub TupleNamesInAnonymousTypes()
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Imports System
+Public Class C
+    Public Shared Sub Main()
+        Dim x1 = New With {.Tuple = (a:=1, b:=2) }
+        Dim x2 = New With {.Tuple = (c:=1, 2) }
+        x2 = x1
+        Console.Write(x1.Tuple.a)
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().First()
+
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Assert.Equal("x1 As <anonymous type: Tuple As (a As System.Int32, b As System.Int32)>", model.GetDeclaredSymbol(x1).ToTestDisplayString())
+
+            Dim x2 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(1).First().Names(0)
+            Assert.Equal("x2 As <anonymous type: Tuple As (c As System.Int32, System.Int32)>", model.GetDeclaredSymbol(x2).ToTestDisplayString())
+
+        End Sub
+
     End Class
 
 End Namespace
