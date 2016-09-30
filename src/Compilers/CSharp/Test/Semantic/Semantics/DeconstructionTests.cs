@@ -2506,5 +2506,45 @@ class C
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.Deconstruct(out int, out int)", "Deprecated").WithLocation(6, 27)
                 );
         }
+
+        [Fact]
+        public void DeconstructionLocalsDeclaredNotUsed()
+        {
+            // Check that there are no *use sites* within this code for local variables.
+            // They are declared herein, but nowhere used. So they should not be returned
+            // by SemanticModel.GetSymbolInfo.
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        var (x1, y1) = (1, 2);
+
+        (var x2, var y2) = (1, 2);
+    }
+
+    static void M((int, int) t)
+    {
+        var (x3, y3) = t;
+
+        (var x4, var y4) = t;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            foreach (var node in nodes)
+            {
+                var si = model.GetSymbolInfo(node);
+                var symbol = si.Symbol;
+                if (symbol == null) continue;
+                Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+            }
+        }
+
     }
 }
