@@ -13549,6 +13549,15 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
+BC37269: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31033: Interface 'I0(Of (a As Integer, b As Integer))' can be implemented only once by this type.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
+    Implements I0(Of Integer), I0(Of Integer)
+                               ~~~~~~~~~~~~~~
 </errors>)
 
         End Sub

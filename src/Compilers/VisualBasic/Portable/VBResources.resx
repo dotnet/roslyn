@@ -1866,6 +1866,9 @@
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
   </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames" xml:space="preserve">
+    <value>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}'.</value>
+  </data>
   <data name="ERR_InterfaceNotImplemented1" xml:space="preserve">
     <value>Interface '{0}' is not implemented by this class.</value>
   </data>

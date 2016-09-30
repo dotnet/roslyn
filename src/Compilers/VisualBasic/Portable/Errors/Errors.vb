@@ -1702,6 +1702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_ValueTupleTypeRefResolutionError = 37267
         ERR_InvalidOverrideDueToTupleNames = 37268
+        ERR_InterfaceImplementedTwiceWithDifferentTupleNames = 37269
 
         ERR_TupleElementNamesAttributeMissing = 37268
         ERR_ExplicitTupleElementNamesAttribute = 37269

@@ -1219,17 +1219,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' give errors for multiple base classes
-            Dim interfacesInThisPartial As New HashSet(Of TypeSymbol)()
+            Dim interfacesInThisPartial As New Dictionary(Of TypeSymbol, TypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
 
             For Each baseDeclaration In baseSyntax
                 Dim types = DirectCast(baseDeclaration, ImplementsStatementSyntax).Types
                 For Each baseClassSyntax In types
                     Dim typeSymbol = binder.BindTypeSyntax(baseClassSyntax, diagBag, suppressUseSiteError:=True)
 
-                    If interfacesInThisPartial.Contains(typeSymbol) Then
-                        Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InterfaceImplementedTwice1, typeSymbol)
+                    Dim other As TypeSymbol = Nothing
+                    If interfacesInThisPartial.TryGetValue(typeSymbol, other) Then
+                        If other.IsSameType(typeSymbol, TypeCompareKind.ConsiderEverything) Then
+                            Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InterfaceImplementedTwice1, typeSymbol)
+                        Else
+                            Binder.ReportDiagnostic(diagBag, baseClassSyntax,
+                                    ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames, typeSymbol, other)
+                        End If
                     Else
-                        interfacesInThisPartial.Add(typeSymbol)
+                        interfacesInThisPartial.Add(typeSymbol, typeSymbol)
 
                         ' Check to make sure the base interfaces are valid.
                         Select Case typeSymbol.TypeKind
@@ -2571,6 +2577,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
         End Sub
+
+        Private Class EqualsIgnoringComparer
+            Inherits EqualityComparer(Of TypeSymbol)
+
+            Public Shared ReadOnly Property InstanceIgnoringTupleNames As EqualsIgnoringComparer =
+                New EqualsIgnoringComparer(TypeCompareKind.IgnoreTupleNames)
+
+            Private ReadOnly _comparison As TypeCompareKind
+
+            Public Sub New(comparison As TypeCompareKind)
+                _comparison = comparison
+            End Sub
+
+            Public Overrides Function Equals(type1 As TypeSymbol, type2 As TypeSymbol) As Boolean
+                Return If(type1 Is Nothing,
+                    type2 Is Nothing,
+                    type1.IsSameType(type2, _comparison))
+            End Function
+
+            Public Overrides Function GetHashCode(obj As TypeSymbol) As Integer
+                Return obj.GetHashCode()
+            End Function
+        End Class
 
     End Class
 End Namespace
