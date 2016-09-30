@@ -18886,5 +18886,92 @@ namespace System
             );
 
         }        
+
+        [Fact]
+        [WorkItem(14166, "https://github.com/dotnet/roslyn/issues/14166")]
+        public void RefTuple001()
+        {
+            var source = @"
+    class Program
+    {
+        static (int Alice, int Bob)[] arr = new(int Alice, int Bob)[1];
+
+        static void Main(string[] args)
+        {
+            RefParam(ref arr[0]);
+            System.Console.WriteLine(arr[0]);
+    
+            RefReturn().Item2 = 42;
+            System.Console.WriteLine(arr[0]);
+
+            ref (int, int) x = ref arr[0];
+            x.Item1 = 33;
+
+            System.Console.WriteLine(arr[0]);
+        }
+
+        static void RefParam(ref (int, int) p)
+        {
+            p.Item1 = 42;
+        }
+
+        static ref (int, int) RefReturn()
+        {
+            return ref arr[0];
+        }
+    }";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"(42, 0)
+(42, 42)
+(33, 42)");
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size      110 (0x6e)
+  .maxstack  2
+  IL_0000:  ldsfld     ""(int Alice, int Bob)[] Program.arr""
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelema    ""System.ValueTuple<int, int>""
+  IL_000b:  call       ""void Program.RefParam(ref (int, int))""
+  IL_0010:  ldsfld     ""(int Alice, int Bob)[] Program.arr""
+  IL_0015:  ldc.i4.0
+  IL_0016:  ldelem     ""System.ValueTuple<int, int>""
+  IL_001b:  box        ""System.ValueTuple<int, int>""
+  IL_0020:  call       ""void System.Console.WriteLine(object)""
+  IL_0025:  call       ""ref (int, int) Program.RefReturn()""
+  IL_002a:  ldc.i4.s   42
+  IL_002c:  stfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0031:  ldsfld     ""(int Alice, int Bob)[] Program.arr""
+  IL_0036:  ldc.i4.0
+  IL_0037:  ldelem     ""System.ValueTuple<int, int>""
+  IL_003c:  box        ""System.ValueTuple<int, int>""
+  IL_0041:  call       ""void System.Console.WriteLine(object)""
+  IL_0046:  ldsfld     ""(int Alice, int Bob)[] Program.arr""
+  IL_004b:  ldc.i4.0
+  IL_004c:  ldelema    ""System.ValueTuple<int, int>""
+  IL_0051:  ldc.i4.s   33
+  IL_0053:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0058:  ldsfld     ""(int Alice, int Bob)[] Program.arr""
+  IL_005d:  ldc.i4.0
+  IL_005e:  ldelem     ""System.ValueTuple<int, int>""
+  IL_0063:  box        ""System.ValueTuple<int, int>""
+  IL_0068:  call       ""void System.Console.WriteLine(object)""
+  IL_006d:  ret
+}
+");
+
+            comp.VerifyIL("Program.RefReturn", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsfld     ""(int Alice, int Bob)[] Program.arr""
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelema    ""System.ValueTuple<int, int>""
+  IL_000b:  ret
+}
+");
+        }
     }
 }
