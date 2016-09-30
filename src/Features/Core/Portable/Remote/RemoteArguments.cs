@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
-
-
     #region NavigateTo
 
     internal class SerializableNavigateToSearchResult
