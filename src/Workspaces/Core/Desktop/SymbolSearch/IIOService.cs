@@ -2,7 +2,7 @@
 
 using System.IO;
 
-namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
     /// Used so we can mock out how the search service does IO for testing purposes.

@@ -1,17 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Roslyn.Utilities;
-using Microsoft.VisualStudio.Shell.Interop;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal partial class SymbolSearchService
+    internal partial class VisualStudioSymbolSearchService
     {
-        private class LogService : ForegroundThreadAffinitizedObject, ILogService
+        private class LogService : ForegroundThreadAffinitizedObject, ISymbolSearchLogService
         {
+            private static readonly LinkedList<string> s_log = new LinkedList<string>();
+
             private readonly IVsActivityLog _activityLog;
 
             public LogService(IVsActivityLog activityLog)
@@ -24,9 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return LogAsync(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
             }
 
-            public Task LogExceptionAsync(Exception e, string text)
+            public Task LogExceptionAsync(string exception, string text)
             {
-                return LogAsync(text + ". " + e.ToString(), __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
+                return LogAsync(text + ". " + exception, __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
             }
 
             private Task LogAsync(string text, __ACTIVITYLOG_ENTRYTYPE type)
@@ -36,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
 
             private void Log(string text, __ACTIVITYLOG_ENTRYTYPE type)
-            { 
+            {
                 if (!this.IsForeground())
                 {
                     this.InvokeBelowInputPriority(() => Log(text, type));
@@ -44,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 }
 
                 AssertIsForeground();
-                _activityLog?.LogEntry((uint)type, HostId, text);
+                _activityLog?.LogEntry((uint)type, SymbolSearchUpdateEngine.HostId, text);
 
                 // Keep a running in memory log as well for debugging purposes.
                 s_log.AddLast(text);

@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal class SymbolSearchOptions
+    internal static class SymbolSearchOptions
     {
         public static readonly Option<bool> Enabled = new Option<bool>(nameof(SymbolSearchOptions), nameof(Enabled), defaultValue: true);
 

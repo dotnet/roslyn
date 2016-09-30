@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public const string CodeAnalysisService_FindReferenceMethodsAsync = "FindReferenceMethodsAsync";
         public const string CodeAnalysisService_GetFullyQualifiedName = "GetFullyQualifiedName";
 
+        public const string RemoteSymbolSearchUpdateEngine = "remoteSymbolSearchUpdateEngine";
+
         public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
     }
 }

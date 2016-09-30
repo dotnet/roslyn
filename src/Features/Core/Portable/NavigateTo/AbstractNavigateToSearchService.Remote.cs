@@ -44,11 +44,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static Task<RemoteHostClient> GetRemoteHostClientAsync(
-            Project project, CancellationToken cancellationToken)
-        {
-            var clientService = project.Solution.Workspace.Services.GetService<IRemoteHostClientService>();
-            return clientService.GetRemoteHostClientAsync(cancellationToken);
-        }
+        private static Task<RemoteHostClient> GetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
+            => project.Solution.Workspace.GetRemoteHostClientAsync(cancellationToken);
     }
 }

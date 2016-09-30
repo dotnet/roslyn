@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
     /// Used so we can mock out how the search service delays work for testing purposes.

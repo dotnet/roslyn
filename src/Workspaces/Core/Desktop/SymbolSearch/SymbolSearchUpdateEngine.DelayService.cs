@@ -2,9 +2,9 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal partial class SymbolSearchService
+    internal partial class SymbolSearchUpdateEngine
     {
         private class DelayService : IDelayService
         {

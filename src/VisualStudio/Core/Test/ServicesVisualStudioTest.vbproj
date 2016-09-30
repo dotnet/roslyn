@@ -34,6 +34,10 @@
       <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
       <Name>BasicFeatures</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
       <Name>BasicWorkspace</Name>
@@ -283,7 +287,7 @@
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />
-    <Compile Include="SymbolSearch\SymbolSearchServiceTests.vb" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngineTests.vb" />
     <Compile Include="Options\Style\NamingPreferences\NamingRuleDialogViewModelTests.vb" />
     <Compile Include="Telemetry\VSTelemetryLoggerTest.vb" />
     <Compile Include="Utilities\VsNavInfoHelpers.vb" />

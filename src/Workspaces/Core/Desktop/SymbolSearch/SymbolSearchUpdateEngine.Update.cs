@@ -12,13 +12,12 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Elfie.Model;
-using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.RemoteControl;
 using Roslyn.Utilities;
 using static System.FormattableString;
 
-namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
     /// A service which enables searching for packages matching certain criteria.
@@ -27,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class SymbolSearchService
+    internal partial class SymbolSearchUpdateEngine
     {
         // Internal for testing purposes.
         internal const string ContentAttributeName = "content";
@@ -36,42 +35,36 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         internal const string TooOldAttributeName = "tooOld";
         internal const string NugetOrgSource = "nuget.org";
 
-        private const string HostId = "RoslynNuGetSearch";
+        public const string HostId = "RoslynNuGetSearch";
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
-        private static readonly LinkedList<string> s_log = new LinkedList<string>();
 
         /// <summary>
         /// Cancellation support for the task we use to keep the local database up to date.
         /// When VS shuts down it will dispose us.  We'll cancel the task at that point.
         /// </summary>
-        private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly CancellationToken _cancellationToken;
+        private readonly CancellationToken _updateCancellationToken;
 
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
 
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.
-        private readonly IPackageInstallerService _installerService;
         private readonly IDelayService _delayService;
         private readonly IIOService _ioService;
-        private readonly ILogService _logService;
+        private readonly ISymbolSearchLogService _logService;
         private readonly IRemoteControlService _remoteControlService;
         private readonly IPatchService _patchService;
         private readonly IDatabaseFactoryService _databaseFactoryService;
-        private readonly string _localSettingsDirectory;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
         private Task LogInfoAsync(string text) => _logService.LogInfoAsync(text);
 
-        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e, text);
+        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e.ToString(), text);
 
-
-        // internal for testing purposes.
-        internal Task UpdateSourceInBackgroundAsync(string source)
+        public Task UpdateContinuouslyAsync(string source, string localSettingsDirectory)
         {
             // Only the first thread to try to update this source should succeed
-            // and cause us to actually being the update loop. 
+            // and cause us to actually begin the update loop. 
             var ourSentinel = new object();
             var currentSentinel = _sourceToUpdateSentinel.GetOrAdd(source, ourSentinel);
 
@@ -83,17 +76,17 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             // We were the first ones to try to update this source.  Spawn off a task to do
             // the updating.
-            return new Updater(this, source, _localSettingsDirectory).UpdateInBackgroundAsync();
+            return new Updater(this, source, localSettingsDirectory).UpdateInBackgroundAsync();
         }
 
         private class Updater
         {
-            private readonly SymbolSearchService _service;
+            private readonly SymbolSearchUpdateEngine _service;
             private readonly string _source;
             private readonly DirectoryInfo _cacheDirectoryInfo;
             private readonly FileInfo _databaseFileInfo;
 
-            public Updater(SymbolSearchService service, string source, string localSettingsDirectory)
+            public Updater(SymbolSearchUpdateEngine service, string source, string localSettingsDirectory)
             {
                 _service = service;
                 _source = source;
@@ -117,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 }
 
                 // Keep on looping until we're told to shut down.
-                while (!_service._cancellationToken.IsCancellationRequested)
+                while (!_service._updateCancellationToken.IsCancellationRequested)
                 {
                     await _service.LogInfoAsync("Starting update").ConfigureAwait(false);
                     try
@@ -125,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                         var delayUntilNextUpdate = await UpdateDatabaseInBackgroundWorkerAsync().ConfigureAwait(false);
 
                         await _service.LogInfoAsync($"Waiting {delayUntilNextUpdate} until next update").ConfigureAwait(false);
-                        await Task.Delay(delayUntilNextUpdate, _service._cancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delayUntilNextUpdate, _service._updateCancellationToken).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
                     {
@@ -224,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     await _service.LogInfoAsync("Cache directory created").ConfigureAwait(false);
                 }
 
-                _service._cancellationToken.ThrowIfCancellationRequested();
+                _service._updateCancellationToken.ThrowIfCancellationRequested();
             }
 
             private async Task<TimeSpan> DownloadFullDatabaseAsync()
@@ -507,14 +500,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     // Poll the client every minute until we get the file.
                     while (true)
                     {
-                        _service._cancellationToken.ThrowIfCancellationRequested();
+                        _service._updateCancellationToken.ThrowIfCancellationRequested();
 
                         var resultOpt = await TryDownloadFileAsync(client).ConfigureAwait(false);
                         if (resultOpt == null)
                         {
                             var delay = _service._delayService.CachePollDelay;
                             await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}").ConfigureAwait(false);
-                            await Task.Delay(delay, _service._cancellationToken).ConfigureAwait(false);
+                            await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
@@ -532,7 +525,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
                 // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
 
-                using (var stream = await client.ReadFileAsync(__VsRemoteControlBehaviorOnStale.ReturnsNull).ConfigureAwait(false))
+                using (var stream = await client.ReadFileAsync(BehaviorOnStale.ReturnNull).ConfigureAwait(false))
                 {
                     if (stream == null)
                     {
@@ -566,7 +559,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 const int repeat = 6;
                 for (var i = 0; i < repeat; i++)
                 {
-                    _service._cancellationToken.ThrowIfCancellationRequested();
+                    _service._updateCancellationToken.ThrowIfCancellationRequested();
 
                     try
                     {
@@ -584,7 +577,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
                         var delay = _service._delayService.FileWriteDelay;
                         await _service.LogExceptionAsync(e, $"Operation failed. Trying again after {delay}").ConfigureAwait(false);
-                        await Task.Delay(delay, _service._cancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
                     }
                 }
             }

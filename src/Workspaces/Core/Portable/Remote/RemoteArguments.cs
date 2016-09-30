@@ -2,9 +2,11 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -166,6 +168,60 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var symbolAndProjectId = await Alias.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
             return symbolAndProjectId.Symbol as IAliasSymbol;
+        }
+    }
+
+    #endregion
+
+    #region SymbolSearch
+
+    internal class SerializablePackageWithTypeResult
+    {
+        public string PackageName;
+        public string TypeName;
+        public string Version;
+        public int Rank;
+        public string[] ContainingNamespaceNames;
+
+        public static SerializablePackageWithTypeResult Dehydrate(PackageWithTypeResult result)
+        {
+            return new SerializablePackageWithTypeResult
+            {
+                PackageName = result.PackageName,
+                TypeName = result.TypeName,
+                Version = result.Version,
+                Rank = result.Rank,
+                ContainingNamespaceNames = result.ContainingNamespaceNames.ToArray(),
+            };
+        }
+
+        public PackageWithTypeResult Rehydrate()
+        {
+            return new PackageWithTypeResult(
+                PackageName, TypeName, Version, Rank, ContainingNamespaceNames);
+        }
+    }
+
+    internal class SerializableReferenceAssemblyWithTypeResult
+    {
+        public string AssemblyName;
+        public string TypeName;
+        public string[] ContainingNamespaceNames;
+
+        public static SerializableReferenceAssemblyWithTypeResult Dehydrate(
+            ReferenceAssemblyWithTypeResult result)
+        {
+            return new SerializableReferenceAssemblyWithTypeResult
+            {
+                ContainingNamespaceNames = result.ContainingNamespaceNames.ToArray(),
+                AssemblyName = result.AssemblyName,
+                TypeName = result.TypeName
+            };
+        }
+
+        public ReferenceAssemblyWithTypeResult Rehydrate()
+        {
+            return new ReferenceAssemblyWithTypeResult(AssemblyName, TypeName, ContainingNamespaceNames);
         }
     }
 
