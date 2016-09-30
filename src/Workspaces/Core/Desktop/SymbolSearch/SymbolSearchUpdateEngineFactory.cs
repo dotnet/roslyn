@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -21,13 +18,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
             Workspace workspace, ISymbolSearchLogService logService, CancellationToken cancellationToken)
         {
-            var clientService = workspace.Services.GetService<IRemoteHostClientService>();
-            if (clientService == null)
-            {
-                return new SymbolSearchUpdateEngine(logService);
-            }
-
-            var client = await clientService.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return new SymbolSearchUpdateEngine(logService);

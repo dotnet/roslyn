@@ -22,5 +22,16 @@ namespace Microsoft.CodeAnalysis.Remote
             return client.CreateServiceSessionAsync(
                 WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget, cancellationToken);
         }
+
+        public static async Task<RemoteHostClient> GetRemoteHostClientAsync(this Workspace workspace, CancellationToken cancellationToken)
+        {
+            var clientService = workspace.Services.GetService<IRemoteHostClientService>();
+            if (clientService == null)
+            {
+                return null;
+            }
+
+            return await clientService.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 }

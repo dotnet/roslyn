@@ -55,9 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken)
         {
-            var clientService = solution.Workspace.Services.GetService<IRemoteHostClientService>();
-            var client = await clientService.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-
+            var client = await solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 await FindReferencesInCurrentProcessAsync(
