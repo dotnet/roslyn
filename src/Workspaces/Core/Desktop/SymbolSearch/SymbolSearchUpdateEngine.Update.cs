@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public Task UpdateContinuouslyAsync(string source, string localSettingsDirectory)
         {
             // Only the first thread to try to update this source should succeed
-            // and cause us to actually being the update loop. 
+            // and cause us to actually begin the update loop. 
             var ourSentinel = new object();
             var currentSentinel = _sourceToUpdateSentinel.GetOrAdd(source, ourSentinel);
 
