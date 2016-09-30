@@ -12,31 +12,53 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
+    <OutDir>$(OutDir)Dev15Tests\</OutDir>
+    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj">
+      <Project>{b0ce9307-ffdb-4838-a5ec-ce1f7cdc4ac2}</Project>
+      <Name>CSharpEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj">
+      <Project>{49bfae50-1bce-48ae-bc89-78b7d90a3ecd}</Project>
+      <Name>BasicEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
+      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
+      <Project>{3973b09a-4fbf-44a5-8359-3d22ceb71f71}</Project>
+      <Name>CSharpFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
+      <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
+      <Name>BasicFeatures</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
-      <Name>CSharpWorkspace</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj">
-      <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
-      <Name>CSharpEditorFeatures</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
@@ -54,6 +76,10 @@
       <Project>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</Project>
       <Name>ServicesVisualStudio</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
+      <Project>{21b239d0-d144-430f-a394-c066d58ee267}</Project>
+      <Name>CSharpWorkspace</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
       <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
       <Name>RemoteWorkspaces</Name>
@@ -62,32 +88,25 @@
       <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
       <Name>ServiceHub</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Core\Test\ServicesVisualStudioTest.vbproj">
-      <Project>{A1455D30-55FC-45EF-8759-3AEBDB13D940}</Project>
-      <Name>ServicesVisualStudioTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CSharp\Impl\CSharpVisualStudio.csproj">
-      <Project>{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}</Project>
-      <Name>CSharpVisualStudio</Name>
+    <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
+      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
+      <Name>BasicWorkspace</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
-      <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
-      <Name>CSharpFeatures</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
-      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
-      <Name>Features</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    <ProjectReference Include="..\..\CSharp\Impl\CSharpVisualStudio.csproj">
+      <Project>{5defadbd-44eb-47a2-a53e-f1282cc9e4e9}</Project>
+      <Name>CSharpVisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualBasic\Impl\BasicVisualStudio.vbproj">
+      <Project>{d49439d7-56d2-450f-a4f0-74cb95d620e6}</Project>
+      <Name>BasicVisualStudio</Name>
     </ProjectReference>
     <ProjectReference Include="..\Next\ServicesVisualStudio.Next.csproj">
       <Project>{fe0d4bdd-1c30-488e-a870-854f5b8c5014}</Project>
@@ -99,33 +118,32 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="microsoft.msxml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="RemoteWorkspace\" />
-    <Folder Include="Remote\" />
     <Folder Include="ServiceHub\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Mocks\TestHostServices.cs" />
+    <Compile Include="Mocks\InProcRemoteHostClientFactory.cs" />
+    <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />

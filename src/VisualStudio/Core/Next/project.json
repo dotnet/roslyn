@@ -10,7 +10,7 @@
             "version": "14.3.25407",
             "suppressParent": "all"
         },
-        "Microsoft.ServiceHub.Client": "1.0.103-rc",
+        "Microsoft.ServiceHub.Client": "0.13.78-alpha-gf674a884a9",
         "Newtonsoft.Json": "8.0.3",
         "RoslynDependencies.Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.25718-Preview5",
         "RoslynDependencies.Microsoft.VisualStudio.Workspace": "14.0.983-pre-ge167e81694",

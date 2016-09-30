@@ -254,6 +254,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             consoleOutput.WriteLine();
         }
 
+
+        internal override Type Type
+        {
+            get
+            {
+                // We do not use this.GetType() so that we don't break mock subtypes
+                return typeof(CSharpCompiler);
+            }
+        }
+
         internal override string GetToolName()
         {
             return ErrorFacts.GetMessage(MessageID.IDS_ToolName, Culture);

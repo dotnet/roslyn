@@ -52,10 +52,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="consoleOutput"></param>
         public virtual void PrintVersion(TextWriter consoleOutput)
         {
-            consoleOutput.WriteLine(GetAssemblyVersion());
+            consoleOutput.WriteLine(GetAssemblyFileVersion());
         }
-
-        internal abstract string GetToolName();
 
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
@@ -86,11 +84,20 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
 
-        internal string GetAssemblyFileVersion()
+        /// <summary>
+        /// The type of the compiler class for version information in /help and /version.
+        /// We don't simply use this.GetType() because that would break mock subclasses.
+        /// </summary>
+        internal abstract Type Type { get; }
+
+        /// <summary>
+        /// The assembly file version of this compiler, used in logo and /version output.
+        /// </summary>
+        internal virtual string GetAssemblyFileVersion()
         {
             if (_clientDirectory != null)
             {
-                var name = $"{typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Name}.dll";
+                var name = $"{Type.GetTypeInfo().Assembly.GetName().Name}.dll";
                 var filePath = Path.Combine(_clientDirectory, name);
                 return FileVersionInfo.GetVersionInfo(filePath).FileVersion;
             }
@@ -98,9 +105,17 @@ namespace Microsoft.CodeAnalysis
             return "";
         }
 
+        /// <summary>
+        /// Tool name used, along with assembly version, for error logging.
+        /// </summary>
+        internal abstract string GetToolName();
+
+        /// <summary>
+        /// Tool version identifier used for error logging.
+        /// </summary>
         internal Version GetAssemblyVersion()
         {
-            return typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Version;
+            return Type.GetTypeInfo().Assembly.GetName().Version;
         }
 
         internal string GetCultureName()

@@ -12,20 +12,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal class XamlProject : AbstractLegacyProject
     {
-        public XamlProject(IVsHierarchy hierarchy, IServiceProvider serviceProvider, VisualStudioWorkspaceImpl visualStudioWorkspace) :
+        public XamlProject(VisualStudioProjectTracker projectTracker, IVsHierarchy hierarchy, IServiceProvider serviceProvider, VisualStudioWorkspaceImpl visualStudioWorkspace) :
             base(
-                visualStudioWorkspace.ProjectTracker,
+                projectTracker,
                 reportExternalErrorCreatorOpt: null,
-                projectSystemName: $"{XamlProject.GetProjectName(hierarchy)}|{nameof(XamlProject)}",
+                projectSystemName: $"{XamlProject.GetProjectName(hierarchy)}-{nameof(XamlProject)}",
                 hierarchy: hierarchy,
                 language: StringConstants.XamlLanguageName,
                 serviceProvider: serviceProvider,
                 visualStudioWorkspaceOpt: visualStudioWorkspace,
                 hostDiagnosticUpdateSourceOpt: null)
         {
-            // We initialized ProjectSystemName to include nameof(XamlProject).
-            // Update DisplayName to just the project name.
-            UpdateProjectDisplayName(XamlProject.GetProjectName(hierarchy));
+            projectTracker.AddProject(this);
         }
 
         private static string GetProjectName(IVsHierarchy hierarchy)
@@ -36,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         private string GetDebuggerDisplay()
         {
-            return $"{this.DisplayName}|{nameof(XamlProject)}";
+            return $"{this.DisplayName}";
         }
     }
 }

@@ -85,18 +85,11 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
       <Link>Shared\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RemoteArguments.cs">
-      <Link>Shared\RemoteArguments.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
       <Link>Shared\ServerDirectStream.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\WellKnownServiceHubServices.cs">
-      <Link>Shared\WellKnownServiceHubServices.cs</Link>
-    </Compile>
     <Compile Include="CodeLens\RemoteCodeLensReferencesService.cs" />
     <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
-    <Compile Include="Extensions\RemoteHostClientExtensions.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
@@ -109,8 +102,6 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
-    <Compile Include="NavigateTo\VisualStudioNavigateToEngineService.cs" />
-    <Compile Include="FindSymbols\VisualStudioSymbolFinderEngineService.cs" />
     <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />
@@ -122,7 +113,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ServicesVisualStudioNextResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="FindSymbols\VisualStudioSymbolFinderEngineService.ServerCallback.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ServicesVisualStudioNextResources.resx">

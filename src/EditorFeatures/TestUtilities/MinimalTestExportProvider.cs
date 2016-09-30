@@ -18,15 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     public static class MinimalTestExportProvider
     {
         private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
-        private static readonly Lazy<ComposableCatalog> s_lazyLanguageNeutralCatalog = new Lazy<ComposableCatalog>(() => CreateAssemblyCatalog(GetVisualStudioAssemblies()).WithParts(CreateAssemblyCatalog(GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct())));
-
-        public static ComposableCatalog LanguageNeutralCatalog
-        {
-            get
-            {
-                return s_lazyLanguageNeutralCatalog.Value;
-            }
-        }
 
         public static Type[] GetLanguageNeutralTypes()
         {
@@ -51,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.UnitTests.TestOptionsServiceFactory),
                 typeof(SymbolMapping.SymbolMappingServiceFactory),
                 typeof(TestWaitIndicator),
-                typeof(TestExtensionErrorHandler),
-                typeof(TestExportProvider)
+                typeof(TestExtensionErrorHandler)
             };
 
             return types.Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(InternalSolutionCrawlerOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))

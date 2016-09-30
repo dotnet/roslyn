@@ -2946,5 +2946,36 @@ BC37256: An error occurred while writing the output file: <%= output.ThrownExcep
 </expected>)
             End Using
         End Sub
+
+        <Fact>
+        <WorkItem(11691, "https://github.com/dotnet/roslyn/issues/11691")>
+        Public Sub ObsoleteAttributeOverride()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+imports System
+
+Public MustInherit Class BaseClass(of T)
+    Public MustOverride Function Method(input As T) As Integer
+End Class
+    
+Public Class DerivingClass(Of T) 
+    Inherits BaseClass(Of T)
+    <Obsolete("Deprecated")>
+    Public Overrides Sub Method(input As T)
+        Throw New NotImplementedException()
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>)
+            CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnostics(),
+<expected>
+    BC30437: 'Public Overrides Sub Method(input As T)' cannot override 'Public MustOverride Function Method(input As T) As Integer' because they differ by their return types.
+    Public Overrides Sub Method(input As T)
+                         ~~~~~~
+</expected>)
+        End Sub
     End Class
 End Namespace
