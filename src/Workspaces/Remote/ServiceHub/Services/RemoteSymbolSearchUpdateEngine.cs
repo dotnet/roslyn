@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // root level service for all Roslyn services
     internal partial class RemoteSymbolSearchUpdateEngine : ServiceHubServiceBase, IRemoteSymbolSearchUpdateEngine
     {
         private readonly SymbolSearchUpdateEngine _updateEngine;
