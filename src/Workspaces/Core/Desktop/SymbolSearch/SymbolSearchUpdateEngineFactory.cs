@@ -18,25 +18,30 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
             Workspace workspace, ISymbolSearchLogService logService, CancellationToken cancellationToken)
         {
-            var client = await workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            var outOfProcessAllowed = workspace.Options.GetOption(SymbolSearchOptions.OutOfProcessAllowed);
+            if (outOfProcessAllowed)
             {
-                return new SymbolSearchUpdateEngine(logService);
+                var client = await workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var emptySolution = workspace.CreateSolution(workspace.CurrentSolution.Id);
+
+                    // We create a single session and use it for the entire lifetime of this process.
+                    // That single session will be used to do all communication with the remote process.
+                    // This is because each session will cause a new instance of the RemoteSymbolSearchUpdateEngine
+                    // to be created on the remote side.  We only want one instance of that type.  The
+                    // alternative is to make that type static variable on the remote side.  But that's
+                    // much less clean and would make some of the state management much more complex.
+                    var session = await client.CreateServiceSessionAsync(
+                        WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine,
+                        emptySolution, logService, cancellationToken).ConfigureAwait(false);
+
+                    return new RemoteUpdateEngine(session);
+                }
             }
 
-            var emptySolution = workspace.CreateSolution(workspace.CurrentSolution.Id);
-
-            // We create a single session and use it for the entire lifetime of this process.
-            // That single session will be used to do all communication with the remote process.
-            // This is because each session will cause a new instance of the RemoteSymbolSearchUpdateEngine
-            // to be created on the remote side.  We only want one instance of that type.  The
-            // alternative is to make that type static variable on the remote side.  But that's
-            // much less clean and would make some of the state management much more complex.
-            var session = await client.CreateServiceSessionAsync(
-                WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine,
-                emptySolution, logService, cancellationToken).ConfigureAwait(false);
-
-            return new RemoteUpdateEngine(session);
+            // Couldn't go out of proc.  Just do everything inside the current process.
+            return new SymbolSearchUpdateEngine(logService);
         }
 
         private class RemoteUpdateEngine : ISymbolSearchUpdateEngine

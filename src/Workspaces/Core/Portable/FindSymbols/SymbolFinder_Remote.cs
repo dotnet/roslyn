@@ -17,11 +17,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                if (symbolAndProjectId.ProjectId == null)
+                var outOfProcessAllowed = solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed);
+                if (symbolAndProjectId.ProjectId == null || !outOfProcessAllowed)
                 {
                     // This is a call through our old public API.  We don't have the necessary
                     // data to effectively run the call out of proc.

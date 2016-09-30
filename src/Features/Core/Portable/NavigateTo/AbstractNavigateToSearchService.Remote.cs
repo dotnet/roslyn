@@ -44,7 +44,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static Task<RemoteHostClient> GetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
-            => project.Solution.Workspace.GetRemoteHostClientAsync(cancellationToken);
+        private static async Task<RemoteHostClient> GetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
+        {
+            var outOfProcessAllowed = project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed);
+            if (!outOfProcessAllowed)
+            {
+                return null;
+            }
+
+            return await project.Solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 }
