@@ -247,6 +247,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim leftHandTypeInfo = context.SemanticModel.GetTypeInfo(leftExpression, cancellationToken)
             Dim leftHandSymbolInfo = context.SemanticModel.GetSymbolInfo(leftExpression, cancellationToken)
 
+            ' GitHub #9087: Try to speculatively bind a type as an expression for My namespace
+            If leftHandTypeInfo.Type IsNot Nothing AndAlso leftHandSymbolInfo.Symbol Is leftHandTypeInfo.Type Then
+                leftHandSymbolInfo = context.SemanticModel.GetSpeculativeSymbolInfo(context.Position, node, SpeculativeBindingOption.BindAsExpression)
+            End If
+
             Dim excludeInstance = False
             Dim excludeShared = True ' do not show shared members by default
             Dim useBaseReferenceAccessibility = False
