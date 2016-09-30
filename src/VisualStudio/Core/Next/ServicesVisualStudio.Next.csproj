@@ -102,7 +102,6 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
-    <Compile Include="NavigateTo\VisualStudioNavigateToEngineService.cs" />
     <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />

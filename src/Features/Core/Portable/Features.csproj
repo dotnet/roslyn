@@ -91,12 +91,10 @@
     </Compile>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="NavigateTo\IRemoteNavigateToSearchService.cs" />
     <Compile Include="NavigateTo\NavigateToItemKind.cs" />
     <Compile Include="NavigateTo\NavigateToMatchKind.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.cs" />
-    <Compile Include="NavigateTo\DefaultNavigateToEngineService.cs" />
-    <Compile Include="NavigateTo\DefaultNavigateToEngineService.SearchResult.cs" />
-    <Compile Include="NavigateTo\INavigateToEngineService.cs" />
     <Compile Include="NavigateTo\INavigateToSearchResult.cs" />
     <Compile Include="NavigateTo\INavigateToSearchService.cs" />
     <Compile Include="Navigation\INavigableItem.cs" />
