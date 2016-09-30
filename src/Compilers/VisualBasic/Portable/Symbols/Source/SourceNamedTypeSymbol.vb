@@ -1219,7 +1219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' give errors for multiple base classes
-            Dim interfacesInThisPartial As New Dictionary(Of TypeSymbol, TypeSymbol)()
+            Dim interfacesInThisPartial As New Dictionary(Of TypeSymbol, TypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
 
             For Each baseDeclaration In baseSyntax
                 Dim types = DirectCast(baseDeclaration, ImplementsStatementSyntax).Types
@@ -1242,16 +1242,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 Continue For
 
                             Case TypeKind.Interface, TypeKind.Error
-                                For Each seenInterface In basesInOtherPartials
-                                    If Not typeSymbol.IsSameType(seenInterface, TypeCompareKind.ConsiderEverything) AndAlso
-                                        typeSymbol.IsSameType(seenInterface, TypeCompareKind.IgnoreTupleNames) Then
-
-                                        Binder.ReportDiagnostic(diagBag, baseClassSyntax,
-                                            ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames, typeSymbol, seenInterface)
-                                        Exit For
-                                    End If
-                                Next
-
                                 basesInOtherPartials.Add(DirectCast(typeSymbol, NamedTypeSymbol))
 
                             Case Else

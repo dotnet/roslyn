@@ -3759,6 +3759,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ' can't have any conflicts
             End If
 
+            ' Check no duplicate interfaces (ignoring tuple names)
+            Dim declaringSyntax = Me.GetDeclaringSyntaxNode(Of VisualBasicSyntaxNode)()
+            If declaringSyntax IsNot Nothing Then
+                Dim seenInterfaces = New Dictionary(Of TypeSymbol, TypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
+                For Each [interface] In interfaces
+                    Dim other As TypeSymbol = Nothing
+                    If seenInterfaces.TryGetValue([interface], other) Then
+                        Binder.ReportDiagnostic(diagnostics, declaringSyntax,
+                                   ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames, [interface], other)
+                    Else
+                        seenInterfaces.Add([interface], [interface])
+                    End If
+                Next
+            End If
+
             ' We only need to check pairs of generic interfaces that have the same original definition. Put the interfaces
             ' into buckets by original definition.
             Dim originalDefinitionBuckets As New MultiDictionary(Of NamedTypeSymbol, NamedTypeSymbol)
@@ -3966,5 +3981,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
     End Class
+
+    Friend Class EqualsIgnoringComparer
+        Inherits EqualityComparer(Of TypeSymbol)
+
+        Public Shared ReadOnly Property InstanceIgnoringTupleNames As EqualsIgnoringComparer =
+                New EqualsIgnoringComparer(TypeCompareKind.IgnoreTupleNames)
+
+        Private ReadOnly _comparison As TypeCompareKind
+
+        Public Sub New(comparison As TypeCompareKind)
+            _comparison = comparison
+        End Sub
+
+        Public Overrides Function Equals(type1 As TypeSymbol, type2 As TypeSymbol) As Boolean
+            Return If(type1 Is Nothing,
+                    type2 Is Nothing,
+                    type1.IsSameType(type2, _comparison))
+        End Function
+
+        Public Overrides Function GetHashCode(obj As TypeSymbol) As Integer
+            Return obj.GetHashCode()
+        End Function
+    End Class
+
 End Namespace
 

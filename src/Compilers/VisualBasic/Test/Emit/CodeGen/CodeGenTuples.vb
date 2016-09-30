@@ -13537,6 +13537,28 @@ End Interface
 Public Class C1
     Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
 End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31033: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Interface I0(Of T)
+End Interface
+
 Public Class C2
     Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
 End Class
@@ -13549,9 +13571,6 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37269: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
-    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
-                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31033: Interface 'I0(Of (a As Integer, b As Integer))' can be implemented only once by this type.
     Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -13688,12 +13707,12 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37269: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
-    Implements I0(Of (notA As Integer, notB As Integer))
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37269: Interface 'I0(Of (Integer, Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
-    Implements I0(Of (Integer, Integer))
-               ~~~~~~~~~~~~~~~~~~~~~~~~~
+Public Partial Class C
+~~~~~~~~~~~~~~~~~~~~~~
+BC37269: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+Public Partial Class C
+~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
 
         End Sub
@@ -13738,6 +13757,86 @@ BC30928: Base class 'Base(Of (notA As Integer, notB As Integer))' specified for 
 BC30928: Base class 'Base(Of (Integer, Integer))' specified for class 'C2' cannot be different from the base class 'Base(Of (a As Integer, b As Integer))' of one of its other partial types.
     Inherits Base(Of (Integer, Integer))
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub IndirectInterfaceBasesWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Interface I0(Of T)
+End Interface
+Public Interface I1
+    Inherits I0(Of (a As Integer, b As Integer))
+End Interface
+Public Interface I2
+    Inherits I0(Of (notA As Integer, notB As Integer))
+End Interface
+Public Interface I3
+    Inherits I0(Of (a As Integer, b As Integer))
+End Interface
+
+Public Class C
+    Implements I1, I2
+End Class
+Public Class D
+    Implements I1, I3
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37269: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+Public Class C
+~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InterfaceUnification()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Interface I0(Of T1)
+End Interface
+
+Public Class C1(Of T2)
+    Implements I0(Of Integer), I0(Of T2)
+End Class
+Public Class C2(Of T2)
+    Implements I0(Of (Integer, Integer)), I0(Of System.ValueTuple(Of T2, T2))
+End Class
+Public Class C3(Of T2)
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (T2, T2))
+End Class
+Public Class C4(Of T2)
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As T2, b As T2))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32072: Cannot implement interface 'I0(Of T2)' because its implementation could conflict with the implementation of another implemented interface 'I0(Of Integer)' for some type arguments.
+    Implements I0(Of Integer), I0(Of T2)
+                               ~~~~~~~~~
+BC32072: Cannot implement interface 'I0(Of (T2, T2))' because its implementation could conflict with the implementation of another implemented interface 'I0(Of (Integer, Integer))' for some type arguments.
+    Implements I0(Of (Integer, Integer)), I0(Of System.ValueTuple(Of T2, T2))
+                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC32072: Cannot implement interface 'I0(Of (T2, T2))' because its implementation could conflict with the implementation of another implemented interface 'I0(Of (a As Integer, b As Integer))' for some type arguments.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (T2, T2))
+                                                    ~~~~~~~~~~~~~~~
+BC32072: Cannot implement interface 'I0(Of (a As T2, b As T2))' because its implementation could conflict with the implementation of another implemented interface 'I0(Of (a As Integer, b As Integer))' for some type arguments.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As T2, b As T2))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
 
         End Sub
