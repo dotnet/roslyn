@@ -234,8 +234,15 @@ namespace Microsoft.CodeAnalysis.Completion
             // and 'False' (with the latter being 'Preselected').  Both will be a prefix match.
             // And because we are ignoring case, neither will be seen as better.  Now, because
             // 'False' is preselected we pick it even though 'foo' matches 'f' case sensitively.
+
+            // At this point, we've only done case insesitive comparisons. Consider:
+            // using System.IO; ...
+            // string path = Path$$ 
+            // System.IO.Path is a better case-sensitive match but has a worse
+            // preselection score from target typing
+            
             diff = item2.Rules.MatchPriority - item1.Rules.MatchPriority;
-            if (diff != 0)
+            if (!IsExactAndCaseSensitive(match1) && !IsExactAndCaseSensitive(match2) && diff != 0)
             {
                 return diff;
             }
@@ -266,6 +273,11 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return 0;
+        }
+
+        private bool IsExactAndCaseSensitive(PatternMatch match)
+        {
+            return match.IsCaseSensitive && match.Kind == PatternMatchKind.Exact;
         }
     }
 }
