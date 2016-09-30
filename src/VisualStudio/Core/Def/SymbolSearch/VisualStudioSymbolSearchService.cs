@@ -70,8 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         protected override void StartWorking()
         {
-            // Kick off a database update.  Wait a few seconds before starting so we don't
-            // interfere too much with solution loading.
+            // Kick off a database update.
             var sources = _installerService.PackageSources;
 
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
