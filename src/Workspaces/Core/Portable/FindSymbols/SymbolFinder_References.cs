@@ -2,10 +2,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -71,15 +73,72 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return streamingProgress.GetReferencedSymbols();
         }
 
-        internal static Task FindReferencesAsync(
+        internal static async Task FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var engineService = solution.Workspace.Services.GetService<ISymbolFinderEngineService>();
-            return engineService.FindReferencesAsync(symbolAndProjectId, solution, progress, documents, cancellationToken);
+            using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
+            {
+                if (symbolAndProjectId.ProjectId == null)
+                {
+                    // This is a call through our old public API.  We don't have the necessary
+                    // data to effectively run the call out of proc.
+                    await FindReferencesInCurrentProcessAsync(
+                        symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await FindReferencesInServiceProcessAsync(
+                        symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        internal static Task FindReferencesInCurrentProcessAsync(
+            SymbolAndProjectId symbolAndProjectId, Solution solution,
+            IStreamingFindReferencesProgress progress, IImmutableSet<Document> documents,
+            CancellationToken cancellationToken)
+        {
+            var finders = ReferenceFinders.DefaultReferenceFinders;
+            progress = progress ?? StreamingFindReferencesProgress.Instance;
+            var engine = new FindReferencesSearchEngine(
+                solution, documents, finders, progress, cancellationToken);
+            return engine.FindReferencesAsync(symbolAndProjectId);
+        }
+
+        private static async Task FindReferencesInServiceProcessAsync(
+            SymbolAndProjectId symbolAndProjectId,
+            Solution solution,
+            IStreamingFindReferencesProgress progress,
+            IImmutableSet<Document> documents,
+            CancellationToken cancellationToken)
+        {
+            var clientService = solution.Workspace.Services.GetService<IRemoteHostClientService>();
+            var client = await clientService.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+
+            if (client == null)
+            {
+                await FindReferencesInCurrentProcessAsync(
+                    symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            // Create a callback that we can pass to the server process to hear about the 
+            // results as it finds them.  When we hear about results we'll forward them to
+            // the 'progress' parameter which will then upate the UI.
+            var serverCallback = new ServerCallback(solution, progress, cancellationToken);
+
+            using (var session = await client.CreateCodeAnalysisServiceSessionAsync(
+                solution, serverCallback, cancellationToken).ConfigureAwait(false))
+            {
+                await session.InvokeAsync(
+                    nameof(IRemoteSymbolFinder.FindReferencesAsync),
+                    SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
+                    documents?.Select(SerializableDocumentId.Dehydrate).ToArray()).ConfigureAwait(false);
+            }
         }
 
         internal static async Task<ImmutableArray<ReferencedSymbol>> FindRenamableReferencesAsync(

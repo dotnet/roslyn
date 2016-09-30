@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
+namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostClientExtensions
     {

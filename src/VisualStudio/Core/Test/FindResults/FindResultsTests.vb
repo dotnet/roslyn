@@ -124,8 +124,7 @@ using System.Threading;
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                 GetType(MockDocumentNavigationServiceProvider),
                 GetType(MockSymbolNavigationServiceProvider),
-                GetType(DefaultDefinitionsAndReferencesFactory),
-                GetType(DefaultSymbolFinderEngineService)))
+                GetType(DefaultDefinitionsAndReferencesFactory)))
 
         Private Async Function VerifyAsync(markup As XElement, languageName As String, expectedResults As IList(Of AbstractTreeItem)) As System.Threading.Tasks.Task
             Dim workspaceXml =
