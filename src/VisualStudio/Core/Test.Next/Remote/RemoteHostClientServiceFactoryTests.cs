@@ -35,12 +35,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             service.Enable();
 
-            var enabledClient = await service.GetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+            var enabledClient = await service.GetRemoteHostClientAsync(CancellationToken.None);
             Assert.NotNull(enabledClient);
 
             service.Disable();
 
-            var disabledClient = await service.GetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+            var disabledClient = await service.GetRemoteHostClientAsync(CancellationToken.None);
             Assert.Null(disabledClient);
         }
 
@@ -55,7 +55,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Enable();
 
             // make sure client is ready
-            var client = await service.GetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+            var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
 
             var checksumService = workspace.Services.GetService<ISolutionChecksumService>();
             var asset = checksumService.GetGlobalAsset(analyzerReference, CancellationToken.None);
@@ -79,19 +79,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Enable();
 
             // make sure client is ready
-            var client = await service.GetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+            var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
 
             // add solution
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
 
             // TODO: use waiter to make sure workspace events and updater is ready.
             //       this delay is temporary until I set all .Next unit test hardness to setup correctly
-            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(1));
 
             var checksumService = workspace.Services.GetService<ISolutionChecksumService>();
 
             Checksum checksum;
-            using (var scope = await checksumService.CreateChecksumAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
+            using (var scope = await checksumService.CreateChecksumAsync(workspace.CurrentSolution, CancellationToken.None))
             {
                 // create solution checksum and hold onto the checksum and let it go
                 checksum = scope.SolutionChecksum.Checksum;
