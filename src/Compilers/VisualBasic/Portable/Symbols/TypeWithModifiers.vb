@@ -34,6 +34,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                       Not other.CustomModifiers.IsDefault AndAlso Me.CustomModifiers.SequenceEqual(other.CustomModifiers))
         End Function
 
+        Public Function IsSame(other As TypeWithModifiers, compareKind As TypeCompareKind) As Boolean
+            Return Me.Type.IsSameType(other.Type, compareKind) AndAlso
+                   If(Me.CustomModifiers.IsDefault,
+                      other.CustomModifiers.IsDefault,
+                      Not other.CustomModifiers.IsDefault AndAlso Me.CustomModifiers.SequenceEqual(other.CustomModifiers))
+        End Function
+
         Shared Operator =(x As TypeWithModifiers, y As TypeWithModifiers) As Boolean
             Return x.Equals(y)
         End Operator
