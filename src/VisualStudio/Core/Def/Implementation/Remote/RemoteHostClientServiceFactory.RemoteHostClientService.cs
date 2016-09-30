@@ -215,6 +215,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private bool FeaturesEnabled()
             {
+                if (_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest))
+                {
+                    // if it is under test, remote host is always enabled
+                    return true;
+                }
+
                 if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, LanguageNames.CSharp))
                 {
                     return true;
