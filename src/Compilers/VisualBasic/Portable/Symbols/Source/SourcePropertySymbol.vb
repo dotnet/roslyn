@@ -757,7 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' property (incorrectly) has a different return type than the overridden property.  In such cases,
                     ' we want to retain the original (incorrect) return type to avoid hiding the return type
                     ' given in source.
-                    If retType.IsSameTypeIgnoringCustomModifiers(returnTypeWithCustomModifiers) Then
+                    If retType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiers) Then
                         retType = returnTypeWithCustomModifiers
                     End If
 

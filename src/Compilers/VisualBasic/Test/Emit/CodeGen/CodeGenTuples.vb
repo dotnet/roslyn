@@ -14088,6 +14088,51 @@ additionalRefs:=s_valueTupleRefs)
 
         End Sub
 
+        <Fact>
+        Public Sub OverriddenPropertyWithDifferentTupleNamesInReturn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Property P1 As (a As Integer, b As Integer)
+    Public Overridable Property P2 As (a As Integer, b As Integer)
+    Public Overridable Property P3 As (a As Integer, b As Integer)()
+    Public Overridable Property P4 As (a As Integer, b As Integer)?
+    Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Property P1 As (a As Integer, b As Integer)
+    Public Overrides Property P2 As (notA As Integer, notB As Integer)
+    Public Overrides Property P3 As (notA As Integer, notB As Integer)()
+    Public Overrides Property P4 As (notA As Integer, notB As Integer)?
+    Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37268: 'Public Overrides Property P2 As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Property P2 As (a As Integer, b As Integer)' because they differ by their tuple element names.
+    Public Overrides Property P2 As (notA As Integer, notB As Integer)
+                              ~~
+BC37268: 'Public Overrides Property P3 As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Property P3 As (a As Integer, b As Integer)()' because they differ by their tuple element names.
+    Public Overrides Property P3 As (notA As Integer, notB As Integer)()
+                              ~~
+BC37268: 'Public Overrides Property P4 As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Property P4 As (a As Integer, b As Integer)?' because they differ by their tuple element names.
+    Public Overrides Property P4 As (notA As Integer, notB As Integer)?
+                              ~~
+BC37268: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
+    Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)
+                              ~~
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace

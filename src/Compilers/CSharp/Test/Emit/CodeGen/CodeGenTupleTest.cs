@@ -17449,6 +17449,79 @@ public class C
         }
 
         [Fact]
+        public void OverriddenPropertyWithDifferentTupleNamesInReturn()
+        {
+            var source = @"
+public class Base
+{
+    public virtual (int a, int b) P1 { get; set; }
+    public virtual (int a, int b) P2 { get; set; }
+    public virtual (int a, int b)[] P3 { get; set; }
+    public virtual System.Nullable<(int a, int b)> P4 { get; set; }
+    public virtual ((int a, int b) c, int d) P5 { get; set; }
+    public virtual (dynamic a, dynamic b) P6 { get; set; }
+}
+public class Derived : Base
+{
+    public override (int a, int b) P1 { get; set; }
+    public override (int notA, int notB) P2 { get; set; }
+    public override (int notA, int notB)[] P3 { get; set; }
+    public override System.Nullable<(int notA, int notB)> P4 { get; set; }
+    public override ((int notA, int notB) c, int d) P5 { get; set; }
+    public override (dynamic notA, dynamic) P6 { get; set; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (14,42): error CS8139: 'Derived.P2': cannot change tuple element names when overriding inherited member 'Base.P2'
+                //     public override (int notA, int notB) P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P2").WithArguments("Derived.P2", "Base.P2").WithLocation(14, 42),
+                // (14,47): error CS8139: 'Derived.P2.get': cannot change tuple element names when overriding inherited member 'Base.P2.get'
+                //     public override (int notA, int notB) P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P2.get", "Base.P2.get").WithLocation(14, 47),
+                // (14,52): error CS8139: 'Derived.P2.set': cannot change tuple element names when overriding inherited member 'Base.P2.set'
+                //     public override (int notA, int notB) P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P2.set", "Base.P2.set").WithLocation(14, 52),
+                // (15,44): error CS8139: 'Derived.P3': cannot change tuple element names when overriding inherited member 'Base.P3'
+                //     public override (int notA, int notB)[] P3 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P3").WithArguments("Derived.P3", "Base.P3").WithLocation(15, 44),
+                // (15,49): error CS8139: 'Derived.P3.get': cannot change tuple element names when overriding inherited member 'Base.P3.get'
+                //     public override (int notA, int notB)[] P3 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P3.get", "Base.P3.get").WithLocation(15, 49),
+                // (15,54): error CS8139: 'Derived.P3.set': cannot change tuple element names when overriding inherited member 'Base.P3.set'
+                //     public override (int notA, int notB)[] P3 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P3.set", "Base.P3.set").WithLocation(15, 54),
+                // (16,59): error CS8139: 'Derived.P4': cannot change tuple element names when overriding inherited member 'Base.P4'
+                //     public override System.Nullable<(int notA, int notB)> P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P4").WithArguments("Derived.P4", "Base.P4").WithLocation(16, 59),
+                // (16,64): error CS8139: 'Derived.P4.get': cannot change tuple element names when overriding inherited member 'Base.P4.get'
+                //     public override System.Nullable<(int notA, int notB)> P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P4.get", "Base.P4.get").WithLocation(16, 64),
+                // (16,69): error CS8139: 'Derived.P4.set': cannot change tuple element names when overriding inherited member 'Base.P4.set'
+                //     public override System.Nullable<(int notA, int notB)> P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P4.set", "Base.P4.set").WithLocation(16, 69),
+                // (17,53): error CS8139: 'Derived.P5': cannot change tuple element names when overriding inherited member 'Base.P5'
+                //     public override ((int notA, int notB) c, int d) P5 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P5").WithArguments("Derived.P5", "Base.P5").WithLocation(17, 53),
+                // (17,58): error CS8139: 'Derived.P5.get': cannot change tuple element names when overriding inherited member 'Base.P5.get'
+                //     public override ((int notA, int notB) c, int d) P5 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P5.get", "Base.P5.get").WithLocation(17, 58),
+                // (17,63): error CS8139: 'Derived.P5.set': cannot change tuple element names when overriding inherited member 'Base.P5.set'
+                //     public override ((int notA, int notB) c, int d) P5 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P5.set", "Base.P5.set").WithLocation(17, 63),
+                // (18,45): error CS8139: 'Derived.P6': cannot change tuple element names when overriding inherited member 'Base.P6'
+                //     public override (dynamic notA, dynamic) P6 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P6").WithArguments("Derived.P6", "Base.P6").WithLocation(18, 45),
+                // (18,50): error CS8139: 'Derived.P6.get': cannot change tuple element names when overriding inherited member 'Base.P6.get'
+                //     public override (dynamic notA, dynamic) P6 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("Derived.P6.get", "Base.P6.get").WithLocation(18, 50),
+                // (18,55): error CS8139: 'Derived.P6.set': cannot change tuple element names when overriding inherited member 'Base.P6.set'
+                //     public override (dynamic notA, dynamic) P6 { get; set; }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("Derived.P6.set", "Base.P6.set").WithLocation(18, 55)
+                );
+        }
+
+        [Fact]
         public void DefiniteAssignment001()
         {
             var source = @"
