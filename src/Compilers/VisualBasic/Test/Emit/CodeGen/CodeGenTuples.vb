@@ -10692,6 +10692,192 @@ BC30269: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Inte
 
         End Sub
 
+        <Fact>
+        Public Sub HiddenMethodParametersWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+    Public Overridable Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+    Public Overridable Sub M3(x As (a As Integer, b As Integer)())
+    End Sub
+    Public Overridable Sub M4(x As (a As Integer, b As Integer)?)
+    End Sub
+    Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub M1(x As (A As Integer, B As Integer))
+    End Sub
+    Public Sub M2(x As (notA As Integer, notB As Integer))
+    End Sub
+    Public Sub M3(x As (notA As Integer, notB As Integer)())
+    End Sub
+    Public Sub M4(x As (notA As Integer, notB As Integer)?)
+    End Sub
+    Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40005: sub 'M1' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M1(x As (A As Integer, B As Integer))
+               ~~
+BC40005: sub 'M2' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M2(x As (notA As Integer, notB As Integer))
+               ~~
+BC40005: sub 'M3' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M3(x As (notA As Integer, notB As Integer)())
+               ~~
+BC40005: sub 'M4' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M4(x As (notA As Integer, notB As Integer)?)
+               ~~
+BC40005: sub 'M5' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+               ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub ExplicitInterfaceImplementationWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Interface I0
+    Sub M1(x As (Integer, b As Integer))
+    Sub M2(x As (a As Integer, b As Integer))
+    Function MR1() As (Integer, b As Integer)
+    Function MR2() As (a As Integer, b As Integer)
+End Interface
+
+Public Class Derived
+    Implements I0
+
+    Public Sub M1(x As (notMissing As Integer, b As Integer)) Implements I0.M1
+    End Sub
+    Public Sub M2(x As (notA As Integer, notB As Integer)) Implements I0.M2
+    End Sub
+    Public Function MR1() As (notMissing As Integer, b As Integer) Implements I0.MR1
+        Return (1, 2)
+    End Function
+    Public Function MR2() As (notA As Integer, b As Integer) Implements I0.MR2
+        Return (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30149: Class 'Derived' must implement 'Function MR1() As (Integer, b As Integer)' for interface 'I0'.
+    Implements I0
+               ~~
+BC30149: Class 'Derived' must implement 'Function MR2() As (a As Integer, b As Integer)' for interface 'I0'.
+    Implements I0
+               ~~
+BC30149: Class 'Derived' must implement 'Sub M1(x As (Integer, b As Integer))' for interface 'I0'.
+    Implements I0
+               ~~
+BC30149: Class 'Derived' must implement 'Sub M2(x As (a As Integer, b As Integer))' for interface 'I0'.
+    Implements I0
+               ~~
+BC30401: 'M1' cannot implement 'M1' because there is no matching sub on interface 'I0'.
+    Public Sub M1(x As (notMissing As Integer, b As Integer)) Implements I0.M1
+                                                                         ~~~~~
+BC30401: 'M2' cannot implement 'M2' because there is no matching sub on interface 'I0'.
+    Public Sub M2(x As (notA As Integer, notB As Integer)) Implements I0.M2
+                                                                      ~~~~~
+BC30401: 'MR1' cannot implement 'MR1' because there is no matching function on interface 'I0'.
+    Public Function MR1() As (notMissing As Integer, b As Integer) Implements I0.MR1
+                                                                              ~~~~~~
+BC30401: 'MR2' cannot implement 'MR2' because there is no matching function on interface 'I0'.
+    Public Function MR2() As (notA As Integer, b As Integer) Implements I0.MR2
+                                                                        ~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InterfaceHidingAnotherInterfaceWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Interface I0
+    Sub M1(x As (a As Integer, b As Integer))
+    Sub M2(x As (a As Integer, b As Integer))
+
+    Function MR1() As (a As Integer, b As Integer)
+    Function MR2() As (a As Integer, b As Integer)
+End Interface
+
+Public Interface I1
+    Inherits I0
+
+    Sub M1(x As (notA As Integer, b As Integer))
+    Shadows Sub M2(x As (notA As Integer, b As Integer))
+
+    Function MR1() As (notA As Integer, b As Integer)
+    Shadows Function MR2() As (notA As Integer, b As Integer)
+End Interface
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40003: sub 'M1' shadows an overloadable member declared in the base interface 'I0'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Sub M1(x As (notA As Integer, b As Integer))
+        ~~
+BC40003: function 'MR1' shadows an overloadable member declared in the base interface 'I0'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Function MR1() As (notA As Integer, b As Integer)
+             ~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Interface I0(Of T)
+End Interface
+
+Public Class C1
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+End Class
+Public Class C2
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+End Class
+Public Class C3
+    Implements I0(Of Integer), I0(Of Integer)
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace
