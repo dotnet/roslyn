@@ -11166,6 +11166,67 @@ BC32072: Cannot implement interface 'I0(Of (a As T2, b As T2))' because its impl
 
         End Sub
 
+        <Fact>
+        Public Sub AmbiguousExtensionMethodWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Imports System
+
+Public Module M1
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Public Sub M(self As String, x As (Integer, Integer))
+        Throw New Exception()
+    End Sub
+End Module
+Public Module M2
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Public Sub M(self As String, x As (a As Integer, b As Integer))
+        Throw New Exception()
+    End Sub
+End Module
+Public Module M3
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Public Sub M(self As String, x As (c As Integer, d As Integer))
+        Throw New Exception()
+    End Sub
+End Module
+Public Class C
+    Public Sub M(s As String)
+        s.M((1, 1))
+        s.M((a:=1, b:=1))
+        s.M((c:=1, d:=1))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    Extension method 'Public Sub M(x As (Integer, Integer))' defined in 'M1': Not most specific.
+    Extension method 'Public Sub M(x As (a As Integer, b As Integer))' defined in 'M2': Not most specific.
+    Extension method 'Public Sub M(x As (c As Integer, d As Integer))' defined in 'M3': Not most specific.
+        s.M((1, 1))
+          ~
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    Extension method 'Public Sub M(x As (Integer, Integer))' defined in 'M1': Not most specific.
+    Extension method 'Public Sub M(x As (a As Integer, b As Integer))' defined in 'M2': Not most specific.
+    Extension method 'Public Sub M(x As (c As Integer, d As Integer))' defined in 'M3': Not most specific.
+        s.M((a:=1, b:=1))
+          ~
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    Extension method 'Public Sub M(x As (Integer, Integer))' defined in 'M1': Not most specific.
+    Extension method 'Public Sub M(x As (a As Integer, b As Integer))' defined in 'M2': Not most specific.
+    Extension method 'Public Sub M(x As (c As Integer, d As Integer))' defined in 'M3': Not most specific.
+        s.M((c:=1, d:=1))
+          ~
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace
