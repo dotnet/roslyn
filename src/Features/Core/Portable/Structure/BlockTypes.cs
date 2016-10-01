@@ -29,9 +29,11 @@ namespace Microsoft.CodeAnalysis.Structure
         // Statements
         public const string Case = nameof(Case);
         public const string Conditional = nameof(Conditional);
+        public const string LocalFunction = nameof(LocalFunction);
         public const string Lock = nameof(Lock);
         public const string Loop = nameof(Loop);
         public const string TryCatchFinally = nameof(TryCatchFinally);
+        public const string Using = nameof(Using);
         public const string Standalone = nameof(Standalone);
 
         // Expressions

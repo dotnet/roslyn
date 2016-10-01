@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
 
             public string Type => ConvertType(BlockSpan.Type);
 
-            public bool IsCollapsible => true;
+            public bool IsCollapsible => BlockSpan.IsCollapsible;
 
             public RoslynBlockTag(
                 ITextEditorFactoryService textEditorFactoryService,
@@ -129,6 +129,8 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                     case BlockTypes.Enum:
                     case BlockTypes.Other:
                     case BlockTypes.Xml:
+                    case BlockTypes.LocalFunction:
+                    case BlockTypes.Using:
                     default:
                         return PredefinedStructureTypes.Unknown;
                 }

@@ -195,10 +195,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     var parentTag = tagSpanStack.Count > 0 ? tagSpanStack.Peek() : null;
                     var tag = CreateTag(parentTag?.Tag, snapshot, region);
 
-                    var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
+                    if (tag != null)
+                    {
+                        var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
 
-                    context.AddTag(tagSpan);
-                    tagSpanStack.Push(tagSpan);
+                        context.AddTag(tagSpan);
+                        tagSpanStack.Push(tagSpan);
+                    }
                 }
             }
         }

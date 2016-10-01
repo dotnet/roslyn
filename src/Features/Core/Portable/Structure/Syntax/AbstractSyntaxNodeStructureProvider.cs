@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Structure
     internal abstract class AbstractSyntaxNodeStructureProvider<TSyntaxNode> : AbstractSyntaxStructureProvider
         where TSyntaxNode : SyntaxNode
     {
-        public override void CollectBlockSpans(
+        public sealed override void CollectBlockSpans(
             Document document,
             SyntaxNode node,
             ArrayBuilder<BlockSpan> spans,

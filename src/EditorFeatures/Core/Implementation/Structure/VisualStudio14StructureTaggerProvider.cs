@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         protected override IOutliningRegionTag CreateTag(
             IOutliningRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region)
         {
+            if (!region.IsCollapsible)
+            {
+                return null;
+            }
+
             return new RoslynOutliningRegionTag(
                 this.TextEditorFactoryService,
                 this.ProjectionBufferFactoryService,
