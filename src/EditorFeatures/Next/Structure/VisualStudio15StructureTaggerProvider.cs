@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                     case BlockTypes.Xml:
                     case BlockTypes.LocalFunction:
                     case BlockTypes.Using:
+                    case BlockTypes.Switch:
                     default:
                         return PredefinedStructureTypes.Unknown;
                 }

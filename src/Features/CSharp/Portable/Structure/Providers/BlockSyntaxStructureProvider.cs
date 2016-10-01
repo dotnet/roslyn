@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,10 +20,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 parentKind == SyntaxKind.ElseClause)
             {
                 spans.Add(new BlockSpan(
-                    isCollapsible: node.IsParentKind(SyntaxKind.LocalFunctionStatement), 
-                    textSpan: GetTextSpan(node), 
+                    isCollapsible: node.IsParentKind(SyntaxKind.LocalFunctionStatement),
+                    textSpan: GetTextSpan(node),
                     hintSpan: node.Parent.Span,
                     type: GetType(node.Parent)));
+            }
+
+            if (parentKind == SyntaxKind.SwitchSection)
+            {
+                spans.Add(new BlockSpan(
+                    isCollapsible: node.IsParentKind(SyntaxKind.LocalFunctionStatement),
+                    textSpan: node.Span,
+                    hintSpan: node.Parent.Span,
+                    type: BlockTypes.Case));
             }
         }
 

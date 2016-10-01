@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Structure
         public const string TryCatchFinally = nameof(TryCatchFinally);
         public const string Using = nameof(Using);
         public const string Standalone = nameof(Standalone);
+        public const string Switch = nameof(Switch);
 
         // Expressions
         public const string AnonymousMethod = nameof(AnonymousMethod);
