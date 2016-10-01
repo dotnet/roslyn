@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
     internal abstract partial class AbstractStructureTaggerProvider<TRegionTag> : 
-        AsynchronousTaggerProvider<TRegionTag>,
-        IEqualityComparer<TRegionTag>
+        AsynchronousTaggerProvider<TRegionTag>
         where TRegionTag : class, ITag
     {
         private static IComparer<BlockSpan> s_blockSpanComparer =
@@ -53,12 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             EditorOptionsFactoryService = editorOptionsFactoryService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
-
-        protected sealed override IEqualityComparer<TRegionTag> TagComparer => this;
-
-        public abstract bool Equals(TRegionTag x, TRegionTag y);
-
-        public abstract int GetHashCode(TRegionTag obj);
 
         protected sealed override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {

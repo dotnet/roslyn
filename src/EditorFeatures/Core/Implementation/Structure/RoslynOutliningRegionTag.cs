@@ -52,6 +52,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             _hintSpan = snapshot.CreateTrackingSpan(BlockSpan.HintSpan.ToSpan(), SpanTrackingMode.EdgeExclusive);
         }
 
+        public override bool Equals(object obj) 
+            => Equals(obj as RoslynOutliningRegionTag);
+
+        // This is only called if the spans for the tags were the same. In that case, we 
+        // consider ourselves the same unless the CollapsedForm properties are different.
+        public bool Equals(RoslynOutliningRegionTag tag)
+            => tag != null && Equals(this.CollapsedForm, tag.CollapsedForm);
+
+        public override int GetHashCode() 
+            => EqualityComparer<object>.Default.GetHashCode(this.CollapsedForm);
+
         public object CollapsedHintForm =>
             new ViewHostingControl(CreateElisionBufferView, CreateElisionBuffer);
 
