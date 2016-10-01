@@ -104,6 +104,7 @@
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IAnalyzerHost.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
@@ -700,11 +701,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="Commands.vsct">
