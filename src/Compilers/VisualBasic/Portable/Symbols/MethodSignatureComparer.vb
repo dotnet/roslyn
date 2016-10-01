@@ -529,7 +529,9 @@ Done:
                             type2 = New TypeWithModifiers(param2.Type, param2.CustomModifiers)
                         End If
 
-                        If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames) Then
+                        If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or
+                                                     TypeCompareKind.IgnoreTupleNames) Then
+
                             If bothOptional Then
                                 results = results Or SymbolComparisonResults.OptionalParameterTypeMismatch
                                 If (stopIfAny And SymbolComparisonResults.OptionalParameterTypeMismatch) <> 0 Then
@@ -541,13 +543,17 @@ Done:
                                     GoTo Done
                                 End If
                             End If
-                        ElseIf Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
+                        ElseIf (comparisons And SymbolComparisonResults.TupleNamesMismatch) <> 0 AndAlso
+                            Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
+
                             results = results Or SymbolComparisonResults.TupleNamesMismatch
                             If (stopIfAny And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
                                 GoTo Done
                             End If
                         ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
-                               (type1 <> type2 OrElse param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef) Then
+                               (Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreTupleNames) OrElse
+                                   param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef) Then
+
                             results = results Or SymbolComparisonResults.CustomModifierMismatch
                             If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
                                 GoTo Done

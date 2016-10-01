@@ -3553,10 +3553,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     Dim comparisonResults As SymbolComparisonResults = OverrideHidingHelper.DetailedSignatureCompare(
                                         member,
                                         nextMember,
-                                        SymbolComparisonResults.AllMismatches And Not (SymbolComparisonResults.CallingConventionMismatch Or SymbolComparisonResults.ConstraintMismatch Or SymbolComparisonResults.TupleNamesMismatch))
+                                        SymbolComparisonResults.AllMismatches And Not (SymbolComparisonResults.CallingConventionMismatch Or SymbolComparisonResults.ConstraintMismatch))
+
+                                    Dim comparisonResultsIgnoringTupleNames = comparisonResults And Not SymbolComparisonResults.TupleNamesMismatch
 
                                     ' only report diagnostics if the signature is considered equal following VB rules.
-                                    If (comparisonResults And Not SymbolComparisonResults.MismatchesForConflictingMethods) = 0 Then
+                                    If (comparisonResultsIgnoringTupleNames And Not SymbolComparisonResults.MismatchesForConflictingMethods) = 0 Then
                                         ReportOverloadsErrors(comparisonResults, member, nextMember, member.Locations(0), diagnostics)
                                         Exit For
                                     End If
@@ -3815,19 +3817,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If (Me.Locations.Length > 1 AndAlso Not Me.IsPartial) Then
                 ' if there was an error with the enclosing class, suppress these diagnostics
             ElseIf comparisonResults = 0 Then
-                Dim comparisonWithTupleNames As SymbolComparisonResults = OverrideHidingHelper.DetailedSignatureCompare(
-                                        firstMember,
-                                        secondMember,
-                                        SymbolComparisonResults.AllMismatches And Not (SymbolComparisonResults.CallingConventionMismatch Or SymbolComparisonResults.ConstraintMismatch))
-                If (comparisonWithTupleNames And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
-                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDefWithDifferentTupleNames, firstMember), location)
-                Else
-                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDef1, firstMember), location)
-                End If
+                diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDef1, firstMember), location)
             Else
                 ' TODO: maybe rewrite these diagnostics to if/elseifs to report just one diagnostic per
                 ' symbol. This would reduce the error count, but may lead to a new diagnostics once the 
                 ' previous one was fixed (byref + return type).
+
+                If (comparisonResults And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDefWithDifferentTupleNames, firstMember), location)
+                End If
 
                 If (comparisonResults And SymbolComparisonResults.ParameterByrefMismatch) <> 0 Then
                     diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadWithByref2, firstMember, secondMember), location)

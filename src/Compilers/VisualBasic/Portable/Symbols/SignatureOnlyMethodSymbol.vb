@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property TypeArguments() As ImmutableArray(Of TypeSymbol)
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return ImmutableArray(Of TypeSymbol).Empty
             End Get
         End Property
 

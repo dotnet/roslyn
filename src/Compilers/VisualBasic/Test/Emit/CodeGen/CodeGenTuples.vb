@@ -13609,10 +13609,10 @@ Public Class C2
     Inherits C1
     Implements I0(Of (a As Integer, b As Integer))
 
-    Public Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
+    Public Overloads Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
         Throw New Exception()
     End Function
-    Public Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
+    Public Overloads Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
     End Sub
 End Class
     </file>
@@ -13621,12 +13621,12 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC40003: sub 'Push' shadows an overloadable member declared in the base class 'C1'.  If you want to overload the base method, this method must be declared 'Overloads'.
-    Public Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
-               ~~~~
+BC30401: 'Pop' cannot implement 'Pop' because there is no matching function on interface 'I0(Of (a As Integer, b As Integer))'.
+    Public Overloads Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
+                                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30401: 'Push' cannot implement 'Push' because there is no matching sub on interface 'I0(Of (a As Integer, b As Integer))'.
-    Public Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
-                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Public Overloads Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
+                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
 
         End Sub

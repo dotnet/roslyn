@@ -338,9 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If Not [mod].AreSameCustomModifiers(otherMod) Then
                     Return False
                 End If
-            End If
 
-            If (compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 Then
                 ' Make sure bounds are the same.
                 Return HasSameSizesAndLowerBoundsAs(other)
             End If
