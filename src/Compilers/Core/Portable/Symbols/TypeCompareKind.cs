@@ -11,12 +11,10 @@ namespace Microsoft.CodeAnalysis
     internal enum TypeCompareKind
     {
         ConsiderEverything = 0,
-        IgnoreCustomModifiers = 1,
-        IgnoreArraySizesAndLowerBounds = 2,
-        IgnoreDynamic = 4,
-        IgnoreTupleNames = 8,
+        IgnoreCustomModifiersAndArraySizesAndLowerBounds = 1,
+        IgnoreDynamic = 2,
+        IgnoreTupleNames = 4,
         IgnoreDynamicAndTupleNames = IgnoreDynamic | IgnoreTupleNames,
-        IgnoreCustomModifiersAndArraySizesAndLowerBounds = IgnoreCustomModifiers | IgnoreArraySizesAndLowerBounds,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames
     }
 

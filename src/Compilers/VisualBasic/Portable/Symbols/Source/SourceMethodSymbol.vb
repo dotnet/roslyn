@@ -2127,7 +2127,7 @@ lReportErrorOnTwoTokens:
                     ' method (incorrectly) has a different return type than the overridden method.  In such cases,
                     ' we want to retain the original (incorrect) return type to avoid hiding the return type
                     ' given in source.
-                    If retType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiers) Then
+                    If retType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
                         retType = returnTypeWithCustomModifiers
                     End If
 

@@ -426,9 +426,9 @@ Done:
             type1 = SubstituteType(typeSubstitution1, type1)
             type2 = SubstituteType(typeSubstitution2, type2)
 
-            If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiers Or TypeCompareKind.IgnoreTupleNames) Then
+            If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames) Then
                 Return SymbolComparisonResults.ReturnTypeMismatch
-            ElseIf Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiers) Then
+            ElseIf Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
                 Return SymbolComparisonResults.TupleNamesMismatch
             ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
                    (type1 <> type2) Then
@@ -529,7 +529,7 @@ Done:
                             type2 = New TypeWithModifiers(param2.Type, param2.CustomModifiers)
                         End If
 
-                        If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiers Or TypeCompareKind.IgnoreTupleNames) Then
+                        If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames) Then
                             If bothOptional Then
                                 results = results Or SymbolComparisonResults.OptionalParameterTypeMismatch
                                 If (stopIfAny And SymbolComparisonResults.OptionalParameterTypeMismatch) <> 0 Then
@@ -541,7 +541,7 @@ Done:
                                     GoTo Done
                                 End If
                             End If
-                        ElseIf Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiers) Then
+                        ElseIf Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
                             results = results Or SymbolComparisonResults.TupleNamesMismatch
                             If (stopIfAny And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
                                 GoTo Done
