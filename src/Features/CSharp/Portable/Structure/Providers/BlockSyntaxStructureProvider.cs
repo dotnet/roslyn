@@ -14,6 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             BlockSyntax node, ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
         {
             var parentKind = node.Parent.Kind();
+
+            // For most types of statements, just consider the block 'attached' to the 
+            // parent node.  That means we'll show the parent node header when doing 
+            // things like hovering over the indent guide.
+            //
+            // This also works nicely as the close brace for these constructs will always
+            // align with the start of these statements.
             if (node.Parent is StatementSyntax ||
                 parentKind == SyntaxKind.CatchClause ||
                 parentKind == SyntaxKind.FinallyClause ||
@@ -26,6 +33,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     type: GetType(node.Parent)));
             }
 
+            // Switch sections are somewhat special.  Say you have the following:
+            //
+            //      case 0:
+            //          {
+            //          
+            //          }
+            //
+            // We don't want to consider the block parented by teh case, because 
+            // that would cause us to draw the following:
+            // 
+            //      case 0:
+            //      |   {
+            //      |   
+            //      |   }
+            //
+            // Which would obviously be wonky.  So in this case, we just use the
+            // spanof the block alone, without consideration for the case clause.
             if (parentKind == SyntaxKind.SwitchSection)
             {
                 spans.Add(new BlockSpan(
