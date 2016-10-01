@@ -551,7 +551,7 @@ Done:
                                 GoTo Done
                             End If
                         ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
-                               (Not type1.Type.IsSameType(type2.Type, TypeCompareKind.IgnoreTupleNames) OrElse
+                               (Not type1.IsSameType(type2, TypeCompareKind.IgnoreTupleNames) OrElse
                                    param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef) Then
 
                             results = results Or SymbolComparisonResults.CustomModifierMismatch

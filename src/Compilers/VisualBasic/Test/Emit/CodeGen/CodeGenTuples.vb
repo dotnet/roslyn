@@ -14127,6 +14127,30 @@ BC37270: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Intege
 
         End Sub
 
+        <Fact>
+        Public Sub AssignNullWithMissingValueTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class S
+    Dim t As (Integer, Integer) = Nothing
+End Class
+    </file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
+    Dim t As (Integer, Integer) = Nothing
+             ~~~~~~~~~~~~~~~~~~
+BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
+    Dim t As (Integer, Integer) = Nothing
+             ~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace
