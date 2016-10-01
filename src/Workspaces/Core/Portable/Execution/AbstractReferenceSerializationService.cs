@@ -167,6 +167,11 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(nameof(PortableExecutableReference));
             writer.WriteInt32((int)kind);
 
+            WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
+        }
+
+        private void WritePortableExecutableReferencePropertiesTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        {
             WriteTo(reference.Properties, writer, cancellationToken);
             writer.WriteString(reference.FilePath);
         }
@@ -176,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Execution
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
+                WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
 
                 stream.Position = 0;
