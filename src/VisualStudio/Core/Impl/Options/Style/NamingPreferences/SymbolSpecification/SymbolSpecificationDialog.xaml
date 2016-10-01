@@ -1,5 +1,5 @@
 ﻿<vs:DialogWindow x:Uid="NamingPreferences"
-             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.Options.SymbolSpecificationDialog"
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences.SymbolSpecificationDialog"
              x:ClassModifier="internal"
              x:Name="dialog"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
@@ -36,7 +36,7 @@
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0 5 0 0">
             <Label Content="{Binding ElementName=dialog, Path=SymbolSpecificationTitleLabelText}"/>
-            <TextBox Width="300" Text="{Binding SymbolSpecName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"></TextBox>
+            <TextBox Width="300" Text="{Binding ItemName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"></TextBox>
         </StackPanel>
         <Grid Grid.Row="1" Margin="0 5 0 0">
             <Grid.ColumnDefinitions>
@@ -144,32 +144,6 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Grid.Row="0" Content="{Binding ElementName=dialog, Path=CustomTagsLabelText}"/>
-                <ListView Grid.Row="1" x:Uid="MemberSelectionList2zz"
-                          x:Name="CustomTags"
-                          Margin="8 4 8 7"
-                          SelectionMode="Extended"
-                          MinWidth="130"
-                          ItemsSource="{Binding CustomTagList, Mode=TwoWay}">
-                    <ListView.ItemTemplate x:Uid="SelectableMemberListItemzz">
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox x:Uid="SelectableMemberCheckBox" 
-                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                          Width="Auto"
-                                          Focusable="False"
-                                          AutomationProperties.AutomationId="{Binding MemberName}">
-                                </CheckBox>
-                                <TextBlock x:Uid="SelectableMemberName" Margin="4 0 0 0"
-                                                   Text="{Binding Name}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
-                    <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllCustomTags"/>
-                    <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}" Click="DeselectAllCustomTags"/>
-                </StackPanel>
             </Grid>
         </Grid>
 
