@@ -3179,13 +3179,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundExpression BindObjectCreationExpression(ObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var type = BindType(node.Type, diagnostics);
-
             if (node.Type.Kind() == SyntaxKind.TupleType)
             {
                 Debug.Assert(node.HasErrors, "new <tuple type> should be a syntax error");
                 return BadExpression(node, LookupResultKind.NotCreatable);
             }
+
+            var type = BindType(node.Type, diagnostics);
 
             BoundExpression boundInitializerOpt = node.Initializer == null ?
                 null :
