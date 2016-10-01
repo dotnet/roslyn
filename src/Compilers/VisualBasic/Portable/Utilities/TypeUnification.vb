@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    substitution)
 #If DEBUG Then
             Debug.Assert(Not result OrElse
-                SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t1)) = SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t2)))
+                SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t1)).IsSameType(SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t2)), TypeCompareKind.IgnoreTupleNames))
 #End If
             Return result
         End Function
@@ -107,6 +107,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim nt1 As NamedTypeSymbol = DirectCast(t1.Type, NamedTypeSymbol)
                     Dim nt2 As NamedTypeSymbol = DirectCast(t2.Type, NamedTypeSymbol)
+
+                    If nt1.IsTupleType Then
+                        If Not nt2.IsTupleType Then
+                            Return False
+                        End If
+
+                        Return CanUnifyHelper(containingGenericType, New TypeWithModifiers(nt1.TupleUnderlyingType), New TypeWithModifiers(nt2.TupleUnderlyingType), substitution)
+                    End If
+
                     If Not nt1.IsGenericType Then
                         Return Not nt2.IsGenericType AndAlso nt1 = nt2
                     ElseIf Not nt2.IsGenericType Then

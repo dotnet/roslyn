@@ -2119,13 +2119,7 @@ lReportErrorOnTwoTokens:
                     ' with (equivalent) type parameters owned by this method.  We know that
                     ' we can perform this mapping positionally, because the method signatures
                     ' have already been compared.
-                    Dim constructedMethodWithCustomModifiers As MethodSymbol
-
-                    If Me.Arity > 0 Then
-                        constructedMethodWithCustomModifiers = overridden.Construct(Me.TypeParameters.As(Of TypeSymbol))
-                    Else
-                        constructedMethodWithCustomModifiers = overridden
-                    End If
+                    Dim constructedMethodWithCustomModifiers As MethodSymbol = overridden.ConstructIfGeneric(Me.TypeParameters.As(Of TypeSymbol))
 
                     Dim returnTypeWithCustomModifiers As TypeSymbol = constructedMethodWithCustomModifiers.ReturnType
 
@@ -2133,7 +2127,7 @@ lReportErrorOnTwoTokens:
                     ' method (incorrectly) has a different return type than the overridden method.  In such cases,
                     ' we want to retain the original (incorrect) return type to avoid hiding the return type
                     ' given in source.
-                    If retType.IsSameTypeIgnoringCustomModifiers(returnTypeWithCustomModifiers) Then
+                    If retType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
                         retType = returnTypeWithCustomModifiers
                     End If
 

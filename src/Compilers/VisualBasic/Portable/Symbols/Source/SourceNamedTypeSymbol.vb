@@ -1219,17 +1219,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' give errors for multiple base classes
-            Dim interfacesInThisPartial As New HashSet(Of TypeSymbol)()
+            Dim interfacesInThisPartial As New Dictionary(Of TypeSymbol, TypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
 
             For Each baseDeclaration In baseSyntax
                 Dim types = DirectCast(baseDeclaration, ImplementsStatementSyntax).Types
                 For Each baseClassSyntax In types
                     Dim typeSymbol = binder.BindTypeSyntax(baseClassSyntax, diagBag, suppressUseSiteError:=True)
 
-                    If interfacesInThisPartial.Contains(typeSymbol) Then
+                    Dim other As TypeSymbol = Nothing
+                    If interfacesInThisPartial.TryGetValue(typeSymbol, other) Then
                         Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InterfaceImplementedTwice1, typeSymbol)
                     Else
-                        interfacesInThisPartial.Add(typeSymbol)
+                        interfacesInThisPartial.Add(typeSymbol, typeSymbol)
 
                         ' Check to make sure the base interfaces are valid.
                         Select Case typeSymbol.TypeKind

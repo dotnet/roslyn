@@ -785,6 +785,9 @@
   <data name="ERR_DuplicateProcDef1" xml:space="preserve">
     <value>'{0}' has multiple definitions with identical signatures.</value>
   </data>
+  <data name="ERR_DuplicateProcDefWithDifferentTupleNames" xml:space="preserve">
+    <value>'{0}' has multiple definitions with identical signatures with different tuple element names.</value>
+  </data>
   <data name="ERR_BadInterfaceMethodFlags1" xml:space="preserve">
     <value>'{0}' is not valid on an interface method declaration.</value>
   </data>
@@ -1038,6 +1041,9 @@
   </data>
   <data name="ERR_InvalidOverrideDueToReturn2" xml:space="preserve">
     <value>'{0}' cannot override '{1}' because they differ by their return types.</value>
+  </data>
+  <data name="ERR_InvalidOverrideDueToTupleNames" xml:space="preserve">
+    <value>'{0}' cannot override '{1}' because they differ by their tuple element names.</value>
   </data>
   <data name="ERR_ConstantWithNoValue" xml:space="preserve">
     <value>Constants must have a value.</value>
@@ -1862,6 +1868,9 @@
   </data>
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames" xml:space="preserve">
+    <value>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}'.</value>
   </data>
   <data name="ERR_InterfaceNotImplemented1" xml:space="preserve">
     <value>Interface '{0}' is not implemented by this class.</value>
