@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure.Outlining
             const string code = @"
 class C
 {
-    {|hint:$$namespace N{|collapse:
+    {|hint:$$namespace N{|textspan:
     {
     }|}|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -36,14 +36,14 @@ class C
 {
     {|span1:// Foo
     // Bar|}
-    {|hint2:$$namespace N{|collapse2:
+    {|hint2:$$namespace N{|textspan2:
     {
     }|}|}
 }";
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -52,16 +52,16 @@ class C
             const string code = @"
 class C
 {
-    {|hint1:$$namespace N{|collapse1:
+    {|hint1:$$namespace N{|textspan1:
     {
-        {|hint2:using {|collapse2:System;
+        {|hint2:using {|textspan2:System;
         using System.Linq;|}|}
     }|}|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -70,19 +70,19 @@ class C
             const string code = @"
 class C
 {
-    {|hint1:$$namespace N{|collapse1:
+    {|hint1:$$namespace N{|textspan1:
     {
         {|span2:// Foo
         // Bar|}
-        {|hint3:using {|collapse3:System;
+        {|hint3:using {|textspan3:System;
         using System.Linq;|}|}
     }|}|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+                Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
                 Region("span2", "// Foo ...", autoCollapse: true),
-                Region("collapse3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -91,7 +91,7 @@ class C
             const string code = @"
 class C
 {
-    {|hint1:$$namespace N{|collapse1:
+    {|hint1:$$namespace N{|textspan1:
     {
         {|span2:// Foo
         // Bar|}
@@ -99,7 +99,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+                Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
                 Region("span2", "// Foo ...", autoCollapse: true));
         }
     }
