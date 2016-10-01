@@ -1222,7 +1222,7 @@ End module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37272: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
     Sub Test(x as (a as integer, b as Integer))
         ~~~~
 </errors>)
@@ -1248,7 +1248,7 @@ End module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37272: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures with different tuple element names.
     Sub Test(x as (integer,Integer))
         ~~~~
 </errors>)
@@ -13051,16 +13051,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37268: 'Public Overrides Function M2() As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Function M2() As (a As Integer, b As Integer)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M2() As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Function M2() As (a As Integer, b As Integer)' because they differ by their tuple element names.
     Public Overrides Function M2() As (notA As Integer, notB As Integer)
                               ~~
-BC37268: 'Public Overrides Function M3() As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Function M3() As (a As Integer, b As Integer)()' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M3() As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Function M3() As (a As Integer, b As Integer)()' because they differ by their tuple element names.
     Public Overrides Function M3() As (notA As Integer, notB As Integer)()
                               ~~
-BC37268: 'Public Overrides Function M4() As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Function M4() As (a As Integer, b As Integer)?' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M4() As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Function M4() As (a As Integer, b As Integer)?' because they differ by their tuple element names.
     Public Overrides Function M4() As (notA As Integer, notB As Integer)?
                               ~~
-BC37268: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
     Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
                               ~~
 </errors>)
@@ -13116,16 +13116,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37268: 'Public Overrides Function M2(Of T)() As (notA As T, notB As T)' cannot override 'Public Overridable Function M2(Of T)() As (a As T, b As T)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M2(Of T)() As (notA As T, notB As T)' cannot override 'Public Overridable Function M2(Of T)() As (a As T, b As T)' because they differ by their tuple element names.
     Public Overrides Function M2(Of T)() As (notA As T, notB As T)
                               ~~
-BC37268: 'Public Overrides Function M3(Of T)() As (notA As T, notB As T)()' cannot override 'Public Overridable Function M3(Of T)() As (a As T, b As T)()' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M3(Of T)() As (notA As T, notB As T)()' cannot override 'Public Overridable Function M3(Of T)() As (a As T, b As T)()' because they differ by their tuple element names.
     Public Overrides Function M3(Of T)() As (notA As T, notB As T)()
                               ~~
-BC37268: 'Public Overrides Function M4(Of T)() As (notA As T, notB As T)?' cannot override 'Public Overridable Function M4(Of T)() As (a As T, b As T)?' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M4(Of T)() As (notA As T, notB As T)?' cannot override 'Public Overridable Function M4(Of T)() As (a As T, b As T)?' because they differ by their tuple element names.
     Public Overrides Function M4(Of T)() As (notA As T, notB As T)?
                               ~~
-BC37268: 'Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)' cannot override 'Public Overridable Function M5(Of T)() As (c As (a As T, b As T), d As T)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)' cannot override 'Public Overridable Function M5(Of T)() As (c As (a As T, b As T), d As T)' because they differ by their tuple element names.
     Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)
                               ~~
 </errors>)
@@ -13171,16 +13171,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37268: 'Public Overrides Sub M2(x As (notA As Integer, notB As Integer))' cannot override 'Public Overridable Sub M2(x As (a As Integer, b As Integer))' because they differ by their tuple element names.
+BC37270: 'Public Overrides Sub M2(x As (notA As Integer, notB As Integer))' cannot override 'Public Overridable Sub M2(x As (a As Integer, b As Integer))' because they differ by their tuple element names.
     Public Overrides Sub M2(x As (notA As Integer, notB As Integer))
                          ~~
-BC37268: 'Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())' cannot override 'Public Overridable Sub M3(x As (a As Integer, b As Integer)())' because they differ by their tuple element names.
+BC37270: 'Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())' cannot override 'Public Overridable Sub M3(x As (a As Integer, b As Integer)())' because they differ by their tuple element names.
     Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())
                          ~~
-BC37268: 'Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)' cannot override 'Public Overridable Sub M4(x As (a As Integer, b As Integer)?)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)' cannot override 'Public Overridable Sub M4(x As (a As Integer, b As Integer)?)' because they differ by their tuple element names.
     Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)
                          ~~
-BC37268: 'Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' cannot override 'Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))' because they differ by their tuple element names.
+BC37270: 'Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' cannot override 'Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))' because they differ by their tuple element names.
     Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
                          ~~
 </errors>)
@@ -13226,16 +13226,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37268: 'Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))' cannot override 'Public Overridable Sub M2(Of T)(x As (a As T, b As T))' because they differ by their tuple element names.
+BC37270: 'Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))' cannot override 'Public Overridable Sub M2(Of T)(x As (a As T, b As T))' because they differ by their tuple element names.
     Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))
                          ~~
-BC37268: 'Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())' cannot override 'Public Overridable Sub M3(Of T)(x As (a As T, b As T)())' because they differ by their tuple element names.
+BC37270: 'Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())' cannot override 'Public Overridable Sub M3(Of T)(x As (a As T, b As T)())' because they differ by their tuple element names.
     Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())
                          ~~
-BC37268: 'Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)' cannot override 'Public Overridable Sub M4(Of T)(x As (a As T, b As T)?)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)' cannot override 'Public Overridable Sub M4(Of T)(x As (a As T, b As T)?)' because they differ by their tuple element names.
     Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)
                          ~~
-BC37268: 'Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))' cannot override 'Public Overridable Sub M5(Of T)(x As (c As (a As T, b As T), d As T))' because they differ by their tuple element names.
+BC37270: 'Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))' cannot override 'Public Overridable Sub M5(Of T)(x As (c As (a As T, b As T), d As T))' because they differ by their tuple element names.
     Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))
                          ~~
 </errors>)
@@ -13351,16 +13351,16 @@ additionalRefs:=s_valueTupleRefs)
 BC30269: 'Public Sub M1(x As (A As Integer, B As Integer))' has multiple definitions with identical signatures.
     Public Sub M1(x As (A As Integer, B As Integer))
                ~~
-BC37270: 'Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37272: 'Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))' has multiple definitions with identical signatures with different tuple element names.
     Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))
                ~~
-BC37270: 'Public Sub M3(x As (notA As Integer, notB As Integer)())' has multiple definitions with identical signatures with different tuple element names.
+BC37272: 'Public Sub M3(x As (notA As Integer, notB As Integer)())' has multiple definitions with identical signatures with different tuple element names.
     Public Sub M3(x As (notA As Integer, notB As Integer)())
                ~~
-BC37270: 'Public Sub M4(x As (notA As Integer, notB As Integer)?)' has multiple definitions with identical signatures with different tuple element names.
+BC37272: 'Public Sub M4(x As (notA As Integer, notB As Integer)?)' has multiple definitions with identical signatures with different tuple element names.
     Public Sub M4(x As (notA As Integer, notB As Integer)?)
                ~~
-BC37270: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37272: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' has multiple definitions with identical signatures with different tuple element names.
     Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
                ~~
 </errors>)
@@ -13621,12 +13621,6 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC40003: function 'Pop' shadows an overloadable member declared in the base class 'C1'.  If you want to overload the base method, this method must be declared 'Overloads'.
-    Public Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
-                    ~~~
-BC30401: 'Pop' cannot implement 'Pop' because there is no matching function on interface 'I0(Of (a As Integer, b As Integer))'.
-    Public Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
-                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC40003: sub 'Push' shadows an overloadable member declared in the base class 'C1'.  If you want to overload the base method, this method must be declared 'Overloads'.
     Public Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
                ~~~~
@@ -13666,10 +13660,10 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Private Sub M1(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37272: 'Private Sub M1(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
     Private Partial Sub M1(x As (a As Integer, b As Integer))
                         ~~
-BC37270: 'Private Sub M2(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37272: 'Private Sub M2(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
     Private Partial Sub M2(x As (a As Integer, b As Integer))
                         ~~
 </errors>)
@@ -13707,10 +13701,10 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37269: Interface 'I0(Of (Integer, Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+BC37271: Interface 'I0(Of (Integer, Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
 Public Partial Class C
 ~~~~~~~~~~~~~~~~~~~~~~
-BC37269: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+BC37271: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
 Public Partial Class C
 ~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -13791,7 +13785,7 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37269: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+BC37271: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
 Public Class C
 ~~~~~~~~~~~~~~
 </errors>)
@@ -14025,7 +14019,7 @@ additionalReferences:=s_valueTupleRefs)
 
             compDifferent1.AssertTheseDiagnostics(
 <errors>
-BC37268: 'Public Overrides Function M() As (a As Integer, b As Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M() As (a As Integer, b As Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
     Public Overrides Function M() As (a As Integer, b As Integer)
                               ~
 </errors>)
@@ -14047,7 +14041,7 @@ additionalReferences:=s_valueTupleRefs)
 
             compDifferent2.AssertTheseDiagnostics(
 <errors>
-BC37268: 'Public Overrides Function M() As (Integer, Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Function M() As (Integer, Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
     Public Overrides Function M() As (Integer, Integer)
                               ~
 </errors>)
@@ -14117,16 +14111,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37268: 'Public Overrides Property P2 As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Property P2 As (a As Integer, b As Integer)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Property P2 As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Property P2 As (a As Integer, b As Integer)' because they differ by their tuple element names.
     Public Overrides Property P2 As (notA As Integer, notB As Integer)
                               ~~
-BC37268: 'Public Overrides Property P3 As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Property P3 As (a As Integer, b As Integer)()' because they differ by their tuple element names.
+BC37270: 'Public Overrides Property P3 As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Property P3 As (a As Integer, b As Integer)()' because they differ by their tuple element names.
     Public Overrides Property P3 As (notA As Integer, notB As Integer)()
                               ~~
-BC37268: 'Public Overrides Property P4 As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Property P4 As (a As Integer, b As Integer)?' because they differ by their tuple element names.
+BC37270: 'Public Overrides Property P4 As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Property P4 As (a As Integer, b As Integer)?' because they differ by their tuple element names.
     Public Overrides Property P4 As (notA As Integer, notB As Integer)?
                               ~~
-BC37268: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
+BC37270: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
     Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)
                               ~~
 </errors>)
