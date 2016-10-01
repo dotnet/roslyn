@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    substitution)
 #If DEBUG Then
             Debug.Assert(Not result OrElse
-                SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t1)).IsSame(SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t2)), TypeCompareKind.IgnoreTupleNames))
+                SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t1)).IsSameType(SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t2)), TypeCompareKind.IgnoreTupleNames))
 #End If
             Return result
         End Function

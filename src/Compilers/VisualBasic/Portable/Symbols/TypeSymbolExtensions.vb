@@ -235,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Friend Function IsSameTypeIgnoringCustomModifiers(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
             ' TODO REVIEW I should rename this method
-            Return IsSameType(t1, t2, TypeCompareKind.IgnoreCustomModifiers Or TypeCompareKind.IgnoreTupleNames)
+            Return IsSameType(t1, t2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)
         End Function
 
         ''' <summary>
@@ -243,8 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension()>
         Friend Function IsSameType(t1 As TypeSymbol, t2 As TypeSymbol, compareKind As TypeCompareKind) As Boolean
-            Debug.Assert(compareKind <> 0 And
-                         (compareKind And Not (TypeCompareKind.IgnoreCustomModifiers Or TypeCompareKind.IgnoreTupleNames)) = 0)
+            Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
 
             If (compareKind And TypeCompareKind.IgnoreTupleNames) = 0 AndAlso Not HasSameTupleNames(t1, t2) Then
                 Return False
@@ -273,9 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim array1 = DirectCast(t1, ArrayTypeSymbol)
                 Dim array2 = DirectCast(t2, ArrayTypeSymbol)
 
-                Return array1.HasSameShapeAs(array2) AndAlso
-                       array1.ElementType.IsSameType(array2.ElementType, compareKind)
-
+                Return array1.IsSameType(array2, compareKind)
             ElseIf t1.IsAnonymousType AndAlso t2.IsAnonymousType Then
                 Return AnonymousTypeManager.IsSameType(t1, t2, compareKind)
 
@@ -284,13 +281,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim t2IsDefinition = t2.IsDefinition
 
                 If (t1IsDefinition <> t2IsDefinition) AndAlso
+                   (compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
                    Not (DirectCast(t1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(t2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers) Then
                     Return False
                 End If
 
+                If (compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 Then
+                    Dim mod1 = DirectCast(t1, NamedTypeSymbol).TypeArgumentsCustomModifiers
+                    Dim mod2 = DirectCast(t2, NamedTypeSymbol).TypeArgumentsCustomModifiers
+
+                    If mod1.Length <> mod2.Length Then
+                        Return False
+                    End If
+
+                    For i = 0 To mod1.Length - 1
+                        If Not mod1(i).AreSameCustomModifiers(mod2(i)) Then
+                            Return False
+                        End If
+                    Next
+                End If
+
                 If Not (t1IsDefinition AndAlso t2IsDefinition) Then ' This is a generic instantiation case
 
-                    If t1.OriginalDefinition <> t2.OriginalDefinition Then
+                    If Not t1.OriginalDefinition.IsSameType(t2.OriginalDefinition, compareKind) Then
                         Return False ' different definition
                     End If
 
@@ -322,6 +335,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Return (t1 = t2)
+        End Function
+
+        <Extension()>
+        Friend Function AreSameCustomModifiers([mod] As ImmutableArray(Of CustomModifier), otherMod As ImmutableArray(Of CustomModifier)) As Boolean
+            Dim count As Integer = [mod].Length
+
+            If (count <> otherMod.Length) Then
+                Return False
+            End If
+
+            For i As Integer = 0 To count - 1 Step 1
+                If (Not [mod](i).Equals(otherMod(i))) Then
+                    Return False
+                End If
+            Next
+
+            Return True
         End Function
 
         Private Function HasSameTupleNames(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean

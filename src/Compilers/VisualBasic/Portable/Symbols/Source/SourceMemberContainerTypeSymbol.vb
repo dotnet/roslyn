@@ -3819,10 +3819,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         firstMember,
                                         secondMember,
                                         SymbolComparisonResults.AllMismatches And Not (SymbolComparisonResults.CallingConventionMismatch Or SymbolComparisonResults.ConstraintMismatch))
-                If comparisonWithTupleNames = 0 Then
-                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDef1, firstMember), location)
-                Else
+                If (comparisonWithTupleNames And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
                     diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDefWithDifferentTupleNames, firstMember), location)
+                Else
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDef1, firstMember), location)
                 End If
             Else
                 ' TODO: maybe rewrite these diagnostics to if/elseifs to report just one diagnostic per
