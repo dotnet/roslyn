@@ -108,11 +108,11 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
                 return newSolution;
             }
 
-            return await TryRemoveAwaitFromCallersAsync(
+            return await RemoveAwaitFromCallersAsync(
                 newDocument, annotation, cancellationToken).ConfigureAwait(false) ;
         }
 
-        private async Task<Solution> TryRemoveAwaitFromCallersAsync(
+        private async Task<Solution> RemoveAwaitFromCallersAsync(
             Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
                     var referencedSymbol = references.FirstOrDefault(r => Equals(r.Definition, methodSymbol));
                     if (referencedSymbol != null)
                     {
-                        return await TryRemoveAwaitFromCallersAsync(
+                        return await RemoveAwaitFromCallersAsync(
                             document.Project.Solution, referencedSymbol.Locations.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             return document.Project.Solution;
         }
 
-        private async Task<Solution> TryRemoveAwaitFromCallersAsync(
+        private async Task<Solution> RemoveAwaitFromCallersAsync(
             Solution solution, ImmutableArray<ReferenceLocation> locations, CancellationToken cancellationToken)
         {
             var currentSolution = solution;
@@ -149,14 +149,14 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 
             foreach (var group in groupedLocations)
             {
-                currentSolution = await TryRemoveAwaitFromCallersAsync(
+                currentSolution = await RemoveAwaitFromCallersAsync(
                     currentSolution, group, cancellationToken).ConfigureAwait(false);
             }
 
             return currentSolution;
         }
 
-        private async Task<Solution> TryRemoveAwaitFromCallersAsync(
+        private async Task<Solution> RemoveAwaitFromCallersAsync(
             Solution currentSolution, IGrouping<Document, ReferenceLocation> group, CancellationToken cancellationToken)
         {
             var document = group.Key;
@@ -167,14 +167,14 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 
             foreach (var location in group)
             {
-                TryRemoteAwaitFromCaller(editor, syntaxFactsService, root, location, cancellationToken);
+                RemoveAwaitFromCallerIfPresent(editor, syntaxFactsService, root, location, cancellationToken);
             }
 
             var newRoot = editor.GetChangedRoot();
             return currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
         }
 
-        private void TryRemoteAwaitFromCaller(
+        private void RemoveAwaitFromCallerIfPresent(
             SyntaxEditor editor, ISyntaxFactsService syntaxFacts, 
             SyntaxNode root, ReferenceLocation referenceLocation,
             CancellationToken cancellationToken)
