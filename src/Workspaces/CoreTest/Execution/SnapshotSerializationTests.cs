@@ -512,6 +512,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        [Fact]
+        public void EmptyAssetChecksumTest()
+        {
+            var document = new AdhocWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
+            var assetBuilder = new AssetBuilder(document.Project.Solution);
+
+            var source = assetBuilder.Build(document.State, document.GetTextAsync().Result, CancellationToken.None);
+            var metadata = assetBuilder.Build(new MissingMetadataReference(), CancellationToken.None);
+            var analyzer = assetBuilder.Build(new AnalyzerFileReference("missing", new MissingAnalyzerLoader()), CancellationToken.None);
+
+            Assert.NotEqual(source.Checksum, metadata.Checksum);
+            Assert.NotEqual(source.Checksum, analyzer.Checksum);
+            Assert.NotEqual(metadata.Checksum, analyzer.Checksum);
+        }
+
         private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
         {
             var assetBuilder = new AssetBuilder(workspace.CurrentSolution);

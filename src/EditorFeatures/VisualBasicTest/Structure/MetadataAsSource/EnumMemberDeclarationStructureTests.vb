@@ -35,21 +35,21 @@ End Enum
         Public Async Function WithAttributes() As Task
             Dim code = "
 Enum E
-    {|hint:{|collapse:<Blah>
+    {|hint:{|textspan:<Blah>
     |}$$Foo|}
     Bar
 End Enum
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 Enum E
-    {|hint:{|collapse:' Summary:
+    {|hint:{|textspan:' Summary:
     '     This is a summary.
     <Blah>
     |}$$Foo|}
@@ -58,7 +58,7 @@ End Enum
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
     End Class
 End Namespace
