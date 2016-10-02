@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly MetadataReference _reference;
 
         public MetadataReferenceAsset(Serializer serializer, MetadataReference reference, Checksum checksum, string kind) :
-            base(checksum, WellKnownChecksumObjects.MetadataReference)
+            base(Checksum.Create(kind, checksum), WellKnownChecksumObjects.MetadataReference)
         {
             Contract.Requires(kind == WellKnownChecksumObjects.MetadataReference);
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly AnalyzerReference _reference;
 
         public AnalyzerReferenceAsset(Serializer serializer, AnalyzerReference reference, Checksum checksum, string kind) :
-            base(checksum, WellKnownChecksumObjects.AnalyzerReference)
+            base(Checksum.Create(kind, checksum), WellKnownChecksumObjects.AnalyzerReference)
         {
             Contract.Requires(kind == WellKnownChecksumObjects.AnalyzerReference);
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly TextDocumentState _state;
 
         public SourceTextAsset(Serializer serializer, TextDocumentState state, Checksum checksum, string kind) :
-            base(checksum, WellKnownChecksumObjects.SourceText)
+            base(Checksum.Create(kind, checksum), WellKnownChecksumObjects.SourceText)
         {
             Contract.Requires(kind == WellKnownChecksumObjects.SourceText);
 

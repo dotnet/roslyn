@@ -24,6 +24,18 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
+        public static Checksum Create(string kind, Checksum checksum)
+        {
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream))
+            {
+                writer.WriteString(kind);
+                checksum.WriteTo(writer);
+
+                return Create(stream);
+            }
+        }
+
         public static Checksum Create<TChecksums>(string kind, TChecksums checksums)
             where TChecksums : IEnumerable<Checksum>
         {
