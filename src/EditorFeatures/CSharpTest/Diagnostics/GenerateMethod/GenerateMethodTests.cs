@@ -3140,5 +3140,137 @@ withScriptOption: true);
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
 withScriptOption: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        public async Task TestDeconstruction1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int y) = [|Method|]();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int y) = Method();
+    }
+
+    private (int x, int y) Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        public async Task TestDeconstruction2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, (int y, int z)) = [|Method|]();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, (int y, int z)) = Method();
+    }
+
+    private (int x, (int y, int z)) Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        public async Task TestDeconstruction3()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, (int, int)) = [|Method|]();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, (int, int)) = Method();
+    }
+
+    private (int x, (int, int)) Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        public async Task TestDeconstruction4()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int) = [|Method|]();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int) = Method();
+    }
+
+    private (int x, int) Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
+        }
     }
 }
