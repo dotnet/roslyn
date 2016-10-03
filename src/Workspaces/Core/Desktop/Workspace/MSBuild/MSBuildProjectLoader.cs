@@ -221,8 +221,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private Dictionary<ProjectId, ProjectInfo> _projectIdToProjectInfoMap
                 = new Dictionary<ProjectId, ProjectInfo>();
 
-            private List<ProjectInfo> _projectInfoList
-                = new List<ProjectInfo>();
+            /// <summary>
+            /// Used to memoize results of <see cref="ProjectAlreadyReferencesProject"/> calls.
+            /// Reset any time internal state is changed.
+            /// </summary>
+            private Dictionary<ProjectId, Dictionary<ProjectId, bool>> _projectAlreadyReferencesProjectResultCache
+                = new Dictionary<ProjectId, Dictionary<ProjectId, bool>>();
 
             private readonly Dictionary<string, ProjectId> _projectPathToProjectIdMap
                 = new Dictionary<string, ProjectId>();
@@ -238,17 +242,45 @@ namespace Microsoft.CodeAnalysis.MSBuild
             public void Add(ProjectInfo info)
             {
                 _projectIdToProjectInfoMap.Add(info.Id, info);
-                _projectInfoList.Add(info);
+                //Memoized results of ProjectAlreadyReferencesProject may no longer be correct;
+                //reset the cache.
+                _projectAlreadyReferencesProjectResultCache.Clear();
             }
 
-            public bool TryGetValue(ProjectId id, out ProjectInfo info)
+            /// <summary>
+            /// Returns true if the project identified by <paramref name="fromProject"/> has a reference (even indirectly)
+            /// on the project identified by <paramref name="targetProject"/>.
+            /// </summary>
+            public bool ProjectAlreadyReferencesProject(ProjectId fromProject, ProjectId targetProject)
             {
-                return _projectIdToProjectInfoMap.TryGetValue(id, out info);
+                Dictionary<ProjectId, bool> fromProjectMemo;
+
+                if ( !_projectAlreadyReferencesProjectResultCache.TryGetValue(fromProject, out fromProjectMemo))
+                {
+                    fromProjectMemo = new Dictionary<ProjectId, bool>();
+                    _projectAlreadyReferencesProjectResultCache.Add(fromProject, fromProjectMemo);
+                }
+
+                bool answer;
+
+                if ( !fromProjectMemo.TryGetValue(targetProject, out answer))
+                {
+                    ProjectInfo info;
+                    answer =
+                        _projectIdToProjectInfoMap.TryGetValue(fromProject, out info) &&
+                        info.ProjectReferences.Any(pr =>
+                            pr.ProjectId == targetProject ||
+                            ProjectAlreadyReferencesProject(pr.ProjectId, targetProject)
+                        );
+                    fromProjectMemo.Add(targetProject, answer);
+                }
+
+                return answer;
             }
 
-            public IReadOnlyList<ProjectInfo> Projects
+            public IEnumerable<ProjectInfo> Projects
             {
-                get { return _projectInfoList; }
+                get { return _projectIdToProjectInfoMap.Values; }//_projectInfoList; }
             }
 
             public ProjectId GetProjectId(string fullProjectPath)
@@ -526,7 +558,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         // If that other project already has a reference on us, this will cause a circularity.
                         // This check doesn't need to be in the "already loaded" path above, since in any circularity this path
                         // must be taken at least once.
-                        if (ProjectAlreadyReferencesProject(loadedProjects, projectId, targetProject: thisProjectId))
+                        if (loadedProjects.ProjectAlreadyReferencesProject(projectId, targetProject: thisProjectId))
                         {
                             // We'll try to make this metadata if we can
                             var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, _properties, cancellationToken).ConfigureAwait(false);
@@ -554,18 +586,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return resolvedReferences;
-        }
-
-        /// <summary>
-        /// Returns true if the project identified by <paramref name="fromProject"/> has a reference (even indirectly)
-        /// on the project identified by <paramref name="targetProject"/>.
-        /// </summary>
-        private bool ProjectAlreadyReferencesProject(LoadState loadedProjects, ProjectId fromProject, ProjectId targetProject)
-        {
-            ProjectInfo info;
-
-            return loadedProjects.TryGetValue(fromProject, out info) && info.ProjectReferences.Any(pr => pr.ProjectId == targetProject ||
-                ProjectAlreadyReferencesProject(loadedProjects, pr.ProjectId, targetProject));
         }
 
         /// <summary>

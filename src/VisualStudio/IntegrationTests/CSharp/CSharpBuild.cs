@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance();
+            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
 
             _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
             _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);

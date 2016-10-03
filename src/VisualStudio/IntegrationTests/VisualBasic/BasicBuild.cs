@@ -13,7 +13,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         public BasicBuild(VisualStudioInstanceFactory instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance();
+            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
 
             _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
