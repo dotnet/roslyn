@@ -44,6 +44,7 @@ Supported Platforms:
     <file src="Microsoft.VisualBasic.Core.targets" target="tools" />
 
     <file src="System.AppContext.dll" target="tools" />
+    <file src="System.Collections.Immutable.dll" target="tools" />
     <file src="System.Console.dll" target="tools" />
     <file src="System.Diagnostics.FileVersionInfo.dll" target="tools" />
     <file src="System.Diagnostics.Process.dll" target="tools" />
@@ -53,6 +54,7 @@ Supported Platforms:
     <file src="System.IO.FileSystem.DriveInfo.dll" target="tools" />
     <file src="System.IO.FileSystem.Primitives.dll" target="tools" />
     <file src="System.IO.Pipes.dll" target="tools" />
+    <file src="System.Reflection.Metadata.dll" target="tools" />
     <file src="System.Runtime.InteropServices.RuntimeInformation.dll" target="tools" />
     <file src="System.Security.AccessControl.dll" target="tools" />
     <file src="System.Security.Claims.dll" target="tools" />
