@@ -6679,6 +6679,36 @@ class C
         }
 
         [Fact]
+        public void Tuple_TypeUpdate()
+        {
+            var src1 = "class C { (int, int) M() { throw new System.Exception(); } }";
+            var src2 = "class C { (string, int) M() { throw new System.Exception(); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int, int) M() { throw new System.Exception(); }]@10 -> [(string, int) M() { throw new System.Exception(); }]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "(string, int) M()", FeaturesResources.method));
+        }
+
+        [Fact]
+        public void TupleNames_TypeUpdate()
+        {
+            var src1 = "class C { (int a, int) M() { throw new System.Exception(); } }";
+            var src2 = "class C { (int notA, int) M() { throw new System.Exception(); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int a, int) M() { throw new System.Exception(); }]@10 -> [(int notA, int) M() { throw new System.Exception(); }]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "(int notA, int) M()", FeaturesResources.method));
+        }
+
+        [Fact]
         public void Indexer_ParameterUpdate()
         {
             var src1 = "class C { int this[int a] { get; set; } }";
