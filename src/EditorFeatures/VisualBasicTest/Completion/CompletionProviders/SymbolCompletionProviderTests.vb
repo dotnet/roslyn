@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -7581,6 +7582,67 @@ End Namespace
             Await VerifyItemIsAbsentAsync(text, "Item1")
             Await VerifyItemIsAbsentAsync(text, "Item9")
             Await VerifyItemIsAbsentAsync(text, "Rest")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function WinformsInstanceMembers() As Task
+            ' MyForms template taken from GropuClassTests.vb
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document name="Form.vb">
+                            <![CDATA[
+Namespace Global.System.Windows.Forms
+    Public Class Form
+        Implements IDisposable
+
+        Public Sub InstanceMethod()
+        End SUb
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public ReadOnly Property IsDisposed As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+    End Class
+End Namespace
+    ]]></Document>
+                        <Document name="types.vb"><![CDATA[
+Imports System
+
+Namespace Global.WindowsApplication1
+    Public Class Form2
+        Inherits System.Windows.Forms.Form
+    End Class
+End Namespace
+
+Namespace Global.WindowsApplication1
+    Public Class Form1
+        Inherits System.Windows.Forms.Form
+
+ Private Sub Foo()
+        Form2.$$
+    End Sub
+    End Class
+End Namespace
+    ]]></Document>
+
+                    </Project>
+                </Workspace>
+
+            Dim workspace = Await TestWorkspace.CreateAsync(input)
+            Dim oldOptions = DirectCast(workspace.CurrentSolution.Projects.First().CompilationOptions, VisualBasicCompilationOptions)
+            Dim kvp = KeyValuePair.Create("_MYTYPE", CObj("WindowsForms"))
+            Dim parseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(kvp)
+            Dim updatedSolution = workspace.CurrentSolution.Projects.First().WithCompilationOptions(oldOptions.WithParseOptions(parseOptions)).Solution
+            Dim document = updatedSolution.GetDocument(workspace.DocumentWithCursor.Id)
+            Dim position = workspace.DocumentWithCursor.CursorPosition.Value
+            Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                                    glyph:=Nothing, matchPriority:=Nothing)
+
         End Function
 
     End Class
