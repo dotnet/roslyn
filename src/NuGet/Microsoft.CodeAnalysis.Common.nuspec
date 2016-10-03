@@ -12,12 +12,6 @@
       - Portable Class Libraries
     </description>
     <dependencies>
-      <group targetFramework="portable-net45+win8">
-        <dependency id="System.Collections.Immutable"                  version="$SystemCollectionsImmutableVersion$" />
-        <dependency id="System.Reflection.Metadata"                    version="$SystemReflectionMetadataVersion$" />
-        <dependency id="Microsoft.CodeAnalysis.Analyzers"              version="$MicrosoftCodeAnalysisAnalyzersVersion$" />
-      </group>
-
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.Analyzers"              version="$MicrosoftCodeAnalysisAnalyzersVersion$" />
 
@@ -74,10 +68,6 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.dll" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.xml" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.dll" target="lib\net45" />
-    <file src="Microsoft.CodeAnalysis.xml" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.dll" target="lib\netstandard1.3" />
     <file src="Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />

@@ -24,10 +24,6 @@ Supported Platforms:
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\net45" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\netstandard1.3" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
