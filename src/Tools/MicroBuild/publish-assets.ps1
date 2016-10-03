@@ -73,7 +73,7 @@ try
 
     # MyGet feeds are limited to 40 characters in length
     $feedName = ("roslyn-{0}-nightly" -f $branchName)
-    $feedName = $feedName.Substring(0, [math]::Min($feedName.Length, 40))
+    $feedName = $feedName.Substring(0, [math]::Min($feedName.Length, 40)).ToLower()
 
     Write-Host "Uploading NuGet packages..."
 
