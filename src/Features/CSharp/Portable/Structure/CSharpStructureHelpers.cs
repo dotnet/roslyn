@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible: true,
                 textSpan: span,
                 hintSpan: span,
+                type: BlockTypes.Comment,
                 bannerText: GetCommentBannerText(startComment),
-                autoCollapse: true,
-                type: BlockTypes.Nonstructural);
+                autoCollapse: true);
         }
 
         // For testing purposes

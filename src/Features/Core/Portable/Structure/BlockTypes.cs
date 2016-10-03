@@ -5,10 +5,18 @@ namespace Microsoft.CodeAnalysis.Structure
     internal static class BlockTypes
     {
         // Basic types.
-        public const string Structural = nameof(Structural);
+        //public const string Structural = nameof(Structural);
+        //public const string Nonstructural = nameof(Nonstructural);
+
         public const string Nonstructural = nameof(Nonstructural);
 
+        // Trivia
+        public const string Comment = nameof(Comment);
+        // public const string Region = nameof(Region);
+        public const string PreprocessorRegion = nameof(PreprocessorRegion);
+
         // Top level declarations.
+        public const string Imports = nameof(Imports);
         public const string Namespace = nameof(Namespace);
         public const string Class = nameof(Class);
         public const string Enum = nameof(Enum);
@@ -41,6 +49,6 @@ namespace Microsoft.CodeAnalysis.Structure
         public const string AnonymousMethod = nameof(AnonymousMethod);
         public const string Xml = nameof(Xml);
 
-        public const string Other = nameof(Other);
+        // public const string Other = nameof(Other);
     }
 }

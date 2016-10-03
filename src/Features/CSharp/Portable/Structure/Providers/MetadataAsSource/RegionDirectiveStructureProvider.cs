@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
                     textSpan: TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
+                    type: BlockTypes.PreprocessorRegion,
                     bannerText: GetBannerText(regionDirective),
                     autoCollapse: true));
             }

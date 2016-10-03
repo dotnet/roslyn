@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         }
 
         protected override IOutliningRegionTag CreateTag(
-            IOutliningRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region)
+            IOutliningRegionTag parentTag, ITextSnapshot snapshot, BlockSpan blockSpan)
         {
-            if (!region.IsCollapsible)
+            if (!blockSpan.IsCollapsible)
             {
                 return null;
             }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 this.TextEditorFactoryService,
                 this.ProjectionBufferFactoryService,
                 this.EditorOptionsFactoryService,
-                snapshot, region);
+                snapshot, blockSpan);
         }
     }
 }

@@ -26,11 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 parentKind == SyntaxKind.FinallyClause ||
                 parentKind == SyntaxKind.ElseClause)
             {
-                spans.Add(new BlockSpan(
-                    isCollapsible: node.IsParentKind(SyntaxKind.LocalFunctionStatement),
-                    textSpan: GetTextSpan(node),
-                    hintSpan: node.Parent.Span,
-                    type: GetType(node.Parent)));
+                var type = GetType(node.Parent);
+                if (type != null)
+                {
+                    spans.Add(new BlockSpan(
+                        isCollapsible: node.IsParentKind(SyntaxKind.LocalFunctionStatement),
+                        textSpan: GetTextSpan(node),
+                        hintSpan: node.Parent.Span,
+                        type: type));
+                }
             }
 
             // Switch sections are somewhat special.  Say you have the following:
@@ -94,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 case SyntaxKind.Block: return BlockTypes.Standalone;
 
                 case SyntaxKind.LocalFunctionStatement: return BlockTypes.LocalFunction;
-
-                default: return BlockTypes.Other;
             }
+
+            return null;
         }
     }
 }

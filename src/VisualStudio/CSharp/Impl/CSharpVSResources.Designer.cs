@@ -664,15 +664,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Outlining.
-        /// </summary>
-        internal static string Outlining {
-            get {
-                return ResourceManager.GetString("Outlining", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Performance.
         /// </summary>
         internal static string Performance {

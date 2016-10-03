@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 externsAndUsings, autoCollapse: true, 
-                type: BlockTypes.Nonstructural, isCollapsible: true));
+                type: BlockTypes.Imports, isCollapsible: true));
 
             // finally, add any leading comments before the end of the namespace block
             if (!namespaceDeclaration.CloseBraceToken.IsMissing)

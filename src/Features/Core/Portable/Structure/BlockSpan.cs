@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Structure
             TextSpan = textSpan;
             BannerText = bannerText;
             HintSpan = hintSpan;
-            IsCollapsible = isCollapsible;
             AutoCollapse = autoCollapse;
             IsDefaultCollapsed = isDefaultCollapsed;
+            IsCollapsible = isCollapsible;
             Type = type ?? BlockTypes.Nonstructural;
         }
 
@@ -63,6 +63,33 @@ namespace Microsoft.CodeAnalysis.Structure
             return this.TextSpan != this.HintSpan
                 ? $"{{Span={TextSpan}, HintSpan={HintSpan}, BannerText=\"{BannerText}\", AutoCollapse={AutoCollapse}, IsDefaultCollapsed={IsDefaultCollapsed}}}"
                 : $"{{Span={TextSpan}, BannerText=\"{BannerText}\", AutoCollapse={AutoCollapse}, IsDefaultCollapsed={IsDefaultCollapsed}}}";
+        }
+
+        internal BlockSpan WithType(string type)
+            => With(type: type);
+
+        internal BlockSpan WithIsCollapsible(bool isCollapsible)
+            => With(isCollapsible: isCollapsible);
+
+        internal BlockSpan With(
+            Optional<bool> isCollapsible = default(Optional<bool>),
+            Optional<TextSpan> textSpan = default(Optional<TextSpan>),
+            Optional<TextSpan> hintSpan = default(Optional<TextSpan>),
+            Optional<string> type = default(Optional<string>),
+            Optional<string> bannerText = default(Optional<string>),
+            Optional<bool> autoCollapse = default(Optional<bool>),
+            Optional<bool> isDefaultCollapsed = default(Optional<bool>))
+        {
+            var newIsCollapsible = isCollapsible.HasValue ? isCollapsible.Value : IsCollapsible;
+            var newTextSpan = textSpan.HasValue ? textSpan.Value : TextSpan;
+            var newHintSpan = hintSpan.HasValue ? hintSpan.Value : HintSpan;
+            var newType = type.HasValue ? type.Value : Type;
+            var newBannerText = bannerText.HasValue ? bannerText.Value : BannerText;
+            var newAutoCollapse = autoCollapse.HasValue ? autoCollapse.Value : AutoCollapse;
+            var newIsDefaultCollapsed = isDefaultCollapsed.HasValue ? isDefaultCollapsed.Value : IsDefaultCollapsed;
+
+            return new BlockSpan(
+                newIsCollapsible, newTextSpan, newHintSpan, newType, newBannerText, newAutoCollapse, newIsDefaultCollapsed);
         }
     }
 }

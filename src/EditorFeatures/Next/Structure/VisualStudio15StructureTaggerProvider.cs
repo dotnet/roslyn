@@ -56,6 +56,55 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 parentTag, snapshot, region);
         }
 
+        private static string ConvertType(string type)
+        {
+            switch (type)
+            {
+                case BlockTypes.Nonstructural: return PredefinedStructureTypes.Nonstructural;
+
+                // Top level declarations.  Note that Enum is not currently supported
+                // and that we map Module down to Class.
+                case BlockTypes.Namespace: return PredefinedStructureTypes.Namespace;
+                case BlockTypes.Structure: return PredefinedStructureTypes.Struct;
+                case BlockTypes.Interface: return PredefinedStructureTypes.Interface;
+                case BlockTypes.Module:
+                case BlockTypes.Class: return PredefinedStructureTypes.Class;
+
+                // Member declarations
+                case BlockTypes.Accessor: return PredefinedStructureTypes.AccessorBlock;
+                case BlockTypes.Constructor: return PredefinedStructureTypes.Constructor;
+                case BlockTypes.Destructor: return PredefinedStructureTypes.Destructor;
+                case BlockTypes.Method: return PredefinedStructureTypes.Method;
+                case BlockTypes.Operator: return PredefinedStructureTypes.Operator;
+
+                // Map events/indexers/properties all to the 'property' type.
+                case BlockTypes.Event:
+                case BlockTypes.Indexer:
+                case BlockTypes.Property: return PredefinedStructureTypes.PropertyBlock;
+
+                // Statements
+                case BlockTypes.Case: return PredefinedStructureTypes.Case;
+                case BlockTypes.Conditional: return PredefinedStructureTypes.Conditional;
+                case BlockTypes.Lock: return PredefinedStructureTypes.Lock;
+                case BlockTypes.Loop: return PredefinedStructureTypes.Loop;
+                case BlockTypes.TryCatchFinally: return PredefinedStructureTypes.TryCatchFinally;
+                case BlockTypes.Standalone: return PredefinedStructureTypes.Standalone;
+
+                // Expressions
+                case BlockTypes.AnonymousMethod: return PredefinedStructureTypes.AnonymousMethodBlock;
+
+                // These types don't currently map to any editor types.  Just make them
+                // the 'Unknown' type for now.
+                case BlockTypes.Enum:
+                case BlockTypes.Xml:
+                case BlockTypes.LocalFunction:
+                case BlockTypes.Using:
+                case BlockTypes.Switch:
+                default:
+                    return PredefinedStructureTypes.Unknown;
+            }
+        }
+
         private class RoslynBlockTag : RoslynOutliningRegionTag, IBlockTag
         {
             public IBlockTag Parent { get; }
@@ -63,8 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             public SnapshotSpan Span { get; }
             public SnapshotSpan StatementSpan { get; }
 
-            public string Type => ConvertType(BlockSpan.Type);
-
+            public string Type { get; }
             public bool IsCollapsible => BlockSpan.IsCollapsible;
 
             public RoslynBlockTag(
@@ -73,68 +121,17 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 IEditorOptionsFactoryService editorOptionsFactoryService,
                 IBlockTag parent,
                 ITextSnapshot snapshot,
-                BlockSpan outliningSpan) :
+                BlockSpan blockSpan) :
                 base(textEditorFactoryService,
                     projectionBufferFactoryService,
                     editorOptionsFactoryService,
-                    snapshot, outliningSpan)
+                    snapshot, blockSpan)
             {
                 Parent = parent;
                 Level = parent == null ? 0 : parent.Level + 1;
-                Span = outliningSpan.TextSpan.ToSnapshotSpan(snapshot);
-                StatementSpan = outliningSpan.HintSpan.ToSnapshotSpan(snapshot);
-            }
-
-            private string ConvertType(string type)
-            {
-                switch (type)
-                {
-                    // Basic types.
-                    case BlockTypes.Structural: return PredefinedStructureTypes.Structural;
-                    case BlockTypes.Nonstructural: return PredefinedStructureTypes.Nonstructural;
-
-                    // Top level declarations.  Note that Enum is not currently supported
-                    // and that we map Module down to Class.
-                    case BlockTypes.Namespace: return PredefinedStructureTypes.Namespace;
-                    case BlockTypes.Structure: return PredefinedStructureTypes.Struct;
-                    case BlockTypes.Interface: return PredefinedStructureTypes.Interface;
-                    case BlockTypes.Module:
-                    case BlockTypes.Class: return PredefinedStructureTypes.Class;
-
-                    // Member declarations
-                    case BlockTypes.Accessor: return PredefinedStructureTypes.AccessorBlock;
-                    case BlockTypes.Constructor: return PredefinedStructureTypes.Constructor;
-                    case BlockTypes.Destructor: return PredefinedStructureTypes.Destructor;
-                    case BlockTypes.Method: return PredefinedStructureTypes.Method;
-                    case BlockTypes.Operator: return PredefinedStructureTypes.Operator;
-
-                    // Map events/indexers/properties all to the 'property' type.
-                    case BlockTypes.Event:
-                    case BlockTypes.Indexer:
-                    case BlockTypes.Property: return PredefinedStructureTypes.PropertyBlock;
-
-                    // Statements
-                    case BlockTypes.Case: return PredefinedStructureTypes.Case;
-                    case BlockTypes.Conditional: return PredefinedStructureTypes.Conditional;
-                    case BlockTypes.Lock: return PredefinedStructureTypes.Lock;
-                    case BlockTypes.Loop: return PredefinedStructureTypes.Loop;
-                    case BlockTypes.TryCatchFinally: return PredefinedStructureTypes.TryCatchFinally;
-                    case BlockTypes.Standalone: return PredefinedStructureTypes.Standalone;
-
-                    // Expressions
-                    case BlockTypes.AnonymousMethod: return PredefinedStructureTypes.AnonymousMethodBlock;
-
-                    // These types don't currently map to any editor types.  Just make them
-                    // the 'Unknown' type for now.
-                    case BlockTypes.Enum:
-                    case BlockTypes.Other:
-                    case BlockTypes.Xml:
-                    case BlockTypes.LocalFunction:
-                    case BlockTypes.Using:
-                    case BlockTypes.Switch:
-                    default:
-                        return PredefinedStructureTypes.Unknown;
-                }
+                Span = blockSpan.TextSpan.ToSnapshotSpan(snapshot);
+                StatementSpan = blockSpan.HintSpan.ToSnapshotSpan(snapshot);
+                Type = ConvertType(blockSpan.Type);
             }
         }
     }

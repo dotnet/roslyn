@@ -109,6 +109,7 @@
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
+    <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.FixAllProvider.cs" />

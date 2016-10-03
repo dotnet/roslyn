@@ -76,7 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle));
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCodeLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, TaggerDelay.NearImmediate));
         }
 
         /// <summary>
@@ -90,11 +95,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 var outliningService = TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
+                    var cancellationToken = context.CancellationToken;
                     var blockStructure = await outliningService.GetBlockStructureAsync(
-                        documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
-                    ProcessSpans(
-                        context, documentSnapshotSpan.SnapshotSpan, outliningService,
-                        blockStructure.Spans);
+                        documentSnapshotSpan.Document, cancellationToken).ConfigureAwait(false);
+
+                    ProcessSpans(context, documentSnapshotSpan, outliningService, blockStructure.Spans);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -121,9 +126,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     // and make a blocking call against the async service.
 
                     var blockStructure = outliningService.GetBlockStructure(document, cancellationToken);
-                    ProcessSpans(
-                        context, documentSnapshotSpan.SnapshotSpan, outliningService,
-                        blockStructure.Spans);
+
+                    ProcessSpans(context, documentSnapshotSpan, outliningService, blockStructure.Spans);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -151,13 +155,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         private void ProcessSpans(
             TaggerContext<TRegionTag> context,
-            SnapshotSpan snapshotSpan,
+            DocumentSnapshotSpan documentSnapshotSpan,
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
         {
             try
             {
-                ProcessSpansWorker(context, snapshotSpan, outliningService, spans);
+                ProcessSpansWorker(context, documentSnapshotSpan, outliningService, spans);
             }
             catch (TypeLoadException)
             {
@@ -170,12 +174,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         private void ProcessSpansWorker(
             TaggerContext<TRegionTag> context,
-            SnapshotSpan snapshotSpan,
+            DocumentSnapshotSpan documentSnapshotSpan,
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
         {
             if (spans != null)
             {
+                var document = documentSnapshotSpan.Document;
+                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
                 var snapshot = snapshotSpan.Snapshot;
                 spans = GetMultiLineRegions(outliningService, spans, snapshot);
 
@@ -206,8 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
         }
 
-        protected abstract TRegionTag CreateTag(
-            TRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region);
+        protected abstract TRegionTag CreateTag(TRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region);
 
         private static bool s_exceptionReported = false;
 

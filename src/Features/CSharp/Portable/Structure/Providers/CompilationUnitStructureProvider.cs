@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 externsAndUsings, autoCollapse: true, 
-                type: BlockTypes.Nonstructural, isCollapsible: true));
+                type: BlockTypes.Imports, isCollapsible: true));
 
             if (compilationUnit.Usings.Count > 0 ||
                 compilationUnit.Externs.Count > 0 ||
