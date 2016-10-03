@@ -10474,7 +10474,81 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
             CompileAndVerify(comp, expectedOutput:="
 second
 ")
-            ' TODO REVIEW In C#, the third one is selected
+            ' Note the result is different than in Inference02_WithoutTuple below
+            ' This issue is tracked by https://github.com/dotnet/roslyn/issues/14255
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference02_Addressof()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class C
+    Shared Function M() As Integer
+        Return 7
+    End Function
+
+    Shared Sub Main()
+        Test((AddressOf M, AddressOf M))
+    End Sub
+
+    Shared Sub Test(Of T)(x As (T, T))
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test(x As (Object, Object))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test(Of T)(x As (System.Func(Of T), System.Func(Of T)))
+        System.Console.WriteLine("third")
+        System.Console.WriteLine(x.Item1().ToString())
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+third
+7
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference02_WithoutTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test(Function() 7, Function() 8)
+    End Sub
+
+    Shared Sub Test(Of T)(x As T, y As T)
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test(x As Object, y As Object)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test(Of T)(x As System.Func(Of T), y As System.Func(Of T))
+        System.Console.WriteLine("third")
+        System.Console.WriteLine(x().ToString())
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+first
+")
 
         End Sub
 
@@ -10509,7 +10583,6 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
             CompileAndVerify(comp, expectedOutput:="
 second
 ")
-            ' TODO REVIEW In C#, the third one is selected
 
         End Sub
 
@@ -10703,7 +10776,7 @@ BC36651: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test
 
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14246")>
         Public Sub Inference11()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -10740,7 +10813,17 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
             comp.AssertTheseDiagnostics(
 <errors>
 </errors>)
-            ' TODO REVIEW
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            Dim test3 = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().First()
+
+            Assert.Equal("Sub C.Test3(Of (System.Int32, System.Int32))(ByRef x As (System.Int32, System.Int32), ByRef y As (System.Int32, System.Int32))",
+                         model.GetSymbolInfo(test3).Symbol.ToTestDisplayString())
+
+            ' Currently, the wrong type is inferred for type arguments and T is inferred to (int a, int b)
+            ' https://github.com/dotnet/roslyn/issues/14246
 
         End Sub
 
@@ -10836,7 +10919,8 @@ System.ValueTuple`2[System.Int32,System.Int32]
 System.ValueTuple`2[System.Int32,System.Int32]
 System.ValueTuple`2[System.Int32,System.Int32]
 ")
-            ' TODO REVIEW In C#, there are errors because names matter during best type inference
+            ' In C#, there are errors because names matter during best type inference
+            ' This should get fixed after issue https://github.com/dotnet/roslyn/issues/13938 is fixed
 
         End Sub
 
@@ -11070,7 +11154,7 @@ BC31035: Interface 'I(Of (b As Integer, a As Integer), (a As Integer, b As Integ
 
         End Sub
 
-        <Fact(Skip:="TODO REVIEW")>
+        <Fact>
         Public Sub TupleWithoutFeatureFlag()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -11085,10 +11169,17 @@ Public Class C
 End Class
     </file>
 </compilation>,
-options:=TestOptions.DebugDll, additionalRefs:=s_valueTupleRefs)
+options:=TestOptions.DebugDll, additionalRefs:=s_valueTupleRefs,
+parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic14))
 
             comp.AssertTheseDiagnostics(
 <errors>
+BC36716: Visual Basic 14.0 does not support tuples.
+        Dim x As (Integer, Integer) = (1, 1)
+                 ~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 14.0 does not support tuples.
+        Dim x As (Integer, Integer) = (1, 1)
+                                      ~~~~~~
 </errors>)
 
         End Sub
