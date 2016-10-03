@@ -53,7 +53,11 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                         {
                             if (e.Attribute("name") != null)
                             {
-                                _docComments[e.Attribute("name").Value] = string.Concat(e.Nodes());
+                                using (var reader = e.CreateReader())
+                                {
+                                    reader.MoveToContent();
+                                    _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
+                                }
                             }
                         }
                     }
