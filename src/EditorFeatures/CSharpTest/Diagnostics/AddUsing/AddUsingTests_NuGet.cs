@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Moq;
 using Roslyn.Test.Utilities;
@@ -248,11 +247,11 @@ class C
                 string packageName, string typeName, IReadOnlyList<string> containingNamespaceNames)
             {
                 return CreateSearchResult(new PackageWithTypeResult(
-                    packageName: packageName, typeName: typeName,
-                    version: null, containingNamespaceNames: containingNamespaceNames));
+                    packageName: packageName, typeName: typeName, version: null,
+                    rank: 0, containingNamespaceNames: containingNamespaceNames));
             }
 
-            private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results) 
+            private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
                 => Task.FromResult(ImmutableArray.Create(results));
 
             private IReadOnlyList<string> CreateNameParts(params string[] parts) => parts;

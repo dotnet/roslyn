@@ -72,6 +72,9 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
@@ -89,20 +92,23 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToSearchService.Remote.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToSearchService.InProcess.cs" />
+    <Compile Include="NavigateTo\IRemoteNavigateToSearchService.cs" />
     <Compile Include="NavigateTo\NavigateToItemKind.cs" />
     <Compile Include="NavigateTo\NavigateToMatchKind.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.cs" />
-    <Compile Include="NavigateTo\DefaultNavigateToEngineService.cs" />
-    <Compile Include="NavigateTo\DefaultNavigateToEngineService.SearchResult.cs" />
-    <Compile Include="NavigateTo\INavigateToEngineService.cs" />
     <Compile Include="NavigateTo\INavigateToSearchResult.cs" />
     <Compile Include="NavigateTo\INavigateToSearchService.cs" />
+    <Compile Include="NavigateTo\NavigateToOptions.cs" />
     <Compile Include="Navigation\INavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.cs" />
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
+    <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.FixAllProvider.cs" />
@@ -388,7 +394,6 @@
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptionsProvider.cs" />
-    <Compile Include="Shared\Utilities\IOUtilities.cs" />
     <Compile Include="Shared\Utilities\LinkedFilesSymbolEquivalenceComparer.cs" />
     <Compile Include="Shared\Utilities\SupportedPlatformData.cs" />
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />
@@ -684,9 +689,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="NavigateTo\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

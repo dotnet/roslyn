@@ -280,7 +280,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Workspaces" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
@@ -382,10 +382,12 @@
     <Compile Include="Execution\SolutionChecksumObjectInfo.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.cs" />
     <Compile Include="Execution\SolutionChecksumService.cs" />
-    <Compile Include="FindSymbols\ISymbolFinderEngineService.cs" />
+    <Compile Include="FindSymbols\IRemoteSymbolFinder.cs" />
     <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
+    <Compile Include="FindSymbols\SymbolFinderOptions.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
@@ -394,12 +396,16 @@
     <Compile Include="Options\IWorkspaceOptionService.cs" />
     <Compile Include="Remote\IRemoteHostClientFactory.cs" />
     <Compile Include="Remote\IRemoteHostClientService.cs" />
+    <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="Remote\RemoteHostClient.cs" />
     <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.cs" />
     <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.RemoteHostClientService.cs" />
+    <Compile Include="Remote\RemoteHostClientExtensions.cs" />
     <Compile Include="Remote\WellKnownRemoteHostServices.cs" />
+    <Compile Include="Remote\WellKnownServiceHubServices.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
+    <Compile Include="Shared\Utilities\IOUtilities.cs" />
     <Compile Include="Shared\Utilities\IStreamingProgressTracker.cs" />
     <Compile Include="Shared\Utilities\StreamingProgressTracker.cs" />
     <Compile Include="Options\OptionStorageLocation.cs" />
@@ -477,6 +483,7 @@
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="FindSymbols\StreamingProgressCollector.cs" />
+    <Compile Include="FindSymbols\SymbolFinder.ServerCallback.cs" />
     <Compile Include="SymbolKey\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolKey\SymbolKey.PropertySymbolKey.cs" />
@@ -500,6 +507,9 @@
     <Compile Include="SymbolKey\SymbolKey.ArrayTypeSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyWriter.cs" />
     <Compile Include="SymbolKey\SymbolKey.cs" />
+    <Compile Include="SymbolSearch\IRemoteSymbolSearchUpdateEngine.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchLogService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchUpdateEngine.cs" />
     <Compile Include="SymbolSearch\SymbolSearchOptions.cs" />
     <Compile Include="SymbolSearch\SymbolSearchOptionsProvider.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />

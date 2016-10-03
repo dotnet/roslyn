@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (SwitchStatementSyntax switchStatement) => InferTypeInSwitchStatement(switchStatement),
                     (ThrowStatementSyntax throwStatement) => InferTypeInThrowStatement(throwStatement),
                     (UsingStatementSyntax usingStatement) => InferTypeInUsingStatement(usingStatement),
+                    (VariableComponentAssignmentSyntax variableComponentAssignment) => InferTypeInVariableComponentAssignment(variableComponentAssignment, expression),
                     (WhileStatementSyntax whileStatement) => InferTypeInWhileStatement(whileStatement),
                     (YieldStatementSyntax yieldStatement) => InferTypeInYieldStatement(yieldStatement),
                     _ => SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>());
@@ -1948,6 +1949,121 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return types;
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(
+                VariableComponentAssignmentSyntax variableComponentAssigment, ExpressionSyntax expression)
+            {
+                if (expression == variableComponentAssigment.Value)
+                {
+                    var variableComponent = variableComponentAssigment.VariableComponent;
+                    if (variableComponent.IsKind(SyntaxKind.TypedVariableComponent))
+                    {
+                        var typedVariable = (TypedVariableComponentSyntax)variableComponent;
+                        return GetTypes(typedVariable.Type);
+                    }
+                    else if (variableComponent.IsKind(SyntaxKind.ParenthesizedVariableComponent))
+                    {
+                        // We have something of the form:
+                        //   (int a, int b) = ...
+                        //
+                        // This is a deconstruction, and a decent deconstructable type we can infer here
+                        // is ValueTuple<int,int>.
+                        var parenthesizedVariable = (ParenthesizedVariableComponentSyntax)variableComponent;
+                        var tupleType = GetTupleType(parenthesizedVariable);
+
+                        if (tupleType != null)
+                        {
+                            return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(tupleType));
+                        }
+                    }
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private ITypeSymbol GetTupleType(
+                ParenthesizedVariableComponentSyntax parenthesizedVariableComponent)
+            {
+                ImmutableArray<ITypeSymbol> elementTypes;
+                ImmutableArray<string> elementNames;
+
+                if (!TryGetTupleTypesAndNames(parenthesizedVariableComponent.Variables,
+                        out elementTypes, out elementNames))
+                {
+                    return null;
+                }
+
+                return Compilation.CreateTupleTypeSymbol(elementTypes, elementNames);
+            }
+
+            private bool TryGetTupleTypesAndNames(
+                SeparatedSyntaxList<VariableComponentSyntax> variables,
+                out ImmutableArray<ITypeSymbol> elementTypes,
+                out ImmutableArray<string> elementNames)
+            {
+                elementTypes = default(ImmutableArray<ITypeSymbol>);
+                elementNames = default(ImmutableArray<string>);
+
+                var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
+                var elementNamesBuilder = ArrayBuilder<string>.GetInstance();
+                try
+                {
+                    foreach (var component in variables)
+                    {
+                        if (component.IsKind(SyntaxKind.TypedVariableComponent))
+                        {
+                            AddTypeAndName((TypedVariableComponentSyntax)component, elementTypesBuilder, elementNamesBuilder);
+                        }
+                        else if (component.IsKind(SyntaxKind.ParenthesizedVariableComponent))
+                        {
+                            AddTypeAndName((ParenthesizedVariableComponentSyntax)component, elementTypesBuilder, elementNamesBuilder);
+                        }
+                    }
+
+                    if (elementTypesBuilder.Contains(null))
+                    {
+                        return false;
+                    }
+
+                    elementTypes = elementTypesBuilder.ToImmutable();
+                    elementNames = elementNamesBuilder.ToImmutable();
+                    return true;
+                }
+                finally
+                {
+                    elementTypesBuilder.Free();
+                    elementNamesBuilder.Free();
+                }
+            }
+
+            private void AddTypeAndName(
+                TypedVariableComponentSyntax component, 
+                ArrayBuilder<ITypeSymbol> elementTypesBuilder, 
+                ArrayBuilder<string> elementNamesBuilder)
+            {
+                elementTypesBuilder.Add(GetTypes(component.Type).FirstOrDefault().InferredType);
+
+                var designation = component.Designation;
+                if (designation.IsKind(SyntaxKind.SingleVariableDesignation))
+                {
+                    var singleVariable = (SingleVariableDesignationSyntax)designation;
+                    elementNamesBuilder.Add(singleVariable.Identifier.ValueText);
+                }
+                else
+                {
+                    elementNamesBuilder.Add(null);
+                }
+            }
+
+            private void AddTypeAndName(
+                ParenthesizedVariableComponentSyntax component, 
+                ArrayBuilder<ITypeSymbol> elementTypesBuilder, 
+                ArrayBuilder<string> elementNamesBuilder)
+            {
+                var tupleType = GetTupleType(component);
+                elementTypesBuilder.Add(tupleType);
+                elementNamesBuilder.Add(null);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInWhileStatement(WhileStatementSyntax whileStatement, SyntaxToken? previousToken = null)

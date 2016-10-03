@@ -52,13 +52,14 @@
 
     <Otherwise>
       <!-- No build version was supplied.  We'll use a special version, higher than anything
-          installed, so that the assembly identity is different.  This will allows us to
-          have a build with an actual number installed, but then build and F5 a build with
-          this number.  -->
+           installed, so that the assembly identity is different.  This will allows us to
+           have a build with an actual number installed, but then build and F5 a build with
+           this number. We will make AssemblyVersion and BuildVersion different, to catch
+           any bugs where people might assume they are the same. -->
       <PropertyGroup>
         <AssemblyVersion>42.42.42.42</AssemblyVersion>
-        <BuildVersion>42.42.42.42</BuildVersion>
-        <VsixVersion>42.42.42.42</VsixVersion>
+        <BuildVersion>42.42.42.42424</BuildVersion>
+        <VsixVersion>42.42.42.42424</VsixVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>

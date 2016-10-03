@@ -10,9 +10,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -57,15 +54,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                    // We enable the remote host if either RemoteHostTest or RemoteHost are on.
+                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest) &&
+                        !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
                     {
                         // not turned on
-                        return;
-                    }
-
-                    if (!FeaturesEnabled())
-                    {
-                        // none of features that require OOP is enabled.
                         return;
                     }
 
@@ -211,58 +204,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // crash right away when connection is closed
                 FatalError.Report(new Exception("Connection to remote host closed"));
-            }
-
-            private bool FeaturesEnabled()
-            {
-                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, LanguageNames.CSharp))
-                {
-                    return true;
-                }
-
-                if (DynamicAnalysisEnabled())
-                {
-                    return true;
-                }
-
-                if (CodeLenEnabled())
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            private bool DynamicAnalysisEnabled()
-            {
-                const string dynamicAnalysisPackageGuid = "3EADAB3E-2035-4513-8C13-FBA84414A16C";
-
-                // TODO: think about how to get rid of this code. since we don't want any code that require foreground
-                //       thread to run
-                AssertIsForeground();
-
-                var guid = new Guid(dynamicAnalysisPackageGuid);
-                var shell = (IVsShell)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsShell));
-                if (shell == null)
-                {
-                    return false;
-                }
-
-                int installed;
-                if (ErrorHandler.Failed(shell.IsPackageInstalled(ref guid, out installed)))
-                {
-                    return false;
-                }
-
-                return installed != 0;
-            }
-
-            private bool CodeLenEnabled()
-            {
-#if false
-                return _globalEditorOptions.GetOptionValue(CodeLensOptions.IsCodeLensEnabledOptionKey);
-#endif
-                return false;
             }
         }
     }
