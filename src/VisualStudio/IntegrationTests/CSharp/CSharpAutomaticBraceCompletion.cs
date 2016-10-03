@@ -9,7 +9,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpAutomaticBraceCompletion : AbstractEditorTests
+    public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
