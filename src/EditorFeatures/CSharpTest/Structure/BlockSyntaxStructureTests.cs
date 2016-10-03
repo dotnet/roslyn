@@ -23,60 +23,12 @@ class C
     {
         {|hint:try{|textspan:
         {$$
-        }|}|}
+        }
         catch 
         {
         }
         finally
         {
-        }
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestCatchBlock1()
-        {
-            const string code = @"
-class C
-{
-    void M()
-    {
-        try
-        {
-        }
-        {|hint:catch{|textspan:
-        {$$
-        }|}|}
-        finally
-        {
-        }
-    }
-}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestFinallyBlock1()
-        {
-            const string code = @"
-class C
-{
-    void M()
-    {
-        try
-        {
-        }
-        catch
-        {
-        }
-        {|hint:finally{|textspan:
-        {$$
         }|}|}
     }
 }";
@@ -112,6 +64,198 @@ class C
     void M()
     {
         {|hint:lock (foo){|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestForStatement1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:for (;;){|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestForEachStatement1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:foreach (var v in e){|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestCompoundForEachStatement1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:foreach ((var v, var x) in e){|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestWhileStatement1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:while (true){|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestDoStatement1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:do{|textspan:
+        {$$
+        }
+        while (true);|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIfStatement1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:if (true){|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIfStatement2()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:if (true){|textspan:
+        {$$
+        }|}|}
+        else
+        {
+        }
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIfStatement3()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:if (true){|textspan:
+        {$$
+        }|}|}
+        else
+            return;
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestElseClause1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        if (true)
+        {
+        }
+        {|hint:else{|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIfElse1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        if (true)
+        {
+        }
+        else {|hint:if (false){|textspan:
         {$$
         }|}|}
     }

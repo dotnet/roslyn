@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // This also works nicely as the close brace for these constructs will always
             // align with the start of these statements.
             if (node.Parent is StatementSyntax ||
-                parentKind == SyntaxKind.CatchClause ||
-                parentKind == SyntaxKind.FinallyClause ||
                 parentKind == SyntaxKind.ElseClause)
             {
                 var type = GetType(node.Parent);
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         private TextSpan GetHintSpan(BlockSyntax node)
         {
             var start = node.Parent.Span.Start;
-            var end = node.Span.End;
+            var end = GetEnd(node);
             return TextSpan.FromBounds(start, end);
         }
 
@@ -80,7 +78,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return node.Span;
             }
 
-            return TextSpan.FromBounds(previousToken.Span.End, node.Span.End);
+            return TextSpan.FromBounds(previousToken.Span.End, GetEnd(node));
+        }
+
+        private static int GetEnd(BlockSyntax node)
+        {
+            if (node.Parent.IsKind(SyntaxKind.IfStatement))
+            {
+                // For an if-statement, just collapse up to the end of the block.
+                // We don't want collapse the whole statement just for the 'true'
+                // portion.  Also, while outlining might be ok, the Indent-Guide
+                // would look very strange for nodes like:
+                //
+                //      if (foo)
+                //      {
+                //      }
+                //      else
+                //          return a ||
+                //                 b;
+                return node.Span.End;
+            }
+            else
+            {
+                // For all other constructs, we collapse up to the end of the parent
+                // construct.
+                return node.Parent.Span.End;
+            }
         }
 
         private string GetType(SyntaxNode parent)
