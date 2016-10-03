@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
+        [WorkItem(14046, "https://github.com/dotnet/roslyn/issues/14046")]
         public void UnreachableAfterThrow()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -35,6 +36,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void UnreachableRecursion()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -81,6 +83,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void MutualRecursiveUnreachable()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -112,6 +115,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void AssignedInDeadBranch()
         {
             var comp = CreateCompilationWithMscorlib(@"
