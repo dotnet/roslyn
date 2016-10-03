@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     spans.Add(new BlockSpan(
                         isCollapsible: true,
                         textSpan: GetTextSpan(node),
-                        hintSpan: node.Parent.Span,
+                        hintSpan: GetHintSpan(node),
                         type: type));
                 }
             }
@@ -62,6 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     hintSpan: node.Parent.Span,
                     type: BlockTypes.Case));
             }
+        }
+
+        private TextSpan GetHintSpan(BlockSyntax node)
+        {
+            var start = node.Parent.Span.Start;
+            var end = node.Span.End;
+            return TextSpan.FromBounds(start, end);
         }
 
         private TextSpan GetTextSpan(BlockSyntax node)
