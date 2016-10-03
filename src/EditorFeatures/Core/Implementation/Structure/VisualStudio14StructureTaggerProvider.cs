@@ -40,18 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
         }
 
-        public override bool Equals(IOutliningRegionTag x, IOutliningRegionTag y)
-        {
-            // This is only called if the spans for the tags were the same. In that case, we consider ourselves the same
-            // unless the CollapsedForm properties are different.
-            return EqualityComparer<object>.Default.Equals(x.CollapsedForm, y.CollapsedForm);
-        }
-
-        public override int GetHashCode(IOutliningRegionTag obj)
-        {
-            return EqualityComparer<object>.Default.GetHashCode(obj.CollapsedForm);
-        }
-
         protected override IOutliningRegionTag CreateTag(
             IOutliningRegionTag parentTag, ITextSnapshot snapshot, BlockSpan blockSpan)
         {
