@@ -102,37 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 var result = new ViewHostingControl(
                     CreateElisionBufferView, CreateProjectionBufferForBlockHeaders);
 
-                result.Loaded += (s, e) => Result_IsVisibleChanged(result);
                 return result;
-            }
-
-            private void Result_IsVisibleChanged(ViewHostingControl control)
-            {
-                var tooltip = GetToolTop(control);
-                if (tooltip == null)
-                {
-                    return;
-                }
-
-                tooltip.PlacementTarget = ((IWpfTextView)this.TextView).VisualElement;
-                tooltip.Placement = PlacementMode.Relative;
-                tooltip.HorizontalOffset = 0;
-                tooltip.VerticalOffset = 0;
-                tooltip.UpdateLayout();
-            }
-
-            private ToolTip GetToolTop(ViewHostingControl control)
-            {
-                for (DependencyObject current = control; current != null; current = VisualTreeHelper.GetParent(current))
-                {
-                    var tooltip = current as ToolTip;
-                    if (tooltip != null)
-                    {
-                        return tooltip;
-                    }
-                }
-
-                return null;
             }
 
             private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)

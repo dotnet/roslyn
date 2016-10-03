@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 if (type != null)
                 {
                     spans.Add(new BlockSpan(
-                        isCollapsible: node.IsParentKind(SyntaxKind.LocalFunctionStatement),
+                        isCollapsible: true,
                         textSpan: GetTextSpan(node),
                         hintSpan: node.Parent.Span,
                         type: type));
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (parentKind == SyntaxKind.SwitchSection)
             {
                 spans.Add(new BlockSpan(
-                    isCollapsible: node.IsParentKind(SyntaxKind.LocalFunctionStatement),
+                    isCollapsible: true,
                     textSpan: node.Span,
                     hintSpan: node.Parent.Span,
                     type: BlockTypes.Case));

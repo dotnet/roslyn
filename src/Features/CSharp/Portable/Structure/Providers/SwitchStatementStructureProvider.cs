@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
-            spans.Add(new BlockSpan(isCollapsible: false,
+            spans.Add(new BlockSpan(
+                isCollapsible: true,
                 textSpan: TextSpan.FromBounds(node.CloseParenToken.Span.End, node.CloseBraceToken.Span.End),
                 hintSpan: node.Span,
                 type: BlockTypes.Switch));
