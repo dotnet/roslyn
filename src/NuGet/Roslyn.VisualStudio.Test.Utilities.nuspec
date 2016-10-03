@@ -18,5 +18,6 @@
   </metadata>
   <files>
     <file src="Roslyn.VisualStudio.Test.Utilities.dll" target="lib\net46" />
+    <file src="Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="lib\net46" />
   </files>
 </package>
