@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             /// Used to memoize results of <see cref="ProjectAlreadyReferencesProject"/> calls.
             /// Reset any time internal state is changed.
             /// </summary>
-            private Dictionary<ProjectId, Dictionary<ProjectId, bool>> ProjectAlreadyReferencesProjectMemo
+            private Dictionary<ProjectId, Dictionary<ProjectId, bool>> _projectAlreadyReferencesProjectResultCache
                 = new Dictionary<ProjectId, Dictionary<ProjectId, bool>>();
 
             private readonly Dictionary<string, ProjectId> _projectPathToProjectIdMap
@@ -282,12 +282,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _projectIdToProjectInfoMap.Add(info.Id, info);
                 //Memoized results of ProjectAlreadyReferencesProject may no longer be correct;
                 //reset the cache.
-                ProjectAlreadyReferencesProjectMemo = new Dictionary<ProjectId, Dictionary<ProjectId, bool>>();
-            }
-
-            private bool TryGetValue(ProjectId id, out ProjectInfo info)
-            {
-                return _projectIdToProjectInfoMap.TryGetValue(id, out info);
+                _projectAlreadyReferencesProjectResultCache.Clear();
             }
 
             /// <summary>
@@ -298,10 +293,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 Dictionary<ProjectId, bool> fromProjectMemo;
 
-                if ( !ProjectAlreadyReferencesProjectMemo.TryGetValue(fromProject, out fromProjectMemo))
+                if ( !_projectAlreadyReferencesProjectResultCache.TryGetValue(fromProject, out fromProjectMemo))
                 {
                     fromProjectMemo = new Dictionary<ProjectId, bool>();
-                    ProjectAlreadyReferencesProjectMemo.Add(fromProject, fromProjectMemo);
+                    _projectAlreadyReferencesProjectResultCache.Add(fromProject, fromProjectMemo);
                 }
 
                 bool answer;
@@ -310,7 +305,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     ProjectInfo info;
                     answer =
-                        TryGetValue(fromProject, out info) &&
+                        _projectIdToProjectInfoMap.TryGetValue(fromProject, out info) &&
                         info.ProjectReferences.Any(pr =>
                             pr.ProjectId == targetProject ||
                             ProjectAlreadyReferencesProject(pr.ProjectId, targetProject)
