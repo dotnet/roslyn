@@ -859,10 +859,10 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8181: "new" cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
+                // (6,17): error CS8181: 'new' cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
                 //         var x = new (int, int)(1, 2);
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int)(1, 2)").WithArguments("(int, int)").WithLocation(6, 17),
-                // (9,13): error CS8181: "new" cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
+                // (9,13): error CS8181: 'new' cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
                 //         x = new (int, int)();
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int)()").WithArguments("(int, int)").WithLocation(9, 13)
 
@@ -886,7 +886,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (7,17): error CS8181: "new" cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
+                // (7,17): error CS8181: 'new' cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
                 //         var x = new (int, int)(1, arg);
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int)(1, arg)").WithArguments("(int, int)").WithLocation(7, 17)
 
@@ -918,16 +918,16 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8181: "new" cannot be used with tuple type '(int a, int b)'. Use a tuple literal expression instead.
+                // (6,17): error CS8181: 'new' cannot be used with tuple type '(int a, int b)'. Use a tuple literal expression instead.
                 //         var x = new (int a, int b)(1, 2);
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int a, int b)(1, 2)").WithArguments("(int a, int b)").WithLocation(6, 17),
-                // (9,18): error CS8181: "new" cannot be used with tuple type '(int a, int b)'. Use a tuple literal expression instead.
+                // (9,18): error CS8181: 'new' cannot be used with tuple type '(int a, int b)'. Use a tuple literal expression instead.
                 //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int a, int b)(1, 2) { a = 3, Item2 = 4}").WithArguments("(int a, int b)").WithLocation(9, 18),
-                // (12,18): error CS8181: "new" cannot be used with tuple type '(int a, (int b, int c) d)'. Use a tuple literal expression instead.
+                // (12,18): error CS8181: 'new' cannot be used with tuple type '(int a, (int b, int c) d)'. Use a tuple literal expression instead.
                 //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}}").WithArguments("(int a, (int b, int c) d)").WithLocation(12, 18),
-                // (12,51): error CS8181: "new" cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
+                // (12,51): error CS8181: 'new' cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
                 //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int)(2, 3)").WithArguments("(int, int)").WithLocation(12, 51)
                 );
@@ -963,19 +963,19 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS8181: "new" cannot be used with tuple type '(int a, int b)'. Use a tuple literal expression instead.
+                // (6,18): error CS8181: 'new' cannot be used with tuple type '(int a, int b)'. Use a tuple literal expression instead.
                 //         var x0 = new (int a, int b)(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int a, int b)(1, 2, 3)").WithArguments("(int a, int b)").WithLocation(6, 18),
-                // (9,18): error CS8181: "new" cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
+                // (9,18): error CS8181: 'new' cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
                 //         var x1 = new (int, int)(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int)(1, 2, 3)").WithArguments("(int, int)").WithLocation(9, 18),
-                // (12,18): error CS8181: "new" cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
+                // (12,18): error CS8181: 'new' cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
                 //         var x2 = new (int, int)(1, "2");
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, @"new (int, int)(1, ""2"")").WithArguments("(int, int)").WithLocation(12, 18),
-                // (15,18): error CS8181: "new" cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
+                // (15,18): error CS8181: 'new' cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
                 //         var x3 = new (int, int)(1);
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int)(1)").WithArguments("(int, int)").WithLocation(15, 18),
-                // (18,18): error CS8181: "new" cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
+                // (18,18): error CS8181: 'new' cannot be used with tuple type '(int, int)'. Use a tuple literal expression instead.
                 //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int)(1, 1) {a = 1, Item3 = 2}").WithArguments("(int, int)").WithLocation(18, 18)
 
@@ -13506,10 +13506,10 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,17): error CS8181: "new" cannot be used with tuple type '(int, int, int, int, int, int, int, int)'. Use a tuple literal expression instead.
+                // (6,17): error CS8181: 'new' cannot be used with tuple type '(int, int, int, int, int, int, int, int)'. Use a tuple literal expression instead.
                 //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8)").WithArguments("(int, int, int, int, int, int, int, int)").WithLocation(6, 17),
-                // (7,17): error CS8181: "new" cannot be used with tuple type '(int, int, int, int, int, int, int, int, int)'. Use a tuple literal expression instead.
+                // (7,17): error CS8181: 'new' cannot be used with tuple type '(int, int, int, int, int, int, int, int, int)'. Use a tuple literal expression instead.
                 //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int, int, int, int, int, int, int, int)").WithLocation(7, 17)
 
@@ -18781,6 +18781,40 @@ namespace System
             this.Item1 = item1;
             this.Item2 = item2;
         }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // error CS8180: Predefined type 'ValueTuple`2' must be a struct.
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1)
+            );
+
+        }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct2i()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static void Test2((int a, int b) arg)
+    {
+    }
+}
+
+namespace System
+{
+    public interface ValueTuple<T1, T2>
+    {
     }
 }
 

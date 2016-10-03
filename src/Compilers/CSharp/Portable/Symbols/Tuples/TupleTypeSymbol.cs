@@ -1081,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // From the language prospective tuple is a value type 
+                // From the language perspective tuple is a value type 
                 // composed of its underlying elements
                 return TypeKind.Struct;
             }

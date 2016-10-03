@@ -2066,7 +2066,7 @@ namespace x
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-                // (9,17): error CS8181: "new" cannot be used with tuple type '()'. Use a tuple literal expression instead.
+                // (9,17): error CS8181: 'new' cannot be used with tuple type '()'. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, too few tuple elements
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new ()").WithArguments("()").WithLocation(9, 17),
                 // (9,21): error CS8124: Tuple must contain at least two elements.
@@ -2114,7 +2114,7 @@ namespace x
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-                // (9,17): error CS8181: "new" cannot be used with tuple type '()'. Use a tuple literal expression instead.
+                // (9,17): error CS8181: 'new' cannot be used with tuple type '()'. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "new ()").WithArguments("()").WithLocation(9, 17),
                 // (9,21): error CS8124: Tuple must contain at least two elements.
