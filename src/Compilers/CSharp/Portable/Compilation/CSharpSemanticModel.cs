@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.RefExpression:
-                    // There are just placeholders and are not separately meaningful.
+                case SyntaxKind.DeclarationExpression:
+                    // These are just placeholders and are not separately meaningful.
                     return false;
 
                 default:
@@ -2464,6 +2465,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var cdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
+
+            if (expression.Kind() == SyntaxKind.DeclarationExpression)
+            {
+                // Conversion from a declaration is unspecified.
+                return Conversion.NoConversion;
+            }
 
             if (isExplicitInSource)
             {

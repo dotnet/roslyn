@@ -348,6 +348,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
 
+            if (expression.Kind() == SyntaxKind.DeclarationExpression)
+            {
+                // Conversion from a declaration is unspecified.
+                return Conversion.NoConversion;
+            }
+
             // Special Case: We have to treat anonymous functions differently, because of the way
             // they are cached in the syntax-to-bound node map.  Specifically, UnboundLambda nodes
             // never appear in the map - they are converted to BoundLambdas, even in error scenarios.
