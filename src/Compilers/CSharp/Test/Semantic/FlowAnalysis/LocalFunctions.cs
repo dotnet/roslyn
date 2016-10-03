@@ -8,6 +8,145 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
+        [WorkItem(14046, "https://github.com/dotnet/roslyn/issues/14046")]
+        public void UnreachableAfterThrow()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+  public void M3()
+  {
+    int x, y;
+    void Local()
+    {
+      throw null;
+      x = 5; // unreachable code
+      System.Console.WriteLine(y);
+    }
+
+    Local();
+    System.Console.WriteLine(x);
+    System.Console.WriteLine(y);
+  }
+}");
+            comp.VerifyDiagnostics(
+                // (10,7): warning CS0162: Unreachable code detected
+                //       x = 5; // unreachable code
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(10, 7));
+        }
+
+        [Fact]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
+        public void UnreachableRecursion()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M()
+    {
+        int x, y;
+        void Local()
+        {
+            Local();
+            x = 0;
+        }
+        Local();
+        x++;
+        y++;
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadBeforeUnreachable()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M()
+    {
+        int x;
+        void Local()
+        {
+            x++;
+            Local();
+        }
+        Local();
+        x++;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (12,9): error CS0165: Use of unassigned local variable 'x'
+                //         Local();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("x").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
+        public void MutualRecursiveUnreachable()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public static void M()
+    {
+        int x, y, z;
+        
+        void L1()
+        {
+            L2();
+            x++; // Unreachable
+        } 
+        void L2()
+        {
+            L1();
+            y++; // Unreachable
+        }
+
+        L1();
+        // Unreachable code, so everything should be definitely assigned
+        x++;
+        y++;
+        z++;
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
+        public void AssignedInDeadBranch()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        int u;
+        M();
+    https://github.com/dotnet/roslyn/issues/13739
+        Console.WriteLine(u); // error: use of unassigned local variable 'u'
+        return;
+
+        void M()
+        {
+            goto La;
+        Lb: return;
+        La: u = 3;
+            goto Lb;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,5): warning CS0164: This label has not been referenced
+                //     https://github.com/dotnet/roslyn/issues/13739
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "https").WithLocation(10, 5));
+        }
+
+        [Fact]
         public void InvalidBranchOutOfLocalFunc()
         {
             var comp = CreateCompilationWithMscorlib(@"
