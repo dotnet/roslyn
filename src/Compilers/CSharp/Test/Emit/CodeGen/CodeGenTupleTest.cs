@@ -7435,6 +7435,44 @@ third
         }
 
         [Fact]
+        public void Inference02_WithoutTuple()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test(()=>7, ()=>8);
+    }
+
+    static void Test<T>(T x, T y)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test(object x, object y)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>(Func<T> x, Func<T> y)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x().ToString());
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+third
+7
+");
+        }
+
+        [Fact]
         public void Inference03()
         {
             var source = @"
@@ -7775,7 +7813,7 @@ class C
         }
 
         [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14247")]
         public void Inference11()
         {
             var source = @"
@@ -7813,11 +7851,13 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
-            comp.VerifyDiagnostics(
-                // (11,9): error CS0411: The type arguments for method 'C.Test3<T>(ref T, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         Test3(ref ab, ref cd);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test3").WithArguments("C.Test3<T>(ref T, ref T)").WithLocation(11, 9)
-                );
+            comp.VerifyDiagnostics();
+
+            // This diagnostic should not be there. The inference should succeed as Test3<(int, int)>
+            // (11,9): error CS0411: The type arguments for method 'C.Test3<T>(ref T, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //         Test3(ref ab, ref cd);
+            //Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test3").WithArguments("C.Test3<T>(ref T, ref T)").WithLocation(11, 9)
+            // See https://github.com/dotnet/roslyn/issues/14247"
         }
 
         [Fact]
@@ -10650,15 +10690,7 @@ namespace System
 
         private static void AssertTestDisplayString(ImmutableArray<Symbol> symbols, params string[] baseLine)
         {
-            int common = Math.Min(symbols.Length, baseLine.Length);
-            for (int i = 0; i < common; i++)
-            {
-                var actual = symbols[i].ToTestDisplayString();
-                Assert.Equal(baseLine[i], actual);
-            }
-
-            Assert.Equal(new string[] { }, symbols.Skip(common).Select(s => s.ToTestDisplayString()).ToArray());
-            Assert.Equal(baseLine.Length, symbols.Length);
+            AssertEx.Equal(symbols.Select(s => s.ToTestDisplayString()), baseLine);
         }
 
         [Fact]
@@ -12165,7 +12197,7 @@ namespace System
     }
 }
 ";
-            
+
             var expectedOutput =
 @"{1, 3}
 4

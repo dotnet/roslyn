@@ -212,8 +212,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, name As String, tupleElementOrdinal As Integer, location As Location, isImplicitlyDeclared As Boolean)
             MyBase.New(container, underlyingField, tupleElementOrdinal, location, isImplicitlyDeclared)
             Debug.Assert(name <> Nothing)
-            Debug.Assert(name <> underlyingField.Name)
+            Debug.Assert(name <> underlyingField.Name OrElse Not container.UnderlyingNamedType.Equals(underlyingField.ContainingType),
+                                "fields that map directly to underlying should not be represented by " + NameOf(TupleVirtualElementFieldSymbol))
+
             Me._name = name
         End Sub
+
+        Public Overrides ReadOnly Property IsVirtualTupleField As Boolean
+            Get
+                Return True
+            End Get
+        End Property
     End Class
 End Namespace
