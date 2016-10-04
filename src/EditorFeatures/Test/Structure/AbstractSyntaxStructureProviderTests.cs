@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             return new BlockSpan(isCollapsible: true,
                 textSpan: textSpan, 
                 hintSpan: hintSpan,
+                type: BlockTypes.Nonstructural,
                 bannerText: bannerText,
                 autoCollapse: autoCollapse, 
                 isDefaultCollapsed: isDefaultCollapsed);
