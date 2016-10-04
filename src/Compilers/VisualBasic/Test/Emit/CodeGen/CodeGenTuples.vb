@@ -1222,7 +1222,7 @@ End module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37272: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37271: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub Test(x As (c As Integer, d As Integer))'.
     Sub Test(x as (a as integer, b as Integer))
         ~~~~
 </errors>)
@@ -1248,7 +1248,7 @@ End module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37272: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37271: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub Test(x As (a As Integer, b As Integer))'.
     Sub Test(x as (integer,Integer))
         ~~~~
 </errors>)
@@ -13051,16 +13051,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Public Overrides Function M2() As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Function M2() As (a As Integer, b As Integer)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M2() As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Function M2() As (a As Integer, b As Integer)' because they differ by their tuple element names.
     Public Overrides Function M2() As (notA As Integer, notB As Integer)
                               ~~
-BC37270: 'Public Overrides Function M3() As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Function M3() As (a As Integer, b As Integer)()' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M3() As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Function M3() As (a As Integer, b As Integer)()' because they differ by their tuple element names.
     Public Overrides Function M3() As (notA As Integer, notB As Integer)()
                               ~~
-BC37270: 'Public Overrides Function M4() As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Function M4() As (a As Integer, b As Integer)?' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M4() As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Function M4() As (a As Integer, b As Integer)?' because they differ by their tuple element names.
     Public Overrides Function M4() As (notA As Integer, notB As Integer)?
                               ~~
-BC37270: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
     Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
                               ~~
 </errors>)
@@ -13116,16 +13116,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Public Overrides Function M2(Of T)() As (notA As T, notB As T)' cannot override 'Public Overridable Function M2(Of T)() As (a As T, b As T)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M2(Of T)() As (notA As T, notB As T)' cannot override 'Public Overridable Function M2(Of T)() As (a As T, b As T)' because they differ by their tuple element names.
     Public Overrides Function M2(Of T)() As (notA As T, notB As T)
                               ~~
-BC37270: 'Public Overrides Function M3(Of T)() As (notA As T, notB As T)()' cannot override 'Public Overridable Function M3(Of T)() As (a As T, b As T)()' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M3(Of T)() As (notA As T, notB As T)()' cannot override 'Public Overridable Function M3(Of T)() As (a As T, b As T)()' because they differ by their tuple element names.
     Public Overrides Function M3(Of T)() As (notA As T, notB As T)()
                               ~~
-BC37270: 'Public Overrides Function M4(Of T)() As (notA As T, notB As T)?' cannot override 'Public Overridable Function M4(Of T)() As (a As T, b As T)?' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M4(Of T)() As (notA As T, notB As T)?' cannot override 'Public Overridable Function M4(Of T)() As (a As T, b As T)?' because they differ by their tuple element names.
     Public Overrides Function M4(Of T)() As (notA As T, notB As T)?
                               ~~
-BC37270: 'Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)' cannot override 'Public Overridable Function M5(Of T)() As (c As (a As T, b As T), d As T)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)' cannot override 'Public Overridable Function M5(Of T)() As (c As (a As T, b As T), d As T)' because they differ by their tuple element names.
     Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)
                               ~~
 </errors>)
@@ -13171,16 +13171,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Public Overrides Sub M2(x As (notA As Integer, notB As Integer))' cannot override 'Public Overridable Sub M2(x As (a As Integer, b As Integer))' because they differ by their tuple element names.
+BC40001: 'Public Overrides Sub M2(x As (notA As Integer, notB As Integer))' cannot override 'Public Overridable Sub M2(x As (a As Integer, b As Integer))' because they differ by their tuple element names.
     Public Overrides Sub M2(x As (notA As Integer, notB As Integer))
                          ~~
-BC37270: 'Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())' cannot override 'Public Overridable Sub M3(x As (a As Integer, b As Integer)())' because they differ by their tuple element names.
+BC40001: 'Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())' cannot override 'Public Overridable Sub M3(x As (a As Integer, b As Integer)())' because they differ by their tuple element names.
     Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())
                          ~~
-BC37270: 'Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)' cannot override 'Public Overridable Sub M4(x As (a As Integer, b As Integer)?)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)' cannot override 'Public Overridable Sub M4(x As (a As Integer, b As Integer)?)' because they differ by their tuple element names.
     Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)
                          ~~
-BC37270: 'Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' cannot override 'Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))' because they differ by their tuple element names.
+BC40001: 'Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' cannot override 'Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))' because they differ by their tuple element names.
     Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
                          ~~
 </errors>)
@@ -13188,7 +13188,7 @@ BC37270: 'Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer),
         End Sub
 
         <Fact>
-        Public Sub OverridenMethodWithDifferentTupleNamesInParametersUsingTypeArg()
+        Public Sub OverriddenMethodWithDifferentTupleNamesInParametersUsingTypeArg()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Tuples">
@@ -13226,16 +13226,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))' cannot override 'Public Overridable Sub M2(Of T)(x As (a As T, b As T))' because they differ by their tuple element names.
+BC40001: 'Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))' cannot override 'Public Overridable Sub M2(Of T)(x As (a As T, b As T))' because they differ by their tuple element names.
     Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))
                          ~~
-BC37270: 'Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())' cannot override 'Public Overridable Sub M3(Of T)(x As (a As T, b As T)())' because they differ by their tuple element names.
+BC40001: 'Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())' cannot override 'Public Overridable Sub M3(Of T)(x As (a As T, b As T)())' because they differ by their tuple element names.
     Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())
                          ~~
-BC37270: 'Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)' cannot override 'Public Overridable Sub M4(Of T)(x As (a As T, b As T)?)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)' cannot override 'Public Overridable Sub M4(Of T)(x As (a As T, b As T)?)' because they differ by their tuple element names.
     Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)
                          ~~
-BC37270: 'Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))' cannot override 'Public Overridable Sub M5(Of T)(x As (c As (a As T, b As T), d As T))' because they differ by their tuple element names.
+BC40001: 'Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))' cannot override 'Public Overridable Sub M5(Of T)(x As (c As (a As T, b As T), d As T))' because they differ by their tuple element names.
     Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))
                          ~~
 </errors>)
@@ -13351,16 +13351,16 @@ additionalRefs:=s_valueTupleRefs)
 BC30269: 'Public Sub M1(x As (A As Integer, B As Integer))' has multiple definitions with identical signatures.
     Public Sub M1(x As (A As Integer, B As Integer))
                ~~
-BC37272: 'Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37271: 'Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub M2(x As (a As Integer, b As Integer))'.
     Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))
                ~~
-BC37272: 'Public Sub M3(x As (notA As Integer, notB As Integer)())' has multiple definitions with identical signatures with different tuple element names.
+BC37271: 'Public Sub M3(x As (notA As Integer, notB As Integer)())' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub M3(x As (a As Integer, b As Integer)())'.
     Public Sub M3(x As (notA As Integer, notB As Integer)())
                ~~
-BC37272: 'Public Sub M4(x As (notA As Integer, notB As Integer)?)' has multiple definitions with identical signatures with different tuple element names.
+BC37271: 'Public Sub M4(x As (notA As Integer, notB As Integer)?)' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub M4(x As (a As Integer, b As Integer)?)'.
     Public Sub M4(x As (notA As Integer, notB As Integer)?)
                ~~
-BC37272: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37271: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))'.
     Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
                ~~
 </errors>)
@@ -13432,24 +13432,24 @@ BC40005: sub 'M5' shadows an overridable method in the base class 'Base'. To ove
 <compilation name="Tuples">
     <file name="a.vb">
 Public Interface I0
-    Sub M1(x As (Integer, b As Integer))
-    Sub M2(x As (a As Integer, b As Integer))
-    Function MR1() As (Integer, b As Integer)
-    Function MR2() As (a As Integer, b As Integer)
+    Sub M1(x As (Integer, (Integer, c As Integer)))
+    Sub M2(x As (a As Integer, (b As Integer, c As Integer)))
+    Function MR1() As (Integer, (Integer, c As Integer))
+    Function MR2() As (a As Integer, (b As Integer, c As Integer))
 End Interface
 
 Public Class Derived
     Implements I0
 
-    Public Sub M1(x As (notMissing As Integer, b As Integer)) Implements I0.M1
+    Public Sub M1(x As (notMissing As Integer, (notMissing As Integer, c As Integer))) Implements I0.M1
     End Sub
-    Public Sub M2(x As (notA As Integer, notB As Integer)) Implements I0.M2
+    Public Sub M2(x As (notA As Integer, (notB As Integer, c As Integer))) Implements I0.M2
     End Sub
-    Public Function MR1() As (notMissing As Integer, b As Integer) Implements I0.MR1
-        Return (1, 2)
+    Public Function MR1() As (notMissing As Integer, (notMissing As Integer, c As Integer)) Implements I0.MR1
+        Return (1, (2, 3))
     End Function
-    Public Function MR2() As (notA As Integer, b As Integer) Implements I0.MR2
-        Return (1, 2)
+    Public Function MR2() As (notA As Integer, (notB As Integer, c As Integer)) Implements I0.MR2
+        Return (1, (2, 3))
     End Function
 End Class
     </file>
@@ -13458,30 +13458,109 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'Derived' must implement 'Function MR1() As (Integer, b As Integer)' for interface 'I0'.
+BC30149: Class 'Derived' must implement 'Function MR1() As (Integer, (Integer, c As Integer))' for interface 'I0'.
     Implements I0
                ~~
-BC30149: Class 'Derived' must implement 'Function MR2() As (a As Integer, b As Integer)' for interface 'I0'.
+BC30149: Class 'Derived' must implement 'Function MR2() As (a As Integer, (b As Integer, c As Integer))' for interface 'I0'.
     Implements I0
                ~~
-BC30149: Class 'Derived' must implement 'Sub M1(x As (Integer, b As Integer))' for interface 'I0'.
+BC30149: Class 'Derived' must implement 'Sub M1(x As (Integer, (Integer, c As Integer)))' for interface 'I0'.
     Implements I0
                ~~
-BC30149: Class 'Derived' must implement 'Sub M2(x As (a As Integer, b As Integer))' for interface 'I0'.
+BC30149: Class 'Derived' must implement 'Sub M2(x As (a As Integer, (b As Integer, c As Integer)))' for interface 'I0'.
     Implements I0
                ~~
-BC30401: 'M1' cannot implement 'M1' because there is no matching sub on interface 'I0'.
-    Public Sub M1(x As (notMissing As Integer, b As Integer)) Implements I0.M1
-                                                                         ~~~~~
-BC30401: 'M2' cannot implement 'M2' because there is no matching sub on interface 'I0'.
-    Public Sub M2(x As (notA As Integer, notB As Integer)) Implements I0.M2
-                                                                      ~~~~~
-BC30401: 'MR1' cannot implement 'MR1' because there is no matching function on interface 'I0'.
-    Public Function MR1() As (notMissing As Integer, b As Integer) Implements I0.MR1
-                                                                              ~~~~~~
-BC30401: 'MR2' cannot implement 'MR2' because there is no matching function on interface 'I0'.
-    Public Function MR2() As (notA As Integer, b As Integer) Implements I0.MR2
-                                                                        ~~~~~~
+BC30402: 'M1' cannot implement 'M1' because there is no matching sub on interface 'I0' with matching tuple element names.
+    Public Sub M1(x As (notMissing As Integer, (notMissing As Integer, c As Integer))) Implements I0.M1
+                                                                                                  ~~~~~
+BC30402: 'M2' cannot implement 'M2' because there is no matching sub on interface 'I0' with matching tuple element names.
+    Public Sub M2(x As (notA As Integer, (notB As Integer, c As Integer))) Implements I0.M2
+                                                                                      ~~~~~
+BC30402: 'MR1' cannot implement 'MR1' because there is no matching function on interface 'I0' with matching tuple element names.
+    Public Function MR1() As (notMissing As Integer, (notMissing As Integer, c As Integer)) Implements I0.MR1
+                                                                                                       ~~~~~~
+BC30402: 'MR2' cannot implement 'MR2' because there is no matching function on interface 'I0' with matching tuple element names.
+    Public Function MR2() As (notA As Integer, (notB As Integer, c As Integer)) Implements I0.MR2
+                                                                                           ~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InterfaceImplementationOfPropertyWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Interface I0
+    Property E1 As (a As Integer, b As Integer)
+    Property E2 As (Integer, b As Integer)
+End Interface
+
+Public Class Derived
+    Implements I0
+
+    Public Property E1 As (notA As Integer, notB As Integer) Implements I0.E1
+    Public Property E2 As (notMissing As Integer, b As Integer) Implements I0.E2
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30149: Class 'Derived' must implement 'Property E1 As (a As Integer, b As Integer)' for interface 'I0'.
+    Implements I0
+               ~~
+BC30149: Class 'Derived' must implement 'Property E2 As (Integer, b As Integer)' for interface 'I0'.
+    Implements I0
+               ~~
+BC30402: 'E1' cannot implement 'E1' because there is no matching property on interface 'I0' with matching tuple element names.
+    Public Property E1 As (notA As Integer, notB As Integer) Implements I0.E1
+                                                                        ~~~~~
+BC30402: 'E2' cannot implement 'E2' because there is no matching property on interface 'I0' with matching tuple element names.
+    Public Property E2 As (notMissing As Integer, b As Integer) Implements I0.E2
+                                                                           ~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InterfaceImplementationOfEventWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Imports System
+Public Interface I0
+    Event E1 As Action(Of (a As Integer, b As Integer))
+    Event E2 As Action(Of (Integer, b As Integer))
+End Interface
+
+Public Class Derived
+    Implements I0
+
+    Public Event E1 As Action(Of (notA As Integer, notB As Integer)) Implements I0.E1
+    Public Event E2 As Action(Of (notMissing As Integer, notB As Integer)) Implements I0.E2
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30149: Class 'Derived' must implement 'Event E1 As Action(Of (a As Integer, b As Integer))' for interface 'I0'.
+    Implements I0
+               ~~
+BC30149: Class 'Derived' must implement 'Event E2 As Action(Of (Integer, b As Integer))' for interface 'I0'.
+    Implements I0
+               ~~
+BC30402: 'E1' cannot implement 'E1' because there is no matching event on interface 'I0' with matching tuple element names.
+    Public Event E1 As Action(Of (notA As Integer, notB As Integer)) Implements I0.E1
+                                                                                ~~~~~
+BC30402: 'E2' cannot implement 'E2' because there is no matching event on interface 'I0' with matching tuple element names.
+    Public Event E2 As Action(Of (notMissing As Integer, notB As Integer)) Implements I0.E2
+                                                                                      ~~~~~
 </errors>)
 
         End Sub
@@ -13543,7 +13622,7 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC31033: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type.
+BC37272: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
     Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -13621,10 +13700,10 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30401: 'Pop' cannot implement 'Pop' because there is no matching function on interface 'I0(Of (a As Integer, b As Integer))'.
+BC30402: 'Pop' cannot implement 'Pop' because there is no matching function on interface 'I0(Of (a As Integer, b As Integer))' with matching tuple element names.
     Public Overloads Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30401: 'Push' cannot implement 'Push' because there is no matching sub on interface 'I0(Of (a As Integer, b As Integer))'.
+BC30402: 'Push' cannot implement 'Push' because there is no matching sub on interface 'I0(Of (a As Integer, b As Integer))' with matching tuple element names.
     Public Overloads Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -13660,10 +13739,10 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37272: 'Private Sub M1(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37271: 'Private Sub M1(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Private Sub M1(x As (notA As Integer, notB As Integer))'.
     Private Partial Sub M1(x As (a As Integer, b As Integer))
                         ~~
-BC37272: 'Private Sub M2(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names.
+BC37271: 'Private Sub M2(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Private Sub M2(x As (Integer, Integer))'.
     Private Partial Sub M2(x As (a As Integer, b As Integer))
                         ~~
 </errors>)
@@ -13701,12 +13780,12 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37271: Interface 'I0(Of (Integer, Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
-Public Partial Class C
-~~~~~~~~~~~~~~~~~~~~~~
-BC37271: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
-Public Partial Class C
-~~~~~~~~~~~~~~~~~~~~~~
+BC37272: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (notA As Integer, notB As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37272: Interface 'I0(Of (Integer, Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (Integer, Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
 
         End Sub
@@ -13773,21 +13852,64 @@ Public Interface I3
     Inherits I0(Of (a As Integer, b As Integer))
 End Interface
 
-Public Class C
-    Implements I1, I2
-End Class
-Public Class D
+Public Class C1
     Implements I1, I3
 End Class
+Public Class C2
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+End Class
+Public Class C3
+    Implements I2, I0(Of (a As Integer, b As Integer))
+End Class
+Public Class C4
+    Implements I0(Of (a As Integer, b As Integer)), I2
+End Class
+Public Class C5
+    Implements I1, I2
+End Class
+
+Public Interface I11
+    Inherits I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+End Interface
+Public Interface I12
+    Inherits I2, I0(Of (a As Integer, b As Integer))
+End Interface
+Public Interface I13
+    Inherits I0(Of (a As Integer, b As Integer)), I2
+End Interface
+Public Interface I14
+    Inherits I1, I2
+End Interface
     </file>
 </compilation>,
 additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37271: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
-Public Class C
-~~~~~~~~~~~~~~
+BC37272: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37273: Interface 'I0(Of (a As Integer, b As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (notA As Integer, notB As Integer))' (via 'I2').
+    Implements I2, I0(Of (a As Integer, b As Integer))
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37274: Interface 'I0(Of (notA As Integer, notB As Integer))' (via 'I2') can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (a As Integer, b As Integer)), I2
+                                                    ~~
+BC37275: Interface 'I0(Of (notA As Integer, notB As Integer))' (via 'I2') can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))' (via 'I1').
+    Implements I1, I2
+                   ~~
+BC37276: Interface 'I0(Of (notA As Integer, notB As Integer))' can be inherited only once by this interface, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Inherits I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37277: Interface 'I0(Of (a As Integer, b As Integer))' can be inherited only once by this interface, but already appears with different tuple element names, as 'I0(Of (notA As Integer, notB As Integer))' (via 'I2').
+    Inherits I2, I0(Of (a As Integer, b As Integer))
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37278: Interface 'I0(Of (notA As Integer, notB As Integer))' (via 'I2') can be inherited only once by this interface, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Inherits I0(Of (a As Integer, b As Integer)), I2
+                                                  ~~
+BC37279: Interface 'I0(Of (notA As Integer, notB As Integer))' (via 'I2') can be inherited only once by this interface, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))' (via 'I1').
+    Inherits I1, I2
+                 ~~
 </errors>)
 
         End Sub
@@ -13840,23 +13962,23 @@ BC32072: Cannot implement interface 'I0(Of (a As T2, b As T2))' because its impl
 
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
 <compilation name="Tuples">
-    <file name="a.vb">
+    <file name="a.vb"><![CDATA[
 Imports System
 
 Public Module M1
-    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    <System.Runtime.CompilerServices.Extension()>
     Public Sub M(self As String, x As (Integer, Integer))
         Throw New Exception()
     End Sub
 End Module
 Public Module M2
-    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    <System.Runtime.CompilerServices.Extension()>
     Public Sub M(self As String, x As (a As Integer, b As Integer))
         Throw New Exception()
     End Sub
 End Module
 Public Module M3
-    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    <System.Runtime.CompilerServices.Extension()>
     Public Sub M(self As String, x As (c As Integer, d As Integer))
         Throw New Exception()
     End Sub
@@ -13868,7 +13990,7 @@ Public Class C
         s.M((c:=1, d:=1))
     End Sub
 End Class
-    </file>
+     ]]></file>
 </compilation>,
 additionalRefs:=s_valueTupleRefs)
 
@@ -13916,8 +14038,8 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
           M() cil managed
   {
     .param [0]
-    // = (int a, int b)
-    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = ( 01 00 02 00 00 00 01 61 01 62 00 00 )
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        = {string[2]('a' 'b')}
     // Code size       13 (0xd)
     .maxstack  2
     .locals init (class [System.ValueTuple]System.ValueTuple`2<int32,int32> V_0)
@@ -13953,9 +14075,8 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
           M() cil managed
   {
     .param [0]
-    // = (int notA, int notB)
-    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = (
-			01 00 02 00 00 00 04 6e 6f 74 41 04 6e 6f 74 42 00 00 )
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        = {string[2]('notA' 'notB')}
     // Code size       13 (0xd)
     .maxstack  2
     .locals init (class [System.ValueTuple]System.ValueTuple`2<int32,int32> V_0)
@@ -13988,14 +14109,14 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
             Dim compMatching = CreateCompilationWithCustomILSource(
 <compilation>
     <file name="a.vb">
-            Public Class C
-                Inherits Base2
+Public Class C
+    Inherits Base2
 
-                Public Overrides Function M() As (notA As Integer, notB As Integer)
-                    Return (1, 2)
-                End Function
-            End Class
-                </file>
+    Public Overrides Function M() As (notA As Integer, notB As Integer)
+        Return (1, 2)
+    End Function
+End Class
+    </file>
 </compilation>,
 il,
 additionalReferences:=s_valueTupleRefs)
@@ -14019,7 +14140,7 @@ additionalReferences:=s_valueTupleRefs)
 
             compDifferent1.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Public Overrides Function M() As (a As Integer, b As Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M() As (a As Integer, b As Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
     Public Overrides Function M() As (a As Integer, b As Integer)
                               ~
 </errors>)
@@ -14041,7 +14162,7 @@ additionalReferences:=s_valueTupleRefs)
 
             compDifferent2.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Public Overrides Function M() As (Integer, Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Function M() As (Integer, Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
     Public Overrides Function M() As (Integer, Integer)
                               ~
 </errors>)
@@ -14111,16 +14232,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37270: 'Public Overrides Property P2 As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Property P2 As (a As Integer, b As Integer)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Property P2 As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Property P2 As (a As Integer, b As Integer)' because they differ by their tuple element names.
     Public Overrides Property P2 As (notA As Integer, notB As Integer)
                               ~~
-BC37270: 'Public Overrides Property P3 As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Property P3 As (a As Integer, b As Integer)()' because they differ by their tuple element names.
+BC40001: 'Public Overrides Property P3 As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Property P3 As (a As Integer, b As Integer)()' because they differ by their tuple element names.
     Public Overrides Property P3 As (notA As Integer, notB As Integer)()
                               ~~
-BC37270: 'Public Overrides Property P4 As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Property P4 As (a As Integer, b As Integer)?' because they differ by their tuple element names.
+BC40001: 'Public Overrides Property P4 As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Property P4 As (a As Integer, b As Integer)?' because they differ by their tuple element names.
     Public Overrides Property P4 As (notA As Integer, notB As Integer)?
                               ~~
-BC37270: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
+BC40001: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
     Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)
                               ~~
 </errors>)
@@ -14147,6 +14268,284 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
     Dim t As (Integer, Integer) = Nothing
              ~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub MultipleImplementsWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Interface I0
+    Sub M(x As (a0 As Integer, b0 As Integer))
+    Function MR() As (a0 As Integer, b0 As Integer)
+End Interface
+
+Public Interface I1
+    Sub M(x As (a1 As Integer, b1 As Integer))
+    Function MR() As (a1 As Integer, b1 As Integer)
+End Interface
+
+Public Class C1
+    Implements I0, I1
+
+    Public Sub M(x As (a2 As Integer, b2 As Integer)) Implements I0.M, I1.M
+    End Sub
+
+    Public Function MR() As (a2 As Integer, b2 As Integer) Implements I0.MR, I1.MR
+        Return (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30149: Class 'C1' must implement 'Function MR() As (a0 As Integer, b0 As Integer)' for interface 'I0'.
+    Implements I0, I1
+               ~~
+BC30149: Class 'C1' must implement 'Sub M(x As (a0 As Integer, b0 As Integer))' for interface 'I0'.
+    Implements I0, I1
+               ~~
+BC30149: Class 'C1' must implement 'Function MR() As (a1 As Integer, b1 As Integer)' for interface 'I1'.
+    Implements I0, I1
+                   ~~
+BC30149: Class 'C1' must implement 'Sub M(x As (a1 As Integer, b1 As Integer))' for interface 'I1'.
+    Implements I0, I1
+                   ~~
+BC30402: 'M' cannot implement 'M' because there is no matching sub on interface 'I0' with matching tuple element names.
+    Public Sub M(x As (a2 As Integer, b2 As Integer)) Implements I0.M, I1.M
+                                                                 ~~~~
+BC30402: 'M' cannot implement 'M' because there is no matching sub on interface 'I1' with matching tuple element names.
+    Public Sub M(x As (a2 As Integer, b2 As Integer)) Implements I0.M, I1.M
+                                                                       ~~~~
+BC30402: 'MR' cannot implement 'MR' because there is no matching function on interface 'I0' with matching tuple element names.
+    Public Function MR() As (a2 As Integer, b2 As Integer) Implements I0.MR, I1.MR
+                                                                      ~~~~~
+BC30402: 'MR' cannot implement 'MR' because there is no matching function on interface 'I1' with matching tuple element names.
+    Public Function MR() As (a2 As Integer, b2 As Integer) Implements I0.MR, I1.MR
+                                                                             ~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub MethodSignatureComparerTest()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class C
+    Public Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+
+    Public Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+
+    Public Sub M3(x As (notA As Integer, notB As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim m1 = comp.GetMember(Of MethodSymbol)("C.M1")
+            Dim m2 = comp.GetMember(Of MethodSymbol)("C.M2")
+            Dim m3 = comp.GetMember(Of MethodSymbol)("C.M3")
+
+            Dim comparison12 = MethodSignatureComparer.DetailedCompare(m1, m2, SymbolComparisonResults.TupleNamesMismatch)
+            Assert.Equal(0, comparison12)
+
+            Dim comparison13 = MethodSignatureComparer.DetailedCompare(m1, m3, SymbolComparisonResults.TupleNamesMismatch)
+            Assert.Equal(SymbolComparisonResults.TupleNamesMismatch, comparison13)
+
+        End Sub
+
+        <Fact>
+        Public Sub PropertySignatureComparer_TupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class C
+    Public Property P1 As (a As Integer, b As Integer)
+
+    Public Property P2 As (a As Integer, b As Integer)
+
+    Public Property P3 As (notA As Integer, notB As Integer)
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim p1 = comp.GetMember(Of PropertySymbol)("C.P1")
+            Dim p2 = comp.GetMember(Of PropertySymbol)("C.P2")
+            Dim p3 = comp.GetMember(Of PropertySymbol)("C.P3")
+
+            Dim comparison12 = PropertySignatureComparer.DetailedCompare(p1, p2, SymbolComparisonResults.TupleNamesMismatch)
+            Assert.Equal(0, comparison12)
+
+            Dim comparison13 = PropertySignatureComparer.DetailedCompare(p1, p3, SymbolComparisonResults.TupleNamesMismatch)
+            Assert.Equal(SymbolComparisonResults.TupleNamesMismatch, comparison13)
+
+        End Sub
+
+        <Fact>
+        Public Sub PropertySignatureComparer_TypeCustomModifiers()
+
+            Dim il = <![CDATA[
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly extern System.Core {}
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly '<<GeneratedFileName>>' { }
+
+.class public auto ansi beforefieldinit CL1`1<T1>
+       extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+      IL_0006:  ret
+    } // end of method CL1`1::.ctor
+
+    .property instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)
+            Test()
+    {
+      .get instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) CL1`1::get_Test()
+      .set instance void CL1`1::set_Test(!T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst))
+    } // end of property CL1`1::Test
+
+    .method public hidebysig newslot specialname virtual
+            instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)
+            get_Test() cil managed
+    {
+      // Code size       2 (0x2)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  throw
+    } // end of method CL1`1::get_Test
+
+    .method public hidebysig newslot specialname virtual
+            instance void  set_Test(!T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) x) cil managed
+    {
+      // Code size       3 (0x3)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  throw
+      IL_0002:  ret
+    } // end of method CL1`1::set_Test
+} // end of class CL1`1
+]]>.Value
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class CL2(Of T1)
+    Public Property Test As T1
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(source1, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp1.AssertTheseDiagnostics()
+
+            Dim property1 = comp1.GlobalNamespace.GetMember(Of PropertySymbol)("CL1.Test")
+            Assert.Equal("Property CL1(Of T1).Test As T1 modopt(System.Runtime.CompilerServices.IsConst)", property1.ToTestDisplayString())
+
+            Dim property2 = comp1.GlobalNamespace.GetMember(Of PropertySymbol)("CL2.Test")
+            Assert.Equal("Property CL2(Of T1).Test As T1", property2.ToTestDisplayString())
+
+            Assert.False(PropertySignatureComparer.RuntimePropertySignatureComparer.Equals(property1, property2))
+
+        End Sub
+
+        <Fact>
+        Public Sub EventSignatureComparerTest()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Imports System
+Public Class C
+    Public Event E1 As Action(Of (a As Integer, b As Integer))
+    Public Event E2 As Action(Of (a As Integer, b As Integer))
+    Public Event E3 As Action(Of (notA As Integer, notB As Integer))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim e1 = comp.GetMember(Of EventSymbol)("C.E1")
+            Dim e2 = comp.GetMember(Of EventSymbol)("C.E2")
+            Dim e3 = comp.GetMember(Of EventSymbol)("C.E3")
+
+            Assert.True(EventSignatureComparer.ExplicitEventImplementationWithTupleNamesComparer.Equals(e1, e2))
+            Assert.False(EventSignatureComparer.ExplicitEventImplementationWithTupleNamesComparer.Equals(e1, e3))
+
+        End Sub
+
+        <Fact>
+        Public Sub OperatorOverloadingWithDifferentTupleNames()
+            Dim compilationDef =
+<compilation name="SimpleTest1">
+    <file name="a.vb"><![CDATA[
+Class B1
+    Shared Operator >=(x1 As (a As B1, b As B1), x2 As B1) As Boolean
+        Return Nothing
+    End Operator
+
+    Shared Operator <=(x1 As (notA As B1, notB As B1), x2 As B1) As Boolean
+        Return Nothing
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, additionalRefs:=s_valueTupleRefs)
+            compilation.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub Shadowing()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class C0
+    Public Function M(x As (a As Integer, (b As Integer, c As Integer))) As (a As Integer, (b As Integer, c As Integer))
+        Return (1, (2, 3))
+    End Function
+End Class
+Public Class C1
+    Inherits C0
+
+    Public Function M(x As (a As Integer, (notB As Integer, c As Integer))) As (a As Integer, (notB As Integer, c As Integer))
+        Return (1, (2, 3))
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40003: function 'M' shadows an overloadable member declared in the base class 'C0'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Public Function M(x As (a As Integer, (notB As Integer, c As Integer))) As (a As Integer, (notB As Integer, c As Integer))
+                    ~
 </errors>)
 
         End Sub

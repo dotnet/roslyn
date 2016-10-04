@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return fromLambda IsNot Nothing AndAlso
                 Not fromLambda.IsSub AndAlso
                 toLambda.IsSub AndAlso
-                MethodSignatureComparer.HaveSameParameterTypes(fromLambda.Parameters, Nothing, toLambda.Parameters, Nothing, considerByRef:=True, considerCustomModifiers:=False)
+                MethodSignatureComparer.HaveSameParameterTypes(fromLambda.Parameters, Nothing, toLambda.Parameters, Nothing, considerByRef:=True, considerCustomModifiers:=False, considerTupleNames:=False)
 
         End Function
 

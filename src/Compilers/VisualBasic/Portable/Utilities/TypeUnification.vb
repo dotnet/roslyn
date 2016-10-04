@@ -108,12 +108,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim nt1 As NamedTypeSymbol = DirectCast(t1.Type, NamedTypeSymbol)
                     Dim nt2 As NamedTypeSymbol = DirectCast(t2.Type, NamedTypeSymbol)
 
-                    If nt1.IsTupleType Then
-                        If Not nt2.IsTupleType Then
-                            Return False
-                        End If
-
-                        Return CanUnifyHelper(containingGenericType, New TypeWithModifiers(nt1.TupleUnderlyingType), New TypeWithModifiers(nt2.TupleUnderlyingType), substitution)
+                    If nt1.IsTupleType OrElse nt2.IsTupleType Then
+                        Return CanUnifyHelper(containingGenericType,
+                                              New TypeWithModifiers(nt1.GetTupleUnderlyingTypeOrSelf()),
+                                              New TypeWithModifiers(nt2.GetTupleUnderlyingTypeOrSelf()),
+                                              substitution)
                     End If
 
                     If Not nt1.IsGenericType Then

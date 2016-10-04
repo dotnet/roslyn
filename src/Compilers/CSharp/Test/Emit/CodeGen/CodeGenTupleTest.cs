@@ -16545,7 +16545,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenMethodWithDifferentTupleNamesInParametersUsingTypeArg()
+        public void OverriddenMethodWithDifferentTupleNamesInParametersUsingTypeArg()
         {
             var source = @"
 public class Base
@@ -19345,6 +19345,20 @@ class C
   IL_000b:  ret
 }
 ");
+        }
+
+        [Fact]
+        public static void OperatorOverloadingWithDifferentTupleNames()
+        {
+            var source = @"
+public class B1 
+{
+    public static bool operator >=((B1 a, B1 b) x1, B1 x2) { return true; }
+    public static bool operator <=((B1 notA, B1 notB) x1, B1 x2) { return true; }
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics();
         }
     }
 }

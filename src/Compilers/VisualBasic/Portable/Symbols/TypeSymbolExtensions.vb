@@ -245,17 +245,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function IsSameType(t1 As TypeSymbol, t2 As TypeSymbol, compareKind As TypeCompareKind) As Boolean
             Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
 
+            If compareKind = TypeCompareKind.ConsiderEverything Then
+                Return t1.Equals(t2)
+            End If
+
             If (compareKind And TypeCompareKind.IgnoreTupleNames) = 0 AndAlso Not HasSameTupleNames(t1, t2) Then
                 Return False
             End If
 
-            If t1.IsTupleType Then
-                t1 = t1.TupleUnderlyingType
-            End If
-
-            If t2.IsTupleType Then
-                t2 = t2.TupleUnderlyingType
-            End If
+            t1 = t1.GetTupleUnderlyingTypeOrSelf()
+            t2 = t2.GetTupleUnderlyingTypeOrSelf()
 
             If t1 Is t2 Then
                 Return True
@@ -281,29 +280,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim t2IsDefinition = t2.IsDefinition
 
                 If (t1IsDefinition <> t2IsDefinition) AndAlso
-                   (compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
-                   Not (DirectCast(t1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(t2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers) Then
+                   Not ((compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) <> 0 AndAlso 
+                            (DirectCast(t1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(t2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers)) Then
                     Return False
-                End If
-
-                If (compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 Then
-                    Dim mod1 = DirectCast(t1, NamedTypeSymbol).TypeArgumentsCustomModifiers
-                    Dim mod2 = DirectCast(t2, NamedTypeSymbol).TypeArgumentsCustomModifiers
-
-                    If mod1.Length <> mod2.Length Then
-                        Return False
-                    End If
-
-                    For i = 0 To mod1.Length - 1
-                        If Not mod1(i).AreSameCustomModifiers(mod2(i)) Then
-                            Return False
-                        End If
-                    Next
                 End If
 
                 If Not (t1IsDefinition AndAlso t2IsDefinition) Then ' This is a generic instantiation case
 
-                    If Not t1.OriginalDefinition.IsSameType(t2.OriginalDefinition, compareKind) Then
+                    If t1.OriginalDefinition <> t2.OriginalDefinition Then
                         Return False ' different definition
                     End If
 
@@ -330,11 +314,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
                     Loop
 
+                    If (compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 Then
+                        Return HasSameTypeArgumentCustomModifiers(DirectCast(t1, NamedTypeSymbol), DirectCast(t2, NamedTypeSymbol))
+                    End If
+
                     Return True
                 End If
             End If
 
             Return (t1 = t2)
+        End Function
+
+        Private Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean
+            If Not type1.HasTypeArgumentsCustomModifiers() AndAlso Not type2.HasTypeArgumentsCustomModifiers() Then
+                Return True
+            End If
+
+            Dim mod1 = type1.TypeArgumentsCustomModifiers
+            Dim mod2 = type2.TypeArgumentsCustomModifiers
+
+            If mod1.Length <> mod2.Length Then
+                Return False
+            End If
+
+            If Not mod1.SequenceEqual(mod2, AddressOf AreSameCustomModifiers) Then
+                Return False
+            End If
+
+            Return True
         End Function
 
         <Extension()>
@@ -345,13 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            For i As Integer = 0 To count - 1 Step 1
-                If (Not [mod](i).Equals(otherMod(i))) Then
-                    Return False
-                End If
-            Next
-
-            Return True
+            Return [mod].SequenceEqual(otherMod)
         End Function
 
         Private Function HasSameTupleNames(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
@@ -363,21 +364,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim t1Names = t1.TupleElementNames
             Dim t2Names = t2.TupleElementNames
 
-            If t1Names = Nothing AndAlso t2Names = Nothing Then
+            If t1Names.IsDefault AndAlso t2Names.IsDefault Then
                 Return True
             End If
 
-            If t1Names = Nothing OrElse t2Names = Nothing OrElse t1Names.Length <> t2Names.Length Then
+            If t1Names.IsDefault OrElse t2Names.IsDefault OrElse t1Names.Length <> t2Names.Length Then
                 Return False
             End If
 
-            For i = 0 To t1Names.Length - 1
-                If Not IdentifierComparison.Equals(t1Names(i), t2Names(i)) Then
-                    Return False
-                End If
-            Next
-
-            Return True
+            Return t1Names.SequenceEqual(t2Names, AddressOf IdentifierComparison.Equals)
         End Function
 
         <Extension()>

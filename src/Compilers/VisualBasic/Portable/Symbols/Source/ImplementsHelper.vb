@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     candidates(i) = Nothing
                                     candidatesCount -= 1
                                     GoTo Next_i
-                                ElseIf first.ContainingType.ImplementsInterface(second.ContainingType, Nothing)
+                                ElseIf first.ContainingType.ImplementsInterface(second.ContainingType, Nothing) Then
                                     candidates(j) = Nothing
                                     candidatesCount -= 1
                                 End If
@@ -313,7 +313,7 @@ DoneWithErrorReporting:
                             candidateSymbols.AddRange(lookup.Symbols)
                         End If
 
-                    ElseIf candidatesCount = 1
+                    ElseIf candidatesCount = 1 Then
 
                         For i As Integer = 0 To candidates.Count - 1
                             Dim first As TSymbol = candidates(i)
@@ -351,6 +351,17 @@ DoneWithErrorReporting:
                         If Not errorReported Then
                             ' Further verification of found method.
                             foundMember = ValidateImplementedMember(implementingSym, foundMember, implementedMemberSyntax, binder, diagBag)
+
+                            If Not MembersHaveMatchingTupleNames(implementingSym, foundMember) Then
+                                Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_IdentNotMemberOfInterfaceBecauseTupleNames4,
+                                        CustomSymbolDisplayFormatter.ShortErrorName(implementingSym), implementedMethodName,
+                                        implementingSym.GetKindText(),
+                                        CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(interfaceType))
+
+                                foundMember = Nothing
+                                errorReported = True
+                            End If
+
                         End If
 
                         If foundMember IsNot Nothing Then
@@ -393,23 +404,37 @@ DoneWithErrorReporting:
         ''' </summary>
         Private Function MembersAreMatchingForPurposesOfInterfaceImplementation(implementingSym As Symbol,
                                                                                 implementedSym As Symbol) As Boolean
+            Return MembersAreMatching(implementingSym, implementedSym, Not SymbolComparisonResults.MismatchesForExplicitInterfaceImplementations, EventSignatureComparer.ExplicitEventImplementationComparer)
+
+        End Function
+
+        Private Function MembersHaveMatchingTupleNames(implementingSym As Symbol,
+                                                        implementedSym As Symbol) As Boolean
+
+            Return MembersAreMatching(implementingSym, implementedSym, SymbolComparisonResults.TupleNamesMismatch, EventSignatureComparer.ExplicitEventImplementationWithTupleNamesComparer)
+        End Function
+
+        Private Function MembersAreMatching(implementingSym As Symbol,
+                                            implementedSym As Symbol,
+                                            comparisons As SymbolComparisonResults,
+                                            eventComparison As EventSignatureComparer) As Boolean
             Debug.Assert(implementingSym.Kind = implementedSym.Kind)
 
             Select Case implementingSym.Kind
                 Case SymbolKind.Method
                     Dim results = MethodSignatureComparer.DetailedCompare(DirectCast(implementedSym, MethodSymbol), DirectCast(implementingSym, MethodSymbol),
-                                                                          Not SymbolComparisonResults.MismatchesForExplicitInterfaceImplementations,
-                                                                          Not SymbolComparisonResults.MismatchesForExplicitInterfaceImplementations)
+                                                                          comparisons,
+                                                                          comparisons)
                     Return (results = 0)
 
                 Case SymbolKind.Property
                     Dim results = PropertySignatureComparer.DetailedCompare(DirectCast(implementedSym, PropertySymbol), DirectCast(implementingSym, PropertySymbol),
-                                                                            Not SymbolComparisonResults.MismatchesForExplicitInterfaceImplementations,
-                                                                            Not SymbolComparisonResults.MismatchesForExplicitInterfaceImplementations)
+                                                                            comparisons,
+                                                                            comparisons)
                     Return (results = 0)
 
                 Case SymbolKind.Event
-                    Return EventSignatureComparer.ExplicitEventImplementationComparer.Equals(DirectCast(implementedSym, EventSymbol), DirectCast(implementingSym, EventSymbol))
+                    Return eventComparison.Equals(DirectCast(implementedSym, EventSymbol), DirectCast(implementingSym, EventSymbol))
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(implementingSym.Kind)
@@ -445,7 +470,7 @@ DoneWithErrorReporting:
                                             implementingProperty.GetPropertyKindText())
 
                 ElseIf ((implementedProperty.GetMethod Is Nothing) Xor (implementedProperty.SetMethod Is Nothing)) AndAlso
-                       implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing
+                       implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
                     InternalSyntax.Parser.CheckFeatureAvailability(diagBag, implementedMemberSyntax.GetLocation(),
                                                                    DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
                                                                    InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
