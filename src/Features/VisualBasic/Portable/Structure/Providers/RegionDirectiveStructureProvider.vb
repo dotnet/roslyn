@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     GetBannerText(regionDirective),
                     autoCollapse:=False,
                     isDefaultCollapsed:=True,
-                    type:=BlockTypes.Nonstructural,
+                    type:=BlockTypes.PreprocessorRegion,
                     isCollapsible:=True))
             End If
         End Sub

@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
                     TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
                     GetBannerText(regionDirective),
                     autoCollapse:=True,
-                    type:=BlockTypes.Nonstructural, isCollapsible:=True))
+                    type:=BlockTypes.PreprocessorRegion, isCollapsible:=True))
             End If
         End Sub
 

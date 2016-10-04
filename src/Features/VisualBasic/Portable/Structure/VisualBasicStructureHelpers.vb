@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 TextSpan.FromBounds(startComment.SpanStart, endComment.Span.End),
                 GetCommentBannerText(startComment),
                 autoCollapse:=True,
-                type:=BlockTypes.Nonstructural,
+                type:=BlockTypes.Comment,
                 isCollapsible:=True)
         End Function
 

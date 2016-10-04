@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             spans.AddIfNotNull(CreateRegion(
                 fullSpan, GetBannerText(documentationComment, cancellationToken),
-                autoCollapse:=True, type:=BlockTypes.Nonstructural, isCollapsible:=True))
+                autoCollapse:=True, type:=BlockTypes.Comment, isCollapsible:=True))
         End Sub
     End Class
 End Namespace

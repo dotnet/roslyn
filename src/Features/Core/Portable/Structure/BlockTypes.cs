@@ -5,9 +5,6 @@ namespace Microsoft.CodeAnalysis.Structure
     internal static class BlockTypes
     {
         // Basic types.
-        //public const string Structural = nameof(Structural);
-        //public const string Nonstructural = nameof(Nonstructural);
-
         public const string Nonstructural = nameof(Nonstructural);
 
         // Trivia

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             CollectCommentsRegions(compilationUnit, spans)
             spans.AddIfNotNull(CreateRegion(
                 compilationUnit.Imports, bannerText:="Imports" & SpaceEllipsis,
-                autoCollapse:=True, type:=BlockTypes.Nonstructural, isCollapsible:=True))
+                autoCollapse:=True, type:=BlockTypes.Imports, isCollapsible:=True))
             CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
         End Sub
 

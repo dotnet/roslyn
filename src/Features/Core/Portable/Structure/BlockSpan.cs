@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.Structure
         public string Type { get; }
 
         public BlockSpan(
-            bool isCollapsible, TextSpan textSpan, string type = null, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
+            bool isCollapsible, TextSpan textSpan, string type, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
             : this(isCollapsible, textSpan, textSpan, type, bannerText, autoCollapse, isDefaultCollapsed)
         {
         }
 
         public BlockSpan(
-            bool isCollapsible, TextSpan textSpan, TextSpan hintSpan, string type = null, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
+            bool isCollapsible, TextSpan textSpan, TextSpan hintSpan, string type, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
         {
             TextSpan = textSpan;
             BannerText = bannerText;
