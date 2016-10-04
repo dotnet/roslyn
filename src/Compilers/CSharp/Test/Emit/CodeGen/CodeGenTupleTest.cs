@@ -857,32 +857,16 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
-{1, 2}
-{0, 0}
-");
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("C.Main", @"
-{
-  // Code size       54 (0x36)
-  .maxstack  3
-  .locals init (System.ValueTuple<int, int> V_0) //x
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  constrained. ""System.ValueTuple<int, int>""
-  IL_0011:  callvirt   ""string object.ToString()""
-  IL_0016:  call       ""void System.Console.WriteLine(string)""
-  IL_001b:  ldloca.s   V_0
-  IL_001d:  initobj    ""System.ValueTuple<int, int>""
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  constrained. ""System.ValueTuple<int, int>""
-  IL_002b:  callvirt   ""string object.ToString()""
-  IL_0030:  call       ""void System.Console.WriteLine(string)""
-  IL_0035:  ret
-}");
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         var x = new (int, int)(1, 2);
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(6, 21),
+                // (9,17): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         x = new (int, int)();
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(9, 17)
+
+                );
         }
 
         [Fact]
@@ -900,63 +884,13 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         var x = new (int, int)(1, arg);
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(7, 21)
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
-{1, 2}");
-
-            verifier.VerifyIL("C.Main", @"
-{
-  // Code size      129 (0x81)
-  .maxstack  7
-  .locals init (object V_0, //arg
-                System.ValueTuple<int, int> V_1) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  box        ""int""
-  IL_0006:  stloc.0
-  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> C.<>o__0.<>p__0""
-  IL_000c:  brtrue.s   IL_004d
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldtoken    ""C""
-  IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0019:  ldc.i4.3
-  IL_001a:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_001f:  dup
-  IL_0020:  ldc.i4.0
-  IL_0021:  ldc.i4.s   33
-  IL_0023:  ldnull
-  IL_0024:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0029:  stelem.ref
-  IL_002a:  dup
-  IL_002b:  ldc.i4.1
-  IL_002c:  ldc.i4.3
-  IL_002d:  ldnull
-  IL_002e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0033:  stelem.ref
-  IL_0034:  dup
-  IL_0035:  ldc.i4.2
-  IL_0036:  ldc.i4.0
-  IL_0037:  ldnull
-  IL_0038:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_003d:  stelem.ref
-  IL_003e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeConstructor(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> C.<>o__0.<>p__0""
-  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> C.<>o__0.<>p__0""
-  IL_0052:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>>.Target""
-  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> C.<>o__0.<>p__0""
-  IL_005c:  ldtoken    ""System.ValueTuple<int, int>""
-  IL_0061:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0066:  ldc.i4.1
-  IL_0067:  ldloc.0
-  IL_0068:  callvirt   ""(int, int) System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic)""
-  IL_006d:  stloc.1
-  IL_006e:  ldloca.s   V_1
-  IL_0070:  constrained. ""System.ValueTuple<int, int>""
-  IL_0076:  callvirt   ""string object.ToString()""
-  IL_007b:  call       ""void System.Console.WriteLine(string)""
-  IL_0080:  ret
-}");
+                );
         }
 
         [Fact]
@@ -982,81 +916,21 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
-1
-3
-5
-6
-7");
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("C.Main", @"
-{
-  // Code size      184 (0xb8)
-  .maxstack  4
-  .locals init (System.ValueTuple<int, int> V_0, //x
-                System.ValueTuple<int, int> V_1, //x1
-                System.ValueTuple<int, (int b, int c)> V_2, //x2
-                System.ValueTuple<int, int> V_3,
-                System.ValueTuple<int, (int b, int c)> V_4)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item1""
-  IL_0010:  call       ""string int.ToString()""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ldloca.s   V_3
-  IL_001c:  ldc.i4.1
-  IL_001d:  ldc.i4.2
-  IL_001e:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0023:  ldloca.s   V_3
-  IL_0025:  ldc.i4.3
-  IL_0026:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_002b:  ldloca.s   V_3
-  IL_002d:  ldc.i4.4
-  IL_002e:  stfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0033:  ldloc.3
-  IL_0034:  stloc.1
-  IL_0035:  ldloca.s   V_1
-  IL_0037:  ldflda     ""int System.ValueTuple<int, int>.Item1""
-  IL_003c:  call       ""string int.ToString()""
-  IL_0041:  call       ""void System.Console.WriteLine(string)""
-  IL_0046:  ldloca.s   V_4
-  IL_0048:  ldc.i4.1
-  IL_0049:  ldc.i4.2
-  IL_004a:  ldc.i4.3
-  IL_004b:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0050:  call       ""System.ValueTuple<int, (int b, int c)>..ctor(int, (int b, int c))""
-  IL_0055:  ldloca.s   V_4
-  IL_0057:  ldc.i4.5
-  IL_0058:  stfld      ""int System.ValueTuple<int, (int b, int c)>.Item1""
-  IL_005d:  ldloca.s   V_4
-  IL_005f:  ldflda     ""(int b, int c) System.ValueTuple<int, (int b, int c)>.Item2""
-  IL_0064:  ldc.i4.6
-  IL_0065:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_006a:  ldloca.s   V_4
-  IL_006c:  ldflda     ""(int b, int c) System.ValueTuple<int, (int b, int c)>.Item2""
-  IL_0071:  ldc.i4.7
-  IL_0072:  stfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0077:  ldloc.s    V_4
-  IL_0079:  stloc.2
-  IL_007a:  ldloca.s   V_2
-  IL_007c:  ldflda     ""int System.ValueTuple<int, (int b, int c)>.Item1""
-  IL_0081:  call       ""string int.ToString()""
-  IL_0086:  call       ""void System.Console.WriteLine(string)""
-  IL_008b:  ldloca.s   V_2
-  IL_008d:  ldflda     ""(int b, int c) System.ValueTuple<int, (int b, int c)>.Item2""
-  IL_0092:  ldflda     ""int System.ValueTuple<int, int>.Item1""
-  IL_0097:  call       ""string int.ToString()""
-  IL_009c:  call       ""void System.Console.WriteLine(string)""
-  IL_00a1:  ldloca.s   V_2
-  IL_00a3:  ldflda     ""(int b, int c) System.ValueTuple<int, (int b, int c)>.Item2""
-  IL_00a8:  ldflda     ""int System.ValueTuple<int, int>.Item2""
-  IL_00ad:  call       ""string int.ToString()""
-  IL_00b2:  call       ""void System.Console.WriteLine(string)""
-  IL_00b7:  ret
-}");
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         var x = new (int a, int b)(1, 2);
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int a, int b)").WithLocation(6, 21),
+                // (9,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int a, int b)").WithLocation(9, 22),
+                // (12,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int a, (int b, int c) d)").WithLocation(12, 22),
+                // (12,55): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(12, 55)
+                );
         }
 
         [WorkItem(10874, "https://github.com/dotnet/roslyn/issues/10874")]
@@ -1089,18 +963,21 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,22): error CS1729: '(int a, int b)' does not contain a constructor that takes 3 arguments
+                // (6,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x0 = new (int a, int b)(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(int a, int b)").WithArguments("(int a, int b)", "3").WithLocation(6, 22),
-                // (9,22): error CS1729: '(int, int)' does not contain a constructor that takes 3 arguments
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int a, int b)").WithLocation(6, 22),
+                // (9,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x1 = new (int, int)(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(int, int)").WithArguments("(int, int)", "3").WithLocation(9, 22),
-                // (12,36): error CS1503: Argument 2: cannot convert from 'string' to 'int'
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(9, 22),
+                // (12,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x2 = new (int, int)(1, "2");
-                Diagnostic(ErrorCode.ERR_BadArgType, @"""2""").WithArguments("2", "string", "int").WithLocation(12, 36),
-                // (15,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'item2' of '(int, int).(int, int)'
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(12, 22),
+                // (15,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x3 = new (int, int)(1);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(int, int)").WithArguments("item2", "(int, int).(int, int)").WithLocation(15, 22),
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(15, 22),
+                // (18,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(18, 22),
                 // (18,40): error CS0117: '(int, int)' does not contain a definition for 'a'
                 //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "a").WithArguments("(int, int)", "a").WithLocation(18, 40),
@@ -11761,12 +11638,12 @@ namespace System
 
         public static implicit operator (T1, T2)(System.Collections.Generic.KeyValuePair<T1, T2> arg)
         {
-            return new (T1, T2)(arg.Key, arg.Value);
+            return (arg.Key, arg.Value);
         }
 
         public static explicit operator (T1, T2)(string arg)
         {
-            return new (T1, T2)((T1)(object)arg, (T2)(object)arg);
+            return ((T1)(object)arg, (T2)(object)arg);
         }
 
 
@@ -12409,12 +12286,12 @@ namespace System
 
         public static implicit operator (T1, T2)?(System.Collections.Generic.KeyValuePair<T1, T2> arg)
         {
-            return new (T1, T2)(arg.Key, arg.Value);
+            return (arg.Key, arg.Value);
         }
 
         public static explicit operator (T1, T2)?(string arg)
         {
-            return new (T1, T2)((T1)(object)arg, (T2)(object)arg);
+            return ((T1)(object)arg, (T2)(object)arg);
         }
 
 
@@ -13634,12 +13511,13 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,83): error CS1503: Argument 8: cannot convert from 'int' to '(int)'
+                // (6,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
-                Diagnostic(ErrorCode.ERR_BadArgType, "8").WithArguments("8", "int", "(int)").WithLocation(6, 83),
-                // (7,21): error CS1729: '(int, int, int, int, int, int, int, int, int)' does not contain a constructor that takes 9 arguments
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int, int, int, int, int, int, int)").WithLocation(6, 21),
+                // (7,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(int, int, int, int, int, int, int, int, int)").WithArguments("(int, int, int, int, int, int, int, int, int)", "9").WithLocation(7, 21)
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int, int, int, int, int, int, int, int)").WithLocation(7, 21)
+
                 );
         }
 
@@ -18790,6 +18668,295 @@ class C
                 });
             // no assert hit
         }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct0()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int a, int b) x;
+        x.Item1 = 1;
+        x.b = 2;
+ 
+        // by the language rules tuple x is definitely assigned
+        // since all its elements are definitely assigned
+        System.Console.WriteLine(x);
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,24): error CS8182: Predefined type 'ValueTuple`2' must be a struct.
+                //         (int a, int b) x;
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x").WithArguments("ValueTuple`2").WithLocation(6, 24)
+            );
+
+        }
+
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct1()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (1,2,3,4,5,6,7,8,9);
+ 
+        System.Console.WriteLine(x);     
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+
+    public class ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        public TRest Rest;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+            Item7 = item7;
+            Rest = rest;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS8182: Predefined type 'ValueTuple`8' must be a struct.
+                //         var x = (1,2,3,4,5,6,7,8,9);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x = (1,2,3,4,5,6,7,8,9)").WithArguments("ValueTuple`8").WithLocation(6, 13),
+                // (6,13): error CS8182: Predefined type 'ValueTuple`2' must be a struct.
+                //         var x = (1,2,3,4,5,6,7,8,9);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x = (1,2,3,4,5,6,7,8,9)").WithArguments("ValueTuple`2").WithLocation(6, 13)
+            );
+
+        }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static void Test2((int a, int b) arg)
+    {
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // error CS8180: Predefined type 'ValueTuple`2' must be a struct.
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1)
+            );
+
+        }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct2i()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static void Test2((int a, int b) arg)
+    {
+    }
+}
+
+namespace System
+{
+    public interface ValueTuple<T1, T2>
+    {
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // error CS8180: Predefined type 'ValueTuple`2' must be a struct.
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1)
+            );
+
+        }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct3()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static void Test1()
+    {
+        (int, int)[] x = null;
+ 
+        System.Console.WriteLine(x);
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (10,22): error CS8180: Predefined type 'ValueTuple`2' must be a struct.
+                //         (int, int)[] x = null;
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x = null").WithArguments("ValueTuple`2").WithLocation(10, 22)
+            );
+
+        }
+
+        [Fact]
+        [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
+        public void ValueTupleNotStruct4()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static (int a, int b) Test2()
+    {
+        return (1, 1);
+    }
+}
+
+namespace System
+{
+    public class ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (9,5): error CS8180: Predefined type 'ValueTuple`2' must be a struct.
+                //     {
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, @"{
+        return (1, 1);
+    }").WithArguments("ValueTuple`2").WithLocation(9, 5)
+            );
+
+        }        
 
         [Fact]
         [WorkItem(14166, "https://github.com/dotnet/roslyn/issues/14166")]
