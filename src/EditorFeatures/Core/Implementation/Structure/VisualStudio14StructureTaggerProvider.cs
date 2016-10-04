@@ -41,13 +41,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         }
 
         protected override IOutliningRegionTag CreateTag(
-            IOutliningRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region)
+            IOutliningRegionTag parentTag, ITextSnapshot snapshot, BlockSpan blockSpan)
         {
+            // Don't make outlining spans for non-collapsible block spans
+            if (!blockSpan.IsCollapsible)
+            {
+                return null;
+            }
+
             return new RoslynOutliningRegionTag(
                 this.TextEditorFactoryService,
                 this.ProjectionBufferFactoryService,
                 this.EditorOptionsFactoryService,
-                snapshot, region);
+                snapshot, blockSpan);
         }
     }
 }

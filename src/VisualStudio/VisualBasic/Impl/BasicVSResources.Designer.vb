@@ -344,15 +344,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Outlining.
-        '''</summary>
-        Friend Shared ReadOnly Property Outlining() As String
-            Get
-                Return ResourceManager.GetString("Outlining", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Performance.
         '''</summary>
         Friend Shared ReadOnly Property Performance() As String
@@ -369,7 +360,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Return ResourceManager.GetString("Place_System_directives_first_when_sorting_imports", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Predefined type preferences:.
         '''</summary>

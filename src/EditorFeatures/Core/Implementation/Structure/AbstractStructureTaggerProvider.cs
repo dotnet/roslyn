@@ -69,7 +69,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle));
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCodeLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, TaggerDelay.NearImmediate));
         }
 
         /// <summary>
@@ -85,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 {
                     var blockStructure = await outliningService.GetBlockStructureAsync(
                         documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
+
                     ProcessSpans(
                         context, documentSnapshotSpan.SnapshotSpan, outliningService,
                         blockStructure.Spans);
@@ -114,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     // and make a blocking call against the async service.
 
                     var blockStructure = outliningService.GetBlockStructure(document, cancellationToken);
+
                     ProcessSpans(
                         context, documentSnapshotSpan.SnapshotSpan, outliningService,
                         blockStructure.Spans);
@@ -188,16 +196,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     var parentTag = tagSpanStack.Count > 0 ? tagSpanStack.Peek() : null;
                     var tag = CreateTag(parentTag?.Tag, snapshot, region);
 
-                    var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
+                    if (tag != null)
+                    {
+                        var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
 
-                    context.AddTag(tagSpan);
-                    tagSpanStack.Push(tagSpan);
+                        context.AddTag(tagSpan);
+                        tagSpanStack.Push(tagSpan);
+                    }
                 }
             }
         }
 
-        protected abstract TRegionTag CreateTag(
-            TRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region);
+        protected abstract TRegionTag CreateTag(TRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region);
 
         private static bool s_exceptionReported = false;
 
@@ -209,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             var multiLineRegions = ArrayBuilder<BlockSpan>.GetInstance();
             foreach (var region in regions)
             {
-                if (region != null && region.TextSpan.Length > 0)
+                if (region.TextSpan.Length > 0)
                 {
                     // Check if any clients produced an invalid OutliningSpan.  If so, filter them
                     // out and report a non-fatal watson so we can attempt to determine the source

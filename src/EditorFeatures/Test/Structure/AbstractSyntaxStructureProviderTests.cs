@@ -19,10 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         protected virtual string WorkspaceKind => TestWorkspace.WorkspaceName;
 
-        private async Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
+        private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
         {
-            var spans = await GetBlockSpansWorkerAsync(document, position);
-            return spans.WhereNotNull().ToImmutableArray();
+            return GetBlockSpansWorkerAsync(document, position);
         }
 
         internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position);
@@ -91,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             return new BlockSpan(isCollapsible: true,
                 textSpan: textSpan, 
                 hintSpan: hintSpan,
+                type: BlockTypes.Nonstructural,
                 bannerText: bannerText,
                 autoCollapse: autoCollapse, 
                 isDefaultCollapsed: isDefaultCollapsed);

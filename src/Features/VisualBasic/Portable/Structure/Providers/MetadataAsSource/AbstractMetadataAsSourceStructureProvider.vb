@@ -30,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
 
                 spans.Add(New BlockSpan(
                     isCollapsible:=True,
+                    type:=BlockTypes.Comment,
                     textSpan:=TextSpan.FromBounds(startPosition, endPosition),
                     hintSpan:=TextSpan.FromBounds(startPosition, hintTextEndToken.Span.End),
                     bannerText:=Ellipsis,

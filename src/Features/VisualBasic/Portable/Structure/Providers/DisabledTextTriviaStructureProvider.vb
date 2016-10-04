@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
@@ -18,10 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 Dim startPos = nodeSpan.Start
                 Dim endPos = startPos + trivia.ToString().TrimEnd().Length
 
-                spans.Add(CreateRegion(
+                spans.AddIfNotNull(CreateRegion(
                     span:=TextSpan.FromBounds(startPos, endPos),
                     bannerText:=Ellipsis, autoCollapse:=True,
-                    type:=BlockTypes.Nonstructural, isCollapsible:=True))
+                    type:=BlockTypes.PreprocessorRegion, isCollapsible:=True))
             End If
         End Sub
     End Class

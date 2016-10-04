@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource
 
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
+                    type: BlockTypes.Comment,
                     textSpan: TextSpan.FromBounds(startPosition, endPosition),
                     hintSpan: TextSpan.FromBounds(startPosition, hintTextEndToken.Span.End),
                     bannerText: CSharpStructureHelpers.Ellipsis,
