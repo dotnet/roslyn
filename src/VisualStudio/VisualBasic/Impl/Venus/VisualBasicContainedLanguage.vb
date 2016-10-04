@@ -18,7 +18,7 @@ Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
     Friend Class VisualBasicContainedLanguage
-        Inherits ContainedLanguage(Of VisualBasicPackage, VisualBasicLanguageService, AbstractProject)
+        Inherits ContainedLanguage(Of VisualBasicPackage, VisualBasicLanguageService)
         Implements IVsContainedLanguageStaticEventBinding
 
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,

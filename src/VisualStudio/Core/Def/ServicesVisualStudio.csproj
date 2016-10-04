@@ -442,7 +442,6 @@
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`3.IVsLanguageDebugInfo2.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`3.VsLanguageDebugInfo.cs" />
     <Compile Include="Implementation\LanguageService\AbstractPackage`2.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractPackage`3.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryManager.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryManager_IOleCommandTarget.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryManager_IVsLibrary.cs" />

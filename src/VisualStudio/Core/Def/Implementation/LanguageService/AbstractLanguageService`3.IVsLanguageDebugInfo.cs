@@ -8,7 +8,7 @@ using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal partial class AbstractLanguageService<TPackage, TLanguageService, TProject> : IVsLanguageDebugInfo
+    internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVsLanguageDebugInfo
     {
         public int GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
         {
