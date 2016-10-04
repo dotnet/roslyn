@@ -92,7 +92,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     var blockStructure = await outliningService.GetBlockStructureAsync(
                         documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
 
-                    ProcessSpans(context, documentSnapshotSpan, outliningService, blockStructure.Spans);
+                    ProcessSpans(
+                        context, documentSnapshotSpan.SnapshotSpan, outliningService,
+                        blockStructure.Spans);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -120,7 +122,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
                     var blockStructure = outliningService.GetBlockStructure(document, cancellationToken);
 
-                    ProcessSpans(context, documentSnapshotSpan, outliningService, blockStructure.Spans);
+                    ProcessSpans(
+                        context, documentSnapshotSpan.SnapshotSpan, outliningService,
+                        blockStructure.Spans);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -148,13 +152,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         private void ProcessSpans(
             TaggerContext<TRegionTag> context,
-            DocumentSnapshotSpan documentSnapshotSpan,
+            SnapshotSpan snapshotSpan,
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
         {
             try
             {
-                ProcessSpansWorker(context, documentSnapshotSpan, outliningService, spans);
+                ProcessSpansWorker(context, snapshotSpan, outliningService, spans);
             }
             catch (TypeLoadException)
             {
@@ -167,14 +171,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         private void ProcessSpansWorker(
             TaggerContext<TRegionTag> context,
-            DocumentSnapshotSpan documentSnapshotSpan,
+            SnapshotSpan snapshotSpan,
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
         {
             if (spans != null)
             {
-                var document = documentSnapshotSpan.Document;
-                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
                 var snapshot = snapshotSpan.Snapshot;
                 spans = GetMultiLineRegions(outliningService, spans, snapshot);
 
