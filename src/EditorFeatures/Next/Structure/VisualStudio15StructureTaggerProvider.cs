@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
 
                     // Statements
                     case BlockTypes.Statement: return PredefinedStructureTypes.Standalone;
+                    case BlockTypes.Conditional: return PredefinedStructureTypes.Conditional;
                     case BlockTypes.Loop: return PredefinedStructureTypes.Loop;
 
                     // Expressions
