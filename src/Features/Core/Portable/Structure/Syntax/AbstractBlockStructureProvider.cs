@@ -69,6 +69,13 @@ namespace Microsoft.CodeAnalysis.Structure
             BlockSpanCollector.CollectBlockSpans(
                 context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
 
+            UpdateAndAddSpans(context, spans);
+
+            spans.Free();
+        }
+
+        internal static void UpdateAndAddSpans(BlockStructureContext context, ArrayBuilder<BlockSpan> spans)
+        {
             var options = context.Document.Project.Solution.Workspace.Options;
             var language = context.Document.Project.Language;
 
@@ -90,11 +97,9 @@ namespace Microsoft.CodeAnalysis.Structure
                         showOutliningForCommentsAndPreprocessorRegions);
                 context.AddBlockSpan(updatedSpan);
             }
-
-            spans.Free();
         }
 
-        private BlockSpan UpdateBlockSpan(BlockSpan blockSpan,
+        internal static BlockSpan UpdateBlockSpan(BlockSpan blockSpan,
             bool showIndentGuidesForCodeLevelConstructs,
             bool showIndentGuidesForDeclarationLevelConstructs,
             bool showIndentGuidesForCommentsAndPreprocessorRegions,
@@ -141,12 +146,12 @@ namespace Microsoft.CodeAnalysis.Structure
             return blockSpan.With(type: type, isCollapsible: isCollapsible);
         }
 
-        private static bool IsCommentOrPreprocessorRegion(string type)
+        internal static bool IsCommentOrPreprocessorRegion(string type)
         {
             return type == BlockTypes.Comment || type == BlockTypes.PreprocessorRegion;
         }
 
-        protected bool IsCodeLevelConstruct(string type)
+        internal static bool IsCodeLevelConstruct(string type)
         {
             switch (type)
             {
@@ -167,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Structure
             return false;
         }
 
-        protected bool IsDeclarationLevelConstruct(string type)
+        internal static bool IsDeclarationLevelConstruct(string type)
         {
             return !IsCodeLevelConstruct(type) && !IsCommentOrPreprocessorRegion(type);
         }
