@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             If Not block?.EndBlockStatement.IsMissing Then
                 spans.AddIfNotNull(CreateRegionFromBlock(
                     block, bannerNode:=constructorDeclaration, autoCollapse:=True,
-                    type:=BlockTypes.Constructor, isCollapsible:=True))
+                    type:=BlockTypes.Member, isCollapsible:=True))
             End If
         End Sub
     End Class

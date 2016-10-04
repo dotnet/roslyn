@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 eventDeclaration,
                 eventDeclaration.Identifier,
                 autoCollapse: true,
-                type: BlockTypes.Event,
+                type: BlockTypes.Member,
                 isCollapsible: true));
         }
     }

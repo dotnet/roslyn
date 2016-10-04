@@ -14,44 +14,20 @@ namespace Microsoft.CodeAnalysis.Structure
         // Top level declarations.
         public const string Imports = nameof(Imports);
         public const string Namespace = nameof(Namespace);
-        public const string Class = nameof(Class);
-        public const string Enum = nameof(Enum);
-        public const string Interface = nameof(Interface);
-        public const string Module = nameof(Module);
-        public const string Structure = nameof(Structure);
+        public const string Type = nameof(Type);
+        public const string Member = nameof(Member);
 
-        // Type level declarations.
-        public const string Accessor = nameof(Accessor);
-        public const string Constructor = nameof(Constructor);
-        public const string Destructor = nameof(Destructor);
-        public const string Event = nameof(Event);
-        public const string Indexer = nameof(Indexer);
-        public const string Method = nameof(Method);
-        public const string Operator = nameof(Operator);
-        public const string Property = nameof(Property);
-
-        // Statements
-        public const string Case = nameof(Case);
-        public const string Conditional = nameof(Conditional);
-        public const string LocalFunction = nameof(LocalFunction);
-        public const string Lock = nameof(Lock);
+        public const string Statement = nameof(Statement);
         public const string Loop = nameof(Loop);
-        public const string Standalone = nameof(Standalone);
-        public const string Switch = nameof(Switch);
-        public const string TryCatchFinally = nameof(TryCatchFinally);
-        public const string Using = nameof(Using);
-        public const string With = nameof(With);
 
-        // Expressions
-        public const string AnonymousMethod = nameof(AnonymousMethod);
-        public const string Xml = nameof(Xml);
+        public const string Expression = nameof(Expression);
 
         internal static bool IsCommentOrPreprocessorRegion(string type)
         {
             switch (type)
             {
-                case BlockTypes.Comment:
-                case BlockTypes.PreprocessorRegion:
+                case Comment:
+                case PreprocessorRegion:
                     return true;
             }
 
@@ -60,33 +36,12 @@ namespace Microsoft.CodeAnalysis.Structure
 
         internal static bool IsExpressionLevelConstruct(string type)
         {
-            switch (type)
-            {
-                case BlockTypes.AnonymousMethod:
-                case BlockTypes.Xml:
-                    return true;
-            }
-
-            return false;
+            return type == Expression;
         }
 
         internal static bool IsStatementLevelConstruct(string type)
         {
-            switch (type)
-            {
-                case BlockTypes.Case:
-                case BlockTypes.Conditional:
-                case BlockTypes.LocalFunction:
-                case BlockTypes.Lock:
-                case BlockTypes.Loop:
-                case BlockTypes.TryCatchFinally:
-                case BlockTypes.Using:
-                case BlockTypes.Standalone:
-                case BlockTypes.Switch:
-                    return true;
-            }
-
-            return false;
+            return type == Loop || type == Statement;
         }
 
         internal static bool IsCodeLevelConstruct(string type)

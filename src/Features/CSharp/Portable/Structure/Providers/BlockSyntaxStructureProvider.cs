@@ -118,26 +118,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         {
             switch (parent.Kind())
             {
-                case SyntaxKind.TryStatement: return BlockTypes.TryCatchFinally;
-                case SyntaxKind.CatchClause: return BlockTypes.TryCatchFinally;
-                case SyntaxKind.FinallyClause: return BlockTypes.TryCatchFinally;
-
-                case SyntaxKind.LockStatement: return BlockTypes.Lock;
-                case SyntaxKind.UsingStatement: return BlockTypes.Using;
-
                 case SyntaxKind.ForStatement: return BlockTypes.Loop;
                 case SyntaxKind.ForEachStatement: return BlockTypes.Loop;
                 case SyntaxKind.ForEachComponentStatement: return BlockTypes.Loop;
                 case SyntaxKind.WhileStatement: return BlockTypes.Loop;
                 case SyntaxKind.DoStatement: return BlockTypes.Loop;
 
-                case SyntaxKind.IfStatement: return BlockTypes.Conditional;
-                case SyntaxKind.ElseClause: return BlockTypes.Conditional;
+                case SyntaxKind.TryStatement: return BlockTypes.Statement;
+                case SyntaxKind.CatchClause: return BlockTypes.Statement;
+                case SyntaxKind.FinallyClause: return BlockTypes.Statement;
 
-                case SyntaxKind.Block: return BlockTypes.Standalone;
-                case SyntaxKind.SwitchSection: return BlockTypes.Case;
+                case SyntaxKind.LockStatement: return BlockTypes.Statement;
+                case SyntaxKind.UsingStatement: return BlockTypes.Statement;
 
-                case SyntaxKind.LocalFunctionStatement: return BlockTypes.LocalFunction;
+                case SyntaxKind.IfStatement: return BlockTypes.Statement;
+                case SyntaxKind.ElseClause: return BlockTypes.Statement;
+
+                case SyntaxKind.Block: return BlockTypes.Statement;
+                case SyntaxKind.SwitchSection: return BlockTypes.Statement;
+
+                case SyntaxKind.LocalFunctionStatement: return BlockTypes.Statement;
             }
 
             return null;

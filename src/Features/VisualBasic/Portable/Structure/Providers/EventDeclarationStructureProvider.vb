@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             If Not block?.EndEventStatement.IsMissing Then
                 spans.AddIfNotNull(CreateRegionFromBlock(
                     block, bannerNode:=eventDeclaration, autoCollapse:=True,
-                    type:=BlockTypes.Event, isCollapsible:=True))
+                    type:=BlockTypes.Member, isCollapsible:=True))
 
                 CollectCommentsRegions(block.EndEventStatement, spans)
             End If

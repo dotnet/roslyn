@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 indexerDeclaration,
                 indexerDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
                 autoCollapse: true,
-                type: BlockTypes.Indexer,
+                type: BlockTypes.Member,
                 isCollapsible: true));
         }
     }

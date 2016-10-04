@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 destructorDeclaration,
                 destructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
                 autoCollapse: true,
-                type: BlockTypes.Destructor,
+                type: BlockTypes.Member,
                 isCollapsible: true));
         }
     }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     enumDeclaration,
                     enumDeclaration.Identifier,
                     autoCollapse: false,
-                    type: BlockTypes.Enum,
+                    type: BlockTypes.Member,
                     isCollapsible: true));
             }
 

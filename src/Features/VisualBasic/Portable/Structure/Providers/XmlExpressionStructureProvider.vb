@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             spans.AddIfNotNull(CreateRegion(
                 span, bannerText, autoCollapse:=False,
-                type:=BlockTypes.Xml, isCollapsible:=True))
+                type:=BlockTypes.Expression, isCollapsible:=True))
         End Sub
     End Class
 End Namespace

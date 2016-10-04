@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             If Not block?.EndEnumStatement.IsMissing Then
                 spans.AddIfNotNull(CreateRegionFromBlock(
                     block, bannerNode:=enumDeclaration, autoCollapse:=True,
-                    type:=BlockTypes.Enum, isCollapsible:=True))
+                    type:=BlockTypes.Type, isCollapsible:=True))
 
                 CollectCommentsRegions(block.EndEnumStatement, spans)
             End If

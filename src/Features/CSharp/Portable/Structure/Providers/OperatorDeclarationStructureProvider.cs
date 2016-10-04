@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 operatorDeclaration,
                 operatorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
                 autoCollapse: true,
-                type: BlockTypes.Operator,
+                type: BlockTypes.Member,
                 isCollapsible: true));
         }
     }

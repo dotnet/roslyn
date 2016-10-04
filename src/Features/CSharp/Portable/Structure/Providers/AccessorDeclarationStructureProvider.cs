@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 accessorDeclaration,
                 accessorDeclaration.Keyword,
                 autoCollapse: true,
-                type: BlockTypes.Accessor,
+                type: BlockTypes.Member,
                 isCollapsible: true));
         }
     }

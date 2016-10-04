@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 lambdaExpression.ArrowToken,
                 lastToken,
                 autoCollapse: false,
-                type: BlockTypes.AnonymousMethod,
+                type: BlockTypes.Expression,
                 isCollapsible: true));
         }
     }

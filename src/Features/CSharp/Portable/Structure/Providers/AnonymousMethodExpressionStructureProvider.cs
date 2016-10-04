@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 startToken,
                 lastToken,
                 autoCollapse: false,
-                type: BlockTypes.AnonymousMethod,
+                type: BlockTypes.Expression,
                 isCollapsible: true));
         }
     }

@@ -15,14 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(typeDeclaration.Parent, TypeBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then
-                Dim type =
-                    If(typeDeclaration.Kind() = SyntaxKind.InterfaceStatement, BlockTypes.Interface,
-                    If(typeDeclaration.Kind() = SyntaxKind.StructureStatement, BlockTypes.Structure,
-                    If(typeDeclaration.Kind() = SyntaxKind.ModuleStatement, BlockTypes.Module,
-                        BlockTypes.Class)))
                 spans.AddIfNotNull(CreateRegionFromBlock(
                     block, bannerNode:=typeDeclaration, autoCollapse:=False,
-                    type:=type, isCollapsible:=True))
+                    type:=BlockTypes.Type, isCollapsible:=True))
 
                 CollectCommentsRegions(block.EndBlockStatement, spans)
             End If

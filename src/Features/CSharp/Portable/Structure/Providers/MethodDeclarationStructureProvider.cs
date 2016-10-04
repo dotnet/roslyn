@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 methodDeclaration,
                 methodDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
                 autoCollapse: true,
-                type: BlockTypes.Method,
+                type: BlockTypes.Member,
                 isCollapsible: true));
         }
     }
