@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible: true,
                 textSpan: TextSpan.FromBounds(node.CloseParenToken.Span.End, node.CloseBraceToken.Span.End),
                 hintSpan: node.Span,
-                type: BlockTypes.Statement));
+                type: BlockTypes.Conditional));
         }
     }
 }
