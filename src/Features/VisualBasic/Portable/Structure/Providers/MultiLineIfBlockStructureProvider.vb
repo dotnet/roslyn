@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                   cancellationToken As CancellationToken)
             spans.AddIfNotNull(CreateRegionFromBlock(
                                node, node.IfStatement, autoCollapse:=False,
-                               type:=BlockTypes.Using, isCollapsible:=True))
+                               type:=BlockTypes.Conditional, isCollapsible:=True))
         End Sub
     End Class
 End Namespace
