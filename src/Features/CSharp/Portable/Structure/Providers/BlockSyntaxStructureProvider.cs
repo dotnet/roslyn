@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             //
             // This also works nicely as the close brace for these constructs will always
             // align with the start of these statements.
-            if (node.Parent is StatementSyntax ||
+            if (IsNonBlockStatement(node.Parent) ||
                 parentKind == SyntaxKind.ElseClause)
             {
                 var type = GetType(node.Parent);
@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 }
             }
 
-            // Switch sections are somewhat special.  Say you have the following:
+            // Nested blocks aren't attached to anything.  Just collapse them as is.
+            // Switch sections are also special.  Say you have the following:
             //
             //      case 0:
             //          {
@@ -53,14 +54,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             //
             // Which would obviously be wonky.  So in this case, we just use the
             // spanof the block alone, without consideration for the case clause.
-            if (parentKind == SyntaxKind.SwitchSection)
+            if (parentKind == SyntaxKind.Block || parentKind == SyntaxKind.SwitchSection)
             {
+                var type = GetType(node.Parent);
+
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
                     textSpan: node.Span,
-                    hintSpan: node.Parent.Span,
-                    type: BlockTypes.Case));
+                    hintSpan: node.Span,
+                    type: type));
             }
+        }
+
+        private static bool IsNonBlockStatement(SyntaxNode node)
+        {
+            return node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
         }
 
         private TextSpan GetHintSpan(BlockSyntax node)
@@ -127,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 case SyntaxKind.ElseClause: return BlockTypes.Conditional;
 
                 case SyntaxKind.Block: return BlockTypes.Standalone;
+                case SyntaxKind.SwitchSection: return BlockTypes.Case;
 
                 case SyntaxKind.LocalFunctionStatement: return BlockTypes.LocalFunction;
             }

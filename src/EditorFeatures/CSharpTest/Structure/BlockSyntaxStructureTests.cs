@@ -264,5 +264,68 @@ class C
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestNestedBlock()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:{|textspan:{$$
+
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestNestedBlockInSwitchSection1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        switch (e)
+        {
+            case 0:
+                {|hint:{|textspan:{$$
+
+                }|}|}
+        }
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestNestedBlockInSwitchSection2()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        switch (e)
+        {
+        case 0:
+            int i = 0;
+            {|hint:{|textspan:{$$
+
+            }|}|}
+        }
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
     }
 }
