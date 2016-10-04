@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 token.ValueText.Length == 1 &&
                 isTriggerCharacter(token.ValueText[0]) &&
                 token.Parent is ArgumentListSyntax &&
-                token.Parent.Parent is ConstructorInitializerSyntax;
+                token.Parent.Parent is TSyntaxNode;
         }
     }
 }
