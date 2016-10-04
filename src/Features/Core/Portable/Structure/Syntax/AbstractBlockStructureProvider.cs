@@ -80,17 +80,14 @@ namespace Microsoft.CodeAnalysis.Structure
 
             foreach (var span in spans)
             {
-                if (span != null)
-                {
-                    var updatedSpan = UpdateBlockSpan(span,
-                            showIndentGuidesForCodeLevelConstructs,
-                            showIndentGuidesForDeclarationLevelConstructs,
-                            showIndentGuidesForCommentsAndPreprocessorRegions,
-                            showOutliningForCodeLevelConstructs,
-                            showOutliningForDeclarationLevelConstructs,
-                            showOutliningForCommentsAndPreprocessorRegions);
-                    context.AddBlockSpan(updatedSpan);
-                }
+                var updatedSpan = UpdateBlockSpan(span,
+                        showIndentGuidesForCodeLevelConstructs,
+                        showIndentGuidesForDeclarationLevelConstructs,
+                        showIndentGuidesForCommentsAndPreprocessorRegions,
+                        showOutliningForCodeLevelConstructs,
+                        showOutliningForDeclarationLevelConstructs,
+                        showOutliningForCommentsAndPreprocessorRegions);
+                context.AddBlockSpan(updatedSpan);
             }
 
             spans.Free();
