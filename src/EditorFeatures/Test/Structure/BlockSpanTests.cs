@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var bannerText = "Foo";
             var autoCollapse = true;
 
-            var outliningRegion = new BlockSpan(true, span, hintSpan, 
+            var outliningRegion = new BlockSpan(
+                isCollapsible: true, textSpan: span, hintSpan: hintSpan,
                 type: BlockTypes.Nonstructural, bannerText: bannerText, autoCollapse: autoCollapse);
 
             Assert.Equal(span, outliningRegion.TextSpan);
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var bannerText = "Foo";
             var autoCollapse = true;
 
-            var outliningRegion = new BlockSpan(true, span, hintSpan, 
+            var outliningRegion = new BlockSpan(
+                isCollapsible: true, textSpan: span, hintSpan: hintSpan,
                 type: BlockTypes.Nonstructural, bannerText: bannerText, autoCollapse: autoCollapse);
 
             Assert.Equal("{Span=[0..1), HintSpan=[2..3), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
@@ -46,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var bannerText = "Foo";
             var autoCollapse = true;
 
-            var outliningRegion = new BlockSpan(true, span, 
+            var outliningRegion = new BlockSpan(
+                isCollapsible: true, textSpan: span,
                 type: BlockTypes.Nonstructural, bannerText: bannerText, autoCollapse: autoCollapse);
 
             Assert.Equal("{Span=[0..1), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
