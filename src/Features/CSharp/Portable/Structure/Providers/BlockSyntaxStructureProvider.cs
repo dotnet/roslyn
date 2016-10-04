@@ -131,11 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 case SyntaxKind.LockStatement: return BlockTypes.Statement;
                 case SyntaxKind.UsingStatement: return BlockTypes.Statement;
 
-                case SyntaxKind.IfStatement: return BlockTypes.Statement;
-                case SyntaxKind.ElseClause: return BlockTypes.Statement;
+                case SyntaxKind.IfStatement: return BlockTypes.Conditional;
+                case SyntaxKind.ElseClause: return BlockTypes.Conditional;
+                case SyntaxKind.SwitchSection: return BlockTypes.Conditional;
 
                 case SyntaxKind.Block: return BlockTypes.Statement;
-                case SyntaxKind.SwitchSection: return BlockTypes.Statement;
 
                 case SyntaxKind.LocalFunctionStatement: return BlockTypes.Statement;
             }

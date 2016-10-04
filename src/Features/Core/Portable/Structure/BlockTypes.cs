@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Structure
         public const string Member = nameof(Member);
 
         public const string Statement = nameof(Statement);
+        public const string Conditional = nameof(Conditional);
         public const string Loop = nameof(Loop);
 
         public const string Expression = nameof(Expression);
