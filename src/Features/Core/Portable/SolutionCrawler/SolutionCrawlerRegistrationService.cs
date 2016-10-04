@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             SolutionCrawlerLogger.LogUnregistration(coordinator.CorrelationId);
         }
 
-        public void RegisterIncrementalAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
+        public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
         {
             // now update all existing work coordinator
             lock (_gate)

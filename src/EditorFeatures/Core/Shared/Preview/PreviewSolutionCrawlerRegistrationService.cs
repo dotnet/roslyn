@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
             }
 
-            public void RegisterIncrementalAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
+            public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
             {
                 // preview solution crawler doesn't support adding and removing analyzer dynamically
                 throw new NotSupportedException();

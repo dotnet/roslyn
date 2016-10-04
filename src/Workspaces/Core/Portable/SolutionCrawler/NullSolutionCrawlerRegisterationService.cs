@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             // base implementation do nothing.
         }
 
-        public void RegisterIncrementalAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
+        public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
         {
             // base implementation do nothing.
         }
