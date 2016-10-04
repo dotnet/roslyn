@@ -480,6 +480,7 @@
     <Compile Include="Structure\MetadataAsSource\PropertyDeclarationStructureTests.vb" />
     <Compile Include="Structure\MetadataAsSource\RegionDirectiveStructureTests.vb" />
     <Compile Include="Structure\MetadataAsSource\TypeDeclarationStructureTests.vb" />
+    <Compile Include="Structure\DoLoopBlockStructureTests.vb" />
     <Compile Include="Structure\SelectBlockStructureTests.vb" />
     <Compile Include="Structure\MultiLineIfBlockStructureTests.vb" />
     <Compile Include="Structure\ForEachBlockStructureTests.vb" />
