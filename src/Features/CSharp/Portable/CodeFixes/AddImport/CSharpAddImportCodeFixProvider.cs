@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 return false;
             }
 
-            if (!syntaxFacts.IsMemberAccessExpressionName(node))
+            if (!syntaxFacts.IsNameOfMemberAccessExpression(node))
             {
                 return false;
             }
