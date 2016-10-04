@@ -684,6 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsUsingAliasContext(position, cancellationToken) ||
                 syntaxTree.IsUsingStaticContext(position, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+                syntaxTree.IsPossibleTupleContext(tokenOnLeftOfPosition, position) ||
                 syntaxTree.IsMemberDeclarationContext(
                     position,
                     contextOpt: null,
