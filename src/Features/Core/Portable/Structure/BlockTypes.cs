@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.Structure
 
         // Trivia
         public const string Comment = nameof(Comment);
-        // public const string Region = nameof(Region);
         public const string PreprocessorRegion = nameof(PreprocessorRegion);
 
         // Top level declarations.
@@ -46,7 +45,5 @@ namespace Microsoft.CodeAnalysis.Structure
         // Expressions
         public const string AnonymousMethod = nameof(AnonymousMethod);
         public const string Xml = nameof(Xml);
-
-        // public const string Other = nameof(Other);
     }
 }
