@@ -108,9 +108,9 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             var type = blockSpan.Type;
 
-            var isTopLevel = IsDeclarationLevelConstruct(type);
-            var isMemberLevel = IsCodeLevelConstruct(type);
-            var isComment = IsCommentOrPreprocessorRegion(type);
+            var isTopLevel = BlockTypes.IsDeclarationLevelConstruct(type);
+            var isMemberLevel = BlockTypes.IsCodeLevelConstruct(type);
+            var isComment = BlockTypes.IsCommentOrPreprocessorRegion(type);
 
             if (!showIndentGuidesForDeclarationLevelConstructs && isTopLevel)
             {
@@ -143,37 +143,6 @@ namespace Microsoft.CodeAnalysis.Structure
             }
 
             return blockSpan.With(type: type, isCollapsible: isCollapsible);
-        }
-
-        internal static bool IsCommentOrPreprocessorRegion(string type)
-        {
-            return type == BlockTypes.Comment || type == BlockTypes.PreprocessorRegion;
-        }
-
-        internal static bool IsCodeLevelConstruct(string type)
-        {
-            switch (type)
-            {
-                case BlockTypes.Case:
-                case BlockTypes.Conditional:
-                case BlockTypes.LocalFunction:
-                case BlockTypes.Lock:
-                case BlockTypes.Loop:
-                case BlockTypes.TryCatchFinally:
-                case BlockTypes.Using:
-                case BlockTypes.Standalone:
-                case BlockTypes.Switch:
-                case BlockTypes.AnonymousMethod:
-                case BlockTypes.Xml:
-                    return true;
-            }
-
-            return false;
-        }
-
-        internal static bool IsDeclarationLevelConstruct(string type)
-        {
-            return !IsCodeLevelConstruct(type) && !IsCommentOrPreprocessorRegion(type);
         }
     }
 }

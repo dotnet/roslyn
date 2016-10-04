@@ -45,5 +45,58 @@ namespace Microsoft.CodeAnalysis.Structure
         // Expressions
         public const string AnonymousMethod = nameof(AnonymousMethod);
         public const string Xml = nameof(Xml);
+
+        internal static bool IsCommentOrPreprocessorRegion(string type)
+        {
+            switch (type)
+            {
+                case BlockTypes.Comment:
+                case BlockTypes.PreprocessorRegion:
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsExpressionLevelConstruct(string type)
+        {
+            switch (type)
+            {
+                case BlockTypes.AnonymousMethod:
+                case BlockTypes.Xml:
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsStatementLevelConstruct(string type)
+        {
+            switch (type)
+            {
+                case BlockTypes.Case:
+                case BlockTypes.Conditional:
+                case BlockTypes.LocalFunction:
+                case BlockTypes.Lock:
+                case BlockTypes.Loop:
+                case BlockTypes.TryCatchFinally:
+                case BlockTypes.Using:
+                case BlockTypes.Standalone:
+                case BlockTypes.Switch:
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsCodeLevelConstruct(string type)
+        {
+            return IsExpressionLevelConstruct(type) || IsStatementLevelConstruct(type);
+        }
+
+        internal static bool IsDeclarationLevelConstruct(string type)
+        {
+            return !IsCodeLevelConstruct(type) && !IsCommentOrPreprocessorRegion(type);
+        }
     }
 }
