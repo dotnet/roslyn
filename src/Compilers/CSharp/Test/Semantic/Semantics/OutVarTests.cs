@@ -882,9 +882,7 @@ public class Cls
                 Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
             }
 
-            Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-            Assert.Equal(local.Type, model.GetTypeInfo(decl).Type);
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
 
             foreach (var reference in references)
             {
@@ -898,6 +896,32 @@ public class Cls
             {
                 VerifyDataFlow(model, decl, isDelegateCreation, isExecutableCode, references, symbol);
             }
+        }
+
+        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl)
+        {
+            var symbolInfo = model.GetSymbolInfo(decl);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(symbolInfo, ((CSharpSemanticModel)model).GetSymbolInfo(decl));
+
+            var typeInfo = model.GetTypeInfo(decl);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
+
+            var conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
+            Assert.False(conversion.Exists);
+            Assert.Equal(conversion, model.ClassifyConversion(decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, model.ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, model.ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
+
+            Assert.Null(model.GetDeclaredSymbol(decl));
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
@@ -19733,9 +19757,8 @@ public class X
             Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
             Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
 
-            Assert.Null(model.GetSymbolInfo(decl).Symbol);
-            Assert.Null(model.GetTypeInfo(decl).Type);
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
+
             VerifyModelNotSupported(model, references);
         }
 
@@ -27016,18 +27039,8 @@ class H
             var declarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
                                            (declarator.ArgumentList?.Contains(decl)).GetValueOrDefault();
-            if (inFieldDeclaratorArgumentlist)
-            {
-                Assert.Null(model.GetSymbolInfo(decl).Symbol);
-                Assert.Null(model.GetSymbolInfo(decl).Symbol);
-            }
-            else
-            {
-                Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-                Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-            }
 
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
 
             foreach (var reference in references)
             {
