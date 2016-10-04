@@ -81,6 +81,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 get { return _registration.CorrelationId; }
             }
 
+            public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
+            {
+                // add analyzer
+                _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
+
+                // and ask to re-analyze whole solution for the given analyzer
+                var set = _registration.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet();
+                Reanalyze(analyzer, set);
+            }
+
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
@@ -510,7 +520,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectParseOptionChanged);
                 }
 
-                if (projectChanges.GetAddedMetadataReferences().Any() || 
+                if (projectChanges.GetAddedMetadataReferences().Any() ||
                     projectChanges.GetAddedProjectReferences().Any() ||
                     projectChanges.GetAddedAnalyzerReferences().Any() ||
                     projectChanges.GetRemovedMetadataReferences().Any() ||
