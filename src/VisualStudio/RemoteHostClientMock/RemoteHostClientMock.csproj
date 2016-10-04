@@ -23,6 +23,8 @@
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <TargetVsixContainerName>Roslyn.VisualStudio.RemoteHostClientMock.vsix</TargetVsixContainerName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <OutDir>$(OutDir)RemoteClientHostMock\</OutDir>
+    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">

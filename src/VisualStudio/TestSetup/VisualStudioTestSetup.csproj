@@ -18,6 +18,8 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <OutDir>$(OutDir)VisualStudioTestSetup\</OutDir>
+    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
