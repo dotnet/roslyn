@@ -5,11 +5,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ISymbolExtensions
     {
-        public static bool IsImplicitValueParameter(this ISymbol symbol)
+        public static bool IsImplicitValueParameter(this ISymbol symbolOpt)
         {
-            if (symbol.IsImplicitlyDeclared && symbol is IParameterSymbol)
+            if (symbolOpt is IParameterSymbol && symbolOpt.IsImplicitlyDeclared)
             {
-                var method = symbol.ContainingSymbol as IMethodSymbol;
+                var method = symbolOpt.ContainingSymbol as IMethodSymbol;
                 if (method != null)
                 {
                     if (method.MethodKind == MethodKind.EventAdd ||
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         method.MethodKind == MethodKind.PropertySet)
                     {
                         // the name is value in C#, and Value in VB
-                        return symbol.Name == "value" || symbol.Name == "Value";
+                        return symbolOpt.Name == "value" || symbolOpt.Name == "Value";
                     }
                 }
             }
