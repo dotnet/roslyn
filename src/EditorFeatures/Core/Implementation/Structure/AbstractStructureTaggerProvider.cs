@@ -88,9 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 var outliningService = TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
-                    var cancellationToken = context.CancellationToken;
                     var blockStructure = await outliningService.GetBlockStructureAsync(
-                        documentSnapshotSpan.Document, cancellationToken).ConfigureAwait(false);
+                        documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
 
                     ProcessSpans(context, documentSnapshotSpan, outliningService, blockStructure.Spans);
                 }
