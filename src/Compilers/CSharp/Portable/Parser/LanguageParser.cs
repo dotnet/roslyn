@@ -10679,7 +10679,7 @@ tryAgain:
                 var objectCreation = _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
                 if (type.Kind == SyntaxKind.TupleType)
                 {
-                    objectCreation = this.AddError(objectCreation, objectCreation, ErrorCode.ERR_NewWithTupleTypeSyntax, type.ToString());
+                    objectCreation = this.AddError(objectCreation, type, ErrorCode.ERR_NewWithTupleTypeSyntax);
                 }
 
                 return objectCreation;

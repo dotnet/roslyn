@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // TODO: Need to estimate amount of elements for this map and pass that value to the constructor. 
         protected readonly ConcurrentDictionary<Symbol, Cci.IModuleReference> AssemblyOrModuleSymbolToModuleRefMap = new ConcurrentDictionary<Symbol, Cci.IModuleReference>();
         private readonly ConcurrentDictionary<Symbol, object> _genericInstanceMap = new ConcurrentDictionary<Symbol, object>();
-        private readonly ConcurrentSet<TypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<TypeSymbol>(ReferenceEqualityComparer.Instance);
+        private readonly ConcurrentSet<TypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<TypeSymbol>();
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
         public override NoPia.EmbeddedTypesManager EmbeddedTypesManagerOpt
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // but if it does happen we should make it a failure.
             // NOTE: declaredBase could be null for interfaces
             var declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
-            if (declaredBase?.SpecialType != SpecialType.System_ValueType && declaredBase?.IsErrorType() != false)
+            if (declaredBase?.SpecialType != SpecialType.System_ValueType && declaredBase?.IsErrorType() != true)
             {
                 // Try to decrease noise by not complaining about the same type over and over again.
                 if (_reportedErrorTypesMap.Add(namedTypeSymbol))
