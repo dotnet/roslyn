@@ -92,15 +92,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             var instance = LocateVisualStudioInstance(requiredPackageIds) as ISetupInstance2;
 
-            try
-            {
-                _supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetUniqueId()));
-            }
-            catch (NotImplementedException)
-            {
-                // Just ignore the error while the method is NYI.
-            }
-
+            _supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
             _installationPath = instance.GetInstallationPath();
 
             var process = StartNewVisualStudioProcess(_installationPath);
@@ -162,20 +154,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             foreach (ISetupInstance2 instance in instances)
             {
-                try
-                {
-                    var packages = instance.GetPackages()
-                                           .Where((package) => requiredPackageIds.Contains(package.GetUniqueId()));
+                var packages = instance.GetPackages()
+                                        .Where((package) => requiredPackageIds.Contains(package.GetId()));
 
-                    if (packages.Count() != requiredPackageIds.Count())
-                    {
-                        continue;
-                    }
-                }
-                catch (NotImplementedException)
+                if (packages.Count() != requiredPackageIds.Count())
                 {
-                    Debug.WriteLine($"{nameof(ISetupInstance2)}.{nameof(ISetupInstance2.GetPackages)} is NYI.");
-                    Debug.WriteLine("We will return the first instance that has the minimum required state.");
+                    continue;
                 }
 
                 const InstanceState minimumRequiredState = InstanceState.Local | InstanceState.Registered;

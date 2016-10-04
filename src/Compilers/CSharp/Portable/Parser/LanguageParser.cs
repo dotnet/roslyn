@@ -10676,7 +10676,13 @@ tryAgain:
                         SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
                 }
 
-                return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+                var objectCreation = _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+                if (type.Kind == SyntaxKind.TupleType)
+                {
+                    objectCreation = this.AddError(objectCreation, type, ErrorCode.ERR_NewWithTupleTypeSyntax);
+                }
+
+                return objectCreation;
             }
         }
 

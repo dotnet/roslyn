@@ -1428,8 +1428,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PredefinedValueTupleTypeNotFound = 8179,
         ERR_SemiOrLBraceOrArrowExpected = 8180,
+        ERR_NewWithTupleTypeSyntax = 8181,
+        ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
 
-        // Available  = 8181-8195
+        // Available  = 8183-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,

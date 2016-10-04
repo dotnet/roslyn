@@ -4930,6 +4930,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
     <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
   </data>
+  <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
+    <value>Predefined type '{0}' must be a struct.</value>
+  </data>
+  <data name="ERR_NewWithTupleTypeSyntax" xml:space="preserve">
+    <value>'new' cannot be used with tuple type. Use a tuple literal expression instead.</value>
+  </data>
   <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
     <value>Deconstruction 'var (...)' form disallows a specific type for 'var'.</value>
   </data>

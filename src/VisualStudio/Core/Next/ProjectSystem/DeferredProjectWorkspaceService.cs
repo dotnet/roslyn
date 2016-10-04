@@ -20,17 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     internal class DeferredProjectWorkspaceService : IDeferredProjectWorkspaceService
     {
         private readonly Lazy<IVsSolutionWorkspaceService> _solutionWorkspaceService;
-        private readonly IVsSolution7 _solution7;
 
         [ImportingConstructor]
         public DeferredProjectWorkspaceService(SVsServiceProvider serviceProvider)
         {
             _solutionWorkspaceService = new Lazy<IVsSolutionWorkspaceService>(
                 () => (IVsSolutionWorkspaceService)serviceProvider.GetService(typeof(SVsSolutionWorkspaceService)));
-            _solution7 = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
         }
-
-        public bool IsDeferredProjectLoadEnabled => _solution7?.IsSolutionLoadDeferred() == true;
 
         public async Task<IReadOnlyDictionary<string, DeferredProjectInformation>> GetDeferredProjectInfoForConfigurationAsync(
             string solutionConfiguration,

@@ -2277,7 +2277,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Normalize(ref other);
             }
 
-            if (other.Assigned[0]) self.Assigned[0] = true;
+            if (!other.Reachable) self.Assigned[0] = true;
+
             for (int slot = 1; slot < self.Assigned.Capacity; slot++)
             {
                 if (other.Assigned[slot] && !self.Assigned[slot])

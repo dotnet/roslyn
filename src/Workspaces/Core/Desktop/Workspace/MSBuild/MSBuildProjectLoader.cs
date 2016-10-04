@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             public IEnumerable<ProjectInfo> Projects
             {
-                get { return _projectIdToProjectInfoMap.Values; }//_projectInfoList; }
+                get { return _projectIdToProjectInfoMap.Values; }
             }
 
             public ProjectId GetProjectId(string fullProjectPath)

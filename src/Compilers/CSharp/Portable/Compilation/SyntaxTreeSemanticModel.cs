@@ -488,6 +488,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
 
+            if (expression.Kind() == SyntaxKind.DeclarationExpression)
+            {
+                // Conversion from a declaration is unspecified.
+                return Conversion.NoConversion;
+            }
+
             if (isExplicitInSource)
             {
                 return ClassifyConversionForCast(expression, csdestination);

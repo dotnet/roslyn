@@ -3405,20 +3405,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // new C(__arglist()) is legal
                 BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
 
-                // No point in performing overload resolution if the type is static.  Just return a bad expression containing
-                // the arguments.
+                // No point in performing overload resolution if the type is static or a tuple literal.  
+                // Just return a bad expression containing the arguments.
                 if (type.IsStatic)
                 {
                     diagnostics.Add(ErrorCode.ERR_InstantiatingStaticClass, node.Location, type);
-
-                    var children = ArrayBuilder<BoundNode>.GetInstance();
-                    children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
-                    if (boundInitializerOpt != null)
-                    {
-                        children.Add(boundInitializerOpt);
-                    }
-
-                    return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), children.ToImmutableAndFree(), type);
+                    return MakeBadExpressionForObjectCreation(node, type, boundInitializerOpt, analyzedArguments);
+                }
+                else if (node.Type.Kind() == SyntaxKind.TupleType)
+                {
+                    Debug.Assert(node.HasErrors, "new <tuple type> should be a syntax error");
+                    return MakeBadExpressionForObjectCreation(node, type, boundInitializerOpt, analyzedArguments);
                 }
 
                 return BindClassCreationExpression(node, typeName, node.Type, type, analyzedArguments, diagnostics, boundInitializerOpt);
@@ -3427,6 +3424,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 analyzedArguments.Free();
             }
+        }
+
+        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BoundExpression boundInitializerOpt, AnalyzedArguments analyzedArguments)
+        {
+            var children = ArrayBuilder<BoundNode>.GetInstance();
+            children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
+            if (boundInitializerOpt != null)
+            {
+                children.Add(boundInitializerOpt);
+            }
+
+            return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), children.ToImmutableAndFree(), type);
         }
 
         private BoundExpression BindInitializerExpressionOrValue(
