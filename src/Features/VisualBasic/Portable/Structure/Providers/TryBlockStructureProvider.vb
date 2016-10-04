@@ -5,7 +5,6 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
-
     Friend Class TryBlockStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of TryBlockSyntax)
 
@@ -17,5 +16,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                type:=BlockTypes.Using, isCollapsible:=True))
         End Sub
     End Class
-
 End Namespace
