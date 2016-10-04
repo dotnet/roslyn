@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Structure
         public const string Type = nameof(Type);
         public const string Member = nameof(Member);
 
+        // Statements and expressions.
         public const string Statement = nameof(Statement);
         public const string Conditional = nameof(Conditional);
         public const string Loop = nameof(Loop);
@@ -42,7 +43,15 @@ namespace Microsoft.CodeAnalysis.Structure
 
         internal static bool IsStatementLevelConstruct(string type)
         {
-            return type == Loop || type == Statement;
+            switch (type)
+            {
+                case Statement:
+                case Conditional:
+                case Loop:
+                    return true;
+            }
+
+            return false;
         }
 
         internal static bool IsCodeLevelConstruct(string type)

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             public SnapshotSpan Span { get; }
             public SnapshotSpan StatementSpan { get; }
 
-            public string Type { get; }
+            public string Type => BlockSpan.Type;
             public bool IsCollapsible => BlockSpan.IsCollapsible;
 
             public RoslynBlockTag(
@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 Level = parent == null ? 0 : parent.Level + 1;
                 Span = blockSpan.TextSpan.ToSnapshotSpan(snapshot);
                 StatementSpan = blockSpan.HintSpan.ToSnapshotSpan(snapshot);
-                Type = ConvertType(blockSpan.Type);
             }
 
             public override bool Equals(object obj)
@@ -104,35 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                        Hash.Combine(this.Type, 
                        Hash.Combine(this.CollapsedForm,
                        Hash.Combine(this.StatementSpan.GetHashCode(), this.Span.GetHashCode())))));
-            }
-
-            private static string ConvertType(string type)
-            {
-                switch (type)
-                {
-                    case BlockTypes.Nonstructural: return PredefinedStructureTypes.Nonstructural;
-
-                    // Top level declarations.  Note that Enum is not currently supported
-                    // and that we map Module down to Class.
-                    case BlockTypes.Namespace: return PredefinedStructureTypes.Namespace;
-                    case BlockTypes.Type: return PredefinedStructureTypes.Class;
-
-                    // Member declarations
-                    case BlockTypes.Member: return PredefinedStructureTypes.Method;
-
-                    // Statements
-                    case BlockTypes.Statement: return PredefinedStructureTypes.Standalone;
-                    case BlockTypes.Conditional: return PredefinedStructureTypes.Conditional;
-                    case BlockTypes.Loop: return PredefinedStructureTypes.Loop;
-
-                    // Expressions
-                    case BlockTypes.Expression: return PredefinedStructureTypes.Unknown;
-
-                    // These types don't currently map to any editor types.  Just make them
-                    // the 'Unknown' type for now.
-                    default:
-                        return PredefinedStructureTypes.Unknown;
-                }
             }
         }
     }
