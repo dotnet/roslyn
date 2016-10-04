@@ -25,10 +25,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract partial class AbstractLanguageService<TPackage, TLanguageService, TProject> : AbstractLanguageService<TPackage, TLanguageService>
-        where TPackage : AbstractPackage<TPackage, TLanguageService, TProject>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService, TProject>
-        where TProject : AbstractProject
+    internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
+        where TPackage : AbstractPackage<TPackage, TLanguageService>
+        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         internal IVsDebugger Debugger { get; private set; }
         internal VsLanguageDebugInfo LanguageDebugInfo { get; private set; }
@@ -43,80 +42,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         private DebugMode _debugMode;
 
-        protected AbstractLanguageService(
-            TPackage package)
-            : base(package)
-        {
-        }
-
-        protected override void GetServices()
-        {
-            base.GetServices();
-
-            this.Debugger = (IVsDebugger)this.SystemServiceProvider.GetService(typeof(SVsShellDebugger));
-        }
-
-        protected override void RemoveServices()
-        {
-            this.Debugger = null;
-
-            base.RemoveServices();
-        }
-
-        protected override void ConnectToServices()
-        {
-            base.ConnectToServices();
-
-            // The language service may have wrapped itself in a ComAggregate.
-            // Use the wrapper, because trying to marshal a second time will throw.
-            Marshal.ThrowExceptionForHR(this.Debugger.AdviseDebuggerEvents((IVsDebuggerEvents)this.ComAggregate, out _debuggerEventsCookie));
-        }
-
-        protected override void DisconnectFromServices()
-        {
-            Marshal.ThrowExceptionForHR(this.Debugger.UnadviseDebuggerEvents(_debuggerEventsCookie));
-
-            base.DisconnectFromServices();
-        }
-
-        /// <summary>
-        /// Called right after we instantiate the language service.  Used to set up any internal
-        /// state we need.
-        /// 
-        /// Try to keep this method fairly clean.  Any complicated logic should go in methods called
-        /// from this one.  Initialize and Uninitialize go in reverse order 
-        /// </summary>
-        protected override void Initialize()
-        {
-            base.Initialize();
-
-            InitializeLanguageDebugInfo();
-            InitializeDebugMode();
-        }
-
-        protected override void Uninitialize()
-        {
-            UninitializeDebugMode();
-            UninitializeLanguageDebugInfo();
-
-            base.Uninitialize();
-        }
-
-        protected override void SetupNewTextView(IVsTextView textView)
+        protected virtual void SetupNewTextView(IVsTextView textView)
         {
             Contract.ThrowIfNull(textView);
 
             var wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
             Contract.ThrowIfNull(wpfTextView, "Could not get IWpfTextView for IVsTextView");
 
-            Contract.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter<TPackage, TLanguageService, TProject>)));
+            Contract.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter<TPackage, TLanguageService>)));
 
             var commandHandlerFactory = Package.ComponentModel.GetService<ICommandHandlerServiceFactory>();
             var workspace = Package.ComponentModel.GetService<VisualStudioWorkspace>();
 
             // The lifetime of CommandFilter is married to the view
             wpfTextView.GetOrCreateAutoClosingProperty(v =>
-                new StandaloneCommandFilter<TPackage, TLanguageService, TProject>(
+                new StandaloneCommandFilter<TPackage, TLanguageService>(
                     (TLanguageService)this, v, commandHandlerFactory, EditorAdaptersFactoryService).AttachToVsTextView());
 
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
@@ -268,9 +208,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // Nothing to do here.
         }
 
-        protected virtual IVsContainedLanguage CreateContainedLanguage(IVsTextBufferCoordinator bufferCoordinator, TProject project, IVsHierarchy hierarchy, uint itemid)
+        protected virtual IVsContainedLanguage CreateContainedLanguage(
+            IVsTextBufferCoordinator bufferCoordinator, AbstractProject project,
+            IVsHierarchy hierarchy, uint itemid)
         {
-            return new ContainedLanguage<TPackage, TLanguageService, TProject>(
+            return new ContainedLanguage<TPackage, TLanguageService>(
                 bufferCoordinator, this.Package.ComponentModel, project, hierarchy, itemid,
                 (TLanguageService)this, SourceCodeKind.Regular);
         }

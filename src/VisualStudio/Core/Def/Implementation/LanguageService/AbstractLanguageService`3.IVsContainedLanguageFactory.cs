@@ -3,15 +3,16 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using VsServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract partial class AbstractLanguageService<TPackage, TLanguageService, TProject> : IVsContainedLanguageFactory
+    internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsContainedLanguageFactory
     {
-        private TProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
+        private AbstractProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
         {
             // Here we must determine the project that this file's document is to be a part of.
             // Venus creates a separate Project for a .aspx or .ascx file, and so we must associate
@@ -63,7 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             return this.Workspace.ProjectTracker.ImmutableProjects
-                .OfType<TProject>()
                 .Where(p => p.Hierarchy == hierarchy)
                 .Where(p => p.ProjectSystemName == projectName)
                 .SingleOrDefault();

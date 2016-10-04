@@ -13,14 +13,14 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract partial class AbstractLanguageService<TPackage, TLanguageService, TProject> : IVsImmediateStatementCompletion2
+    internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsImmediateStatementCompletion2
     {
-        protected Dictionary<IVsTextView, DebuggerIntelliSenseFilter<TPackage, TLanguageService, TProject>> filters =
-            new Dictionary<IVsTextView, DebuggerIntelliSenseFilter<TPackage, TLanguageService, TProject>>();
+        protected Dictionary<IVsTextView, DebuggerIntelliSenseFilter<TPackage, TLanguageService>> filters =
+            new Dictionary<IVsTextView, DebuggerIntelliSenseFilter<TPackage, TLanguageService>>();
 
         int IVsImmediateStatementCompletion2.EnableStatementCompletion(int enable, int startIndex, int endIndex, IVsTextView textView)
         {
-            DebuggerIntelliSenseFilter<TPackage, TLanguageService, TProject> filter;
+            DebuggerIntelliSenseFilter<TPackage, TLanguageService> filter;
             if (filters.TryGetValue(textView, out filter))
             {
                 filter.Enabled = enable != 0;
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // of textview->filters.
             if (install != 0)
             {
-                DebuggerIntelliSenseFilter<TPackage, TLanguageService, TProject> filter;
+                DebuggerIntelliSenseFilter<TPackage, TLanguageService> filter;
                 if (this.filters.ContainsKey(textView))
                 {
                     // We already have a filter in this textview. Return.
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
                 else
                 {
-                    filter = new DebuggerIntelliSenseFilter<TPackage, TLanguageService, TProject>(this,
+                    filter = new DebuggerIntelliSenseFilter<TPackage, TLanguageService>(this,
                         this.EditorAdaptersFactoryService.GetWpfTextView(textView),
                         this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>(),
                         this.Package.ComponentModel.GetService<ICommandHandlerServiceFactory>());

@@ -16,7 +16,7 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <Guid(Guids.VisualBasicLanguageServiceIdString)>
     Partial Friend Class VisualBasicLanguageService
-        Inherits AbstractLanguageService(Of VisualBasicPackage, VisualBasicLanguageService, AbstractProject)
+        Inherits AbstractLanguageService(Of VisualBasicPackage, VisualBasicLanguageService)
 
         Public Sub New(package As VisualBasicPackage)
             MyBase.New(package)

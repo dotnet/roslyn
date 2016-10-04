@@ -1,20 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using EnvDTE;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -130,10 +125,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
             this.HostDiagnosticUpdateSource = this.Package.ComponentModel.GetService<HostDiagnosticUpdateSource>();
             this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
+
+            this.Debugger = (IVsDebugger)this.SystemServiceProvider.GetService(typeof(SVsShellDebugger));
         }
 
         protected virtual void RemoveServices()
         {
+            this.Debugger = null;
             this.EditorAdaptersFactoryService = null;
             this.Workspace = null;
         }
@@ -145,10 +143,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         protected virtual void ConnectToServices()
         {
+            // The language service may have wrapped itself in a ComAggregate.
+            // Use the wrapper, because trying to marshal a second time will throw.
+            Marshal.ThrowExceptionForHR(this.Debugger.AdviseDebuggerEvents((IVsDebuggerEvents)this.ComAggregate, out _debuggerEventsCookie));
         }
 
         protected virtual void DisconnectFromServices()
         {
+            Marshal.ThrowExceptionForHR(this.Debugger.UnadviseDebuggerEvents(_debuggerEventsCookie));
         }
 
         /// <summary>
@@ -160,10 +162,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         protected virtual void Initialize()
         {
+            InitializeLanguageDebugInfo();
+            InitializeDebugMode();
         }
 
         protected virtual void Uninitialize()
         {
+            UninitializeDebugMode();
+            UninitializeLanguageDebugInfo();
         }
 
         private void PrimeLanguageServiceComponentsOnBackground(IComponentModel componentModel)
@@ -177,8 +183,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 formatter.GetDefaultFormattingRules();
             }
         }
-
-        protected abstract void SetupNewTextView(IVsTextView textView);
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }

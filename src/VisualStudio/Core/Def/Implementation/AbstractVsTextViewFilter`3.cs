@@ -16,15 +16,14 @@ using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal abstract class AbstractVsTextViewFilter<TPackage, TLanguageService, TProject> : AbstractVsTextViewFilter, IVsTextViewFilter, IVsReadOnlyViewNotification
-        where TPackage : AbstractPackage<TPackage, TLanguageService, TProject>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService, TProject>
-        where TProject : AbstractProject
+    internal abstract class AbstractVsTextViewFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter, IVsTextViewFilter, IVsReadOnlyViewNotification
+        where TPackage : AbstractPackage<TPackage, TLanguageService>
+        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        private readonly AbstractLanguageService<TPackage, TLanguageService, TProject> _languageService;
+        private readonly AbstractLanguageService<TPackage, TLanguageService> _languageService;
 
         protected AbstractVsTextViewFilter(
-            AbstractLanguageService<TPackage, TLanguageService, TProject> languageService,
+            AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ICommandHandlerServiceFactory commandHandlerServiceFactory)
