@@ -36,9 +36,8 @@ namespace Microsoft.CodeAnalysis.Structure
             {
                 var cancellationToken = context.CancellationToken;
                 var syntaxRoot = context.Document.GetSyntaxRootSynchronously(cancellationToken);
-                var options = context.Document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-                ProvideBlockStructureWorker(context, syntaxRoot, options);
+                ProvideBlockStructureWorker(context, syntaxRoot);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -54,9 +53,8 @@ namespace Microsoft.CodeAnalysis.Structure
             try
             {
                 var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-                var options = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
 
-                ProvideBlockStructureWorker(context, syntaxRoot, options);
+                ProvideBlockStructureWorker(context, syntaxRoot);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -65,18 +63,21 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         private void ProvideBlockStructureWorker(
-            BlockStructureContext context, SyntaxNode syntaxRoot, DocumentOptionSet options)
+            BlockStructureContext context, SyntaxNode syntaxRoot)
         {
             var spans = ArrayBuilder<BlockSpan>.GetInstance();
             BlockSpanCollector.CollectBlockSpans(
                 context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
 
-            var showIndentGuidesForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs);
-            var showIndentGuidesForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs);
-            var showIndentGuidesForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions);
-            var showOutliningForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs);
-            var showOutliningForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs);
-            var showOutliningForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions);
+            var options = context.Document.Project.Solution.Workspace.Options;
+            var language = context.Document.Project.Language;
+
+            var showIndentGuidesForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, language);
+            var showIndentGuidesForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, language);
+            var showIndentGuidesForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language);
+            var showOutliningForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs, language);
+            var showOutliningForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, language);
+            var showOutliningForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, language);
 
             foreach (var span in spans)
             {
