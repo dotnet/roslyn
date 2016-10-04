@@ -40,10 +40,11 @@ namespace Microsoft.CodeAnalysis.Structure
         public const string LocalFunction = nameof(LocalFunction);
         public const string Lock = nameof(Lock);
         public const string Loop = nameof(Loop);
-        public const string TryCatchFinally = nameof(TryCatchFinally);
-        public const string Using = nameof(Using);
         public const string Standalone = nameof(Standalone);
         public const string Switch = nameof(Switch);
+        public const string TryCatchFinally = nameof(TryCatchFinally);
+        public const string Using = nameof(Using);
+        public const string With = nameof(With);
 
         // Expressions
         public const string AnonymousMethod = nameof(AnonymousMethod);

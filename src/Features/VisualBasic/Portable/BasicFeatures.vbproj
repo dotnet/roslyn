@@ -304,6 +304,7 @@
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.vb" />
     <Compile Include="DocumentationComments\VisualBasicDocumentationCommentFormattingService.vb" />
     <Compile Include="DocumentationComments\CodeFixes\VisualBasicRemoveDocCommentNodeCodeFixProvider.vb" />
+    <Compile Include="Structure\Providers\DoLoopBlockStructureProvider.vb" />
     <Compile Include="EditAndContinue\BreakpointSpans.vb" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxComparer.vb" />
@@ -328,6 +329,8 @@
     <Compile Include="ExtractMethod\VisualBasicSelectionValidator.vb" />
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaService.vb" />
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaServiceFactory.vb" />
+    <Compile Include="Structure\Providers\ForBlockStructureProvider.vb" />
+    <Compile Include="Structure\Providers\ForEachBlockStructureProvider.vb" />
     <Compile Include="GenerateFromMembers\AddConstructorParameters\VisualBasicAddConstructorParametersService.vb" />
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\VisualBasicGenerateConstructorFromMembersService.vb" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\VisualBasicGenerateEqualsAndGetHashCodeService.vb" />
@@ -356,6 +359,7 @@
     <Compile Include="MakeMethodSynchronous\VisualBasicMakeMethodSynchronousCodeFixProvider.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceService.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceServiceFactory.vb" />
+    <Compile Include="Structure\Providers\MultiLineIfBlockStructureProvider.vb" />
     <Compile Include="NavigateTo\VisualBasicNavigateToSearchService.vb" />
     <Compile Include="OrganizeImports\VisualBasicOrganizeImportsService.Rewriter.vb" />
     <Compile Include="OrganizeImports\VisualBasicOrganizeImportsService.vb" />
@@ -364,12 +368,14 @@
     <Compile Include="Organizing\Organizers\TypeBlockOrganizer.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.Rewriter.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.vb" />
+    <Compile Include="Structure\Providers\SelectBlockStructureProvider.vb" />
     <Compile Include="Structure\Providers\AccessorDeclarationStructureProvider.vb" />
     <Compile Include="Structure\Providers\CompilationUnitStructureProvider.vb" />
     <Compile Include="Structure\Providers\ConstructorDeclarationStructureProvider.vb" />
     <Compile Include="Structure\Providers\DelegateDeclarationStructureProvider.vb" />
     <Compile Include="Structure\Providers\DisabledTextTriviaStructureProvider.vb" />
     <Compile Include="Structure\Providers\DocumentationCommentStructureProvider.vb" />
+    <Compile Include="Structure\Providers\WhileBlockStructureProvider.vb" />
     <Compile Include="Structure\Providers\EnumDeclarationStructureProvider.vb" />
     <Compile Include="Structure\Providers\EventDeclarationStructureProvider.vb" />
     <Compile Include="Structure\Providers\ExternalMethodDeclarationStructureProvider.vb" />
@@ -425,13 +431,17 @@
     <Compile Include="SignatureHelp\RaiseEventStatementSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\SignatureHelpUtilities.vb" />
     <Compile Include="SolutionCrawler\VisualBasicDocumentDifferenceService.vb" />
+    <Compile Include="Structure\Providers\SyncLockBlockStructureProvider.vb" />
+    <Compile Include="Structure\Providers\TryBlockStructureProvider.vb" />
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerCodeFixProvider.vb" />
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
+    <Compile Include="Structure\Providers\UsingBlockStructureProvider.vb" />
     <Compile Include="VBFeaturesResources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>VBFeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Structure\Providers\WithBlockStructureProvider.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBFeaturesResources.resx">

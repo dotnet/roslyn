@@ -479,6 +479,10 @@
     <Compile Include="Structure\MetadataAsSource\PropertyDeclarationStructureTests.vb" />
     <Compile Include="Structure\MetadataAsSource\RegionDirectiveStructureTests.vb" />
     <Compile Include="Structure\MetadataAsSource\TypeDeclarationStructureTests.vb" />
+    <Compile Include="Structure\SelectBlockStructureTests.vb" />
+    <Compile Include="Structure\WithBlockStructureTests.vb" />
+    <Compile Include="Structure\UsingBlockStructureTests.vb" />
+    <Compile Include="Structure\WhileBlockStructureTests.vb" />
     <Compile Include="Structure\MethodDeclarationStructureTests.vb" />
     <Compile Include="Structure\MultilineLambdaStructureTests.vb" />
     <Compile Include="Structure\NamespaceDeclarationStructureTests.vb" />

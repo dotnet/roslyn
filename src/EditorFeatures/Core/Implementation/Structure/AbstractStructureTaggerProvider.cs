@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             var multiLineRegions = ArrayBuilder<BlockSpan>.GetInstance();
             foreach (var region in regions)
             {
-                if (region != null && region.TextSpan.Length > 0)
+                if (region.TextSpan.Length > 0)
                 {
                     // Check if any clients produced an invalid OutliningSpan.  If so, filter them
                     // out and report a non-fatal watson so we can attempt to determine the source
