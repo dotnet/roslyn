@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return name.IsRightSideOfQualifiedName();
         }
 
-        public bool IsMemberAccessExpressionName(SyntaxNode node)
+        public bool IsNameOfMemberAccessExpression(SyntaxNode node)
         {
             var name = node as SimpleNameSyntax;
             return name.IsMemberAccessExpressionName();
@@ -1837,6 +1837,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool AreEquivalent(SyntaxNode node1, SyntaxNode node2)
         {
             return SyntaxFactory.AreEquivalent(node1, node2);
+        }
+
+        public bool IsExpressionOfInvocationExpression(SyntaxNode node)
+        {
+            return node != null && (node.Parent as InvocationExpressionSyntax)?.Expression == node;
+        }
+
+        public bool IsExpressionOfAwaitExpression(SyntaxNode node)
+        {
+            return node != null && (node.Parent as AwaitExpressionSyntax)?.Expression == node;
+        }
+
+        public bool IsExpressionOfMemberAccessExpression(SyntaxNode node)
+        {
+            return node != null && (node.Parent as MemberAccessExpressionSyntax)?.Expression == node;
+        }
+
+        public SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
+        {
+            return ((InvocationExpressionSyntax)node).Expression;
+        }
+
+        public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
+        {
+            return ((AwaitExpressionSyntax)node).Expression;
         }
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
