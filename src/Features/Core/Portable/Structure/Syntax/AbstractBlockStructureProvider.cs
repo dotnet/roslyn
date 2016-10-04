@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             try
             {
-                var cancellationToken = context.CancellationToken;
-                var syntaxRoot = context.Document.GetSyntaxRootSynchronously(cancellationToken);
+                var syntaxRoot = context.Document.GetSyntaxRootSynchronously(context.CancellationToken);
 
                 ProvideBlockStructureWorker(context, syntaxRoot);
             }
