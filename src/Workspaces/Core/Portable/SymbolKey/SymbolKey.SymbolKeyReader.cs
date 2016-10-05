@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis
                 var start = ReadInteger();
                 var length = ReadInteger();
                 var syntaxTree = Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
-                return Location.Create(syntaxTree, new TextSpan(start, length));
+                return syntaxTree == null ? Location.None : Location.Create(syntaxTree, new TextSpan(start, length));
             }
 
             protected override SymbolKeyResolution ReadWorker(SymbolKeyType type)

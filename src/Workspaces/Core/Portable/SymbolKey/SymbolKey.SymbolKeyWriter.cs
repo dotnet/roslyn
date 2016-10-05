@@ -242,9 +242,9 @@ namespace Microsoft.CodeAnalysis
 
             internal void WriteLocation(Location location)
             {
-                Debug.Assert(location.IsInSource);
-                //location = location ?? Location.None;
-                WriteString(location.SourceTree.FilePath);
+                location = location ?? Location.None;
+
+                WriteString(location.SourceTree.FilePath ?? "");
                 WriteInteger(location.SourceSpan.Start);
                 WriteInteger(location.SourceSpan.Length);
             }
