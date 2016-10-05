@@ -5078,7 +5078,7 @@ End Class
 
             Dim tree = VisualBasicSyntaxTree.ParseText("Class C")
             Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
-            Dim loc2 = Location.Create(tree, New TextSpan(0, 1))
+            Dim loc2 = Location.Create(tree, New TextSpan(1, 1))
             Dim tuple = comp.CreateTupleTypeSymbol(
                 vt2, ImmutableArray.Create("i1", "i2"), ImmutableArray.Create(loc1, loc2))
 
