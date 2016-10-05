@@ -58,6 +58,10 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj"> 
+        <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
+        <Name>BasicInteractiveEditorFeatures</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
       <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
       <Name>InteractiveHost</Name>
