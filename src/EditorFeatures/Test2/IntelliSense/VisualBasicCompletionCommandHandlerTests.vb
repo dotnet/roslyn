@@ -2471,7 +2471,7 @@ End Class
 "<Extension> Function IEnumerable(Of 'a).ToArray() As 'a()
 
 Anonymous Types:
-    'a is New With { Key .x As Integer }")
+    'a is New With { .x As Integer }")
             End Using
         End Function
 
