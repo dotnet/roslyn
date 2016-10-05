@@ -5085,7 +5085,6 @@ End Class
             Assert.True(tuple.IsTupleType)
             Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind)
             Assert.Equal("(i1 As System.Int32, i2 As System.String)", tuple.ToTestDisplayString())
-            Assert.True(tuple.TupleElementNames.IsDefault)
             Assert.Equal(New String() {"System.Int32", "System.String"}, tuple.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
             Assert.Equal(SymbolKind.NamedType, tuple.Kind)
             Assert.Equal(loc1, tuple.GetMembers("i1").Single.Locations.Single())
