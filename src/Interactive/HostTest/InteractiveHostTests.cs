@@ -652,7 +652,7 @@ WriteLine(5);
             Assert.Equal("1", ReadOutputToEnd().Trim());
         }
 
-        [Fact(Skip = "101161")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14300")]
         public void AddReference_LoadUpdatedReference()
         {
             var dir = Temp.CreateDirectory();
@@ -688,7 +688,7 @@ new D().Y
 2", ReadOutputToEnd().Trim());
         }
 
-        [Fact(Skip = "129388")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14300")]
         public void AddReference_MultipleReferencesWithSameWeakIdentity()
         {
             var dir = Temp.CreateDirectory();
@@ -722,7 +722,7 @@ new D().Y
             Assert.Equal("", ReadOutputToEnd().Trim());
         }
 
-        [Fact(Skip = "129388")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14300")]
         public void AddReference_MultipleReferencesWeakVersioning()
         {
             var dir = Temp.CreateDirectory();
@@ -751,89 +751,7 @@ new D().Y
             Assert.Equal("TODO: error", ReadErrorOutputToEnd().Trim());
             Assert.Equal("", ReadOutputToEnd().Trim());
         }
-
-        //// TODO (987032):
-        ////        [Fact]
-        ////        public void AsyncInitializeContextWithDotNETLibraries()
-        ////        {
-        ////            var rspFile = Temp.CreateFile();
-        ////            var rspDisplay = Path.GetFileName(rspFile.Path);
-        ////            var initScript = Temp.CreateFile();
-
-        ////            rspFile.WriteAllText(@"
-        /////r:System.Core
-        ////""" + initScript.Path + @"""
-        ////");
-
-        ////            initScript.WriteAllText(@"
-        ////using static System.Console;
-        ////using System.Linq.Expressions;
-        ////WriteLine(Expression.Constant(123));
-        ////");
-
-        ////            // override default "is restarting" behavior (the REPL is already initialized):
-        ////            var task = Host.InitializeContextAsync(rspFile.Path, isRestarting: false, killProcess: true);
-        ////            task.Wait();
-
-        ////            var output = SplitLines(ReadOutputToEnd());
-        ////            var errorOutput = ReadErrorOutputToEnd();
-
-        ////            Assert.Equal(4, output.Length);
-        ////            Assert.Equal("Microsoft (R) Roslyn C# Compiler version " + FileVersionInfo.GetVersionInfo(typeof(Compilation).Assembly.Location).FileVersion, output[0]);
-        ////            Assert.Equal("Loading context from '" + rspDisplay + "'.", output[1]);
-        ////            Assert.Equal("Type \"#help\" for more information.", output[2]);
-        ////            Assert.Equal("123", output[3]);
-
-        ////            Assert.Equal("", errorOutput);
-
-        ////            Host.InitializeContextAsync(rspFile.Path).Wait();
-
-        ////            output = SplitLines(ReadOutputToEnd());
-        ////            errorOutput = ReadErrorOutputToEnd();
-
-        ////            Assert.True(2 == output.Length, "Output is: '" + string.Join("<NewLine>", output) + "'. Expecting 2 lines.");
-        ////            Assert.Equal("Loading context from '" + rspDisplay + "'.", output[0]);
-        ////            Assert.Equal("123", output[1]);
-
-        ////            Assert.Equal("", errorOutput);
-        ////        }
-
-        ////        [Fact]
-        ////        public void AsyncInitializeContextWithBothUserDefinedAndDotNETLibraries()
-        ////        {
-        ////            var dir = Temp.CreateDirectory();
-        ////            var rspFile = Temp.CreateFile();
-        ////            var initScript = Temp.CreateFile();
-
-        ////            var dll = CompileLibrary(dir, "c.dll", "C", @"public class C { public static int Main() { return 1; } }");
-
-        ////            rspFile.WriteAllText(@"
-        /////r:System.Numerics
-        /////r:" + dll.Path + @"
-        ////""" + initScript.Path + @"""
-        ////");
-
-        ////            initScript.WriteAllText(@"
-        ////using static System.Console;
-        ////using System.Numerics;
-        ////WriteLine(new Complex(12, 6).Real + C.Main());
-        ////");
-
-        ////            // override default "is restarting" behavior (the REPL is already initialized):
-        ////            var task = Host.InitializeContextAsync(rspFile.Path, isRestarting: false, killProcess: true);
-        ////            task.Wait();
-
-        ////            var errorOutput = ReadErrorOutputToEnd();
-        ////            Assert.Equal("", errorOutput);
-
-        ////            var output = SplitLines(ReadOutputToEnd());
-        ////            Assert.Equal(4, output.Length);
-        ////            Assert.Equal("Microsoft (R) Roslyn C# Compiler version " + FileVersionInfo.GetVersionInfo(Host.GetType().Assembly.Location).FileVersion, output[0]);
-        ////            Assert.Equal("Loading context from '" + Path.GetFileName(rspFile.Path) + "'.", output[1]);
-        ////            Assert.Equal("Type \"#help\" for more information.", output[2]);
-        ////            Assert.Equal("13", output[3]);
-        ////        }
-
+        
         [Fact]
         public void ReferencePaths()
         {
