@@ -844,11 +844,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             elementNames = CheckTupleElementNames(elementTypes.Length, elementNames);
-
-            if (!elementLocations.IsDefault && elementLocations.Length != elementTypes.Length)
-            {
-                throw new ArgumentException($"{nameof(elementLocations)} must either be 'default' or have the same length as {nameof(elementTypes)}.");
-            }
+            CheckTupleElementLocations(elementTypes.Length, elementLocations);
 
             for (int i = 0, n = elementTypes.Length; i < n; i++)
             {
