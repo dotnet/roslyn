@@ -2734,12 +2734,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             elementNames = CheckTupleElementNames(cardinality, elementNames);
             CheckTupleElementLocations(cardinality, elementLocations);
 
-            if (!elementLocations.IsDefault && elementLocations.Length != cardinality)
-            {
-
-            }
-
-            return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames);
+            return TupleTypeSymbol.Create(
+                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
         }
 
         protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(

@@ -2613,7 +2613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TupleTypeSymbol.Create(
                 locationOpt:=Nothing,
                 tupleCompatibleType:=underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType)),
-                elementLocations:=Nothing,
+                elementLocations:=elementLocations,
                 elementNames:=elementNames)
         End Function
 
