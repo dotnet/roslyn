@@ -38,8 +38,17 @@ namespace Microsoft.CodeAnalysis.Execution
         public readonly string Language;
         public readonly string FilePath;
         public readonly string OutputFilePath;
+        public readonly bool IsSubmission;
 
-        public ProjectChecksumObjectInfo(ProjectId id, VersionStamp version, string name, string assemblyName, string language, string filePath, string outputFilePath)
+        public ProjectChecksumObjectInfo(
+            ProjectId id,
+            VersionStamp version,
+            string name,
+            string assemblyName,
+            string language,
+            string filePath,
+            string outputFilePath,
+            bool isSubmission)
         {
             Id = id;
             Version = version;
@@ -48,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Execution
             Language = language;
             FilePath = filePath;
             OutputFilePath = outputFilePath;
+            IsSubmission = isSubmission;
         }
     }
 
@@ -63,7 +73,13 @@ namespace Microsoft.CodeAnalysis.Execution
         public readonly string FilePath;
         public readonly bool IsGenerated;
 
-        public DocumentChecksumObjectInfo(DocumentId id, string name, IReadOnlyList<string> folders, SourceCodeKind sourceCodeKind, string filePath, bool isGenerated)
+        public DocumentChecksumObjectInfo(
+            DocumentId id, 
+            string name, 
+            IReadOnlyList<string> folders, 
+            SourceCodeKind sourceCodeKind, 
+            string filePath, 
+            bool isGenerated)
         {
             Id = id;
             Name = name;
