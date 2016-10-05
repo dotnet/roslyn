@@ -2219,6 +2219,54 @@ public class C { public static FrameworkName Foo() { return null; }}";
         }
 
         [Fact()]
+        public void CreateAnonymousType_IncorrectLengths_IsReadOnly()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(true)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_IncorrectLengths_Locations()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    memberLocations: ImmutableArray.Create(Location.None)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_WritableProperty()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(false, false)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullLocations()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    memberLocations: ImmutableArray.Create(Location.None, null)));
+        }
+
+        [Fact()]
         public void CreateAnonymousType_NullArgument1()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
