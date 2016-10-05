@@ -2337,7 +2337,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(type.IsAnonymousType);
             Assert.Equal(2, type.GetMembers().OfType<IPropertySymbol>().Count());
             Assert.Equal(loc1, type.GetMembers("m1").Single().Locations.Single());
-            Assert.Equal(loc1, type.GetMembers("m2").Single().Locations.Single());
+            Assert.Equal(loc2, type.GetMembers("m2").Single().Locations.Single());
             Assert.Equal("<anonymous type: int m1, int m2>", type.ToDisplayString());
         }
 
