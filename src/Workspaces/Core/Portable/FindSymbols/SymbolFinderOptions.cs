@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private const string LocalRegistryPath = @"Roslyn\Features\SymbolFinder\";
 
         public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
-            nameof(SymbolFinderOptions), nameof(OutOfProcessAllowed), defaultValue: true,
+            nameof(SymbolFinderOptions), nameof(OutOfProcessAllowed), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
     }
 }
