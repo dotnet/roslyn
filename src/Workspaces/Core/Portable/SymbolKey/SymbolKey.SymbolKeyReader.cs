@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private abstract class Reader<TStringResult, TLocationResult> : IDisposable
+        private abstract class Reader<TStringResult> : IDisposable
         {
             protected const char OpenParenChar = '(';
             protected const char CloseParenChar = ')';
@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis
 
             private readonly Func<TStringResult> _readString;
             private readonly Func<bool> _readBoolean;
-            private readonly Func<TLocationResult> _readLocation;
             private readonly Func<int> _readInteger;
             private readonly Func<RefKind> _readRefKind;
 
@@ -35,7 +34,6 @@ namespace Microsoft.CodeAnalysis
             {
                 _readString = ReadString;
                 _readBoolean = ReadBoolean;
-                _readLocation = ReadLocation;
                 _readInteger = ReadInteger;
                 _readRefKind = () => (RefKind)ReadInteger();
             }
@@ -115,8 +113,6 @@ namespace Microsoft.CodeAnalysis
                 return ReadStringNoSpace();
             }
 
-            public abstract TLocationResult ReadLocation();
-
             protected TStringResult ReadStringNoSpace()
             {
                 if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
@@ -176,11 +172,6 @@ namespace Microsoft.CodeAnalysis
                 return ReadArray(_readBoolean);
             }
 
-            public ImmutableArray<TLocationResult> ReadLocationArray()
-            {
-                return ReadArray(_readLocation);
-            }
-
             public ImmutableArray<RefKind> ReadRefKindArray()
             {
                 return ReadArray(_readRefKind);
@@ -214,14 +205,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private abstract class Reader<TSymbolResult, TStringResult, TLocationResult> : Reader<TStringResult, TLocationResult>
+        private abstract class Reader<TSymbolResult, TStringResult, TLocationResult> : Reader<TStringResult>
         {
             private readonly Dictionary<int, TSymbolResult> _idToResult = new Dictionary<int, TSymbolResult>();
             private readonly Func<TSymbolResult> _readSymbolKey;
+            private readonly Func<TLocationResult> _readLocation;
 
             public Reader()
             {
                 _readSymbolKey = ReadSymbolKey;
+                _readLocation = ReadLocation;
             }
 
             protected override void Initialize(string data, CancellationToken cancellationToken)
@@ -289,6 +282,39 @@ namespace Microsoft.CodeAnalysis
             {
                 return ReadArray(_readSymbolKey);
             }
+
+            public TLocationResult ReadLocation()
+            {
+                EatSpace();
+                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
+                {
+                    Eat(SymbolKeyType.Null);
+                    return default(TLocationResult);
+                }
+
+                var isSourceLocation = ReadBoolean();
+                if (isSourceLocation)
+                {
+                    var filePath = ReadString();
+                    var start = ReadInteger();
+                    var length = ReadInteger();
+                    return CreateSourceLocation(filePath, start, length);
+                }
+                else
+                {
+                    var assembly = ReadSymbolKey();
+                    var moduleName = ReadString();
+                    return CreateModuleLocation(assembly, moduleName);
+                }
+            }
+
+            public ImmutableArray<TLocationResult> ReadLocationArray()
+            {
+                return ReadArray(_readLocation);
+            }
+
+            protected abstract TLocationResult CreateModuleLocation(TSymbolResult assembly, TStringResult moduleName);
+            protected abstract TLocationResult CreateSourceLocation(TStringResult filePath, int start, int length);
         }
 
         private class GetHashCodeReader : Reader<int, int, int>
@@ -337,13 +363,14 @@ namespace Microsoft.CodeAnalysis
                 return 0;
             }
 
-            public override int ReadLocation()
+            protected override int CreateSourceLocation(int filePath, int start, int length)
             {
-                var filePath = ReadString();
-                var start = ReadInteger();
-                var length = ReadInteger();
-                return Hash.Combine(filePath,
-                       Hash.Combine(start, length));
+                return Hash.Combine(filePath, Hash.Combine(start, length));
+            }
+
+            protected override int CreateModuleLocation(int assembly, int moduleName)
+            {
+                return Hash.Combine(assembly, moduleName);
             }
 
             public int ReadSymbolKeyArrayHashCode()
@@ -409,7 +436,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class RemoveAssemblySymbolKeysReader : Reader<object, object>
+        private class RemoveAssemblySymbolKeysReader : Reader<object>
         {
             private readonly StringBuilder _builder = new StringBuilder();
 
@@ -457,12 +484,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return _builder.ToString();
-            }
-
-            public override object ReadLocation()
-            {
-                // Should never hit this.
-                throw new InvalidOperationException();
             }
 
             protected override object CreateResultForString(int start, int end, bool hasEmbeddedQuote)
@@ -551,13 +572,20 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            public override Location ReadLocation()
+            protected override Location CreateSourceLocation(string filePath, int start, int length)
             {
-                var filePath = ReadString();
-                var start = ReadInteger();
-                var length = ReadInteger();
                 var syntaxTree = Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
-                return syntaxTree == null ? Location.None : Location.Create(syntaxTree, new TextSpan(start, length));
+                Debug.Assert(syntaxTree != null);
+                return Location.Create(syntaxTree, new TextSpan(start, length));
+            }
+
+            protected override Location CreateModuleLocation(
+                SymbolKeyResolution assembly, string moduleName)
+            {
+                var symbol = assembly.GetAnySymbol() as IAssemblySymbol;
+                Debug.Assert(symbol != null);
+                var module = symbol.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
+                return module.Locations.FirstOrDefault();
             }
 
             protected override SymbolKeyResolution ReadWorker(SymbolKeyType type)

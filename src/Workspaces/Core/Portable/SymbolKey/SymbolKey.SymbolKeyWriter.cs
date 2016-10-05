@@ -242,11 +242,27 @@ namespace Microsoft.CodeAnalysis
 
             internal void WriteLocation(Location location)
             {
-                location = location ?? Location.None;
+                WriteSpace();
+                if (location == null)
+                {
+                    WriteType(SymbolKeyType.Null);
+                    return;
+                }
 
-                WriteString(location.SourceTree?.FilePath ?? "");
-                WriteInteger(location.SourceSpan.Start);
-                WriteInteger(location.SourceSpan.Length);
+                Debug.Assert(location.IsInSource || location.IsInMetadata);
+                WriteBoolean(location.IsInSource);
+
+                if (location.IsInSource)
+                {
+                    WriteString(location.SourceTree.FilePath);
+                    WriteInteger(location.SourceSpan.Start);
+                    WriteInteger(location.SourceSpan.Length);
+                }
+                else
+                {
+                    WriteSymbolKey(location.MetadataModule.ContainingAssembly);
+                    WriteString(location.MetadataModule.MetadataName);
+                }
             }
 
             internal void WriteSymbolKeyArray<TSymbol>(ImmutableArray<TSymbol> symbols)
