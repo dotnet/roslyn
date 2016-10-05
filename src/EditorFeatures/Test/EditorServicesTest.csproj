@@ -15,8 +15,6 @@
     <TargetFrameworkProfile />
     <RestorePackages>true</RestorePackages>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
-    <OutDir>$(OutDir)EditorServiceTest\</OutDir>
-    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
