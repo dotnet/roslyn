@@ -317,6 +317,7 @@
     <Compile Include="UseExpressionBody\UseExpressionBodyForAccessorsTests.cs" />
     <Compile Include="UseExpressionBody\UseExpressionBodyForOperatorsTests.cs" />
     <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsTests.cs" />
+    <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProviderTests.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="Structure\AbstractCSharpSyntaxNodeStructureTests.cs" />

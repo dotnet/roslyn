@@ -380,6 +380,7 @@
     <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\AbstractUseExpressionBodyDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
+    <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProvider.cs" />
     <Compile Include="UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="Structure\CSharpBlockStructureProvider.cs" />
     <Compile Include="Structure\CSharpStructureHelpers.cs" />
