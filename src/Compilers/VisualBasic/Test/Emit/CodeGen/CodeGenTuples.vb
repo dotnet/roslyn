@@ -137,6 +137,89 @@ hello
         End Sub
 
         <Fact>
+        Public Sub TupleTypeBindingTypeChar()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (A%, B$)
+        console.writeline(t.GetType())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.ValueTuple`2[System.Int32,System.String]
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (System.ValueTuple(Of Integer, String) V_0) //t
+  IL_0000:  ldloc.0
+  IL_0001:  box        "System.ValueTuple(Of Integer, String)"
+  IL_0006:  call       "Function Object.GetType() As System.Type"
+  IL_000b:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0010:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleTypeBindingTypeCharErr()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="TupleTypeBindingTypeCharErr">
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+        console.writeline(t.GetType())
+
+        Dim t1 as (String$, String%) = nothing
+        console.writeline(t1.GetType())
+
+        Dim B = 1
+        
+        Dim t2 = (A% := 1, B$) 
+        console.writeline(t2.GetType())
+    End Sub
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30302: Type character '%' cannot be used in a declaration with an explicit type.
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+                  ~~
+BC30302: Type character '$' cannot be used in a declaration with an explicit type.
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+                                ~~
+BC30468: Type declaration characters are not valid in this context.
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+                                                   ~~~~~~~
+BC37262: Tuple element names must be unique.
+        Dim t1 as (String$, String%) = nothing
+                            ~~~~~~~
+BC37270: Type characters cannot be used in tuple literals.
+        Dim t2 = (A% := 1, B$) 
+                  ~~
+BC30277: Type character '$' does not match declared data type 'Integer'.
+        Dim t2 = (A% := 1, B$) 
+                           ~~
+</errors>)
+        End Sub
+
+        <Fact>
         Public Sub TupleTypeBindingNoTuple()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">

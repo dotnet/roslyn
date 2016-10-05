@@ -2945,16 +2945,22 @@ checkNullable:
                 Dim identifierNameOpt As IdentifierNameSyntax = Nothing
                 Dim asKeywordOpt As KeywordSyntax = Nothing
 
+                ' if there is a type character or As, then this must be a name
                 If CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso
-                        PeekNextToken().Kind = SyntaxKind.AsKeyword Then
+                        (DirectCast(CurrentToken, IdentifierTokenSyntax).TypeCharacter <> TypeCharacter.None OrElse
+                        PeekNextToken().Kind = SyntaxKind.AsKeyword) Then
 
                     identifierNameOpt = ParseIdentifierNameAllowingKeyword()
                     TryGetToken(SyntaxKind.AsKeyword, asKeywordOpt)
-
                 End If
 
-                Dim type = ParseGeneralType()
-                Dim element = SyntaxFactory.TupleElement(identifierNameOpt, asKeywordOpt, type)
+                Dim typeOpt As TypeSyntax = Nothing
+                ' if have "As" or have no element name, must have a type
+                If asKeywordOpt IsNot Nothing OrElse identifierNameOpt Is Nothing Then
+                    typeOpt = ParseGeneralType()
+                End If
+
+                Dim element = SyntaxFactory.TupleElement(identifierNameOpt, asKeywordOpt, typeOpt)
 
                 elementBuilder.Add(element)
 

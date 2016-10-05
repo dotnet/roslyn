@@ -705,7 +705,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For i As Integer = 0 To numElements - 1
                     Dim argumentSyntax = syntax.Elements(i)
 
-                    Dim argumentType As TypeSymbol = binder.BindTypeSyntax(argumentSyntax.Type, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
+                    Dim argumentType As TypeSymbol = Nothing
+
+                    If argumentSyntax.Type IsNot Nothing Then
+                        argumentType = binder.BindTypeSyntax(argumentSyntax.Type, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
+                    Else
+                        Debug.Assert(argumentSyntax.IdentifierName.Identifier.GetTypeCharacter() <> TypeCharacter.None)
+                    End If
+
+                    If argumentSyntax.IdentifierName?.Identifier.GetTypeCharacter() <> TypeCharacter.None Then
+                        argumentType = binder.DecodeIdentifierType(argumentSyntax.IdentifierName.Identifier, argumentType, getRequireTypeDiagnosticInfoFunc:=Nothing, diagBag:=diagnostics)
+                    End If
+
                     types.Add(argumentType)
 
                     If argumentType.IsRestrictedType() Then

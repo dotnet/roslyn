@@ -341,6 +341,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not CheckTupleMemberName(name, i, argumentSyntax.NameColonEquals.Name, diagnostics, uniqueFieldNames) Then
                         hasErrors = True
                     End If
+
+                    '  check type character
+                    Dim typeChar As TypeCharacter = nameSyntax.Identifier.GetTypeCharacter()
+                    If typeChar <> TypeCharacter.None Then
+                        ' report the error and proceed to the next field initializer
+                        ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_TupleLiteralDisallowsTypeChar)
+                        hasErrors = True
+                    End If
                 Else
                     elementLocations.Add(argumentSyntax.GetLocation)
                 End If
