@@ -345,7 +345,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '  check type character
                     Dim typeChar As TypeCharacter = nameSyntax.Identifier.GetTypeCharacter()
                     If typeChar <> TypeCharacter.None Then
-                        ' report the error and proceed to the next field initializer
                         ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_TupleLiteralDisallowsTypeChar)
                         hasErrors = True
                     End If
