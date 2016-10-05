@@ -2592,11 +2592,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           elementNames:=elementNames, compilation:=Me)
         End Function
 
-        Protected Overrides Function CommonCreateTupleTypeSymbol(underlyingType As INamedTypeSymbol, elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
-            If underlyingType Is Nothing Then
-                Throw New ArgumentNullException(NameOf(underlyingType))
-            End If
-
+        Protected Overrides Function CommonCreateTupleTypeSymbol(
+                underlyingType As INamedTypeSymbol,
+                elementNames As ImmutableArray(Of String),
+                elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
             Dim csharpUnderlyingTuple = underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType))
 
             Dim cardinality As Integer
@@ -2605,11 +2604,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             elementNames = CheckTupleElementNames(cardinality, elementNames)
+            CheckTupleElementLocations(cardinality, elementLocations)
 
             Return TupleTypeSymbol.Create(
                 locationOpt:=Nothing,
                 tupleCompatibleType:=underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType)),
-                elementLocations:=Nothing,
+                elementLocations:=elementLocations,
                 elementNames:=elementNames)
         End Function
 

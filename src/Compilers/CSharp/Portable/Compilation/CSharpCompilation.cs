@@ -2718,13 +2718,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typesBuilder.ToImmutableAndFree(), elementLocations, elementNames, this);
         }
 
-        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames)
+        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
+            INamedTypeSymbol underlyingType, 
+            ImmutableArray<string> elementNames,
+            ImmutableArray<Location> elementLocations)
         {
-            if ((object)underlyingType == null)
-            {
-                throw new ArgumentNullException(nameof(underlyingType));
-            }
-
             var csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull<INamedTypeSymbol, NamedTypeSymbol>(nameof(underlyingType));
 
             int cardinality;
@@ -2734,8 +2732,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             elementNames = CheckTupleElementNames(cardinality, elementNames);
+            CheckTupleElementLocations(cardinality, elementLocations);
 
-            return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames);
+            return TupleTypeSymbol.Create(
+                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
         }
 
         protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
