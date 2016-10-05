@@ -18,7 +18,7 @@ Supported Platforms:
       <dependency id="System.Linq.Parallel" version="$SystemLinqParallelVersion$" />
       <dependency id="System.ObjectModel" version="$SystemObjectModelVersion$" />
       <dependency id="System.Text.RegularExpressions" version="$SystemTextRegularExpressionsVersion$" />
-      <dependency id="System.Threading.Tasks.Parallel" version="$SystemThreadingTasksParalleVersion$" />
+      <dependency id="System.Threading.Tasks.Parallel" version="$SystemThreadingTasksParallelVersion$" />
     </dependencies>
 
     <language>en-US</language>
