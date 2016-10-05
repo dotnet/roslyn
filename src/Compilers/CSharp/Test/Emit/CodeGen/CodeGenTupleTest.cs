@@ -4850,8 +4850,7 @@ class C
 
             Assert.True(tuple.IsTupleType);
             Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind);
-            Assert.Equal("(System.Int32, System.String)", tuple.ToTestDisplayString());
-            Assert.True(tuple.TupleElementNames.IsDefault);
+            Assert.Equal("(System.Int32 i1, System.String i2)", tuple.ToTestDisplayString());
             Assert.Equal(new[] { "System.Int32", "System.String" }, tuple.TupleElementTypes.Select(t => t.ToTestDisplayString()));
             Assert.Equal(SymbolKind.NamedType, tuple.Kind);
             Assert.Equal(loc1, tuple.GetMembers("i1").Single().Locations.Single());
