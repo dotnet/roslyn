@@ -8965,7 +8965,7 @@ class C
             await VerifyItemExistsAsync(@"
 class C
 {
-    (C, 
+    (C, $$
 }", "C");
         }
 
@@ -8977,6 +8977,49 @@ class C
 class C
 {
     (C, $$)
+}", "C");
+        }
+
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInForeach()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M()
+    {
+        foreach ((C, $$
+    }
+}", "C");
+        }
+
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInParameterList()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M((C, $$)
+    {
+    }
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInNameOf()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M(($$)
+    {
+        var x = nameof((C, $$
+    }
 }", "C");
         }
     }
