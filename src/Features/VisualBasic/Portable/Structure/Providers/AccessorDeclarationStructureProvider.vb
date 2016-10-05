@@ -16,9 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(accessorDeclaration.Parent, AccessorBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then
-                spans.Add(CreateRegionFromBlock(
+                spans.AddIfNotNull(CreateRegionFromBlock(
                     block, bannerNode:=accessorDeclaration,
-                    autoCollapse:=True, type:=BlockTypes.Accessor, isCollapsible:=True))
+                    autoCollapse:=True, type:=BlockTypes.Member, isCollapsible:=True))
             End If
         End Sub
     End Class

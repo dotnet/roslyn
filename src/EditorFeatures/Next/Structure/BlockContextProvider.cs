@@ -146,14 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
 
                     var statementLine = textSnapshot.GetLineFromPosition(blockTag.StatementSpan.Start);
 
-                    // We want the span from the start of the line the statement is on, up
-                    // till the end of the line, or the beginning of the collapsed region 
-                    // (whichever is closer).
-                    //
-                    // The beginning of the line ensures that all the headers look properly
-                    // indented in the tooltip.
                     var lineStart = statementLine.Start.Position;
-                    var lineEnd = Math.Min(statementLine.End.Position, collapseSpan.Start);
+                    var lineEnd = statementLine.End.Position;
 
                     var headerSpan = new SnapshotSpan(textSnapshot, Span.FromBounds(lineStart, lineEnd));
                     var mappingSpan = headerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeExclusive);

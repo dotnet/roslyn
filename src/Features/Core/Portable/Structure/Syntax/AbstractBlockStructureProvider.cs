@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
@@ -34,6 +35,24 @@ namespace Microsoft.CodeAnalysis.Structure
             try
             {
                 var syntaxRoot = context.Document.GetSyntaxRootSynchronously(context.CancellationToken);
+
+                ProvideBlockStructureWorker(context, syntaxRoot);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        /// <summary>
+        /// Keep in sync with <see cref="ProvideBlockStructure"/>
+        /// </summary>
+        public override async Task ProvideBlockStructureAsync(BlockStructureContext context)
+        {
+            try
+            {
+                var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
                 ProvideBlockStructureWorker(context, syntaxRoot);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -49,28 +68,81 @@ namespace Microsoft.CodeAnalysis.Structure
             BlockSpanCollector.CollectBlockSpans(
                 context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
 
-            foreach (var region in spans)
-            {
-                context.AddBlockSpan(region);
-            }
+            UpdateAndAddSpans(context, spans);
 
             spans.Free();
         }
 
-        /// <summary>
-        /// Keep in sync with <see cref="ProvideBlockStructure"/>
-        /// </summary>
-        public override async Task ProvideBlockStructureAsync(BlockStructureContext context)
+        internal static void UpdateAndAddSpans(BlockStructureContext context, ArrayBuilder<BlockSpan> spans)
         {
-            try
+            var options = context.Document.Project.Solution.Workspace.Options;
+            var language = context.Document.Project.Language;
+
+            var showIndentGuidesForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, language);
+            var showIndentGuidesForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, language);
+            var showIndentGuidesForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language);
+            var showOutliningForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs, language);
+            var showOutliningForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, language);
+            var showOutliningForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, language);
+
+            foreach (var span in spans)
             {
-                var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-                ProvideBlockStructureWorker(context, syntaxRoot);
+                var updatedSpan = UpdateBlockSpan(span,
+                        showIndentGuidesForCodeLevelConstructs,
+                        showIndentGuidesForDeclarationLevelConstructs,
+                        showIndentGuidesForCommentsAndPreprocessorRegions,
+                        showOutliningForCodeLevelConstructs,
+                        showOutliningForDeclarationLevelConstructs,
+                        showOutliningForCommentsAndPreprocessorRegions);
+                context.AddBlockSpan(updatedSpan);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+        }
+
+        internal static BlockSpan UpdateBlockSpan(BlockSpan blockSpan,
+            bool showIndentGuidesForCodeLevelConstructs,
+            bool showIndentGuidesForDeclarationLevelConstructs,
+            bool showIndentGuidesForCommentsAndPreprocessorRegions,
+            bool showOutliningForCodeLevelConstructs,
+            bool showOutliningForDeclarationLevelConstructs,
+            bool showOutliningForCommentsAndPreprocessorRegions)
+        {
+            var type = blockSpan.Type;
+
+            var isTopLevel = BlockTypes.IsDeclarationLevelConstruct(type);
+            var isMemberLevel = BlockTypes.IsCodeLevelConstruct(type);
+            var isComment = BlockTypes.IsCommentOrPreprocessorRegion(type);
+
+            if (!showIndentGuidesForDeclarationLevelConstructs && isTopLevel)
             {
-                throw ExceptionUtilities.Unreachable;
+                type = BlockTypes.Nonstructural;
             }
+            else if (!showIndentGuidesForCodeLevelConstructs && isMemberLevel)
+            {
+                type = BlockTypes.Nonstructural;
+            }
+            else if (!showIndentGuidesForCommentsAndPreprocessorRegions && isComment)
+            {
+                type = BlockTypes.Nonstructural;
+            }
+
+            var isCollapsible = blockSpan.IsCollapsible;
+            if (isCollapsible)
+            {
+                if (!showOutliningForDeclarationLevelConstructs && isTopLevel)
+                {
+                    isCollapsible = false;
+                }
+                else if (!showOutliningForCodeLevelConstructs && isMemberLevel)
+                {
+                    isCollapsible = false;
+                }
+                else if (!showOutliningForCommentsAndPreprocessorRegions && isComment)
+                {
+                    isCollapsible = false;
+                }
+            }
+
+            return blockSpan.With(type: type, isCollapsible: isCollapsible);
         }
     }
 }

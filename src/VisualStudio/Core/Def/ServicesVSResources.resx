@@ -732,4 +732,28 @@ Additional information: {1}</value>
   <data name="Expression_preferences_colon" xml:space="preserve">
     <value>Expression preferences:</value>
   </data>
+  <data name="Block_Structure_Guides" xml:space="preserve">
+    <value>Block Structure Guides</value>
+  </data>
+  <data name="Outlining" xml:space="preserve">
+    <value>Outlining</value>
+  </data>
+  <data name="Show_guides_for_code_level_constructs" xml:space="preserve">
+    <value>Show guides for code level constructs</value>
+  </data>
+  <data name="Show_guides_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show guides for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_guides_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show guides for declaration level constructs</value>
+  </data>
+  <data name="Show_outlining_for_code_level_constructs" xml:space="preserve">
+    <value>Show outlining for code level constructs</value>
+  </data>
+  <data name="Show_outlining_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show outlining for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_outlining_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show outlining for declaration level constructs</value>
+  </data>
 </root>

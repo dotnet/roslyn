@@ -254,6 +254,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Block Structure Guides.
+        /// </summary>
+        internal static string Block_Structure_Guides {
+            get {
+                return ResourceManager.GetString("Block_Structure_Guides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [-] .
         /// </summary>
         internal static string bracket_bracket {
@@ -1186,6 +1195,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Outlining.
+        /// </summary>
+        internal static string Outlining {
+            get {
+                return ResourceManager.GetString("Outlining", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Overridden By.
         /// </summary>
         internal static string Overridden_By {
@@ -1548,6 +1566,60 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Severity_colon {
             get {
                 return ResourceManager.GetString("Severity_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show guides for code level constructs.
+        /// </summary>
+        internal static string Show_guides_for_code_level_constructs {
+            get {
+                return ResourceManager.GetString("Show_guides_for_code_level_constructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show guides for comments and preprocessor regions.
+        /// </summary>
+        internal static string Show_guides_for_comments_and_preprocessor_regions {
+            get {
+                return ResourceManager.GetString("Show_guides_for_comments_and_preprocessor_regions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show guides for declaration level constructs.
+        /// </summary>
+        internal static string Show_guides_for_declaration_level_constructs {
+            get {
+                return ResourceManager.GetString("Show_guides_for_declaration_level_constructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show outlining for code level constructs.
+        /// </summary>
+        internal static string Show_outlining_for_code_level_constructs {
+            get {
+                return ResourceManager.GetString("Show_outlining_for_code_level_constructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show outlining for comments and preprocessor regions.
+        /// </summary>
+        internal static string Show_outlining_for_comments_and_preprocessor_regions {
+            get {
+                return ResourceManager.GetString("Show_outlining_for_comments_and_preprocessor_regions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show outlining for declaration level constructs.
+        /// </summary>
+        internal static string Show_outlining_for_declaration_level_constructs {
+            get {
+                return ResourceManager.GetString("Show_outlining_for_declaration_level_constructs", resourceCulture);
             }
         }
         

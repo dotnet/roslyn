@@ -52,9 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             public SnapshotSpan Span { get; }
             public SnapshotSpan StatementSpan { get; }
 
-            public string Type => ConvertType(BlockSpan.Type);
-
-            public bool IsCollapsible => true;
+            public string Type => BlockSpan.Type;
+            public bool IsCollapsible => BlockSpan.IsCollapsible;
 
             public RoslynBlockTag(
                 ITextEditorFactoryService textEditorFactoryService,
@@ -62,16 +61,16 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 IEditorOptionsFactoryService editorOptionsFactoryService,
                 IBlockTag parent,
                 ITextSnapshot snapshot,
-                BlockSpan outliningSpan) :
+                BlockSpan blockSpan) :
                 base(textEditorFactoryService,
                     projectionBufferFactoryService,
                     editorOptionsFactoryService,
-                    snapshot, outliningSpan)
+                    snapshot, blockSpan)
             {
                 Parent = parent;
                 Level = parent == null ? 0 : parent.Level + 1;
-                Span = outliningSpan.TextSpan.ToSnapshotSpan(snapshot);
-                StatementSpan = outliningSpan.HintSpan.ToSnapshotSpan(snapshot);
+                Span = blockSpan.TextSpan.ToSnapshotSpan(snapshot);
+                StatementSpan = blockSpan.HintSpan.ToSnapshotSpan(snapshot);
             }
 
             public override bool Equals(object obj)
@@ -89,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             public bool Equals(RoslynBlockTag tag)
             {
                 return tag != null &&
+                       this.IsCollapsible == tag.IsCollapsible &&
                        this.Level == tag.Level &&
                        this.Type == tag.Type &&
                        EqualityComparer<object>.Default.Equals(this.CollapsedForm, tag.CollapsedForm) &&
@@ -98,59 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
 
             public override int GetHashCode()
             {
-                return Hash.Combine(this.Level,
+                return Hash.Combine(this.IsCollapsible,
+                       Hash.Combine(this.Level,
                        Hash.Combine(this.Type, 
                        Hash.Combine(this.CollapsedForm,
-                       Hash.Combine(this.StatementSpan.GetHashCode(), this.Span.GetHashCode()))));
-            }
-
-            private string ConvertType(string type)
-            {
-                switch (type)
-                {
-                    // Basic types.
-                    case BlockTypes.Structural: return PredefinedStructureTypes.Structural;
-                    case BlockTypes.Nonstructural: return PredefinedStructureTypes.Nonstructural;
-
-                    // Top level declarations.  Note that Enum is not currently supported
-                    // and that we map Module down to Class.
-                    case BlockTypes.Namespace: return PredefinedStructureTypes.Namespace;
-                    case BlockTypes.Structure: return PredefinedStructureTypes.Struct;
-                    case BlockTypes.Interface: return PredefinedStructureTypes.Interface;
-                    case BlockTypes.Module:
-                    case BlockTypes.Class: return PredefinedStructureTypes.Class;
-
-                    // Member declarations
-                    case BlockTypes.Accessor: return PredefinedStructureTypes.AccessorBlock;
-                    case BlockTypes.Constructor: return PredefinedStructureTypes.Constructor;
-                    case BlockTypes.Destructor: return PredefinedStructureTypes.Destructor;
-                    case BlockTypes.Method: return PredefinedStructureTypes.Method;
-                    case BlockTypes.Operator: return PredefinedStructureTypes.Operator;
-
-                    // Map events/indexers/properties all to the 'property' type.
-                    case BlockTypes.Event:
-                    case BlockTypes.Indexer:
-                    case BlockTypes.Property: return PredefinedStructureTypes.PropertyBlock;
-
-                    // Statements
-                    case BlockTypes.Case: return PredefinedStructureTypes.Case;
-                    case BlockTypes.Conditional: return PredefinedStructureTypes.Conditional;
-                    case BlockTypes.Lock: return PredefinedStructureTypes.Lock;
-                    case BlockTypes.Loop: return PredefinedStructureTypes.Loop;
-                    case BlockTypes.TryCatchFinally: return PredefinedStructureTypes.TryCatchFinally;
-                    case BlockTypes.Standalone: return PredefinedStructureTypes.Standalone;
-
-                    // Expressions
-                    case BlockTypes.AnonymousMethod: return PredefinedStructureTypes.AnonymousMethodBlock;
-
-                    // These types don't currently map to any editor types.  Just make them
-                    // the 'Unknown' type for now.
-                    case BlockTypes.Enum:
-                    case BlockTypes.Other:
-                    case BlockTypes.Xml:
-                    default:
-                        return PredefinedStructureTypes.Unknown;
-                }
+                       Hash.Combine(this.StatementSpan.GetHashCode(), this.Span.GetHashCode())))));
             }
         }
     }
