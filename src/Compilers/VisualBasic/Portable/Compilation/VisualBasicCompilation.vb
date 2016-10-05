@@ -2592,7 +2592,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           elementNames:=elementNames, compilation:=Me)
         End Function
 
-        Protected Overrides Function CommonCreateTupleTypeSymbol(underlyingType As INamedTypeSymbol, elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
+        Protected Overrides Function CommonCreateTupleTypeSymbol(
+                underlyingType As INamedTypeSymbol,
+                elementNames As ImmutableArray(Of String),
+                elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
             If underlyingType Is Nothing Then
                 Throw New ArgumentNullException(NameOf(underlyingType))
             End If
@@ -2605,6 +2608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             elementNames = CheckTupleElementNames(cardinality, elementNames)
+            CheckTupleElementLocations(cardinality, elementLocations)
 
             Return TupleTypeSymbol.Create(
                 locationOpt:=Nothing,

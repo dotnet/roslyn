@@ -889,11 +889,24 @@ namespace Microsoft.CodeAnalysis
             return elementNames;
         }
 
+        protected static void CheckTupleElementLocations(int cardinality, 
+            ImmutableArray<Location> elementLocations)
+        {
+            if (!elementLocations.IsDefault)
+            {
+                if (elementLocations.Length != cardinality)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.TupleElementLocationCountMismatch, nameof(elementLocations));
+                }
+            }
+        }
+
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes, 
             ImmutableArray<string> elementNames,
             ImmutableArray<Location> elementLocations);
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Returns a new INamedTypeSymbol with the given underlying type and (optional) element names.
         /// </summary>
@@ -901,12 +914,25 @@ namespace Microsoft.CodeAnalysis
         /// Since VB doesn't support tuples yet, this call will fail in a VB compilation.
         /// Also, the underlying type needs to be tuple-compatible.
         /// </remarks>
-        public INamedTypeSymbol CreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames = default(ImmutableArray<string>))
+        public INamedTypeSymbol CreateTupleTypeSymbol(
+            INamedTypeSymbol underlyingType, 
+            ImmutableArray<string> elementNames = default(ImmutableArray<string>),
+            ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
-            return CommonCreateTupleTypeSymbol(underlyingType, elementNames);
-        }
+            if ((object)underlyingType == null)
+            {
+                throw new ArgumentNullException(nameof(underlyingType));
+            }
 
-        protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames);
+            return CommonCreateTupleTypeSymbol(
+                underlyingType, elementNames, elementLocations);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
+            INamedTypeSymbol underlyingType, 
+            ImmutableArray<string> elementNames,
+            ImmutableArray<Location> elementLocations);
 
         /// <summary>
         /// Returns a new anonymous type symbol with the given member types member names.
