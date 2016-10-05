@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             _gcTask = null;
             GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
         }
 
         private void MaybeCreateTimeoutTask()
