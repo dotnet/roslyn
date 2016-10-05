@@ -2596,10 +2596,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 underlyingType As INamedTypeSymbol,
                 elementNames As ImmutableArray(Of String),
                 elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
-            If underlyingType Is Nothing Then
-                Throw New ArgumentNullException(NameOf(underlyingType))
-            End If
-
             Dim csharpUnderlyingTuple = underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType))
 
             Dim cardinality As Integer
