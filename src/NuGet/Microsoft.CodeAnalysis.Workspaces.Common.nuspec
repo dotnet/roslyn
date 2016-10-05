@@ -14,6 +14,11 @@ Supported Platforms:
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
       <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
+      <dependency id="System.Diagnostics.Contracts" version="$SystemDiagnosticsContractsVersion$" />
+      <dependency id="System.Linq.Parallel" version="$SystemLinqParallelVersion$" />
+      <dependency id="System.ObjectModel" version="$SystemObjectModelVersion$" />
+      <dependency id="System.Text.RegularExpressions" version="$SystemTextRegularExpressionsVersion$" />
+      <dependency id="System.Threading.Tasks.Parallel" version="$SystemThreadingTasksParalleVersion$" />
     </dependencies>
 
     <language>en-US</language>
@@ -29,6 +34,8 @@ Supported Platforms:
   <files>
     <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.dll" target="lib\net46" />
     <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.xml" target="lib\net46" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.dll" target="lib\net46" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\net46" />
     <file src="Microsoft.CodeAnalysis.Workspaces.dll" target="lib\netstandard1.3" />
     <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
