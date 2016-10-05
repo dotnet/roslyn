@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitDecisionTree(node.DecisionTree);
 
             // we always consider the default label reachable for flow analysis purposes.
+            Debug.Assert(!this.IsConditionalState);
             if (node.DefaultLabel != null)
             {
                 _pendingBranches.Add(new PendingBranch(node.DefaultLabel, this.State));
@@ -271,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // goto the label for the switch block
+            Debug.Assert(!this.IsConditionalState);
             _pendingBranches.Add(new PendingBranch(guarded.Label, this.State));
 
             // put the state back where we found it for the next case

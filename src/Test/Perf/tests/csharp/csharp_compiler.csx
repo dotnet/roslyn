@@ -33,7 +33,7 @@ class CSharpCompilerTest: PerfTest
         _logger.Flush();
     }
     
-    public override int Iterations => 1;
+    public override int Iterations => 3;
     public override string Name => "csharp " + _rspFile;
     public override string MeasuredProc => "csc";
     public override bool ProvidesScenarios => false;

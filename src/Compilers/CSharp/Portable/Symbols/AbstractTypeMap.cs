@@ -341,7 +341,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Substitute types, and return the results without duplicates, preserving the original order.
         /// </summary>
-        internal void SubstituteTypesDistinctWithoutModifiers(ImmutableArray<TypeSymbol> original, ArrayBuilder<TypeSymbol> result)
+        internal void SubstituteTypesDistinctWithoutModifiers(
+            ImmutableArray<TypeSymbol> original, 
+            ArrayBuilder<TypeSymbol> result, 
+            HashSet<TypeParameterSymbol> ignoreTypesDependentOnTypeParametersOpt)
         {
             if (original.Length == 0)
             {
@@ -349,17 +352,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (original.Length == 1)
             {
-                result.Add(SubstituteType(original[0]).Type);
+                var type = original[0];
+                if (ignoreTypesDependentOnTypeParametersOpt == null || !type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
+                {
+                    result.Add(SubstituteType(type).Type);
+                }
             }
             else
             {
                 var set = new HashSet<TypeSymbol>();
                 foreach (var type in original)
                 {
-                    var substituted = SubstituteType(type).Type;
-                    if (set.Add(substituted))
+                    if (ignoreTypesDependentOnTypeParametersOpt == null || !type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                     {
-                        result.Add(substituted);
+                        var substituted = SubstituteType(type).Type;
+                        if (set.Add(substituted))
+                        {
+                            result.Add(substituted);
+                        }
                     }
                 }
             }

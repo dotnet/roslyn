@@ -244,7 +244,7 @@ class C
                 Assert.Null(GetTupleElementNamesAttributeIfAny(method));
                 methodData.VerifyIL(
 @"{
-  // Code size       60 (0x3c)
+  // Code size       64 (0x40)
   .maxstack  6
   .locals init (System.ValueTuple<int, int> V_0) //x
   IL_0000:  ldtoken    ""System.ValueTuple<int, int>""
@@ -261,8 +261,8 @@ class C
   IL_002f:  ldstr      ""y""
   IL_0034:  call       ""(int A, int B) Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<(int A, int B)>(string)""
   IL_0039:  ldloc.0
-  IL_003a:  stind.ref
-  IL_003b:  ret
+  IL_003a:  stobj      ""System.ValueTuple<int, int>""
+  IL_003f:  ret
 }");
             });
         }

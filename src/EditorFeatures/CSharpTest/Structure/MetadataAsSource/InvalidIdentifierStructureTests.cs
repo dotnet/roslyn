@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,12 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         protected override string LanguageName => LanguageNames.CSharp;
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
 
-        internal override async Task<BlockSpan[]> GetBlockSpansAsync(Document document, int position)
+        internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position)
         {
             var outliningService = document.Project.LanguageServices.GetService<BlockStructureService>();
 
-            return (await outliningService.GetBlockStructureAsync(document, CancellationToken.None))
-                .Spans.WhereNotNull().ToArray();
+            return (await outliningService.GetBlockStructureAsync(document, CancellationToken.None)).Spans;
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]

@@ -2,6 +2,10 @@
     "dependencies": {
         "ManagedEsent": "1.9.4",
         "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
+        "Microsoft.VisualStudio.RemoteControl": {
+            "version": "14.0.249-master2E2DC10C",
+            "suppressParent": "all"
+        },
         "Microsoft.VisualStudio.Shell.14.0": {
             "version": "14.3.25407",
             "suppressParent": "all"

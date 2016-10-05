@@ -120,7 +120,6 @@ using System.Threading;
             Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
         End Function
 
-
         Private Shared ReadOnly s_exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                 GetType(MockDocumentNavigationServiceProvider),

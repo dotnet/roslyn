@@ -310,6 +310,8 @@
     <Compile Include="Organizing\OrganizeModifiersTests.cs" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.cs" />
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
+    <Compile Include="Structure\BlockSyntaxStructureTests.cs" />
+    <Compile Include="Structure\SwitchStatementStructureTests.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="Structure\AbstractCSharpSyntaxNodeStructureTests.cs" />

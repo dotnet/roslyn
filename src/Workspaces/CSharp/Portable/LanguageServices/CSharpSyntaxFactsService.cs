@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return name.IsRightSideOfQualifiedName();
         }
 
-        public bool IsMemberAccessExpressionName(SyntaxNode node)
+        public bool IsNameOfMemberAccessExpression(SyntaxNode node)
         {
             var name = node as SimpleNameSyntax;
             return name.IsMemberAccessExpressionName();
@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<string>.Empty;
             }
 
-            var builder = ImmutableArray.CreateBuilder<string>(baseList.Types.Count);
+            var builder = ArrayBuilder<string>.GetInstance(baseList.Types.Count);
 
             // It's not sufficient to just store the textual names we see in the inheritance list
             // of a type.  For example if we have:
@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddInheritanceName(builder, baseType.Type, aliasMaps);
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
             finally
             {
@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void AddInheritanceName(
-            ImmutableArray<string>.Builder builder, TypeSyntax type,
+            ArrayBuilder<string> builder, TypeSyntax type,
             List<Dictionary<string, string>> aliasMaps)
         {
             var name = GetTypeName(type);
@@ -1837,6 +1837,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool AreEquivalent(SyntaxNode node1, SyntaxNode node2)
         {
             return SyntaxFactory.AreEquivalent(node1, node2);
+        }
+
+        public bool IsExpressionOfInvocationExpression(SyntaxNode node)
+        {
+            return node != null && (node.Parent as InvocationExpressionSyntax)?.Expression == node;
+        }
+
+        public bool IsExpressionOfAwaitExpression(SyntaxNode node)
+        {
+            return node != null && (node.Parent as AwaitExpressionSyntax)?.Expression == node;
+        }
+
+        public bool IsExpressionOfMemberAccessExpression(SyntaxNode node)
+        {
+            return node != null && (node.Parent as MemberAccessExpressionSyntax)?.Expression == node;
+        }
+
+        public SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
+        {
+            return ((InvocationExpressionSyntax)node).Expression;
+        }
+
+        public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
+        {
+            return ((AwaitExpressionSyntax)node).Expression;
         }
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter

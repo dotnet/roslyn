@@ -71,13 +71,17 @@ try
     # We also need to replace all instances of '/' with '_'
     $branchName = $branchName.Replace("/", "_")
 
+    # MyGet feeds are limited to 40 characters in length
+    $feedName = ("roslyn-{0}-nightly" -f $branchName)
+    $feedName = $feedName.Substring(0, [math]::Min($feedName.Length, 40)).ToLower()
+
     Write-Host "Uploading NuGet packages..."
 
     $nugetPath = Join-Path $binariesPath "NuGet\PerBuildPreRelease"
 
     [xml]$packages = Get-Content "$nugetPath\myget_org-packages.config"
 
-    $sourceUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/api/v2/package" -f $branchName)
+    $sourceUrl = ("https://dotnet.myget.org/F/{0}/api/v2/package" -f $feedName)
     
     pushd $nugetPath
     foreach ($package in $packages.packages.package)
@@ -111,7 +115,7 @@ try
     foreach ($extension in $extensions.extensions.extension)
     {
         $vsix = $extension.id + ".vsix"
-        $requestUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/vsix/upload" -f $branchName)
+        $requestUrl = ("https://dotnet.myget.org/F/{0}/vsix/upload" -f $feedName)
         
         Write-Host "  Uploading '$vsix' to '$requestUrl'"
 

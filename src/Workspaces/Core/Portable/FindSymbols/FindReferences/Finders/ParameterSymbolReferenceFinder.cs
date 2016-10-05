@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -8,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
         }
 
-        protected override Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IParameterSymbol symbol,
             Document document,
             CancellationToken cancellationToken)
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, cancellationToken);
         }
 
-        protected override async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var parameter = parameterAndProjectId.Symbol;
             if (parameter.IsThis)
             {
-                return null;
+                return ImmutableArray<SymbolAndProjectId>.Empty;
             }
 
             var anonymousFunctionParameterCascades = await CascadeBetweenAnonymousFunctionParametersAsync(
@@ -64,12 +62,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 CascadeBetweenPartialMethodParameters(parameterAndProjectId));
         }
 
-        private async Task<IEnumerable<SymbolAndProjectId>> CascadeBetweenAnonymousFunctionParametersAsync(
+        private async Task<ImmutableArray<SymbolAndProjectId>> CascadeBetweenAnonymousFunctionParametersAsync(
             Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             CancellationToken cancellationToken)
         {
-            List<SymbolAndProjectId> results = null;
+            var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             var parameter = parameterAndProjectId.Symbol;
             if (parameter.ContainingSymbol.IsAnonymousFunction())
@@ -94,7 +92,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                 var container = GetContainer(semanticModel, parameterNode, syntaxFactsService);
                                 if (container != null)
                                 {
-                                    results = new List<SymbolAndProjectId>();
                                     results.AddRange(CascadeBetweenAnonymousFunctionParameters(
                                         document, semanticModel, container, parameterAndProjectId, convertedType, cancellationToken));
                                 }
@@ -110,21 +107,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     int ordinal = parameter.Ordinal;
                     if (invokeMethod != null && ordinal < invokeMethod.Parameters.Length)
                     {
-                        if (results == null)
-                        {
-                            results = new List<SymbolAndProjectId>();
-                        }
-
                         results.Add(parameterAndProjectId.WithSymbol(
                             invokeMethod.Parameters[ordinal]));
                     }
                 }
             }
 
-            return results ?? SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
+            return results.ToImmutableAndFree();
         }
 
-        private IEnumerable<SymbolAndProjectId> CascadeBetweenAnonymousFunctionParameters(
+        private ImmutableArray<SymbolAndProjectId> CascadeBetweenAnonymousFunctionParameters(
             Document document,
             SemanticModel semanticModel,
             SyntaxNode container,
@@ -132,6 +124,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ITypeSymbol convertedType1,
             CancellationToken cancellationToken)
         {
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
             var parameter = parameterAndProjectId.Symbol;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             foreach (var token in container.DescendantTokens())
@@ -149,11 +143,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                         if (convertedType1.Equals(convertedType2))
                         {
-                            yield return parameterAndProjectId.WithSymbol(symbol);
+                            result.Add(parameterAndProjectId.WithSymbol(symbol));
                         }
                     }
                 }
             }
+
+            return result.ToImmutableAndFree();
         }
 
         private bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
@@ -184,12 +180,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return syntaxFactsService.GetContainingVariableDeclaratorOfFieldDeclaration(parameterNode);
         }
 
-        private async Task<IEnumerable<SymbolAndProjectId>> CascadeBetweenPropertyOrEventAndAccessorParameterAsync(
+        private async Task<ImmutableArray<SymbolAndProjectId>> CascadeBetweenPropertyOrEventAndAccessorParameterAsync(
             Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             CancellationToken cancellationToken)
         {
-            var results = new List<SymbolAndProjectId>();
+            var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
@@ -272,12 +268,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return results;
+            return results.ToImmutableAndFree();
         }
 
-        private IEnumerable<SymbolAndProjectId> CascadeBetweenPartialMethodParameters(
+        private ImmutableArray<SymbolAndProjectId> CascadeBetweenPartialMethodParameters(
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId)
         {
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
             var parameter = parameterAndProjectId.Symbol;
             if (parameter.ContainingSymbol is IMethodSymbol)
             {
@@ -285,14 +283,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var method = (IMethodSymbol)parameter.ContainingSymbol;
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.Parameters.Length)
                 {
-                    yield return parameterAndProjectId.WithSymbol(method.PartialDefinitionPart.Parameters[ordinal]);
+                    result.Add(
+                        parameterAndProjectId.WithSymbol(method.PartialDefinitionPart.Parameters[ordinal]));
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.Parameters.Length)
                 {
-                    yield return parameterAndProjectId.WithSymbol(method.PartialImplementationPart.Parameters[ordinal]);
+                    result.Add(
+                        parameterAndProjectId.WithSymbol(method.PartialImplementationPart.Parameters[ordinal]));
                 }
             }
+
+            return result.ToImmutableAndFree();
         }
     }
 }

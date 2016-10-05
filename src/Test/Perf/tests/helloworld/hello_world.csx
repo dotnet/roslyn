@@ -30,7 +30,7 @@ class HelloWorldTest : PerfTest
         _logger.Flush();
     }
     
-    public override int Iterations => 1;
+    public override int Iterations => 3;
     public override string Name => "hello world";
     public override string MeasuredProc => "csc";
     public override bool ProvidesScenarios => false;

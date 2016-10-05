@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -34,15 +35,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken = cancellationToken;
             }
 
-            protected abstract Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
+            protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
             public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
-            public async Task<IEnumerable<SymbolResult<ISymbol>>> FindDeclarationsAsync(
+            public async Task<ImmutableArray<SymbolResult<ISymbol>>> FindDeclarationsAsync(
                 string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
             {
                 if (name != null && string.IsNullOrWhiteSpace(name))
                 {
-                    return SpecializedCollections.EmptyEnumerable<SymbolResult<ISymbol>>();
+                    return ImmutableArray<SymbolResult<ISymbol>>.Empty;
                 }
 
                 var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
@@ -52,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     // We did an exact, case insensitive, search.  Case sensitive matches should
                     // be preffered though over insensitive ones.
-                    return symbols.Select(s => SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1)).ToList();
+                    return symbols.SelectAsArray(s => 
+                        SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
                 }
 
                 // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
@@ -60,14 +62,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // compiler bowels when we call FindDeclarations.
                 using (var similarityChecker = new WordSimilarityChecker(name, substringsAreSimilar: false))
                 {
-                    return symbols.Select(s =>
+                    return symbols.SelectAsArray(s =>
                     {
                         double matchCost;
                         var areSimilar = similarityChecker.AreSimilar(s.Name, out matchCost);
 
                         Debug.Assert(areSimilar);
                         return SymbolResult.Create(s.Name, nameNode, s, matchCost);
-                    }).ToList();
+                    });
                 }
             }
         }
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
             }
 
-            protected override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            protected override Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 return SymbolFinder.FindDeclarationsAsync(_project, searchQuery, filter, CancellationToken);
@@ -133,14 +135,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _projectToAssembly = projectToAssembly;
             }
 
-            protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
+            protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
+                string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     // Looks like there was nothing in the cache.  Return no results for now.
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // Don't create the assembly until it is actually needed by the SymbolTreeInfo.FindAsync
@@ -190,14 +193,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _metadataReference);
             }
 
-            protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 return await info.FindAsync(searchQuery, _assembly, filter, CancellationToken).ConfigureAwait(false);

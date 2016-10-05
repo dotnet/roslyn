@@ -21,14 +21,14 @@ class C
 {
     public string Text
     {
-        $${|hint:get{|collapse:
+        $${|hint:get{|textspan:
         {
         }|}|}
     }
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -41,7 +41,7 @@ class C
     {
         {|span1:// My
         // Getter|}
-        $${|hint2:get{|collapse2:
+        $${|hint2:get{|textspan2:
         {
         }|}|}
     }
@@ -50,7 +50,7 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -63,7 +63,7 @@ class C
     {
         {|span1:/* My
            Getter */|}
-        $${|hint2:get{|collapse2:
+        $${|hint2:get{|textspan2:
         {
         }|}|}
     }
@@ -72,7 +72,7 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "/* My ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -83,7 +83,7 @@ class C
 {
     public string Text
     {
-        $${|hint:get{|collapse:
+        $${|hint:get{|textspan:
         {
         }|}|}
         set
@@ -93,7 +93,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -106,7 +106,7 @@ class C
     {
         {|span1:// My
         // Getter|}
-        $${|hint2:get{|collapse2:
+        $${|hint2:get{|textspan2:
         {
         }|}|}
         set
@@ -118,7 +118,7 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -131,7 +131,7 @@ class C
     {
         {|span1:/* My
            Getter */|}
-        $${|hint2:get{|collapse2:
+        $${|hint2:get{|textspan2:
         {
         }|}|}
         set
@@ -143,7 +143,7 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "/* My ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -154,14 +154,14 @@ class C
 {
     public string Text
     {
-        $${|hint:set{|collapse:
+        $${|hint:set{|textspan:
         {
         }|}|}
     }
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -174,7 +174,7 @@ class C
     {
         {|span1:// My
         // Setter|}
-        $${|hint2:set{|collapse2:
+        $${|hint2:set{|textspan2:
         {
         }|}|}
     }
@@ -182,7 +182,7 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -195,7 +195,7 @@ class C
     {
         {|span1:/* My
            Setter */|}
-        $${|hint2:set{|collapse2:
+        $${|hint2:set{|textspan2:
         {
         }|}|}
     }
@@ -203,7 +203,7 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "/* My ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -217,14 +217,14 @@ class C
         get
         {
         }
-        $${|hint:set{|collapse:
+        $${|hint:set{|textspan:
         {
         }|}|}
     }
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -240,7 +240,7 @@ class C
         }
         {|span1:// My
         // Setter|}
-        $${|hint2:set{|collapse2:
+        $${|hint2:set{|textspan2:
         {
         }|}|}
     }
@@ -248,7 +248,7 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -264,7 +264,7 @@ class C
         }
         {|span1:/* My
            Setter */|}
-        $${|hint2:set{|collapse2:
+        $${|hint2:set{|textspan2:
         {
         }|}|}
     }
@@ -272,7 +272,7 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "/* My ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

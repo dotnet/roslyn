@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
         }
 
-        protected override async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<TSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -47,13 +47,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
 
                     var overriddenMember = symbolAndProjectId.WithSymbol(symbol.OverriddenMember());
-                    return overriddenMember.Symbol == null
-                        ? interfaceMembersImplemented.Concat(overrides)
-                        : interfaceMembersImplemented.Concat(overrides).Concat(overriddenMember);
+                    if (overriddenMember.Symbol == null)
+                    {
+                        return interfaceMembersImplemented.Concat(overrides);
+                    }
+
+                    return interfaceMembersImplemented.Concat(overrides).Concat(overriddenMember);
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<SymbolAndProjectId>();
+            return ImmutableArray<SymbolAndProjectId>.Empty;
         }
     }
 }

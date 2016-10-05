@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         isApplicable: null);
                 }
 
-                private async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+                private async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
                     string versionOpt, 
                     bool isLocal,
                     Document document, 

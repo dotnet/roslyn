@@ -18,26 +18,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
     internal abstract class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {
-        public async Task<IEnumerable<DocumentHighlights>> GetDocumentHighlightsAsync(Document document, int position, IEnumerable<Document> documentsToSearch, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
+            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             // use speculative semantic model to see whether we are on a symbol we can do HR
             var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
+
             var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
+                semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
             {
-                return SpecializedCollections.EmptyEnumerable<DocumentHighlights>();
+                return ImmutableArray<DocumentHighlights>.Empty;
             }
 
             symbol = await GetSymbolToSearchAsync(document, position, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
             {
-                return SpecializedCollections.EmptyEnumerable<DocumentHighlights>();
+                return ImmutableArray<DocumentHighlights>.Empty;
             }
 
             // Get unique tags for referenced symbols
-            return await GetTagsForReferencedSymbolAsync(symbol, ImmutableHashSet.CreateRange(documentsToSearch), solution, cancellationToken).ConfigureAwait(false);
+            return await GetTagsForReferencedSymbolAsync(
+                new SymbolAndProjectId(symbol, document.Project.Id), documentsToSearch, 
+                solution, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
@@ -53,22 +58,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return await SymbolFinder.FindSymbolAtPositionAsync(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<IEnumerable<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
-            ISymbol symbol,
+        private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
+            SymbolAndProjectId symbolAndProjectId,
             IImmutableSet<Document> documentsToSearch,
             Solution solution,
             CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             Contract.ThrowIfNull(symbol);
             if (ShouldConsiderSymbol(symbol))
             {
-                var references = await SymbolFinder.FindReferencesAsync(
-                    symbol, solution, progress: null, documents: documentsToSearch, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var progress = new StreamingProgressCollector(
+                    StreamingFindReferencesProgress.Instance);
+                await SymbolFinder.FindReferencesAsync(
+                    symbolAndProjectId, solution, progress,
+                    documentsToSearch, cancellationToken).ConfigureAwait(false);
 
-                return await FilterAndCreateSpansAsync(references, solution, documentsToSearch, symbol, cancellationToken).ConfigureAwait(false);
+                return await FilterAndCreateSpansAsync(
+                    progress.GetReferencedSymbols(), solution, documentsToSearch, 
+                    symbol, cancellationToken).ConfigureAwait(false);
             }
 
-            return SpecializedCollections.EmptyEnumerable<DocumentHighlights>();
+            return ImmutableArray<DocumentHighlights>.Empty;
         }
 
         private bool ShouldConsiderSymbol(ISymbol symbol)
@@ -95,8 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
         }
 
-        private async Task<IEnumerable<DocumentHighlights>> FilterAndCreateSpansAsync(
-            IEnumerable<ReferencedSymbol> references, Solution solution, IImmutableSet<Document> documentsToSearch, ISymbol symbol, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
+            IEnumerable<ReferencedSymbol> references, Solution solution, 
+            IImmutableSet<Document> documentsToSearch, ISymbol symbol, 
+            CancellationToken cancellationToken)
         {
             references = references.FilterToItemsToShow();
             references = references.FilterNonMatchingMethodNames(solution, symbol);
@@ -114,7 +127,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 additionalReferences.AddRange(await GetAdditionalReferencesAsync(document, symbol, cancellationToken).ConfigureAwait(false));
             }
 
-            return await CreateSpansAsync(solution, symbol, references, additionalReferences, documentsToSearch, cancellationToken).ConfigureAwait(false);
+            return await CreateSpansAsync(
+                solution, symbol, references, additionalReferences, 
+                documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
         private Task<IEnumerable<Location>> GetAdditionalReferencesAsync(
@@ -129,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return Task.FromResult(SpecializedCollections.EmptyEnumerable<Location>());
         }
 
-        private async Task<IEnumerable<DocumentHighlights>> CreateSpansAsync(
+        private async Task<ImmutableArray<DocumentHighlights>> CreateSpansAsync(
             Solution solution,
             ISymbol symbol,
             IEnumerable<ReferencedSymbol> references,
@@ -196,19 +211,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
             }
 
-            var list = new List<DocumentHighlights>(tagMap.Count);
+            var list = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count);
             foreach (var kvp in tagMap)
             {
-                var spans = new List<HighlightSpan>(kvp.Value.Count);
+                var spans = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count);
                 foreach (var span in kvp.Value)
                 {
                     spans.Add(span);
                 }
 
-                list.Add(new DocumentHighlights(kvp.Key, spans));
+                list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutableAndFree()));
             }
 
-            return list;
+            return list.ToImmutableAndFree();
         }
 
         private static bool ShouldIncludeDefinition(ISymbol symbol)
@@ -247,7 +262,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
         }
 
-        private async Task<ValueTuple<Document, TextSpan>?> GetLocationSpanAsync(Solution solution, Location location, CancellationToken cancellationToken)
+        private async Task<ValueTuple<Document, TextSpan>?> GetLocationSpanAsync(
+            Solution solution, Location location, CancellationToken cancellationToken)
         {
             try
             {

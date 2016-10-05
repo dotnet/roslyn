@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private readonly SolutionCrawlerProgressReporter _progressReporter;
 
         private readonly IAsynchronousOperationListener _listener;
-        private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
         private readonly Dictionary<Workspace, WorkCoordinator> _documentWorkCoordinatorMap;
+
+        private ImmutableDictionary<string, ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
 
         [ImportingConstructor]
         public SolutionCrawlerRegistrationService(
@@ -82,6 +83,39 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             SolutionCrawlerLogger.LogUnregistration(coordinator.CorrelationId);
+        }
+
+        public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
+        {
+            // now update all existing work coordinator
+            lock (_gate)
+            {
+                var lazyProvider = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => provider, metadata);
+
+                // update existing map for future solution crawler registration - no need for interlock but this makes add or update easier
+                ImmutableInterlocked.AddOrUpdate(ref _analyzerProviders, metadata.Name, (n) => ImmutableArray.Create(lazyProvider), (n, v) => v.Add(lazyProvider));
+
+                // assert map integrity
+                AssertAnalyzerProviders(_analyzerProviders);
+
+                // find existing coordinator to update
+                var lazyProviders = _analyzerProviders[metadata.Name];
+                foreach (var kv in _documentWorkCoordinatorMap)
+                {
+                    var workspace = kv.Key;
+                    var coordinator = kv.Value;
+
+                    Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata> picked;
+                    if (!TryGetProvider(workspace.Kind, lazyProviders, out picked) || picked != lazyProvider)
+                    {
+                        // check whether new provider belong to current workspace
+                        continue;
+                    }
+
+                    var analyzer = lazyProvider.Value.CreateIncrementalAnalyzer(workspace);
+                    coordinator.AddAnalyzer(analyzer, metadata.HighPriorityForActiveFile);
+                }
+            }
         }
 
         public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds, IEnumerable<DocumentId> documentIds, bool highPriority)

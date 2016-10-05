@@ -123,11 +123,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_Outlining As String
-            Get
-                Return BasicVSResources.Outlining
-            End Get
-        End Property
+        Public ReadOnly Property Option_Outlining As String = ServicesVSResources.Outlining
+
+        Public ReadOnly Property Option_Show_outlining_for_declaration_level_constructs As String =
+            ServicesVSResources.Show_outlining_for_declaration_level_constructs
+
+        Public ReadOnly Property Option_Show_outlining_for_code_level_constructs As String =
+            ServicesVSResources.Show_outlining_for_code_level_constructs
+
+        Public ReadOnly Property Option_Show_outlining_for_comments_and_preprocessor_regions As String =
+            ServicesVSResources.Show_outlining_for_comments_and_preprocessor_regions
+
+        Public ReadOnly Property Option_Block_Structure_Guides As String =
+            ServicesVSResources.Block_Structure_Guides
+
+        Public ReadOnly Property Option_Show_guides_for_declaration_level_constructs As String =
+            ServicesVSResources.Show_guides_for_declaration_level_constructs
+
+        Public ReadOnly Property Option_Show_guides_for_code_level_constructs As String =
+            ServicesVSResources.Show_guides_for_code_level_constructs
 
         Public ReadOnly Property Option_Performance As String
             Get

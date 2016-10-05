@@ -5,39 +5,63 @@ namespace Microsoft.CodeAnalysis.Structure
     internal static class BlockTypes
     {
         // Basic types.
-        public const string Structural = nameof(Structural);
         public const string Nonstructural = nameof(Nonstructural);
 
+        // Trivia
+        public const string Comment = nameof(Comment);
+        public const string PreprocessorRegion = nameof(PreprocessorRegion);
+
         // Top level declarations.
+        public const string Imports = nameof(Imports);
         public const string Namespace = nameof(Namespace);
-        public const string Class = nameof(Class);
-        public const string Enum = nameof(Enum);
-        public const string Interface = nameof(Interface);
-        public const string Module = nameof(Module);
-        public const string Structure = nameof(Structure);
+        public const string Type = nameof(Type);
+        public const string Member = nameof(Member);
 
-        // Type level declarations.
-        public const string Accessor = nameof(Accessor);
-        public const string Constructor = nameof(Constructor);
-        public const string Destructor = nameof(Destructor);
-        public const string Event = nameof(Event);
-        public const string Indexer = nameof(Indexer);
-        public const string Method = nameof(Method);
-        public const string Operator = nameof(Operator);
-        public const string Property = nameof(Property);
-
-        // Statements
-        public const string Case = nameof(Case);
+        // Statements and expressions.
+        public const string Statement = nameof(Statement);
         public const string Conditional = nameof(Conditional);
-        public const string Lock = nameof(Lock);
         public const string Loop = nameof(Loop);
-        public const string TryCatchFinally = nameof(TryCatchFinally);
-        public const string Standalone = nameof(Standalone);
 
-        // Expressions
-        public const string AnonymousMethod = nameof(AnonymousMethod);
-        public const string Xml = nameof(Xml);
+        public const string Expression = nameof(Expression);
 
-        public const string Other = nameof(Other);
+        internal static bool IsCommentOrPreprocessorRegion(string type)
+        {
+            switch (type)
+            {
+                case Comment:
+                case PreprocessorRegion:
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsExpressionLevelConstruct(string type)
+        {
+            return type == Expression;
+        }
+
+        internal static bool IsStatementLevelConstruct(string type)
+        {
+            switch (type)
+            {
+                case Statement:
+                case Conditional:
+                case Loop:
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsCodeLevelConstruct(string type)
+        {
+            return IsExpressionLevelConstruct(type) || IsStatementLevelConstruct(type);
+        }
+
+        internal static bool IsDeclarationLevelConstruct(string type)
+        {
+            return !IsCodeLevelConstruct(type) && !IsCommentOrPreprocessorRegion(type);
+        }
     }
 }

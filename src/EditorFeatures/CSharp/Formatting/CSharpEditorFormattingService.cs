@@ -28,24 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
     [ExportLanguageService(typeof(IEditorFormattingService), LanguageNames.CSharp), Shared]
     internal partial class CSharpEditorFormattingService : IEditorFormattingService
     {
-        private readonly ImmutableHashSet<char> _supportedChars;
-        private readonly ImmutableHashSet<char> _autoFormattingTriggerChars;
-        private readonly ImmutableDictionary<char, ImmutableHashSet<SyntaxKind>> _multiWordsMap;
+        // All the characters that might potentially trigger formatting when typed
+        private readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
         public CSharpEditorFormattingService()
         {
-            _autoFormattingTriggerChars = ImmutableHashSet.CreateRange<char>(";}");
-
-            // add all auto formatting trigger to supported char
-            _supportedChars = _autoFormattingTriggerChars.Union("{}#nte:)");
-
-            // set up multi words map
-            _multiWordsMap = ImmutableDictionary.CreateRange(new[]
-            {
-                KeyValuePair.Create('n', ImmutableHashSet.Create(SyntaxKind.RegionKeyword, SyntaxKind.EndRegionKeyword)),
-                KeyValuePair.Create('t', ImmutableHashSet.Create(SyntaxKind.SelectKeyword)),
-                KeyValuePair.Create('e', ImmutableHashSet.Create(SyntaxKind.WhereKeyword)),
-            });
         }
 
         public bool SupportsFormatDocument { get { return true; } }
@@ -271,14 +258,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         private bool ValidSingleOrMultiCharactersTokenKind(char typedChar, SyntaxKind kind)
         {
-            ImmutableHashSet<SyntaxKind> set;
-            if (!_multiWordsMap.TryGetValue(typedChar, out set))
+            // We'll autoformat on n, t, e, only if they are the last character of the below
+            // keywords.  
+            switch (typedChar)
             {
-                // all single char token is valid
-                return true;
+                case ('n'):
+                    return kind == SyntaxKind.RegionKeyword || kind == SyntaxKind.EndRegionKeyword;
+                case ('t'):
+                    return kind == SyntaxKind.SelectKeyword;
+                case ('e'):
+                    return kind == SyntaxKind.WhereKeyword;
+                default:
+                    return true;
             }
-
-            return set.Contains(kind);
         }
 
         private bool IsInvalidToken(char typedChar, SyntaxToken token)

@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbNode IsNot Nothing AndAlso vbNode.IsRightSideOfQualifiedName()
         End Function
 
-        Public Function IsMemberAccessExpressionName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMemberAccessExpressionName
+        Public Function IsNameOfMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNameOfMemberAccessExpression
             Dim vbNode = TryCast(node, SimpleNameSyntax)
             Return vbNode IsNot Nothing AndAlso vbNode.IsMemberAccessExpressionName()
         End Function
@@ -925,7 +925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetInheritanceNames(typeBlock As TypeBlockSyntax) As ImmutableArray(Of String)
-            Dim builder = ImmutableArray.CreateBuilder(Of String)
+            Dim builder = ArrayBuilder(Of String).GetInstance()
 
             Dim aliasMap = GetAliasMap(typeBlock)
             Try
@@ -937,7 +937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddInheritanceNames(builder, implementsStatement.Types, aliasMap)
                 Next
 
-                Return builder.ToImmutable()
+                Return builder.ToImmutableAndFree()
             Finally
                 FreeAliasMap(aliasMap)
             End Try
@@ -966,7 +966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub AddInheritanceNames(
-                builder As ImmutableArray(Of String).Builder,
+                builder As ArrayBuilder(Of String),
                 types As SeparatedSyntaxList(Of TypeSyntax),
                 aliasMap As Dictionary(Of String, String))
 
@@ -976,7 +976,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddInheritanceName(
-                builder As ImmutableArray(Of String).Builder,
+                builder As ArrayBuilder(Of String),
                 typeSyntax As TypeSyntax,
                 aliasMap As Dictionary(Of String, String))
             Dim name = GetTypeName(typeSyntax)
@@ -1515,6 +1515,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function AreEquivalent(node1 As SyntaxNode, node2 As SyntaxNode) As Boolean Implements ISyntaxFactsService.AreEquivalent
             Return SyntaxFactory.AreEquivalent(node1, node2)
+        End Function
+
+        Public Function IsExpressionOfInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfInvocationExpression
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, InvocationExpressionSyntax)?.Expression Is node
+        End Function
+
+        Public Function IsExpressionOfAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfAwaitExpression
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, AwaitExpressionSyntax)?.Expression Is node
+        End Function
+
+        Public Function IsExpressionOfMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfMemberAccessExpression
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, MemberAccessExpressionSyntax)?.Expression Is node
+        End Function
+
+        Public Function GetExpressionOfInvocationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfInvocationExpression
+            Return DirectCast(node, InvocationExpressionSyntax).Expression
+        End Function
+
+        Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfAwaitExpression
+            Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
     End Class
 End Namespace

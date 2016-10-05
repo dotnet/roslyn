@@ -166,6 +166,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         targetType = CByte(targetInfo.Underlying)
+
+                    ElseIf parameterType.IsArrayType Then
+                        specType = DirectCast(parameterType, ArrayTypeSymbol).ElementType.SpecialType
+
                     End If
 
                     Select Case targetType
@@ -232,6 +236,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             foundMatch = parameterType = lazySystemType
                             k += 1
+
+                        Case CByte(SignatureTypeCode.SZArray)
+                            ' skip over and check the next byte
+                            foundMatch = parameterType.IsArrayType
 
                         Case Else
                             Return -1

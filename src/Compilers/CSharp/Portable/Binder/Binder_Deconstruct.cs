@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Is this a field?
-            SourceMemberFieldSymbolFromDesignation field = LookupDeclaredField(designation);
+            GlobalExpressionVariable field = LookupDeclaredField(designation);
 
             if ((object)field == null)
             {

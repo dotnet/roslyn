@@ -139,6 +139,7 @@ namespace Roslyn.Test.Utilities
             public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
             public const string Rename = nameof(Rename);
             public const string RenameTracking = nameof(RenameTracking);
+            public const string RemoteHost = nameof(RemoteHost);
             public const string RQName = nameof(RQName);
             public const string SignatureHelp = nameof(SignatureHelp);
             public const string Simplification = nameof(Simplification);
