@@ -1342,6 +1342,28 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.Equal("<anonymous type: m1 As Integer, m2 As Integer>", type.ToDisplayString())
         End Sub
 
+        <Fact>
+        Public Sub CreateAnonymousType_Locations()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim tree = VisualBasicSyntaxTree.ParseText("Class X")
+            compilation = compilation.AddSyntaxTrees(tree)
+
+            Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
+            Dim loc2 = Location.Create(tree, New TextSpan(1, 1))
+
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create(DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol),
+                                          DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(False, False),
+                    ImmutableArray.Create(loc1, loc2))
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal(loc1, type.GetMembers("m1").Single().Locations.Single())
+            Assert.Equal(loc2, type.GetMembers("m2").Single().Locations.Single())
+            Assert.Equal("<anonymous type: m1 As Integer, m2 As Integer>", type.ToDisplayString())
+        End Sub
+
         <Fact()>
         Public Sub CreateAnonymousType_NothingArgument()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
