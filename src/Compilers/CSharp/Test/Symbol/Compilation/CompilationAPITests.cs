@@ -2259,7 +2259,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
         public void CreateAnonymousType_NullLocations()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentNullException>(() =>
                 compilation.CreateAnonymousTypeSymbol(
                     ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
                                           (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
@@ -2331,7 +2331,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             var type = compilation.CreateAnonymousTypeSymbol(
                         ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32),
                                                            compilation.GetSpecialType(SpecialType.System_Int32)),
-                        ImmutableArray.Create("m1, m2"),
+                        ImmutableArray.Create("m1", "m2"),
                         memberLocations: ImmutableArray.Create(loc1, loc2));
 
             Assert.True(type.IsAnonymousType);
