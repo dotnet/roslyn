@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                         Dim base = literal.GetBase()
 
-                        If Not base.HasValue Then
+                        If Not base.HasValue OrElse idText.Contains("_") Then
                             Return newNode
                         End If
 
