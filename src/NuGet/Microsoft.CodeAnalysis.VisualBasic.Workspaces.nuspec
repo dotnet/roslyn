@@ -8,6 +8,7 @@
 Supported Platforms:
 - .NET Framework 4.5
     </description>
+    <minClientVersion>3.3</minClientVersion>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />

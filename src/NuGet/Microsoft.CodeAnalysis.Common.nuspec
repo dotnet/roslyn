@@ -11,6 +11,7 @@
       - Windows 8
       - Portable Class Libraries
     </description>
+    <minClientVersion>3.3</minClientVersion>
     <dependencies>
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.Analyzers"              version="$MicrosoftCodeAnalysisAnalyzersVersion$" />

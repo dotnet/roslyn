@@ -11,6 +11,7 @@ Supported Platforms:
 - Windows 8
 - Portable Class Libraries    
     </description>
+    <minClientVersion>3.3</minClientVersion>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$version$]" />

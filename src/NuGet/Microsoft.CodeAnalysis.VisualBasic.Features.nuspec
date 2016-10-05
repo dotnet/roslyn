@@ -10,6 +10,7 @@ Supported Platforms:
 - Windows 8
 - Portable Class Libraries
     </description>
+    <minClientVersion>3.3</minClientVersion>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="$version$" />
       <dependency id="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$version$" />
