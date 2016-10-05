@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis
             {
                 location = location ?? Location.None;
 
-                WriteString(location.SourceTree.FilePath ?? "");
+                WriteString(location.SourceTree?.FilePath ?? "");
                 WriteInteger(location.SourceSpan.Start);
                 WriteInteger(location.SourceSpan.Length);
             }
