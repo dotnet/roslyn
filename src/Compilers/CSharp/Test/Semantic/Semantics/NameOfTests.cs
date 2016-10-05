@@ -9,6 +9,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading;
 using System.Linq;
+using static Microsoft.CodeAnalysis.CSharp.UnitTests.SymbolUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1346,7 +1347,7 @@ class C
             var identifierName = node.Type;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.False(symbolInfo.IsEmpty);
+            Assert.Equal(symbolInfo.Symbol.ToTestDisplayString(), "C..ctor(System.Int32 i)");
         }
     }
 }
