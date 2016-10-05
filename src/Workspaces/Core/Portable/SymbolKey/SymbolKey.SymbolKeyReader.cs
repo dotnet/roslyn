@@ -2,16 +2,18 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private abstract class Reader<TStringResult> : IDisposable
+        private abstract class Reader<TStringResult, TLocationResult> : IDisposable
         {
             protected const char OpenParenChar = '(';
             protected const char CloseParenChar = ')';
@@ -19,6 +21,8 @@ namespace Microsoft.CodeAnalysis
             protected const char DoubleQuoteChar = '"';
 
             private readonly Func<TStringResult> _readString;
+            private readonly Func<bool> _readBoolean;
+            private readonly Func<TLocationResult> _readLocation;
             private readonly Func<int> _readInteger;
             private readonly Func<RefKind> _readRefKind;
 
@@ -30,6 +34,8 @@ namespace Microsoft.CodeAnalysis
             public Reader()
             {
                 _readString = ReadString;
+                _readBoolean = ReadBoolean;
+                _readLocation = ReadLocation;
                 _readInteger = ReadInteger;
                 _readRefKind = () => (RefKind)ReadInteger();
             }
@@ -109,6 +115,8 @@ namespace Microsoft.CodeAnalysis
                 return ReadStringNoSpace();
             }
 
+            public abstract TLocationResult ReadLocation();
+
             protected TStringResult ReadStringNoSpace()
             {
                 if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
@@ -163,6 +171,16 @@ namespace Microsoft.CodeAnalysis
                 return ReadArray(_readString);
             }
 
+            public ImmutableArray<bool> ReadBooleanArray()
+            {
+                return ReadArray(_readBoolean);
+            }
+
+            public ImmutableArray<TLocationResult> ReadLocationArray()
+            {
+                return ReadArray(_readLocation);
+            }
+
             public ImmutableArray<RefKind> ReadRefKindArray()
             {
                 return ReadArray(_readRefKind);
@@ -196,7 +214,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private abstract class Reader<TSymbolResult, TStringResult> : Reader<TStringResult>
+        private abstract class Reader<TSymbolResult, TStringResult, TLocationResult> : Reader<TStringResult, TLocationResult>
         {
             private readonly Dictionary<int, TSymbolResult> _idToResult = new Dictionary<int, TSymbolResult>();
             private readonly Func<TSymbolResult> _readSymbolKey;
@@ -273,7 +291,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class GetHashCodeReader : Reader<int, int>
+        private class GetHashCodeReader : Reader<int, int, int>
         {
             private static readonly ObjectPool<GetHashCodeReader> s_pool =
                 new ObjectPool<GetHashCodeReader>(() => new GetHashCodeReader());
@@ -317,6 +335,15 @@ namespace Microsoft.CodeAnalysis
             protected override int CreateNullForString()
             {
                 return 0;
+            }
+
+            public override int ReadLocation()
+            {
+                var filePath = ReadString();
+                var start = ReadInteger();
+                var length = ReadInteger();
+                return Hash.Combine(filePath,
+                       Hash.Combine(start, length));
             }
 
             public int ReadSymbolKeyArrayHashCode()
@@ -382,7 +409,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class RemoveAssemblySymbolKeysReader : Reader<object>
+        private class RemoveAssemblySymbolKeysReader : Reader<object, object>
         {
             private readonly StringBuilder _builder = new StringBuilder();
 
@@ -432,6 +459,12 @@ namespace Microsoft.CodeAnalysis
                 return _builder.ToString();
             }
 
+            public override object ReadLocation()
+            {
+                // Should never hit this.
+                throw new InvalidOperationException();
+            }
+
             protected override object CreateResultForString(int start, int end, bool hasEmbeddedQuote)
             {
                 // 'start' is right after the open quote, and 'end' is right before the close quote.
@@ -454,7 +487,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class SymbolKeyReader : Reader<SymbolKeyResolution, string>
+        private class SymbolKeyReader : Reader<SymbolKeyResolution, string, Location>
         {
             private static readonly ObjectPool<SymbolKeyReader> s_readerPool =
                 new ObjectPool<SymbolKeyReader>(() => new SymbolKeyReader());
@@ -516,6 +549,15 @@ namespace Microsoft.CodeAnalysis
             protected override string CreateNullForString()
             {
                 return null;
+            }
+
+            public override Location ReadLocation()
+            {
+                var filePath = ReadString();
+                var start = ReadInteger();
+                var length = ReadInteger();
+                var syntaxTree = Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+                return Location.Create(syntaxTree, new TextSpan(start, length));
             }
 
             protected override SymbolKeyResolution ReadWorker(SymbolKeyType type)

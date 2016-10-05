@@ -15,19 +15,25 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(symbol.IsAnonymousType);
 
-                var properties = symbol.GetMembers().OfType<IPropertySymbol>().ToArray();
-                var propertyTypes = properties.Select(p => p.Type).ToImmutableArray();
-                var propertyNames = properties.Select(p => p.Name).ToImmutableArray();
+                var properties = symbol.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
+                var propertyTypes = properties.SelectAsArray(p => p.Type);
+                var propertyNames = properties.SelectAsArray(p => p.Name);
+                var propertyIsReadOnly = properties.SelectAsArray(p => p.SetMethod == null);
+                var propertyLocations = properties.SelectAsArray(p => p.Locations.FirstOrDefault());
 
                 visitor.WriteSymbolKeyArray(propertyTypes);
                 visitor.WriteStringArray(propertyNames);
+                visitor.WriteBooleanArray(propertyIsReadOnly);
+                visitor.WriteLocationArray(propertyLocations);
             }
 
             public static int GetHashCode(GetHashCodeReader reader)
             {
                 // The hash of the underlying type is good enough, we don't need to include names.
                 var symbolKeyHashCode = reader.ReadSymbolKeyArrayHashCode();
-                var elementNames = reader.ReadStringArray();
+                var propertyNames = reader.ReadStringArray();
+                var propertyIsReadOnly = reader.ReadBooleanArray();
+                var propertyLocations = reader.ReadLocationArray();
 
                 return symbolKeyHashCode;
             }
@@ -37,12 +43,15 @@ namespace Microsoft.CodeAnalysis
                 var propertyTypeSymbols = reader.ReadSymbolKeyArray();
                 var propertyTypes = propertyTypeSymbols.Select(r => GetFirstSymbol<ITypeSymbol>(r)).ToImmutableArray();
                 var propertyNames = reader.ReadStringArray();
+                var propertyIsReadOnly = reader.ReadBooleanArray();
+                var propertyLocations = reader.ReadLocationArray();
 
                 if (propertyTypes.Length == propertyNames.Length)
                 {
                     try
                     {
-                        var anonymousType = reader.Compilation.CreateAnonymousTypeSymbol(propertyTypes, propertyNames);
+                        var anonymousType = reader.Compilation.CreateAnonymousTypeSymbol(
+                            propertyTypes, propertyNames, propertyIsReadOnly, propertyLocations);
                         return new SymbolKeyResolution(anonymousType);
                     }
                     catch (ArgumentException)
