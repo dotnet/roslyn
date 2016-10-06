@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // If we didn't have it in our cache, see if we can load it from disk.
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
-                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                     solution, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return info;
             }
@@ -273,9 +273,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 MetadataInfo metadataInfo;
                 if (!_metadataPathToInfo.TryGetValue(key, out metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
                 {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                         project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
+                    // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
+                    // We still want to cache that result so that don't try to continuously produce
+                    // this info over and over again.
                     metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }
