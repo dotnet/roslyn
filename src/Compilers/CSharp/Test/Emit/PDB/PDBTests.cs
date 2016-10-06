@@ -2294,6 +2294,7 @@ class Student : Person { public double GPA; }
           <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
+          <slot kind=""temp"" />
           <slot kind=""0"" offset=""51"" />
           <slot kind=""21"" offset=""0"" />
           <slot kind=""0"" offset=""155"" />
@@ -2303,21 +2304,21 @@ class Student : Person { public double GPA; }
       <sequencePoints>
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
-        <entry offset=""0x45"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
-        <entry offset=""0x6b"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
-        <entry offset=""0x91"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
-        <entry offset=""0xad"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
-        <entry offset=""0xc1"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+        <entry offset=""0x49"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
+        <entry offset=""0x6f"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
+        <entry offset=""0x95"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
+        <entry offset=""0xb1"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
+        <entry offset=""0xc5"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xc4"">
-        <scope startOffset=""0x2e"" endOffset=""0x66"">
-          <local name=""s"" il_index=""4"" il_start=""0x2e"" il_end=""0x66"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xc8"">
+        <scope startOffset=""0x32"" endOffset=""0x6a"">
+          <local name=""s"" il_index=""5"" il_start=""0x32"" il_end=""0x6a"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x66"" endOffset=""0x8c"">
-          <local name=""s"" il_index=""6"" il_start=""0x66"" il_end=""0x8c"" attributes=""0"" />
+        <scope startOffset=""0x6a"" endOffset=""0x90"">
+          <local name=""s"" il_index=""7"" il_start=""0x6a"" il_end=""0x90"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x8c"" endOffset=""0xad"">
-          <local name=""t"" il_index=""7"" il_start=""0x8c"" il_end=""0xad"" attributes=""0"" />
+        <scope startOffset=""0x90"" endOffset=""0xb1"">
+          <local name=""t"" il_index=""8"" il_start=""0x90"" il_end=""0xb1"" attributes=""0"" />
         </scope>
       </scope>
     </method>

@@ -72,6 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals, functions, switchSections, defaultLabel, this.BreakLabel, this, isComplete);
         }
 
+        /// <summary>
+        /// Bind a pattern switch label in order to force inference of the type of pattern variables.
+        /// </summary>
         internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
         {
             // node should be a label of this switch statement.
@@ -103,14 +106,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind match sections
             var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
-            SubsumptionDiagnosticComputer computer = new SubsumptionDiagnosticComputer(ContainingMemberOrLambda, this.Conversions, boundSwitchExpression);
+            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, this.Conversions, boundSwitchExpression);
             foreach (var sectionSyntax in sections)
             {
                 boundPatternSwitchSectionsBuilder.Add(BindPatternSwitchSection(
-                    boundSwitchExpression, sectionSyntax, originalBinder, ref defaultLabel, ref previousValueMatched, computer, diagnostics));
+                    boundSwitchExpression, sectionSyntax, originalBinder, ref defaultLabel, ref previousValueMatched, subsumption, diagnostics));
             }
 
-            isComplete = defaultLabel != null || computer.IsComplete || previousValueMatched;
+            isComplete = defaultLabel != null || subsumption.IsComplete || previousValueMatched;
             return boundPatternSwitchSectionsBuilder.ToImmutableAndFree();
         }
 
@@ -120,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder originalBinder,
             ref BoundPatternSwitchLabel defaultLabel,
             ref bool previousValueMatched,
-            SubsumptionDiagnosticComputer computer,
+            SubsumptionDiagnosticBuilder subsumption,
             DiagnosticBag diagnostics)
         {
             // Bind match section labels
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LabelSymbol label = labelsByNode[labelSyntax];
                 BoundPatternSwitchLabel boundLabel = BindPatternSwitchSectionLabel(sectionBinder, boundSwitchExpression, labelSyntax, label, ref defaultLabel, diagnostics);
                 bool valueMatched;
-                bool isReachable = computer.AddLabel(boundLabel, diagnostics, out valueMatched);
+                bool isReachable = subsumption.AddLabel(boundLabel, diagnostics, out valueMatched);
                 boundLabel = boundLabel.Update(boundLabel.Label, boundLabel.Pattern, boundLabel.Guard, isReachable && !previousValueMatched);
                 previousValueMatched |= valueMatched;
                 boundLabelsBuilder.Add(boundLabel);
@@ -172,7 +175,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
-                        return new BoundPatternSwitchLabel(node, label, pattern, null, true, hasErrors);
+                        // Until we've determined whether or not the switch label is reachable, we assume it
+                        // is. The caller updates isReachable after determine if the label is subsumed.
+                        bool isReachable = true;
+                        return new BoundPatternSwitchLabel(node, label, pattern, null, isReachable, hasErrors);
                     }
 
                 case SyntaxKind.DefaultSwitchLabel:
