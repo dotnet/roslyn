@@ -546,8 +546,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 if (differenceService == null)
                 {
-                    /// For languages that don't use a Roslyn syntax tree, they don't export a <see cref="IDocumentDifferenceService"/>
-                    /// So we should consider the whole document changed.
+                    // For languages that don't use a Roslyn syntax tree, they don't export a document difference service.
+                    // The whole document should be considered as changed in that case.
                     await EnqueueWorkItemAsync(newDocument, InvocationReasons.DocumentChanged).ConfigureAwait(false);
                 }
                 else
