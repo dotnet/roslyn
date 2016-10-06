@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(info.Language);
             writer.WriteString(info.FilePath);
             writer.WriteString(info.OutputFilePath);
+            writer.WriteBoolean(info.IsSubmission);
         }
 
         private ProjectChecksumObjectInfo DeserializeProjectChecksumObjectInfo(ObjectReader reader, CancellationToken cancellationToken)
@@ -69,8 +70,10 @@ namespace Microsoft.CodeAnalysis.Execution
             var language = reader.ReadString();
             var filePath = reader.ReadString();
             var outputFilePath = reader.ReadString();
+            var isSubmission = reader.ReadBoolean();
 
-            return new ProjectChecksumObjectInfo(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath);
+            return new ProjectChecksumObjectInfo(
+                projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, isSubmission);
         }
 
         public void SerializeDocumentChecksumObjectInfo(DocumentChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)

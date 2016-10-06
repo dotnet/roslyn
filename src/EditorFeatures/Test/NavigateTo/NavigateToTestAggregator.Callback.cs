@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
 
@@ -13,23 +13,17 @@ namespace Roslyn.Test.EditorUtilities.NavigateTo
     {
         private sealed class Callback : INavigateToCallback
         {
-            private readonly INavigateToOptions _options;
             private readonly ConcurrentBag<NavigateToItem> _itemsReceived;
 
-            /// <summary>
-            /// A manual reset event that is signaled once INavigateToCallback's Done method has
-            /// been called. This indicates the provider is done providing events, and thus the
-            /// items in itemsReceived is complete.
-            /// </summary>
-            private readonly ManualResetEvent _doneCalled;
+            private readonly TaskCompletionSource<IEnumerable<NavigateToItem>> _taskCompletionSource =
+                new TaskCompletionSource<IEnumerable<NavigateToItem>>();
 
             public Callback(INavigateToOptions options)
             {
                 Contract.ThrowIfNull(options);
 
-                _options = options;
+                Options = options;
                 _itemsReceived = new ConcurrentBag<NavigateToItem>();
-                _doneCalled = new ManualResetEvent(initialState: false);
             }
 
             public void AddItem(NavigateToItem item)
@@ -39,7 +33,7 @@ namespace Roslyn.Test.EditorUtilities.NavigateTo
 
             public void Done()
             {
-                _doneCalled.Set();
+                _taskCompletionSource.SetResult(_itemsReceived);
             }
 
             public void Invalidate()
@@ -47,24 +41,10 @@ namespace Roslyn.Test.EditorUtilities.NavigateTo
                 throw new InvalidOperationException("Unexpected call to Invalidate.");
             }
 
-            public IEnumerable<NavigateToItem> GetItemsSynchronously()
-            {
-                _doneCalled.WaitOne();
-                var items = _itemsReceived.ToArray();
+            public Task<IEnumerable<NavigateToItem>> GetItemsAsync()
+                => _taskCompletionSource.Task;
 
-                NavigateToItem dummy;
-                while (_itemsReceived.TryTake(out dummy))
-                {
-                    // do nothing.
-                }
-
-                return items;
-            }
-
-            public INavigateToOptions Options
-            {
-                get { return _options; }
-            }
+            public INavigateToOptions Options { get; }
 
             public void ReportProgress(int current, int maximum)
             {

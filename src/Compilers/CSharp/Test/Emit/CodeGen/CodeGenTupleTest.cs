@@ -4799,6 +4799,18 @@ class C
             {
                 Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, e.Message);
             }
+
+            var tree = CSharpSyntaxTree.ParseText("class C { }");
+            var loc1 = Location.Create(tree, new TextSpan(0, 1));
+            try
+            {
+                comp.CreateTupleTypeSymbol(vt2, elementLocations: new[] { loc1 }.AsImmutable());
+                Assert.True(false);
+            }
+            catch (ArgumentException e)
+            {
+                Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, e.Message);
+            }
         }
 
         [Fact]
@@ -4818,6 +4830,33 @@ class C
             Assert.True(tupleWithoutNames.TupleElementNames.IsDefault);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
+            Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
+        }
+
+        [Fact]
+        public void CreateTupleTypeSymbol_Locations()
+        {
+            var tupleComp = CreateCompilationWithMscorlib(trivial2uple);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
+
+            var intType = comp.GetSpecialType(SpecialType.System_Int32);
+            var stringType = comp.GetSpecialType(SpecialType.System_String);
+            var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType);
+
+            var tree = CSharpSyntaxTree.ParseText("class C { }");
+            var loc1 = Location.Create(tree, new TextSpan(0, 1));
+            var loc2 = Location.Create(tree, new TextSpan(1, 1));
+            var tuple = comp.CreateTupleTypeSymbol(
+                vt2, ImmutableArray.Create<string>("i1", "i2"), ImmutableArray.Create(loc1, loc2));
+
+            Assert.True(tuple.IsTupleType);
+            Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind);
+            Assert.Equal("(System.Int32 i1, System.String i2)", tuple.ToTestDisplayString());
+            Assert.Equal(new[] { "System.Int32", "System.String" }, tuple.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+            Assert.Equal(SymbolKind.NamedType, tuple.Kind);
+            Assert.Equal(loc1, tuple.GetMembers("i1").Single().Locations.Single());
+            Assert.Equal(loc2, tuple.GetMembers("i2").Single().Locations.Single());
         }
 
         [Fact]
@@ -4836,6 +4875,8 @@ class C
             Assert.True(tupleWithoutNames.TupleElementNames.IsDefault);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
+            Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact]
@@ -4853,6 +4894,8 @@ class C
             Assert.Equal(new[] { "Alice", "Bob" }, tupleWithNames.TupleElementNames);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
+            Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact]
@@ -4870,6 +4913,8 @@ class C
             Assert.Equal(new[] { null, "Item2", "Charlie" }, tupleWithSomeNames.TupleElementNames);
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, tupleWithSomeNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
             Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind);
+            Assert.All(tupleWithSomeNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact]
@@ -4886,6 +4931,8 @@ class C
             Assert.Equal(new[] { "Item2", "Item1" }, tupleWithNames.TupleElementNames);
             Assert.Equal(new[] { "System.Int32", "System.Int32" }, tupleWithNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
+            Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact]
@@ -4908,6 +4955,8 @@ class C
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
                         tuple8WithoutNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+            Assert.All(tuple8WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact]
@@ -4931,6 +4980,8 @@ class C
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
                         tuple8WithNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+            Assert.All(tuple8WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact]
@@ -4954,6 +5005,8 @@ class C
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32" },
                         tuple9WithoutNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+            Assert.All(tuple9WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact]
@@ -4977,6 +5030,9 @@ class C
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32" },
                         tuple9WithNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+
+            Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact]
@@ -5003,6 +5059,9 @@ class C
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.Int32", "System.Int32" },
                         tuple9WithNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+
+            Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact]
@@ -5023,6 +5082,8 @@ class C
             Assert.Equal(2, types.Length);
             Assert.Equal(SymbolKind.NamedType, types[0].Kind);
             Assert.Equal(SymbolKind.ErrorType, types[1].Kind);
+            Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, null));
         }
 
         [Fact, WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")]
@@ -5127,6 +5188,10 @@ End Class";
             // if names are provided, you need one for each element
             Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(new[] { intType, intType }.AsImmutable(), new[] { "Item1" }.AsImmutable()));
 
+            var syntaxTree = CSharpSyntaxTree.ParseText("class C { }");
+            var loc1 = Location.Create(syntaxTree, new TextSpan(0, 1));
+            Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(new[] { intType, intType }.AsImmutable(), elementLocations: ImmutableArray.Create(loc1)));
+
             // null types aren't allowed
             Assert.Throws<ArgumentNullException>(() => comp.CreateTupleTypeSymbol(new[] { intType, null }.AsImmutable(), default(ImmutableArray<string>)));
         }
@@ -5147,6 +5212,32 @@ End Class";
             Assert.True(tupleWithoutNames.TupleElementNames.IsDefault);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
+        }
+
+        [Fact]
+        public void CreateTupleTypeSymbol_WithLocations()
+        {
+            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
+
+            var intType = comp.GetSpecialType(SpecialType.System_Int32);
+            var stringType = comp.GetSpecialType(SpecialType.System_String);
+
+            var syntaxTree = CSharpSyntaxTree.ParseText("class C { }");
+            var loc1 = Location.Create(syntaxTree, new TextSpan(0, 1));
+            var loc2 = Location.Create(syntaxTree, new TextSpan(1, 1));
+            var tuple = comp.CreateTupleTypeSymbol(
+                ImmutableArray.Create<ITypeSymbol>(intType, stringType), 
+                ImmutableArray.Create<string>(null, null),
+                ImmutableArray.Create(loc1, loc2));
+
+            Assert.True(tuple.IsTupleType);
+            Assert.Equal("(System.Int32, System.String)", tuple.ToTestDisplayString());
+            Assert.True(tuple.TupleElementNames.IsDefault);
+            Assert.Equal(new[] { "System.Int32", "System.String" }, tuple.TupleElementTypes.Select(t => t.ToTestDisplayString()));
+            Assert.Equal(SymbolKind.NamedType, tuple.Kind);
+            Assert.Equal(loc1, tuple.GetMembers("Item1").Single().Locations.Single());
+            Assert.Equal(loc2, tuple.GetMembers("Item2").Single().Locations.Single());
         }
 
         [Fact]

@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
         }
 
-        public override BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
         {
             SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
             TextSpan switchSequencePointSpan = TextSpan.FromBounds(
@@ -390,9 +390,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequencePointWithSpan(
                 syntax: switchSyntax,
-                statementOpt: base.InstrumentBoundPatternSwitchStatement(original, rewritten),
+                statementOpt: base.InstrumentPatternSwitchStatement(original, rewritten),
                 span: switchSequencePointSpan,
                 hasErrors: false);
+        }
+
+        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        {
+            WhenClauseSyntax whenClause = (WhenClauseSyntax)original.Syntax.Parent;
+
+            return new BoundSequencePointWithSpan(
+                syntax: whenClause,
+                statementOpt: base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody),
+                span: whenClause.Span);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
@@ -421,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
         }
 
-        public override BoundExpression InstrumentSwitchStatementExpression(BoundSwitchStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the expression are being executed.

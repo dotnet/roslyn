@@ -35,12 +35,6 @@ static void addBuildEventWebHook(def myJob) {
   }   
 }
 
-// Generates the standard trigger phrases.  This is the regex which ends up matching lines like:
-//  test win32 please
-static String generateTriggerPhrase(String jobName, String opsysName, String triggerKeyword = 'this') {
-    return "(?i).*test\\W+(${jobName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*";
-}
-
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
   archiveSettings.addFiles('Binaries/**/*.pdb')
@@ -69,7 +63,7 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
     if (triggerPhraseExtra) {
       triggerCore = "${triggerCore}|${triggerPhraseExtra}"
     }
-    def triggerPhrase = "(?i)^\\s*(@?dotnet-bot\\s+)?test\\s+(${triggerCore})(\\s+please)?\\s*\$";
+    def triggerPhrase = "(?i)^\\s*(@?dotnet-bot\\s+)?(re)?test\\s+(${triggerCore})(\\s+please)?\\s*\$";
     def contextName = jobName
     Utilities.addGithubPRTriggerForBranch(myJob, branchName, contextName, triggerPhrase, triggerPhraseOnly)
   } else {

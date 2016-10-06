@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -5027,6 +5028,14 @@ End Class
                 Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, ex.Message)
             End Try
 
+            Dim tree = VisualBasicSyntaxTree.ParseText("Class C")
+            Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
+            Try
+                comp.CreateTupleTypeSymbol(vt2, elementLocations:=ImmutableArray.Create(loc1))
+                Assert.True(False)
+            Catch ex As ArgumentException
+                Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, ex.Message)
+            End Try
         End Sub
 
         <Fact>
@@ -5050,7 +5059,37 @@ End Class
             Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
             Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
+        End Sub
 
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_Locations()
+
+            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><%= s_trivial2uple %></file>
+</compilation>)
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef, tupleComp.ToMetadataReference()})
+
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tree = VisualBasicSyntaxTree.ParseText("Class C")
+            Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
+            Dim loc2 = Location.Create(tree, New TextSpan(1, 1))
+            Dim tuple = comp.CreateTupleTypeSymbol(
+                vt2, ImmutableArray.Create("i1", "i2"), ImmutableArray.Create(loc1, loc2))
+
+            Assert.True(tuple.IsTupleType)
+            Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind)
+            Assert.Equal("(i1 As System.Int32, i2 As System.String)", tuple.ToTestDisplayString())
+            Assert.Equal(New String() {"System.Int32", "System.String"}, tuple.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(SymbolKind.NamedType, tuple.Kind)
+            Assert.Equal(loc1, tuple.GetMembers("i1").Single.Locations.Single())
+            Assert.Equal(loc2, tuple.GetMembers("i2").Single.Locations.Single())
         End Sub
 
         <Fact>
@@ -5069,7 +5108,8 @@ End Class
             Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
             Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
-
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5088,7 +5128,8 @@ End Class
             Assert.Equal(New String() {"Alice", "Bob"}, tupleWithoutNames.TupleElementNames)
             Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
-
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5110,7 +5151,8 @@ End Class
                          tupleWithSomeNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
 
             Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind)
-
+            Assert.All(tupleWithSomeNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5127,7 +5169,8 @@ End Class
             Assert.Equal(New String() {"Item2", "Item1"}, tupleWithoutNames.TupleElementNames)
             Assert.Equal(New String() {"System.Int32", "System.Int32"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
-
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5151,7 +5194,8 @@ End Class
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
                          tuple8WithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+            Assert.All(tuple8WithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5175,7 +5219,8 @@ End Class
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
                          tuple8WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+            Assert.All(tuple8WithNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5199,7 +5244,8 @@ End Class
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
                          tuple9WithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+            Assert.All(tuple9WithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5223,7 +5269,8 @@ End Class
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
                          tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+            Assert.All(tuple9WithNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5247,7 +5294,8 @@ End Class
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
                          tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+            Assert.All(tuple9WithNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5270,7 +5318,8 @@ End Class
             Assert.Equal(2, types.Length)
             Assert.Equal(SymbolKind.NamedType, types(0).Kind)
             Assert.Equal(SymbolKind.ErrorType, types(1).Kind)
-
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5358,6 +5407,35 @@ End Class
             Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
+        End Sub
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol2_Locations()
+
+            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><%= s_trivial2uple %></file>
+</compilation>)
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef, tupleComp.ToMetadataReference()})
+
+            Dim intType As ITypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As ITypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim tree = VisualBasicSyntaxTree.ParseText("Class C")
+            Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
+            Dim loc2 = Location.Create(tree, New TextSpan(1, 1))
+            Dim tuple = comp.CreateTupleTypeSymbol(
+                ImmutableArray.Create(intType, stringType),
+                ImmutableArray.Create("i1", "i2"),
+                ImmutableArray.Create(loc1, loc2))
+
+            Assert.True(tuple.IsTupleType)
+            Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind)
+            Assert.Equal("(i1 As System.Int32, i2 As System.String)", tuple.ToTestDisplayString())
+            Assert.Equal(New String() {"System.Int32", "System.String"}, tuple.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(SymbolKind.NamedType, tuple.Kind)
+            Assert.Equal(loc1, tuple.GetMembers("i1").Single().Locations.Single())
+            Assert.Equal(loc2, tuple.GetMembers("i2").Single().Locations.Single())
         End Sub
 
         <Fact>
