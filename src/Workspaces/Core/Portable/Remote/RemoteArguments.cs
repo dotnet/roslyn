@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public override int GetHashCode()
             => Hash.Combine(Id.GetHashCode(), DebugName.GetHashCode());
 
-        public override bool Equals(object obj) => Equals(obj as SerializableProjectId);
+        public override bool Equals(object obj)
+            => Equals(obj as SerializableProjectId);
 
         public bool Equals(SerializableProjectId obj)
             => obj != null && Id.Equals(obj.Id) && DebugName.Equals(obj.DebugName);
@@ -97,7 +98,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public override int GetHashCode()
             => Hash.Combine(SymbolKeyData, ProjectId.GetHashCode());
 
-        public override bool Equals(object obj) => Equals(obj as SerializableSymbolAndProjectId);
+        public override bool Equals(object obj)
+            => Equals(obj as SerializableSymbolAndProjectId);
 
         public bool Equals(SerializableSymbolAndProjectId other)
             => other != null && SymbolKeyData.Equals(other.SymbolKeyData) && ProjectId.Equals(other.ProjectId);
