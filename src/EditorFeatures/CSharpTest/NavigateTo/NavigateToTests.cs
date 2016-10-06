@@ -25,13 +25,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         protected override Task<TestWorkspace> CreateWorkspace(string content, ExportProvider exportProvider)
             => TestWorkspace.CreateCSharpAsync(content, exportProvider: exportProvider);
 
+        private async Task TestAsync(string content, Func<Task> body)
+        {
+            await TestAsync(content, body, outOfProcess: true);
+            await TestAsync(content, body, outOfProcess: false);
+        }
+
+        private async Task TestAsync(string content, Func<Task> body, bool outOfProcess)
+        {
+            using (var workspace = await SetupWorkspaceAsync(content))
+            {
+                await body();
+            }
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoItemsForEmptyFile()
         {
-            using (var workspace = await SetupWorkspaceAsync(""))
+            await TestAsync("", async () =>
             {
                 Assert.Empty(await _aggregator.GetItemsAsync("Hello"));
-            }
+            });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
