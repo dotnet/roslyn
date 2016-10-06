@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis
 
             private readonly Action<ISymbol> _writeSymbolKey;
             private readonly Action<string> _writeString;
+            private readonly Action<bool> _writeBoolean;
+            private readonly Action<Location> _writeLocation;
             private readonly Action<IParameterSymbol> _writeParameterType;
             private readonly Action<IParameterSymbol> _writeRefKind;
 
@@ -66,6 +68,8 @@ namespace Microsoft.CodeAnalysis
             {
                 _writeSymbolKey = WriteSymbolKey;
                 _writeString = WriteString;
+                _writeBoolean = WriteBoolean;
+                _writeLocation = WriteLocation;
                 _writeParameterType = p => WriteSymbolKey(p.Type);
                 _writeRefKind = p => WriteInteger((int)p.RefKind);
             }
@@ -236,6 +240,33 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            internal void WriteLocation(Location location)
+            {
+                WriteSpace();
+                if (location == null)
+                {
+                    WriteType(SymbolKeyType.Null);
+                    return;
+                }
+
+                Debug.Assert(location.Kind == LocationKind.None ||
+                             location.Kind == LocationKind.SourceFile ||
+                             location.Kind == LocationKind.MetadataFile);
+
+                WriteInteger((int)location.Kind);
+                if (location.Kind == LocationKind.SourceFile)
+                {
+                    WriteString(location.SourceTree.FilePath);
+                    WriteInteger(location.SourceSpan.Start);
+                    WriteInteger(location.SourceSpan.Length);
+                }
+                else if (location.Kind == LocationKind.MetadataFile)
+                {
+                    WriteSymbolKey(location.MetadataModule.ContainingAssembly);
+                    WriteString(location.MetadataModule.MetadataName);
+                }
+            }
+
             internal void WriteSymbolKeyArray<TSymbol>(ImmutableArray<TSymbol> symbols)
                 where TSymbol : ISymbol
             {
@@ -250,6 +281,16 @@ namespace Microsoft.CodeAnalysis
             internal void WriteStringArray(ImmutableArray<string> strings)
             {
                 WriteArray(strings, _writeString);
+            }
+
+            internal void WriteBooleanArray(ImmutableArray<bool> array)
+            {
+                WriteArray(array, _writeBoolean);
+            }
+
+            internal void WriteLocationArray(ImmutableArray<Location> array)
+            {
+                WriteArray(array, _writeLocation);
             }
 
             internal void WriteRefKindArray(ImmutableArray<IParameterSymbol> values)
