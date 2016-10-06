@@ -1578,12 +1578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
         }
 
-        protected override void VisitGuardedPattern(DecisionTree.Guarded guarded)
-        {
-            AssignPatternVariables(guarded.Label.Pattern);
-            base.VisitGuardedPattern(guarded);
-        }
-
         private void CreateSlots(BoundPattern pattern)
         {
             if (pattern.Kind == BoundKind.DeclarationPattern)

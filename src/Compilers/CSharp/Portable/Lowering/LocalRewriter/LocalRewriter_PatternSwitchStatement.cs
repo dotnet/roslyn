@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = ArrayBuilder<BoundStatement>.GetInstance();
 
             // output the decision tree part
-            pslr.LowerDecisionTree(expression, node.DecisionTree, result);
+            pslr.LowerPatternSwitch(expression, node, result);
 
             // if the endpoint is reachable, we exit the switch
-            if (!node.DecisionTree.MatchIsComplete)
+            if (!node.IsComplete)
             {
                 result.Add(_factory.Goto(node.BreakLabel));
             }
@@ -84,8 +84,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Lower the given decision tree into the given statement builder.
             /// </summary>
-            public void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree, ArrayBuilder<BoundStatement> loweredDecisionTree)
+            public void LowerPatternSwitch(BoundExpression loweredExpression, BoundPatternSwitchStatement node, ArrayBuilder<BoundStatement> loweredDecisionTree)
             {
+                var decisionTree = DecisionTreeComputer.LowerToDecisionTree(CurrentSymbol, Conversions, loweredExpression, node);
+                LowerDecisionTree(loweredExpression, decisionTree, loweredDecisionTree);
+            }
+
+            private Symbol CurrentSymbol => LocalRewriter._factory.CurrentMethod;
+
+            private Conversions Conversions => LocalRewriter._factory.Compilation.Conversions;
+
+            /// <summary>
+            /// Lower the given decision tree into the given statement builder.
+            /// </summary>
+            private void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree, ArrayBuilder<BoundStatement> loweredDecisionTree)
+            {
+                // build a decision tree to dispatch the switch statement
                 var oldLoweredDecisionTree = this._loweredDecisionTree;
                 this._loweredDecisionTree = loweredDecisionTree;
                 LowerDecisionTree(expression, decisionTree);
@@ -317,10 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var source = kv.Key;
                         var dest = kv.Value;
-                        var rewriter = this.LocalRewriter;
-                        sectionBuilder.Add(_factory.ExpressionStatement(
-                            rewriter.MakeStaticAssignmentOperator(
-                                _factory.Syntax, rewriter.VisitExpression(dest), rewriter.VisitExpression(source), RefKind.None, dest.Type, false)));
+                        sectionBuilder.Add(_factory.Assignment(dest, source));
                     }
                 }
             }
