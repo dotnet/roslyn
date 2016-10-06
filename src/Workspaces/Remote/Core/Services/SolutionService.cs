@@ -77,9 +77,12 @@ namespace Microsoft.CodeAnalysis.Remote
             var projects = new List<ProjectInfo>();
             foreach (var projectChecksum in solutionChecksumObject.Projects)
             {
-                var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObject>(projectChecksum, cancellationToken).ConfigureAwait(false);
+                var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObject>(
+                    projectChecksum, cancellationToken).ConfigureAwait(false);
 
-                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObjectInfo>(
+                    projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
+
                 if (!workspace.Services.IsSupported(projectInfo.Language))
                 {
                     // only add project our workspace supports. 
@@ -90,9 +93,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 var documents = new List<DocumentInfo>();
                 foreach (var documentChecksum in projectSnapshot.Documents)
                 {
-                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(documentChecksum, cancellationToken).ConfigureAwait(false);
+                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(
+                        documentChecksum, cancellationToken).ConfigureAwait(false);
 
-                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(
+                        documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     documents.Add(
@@ -162,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
                         projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                         compilationOptions, parseOptions,
-                        documents, p2p, metadata, analyzers, additionals));
+                        documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission));
             }
 
             return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));

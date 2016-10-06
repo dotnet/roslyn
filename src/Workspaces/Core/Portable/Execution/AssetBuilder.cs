@@ -161,7 +161,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private ProjectChecksumObjectInfo GetInfo(ProjectState projectState)
         {
-            return new ProjectChecksumObjectInfo(projectState.Id, projectState.Version, projectState.Name, projectState.AssemblyName, projectState.Language, projectState.FilePath, projectState.OutputFilePath);
+            return new ProjectChecksumObjectInfo(
+                projectState.Id, projectState.Version, projectState.Name, projectState.AssemblyName,
+                projectState.Language, projectState.FilePath, projectState.OutputFilePath, projectState.IsSubmission);
         }
 
         private DocumentChecksumObjectInfo GetInfo(TextDocumentState documentState)
