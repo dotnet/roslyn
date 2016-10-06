@@ -543,7 +543,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private async Task EnqueueWorkItemAsync(Document oldDocument, Document newDocument)
             {
                 var differenceService = newDocument.GetLanguageService<IDocumentDifferenceService>();
-                if (differenceService != null)
+
+                if (differenceService == null)
+                {
+                    /// For languages that don't use a Roslyn syntax tree, they don't export a <see cref="IDocumentDifferenceService"/>
+                    /// So we should consider the whole document changed.
+                    await EnqueueWorkItemAsync(newDocument, InvocationReasons.DocumentChanged).ConfigureAwait(false);
+                }
+                else
                 {
                     var differenceResult = await differenceService.GetDifferenceAsync(oldDocument, newDocument, _shutdownToken).ConfigureAwait(false);
 
