@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Until we've determined whether or not the switch label is reachable, we assume it
-                        // is. The caller updates isReachable after determine if the label is subsumed.
+                        // is. The caller updates isReachable after determining if the label is subsumed.
                         bool isReachable = true;
                         return new BoundPatternSwitchLabel(node, label, pattern, null, isReachable, hasErrors);
                     }
@@ -192,9 +192,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
+                        // We always treat the default label as reachable, even if the switch is complete.
+                        bool isReachable = true;
+
                         // Note that this is semantically last! The caller will place it in the decision tree
                         // in the final position.
-                        defaultLabel = new BoundPatternSwitchLabel(node, label, pattern, null, true, hasErrors);
+                        defaultLabel = new BoundPatternSwitchLabel(node, label, pattern, null, isReachable, hasErrors);
                         return defaultLabel;
                     }
 

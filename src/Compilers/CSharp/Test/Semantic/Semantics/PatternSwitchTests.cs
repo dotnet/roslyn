@@ -1333,7 +1333,7 @@ class Program
         }
 
         [Fact, WorkItem(14296, "https://github.com/dotnet/roslyn/issues/14296")]
-        public void PatternSwitchInLambdaInGenericMethod()
+        public void PatternSwitchInLocalFunctionInGenericMethod()
         {
             var source =
 @"using System;
@@ -1400,7 +1400,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"2

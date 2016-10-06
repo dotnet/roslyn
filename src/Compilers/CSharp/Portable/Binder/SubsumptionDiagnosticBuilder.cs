@@ -29,8 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool AddLabel(BoundPatternSwitchLabel label, DiagnosticBag diagnostics, out bool valueMatched)
         {
-            // Use site diagnostics should be consumed by the caller when produced. So they should be empty here.
-            Debug.Assert(UseSiteDiagnostics == null || UseSiteDiagnostics.Count == 0);
+            // Use site diagnostics are reported (and cleared) by this method.
+            // So they should be empty when we start.
+            Debug.Assert(UseSiteDiagnostics.Count == 0);
 
             valueMatched = false;
 
