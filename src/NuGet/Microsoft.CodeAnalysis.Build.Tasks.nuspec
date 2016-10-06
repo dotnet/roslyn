@@ -1,13 +1,12 @@
 <?xml version="1.0"?>
 <package>
- <metadata>
+ <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.Build.Tasks</id>
     <summary>The build Tasks for running the C# and VB compilers in MSBuild.</summary>
     <description>
         Contains the build task and targets used by MSBuild to run the C# and VB compilers.
         Supports using VBCSCompiler on Windows.
     </description>
-    <minClientVersion>3.3</minClientVersion>
     <dependencies>
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.CSharp"                      version="[$version$]" />
