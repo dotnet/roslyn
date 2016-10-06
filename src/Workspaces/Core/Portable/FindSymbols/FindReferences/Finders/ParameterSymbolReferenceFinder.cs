@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -36,7 +38,58 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, cancellationToken);
+            var symbolsMatch = GetParameterSymbolsMatchFunction(
+                symbol, document.Project.Solution, cancellationToken);
+
+            return FindReferencesInDocumentUsingIdentifierAsync(
+                symbol.Name, document, symbolsMatch, cancellationToken);
+        }
+
+        private Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> GetParameterSymbolsMatchFunction(
+            IParameterSymbol parameter, Solution solution, CancellationToken cancellationToken)
+        {
+            // Get the standard function for comparing parameters.  This function will just 
+            // directly compare the parameter symbols for SymbolEquivalence.
+            var standardFunction = GetStandardSymbolsMatchFunction(
+                parameter, findParentNode: null, solution: solution, cancellationToken: cancellationToken);
+
+            // HOwever, we also want to consider parameter symbols them same if they unify across
+            // VB's synthesized AnonymousDelegate parameters. 
+            var containingMethod = parameter.ContainingSymbol as IMethodSymbol;
+            if (containingMethod?.AssociatedAnonymousDelegate == null)
+            {
+                // This was a normal parameter, so just use the normal comparison function.
+                return standardFunction;
+            }
+
+            var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
+            int ordinal = parameter.Ordinal;
+            if (invokeMethod == null && ordinal >= invokeMethod.Parameters.Length)
+            {
+                return standardFunction;
+            }
+
+            // This was parameter of a method that had an associated synthesized anonyomous-delegate.
+            // IN that case, we want it to match references to the corresponding parameter in that
+            // anonymous-delegate's invoke method.  So get he symbol match function that will chec
+            // for equivalence with that parameter.
+            var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
+            var anonParameterFunc = GetStandardSymbolsMatchFunction(
+                anonymousDelegateParameter, findParentNode: null, solution: solution, cancellationToken: cancellationToken);
+
+            // Return a new function which is a compound of the two functions we have.
+            return (token, model) =>
+            {
+                // First try the standard function.
+                var result = standardFunction(token, model);
+                if (!result.Item1)
+                {
+                    // If it fails, fall back to the anon-delegate function.
+                    result = anonParameterFunc(token, model);
+                }
+
+                return result;
+            };
         }
 
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
@@ -97,18 +150,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                 }
                             }
                         }
-                    }
-                }
-
-                var containingMethod = (IMethodSymbol)parameter.ContainingSymbol;
-                if (containingMethod.AssociatedAnonymousDelegate != null)
-                {
-                    var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
-                    int ordinal = parameter.Ordinal;
-                    if (invokeMethod != null && ordinal < invokeMethod.Parameters.Length)
-                    {
-                        results.Add(parameterAndProjectId.WithSymbol(
-                            invokeMethod.Parameters[ordinal]));
                     }
                 }
             }
