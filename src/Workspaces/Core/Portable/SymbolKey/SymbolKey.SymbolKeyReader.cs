@@ -205,124 +205,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private abstract class Reader<TSymbolResult, TStringResult, TLocationResult> : Reader<TStringResult>
-        {
-            private readonly Dictionary<int, TSymbolResult> _idToResult = new Dictionary<int, TSymbolResult>();
-            private readonly Func<TSymbolResult> _readSymbolKey;
-            private readonly Func<TLocationResult> _readLocation;
-
-            public Reader()
-            {
-                _readSymbolKey = ReadSymbolKey;
-                _readLocation = ReadLocation;
-            }
-
-            protected override void Initialize(string data, CancellationToken cancellationToken)
-            {
-                base.Initialize(data, cancellationToken);
-            }
-
-            public override void Dispose()
-            {
-                base.Dispose();
-                _idToResult.Clear();
-            }
-
-            public TSymbolResult ReadFirstSymbolKey()
-            {
-                return ReadSymbolKeyWorker(first: true);
-            }
-
-            public TSymbolResult ReadSymbolKey()
-            {
-                return ReadSymbolKeyWorker(first: false);
-            }
-
-            private TSymbolResult ReadSymbolKeyWorker(bool first)
-            {
-                CancellationToken.ThrowIfCancellationRequested();
-                if (!first)
-                {
-                    EatSpace();
-                }
-
-                var type = (SymbolKeyType)Data[Position];
-                if (type == SymbolKeyType.Null)
-                {
-                    Eat(type);
-                    return default(TSymbolResult);
-                }
-
-                EatOpenParen();
-                TSymbolResult result;
-
-                type = (SymbolKeyType)Data[Position];
-                Eat(type);
-
-                if (type == SymbolKeyType.Reference)
-                {
-                    var id = ReadInteger();
-                    result = _idToResult[id];
-                }
-                else
-                {
-                    result = ReadWorker(type);
-                    var id = ReadInteger();
-                    _idToResult[id] = result;
-                }
-
-                EatCloseParen();
-
-                return result;
-            }
-
-            protected abstract TSymbolResult ReadWorker(SymbolKeyType type);
-
-            public ImmutableArray<TSymbolResult> ReadSymbolKeyArray()
-            {
-                return ReadArray(_readSymbolKey);
-            }
-
-            public TLocationResult ReadLocation()
-            {
-                EatSpace();
-                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
-                {
-                    Eat(SymbolKeyType.Null);
-                    return default(TLocationResult);
-                }
-
-                var kind = (LocationKind)ReadInteger();
-                if (kind == LocationKind.None)
-                {
-                    return CreateNoneLocation();
-                }
-                else if (kind == LocationKind.SourceFile)
-                {
-                    var filePath = ReadString();
-                    var start = ReadInteger();
-                    var length = ReadInteger();
-                    return CreateSourceLocation(filePath, start, length);
-                }
-                else
-                {
-                    Debug.Assert(kind == LocationKind.MetadataFile);
-                    var assembly = ReadSymbolKey();
-                    var moduleName = ReadString();
-                    return CreateModuleLocation(assembly, moduleName);
-                }
-            }
-
-            public ImmutableArray<TLocationResult> ReadLocationArray()
-            {
-                return ReadArray(_readLocation);
-            }
-
-            protected abstract TLocationResult CreateNoneLocation();
-            protected abstract TLocationResult CreateModuleLocation(TSymbolResult assembly, TStringResult moduleName);
-            protected abstract TLocationResult CreateSourceLocation(TStringResult filePath, int start, int length);
-        }
-
         private class RemoveAssemblySymbolKeysReader : Reader<object>
         {
             private readonly StringBuilder _builder = new StringBuilder();
@@ -395,10 +277,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class SymbolKeyReader : Reader<SymbolKeyResolution, string, Location>
+        private class SymbolKeyReader : Reader<string>
         {
             private static readonly ObjectPool<SymbolKeyReader> s_readerPool =
                 new ObjectPool<SymbolKeyReader>(() => new SymbolKeyReader());
+
+            private readonly Dictionary<int, SymbolKeyResolution> _idToResult = new Dictionary<int, SymbolKeyResolution>();
+            private readonly Func<SymbolKeyResolution> _readSymbolKey;
+            private readonly Func<Location> _readLocation;
 
             public Compilation Compilation { get; private set; }
             public bool IgnoreAssemblyKey { get; private set; }
@@ -408,6 +294,21 @@ namespace Microsoft.CodeAnalysis
 
             private SymbolKeyReader()
             {
+                _readSymbolKey = ReadSymbolKey;
+                _readLocation = ReadLocation;
+            }
+
+            public override void Dispose()
+            {
+                base.Dispose();
+                _idToResult.Clear();
+                Compilation = null;
+                IgnoreAssemblyKey = false;
+                Comparer = null;
+                CurrentMethod = null;
+
+                // Place us back in the pool for future use.
+                s_readerPool.Free(this);
             }
 
             public static SymbolKeyReader GetReader(
@@ -417,18 +318,6 @@ namespace Microsoft.CodeAnalysis
                 var reader = s_readerPool.Allocate();
                 reader.Initialize(data, compilation, ignoreAssemblyKey, cancellationToken);
                 return reader;
-            }
-
-            public override void Dispose()
-            {
-                base.Dispose();
-                Compilation = null;
-                IgnoreAssemblyKey = false;
-                Comparer = null;
-                CurrentMethod = null;
-
-                // Place us back in the pool for future use.
-                s_readerPool.Free(this);
             }
 
             private void Initialize(
@@ -445,42 +334,83 @@ namespace Microsoft.CodeAnalysis
                     : SymbolEquivalenceComparer.Instance;
             }
 
-            protected override string CreateResultForString(int start, int end, bool hasEmbeddedQuote)
+            internal bool ParameterTypesMatch(
+                ImmutableArray<IParameterSymbol> parameters,
+                ITypeSymbol[] originalParameterTypes)
             {
-                var substring = Data.Substring(start, end - start);
-                var result = hasEmbeddedQuote
-                    ? substring.Replace("\"\"", "\"")
-                    : substring;
+                if (parameters.Length != originalParameterTypes.Length)
+                {
+                    return false;
+                }
+
+                // We are checking parameters for equality, if they refer to method type parameters,
+                // then we don't want to recurse through the method (which would then recurse right
+                // back into the parameters).  So we use a signature type comparer as it will properly
+                // compare method type parameters by ordinal.
+                var signatureComparer = Comparer.SignatureTypeEquivalenceComparer;
+
+                for (int i = 0; i < originalParameterTypes.Length; i++)
+                {
+                    if (!signatureComparer.Equals(originalParameterTypes[i], parameters[i].Type))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            #region Symbols
+
+            public SymbolKeyResolution ReadFirstSymbolKey()
+            {
+                return ReadSymbolKeyWorker(first: true);
+            }
+
+            public SymbolKeyResolution ReadSymbolKey()
+            {
+                return ReadSymbolKeyWorker(first: false);
+            }
+
+            private SymbolKeyResolution ReadSymbolKeyWorker(bool first)
+            {
+                CancellationToken.ThrowIfCancellationRequested();
+                if (!first)
+                {
+                    EatSpace();
+                }
+
+                var type = (SymbolKeyType)Data[Position];
+                if (type == SymbolKeyType.Null)
+                {
+                    Eat(type);
+                    return default(SymbolKeyResolution);
+                }
+
+                EatOpenParen();
+                SymbolKeyResolution result;
+
+                type = (SymbolKeyType)Data[Position];
+                Eat(type);
+
+                if (type == SymbolKeyType.Reference)
+                {
+                    var id = ReadInteger();
+                    result = _idToResult[id];
+                }
+                else
+                {
+                    result = ReadWorker(type);
+                    var id = ReadInteger();
+                    _idToResult[id] = result;
+                }
+
+                EatCloseParen();
+
                 return result;
             }
 
-            protected override string CreateNullForString()
-            {
-                return null;
-            }
-
-            protected override Location CreateNoneLocation()
-            {
-                return Location.None;
-            }
-
-            protected override Location CreateSourceLocation(string filePath, int start, int length)
-            {
-                var syntaxTree = Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
-                Debug.Assert(syntaxTree != null);
-                return Location.Create(syntaxTree, new TextSpan(start, length));
-            }
-
-            protected override Location CreateModuleLocation(
-                SymbolKeyResolution assembly, string moduleName)
-            {
-                var symbol = assembly.GetAnySymbol() as IAssemblySymbol;
-                Debug.Assert(symbol != null);
-                var module = symbol.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
-                return module.Locations.FirstOrDefault();
-            }
-
-            protected override SymbolKeyResolution ReadWorker(SymbolKeyType type)
+            private SymbolKeyResolution ReadWorker(SymbolKeyType type)
             {
                 switch (type)
                 {
@@ -510,31 +440,85 @@ namespace Microsoft.CodeAnalysis
                 throw new NotImplementedException();
             }
 
-            internal bool ParameterTypesMatch(
-                ImmutableArray<IParameterSymbol> parameters,
-                ITypeSymbol[] originalParameterTypes)
+            public ImmutableArray<SymbolKeyResolution> ReadSymbolKeyArray()
             {
-                if (parameters.Length != originalParameterTypes.Length)
-                {
-                    return false;
-                }
-
-                // We are checking parameters for equality, if they refer to method type parameters,
-                // then we don't want to recurse through the method (which would then recurse right
-                // back into the parameters).  So we use a signature type comparer as it will properly
-                // compare method type parameters by ordinal.
-                var signatureComparer = Comparer.SignatureTypeEquivalenceComparer;
-
-                for (int i = 0; i < originalParameterTypes.Length; i++)
-                {
-                    if (!signatureComparer.Equals(originalParameterTypes[i], parameters[i].Type))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                return ReadArray(_readSymbolKey);
             }
+
+            #endregion
+
+            #region Strings
+
+            protected override string CreateResultForString(int start, int end, bool hasEmbeddedQuote)
+            {
+                var substring = Data.Substring(start, end - start);
+                var result = hasEmbeddedQuote
+                    ? substring.Replace("\"\"", "\"")
+                    : substring;
+                return result;
+            }
+
+            protected override string CreateNullForString()
+            {
+                return null;
+            }
+
+            #endregion
+
+            #region Locations
+
+            public Location ReadLocation()
+            {
+                EatSpace();
+                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
+                {
+                    Eat(SymbolKeyType.Null);
+                    return null;
+                }
+
+                var kind = (LocationKind)ReadInteger();
+                if (kind == LocationKind.None)
+                {
+                    return Location.None;
+                }
+                else if (kind == LocationKind.SourceFile)
+                {
+                    var filePath = ReadString();
+                    var start = ReadInteger();
+                    var length = ReadInteger();
+                    return CreateSourceLocation(filePath, start, length);
+                }
+                else
+                {
+                    Debug.Assert(kind == LocationKind.MetadataFile);
+                    var assembly = ReadSymbolKey();
+                    var moduleName = ReadString();
+                    return CreateModuleLocation(assembly, moduleName);
+                }
+            }
+
+            private Location CreateSourceLocation(string filePath, int start, int length)
+            {
+                var syntaxTree = Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+                Debug.Assert(syntaxTree != null);
+                return Location.Create(syntaxTree, new TextSpan(start, length));
+            }
+
+            private Location CreateModuleLocation(
+                SymbolKeyResolution assembly, string moduleName)
+            {
+                var symbol = assembly.GetAnySymbol() as IAssemblySymbol;
+                Debug.Assert(symbol != null);
+                var module = symbol.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
+                return module.Locations.FirstOrDefault();
+            }
+
+            public ImmutableArray<Location> ReadLocationArray()
+            {
+                return ReadArray(_readLocation);
+            }
+
+            #endregion
         }
     }
 }
