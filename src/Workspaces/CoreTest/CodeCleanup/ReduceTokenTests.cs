@@ -2027,7 +2027,7 @@ End Module
         [Fact]
         [WorkItem(14034, "https://github.com/dotnet/roslyn/issues/14034")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public async Task ReduceIntegersWithDigitSeperators()
+        public async Task ReduceIntegersWithDigitSeparators()
         {
             var source = @"
 Module Module1
