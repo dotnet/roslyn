@@ -2318,6 +2318,8 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(type.IsAnonymousType);
             Assert.Equal(1, type.GetMembers().OfType<IPropertySymbol>().Count());
             Assert.Equal("<anonymous type: int m1>", type.ToDisplayString());
+            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()), 
+                loc => Assert.Equal(loc, Location.None));
         }
 
         [Fact()]
@@ -2352,6 +2354,8 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(type.IsAnonymousType);
             Assert.Equal(2, type.GetMembers().OfType<IPropertySymbol>().Count());
             Assert.Equal("<anonymous type: int m1, bool m2>", type.ToDisplayString());
+            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, Location.None));
         }
 
         #region Script return values
