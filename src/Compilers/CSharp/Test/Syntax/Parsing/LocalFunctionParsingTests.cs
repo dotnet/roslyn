@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public void IncompleteLocalFunc()
         {
-            var file = ParseFile(@"
+            UsingTree(@"
 class C
 {
     void M1()
@@ -44,58 +44,264 @@ class C
         int? L(
     }
 }");
-            Assert.NotNull(file);
-
-            var m1 = file.DescendantNodes()
-                .OfType<MethodDeclarationSyntax>()
-                .Where(m => (string)m.Identifier.Value == "M1")
-                .Single();
-            var m1Stmts = m1.Body.Statements;
-            Assert.Equal(2, m1Stmts.Count);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, m1Stmts[0].Kind());
-            Assert.Equal("await L", m1Stmts[0].ToFullString().Trim());
-            Assert.Equal(SyntaxKind.ExpressionStatement, m1Stmts[1].Kind());
-            Assert.Equal("<", m1Stmts[1].ToFullString().Trim());
-
-            var m2 = file.DescendantNodes()
-                .OfType<MethodDeclarationSyntax>()
-                .Where(m => (string)m.Identifier.Value == "M2")
-                .Single();
-            var m2s1 = m2.Body.Statements.Single();
-            Assert.Equal(SyntaxKind.LocalFunctionStatement, m2s1.Kind());
-            Assert.Equal("int L<", m2s1.ToFullString().Trim());
-
-            var m3 = file.DescendantNodes()
-                .OfType<MethodDeclarationSyntax>()
-                .Where(m => (string)m.Identifier.Value == "M3")
-                .Single();
-            var m3s1 = m3.Body.Statements.Single();
-            Assert.Equal(SyntaxKind.LocalFunctionStatement, m3s1.Kind());
-            Assert.Equal("int? L<", m3s1.ToFullString().Trim());
-
-            var m4 = file.DescendantNodes()
-                .OfType<MethodDeclarationSyntax>()
-                .Where(m => (string)m.Identifier.Value == "M4")
-                .Single();
-            var m4s1 = m4.Body.Statements.Single();
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, m4s1.Kind());
-            Assert.Equal("await L(", m4s1.ToFullString().Trim());
-
-            var m5 = file.DescendantNodes()
-                .OfType<MethodDeclarationSyntax>()
-                .Where(m => (string)m.Identifier.Value == "M5")
-                .Single();
-            var m5s1 = m5.Body.Statements.Single();
-            Assert.Equal(SyntaxKind.LocalFunctionStatement, m5s1.Kind());
-            Assert.Equal("int L(", m5s1.ToFullString().Trim());
-
-            var m6 = file.DescendantNodes()
-                .OfType<MethodDeclarationSyntax>()
-                .Where(m => (string)m.Identifier.Value == "M6")
-                .Single();
-            var m6s1 = m6.Body.Statements.Single();
-            Assert.Equal(SyntaxKind.LocalFunctionStatement, m6s1.Kind());
-            Assert.Equal("int? L(", m6s1.ToFullString().Trim());
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M1");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "L");
+                                    }
+                                    M(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.LessThanExpression);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.LessThanToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    M(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M2");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "L");
+                                N(SyntaxKind.TypeParameterList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    M(SyntaxKind.TypeParameter);
+                                    M(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                                M(SyntaxKind.ParameterList);
+                                {
+                                    M(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.CloseParenToken);
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M3");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                                N(SyntaxKind.IdentifierToken, "L");
+                                N(SyntaxKind.TypeParameterList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    M(SyntaxKind.TypeParameter);
+                                    M(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                                M(SyntaxKind.ParameterList);
+                                {
+                                    M(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.CloseParenToken);
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M4");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "L");
+                                    }
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        M(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.ParenthesizedExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                M(SyntaxKind.IdentifierName);
+                                                {
+                                                    M(SyntaxKind.IdentifierToken);
+                                                }
+                                                M(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                        M(SyntaxKind.CloseBracketToken);
+                                    }
+                                    M(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M5");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.IdentifierToken, "L");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        M(SyntaxKind.CloseParenToken);
+                                    }
+                                    M(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M6");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                                N(SyntaxKind.IdentifierToken, "L");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.CloseParenToken);
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+            }
         }
 
         [Fact]
