@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -16,10 +17,19 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Arguments to pass from client to server when performing operations
     /// </summary>
-    internal class SerializableProjectId
+    internal class SerializableProjectId : IEquatable<SerializableProjectId>
     {
         public Guid Id;
         public string DebugName;
+
+        public override int GetHashCode()
+            => Hash.Combine(Id.GetHashCode(), DebugName.GetHashCode());
+
+        public override bool Equals(object obj)
+            => Equals(obj as SerializableProjectId);
+
+        public bool Equals(SerializableProjectId obj)
+            => obj != null && Id.Equals(obj.Id) && DebugName.Equals(obj.DebugName);
 
         public static SerializableProjectId Dehydrate(ProjectId id)
         {
@@ -80,10 +90,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
     #region FindReferences
 
-    internal class SerializableSymbolAndProjectId
+    internal class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
     {
         public string SymbolKeyData;
         public SerializableProjectId ProjectId;
+
+        public override int GetHashCode()
+            => Hash.Combine(SymbolKeyData, ProjectId.GetHashCode());
+
+        public override bool Equals(object obj)
+            => Equals(obj as SerializableSymbolAndProjectId);
+
+        public bool Equals(SerializableSymbolAndProjectId other)
+            => other != null && SymbolKeyData.Equals(other.SymbolKeyData) && ProjectId.Equals(other.ProjectId);
 
         public static SerializableSymbolAndProjectId Dehydrate(
             IAliasSymbol alias, Document document)
