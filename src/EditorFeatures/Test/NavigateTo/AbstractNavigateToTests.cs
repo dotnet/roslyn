@@ -35,6 +35,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         protected abstract Task<TestWorkspace> CreateWorkspace(string content, ExportProvider exportProvider);
         protected abstract string Language { get; }
 
+        protected async Task TestAsync(string content, Func<TestWorkspace, Task> body)
+        {
+            await TestAsync(content, body, outOfProcess: true);
+            await TestAsync(content, body, outOfProcess: false);
+        }
+
+        private async Task TestAsync(string content, Func<TestWorkspace, Task> body, bool outOfProcess)
+        {
+            using (var workspace = await SetupWorkspaceAsync(content))
+            {
+                await body(workspace);
+            }
+        }
+
         protected async Task<TestWorkspace> SetupWorkspaceAsync(XElement workspaceElement)
         {
             var workspace = await TestWorkspace.CreateAsync(workspaceElement, exportProvider: s_exportProvider);
