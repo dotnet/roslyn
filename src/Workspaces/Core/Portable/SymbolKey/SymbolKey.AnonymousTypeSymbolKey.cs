@@ -27,17 +27,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteLocationArray(propertyLocations);
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                // The hash of the underlying type is good enough, we don't need to include names.
-                var symbolKeyHashCode = reader.ReadSymbolKeyArrayHashCode();
-                var propertyNames = reader.ReadStringArray();
-                var propertyIsReadOnly = reader.ReadBooleanArray();
-                var propertyLocations = reader.ReadLocationArray();
-
-                return symbolKeyHashCode;
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var propertyTypeSymbols = reader.ReadSymbolKeyArray();
