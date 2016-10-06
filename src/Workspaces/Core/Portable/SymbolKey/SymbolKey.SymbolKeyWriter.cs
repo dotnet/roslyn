@@ -249,16 +249,18 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                Debug.Assert(location.IsInSource || location.IsInMetadata);
-                WriteBoolean(location.IsInSource);
+                Debug.Assert(location.Kind == LocationKind.None ||
+                             location.Kind == LocationKind.SourceFile ||
+                             location.Kind == LocationKind.MetadataFile);
 
-                if (location.IsInSource)
+                WriteInteger((int)location.Kind);
+                if (location.Kind == LocationKind.SourceFile)
                 {
                     WriteString(location.SourceTree.FilePath);
                     WriteInteger(location.SourceSpan.Start);
                     WriteInteger(location.SourceSpan.Length);
                 }
-                else
+                else if (location.Kind == LocationKind.MetadataFile)
                 {
                     WriteSymbolKey(location.MetadataModule.ContainingAssembly);
                     WriteString(location.MetadataModule.MetadataName);

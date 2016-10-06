@@ -292,8 +292,12 @@ namespace Microsoft.CodeAnalysis
                     return default(TLocationResult);
                 }
 
-                var isSourceLocation = ReadBoolean();
-                if (isSourceLocation)
+                var kind = (LocationKind)ReadInteger();
+                if (kind == LocationKind.None)
+                {
+                    return CreateNoneLocation();
+                }
+                else if (kind == LocationKind.SourceFile)
                 {
                     var filePath = ReadString();
                     var start = ReadInteger();
@@ -302,6 +306,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
+                    Debug.Assert(kind == LocationKind.MetadataFile);
                     var assembly = ReadSymbolKey();
                     var moduleName = ReadString();
                     return CreateModuleLocation(assembly, moduleName);
@@ -313,6 +318,7 @@ namespace Microsoft.CodeAnalysis
                 return ReadArray(_readLocation);
             }
 
+            protected abstract TLocationResult CreateNoneLocation();
             protected abstract TLocationResult CreateModuleLocation(TSymbolResult assembly, TStringResult moduleName);
             protected abstract TLocationResult CreateSourceLocation(TStringResult filePath, int start, int length);
         }
@@ -361,6 +367,11 @@ namespace Microsoft.CodeAnalysis
             protected override int CreateNullForString()
             {
                 return 0;
+            }
+
+            protected override int CreateNoneLocation()
+            {
+                return 1;
             }
 
             protected override int CreateSourceLocation(int filePath, int start, int length)
@@ -570,6 +581,11 @@ namespace Microsoft.CodeAnalysis
             protected override string CreateNullForString()
             {
                 return null;
+            }
+
+            protected override Location CreateNoneLocation()
+            {
+                return Location.None;
             }
 
             protected override Location CreateSourceLocation(string filePath, int start, int length)
