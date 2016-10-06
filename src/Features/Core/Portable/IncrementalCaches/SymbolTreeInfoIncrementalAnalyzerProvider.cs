@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private struct MetadataInfo
         {
             public readonly DateTime TimeStamp;
+
+            /// <summary>
+            /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
+            /// (for example, if the metadata was bogus and we couldn't read it in).
+            /// </summary>
             public readonly SymbolTreeInfo SymbolTreeInfo;
 
             /// <summary>
