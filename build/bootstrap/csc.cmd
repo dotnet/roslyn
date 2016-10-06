@@ -1,2 +1,2 @@
 echo off
-%~dp0\csc\csc.exe /shared %*
+%~dp0\csc.exe /shared %*

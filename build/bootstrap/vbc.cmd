@@ -1,2 +1,2 @@
 echo off
-%~dp0\vbc\vbc.exe /shared %*
+%~dp0\vbc.exe /shared %*
