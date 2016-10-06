@@ -1,48 +1,19 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Windows.Media
-Imports System.Windows.Media.Imaging
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Editor.Extensibility.Composition
-Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
-Imports Moq
-Imports Roslyn.Test.EditorUtilities.NavigateTo
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
     Public Class NavigateToTests
-        Private _glyphServiceMock As New Mock(Of IGlyphService)(MockBehavior.Strict)
-        Private _provider As NavigateToItemProvider
-        Private _aggregator As NavigateToTestAggregator
+        Inherits AbstractNavigateToTests
 
-        Private Shared s_exportProvider As ExportProvider =
-            MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic().WithPart(
-                GetType(Dev14NavigateToOptionsService)))
+        Protected Overrides ReadOnly Property Language As String = "vb"
 
-        Private Async Function SetupWorkspaceAsync(content As String) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspace.CreateVisualBasicAsync(content, exportProvider:=s_exportProvider)
-            SetupNavigateTo(workspace)
-            Return workspace
-        End Function
-
-        Private Sub SetupNavigateTo(workspace As TestWorkspace)
-            Dim aggregateListener = New AggregateAsynchronousOperationListener(Array.Empty(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))(), FeatureAttribute.NavigateTo)
-            _provider = New NavigateToItemProvider(
-                workspace, _glyphServiceMock.Object, aggregateListener,
-                workspace.ExportProvider.GetExportedValues(Of Lazy(Of INavigateToOptionsService, VisualStudioVersionMetadata))())
-            _aggregator = New NavigateToTestAggregator(_provider)
-        End Sub
-
-        Private Async Function SetupWorkspaceAsync(workspaceElement As XElement) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspace.CreateAsync(workspaceElement, exportProvider:=s_exportProvider)
-            SetupNavigateTo(workspace)
-            Return workspace
+        Protected Overrides Function CreateWorkspace(content As String, exportProvider As ExportProvider) As Task(Of TestWorkspace)
+            Return TestWorkspace.CreateVisualBasicAsync(content, exportProvider:=exportProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
@@ -822,53 +793,6 @@ End Class
                 assertDescription("Line:", "2")
                 assertDescription("Project:", "VisualBasicAssembly1")
             End Using
-        End Function
-
-        Private Sub VerifyNavigateToResultItems(ByRef expectedItems As List(Of NavigateToItem), ByRef items As List(Of NavigateToItem))
-            Assert.Equal(expectedItems.Count(), items.Count())
-
-            For index = 0 To items.Count - 1
-                Assert.Equal(expectedItems(index).Name, items(index).Name)
-                Assert.Equal(expectedItems(index).MatchKind, items(index).MatchKind)
-                Assert.Equal(expectedItems(index).Language, items(index).Language)
-                Assert.Equal(expectedItems(index).Kind, items(index).Kind)
-                Assert.Equal(expectedItems(index).IsCaseSensitive, items(index).IsCaseSensitive)
-            Next
-        End Sub
-
-        Private Sub VerifyNavigateToResultItem(ByRef result As NavigateToItem, name As String, matchKind As MatchKind,
-                                               navigateToItemKind As String, Optional displayName As String = Nothing,
-                                               Optional additionalInfo As String = Nothing)
-            ' Verify Symbol Information
-            Assert.Equal(name, result.Name)
-            Assert.Equal(matchKind, result.MatchKind)
-            Assert.Equal("vb", result.Language)
-            Assert.Equal(navigateToItemKind, result.Kind)
-
-            ' Verify Display
-            Dim itemDisplay As INavigateToItemDisplay = result.DisplayFactory.CreateItemDisplay(result)
-
-            Assert.Equal(If(displayName, name), itemDisplay.Name)
-
-            If additionalInfo IsNot Nothing Then
-                Assert.Equal(additionalInfo, itemDisplay.AdditionalInformation)
-            End If
-
-            ' Make sure to fetch the glyph
-            Dim unused = itemDisplay.Glyph
-            _glyphServiceMock.Verify()
-        End Sub
-
-        Private Sub SetupVerifiableGlyph(standardGlyphGroup As StandardGlyphGroup, standardGlyphItem As StandardGlyphItem)
-            _glyphServiceMock.Setup(Function(service) service.GetGlyph(standardGlyphGroup, standardGlyphItem)) _
-                            .Returns(CreateIconBitmapSource()) _
-                            .Verifiable()
-        End Sub
-
-        Private Function CreateIconBitmapSource() As BitmapSource
-            Dim stride As Integer = (PixelFormats.Bgr32.BitsPerPixel \ 8) * 16
-            Dim bytes(16 * stride - 1) As Byte
-            Return BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgr32, Nothing, bytes, stride)
         End Function
     End Class
 End Namespace
