@@ -2992,7 +2992,7 @@ checkNullable:
                     ' There is a syntax error of some kind.
 
                     Dim skipped = ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}).Node
-                    If skipped IsNot Nothing Then
+                    If skipped IsNot Nothing AndAlso Not element.ContainsDiagnostics Then
                         skipped = ReportSyntaxError(skipped, ERRID.ERR_ArgumentSyntax)
                     End If
 

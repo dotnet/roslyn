@@ -246,6 +246,10 @@ Module C
         console.writeline(t4.Integer.Length)  
         console.writeline(t4.Await.Length)  
         console.writeline(t4.Function.Length)  
+
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+        console.writeline(t4.Function.Length)  
+
     End Sub
 
     class V2
@@ -290,6 +294,24 @@ BC30302: Type character '%' cannot be used in a declaration with an explicit typ
 BC30183: Keyword is not valid as an identifier.
         Dim t4 as (Integer% As String, Await As String, Function$) = nothing
                                        ~~~~~
+BC30180: Keyword does not name a type.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                   ~
+BC30180: Keyword does not name a type.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                       ~
+BC30002: Type 'Junk2' is not defined.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                     ~~~~~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                           ~~~~~~~~
+BC30002: Type 'Junk4' is not defined.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                                     ~~~~~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                                           ~~~~~
 </errors>)
         End Sub
 
