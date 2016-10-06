@@ -141,6 +141,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -218,6 +219,7 @@
     <Compile Include="Extensions\WorkspaceExtensions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
     <Compile Include="MoveType\AbstractMoveTypeTest.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToTests.cs" />
     <Compile Include="Preview\MockPreviewPaneService.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />

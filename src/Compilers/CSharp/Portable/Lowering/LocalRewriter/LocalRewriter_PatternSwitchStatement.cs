@@ -52,13 +52,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expression = _localRewriter.VisitExpression(node.Expression);
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
 
-                LocalSymbol initialTemp = null;
                 // if the expression is "too complex", we copy it to a temp.
+                LocalSymbol initialTemp = null;
                 if (expression.ConstantValue == null)
                 {
                     initialTemp = _factory.SynthesizedLocal(expression.Type, expression.Syntax);
                     result.Add(_factory.Assignment(_factory.Local(initialTemp), expression));
                     expression = _factory.Local(initialTemp);
+                }
+
+                // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+                // the containing method is edited while methods invoked in the expression are being executed.
+                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
+                {
+                    expression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
                 }
 
                 // output the decision tree part
@@ -96,11 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _declaredTemps.AddRange(node.InnerLocals);
                 BoundStatement translatedSwitch = _factory.Block(_declaredTemps.ToImmutableArray(), node.InnerLocalFunctions, result.ToImmutableAndFree());
 
-                // Create the sequence point if generating debug info and
-                // node is not compiler generated
-                if (_localRewriter.Instrument && !node.WasCompilerGenerated)
+                // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
+                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
                 {
-                    translatedSwitch = _localRewriter._instrumenter.InstrumentBoundPatternSwitchStatement(node, translatedSwitch);
+                    translatedSwitch = _localRewriter._instrumenter.InstrumentPatternSwitchStatement(node, translatedSwitch);
                 }
 
                 return translatedSwitch;
@@ -111,10 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerPatternSwitch(BoundExpression loweredExpression, BoundPatternSwitchStatement node, ArrayBuilder<BoundStatement> loweredDecisionTree)
             {
-                // the input expression should be lowered by the caller to be simple enough
-                // that there is no problem re-evaluating it.
-                Debug.Assert(loweredExpression.ConstantValue != null ||
-                             loweredExpression.Kind == BoundKind.Local);
                 var decisionTree = LowerToDecisionTree(loweredExpression, node);
                 LowerDecisionTree(loweredExpression, decisionTree, loweredDecisionTree);
             }
@@ -380,7 +382,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _loweredDecisionTree.Add(_factory.Goto(checkGuard));
                     sectionBuilder.Add(_factory.Label(checkGuard));
                     AddBindings(sectionBuilder, guarded.Bindings);
-                    sectionBuilder.Add(_factory.ConditionalGoto(_localRewriter.VisitExpression(guarded.Guard), targetLabel, true));
+
+                    var guardTest = _factory.ConditionalGoto(_localRewriter.VisitExpression(guarded.Guard), targetLabel, true);
+
+                    // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
+                    if (!guarded.Guard.WasCompilerGenerated && _localRewriter.Instrument)
+                    {
+                        guardTest = _localRewriter._instrumenter.InstrumentPatternSwitchWhenClauseConditionalGotoBody(guarded.Guard, guardTest);
+                    }
+
+                    sectionBuilder.Add(guardTest);
+
                     var guardFailed = _factory.GenerateLabel("guardFailed");
                     sectionBuilder.Add(_factory.Goto(guardFailed));
                     _loweredDecisionTree.Add(_factory.Label(guardFailed));

@@ -17,15 +17,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteStringArray(symbol.TupleElementNames);
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                // The hash of the underlying type is good enough, we don't need to include names.
-                var symbolKeyHashCode = reader.ReadSymbolKey();
-                var elementNames = reader.ReadStringArray();
-
-                return symbolKeyHashCode;
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var underlyingTypeResolution = reader.ReadSymbolKey();

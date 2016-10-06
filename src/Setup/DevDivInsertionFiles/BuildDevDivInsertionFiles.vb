@@ -515,7 +515,8 @@ Public Class BuildDevDivInsertionFiles
                           "System.Reflection.TypeExtensions",
                           "System.Net.Security",
                           "System.Diagnostics.Process",
-                          "System.AppContext"
+                          "System.AppContext",
+                          "System.IO.Compression"
 
                         Return False
                     Case Else

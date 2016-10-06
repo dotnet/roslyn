@@ -2295,6 +2295,7 @@ class Student : Person { public double GPA; }
           <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
+          <slot kind=""1"" offset=""11"" />
           <slot kind=""0"" offset=""51"" />
           <slot kind=""21"" offset=""0"" />
           <slot kind=""0"" offset=""155"" />
@@ -2304,21 +2305,23 @@ class Student : Person { public double GPA; }
       <sequencePoints>
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
-        <entry offset=""0x49"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
-        <entry offset=""0x6f"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
-        <entry offset=""0x95"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
-        <entry offset=""0xb1"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
-        <entry offset=""0xc5"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+        <entry offset=""0x8"" hidden=""true"" />
+        <entry offset=""0x39"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
+        <entry offset=""0x4d"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
+        <entry offset=""0x73"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
+        <entry offset=""0x99"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
+        <entry offset=""0xb5"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
+        <entry offset=""0xc9"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xc8"">
-        <scope startOffset=""0x32"" endOffset=""0x6a"">
-          <local name=""s"" il_index=""5"" il_start=""0x32"" il_end=""0x6a"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xcc"">
+        <scope startOffset=""0x36"" endOffset=""0x6e"">
+          <local name=""s"" il_index=""6"" il_start=""0x36"" il_end=""0x6e"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x6a"" endOffset=""0x90"">
-          <local name=""s"" il_index=""7"" il_start=""0x6a"" il_end=""0x90"" attributes=""0"" />
+        <scope startOffset=""0x6e"" endOffset=""0x94"">
+          <local name=""s"" il_index=""8"" il_start=""0x6e"" il_end=""0x94"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x90"" endOffset=""0xb1"">
-          <local name=""t"" il_index=""8"" il_start=""0x90"" il_end=""0xb1"" attributes=""0"" />
+        <scope startOffset=""0x94"" endOffset=""0xb5"">
+          <local name=""t"" il_index=""9"" il_start=""0x94"" il_end=""0xb5"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -5427,6 +5430,91 @@ partial class C
   </methods>
 </symbols>
 ");
+        }
+
+        [WorkItem(12378, "https://github.com/dotnet/roslyn/issues/12378")]
+        [WorkItem(13971, "https://github.com/dotnet/roslyn/issues/13971")]
+        [Fact]
+        public void PatternSwitchSequencePoints()
+        {
+            string source =
+@"class Program
+{
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case 1 when o == null:
+            case 4:
+            case 2 when o == null:
+                break;
+            case 1 when o != null:
+            case 5:
+            case 3 when o != null:
+                break;
+            default:
+                break;
+            case 1:
+                break;
+        }
+        switch (o)
+        {
+            case 1:
+                break;
+            default:
+                break;
+        }
+        switch (o)
+        {
+            default:
+                break;
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""Program"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""1"" offset=""11"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""1"" offset=""378"" />
+          <slot kind=""1"" offset=""511"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" />
+        <entry offset=""0x5"" hidden=""true"" />
+        <entry offset=""0x60"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""34"" />
+        <entry offset=""0x65"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""34"" />
+        <entry offset=""0x6a"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""23"" />
+        <entry offset=""0x6c"" startLine=""11"" startColumn=""20"" endLine=""11"" endColumn=""34"" />
+        <entry offset=""0x71"" startLine=""13"" startColumn=""20"" endLine=""13"" endColumn=""34"" />
+        <entry offset=""0x76"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""23"" />
+        <entry offset=""0x78"" startLine=""16"" startColumn=""17"" endLine=""16"" endColumn=""23"" />
+        <entry offset=""0x7a"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" />
+        <entry offset=""0x7c"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
+        <entry offset=""0x81"" hidden=""true"" />
+        <entry offset=""0xb5"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
+        <entry offset=""0xb7"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
+        <entry offset=""0xb9"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
+        <entry offset=""0xbe"" hidden=""true"" />
+        <entry offset=""0xc8"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
+        <entry offset=""0xca"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
         }
     }
 }

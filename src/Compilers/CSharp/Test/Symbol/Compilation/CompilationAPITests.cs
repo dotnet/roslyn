@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -2219,6 +2220,54 @@ public class C { public static FrameworkName Foo() { return null; }}";
         }
 
         [Fact()]
+        public void CreateAnonymousType_IncorrectLengths_IsReadOnly()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(true)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_IncorrectLengths_Locations()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    memberLocations: ImmutableArray.Create(Location.None)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_WritableProperty()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(false, false)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullLocations()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    memberLocations: ImmutableArray.Create(Location.None, null)));
+        }
+
+        [Fact()]
         public void CreateAnonymousType_NullArgument1()
         {
             var compilation = CSharpCompilation.Create("HelloWorld");
@@ -2269,6 +2318,29 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(type.IsAnonymousType);
             Assert.Equal(1, type.GetMembers().OfType<IPropertySymbol>().Count());
             Assert.Equal("<anonymous type: int m1>", type.ToDisplayString());
+            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()), 
+                loc => Assert.Equal(loc, Location.None));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_Locations()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            var tree = CSharpSyntaxTree.ParseText("class C { }");
+            var loc1 = Location.Create(tree, new TextSpan(0, 1));
+            var loc2 = Location.Create(tree, new TextSpan(1, 1));
+
+            var type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32),
+                                                           compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1", "m2"),
+                        memberLocations: ImmutableArray.Create(loc1, loc2));
+
+            Assert.True(type.IsAnonymousType);
+            Assert.Equal(2, type.GetMembers().OfType<IPropertySymbol>().Count());
+            Assert.Equal(loc1, type.GetMembers("m1").Single().Locations.Single());
+            Assert.Equal(loc2, type.GetMembers("m2").Single().Locations.Single());
+            Assert.Equal("<anonymous type: int m1, int m2>", type.ToDisplayString());
         }
 
         [Fact()]
@@ -2282,6 +2354,8 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(type.IsAnonymousType);
             Assert.Equal(2, type.GetMembers().OfType<IPropertySymbol>().Count());
             Assert.Equal("<anonymous type: int m1, bool m2>", type.ToDisplayString());
+            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, Location.None));
         }
 
         #region Script return values

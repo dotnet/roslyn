@@ -41,14 +41,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteInteger((int)kind);
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return Hash.Combine(reader.ReadString(),
-                       Hash.Combine(reader.ReadSymbolKey(),
-                       Hash.Combine(reader.ReadInteger(),
-                                    reader.ReadInteger())));
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var localName = reader.ReadString();
