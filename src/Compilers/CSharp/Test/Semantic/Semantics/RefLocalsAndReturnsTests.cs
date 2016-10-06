@@ -960,5 +960,43 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(12, 20)
                 );
         }
+
+        [Fact, WorkItem(14174, "https://github.com/dotnet/roslyn/issues/14174")]
+        public void RefDynamicBinding()
+        {
+            var text = @"
+class C
+{
+    static object[] arr = new object[] { ""f"" };
+    static void Main(string[] args)
+    {
+        System.Console.Write(arr[0].ToString());
+
+        RefParam(ref arr[0]);
+        System.Console.Write(arr[0].ToString());
+
+        ref dynamic x = ref arr[0];
+        x = ""o"";
+        System.Console.Write(arr[0].ToString());
+
+        RefReturn() = ""g"";
+        System.Console.Write(arr[0].ToString());
+    }
+
+    static void RefParam(ref dynamic p)
+    {
+        p = ""r"";
+    }
+
+    static ref dynamic RefReturn()
+    {
+        return ref arr[0];
+    }
+}
+";
+            CompileAndVerify(text,
+                expectedOutput: "frog",
+                additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+        }
     }
 }

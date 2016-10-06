@@ -1340,6 +1340,8 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.True(type.IsAnonymousType)
             Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
             Assert.Equal("<anonymous type: m1 As Integer, m2 As Integer>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
         End Sub
 
         <Fact>
@@ -1385,6 +1387,8 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.True(type.IsAnonymousType)
             Assert.Equal(1, type.GetMembers().OfType(Of IPropertySymbol).Count())
             Assert.Equal("<anonymous type: Key m1 As Integer>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
         End Sub
 
         <Fact()>
@@ -1398,6 +1402,8 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.True(type.IsAnonymousType)
             Assert.Equal(1, type.GetMembers().OfType(Of IPropertySymbol).Count())
             Assert.Equal("<anonymous type: m1 As Integer>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
         End Sub
 
         <Fact()>
@@ -1410,6 +1416,8 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.True(type.IsAnonymousType)
             Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
             Assert.Equal("<anonymous type: Key m1 As Integer, Key m2 As Boolean>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
         End Sub
 
         <Fact()>
