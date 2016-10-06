@@ -20,12 +20,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ReceiverType);
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return Hash.Combine(reader.ReadSymbolKey(),
-                                    reader.ReadSymbolKey());
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var reducedFromResolution = reader.ReadSymbolKey();
@@ -49,13 +43,6 @@ namespace Microsoft.CodeAnalysis
             {
                 visitor.WriteSymbolKey(symbol.ConstructedFrom);
                 visitor.WriteSymbolKeyArray(symbol.TypeArguments);
-            }
-
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return Hash.Combine(
-                    reader.ReadSymbolKey(),
-                    reader.ReadSymbolKeyArrayHashCode());
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
@@ -116,17 +103,6 @@ namespace Microsoft.CodeAnalysis
                 // Done writing the signature.  Go back to normal mode.
                 Debug.Assert(visitor.WritingSignature);
                 visitor.WritingSignature = false;
-            }
-
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return Hash.Combine(reader.ReadString(),
-                       Hash.Combine(reader.ReadSymbolKey(),
-                       Hash.Combine(reader.ReadInteger(),
-                       Hash.Combine(reader.ReadBoolean(),
-                       Hash.Combine(reader.ReadRefKindArrayHashCode(),
-                       Hash.Combine(reader.ReadSymbolKeyArrayHashCode(),
-                                    reader.ReadSymbolKey()))))));
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

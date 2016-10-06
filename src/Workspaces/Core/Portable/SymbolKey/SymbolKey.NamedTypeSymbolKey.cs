@@ -29,16 +29,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return Hash.Combine(reader.ReadString(),
-                       Hash.Combine(reader.ReadSymbolKey(),
-                       Hash.Combine(reader.ReadInteger(),
-                       Hash.Combine(reader.ReadInteger(),
-                       Hash.Combine(reader.ReadBoolean(),
-                                    reader.ReadSymbolKeyArrayHashCode())))));
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
