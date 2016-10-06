@@ -41,7 +41,18 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (container is IEventSymbol)
                 {
-                    // return ((IEventSymbol)container).
+                    // Parameters can be owned by events in VB.  i.e. it's legal in VB to have:
+                    //
+                    //      Public Event E(a As Integer, b As Integer);
+                    //
+                    // In this case it's equivalent to:
+                    //
+                    //      Public Delegate UnutterableCompilerName(a As Integer, b As Integer)
+                    //      public Event E As UnutterableCompilerName
+                    //
+                    // So, in this case, to resolve the parameter, we go have to map the event,
+                    // then find the delegate it returns, then find the parameter in the delegate's
+                    // 'Invoke' method.
                     var eventSymbol = (IEventSymbol)container;
                     var delegateInvoke = (eventSymbol.Type as INamedTypeSymbol)?.DelegateInvokeMethod;
 
