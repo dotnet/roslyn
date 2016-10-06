@@ -8905,8 +8905,15 @@ class C
         int Local<$$";
 
             await VerifyNoItemsExistAsync(markup);
+        }
 
-            markup = @"
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
+        public async Task CompletionForAwaitWithoutAsync()
+        {
+            var markup = @"
 class C
 {
     void M()
