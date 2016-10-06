@@ -2587,7 +2587,7 @@ class Program
             await AssertSmartIndentAsync(
                 code,
                 indentationLine: 6,
-                expectedIndentation: 12);
+                expectedIndentation: 8);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
