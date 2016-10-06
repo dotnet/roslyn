@@ -239,7 +239,13 @@ Module C
 
         Dim t3 As (V1(), V2%()) = Nothing
         console.writeline(t3.Item1.Length) 
+    End Sub
 
+   Async Sub T()
+        Dim t4 as (Integer% As String, Await As String, Function$) = nothing
+        console.writeline(t4.Integer.Length)  
+        console.writeline(t4.Await.Length)  
+        console.writeline(t4.Function.Length)  
     End Sub
 
     class V2
@@ -275,6 +281,15 @@ BC30002: Type 'V1' is not defined.
 BC32017: Comma, ')', or a valid expression continuation expected.
         Dim t3 As (V1(), V2%()) = Nothing
                             ~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+   Async Sub T()
+             ~
+BC30302: Type character '%' cannot be used in a declaration with an explicit type.
+        Dim t4 as (Integer% As String, Await As String, Function$) = nothing
+                   ~~~~~~~~
+BC30183: Keyword is not valid as an identifier.
+        Dim t4 as (Integer% As String, Await As String, Function$) = nothing
+                                       ~~~~~
 </errors>)
         End Sub
 

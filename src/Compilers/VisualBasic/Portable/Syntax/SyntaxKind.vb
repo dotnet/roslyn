@@ -3192,7 +3192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Represents an element of a tuple type supplying element name and optionally a type.
         ''' </summary>
-        NamedTupleElement = 780
+        NamedTupleElement = 791
     End Enum
 
 End Namespace

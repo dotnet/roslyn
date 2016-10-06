@@ -346,7 +346,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim typeChar As TypeCharacter = nameSyntax.Identifier.GetTypeCharacter()
                     If typeChar <> TypeCharacter.None Then
                         ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_TupleLiteralDisallowsTypeChar)
-                        hasErrors = True
                     End If
                 Else
                     elementLocations.Add(argumentSyntax.GetLocation)

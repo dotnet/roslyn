@@ -5098,7 +5098,7 @@ Unify Enum declarations with other block type declarations.
 
       <node-kind name="TypedTupleElement"></node-kind>
 
-      <child name="Type" optional="true" kind="@TypeSyntax">
+      <child name="Type" optional="false" kind="@TypeSyntax">
         <description>The type-name part of the tuple element syntax.</description>
       </child>
     </node-structure>

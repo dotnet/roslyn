@@ -2951,7 +2951,7 @@ checkNullable:
                         (DirectCast(CurrentToken, IdentifierTokenSyntax).TypeCharacter <> TypeCharacter.None OrElse
                         PeekNextToken().Kind = SyntaxKind.AsKeyword) Then
 
-                    identifierNameOpt = ParseIdentifierNameAllowingKeyword()
+                    identifierNameOpt = SyntaxFactory.IdentifierName(ParseIdentifier())
                     TryGetToken(SyntaxKind.AsKeyword, asKeywordOpt)
                 End If
 

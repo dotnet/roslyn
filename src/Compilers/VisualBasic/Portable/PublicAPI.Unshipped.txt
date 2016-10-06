@@ -35,7 +35,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.Type() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.Update(type As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.WithType(type As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
-Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NamedTupleElement = 780 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
+Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NamedTupleElement = 791 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TupleExpression = 788 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TupleType = 789 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TypedTupleElement = 790 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
@@ -67,7 +67,6 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleExpression(openPare
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleType(ParamArray elements As Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleType(elements As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleType(openParenToken As Microsoft.CodeAnalysis.SyntaxToken, elements As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax), closeParenToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypedTupleElement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypedTupleElement(type As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.New(languageVersion As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default, documentationMode As Microsoft.CodeAnalysis.DocumentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, kind As Microsoft.CodeAnalysis.SourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, preprocessorSymbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.SpecifiedLanguageVersion() -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
