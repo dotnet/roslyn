@@ -484,10 +484,11 @@
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="FindSymbols\StreamingProgressCollector.cs" />
     <Compile Include="FindSymbols\SymbolFinder.ServerCallback.cs" />
+    <Compile Include="SymbolKey\SymbolKey.AnonymousSymbolKey.cs" />
+    <Compile Include="SymbolKey\SymbolKey.AnonymousTypeSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolKey\SymbolKey.PropertySymbolKey.cs" />
-    <Compile Include="SymbolKey\SymbolKey.AnonymousTypeSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.TypeParameterOrdinalSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.TypeParameterSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.ErrorTypeSymbolKey.cs" />

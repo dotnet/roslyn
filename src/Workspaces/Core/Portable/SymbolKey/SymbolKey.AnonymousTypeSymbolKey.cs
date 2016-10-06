@@ -4,6 +4,8 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {

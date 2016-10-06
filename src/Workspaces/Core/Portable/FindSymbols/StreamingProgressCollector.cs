@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-
     /// <summary>
     /// Collects all the <see cref="ISymbol"/> definitions and <see cref="ReferenceLocation"/> 
     /// references that are reported independently and packages them up into the final list

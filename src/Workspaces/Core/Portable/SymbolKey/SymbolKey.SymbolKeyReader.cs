@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis
 
             private readonly Func<TStringResult> _readString;
             private readonly Func<bool> _readBoolean;
-            private readonly Func<int> _readInteger;
             private readonly Func<RefKind> _readRefKind;
 
             protected string Data { get; private set; }
@@ -36,7 +35,6 @@ namespace Microsoft.CodeAnalysis
             {
                 _readString = ReadString;
                 _readBoolean = ReadBoolean;
-                _readInteger = ReadInteger;
                 _readRefKind = () => (RefKind)ReadInteger();
             }
 
@@ -362,6 +360,11 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
+            internal SyntaxTree GetSyntaxTree(string filePath)
+            {
+                return this.Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+            }
+
             #region Symbols
 
             public SymbolKeyResolution ReadFirstSymbolKey()
@@ -436,6 +439,7 @@ namespace Microsoft.CodeAnalysis
                     case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.Resolve(this);
                     case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.Resolve(this);
                     case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.Resolve(this);
+                    case SymbolKeyType.AnonymousFunctionOrDelegate: return AnonymousFunctionOrDelegateSymbolKey.Resolve(this);
                     case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.Resolve(this);
                 }
 
@@ -501,7 +505,7 @@ namespace Microsoft.CodeAnalysis
 
             private Location CreateSourceLocation(string filePath, int start, int length)
             {
-                var syntaxTree = Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+                var syntaxTree = GetSyntaxTree(filePath);
                 Debug.Assert(syntaxTree != null);
                 return Location.Create(syntaxTree, new TextSpan(start, length));
             }

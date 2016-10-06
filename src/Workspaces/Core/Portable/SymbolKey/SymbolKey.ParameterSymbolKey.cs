@@ -39,10 +39,20 @@ namespace Microsoft.CodeAnalysis
                     return ((IPropertySymbol)container).Parameters.Where(
                         p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
                 }
-                else
+                else if (container is IEventSymbol)
                 {
-                    return SpecializedCollections.EmptyEnumerable<IParameterSymbol>();
+                    // return ((IEventSymbol)container).
+                    var eventSymbol = (IEventSymbol)container;
+                    var delegateInvoke = (eventSymbol.Type as INamedTypeSymbol)?.DelegateInvokeMethod;
+
+                    if (delegateInvoke != null)
+                    {
+                        return delegateInvoke.Parameters.Where(
+                            p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
+                    }
                 }
+
+                return SpecializedCollections.EmptyEnumerable<IParameterSymbol>();
             }
         }
     }
