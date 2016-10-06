@@ -12,7 +12,8 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         private EnvDTE80.Solution2 _solution;
         private string _fileName;
 
-        private static readonly IDictionary<string, string> _projectTemplates = InitializeProjectTemplates();
+        private static readonly IDictionary<string, string> _csharpProjectTemplates = InitializeCSharpProjectTemplates();
+        private static readonly IDictionary<string, string> _visualBasicProjectTemplates = InitializeVisualBasicProjectTemplates();
 
         private SolutionExplorer_InProc() { }
 
@@ -21,14 +22,29 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             return new SolutionExplorer_InProc();
         }
 
-        private static IDictionary<string, string> InitializeProjectTemplates()
+        private static IDictionary<string, string> InitializeCSharpProjectTemplates()
         {
             var localeID = GetDTE().LocaleID;
 
             return new Dictionary<string, string>
             {
                 [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
-                [WellKnownProjectTemplates.ConsoleApplication] = "ConsoleApplication.zip",
+                [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.CSharp.ConsoleApplication",
+                [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
+                [WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip",
+                [WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip",
+                [WellKnownProjectTemplates.WebApplication] = "WebApplicationProject40"
+            };
+        }
+
+        private static IDictionary<string, string> InitializeVisualBasicProjectTemplates()
+        {
+            var localeID = GetDTE().LocaleID;
+
+            return new Dictionary<string, string>
+            {
+                [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
+                [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.VisualBasic.Windows.ConsoleApplication",
                 [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
                 [WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip",
                 [WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip",
@@ -122,7 +138,36 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         // TODO: Adjust language name based on whether we are using a web template
         private string GetProjectTemplatePath(string projectTemplate, string languageName)
         {
-            return _solution.GetProjectTemplate(_projectTemplates[projectTemplate], languageName);
+            var projectTemplateName = string.Empty;
+
+            switch (languageName.ToLower())
+            {
+                case "csharp":
+                {
+                    if (_csharpProjectTemplates.TryGetValue(projectTemplate, out projectTemplateName))
+                    {
+                        break;
+                    }
+                    goto default;
+                }
+
+                case "visualbasic":
+                {
+                    if (_visualBasicProjectTemplates.TryGetValue(projectTemplate, out projectTemplateName))
+                    {
+                        break;
+                    }
+                    goto default;
+                }
+
+                default:
+                {
+                    projectTemplateName = projectTemplate;
+                    break;
+                }
+            }
+
+            return _solution.GetProjectTemplate(projectTemplateName, languageName);
         }
 
         public void CleanUpOpenSolution()
