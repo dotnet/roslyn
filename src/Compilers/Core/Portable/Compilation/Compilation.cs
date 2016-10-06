@@ -885,7 +885,8 @@ namespace Microsoft.CodeAnalysis
             return elementNames;
         }
 
-        protected static void CheckTupleElementLocations(int cardinality, 
+        protected static void CheckTupleElementLocations(
+            int cardinality, 
             ImmutableArray<Location> elementLocations)
         {
             if (!elementLocations.IsDefault)
