@@ -2940,6 +2940,7 @@ checkNullable:
 
         Private Function ParseTupleType(openParen As PunctuationSyntax) As TypeSyntax
             Dim elementBuilder = _pool.AllocateSeparated(Of TupleElementSyntax)()
+            Dim unexpected As GreenNode = Nothing
 
             Do
                 Dim identifierNameOpt As IdentifierNameSyntax = Nothing
@@ -2960,22 +2961,59 @@ checkNullable:
                     typeOpt = ParseGeneralType()
                 End If
 
-                Dim element = SyntaxFactory.TupleElement(identifierNameOpt, asKeywordOpt, typeOpt)
+                Dim element As TupleElementSyntax
+
+                If identifierNameOpt IsNot Nothing Then
+                    Dim simpleAsClause As SimpleAsClauseSyntax = Nothing
+                    If asKeywordOpt IsNot Nothing Then
+                        Debug.Assert(typeOpt IsNot Nothing)
+                        simpleAsClause = SyntaxFactory.SimpleAsClause(asKeywordOpt, attributeLists:=Nothing, type:=typeOpt)
+                    End If
+
+                    element = SyntaxFactory.NamedTupleElement(identifierNameOpt, simpleAsClause)
+
+                Else
+                    Debug.Assert(typeOpt IsNot Nothing)
+                    element = SyntaxFactory.TypedTupleElement(typeOpt)
+                End If
 
                 elementBuilder.Add(element)
 
-                If CurrentToken.Kind = SyntaxKind.CommaToken Then
-                    Dim commaToken As PunctuationSyntax = Nothing
-                    TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken)
 
+                Dim commaToken As PunctuationSyntax = Nothing
+                If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken) Then
                     elementBuilder.AddSeparator(commaToken)
-                Else
+                    Continue Do
+
+                ElseIf CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse MustEndStatement(CurrentToken) Then
                     Exit Do
+
+                Else
+                    ' There is a syntax error of some kind.
+
+                    Dim skipped = ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}).Node
+                    If skipped IsNot Nothing Then
+                        skipped = ReportSyntaxError(skipped, ERRID.ERR_ArgumentSyntax)
+                    End If
+
+                    If CurrentToken.Kind = SyntaxKind.CommaToken Then
+                        commaToken = DirectCast(CurrentToken, PunctuationSyntax)
+                        commaToken = commaToken.AddLeadingSyntax(skipped)
+                        elementBuilder.AddSeparator(commaToken)
+                        GetNextToken()
+                    Else
+                        unexpected = skipped
+                        Exit Do
+                    End If
                 End If
             Loop
 
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
+
+            If unexpected IsNot Nothing Then
+                closeParen = closeParen.AddLeadingSyntax(unexpected)
+            End If
 
             Dim tupleElements = elementBuilder.ToList
             _pool.Free(elementBuilder)

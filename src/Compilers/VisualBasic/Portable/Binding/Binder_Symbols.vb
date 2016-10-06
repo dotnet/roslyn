@@ -706,15 +706,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim argumentSyntax = syntax.Elements(i)
 
                     Dim argumentType As TypeSymbol = Nothing
+                    Dim name As String = Nothing
+                    Dim nameSyntax As IdentifierNameSyntax = Nothing
 
-                    If argumentSyntax.Type IsNot Nothing Then
-                        argumentType = binder.BindTypeSyntax(argumentSyntax.Type, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
+                    If argumentSyntax.Kind = SyntaxKind.TypedTupleElement Then
+                        Dim typedElement = DirectCast(argumentSyntax, TypedTupleElementSyntax)
+                        argumentType = binder.BindTypeSyntax(typedElement.Type, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
+
                     Else
-                        Debug.Assert(argumentSyntax.IdentifierName.Identifier.GetTypeCharacter() <> TypeCharacter.None)
-                    End If
+                        Dim namedElement = DirectCast(argumentSyntax, NamedTupleElementSyntax)
+                        nameSyntax = namedElement.Identifier
+                        name = nameSyntax.Identifier.GetIdentifierText()
 
-                    If argumentSyntax.IdentifierName?.Identifier.GetTypeCharacter() <> TypeCharacter.None Then
-                        argumentType = binder.DecodeIdentifierType(argumentSyntax.IdentifierName.Identifier, argumentType, getRequireTypeDiagnosticInfoFunc:=Nothing, diagBag:=diagnostics)
+                        argumentType = binder.DecodeIdentifierType(nameSyntax.Identifier, namedElement.AsClause, getRequireTypeDiagnosticInfoFunc:=Nothing, diagBag:=diagnostics)
                     End If
 
                     types.Add(argumentType)
@@ -723,12 +727,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Binder.ReportDiagnostic(diagnostics, argumentSyntax, ERRID.ERR_RestrictedType1, argumentType)
                     End If
 
-                    Dim name As String = Nothing
-                    Dim nameSyntax As IdentifierNameSyntax = argumentSyntax.IdentifierName
 
                     If nameSyntax IsNot Nothing Then
-                        name = nameSyntax.Identifier.ValueText
-
                         ' validate name if we have one
                         hasExplicitNames = True
                         Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)
