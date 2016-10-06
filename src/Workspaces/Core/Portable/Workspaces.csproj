@@ -484,7 +484,7 @@
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="FindSymbols\StreamingProgressCollector.cs" />
     <Compile Include="FindSymbols\SymbolFinder.ServerCallback.cs" />
-    <Compile Include="SymbolKey\SymbolKey.AnonymousSymbolKey.cs" />
+    <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousTypeSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyComparer.cs" />
