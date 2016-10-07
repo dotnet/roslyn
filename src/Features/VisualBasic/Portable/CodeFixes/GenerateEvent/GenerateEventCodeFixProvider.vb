@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                     accessibility:=Accessibility.Public, modifiers:=Nothing,
                     explicitInterfaceSymbol:=Nothing,
                     type:=delegateType, name:=actualEventName,
-                    parameters:=TryCast(delegateSymbol, IMethodSymbol).Parameters)
+                    parameters:=delegateSymbol.Parameters)
 
                 Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedEvent, delegateType, codeGenService, CodeGenerationOptions.Default)
             Else
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                     type:=Nothing, name:=actualEventName,
                     parameters:=delegateSymbol.GetParameters())
 
-                Return New GenerateEventCodeAction(document.Project.Solution, TryCast(targetType, INamedTypeSymbol), generatedEvent, Nothing, codeGenService, CodeGenerationOptions.Default)
+                Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedEvent, Nothing, codeGenService, CodeGenerationOptions.Default)
             End If
         End Function
 
@@ -390,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                     accessibility:=Accessibility.Public, modifiers:=Nothing,
                     explicitInterfaceSymbol:=Nothing,
                     type:=delegateType, name:=actualEventName,
-                    parameters:=TryCast(boundMethod, IMethodSymbol).Parameters)
+                    parameters:=boundMethod.Parameters)
 
                 Return New GenerateEventCodeAction(document.Project.Solution, originalTargetType, generatedEvent, delegateType, codeGenService, New CodeGenerationOptions())
             Else
@@ -401,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                     type:=Nothing, name:=actualEventName,
                     parameters:=boundMethod.GetParameters())
 
-                Return New GenerateEventCodeAction(document.Project.Solution, TryCast(originalTargetType, INamedTypeSymbol), generatedEvent, Nothing, codeGenService, CodeGenerationOptions.Default)
+                Return New GenerateEventCodeAction(document.Project.Solution, originalTargetType, generatedEvent, Nothing, codeGenService, CodeGenerationOptions.Default)
             End If
         End Function
     End Class
