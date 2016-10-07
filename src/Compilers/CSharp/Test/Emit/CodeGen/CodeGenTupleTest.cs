@@ -19082,6 +19082,45 @@ namespace System
         }        
 
         [Fact]
+        [WorkItem(13472, "https://github.com/dotnet/roslyn/issues/13472")]
+        public void InvalidCastRef()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 _1, T2 _2)
+        {
+            Item1 = _1;
+            Item2 = _2;
+        }
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] names)
+        {
+        }
+    }
+}
+class C
+{
+    static void Main()
+    {
+        (int A, int B) x = (1, 2);
+        ref (int, int) y = ref x;
+    }
+}";
+            var comp = CompileAndVerify(source);
+            comp.EmitAndVerify();
+        }
+
+        [Fact]
         [WorkItem(14166, "https://github.com/dotnet/roslyn/issues/14166")]
         public void RefTuple001()
         {
