@@ -102,15 +102,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             return Thread.CurrentThread == ForegroundThread;
         }
 
-        /// <summary>
-        /// Ensure this is a supported scheduling context like Wpf or explicit STA scheduler.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsValid()
-        {
-            return CurrentForegroundThreadData.Kind != Unknown;
-        }
-
         public void AssertIsForeground()
         {
             Contract.ThrowIfFalse(IsForeground());
