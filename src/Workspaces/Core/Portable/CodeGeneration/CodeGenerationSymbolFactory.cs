@@ -30,10 +30,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<AttributeData> attributes, Accessibility accessibility,
             DeclarationModifiers modifiers, ITypeSymbol type,
             IEventSymbol explicitInterfaceSymbol, string name,
-            IMethodSymbol addMethod = null, IMethodSymbol removeMethod = null, IMethodSymbol raiseMethod = null,
-            ImmutableArray<IParameterSymbol> parameters = default(ImmutableArray<IParameterSymbol>))
+            IMethodSymbol addMethod = null, IMethodSymbol removeMethod = null, IMethodSymbol raiseMethod = null)
         {
-            var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceSymbol, name, addMethod, removeMethod, raiseMethod, parameters);
+            var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceSymbol, name, addMethod, removeMethod, raiseMethod);
             CodeGenerationEventInfo.Attach(result, modifiers.IsUnsafe);
             return result;
         }
@@ -279,7 +278,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a method type symbol that can be used to describe a delegate type declaration.
         /// </summary>
-        public static INamedTypeSymbol CreateDelegateTypeSymbol(IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers, ITypeSymbol returnType, string name, IList<ITypeParameterSymbol> typeParameters = null, IList<IParameterSymbol> parameters = null)
+        public static CodeGenerationNamedTypeSymbol CreateDelegateTypeSymbol(
+            IList<AttributeData> attributes, 
+            Accessibility accessibility, 
+            DeclarationModifiers modifiers, 
+            ITypeSymbol returnType, 
+            string name, 
+            IList<ITypeParameterSymbol> typeParameters = null, 
+            IList<IParameterSymbol> parameters = null)
         {
             var invokeMethod = CreateMethodSymbol(
                 attributes: null,

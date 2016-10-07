@@ -89,23 +89,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
             End If
 
-            Dim codeGenEvent = TryCast([event], CodeGenerationEventSymbol)
-            Dim hasParameters = codeGenEvent IsNot Nothing AndAlso Not codeGenEvent.Parameters.IsDefault
-
-            If [event].Type Is Nothing OrElse hasParameters Then
-                Dim parameters = If(codeGenEvent.Parameters.IsDefault,
-                    ImmutableArray(Of IParameterSymbol).Empty,
-                    codeGenEvent.Parameters)
-
-                Return SyntaxFactory.EventStatement(
-                    attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
-                    modifiers:=GenerateModifiers([event], destination, options),
-                    identifier:=[event].Name.ToIdentifierToken,
-                    parameterList:=ParameterGenerator.GenerateParameterList(parameters.Select(AddressOf RemoveOptionalOrParamArray), options),
-                    asClause:=Nothing,
-                    implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
-            End If
-
             Return SyntaxFactory.EventStatement(
                 attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
                 modifiers:=GenerateModifiers([event], destination, options),

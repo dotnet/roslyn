@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public IMethodSymbol AddMethod { get; }
         public IMethodSymbol RemoveMethod { get; }
         public IMethodSymbol RaiseMethod { get; }
-        public ImmutableArray<IParameterSymbol> Parameters { get; }
 
         public CodeGenerationEventSymbol(
             INamedTypeSymbol containingType,
@@ -28,8 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             IMethodSymbol addMethod,
             IMethodSymbol removeMethod,
-            IMethodSymbol raiseMethod,
-            ImmutableArray<IParameterSymbol> parameters)
+            IMethodSymbol raiseMethod)
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
@@ -39,9 +37,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.AddMethod = addMethod;
             this.RemoveMethod = removeMethod;
             this.RaiseMethod = raiseMethod;
-            this.Parameters = parameters.IsDefault
-                ? ImmutableArray<IParameterSymbol>.Empty
-                : parameters;
         }
 
         protected override CodeGenerationSymbol Clone()
@@ -49,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationEventSymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
                 this.Modifiers, this.Type, this.ExplicitInterfaceImplementations.FirstOrDefault(),
-                this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod, this.Parameters);
+                this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod);
         }
 
         public override SymbolKind Kind => SymbolKind.Event;
