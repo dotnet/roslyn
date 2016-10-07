@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_OverrideWithByref2 = 30398
         ERR_MyBaseAbstractCall1 = 30399
         ERR_IdentNotMemberOfInterface4 = 30401
-        ERR_IdentNotMemberOfInterfaceBecauseTupleNames4 = 30402
+        ERR_ImplementingInterfaceWithDifferentTupleNames5 = 30402
         '//We intentionally use argument '3' for the delegate name. This makes generating overload resolution errors
         '//easy. To make it more clear that were doing this, we name the message DelegateBindingMismatch3_2.
         '//This differentiates its from DelegateBindingMismatch3_3, which actually takes 3 parameters instead of 2.

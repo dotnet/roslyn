@@ -353,12 +353,14 @@ DoneWithErrorReporting:
                             foundMember = ValidateImplementedMember(implementingSym, foundMember, implementedMemberSyntax, binder, diagBag)
 
                             If Not MembersHaveMatchingTupleNames(implementingSym, foundMember) Then
-                                Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_IdentNotMemberOfInterfaceBecauseTupleNames4,
-                                        CustomSymbolDisplayFormatter.ShortErrorName(implementingSym), implementedMethodName,
+                                Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_ImplementingInterfaceWithDifferentTupleNames5,
+                                        CustomSymbolDisplayFormatter.ShortErrorName(implementingSym),
                                         implementingSym.GetKindText(),
-                                        CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(interfaceType))
+                                        implementedMethodName,
+                                        CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(interfaceType),
+                                        implementingSym,
+                                        foundMember)
 
-                                foundMember = Nothing
                                 errorReported = True
                             End If
 
@@ -417,7 +419,7 @@ DoneWithErrorReporting:
         Private Function MembersAreMatching(implementingSym As Symbol,
                                             implementedSym As Symbol,
                                             comparisons As SymbolComparisonResults,
-                                            eventComparison As EventSignatureComparer) As Boolean
+                                            eventComparer As EventSignatureComparer) As Boolean
             Debug.Assert(implementingSym.Kind = implementedSym.Kind)
 
             Select Case implementingSym.Kind
@@ -434,7 +436,7 @@ DoneWithErrorReporting:
                     Return (results = 0)
 
                 Case SymbolKind.Event
-                    Return eventComparison.Equals(DirectCast(implementedSym, EventSymbol), DirectCast(implementingSym, EventSymbol))
+                    Return eventComparer.Equals(DirectCast(implementedSym, EventSymbol), DirectCast(implementingSym, EventSymbol))
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(implementingSym.Kind)

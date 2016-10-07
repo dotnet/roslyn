@@ -13458,28 +13458,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'Derived' must implement 'Function MR1() As (Integer, (Integer, c As Integer))' for interface 'I0'.
-    Implements I0
-               ~~
-BC30149: Class 'Derived' must implement 'Function MR2() As (a As Integer, (b As Integer, c As Integer))' for interface 'I0'.
-    Implements I0
-               ~~
-BC30149: Class 'Derived' must implement 'Sub M1(x As (Integer, (Integer, c As Integer)))' for interface 'I0'.
-    Implements I0
-               ~~
-BC30149: Class 'Derived' must implement 'Sub M2(x As (a As Integer, (b As Integer, c As Integer)))' for interface 'I0'.
-    Implements I0
-               ~~
-BC30402: 'M1' cannot implement 'M1' because there is no matching sub on interface 'I0' with matching tuple element names.
+BC30402: 'M1' cannot implement sub 'M1' on interface 'I0' because the tuple element names in 'Public Sub M1(x As (notMissing As Integer, (notMissing As Integer, c As Integer)))' do not match those in 'Sub M1(x As (Integer, (Integer, c As Integer)))'.
     Public Sub M1(x As (notMissing As Integer, (notMissing As Integer, c As Integer))) Implements I0.M1
                                                                                                   ~~~~~
-BC30402: 'M2' cannot implement 'M2' because there is no matching sub on interface 'I0' with matching tuple element names.
+BC30402: 'M2' cannot implement sub 'M2' on interface 'I0' because the tuple element names in 'Public Sub M2(x As (notA As Integer, (notB As Integer, c As Integer)))' do not match those in 'Sub M2(x As (a As Integer, (b As Integer, c As Integer)))'.
     Public Sub M2(x As (notA As Integer, (notB As Integer, c As Integer))) Implements I0.M2
                                                                                       ~~~~~
-BC30402: 'MR1' cannot implement 'MR1' because there is no matching function on interface 'I0' with matching tuple element names.
+BC30402: 'MR1' cannot implement function 'MR1' on interface 'I0' because the tuple element names in 'Public Function MR1() As (notMissing As Integer, (notMissing As Integer, c As Integer))' do not match those in 'Function MR1() As (Integer, (Integer, c As Integer))'.
     Public Function MR1() As (notMissing As Integer, (notMissing As Integer, c As Integer)) Implements I0.MR1
                                                                                                        ~~~~~~
-BC30402: 'MR2' cannot implement 'MR2' because there is no matching function on interface 'I0' with matching tuple element names.
+BC30402: 'MR2' cannot implement function 'MR2' on interface 'I0' because the tuple element names in 'Public Function MR2() As (notA As Integer, (notB As Integer, c As Integer))' do not match those in 'Function MR2() As (a As Integer, (b As Integer, c As Integer))'.
     Public Function MR2() As (notA As Integer, (notB As Integer, c As Integer)) Implements I0.MR2
                                                                                            ~~~~~~
 </errors>)
@@ -13493,15 +13481,15 @@ BC30402: 'MR2' cannot implement 'MR2' because there is no matching function on i
 <compilation name="Tuples">
     <file name="a.vb">
 Public Interface I0
-    Property E1 As (a As Integer, b As Integer)
-    Property E2 As (Integer, b As Integer)
+    Property P1 As (a As Integer, b As Integer)
+    Property P2 As (Integer, b As Integer)
 End Interface
 
 Public Class Derived
     Implements I0
 
-    Public Property E1 As (notA As Integer, notB As Integer) Implements I0.E1
-    Public Property E2 As (notMissing As Integer, b As Integer) Implements I0.E2
+    Public Property P1 As (notA As Integer, notB As Integer) Implements I0.P1
+    Public Property P2 As (notMissing As Integer, b As Integer) Implements I0.P2
 End Class
     </file>
 </compilation>,
@@ -13509,17 +13497,11 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'Derived' must implement 'Property E1 As (a As Integer, b As Integer)' for interface 'I0'.
-    Implements I0
-               ~~
-BC30149: Class 'Derived' must implement 'Property E2 As (Integer, b As Integer)' for interface 'I0'.
-    Implements I0
-               ~~
-BC30402: 'E1' cannot implement 'E1' because there is no matching property on interface 'I0' with matching tuple element names.
-    Public Property E1 As (notA As Integer, notB As Integer) Implements I0.E1
+BC30402: 'P1' cannot implement property 'P1' on interface 'I0' because the tuple element names in 'Public Property P1 As (notA As Integer, notB As Integer)' do not match those in 'Property P1 As (a As Integer, b As Integer)'.
+    Public Property P1 As (notA As Integer, notB As Integer) Implements I0.P1
                                                                         ~~~~~
-BC30402: 'E2' cannot implement 'E2' because there is no matching property on interface 'I0' with matching tuple element names.
-    Public Property E2 As (notMissing As Integer, b As Integer) Implements I0.E2
+BC30402: 'P2' cannot implement property 'P2' on interface 'I0' because the tuple element names in 'Public Property P2 As (notMissing As Integer, b As Integer)' do not match those in 'Property P2 As (Integer, b As Integer)'.
+    Public Property P2 As (notMissing As Integer, b As Integer) Implements I0.P2
                                                                            ~~~~~
 </errors>)
 
@@ -13549,16 +13531,10 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'Derived' must implement 'Event E1 As Action(Of (a As Integer, b As Integer))' for interface 'I0'.
-    Implements I0
-               ~~
-BC30149: Class 'Derived' must implement 'Event E2 As Action(Of (Integer, b As Integer))' for interface 'I0'.
-    Implements I0
-               ~~
-BC30402: 'E1' cannot implement 'E1' because there is no matching event on interface 'I0' with matching tuple element names.
+BC30402: 'E1' cannot implement event 'E1' on interface 'I0' because the tuple element names in 'Public Event E1 As Action(Of (notA As Integer, notB As Integer))' do not match those in 'Event E1 As Action(Of (a As Integer, b As Integer))'.
     Public Event E1 As Action(Of (notA As Integer, notB As Integer)) Implements I0.E1
                                                                                 ~~~~~
-BC30402: 'E2' cannot implement 'E2' because there is no matching event on interface 'I0' with matching tuple element names.
+BC30402: 'E2' cannot implement event 'E2' on interface 'I0' because the tuple element names in 'Public Event E2 As Action(Of (notMissing As Integer, notB As Integer))' do not match those in 'Event E2 As Action(Of (Integer, b As Integer))'.
     Public Event E2 As Action(Of (notMissing As Integer, notB As Integer)) Implements I0.E2
                                                                                       ~~~~~
 </errors>)
@@ -13700,10 +13676,10 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30402: 'Pop' cannot implement 'Pop' because there is no matching function on interface 'I0(Of (a As Integer, b As Integer))' with matching tuple element names.
+BC30402: 'Pop' cannot implement function 'Pop' on interface 'I0(Of (a As Integer, b As Integer))' because the tuple element names in 'Public Overloads Function Pop() As (notA As Integer, notB As Integer)' do not match those in 'Function Pop() As (a As Integer, b As Integer)'.
     Public Overloads Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30402: 'Push' cannot implement 'Push' because there is no matching sub on interface 'I0(Of (a As Integer, b As Integer))' with matching tuple element names.
+BC30402: 'Push' cannot implement sub 'Push' on interface 'I0(Of (a As Integer, b As Integer))' because the tuple element names in 'Public Overloads Sub Push(x As (notA As Integer, notB As Integer))' do not match those in 'Sub Push(x As (a As Integer, b As Integer))'.
     Public Overloads Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -14304,28 +14280,16 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'C1' must implement 'Function MR() As (a0 As Integer, b0 As Integer)' for interface 'I0'.
-    Implements I0, I1
-               ~~
-BC30149: Class 'C1' must implement 'Sub M(x As (a0 As Integer, b0 As Integer))' for interface 'I0'.
-    Implements I0, I1
-               ~~
-BC30149: Class 'C1' must implement 'Function MR() As (a1 As Integer, b1 As Integer)' for interface 'I1'.
-    Implements I0, I1
-                   ~~
-BC30149: Class 'C1' must implement 'Sub M(x As (a1 As Integer, b1 As Integer))' for interface 'I1'.
-    Implements I0, I1
-                   ~~
-BC30402: 'M' cannot implement 'M' because there is no matching sub on interface 'I0' with matching tuple element names.
+BC30402: 'M' cannot implement sub 'M' on interface 'I0' because the tuple element names in 'Public Sub M(x As (a2 As Integer, b2 As Integer))' do not match those in 'Sub M(x As (a0 As Integer, b0 As Integer))'.
     Public Sub M(x As (a2 As Integer, b2 As Integer)) Implements I0.M, I1.M
                                                                  ~~~~
-BC30402: 'M' cannot implement 'M' because there is no matching sub on interface 'I1' with matching tuple element names.
+BC30402: 'M' cannot implement sub 'M' on interface 'I1' because the tuple element names in 'Public Sub M(x As (a2 As Integer, b2 As Integer))' do not match those in 'Sub M(x As (a1 As Integer, b1 As Integer))'.
     Public Sub M(x As (a2 As Integer, b2 As Integer)) Implements I0.M, I1.M
                                                                        ~~~~
-BC30402: 'MR' cannot implement 'MR' because there is no matching function on interface 'I0' with matching tuple element names.
+BC30402: 'MR' cannot implement function 'MR' on interface 'I0' because the tuple element names in 'Public Function MR() As (a2 As Integer, b2 As Integer)' do not match those in 'Function MR() As (a0 As Integer, b0 As Integer)'.
     Public Function MR() As (a2 As Integer, b2 As Integer) Implements I0.MR, I1.MR
                                                                       ~~~~~
-BC30402: 'MR' cannot implement 'MR' because there is no matching function on interface 'I1' with matching tuple element names.
+BC30402: 'MR' cannot implement function 'MR' on interface 'I1' because the tuple element names in 'Public Function MR() As (a2 As Integer, b2 As Integer)' do not match those in 'Function MR() As (a1 As Integer, b1 As Integer)'.
     Public Function MR() As (a2 As Integer, b2 As Integer) Implements I0.MR, I1.MR
                                                                              ~~~~~
 </errors>)
@@ -14546,6 +14510,32 @@ additionalRefs:=s_valueTupleRefs)
 BC40003: function 'M' shadows an overloadable member declared in the base class 'C0'.  If you want to overload the base method, this method must be declared 'Overloads'.
     Public Function M(x As (a As Integer, (notB As Integer, c As Integer))) As (a As Integer, (notB As Integer, c As Integer))
                     ~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub UnifyDifferentTupleName()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Interface I0(Of T1)
+End Interface
+
+Class C(Of T2)
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As T2, notB As T2))
+
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32072: Cannot implement interface 'I0(Of (notA As T2, notB As T2))' because its implementation could conflict with the implementation of another implemented interface 'I0(Of (a As Integer, b As Integer))' for some type arguments.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As T2, notB As T2))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
 
         End Sub

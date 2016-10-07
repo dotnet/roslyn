@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim diagnostics As DiagnosticBag = Nothing
             Dim type = Me.Type
             For Each implemented In ExplicitInterfaceImplementations
-                If Not implemented.Type = type Then
+                If Not implemented.Type.IsSameType(type, TypeCompareKind.IgnoreTupleNames) Then
                     If diagnostics Is Nothing Then
                         diagnostics = DiagnosticBag.GetInstance()
                     End If

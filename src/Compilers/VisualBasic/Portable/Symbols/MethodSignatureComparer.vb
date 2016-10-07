@@ -739,7 +739,9 @@ Done:
             Return comparison
         End Function
 
-        Private Shared Function HaveSameReturnTypes(method1 As MethodSymbol, typeSubstitution1 As TypeSubstitution, method2 As MethodSymbol, typeSubstitution2 As TypeSubstitution, considerCustomModifiers As Boolean, considerTupleNames As Boolean) As Boolean
+        Private Shared Function HaveSameReturnTypes(method1 As MethodSymbol, typeSubstitution1 As TypeSubstitution,
+                                                    method2 As MethodSymbol, typeSubstitution2 As TypeSubstitution,
+                                                    considerCustomModifiers As Boolean, considerTupleNames As Boolean) As Boolean
             'short-circuit type map building in the easiest cases
             Dim isSub1 = method1.IsSub
             Dim isSub2 = method2.IsSub
@@ -758,6 +760,7 @@ Done:
             Dim returnType1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(origDef1.ReturnType, origDef1.ReturnTypeCustomModifiers))
             Dim returnType2 = SubstituteType(typeSubstitution2, New TypeWithModifiers(origDef2.ReturnType, origDef2.ReturnTypeCustomModifiers))
 
+            ' the runtime compares custom modifiers using (effectively) SequenceEqual
             Dim comparison As TypeCompareKind = MakeTypeCompareKind(considerCustomModifiers, considerTupleNames)
             Return returnType1.IsSameType(returnType2, comparison)
         End Function

@@ -296,6 +296,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim container2 As NamedTypeSymbol = DirectCast(t2, NamedTypeSymbol)
 
                     Do
+
+                        If (container1.IsDefinition <> container2.IsDefinition) AndAlso
+                            Not ((compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) <> 0 AndAlso
+                            (DirectCast(container1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(container2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers)) Then
+
+                            Return False
+                        End If
+
+                        If (compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
+                           Not HasSameTypeArgumentCustomModifiers(DirectCast(container1, NamedTypeSymbol), DirectCast(container2, NamedTypeSymbol)) Then
+
+                            Return False
+                        End If
+
                         Dim args1 As ImmutableArray(Of TypeSymbol) = container1.TypeArgumentsNoUseSiteDiagnostics
                         Dim args2 As ImmutableArray(Of TypeSymbol) = container2.TypeArgumentsNoUseSiteDiagnostics
 
@@ -326,22 +340,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean
-            If Not type1.HasTypeArgumentsCustomModifiers() AndAlso Not type2.HasTypeArgumentsCustomModifiers() Then
+            Dim hasMods1 = type1.HasTypeArgumentsCustomModifiers()
+            Dim hasMods2 = type2.HasTypeArgumentsCustomModifiers()
+
+            If Not hasMods1 AndAlso Not hasMods2 Then
+                ' Neither has modifiers
                 Return True
             End If
 
-            Dim mod1 = type1.TypeArgumentsCustomModifiers
-            Dim mod2 = type2.TypeArgumentsCustomModifiers
-
-            If mod1.Length <> mod2.Length Then
+            If Not hasMods1 OrElse Not hasMods2 Then
+                ' Only one has modifiers
                 Return False
             End If
 
-            If Not mod1.SequenceEqual(mod2, AddressOf AreSameCustomModifiers) Then
-                Return False
-            End If
-
-            Return True
+            ' Both have modifiers, let's compare them
+            Return type1.TypeArgumentsCustomModifiers.SequenceEqual(type2.TypeArgumentsCustomModifiers, AddressOf AreSameCustomModifiers)
         End Function
 
         <Extension()>

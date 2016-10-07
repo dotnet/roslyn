@@ -1003,8 +1003,8 @@
   <data name="ERR_IdentNotMemberOfInterface4" xml:space="preserve">
     <value>'{0}' cannot implement '{1}' because there is no matching {2} on interface '{3}'.</value>
   </data>
-  <data name="ERR_IdentNotMemberOfInterfaceBecauseTupleNames4" xml:space="preserve">
-    <value>'{0}' cannot implement '{1}' because there is no matching {2} on interface '{3}' with matching tuple element names.</value>
+  <data name="ERR_ImplementingInterfaceWithDifferentTupleNames5" xml:space="preserve">
+    <value>'{0}' cannot implement {1} '{2}' on interface '{3}' because the tuple element names in '{4}' do not match those in '{5}'.</value>
   </data>
   <data name="ERR_WithEventsRequiresClass" xml:space="preserve">
     <value>'WithEvents' variables must have an 'As' clause.</value>

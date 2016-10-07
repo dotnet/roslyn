@@ -208,7 +208,10 @@ Done:
             Dim type1 = prop1.Type
             Dim type2 = prop2.Type
 
-            If (comparison And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso Not prop1.TypeCustomModifiers.SequenceEqual(prop2.TypeCustomModifiers) Then
+            ' the runtime compares custom modifiers using (effectively) SequenceEqual
+            If (comparison And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
+                Not prop1.TypeCustomModifiers.SequenceEqual(prop2.TypeCustomModifiers) Then
+
                 Return False
             End If
 

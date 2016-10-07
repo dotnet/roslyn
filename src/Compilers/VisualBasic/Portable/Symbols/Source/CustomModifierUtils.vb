@@ -29,14 +29,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             parameters = CustomModifierUtils.CopyParameterCustomModifiers(constructedMethod.Parameters, parameters)
 
-            Dim destinationReturnTypeWithCustomModifiers = constructedMethod.ReturnType
+            Dim returnTypeWithCustomModifiers = constructedMethod.ReturnType
 
             ' We do an extra check before copying the return type to handle the case where the overriding
             ' method (incorrectly) has a different return type than the overridden method.  In such cases,
             ' we want to retain the original (incorrect) return type to avoid hiding the return type
             ' given in source.
-            If destinationReturnType.IsSameType(destinationReturnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
-                destinationReturnType = CopyTypeCustomModifiers(destinationReturnTypeWithCustomModifiers, destinationReturnType, containingAssembly)
+            If destinationReturnType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
+                destinationReturnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, destinationReturnType, containingAssembly)
             End If
 
         End Sub
