@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.AddMethod = addMethod;
             this.RemoveMethod = removeMethod;
             this.RaiseMethod = raiseMethod;
-            this.Parameters = parameters.IsDefault
-                ? ImmutableArray<IParameterSymbol>.Empty
-                : parameters;
+            this.Parameters = parameters;
         }
 
         protected override CodeGenerationSymbol Clone()

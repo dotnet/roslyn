@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
@@ -86,13 +87,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     parameterList:=ParameterGenerator.GenerateParameterList(eventType.DelegateInvokeMethod.Parameters.Select(Function(p) RemoveOptionalOrParamArray(p)).ToList(), options),
                     asClause:=Nothing,
                     implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
-            ElseIf [event].Type Is Nothing OrElse [event].Parameters.Length > 0 Then
+            ElseIf [event].Type Is Nothing OrElse Not [event].Parameters.IsDefault Then
                 ' We'll try to generate a parameter list
+                Dim parameters = If([event].Parameters.IsDefault, ImmutableArray(Of IParameterSymbol).Empty, [event].Parameters)
+
                 Return SyntaxFactory.EventStatement(
                     attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
                     modifiers:=GenerateModifiers([event], destination, options),
                     identifier:=[event].Name.ToIdentifierToken,
-                    parameterList:=ParameterGenerator.GenerateParameterList([event].Parameters.Select(AddressOf RemoveOptionalOrParamArray), options),
+                    parameterList:=ParameterGenerator.GenerateParameterList(parameters.Select(AddressOf RemoveOptionalOrParamArray), options),
                     asClause:=Nothing,
                     implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
             Else

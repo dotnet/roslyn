@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' return the parameters of the underlying Delegate type.
                 Dim syntax = DirectCast(_syntaxRef.GetSyntax(), EventStatementSyntax)
                 If syntax.AsClause IsNot Nothing Then
-                    Return ImmutableArray(Of IParameterSymbol).Empty
+                    Return Nothing
                 Else
                     Debug.Assert(Me.DelegateParameters.All(Function(p) Me.Equals(p.ContainingSymbol)))
                     Return ImmutableArray(Of IParameterSymbol).CastUp(Me.DelegateParameters)

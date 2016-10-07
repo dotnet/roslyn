@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overridable ReadOnly Property IEventSymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IEventSymbol.Parameters
             Get
-                Return ImmutableArray(Of IParameterSymbol).Empty
+                Return Nothing
             End Get
         End Property
 

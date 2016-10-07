@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the parameters of this event.  Parameters on events are available 
         /// only in VisualBasic and not in C#.  This property will only return parameters
         /// if they were directly declared on the Event symbol.  i.e. an event of the form:
-        /// "Public Event E(sender As Object)".  For any other type of event, an empty array
+        /// "Public Event E(sender As Object)".  For any other type of event, a default array
         /// will be returned.
         /// </summary>
         ImmutableArray<IParameterSymbol> Parameters { get; }

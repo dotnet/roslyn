@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Events cannot have parameters in C#.  This is only supported in VB.
         /// </summary>
-        ImmutableArray<IParameterSymbol> IEventSymbol.Parameters => ImmutableArray<IParameterSymbol>.Empty;
+        ImmutableArray<IParameterSymbol> IEventSymbol.Parameters => default(ImmutableArray<IParameterSymbol>);
 
         #endregion
 
