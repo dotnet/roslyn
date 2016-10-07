@@ -1,6 +1,7 @@
 ﻿{
   "supports": {},
   "dependencies": {
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
     "System.Collections.Immutable": "1.2.0",
     "System.Collections": "4.0.11",
     "System.Collections.Concurrent": "4.0.12",
