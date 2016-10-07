@@ -6,6 +6,8 @@
     "System.Collections.Immutable": "1.2.0",
     "System.Reflection.Metadata": "1.4.1-beta-24430-01",
     "ManagedEsent": "1.9.4",
+    "Microsoft.VisualStudio.InteractiveWindow": "2.0.0-beta5-60820-04",
+    "Microsoft.VisualStudio.VsInteractiveWindow": "2.0.0-beta5-60820-04",
     "System.AppContext": "4.1.0",
     "System.Console": "4.0.0",
     "System.Collections": "4.0.11",

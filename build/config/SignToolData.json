@@ -37,7 +37,6 @@
             "Microsoft.DiaSymReader.PortablePdb.dll",
             "Microsoft.VisualStudio.CSharp.Repl.dll",
             "Microsoft.VisualStudio.InteractiveServices.dll",
-            "Microsoft.VisualStudio.InteractiveWindow.dll",
             "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
             "Microsoft.VisualStudio.LanguageServices.dll",
             "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
@@ -46,7 +45,6 @@
             "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
             "Microsoft.VisualStudio.LanguageServices.Xaml.dll",
             "Microsoft.VisualStudio.VisualBasic.Repl.dll",
-            "Microsoft.VisualStudio.VsInteractiveWindow.dll",
             "Pdb2Xml.exe",
             "Roslyn.Compilers.Extension.dll",
             "Roslyn.Hosting.Diagnostics.dll",
@@ -90,7 +88,6 @@
             "strongName": null,
             "values": [
                 "ExpressionEvaluatorPackage.vsix",
-                "Microsoft.VisualStudio.VsInteractiveWindow.vsix",
                 "Roslyn.Compilers.Extension.vsix",
                 "Roslyn.Deployment.Full.vsix",
                 "Roslyn.Deployment.Full.Next.vsix",

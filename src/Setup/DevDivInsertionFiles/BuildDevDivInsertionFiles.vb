@@ -28,7 +28,6 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly _setupDirectory As String
     Private ReadOnly _nugetPackageRoot As String
     Private ReadOnly _assemblyVersion As String
-    Private ReadOnly _interactiveWindowPackageVersion As String
 
     Private Sub New(args As String())
         _binDirectory = Path.GetFullPath(args(0))
@@ -37,12 +36,11 @@ Public Class BuildDevDivInsertionFiles
         _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
         _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
         _assemblyVersion = args(3)
-        _interactiveWindowPackageVersion = args(4)
     End Sub
 
     Public Shared Function Main(args As String()) As Integer
-        If args.Length <> 5 Then
-            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version> <interactive window version>")
+        If args.Length <> 4 Then
+            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version>")
             Return 1
         End If
 
@@ -146,7 +144,6 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.VisualStudio.Setup.vsix",
         "ExpressionEvaluatorPackage.vsix",
         "Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Microsoft.VisualStudio.VsInteractiveWindow.vsix",
         "Roslyn.VisualStudio.Setup.Interactive.vsix",
         "Roslyn.VisualStudio.Setup.Next.vsix"
     }
@@ -498,13 +495,6 @@ Public Class BuildDevDivInsertionFiles
             Me.IsFacade = isFacade
         End Sub
 
-        ' TODO: remove
-        Public ReadOnly Property IsInteractiveWindow As Boolean
-            Get
-                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow"
-            End Get
-        End Property
-
         ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
         ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
         Public ReadOnly Property IsCoreXTCompatible As Boolean
@@ -584,10 +574,6 @@ Public Class BuildDevDivInsertionFiles
             Next
         Next
 
-        ' TODO: remove once we have a proper package
-        result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False, isFacade:=False))
-        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False, isFacade:=False))
-
         Return result
     End Function
 
@@ -637,15 +623,11 @@ Public Class BuildDevDivInsertionFiles
                 If Not dependency.IsNative Then
 
                     Dim version As Version
-                    If dependency.IsInteractiveWindow Then
-                        version = Version.Parse(_interactiveWindowPackageVersion.Split("-"c)(0))
-                    Else
-                        Dim dllPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
+                    Dim dllPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
 
-                        Using peReader = New PEReader(File.OpenRead(dllPath))
-                            version = peReader.GetMetadataReader().GetAssemblyDefinition().Version
-                        End Using
-                    End If
+                    Using peReader = New PEReader(File.OpenRead(dllPath))
+                        version = peReader.GetMetadataReader().GetAssemblyDefinition().Version
+                    End Using
 
                     writer.WriteLine($"{Path.GetFileNameWithoutExtension(fileName)},{version}")
                 End If
@@ -655,10 +637,6 @@ Public Class BuildDevDivInsertionFiles
 
     Private Sub CopyDependencies(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
         For Each dependency In dependencies.Values
-            If dependency.IsInteractiveWindow Then
-                Continue For
-            End If
-
             ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
             ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
             If Not dependency.IsCoreXTCompatible Then

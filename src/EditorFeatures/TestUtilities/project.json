@@ -12,7 +12,15 @@
       "version": "14.2.19-pre",
       "suppressParent": "all"
     },
+    "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
     "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Language.StandardClassification" : {
       "version": "14.3.25407",
       "suppressParent": "all"
     },
