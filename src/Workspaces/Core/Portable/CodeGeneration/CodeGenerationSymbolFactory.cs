@@ -26,9 +26,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates an event symbol that can be used to describe an event declaration.
         /// </summary>
-        public static IEventSymbol CreateEventSymbol(IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers, ITypeSymbol type, IEventSymbol explicitInterfaceSymbol, string name, IMethodSymbol addMethod = null, IMethodSymbol removeMethod = null, IMethodSymbol raiseMethod = null, IList<IParameterSymbol> parameterList = null)
+        public static IEventSymbol CreateEventSymbol(
+            IList<AttributeData> attributes, Accessibility accessibility,
+            DeclarationModifiers modifiers, ITypeSymbol type,
+            IEventSymbol explicitInterfaceSymbol, string name,
+            IMethodSymbol addMethod = null, IMethodSymbol removeMethod = null, IMethodSymbol raiseMethod = null,
+            ImmutableArray<IParameterSymbol> parameters = default(ImmutableArray<IParameterSymbol>))
         {
-            var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceSymbol, name, addMethod, removeMethod, raiseMethod, parameterList);
+            var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceSymbol, name, addMethod, removeMethod, raiseMethod, parameters);
             CodeGenerationEventInfo.Attach(result, modifiers.IsUnsafe);
             return result;
         }

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
@@ -71,8 +72,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function GenerateEventDeclarationWorker([event] As IEventSymbol,
-                                                       destination As CodeGenerationDestination,
-                                                       options As CodeGenerationOptions) As DeclarationStatementSyntax
+                                                        destination As CodeGenerationDestination,
+                                                        options As CodeGenerationOptions) As DeclarationStatementSyntax
             ' TODO(cyrusn): Handle Add/Remove/Raise events
             Dim eventType = TryCast([event].Type, INamedTypeSymbol)
             If eventType.IsDelegateType() AndAlso eventType.AssociatedSymbol IsNot Nothing Then
@@ -80,30 +81,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 ' have a type that is unmentionable.  So we should not generate it as "Event E() As
                 ' SomeType", but should instead inline the delegate type into the event itself.
                 Return SyntaxFactory.EventStatement(
-                    attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
+                    attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
                     modifiers:=GenerateModifiers([event], destination, options),
                     identifier:=[event].Name.ToIdentifierToken,
                     parameterList:=ParameterGenerator.GenerateParameterList(eventType.DelegateInvokeMethod.Parameters.Select(Function(p) RemoveOptionalOrParamArray(p)).ToList(), options),
                     asClause:=Nothing,
                     implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
-            ElseIf TypeOf [event] Is CodeGenerationEventSymbol AndAlso TryCast([event], CodeGenerationEventSymbol).ParameterList IsNot Nothing Then
-                ' We'll try to generate a parameter list
+            End If
+
+            Dim codeGenEvent = TryCast([event], CodeGenerationEventSymbol)
+            Dim hasParameters = codeGenEvent IsNot Nothing AndAlso Not codeGenEvent.Parameters.IsDefault
+
+            If [event].Type Is Nothing OrElse hasParameters Then
+                Dim parameters = If(codeGenEvent.Parameters.IsDefault,
+                    ImmutableArray(Of IParameterSymbol).Empty,
+                    codeGenEvent.Parameters)
+
                 Return SyntaxFactory.EventStatement(
-                    attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
+                    attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
                     modifiers:=GenerateModifiers([event], destination, options),
                     identifier:=[event].Name.ToIdentifierToken,
-                    parameterList:=ParameterGenerator.GenerateParameterList(TryCast([event], CodeGenerationEventSymbol).ParameterList.Select(Function(p) RemoveOptionalOrParamArray(p)).ToArray(), options),
+                    parameterList:=ParameterGenerator.GenerateParameterList(parameters.Select(AddressOf RemoveOptionalOrParamArray), options),
                     asClause:=Nothing,
                     implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
-            Else
-                Return SyntaxFactory.EventStatement(
-                    attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
-                    modifiers:=GenerateModifiers([event], destination, options),
-                    identifier:=[event].Name.ToIdentifierToken,
-                    parameterList:=Nothing,
-                    asClause:=GenerateAsClause([event]),
-                    implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
             End If
+
+            Return SyntaxFactory.EventStatement(
+                attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
+                modifiers:=GenerateModifiers([event], destination, options),
+                identifier:=[event].Name.ToIdentifierToken,
+                parameterList:=Nothing,
+                asClause:=GenerateAsClause([event]),
+                implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
         End Function
 
         Private Function GenerateModifiers([event] As IEventSymbol,
