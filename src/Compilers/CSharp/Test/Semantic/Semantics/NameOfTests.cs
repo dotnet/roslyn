@@ -9,7 +9,6 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading;
 using System.Linq;
-using static Microsoft.CodeAnalysis.CSharp.UnitTests.SymbolUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
