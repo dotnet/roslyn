@@ -793,37 +793,20 @@ Public Class BuildDevDivInsertionFiles
                         Continue For
                     End If
 
+                    If IsLanguageServiceRegistrationFile(partFileName) Then
+                        Continue For
+                    End If
+
                     If dependencies.ContainsKey(partFileName) Then
                         Continue For
                     End If
 
-                    Dim relativeOutputDir As String
-                    If IsLanguageServiceRegistrationFile(partFileName) Then
-                        relativeOutputDir = Path.Combine(GetExternalApiDirectory(), "LanguageServiceRegistration", vsixName)
-                    Else
-                        relativeOutputDir = GetExternalApiDirectory()
-                    End If
-
-                    Dim relativeOutputFilePath = Path.Combine(relativeOutputDir, partFileName)
+                    Dim relativeOutputFilePath = Path.Combine(GetExternalApiDirectory(), partFileName)
 
                     If processedFiles.Add(relativeOutputFilePath) Then
-                        If IsLanguageServiceRegistrationFile(partFileName) Then
-                            Dim absoluteOutputFilePath = GetAbsolutePathInOutputDirectory(relativeOutputFilePath)
-                            WriteVsixPartToFile(vsixPart, absoluteOutputFilePath)
-
-                            ' We want to rewrite a few of these things from our standard vsix-installable forms
-                            Select Case Path.GetExtension(absoluteOutputFilePath)
-                                Case ".pkgdef"
-                                    RewritePkgDef(absoluteOutputFilePath)
-
-                                Case ".vsixmanifest"
-                                    RewriteVsixManifest(absoluteOutputFilePath)
-                            End Select
-                        Else
-                            ' paths are relative to input directory:
-                            filesToInsert.Add(New NugetFileInfo(partFileName))
-                            AddXmlDocumentationFile(filesToInsert, partFileName)
-                        End If
+                        ' paths are relative to input directory:
+                        filesToInsert.Add(New NugetFileInfo(partFileName))
+                        AddXmlDocumentationFile(filesToInsert, partFileName)
                     End If
                 Next
             End Using
@@ -850,12 +833,6 @@ Public Class BuildDevDivInsertionFiles
         End If
     End Sub
 
-    Private Sub WriteVsixPartToFile(vsixPart As PackagePart, path As String)
-        Using outputStream = New FileStream(path, FileMode.Create)
-            vsixPart.GetStream().CopyTo(outputStream)
-        End Using
-    End Sub
-
     ''' <summary>
     ''' Takes a list of paths relative to <see cref="_outputDirectory"/> and generates a nuspec file that includes them.
     ''' </summary>
@@ -872,7 +849,6 @@ Public Class BuildDevDivInsertionFiles
                           <version>0.0</version>
                       </metadata>
                       <files>
-                          <file src=<%= Path.Combine(DevDivInsertionFilesDirName, ExternalApisDirName, "Roslyn", "**") %> target=""/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f.Path).
                               Distinct().
@@ -883,33 +859,6 @@ Public Class BuildDevDivInsertionFiles
         xml.Save(GetAbsolutePathInOutputDirectory(PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
     End Sub
 
-    Private Sub RewriteVsixManifest(fileToRewrite As String)
-        Dim xml = XDocument.Load(fileToRewrite)
-        Dim installationElement = xml.<vsix:PackageManifest>.<vsix:Installation>.Single()
-
-        ' We want to modify the .vsixmanifest to say this was installed via MSI
-        installationElement.@InstalledByMsi = "true"
-
-        ' Ensure the VSIX isn't shown in the extension gallery
-        installationElement.@SystemComponent = "true"
-
-        ' We build our VSIXes with the experimental flag so you can install them as test extensions. In the real MSI, they're not experimental.
-        installationElement.Attribute("Experimental")?.Remove()
-
-        ' Update the path to our MEF/Analyzer Components to be in their new home under PrivateAssemblies
-        Dim assets = From asset In xml...<vsix:Asset>
-                     Where asset.@Type = "Microsoft.VisualStudio.MefComponent" OrElse
-                            asset.@Type = "Microsoft.VisualStudio.Analyzer"
-
-        For Each asset In assets
-            asset.@Path = "$RootFolder$Common7\IDE\PrivateAssemblies\" & asset.@Path
-        Next
-        xml.Save(fileToRewrite)
-    End Sub
-
-    Private Shared Function IsVisualStudioLanguageServiceComponent(fileName As String) As Boolean
-        Return fileName.StartsWith("Microsoft.VisualStudio.LanguageServices.")
-    End Function
 
     Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As IEnumerable(Of String))
         Const PackageName As String = "VS.Tools.Roslyn"
@@ -973,69 +922,4 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
 
         Return absolutePath
     End Function
-
-    ''' <summary>
-    ''' Rewrites a .pkgdef file to load any packages from PrivateAssemblies instead of from the .vsix's folder. This allows
-    ''' for better use of ngen'ed images when we are installed into VS.
-    ''' </summary>
-    Private Sub RewritePkgDef(fileToRewrite As String)
-        ' Our VSIXes normally contain a number of CodeBase attributes in our .pkgdefs so Visual Studio knows where
-        ' to load assemblies. These come in one of two forms:
-        '
-        ' 1) as a part of a binding redirection:
-        '
-        '     [$RootKey$\RuntimeConfiguration\dependentAssembly\bindingRedirection\{A907DD23-73A7-8934-9396-93F10C532071}]
-        '     "name"="System.Reflection.Metadata"
-        '     "publicKeyToken"="b03f5f7f11d50a3a"
-        '     "culture"="neutral"
-        '     "oldVersion"="1.0.0.0-1.0.99.0"
-        '     "newVersion"="1.1.0.0"
-        '     "codeBase"="$PackageFolder$\System.Reflection.Metadata.dll"
-        '
-        ' 2) as part of a codebase-only specification without a binding redirect:
-        '
-        '     [$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{8C6E3F81-ED3F-306B-107F-60D6E74DA5B0}]
-        '     "name"="Esent.Interop"
-        '     "publicKeyToken"="31bf3856ad364e35"
-        '     "culture"="neutral"
-        '     "version"="1.9.2.0"
-        '     "codeBase"="$PackageFolder$\Esent.Interop.dll"
-        '
-        ' Each of these use $PackageFolder$ as a way to specify the VSIX-relative path. When we convert our VSIXes
-        ' to be installed as MSIs, we don't want the DLLs in the CommonExtensions next to our .pkgdefs. Instead
-        ' we want them in PrivateAssemblies so they're in the loading path to enable proper ngen. Thus, these CodeBase
-        ' attributes have to go. For #1, we can just delete the codeBase key, and leave the rest of the redirection
-        ' in place. For #2, we can delete the entire section.
-
-        Dim lines = File.ReadAllLines(fileToRewrite)
-        Dim inBindingRedirect = False
-        Dim inCodebase = False
-
-        For i = 0 To lines.Count - 1
-
-            Dim line = lines(i)
-
-            If line.StartsWith("[") Then
-                inBindingRedirect = line.IndexOf("bindingRedirection", StringComparison.OrdinalIgnoreCase) >= 0
-                inCodebase = line.IndexOf("RuntimeConfiguration\dependentAssembly\codeBase", StringComparison.OrdinalIgnoreCase) >= 0
-            End If
-
-            Dim parts = line.Split({"="c}, count:=2)
-
-            If inCodebase Then
-                ' Explicit codebase attributes must always be dropped
-                lines(i) = Nothing
-            ElseIf String.Equals(parts(0), """CodeBase""", StringComparison.OrdinalIgnoreCase) Then
-                If inBindingRedirect Then
-                    ' Drop CodeBase from all binding redirects -- they're only for VSIX installs
-                    lines(i) = Nothing
-                End If
-            ElseIf String.Equals(parts(0), """isPkgDefOverrideEnabled""", StringComparison.OrdinalIgnoreCase) Then
-                ' We always need to drop this, since this is only for experimental VSIXes
-                lines(i) = Nothing
-            End If
-        Next
-
-        File.WriteAllLines(fileToRewrite, lines.Where(Function(l) l IsNot Nothing))
-    End Sub
 End Class
