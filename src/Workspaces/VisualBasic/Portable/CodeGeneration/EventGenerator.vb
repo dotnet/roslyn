@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 ' have a type that is unmentionable.  So we should not generate it as "Event E() As
                 ' SomeType", but should instead inline the delegate type into the event itself.
                 Return SyntaxFactory.EventStatement(
-                    attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
+                    attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
                     modifiers:=GenerateModifiers([event], destination, options),
                     identifier:=[event].Name.ToIdentifierToken,
                     parameterList:=ParameterGenerator.GenerateParameterList(eventType.DelegateInvokeMethod.Parameters.Select(Function(p) RemoveOptionalOrParamArray(p)).ToList(), options),
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim parameters = If([event].Parameters.IsDefault, ImmutableArray(Of IParameterSymbol).Empty, [event].Parameters)
 
                 Return SyntaxFactory.EventStatement(
-                    attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
+                    attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
                     modifiers:=GenerateModifiers([event], destination, options),
                     identifier:=[event].Name.ToIdentifierToken,
                     parameterList:=ParameterGenerator.GenerateParameterList(parameters.Select(AddressOf RemoveOptionalOrParamArray), options),
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
             Else
                 Return SyntaxFactory.EventStatement(
-                    attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
+                    attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
                     modifiers:=GenerateModifiers([event], destination, options),
                     identifier:=[event].Name.ToIdentifierToken,
                     parameterList:=Nothing,
