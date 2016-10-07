@@ -86,8 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public ForegroundThreadAffinitizedObject(bool assertIsForeground = false)
         {
-            // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's
-            Contract.ThrowIfFalse(Application.Current == null || Application.Current.Dispatcher.Thread == ForegroundThread);
+            // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's. But we won't assert
+            // anything if we haven't figured it out yet.
+            Contract.ThrowIfFalse(
+                CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown ||
+                Application.Current == null ||
+                Application.Current.Dispatcher.Thread == ForegroundThread);
 
             // ForegroundThreadAffinitizedObject might not necessarily be created on a foreground thread.
             // AssertIsForeground here only if the object must be created on a foreground thread.
