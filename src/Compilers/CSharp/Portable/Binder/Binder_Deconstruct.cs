@@ -608,7 +608,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundLocalDeconstructionDeclaration BindDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            return new BoundLocalDeconstructionDeclaration(node, BindDeconstructionDeclaration(node, node.Assignment.VariableComponent, node.Assignment.Value, diagnostics));
+            bool modifierErrors;
+
+            // No modifiers are allowed in deconstruction declarations
+            ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                modifiers: node.Modifiers,
+                defaultAccess: DeclarationModifiers.None,
+                allowedModifiers: DeclarationModifiers.None,
+                errorLocation: node.Assignment.VariableComponent.Location,
+                diagnostics: diagnostics,
+                modifierErrors: out modifierErrors);
+
+            var assignment = BindDeconstructionDeclaration(node, node.Assignment.VariableComponent, node.Assignment.Value, diagnostics);
+            return new BoundLocalDeconstructionDeclaration(node, assignment, hasErrors: modifierErrors);
         }
 
         internal BoundDeconstructionAssignmentOperator BindDeconstructionDeclaration(CSharpSyntaxNode node, VariableComponentSyntax declaration, ExpressionSyntax right,
