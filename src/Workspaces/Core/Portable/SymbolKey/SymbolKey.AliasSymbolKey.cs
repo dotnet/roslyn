@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
                 var targetResolution = reader.ReadSymbolKey();
                 var filePath = reader.ReadString();
 
-                var syntaxTree = reader.Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+                var syntaxTree = reader.GetSyntaxTree(filePath);
                 if (syntaxTree != null)
                 {
                     var target = targetResolution.GetAnySymbol();
