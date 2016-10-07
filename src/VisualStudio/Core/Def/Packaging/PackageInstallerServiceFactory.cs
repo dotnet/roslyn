@@ -311,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // they've all come in.
                 var cancellationToken = _tokenSource.Token;
                 Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)
-                    .ContinueWith(_ => ProcessBatchedChangesOnForeground(cancellationToken), cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, this.ForegroundTaskScheduler);
+                    .ContinueWith(_ => ProcessBatchedChangesOnForeground(cancellationToken), cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, ForegroundTaskScheduler);
             }
         }
 
