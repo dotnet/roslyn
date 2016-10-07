@@ -33,21 +33,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 End Get
             End Property
 
-            Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
-                ' Dim withEvent = Await _codeGenService.AddEventAsync(_solution, _targetSymbol, _generatedEvent, _codeGenerationOptions, cancellationToken).ConfigureAwait(False)
-                'If _generatedType IsNot Nothing Then
-                '    Dim compilation = Await withEvent.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
-                '    Dim newTargetSymbol = _targetSymbol.GetSymbolKey().Resolve(compilation).Symbol
-                '    If newTargetSymbol.ContainingType IsNot Nothing Then
-                '        Return Await _codeGenService.AddNamedTypeAsync(withEvent.Project.Solution, newTargetSymbol.ContainingType, _generatedType, _codeGenerationOptions, cancellationToken).ConfigureAwait(False)
-                '    ElseIf newTargetSymbol.ContainingNamespace IsNot Nothing Then
-                '        Return Await _codeGenService.AddNamedTypeAsync(withEvent.Project.Solution, newTargetSymbol.ContainingNamespace, _generatedType, _codeGenerationOptions, cancellationToken).ConfigureAwait(False)
-                '    End If
-                'End If
-
-                Return Await _codeGenService.AddEventAsync(
+            Protected Overrides Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
+                Return _codeGenService.AddEventAsync(
                     _solution, _targetSymbol, _generatedEvent,
-                    _codeGenerationOptions, cancellationToken).ConfigureAwait(False)
+                    _codeGenerationOptions, cancellationToken)
             End Function
         End Class
     End Class
