@@ -260,7 +260,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Flag indicating if the latest design time build has succeeded for current project state.
         /// </summary>
-        protected abstract bool LastDesignTimeBuildSucceeded { get; }
+        /// <remarks>Defaults to true if the project system never sets the design time build result with <see cref="SetIntellisenseBuildResultAndNotifyWorkspaceHosts(bool)"/>.</remarks>
+        protected bool LastDesignTimeBuildSucceeded { get; }
 
         internal VsENCRebuildableProjectImpl EditAndContinueImplOpt { get; private set; }
 
@@ -294,7 +295,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
                     additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
 
-                return info.WithHasAllInformation(hasAllInformation: this.LastDesignTimeBuildSucceeded);
+                return info.WithHasAllInformation(hasAllInformation: _lastDesignTimeBuildSucceeded);
+            }
+        }
+
+        protected void SetIntellisenseBuildResultAndNotifyWorkspaceHosts(bool succeeded)
+        {
+            // set intellisense related info
+            _lastDesignTimeBuildSucceeded = succeeded;
+
+            if (PushingChangesToWorkspaceHosts)
+            {
+                // set workspace reference info
+                ProjectTracker.NotifyWorkspaceHosts(host => (host as IVisualStudioWorkspaceHost2)?.OnHasAllInformation(Id, succeeded));
             }
         }
 
