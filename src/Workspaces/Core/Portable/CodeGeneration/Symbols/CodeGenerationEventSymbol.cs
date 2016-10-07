@@ -11,20 +11,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         public ITypeSymbol Type { get; }
 
-        public bool IsWindowsRuntimeEvent
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
 
         public IMethodSymbol AddMethod { get; }
         public IMethodSymbol RemoveMethod { get; }
         public IMethodSymbol RaiseMethod { get; }
-        public IList<IParameterSymbol> ParameterList { get; }
+        public ImmutableArray<IParameterSymbol> Parameters { get; }
 
         public CodeGenerationEventSymbol(
             INamedTypeSymbol containingType,
@@ -37,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IMethodSymbol addMethod,
             IMethodSymbol removeMethod,
             IMethodSymbol raiseMethod,
-            IList<IParameterSymbol> parameterList)
+            ImmutableArray<IParameterSymbol> parameters)
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
@@ -47,7 +39,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.AddMethod = addMethod;
             this.RemoveMethod = removeMethod;
             this.RaiseMethod = raiseMethod;
-            this.ParameterList = parameterList;
+            this.Parameters = parameters.IsDefault
+                ? ImmutableArray<IParameterSymbol>.Empty
+                : parameters;
         }
 
         protected override CodeGenerationSymbol Clone()
@@ -55,49 +49,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationEventSymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
                 this.Modifiers, this.Type, this.ExplicitInterfaceImplementations.FirstOrDefault(),
-                this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod, this.ParameterList);
+                this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod, this.Parameters);
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Event;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Event;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitEvent(this);
-        }
+            => visitor.VisitEvent(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitEvent(this);
-        }
+            => visitor.VisitEvent(this);
 
-        public new IEventSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new IEventSymbol OriginalDefinition => this;
 
-        public IEventSymbol OverriddenEvent
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public bool IsWindowsRuntimeEvent => false;
 
-        public ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+        public IEventSymbol OverriddenEvent => null;
+
+        public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
     }
 }

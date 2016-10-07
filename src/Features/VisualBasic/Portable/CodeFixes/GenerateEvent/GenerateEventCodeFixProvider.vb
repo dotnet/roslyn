@@ -125,19 +125,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                                                                                         name:=eventHandlerName,
                                                                                         parameters:=delegateSymbol.GetParameters())
 
-                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
-                                                                                    accessibility:=Accessibility.Public, modifiers:=Nothing,
-                                                                                    explicitInterfaceSymbol:=Nothing,
-                                                                                    type:=delegateType, name:=actualEventName,
-                                                                                    parameterList:=TryCast(delegateSymbol, IMethodSymbol).Parameters)
+                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
+                    attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
+                    accessibility:=Accessibility.Public, modifiers:=Nothing,
+                    explicitInterfaceSymbol:=Nothing,
+                    type:=delegateType, name:=actualEventName,
+                    parameters:=TryCast(delegateSymbol, IMethodSymbol).Parameters)
 
                 Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedEvent, delegateType, codeGenService, CodeGenerationOptions.Default)
             Else
-                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
-                                                accessibility:=Accessibility.Public, modifiers:=Nothing,
-                                                explicitInterfaceSymbol:=Nothing,
-                                                type:=Nothing, name:=actualEventName,
-                                                parameterList:=delegateSymbol.GetParameters())
+                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
+                    attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
+                    accessibility:=Accessibility.Public, modifiers:=Nothing,
+                    explicitInterfaceSymbol:=Nothing,
+                    type:=Nothing, name:=actualEventName,
+                    parameters:=delegateSymbol.GetParameters())
 
                 Return New GenerateEventCodeAction(document.Project.Solution, TryCast(targetType, INamedTypeSymbol), generatedEvent, Nothing, codeGenService, CodeGenerationOptions.Default)
             End If
@@ -282,10 +284,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                                                         eventType.TypeParameters,
                                                         parameters)
 
-                        Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(boundEvent.GetAttributes(), boundEvent.DeclaredAccessibility,
-                                                                       modifiers:=Nothing, type:=eventHandlerType, explicitInterfaceSymbol:=Nothing,
-                                                                       name:=actualEventName,
-                                                                       parameterList:=boundEvent.GetParameters())
+                        Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
+                            boundEvent.GetAttributes(), boundEvent.DeclaredAccessibility,
+                            modifiers:=Nothing, type:=eventHandlerType, explicitInterfaceSymbol:=Nothing,
+                            name:=actualEventName,
+                            parameters:=boundEvent.GetParameters())
                         Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedEvent, eventHandlerType, codeGenService, New CodeGenerationOptions())
                     End If
                 End If
@@ -382,19 +385,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                                                                     name:=actualEventName + "Handler",
                                                                     parameters:=boundMethod.GetParameters())
 
-                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
-                                                            accessibility:=Accessibility.Public, modifiers:=Nothing,
-                                                            explicitInterfaceSymbol:=Nothing,
-                                                            type:=delegateType, name:=actualEventName,
-                                                            parameterList:=TryCast(boundMethod, IMethodSymbol).Parameters)
+                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
+                    attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
+                    accessibility:=Accessibility.Public, modifiers:=Nothing,
+                    explicitInterfaceSymbol:=Nothing,
+                    type:=delegateType, name:=actualEventName,
+                    parameters:=TryCast(boundMethod, IMethodSymbol).Parameters)
 
                 Return New GenerateEventCodeAction(document.Project.Solution, originalTargetType, generatedEvent, delegateType, codeGenService, New CodeGenerationOptions())
             Else
-                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
-                                                accessibility:=Accessibility.Public, modifiers:=Nothing,
-                                                explicitInterfaceSymbol:=Nothing,
-                                                type:=Nothing, name:=actualEventName,
-                                                parameterList:=boundMethod.GetParameters())
+                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
+                    attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
+                    accessibility:=Accessibility.Public, modifiers:=Nothing,
+                    explicitInterfaceSymbol:=Nothing,
+                    type:=Nothing, name:=actualEventName,
+                    parameters:=boundMethod.GetParameters())
 
                 Return New GenerateEventCodeAction(document.Project.Solution, TryCast(originalTargetType, INamedTypeSymbol), generatedEvent, Nothing, codeGenService, CodeGenerationOptions.Default)
             End If

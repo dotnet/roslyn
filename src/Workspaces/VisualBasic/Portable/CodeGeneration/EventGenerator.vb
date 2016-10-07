@@ -71,8 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function GenerateEventDeclarationWorker([event] As IEventSymbol,
-                                                       destination As CodeGenerationDestination,
-                                                       options As CodeGenerationOptions) As DeclarationStatementSyntax
+                                                        destination As CodeGenerationDestination,
+                                                        options As CodeGenerationOptions) As DeclarationStatementSyntax
             ' TODO(cyrusn): Handle Add/Remove/Raise events
             Dim eventType = TryCast([event].Type, INamedTypeSymbol)
             If eventType.IsDelegateType() AndAlso eventType.AssociatedSymbol IsNot Nothing Then
@@ -86,13 +86,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     parameterList:=ParameterGenerator.GenerateParameterList(eventType.DelegateInvokeMethod.Parameters.Select(Function(p) RemoveOptionalOrParamArray(p)).ToList(), options),
                     asClause:=Nothing,
                     implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
-            ElseIf TypeOf [event] Is CodeGenerationEventSymbol AndAlso TryCast([event], CodeGenerationEventSymbol).ParameterList IsNot Nothing Then
+            ElseIf [event].Type Is Nothing OrElse [event].Parameters.Length > 0 Then
                 ' We'll try to generate a parameter list
                 Return SyntaxFactory.EventStatement(
                     attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
                     modifiers:=GenerateModifiers([event], destination, options),
                     identifier:=[event].Name.ToIdentifierToken,
-                    parameterList:=ParameterGenerator.GenerateParameterList(TryCast([event], CodeGenerationEventSymbol).ParameterList.Select(Function(p) RemoveOptionalOrParamArray(p)).ToArray(), options),
+                    parameterList:=ParameterGenerator.GenerateParameterList([event].Parameters.Select(AddressOf RemoveOptionalOrParamArray), options),
                     asClause:=Nothing,
                     implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
             Else

@@ -58,5 +58,11 @@ namespace Microsoft.CodeAnalysis
         /// Properties imported from metadata can explicitly implement more than one event.
         /// </remarks>
         ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
+
+        /// <summary>
+        /// Returns the parameters of this event.  Note: parameters on events are available 
+        /// only in VisualBasic and not in C#
+        /// </summary>
+        ImmutableArray<IParameterSymbol> Parameters { get; }
     }
 }
