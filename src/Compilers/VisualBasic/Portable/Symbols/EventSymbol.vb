@@ -139,7 +139,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IEventSymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IEventSymbol.Parameters
             Get
-                Return ImmutableArray(Of IParameterSymbol).CastUp(Me.DelegateParameters)
+                ' Delegate parameters can return either parameters that we directly declared:
+                '
+                ' i.e. Public Event E(x As String)
+                '
+                ' Or it can return parameters from the Invoke method of the Delegate type it has.
+                ' i.e. "Public Event E as EventHandler" will get the parameters of the Invoke method
+                ' of 'EventHandler'.  We only want the parameters that actually belong to us and not
+                ' the Invoke method.
+                Dim parameters = Me.DelegateParameters
+                For Each p In parameters
+                    If Not Me.Equals(p.ContainingSymbol) Then
+                        ' This was a parameter not directly from us.  We don't want to return these.
+                        Return ImmutableArray(Of IParameterSymbol).Empty
+                    End If
+                Next
+
+                Return ImmutableArray(Of IParameterSymbol).CastUp(parameters)
             End Get
         End Property
 
