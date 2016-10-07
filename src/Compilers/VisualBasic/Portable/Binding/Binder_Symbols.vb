@@ -705,19 +705,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For i As Integer = 0 To numElements - 1
                     Dim argumentSyntax = syntax.Elements(i)
 
-                    Dim argumentType As TypeSymbol = binder.BindTypeSyntax(argumentSyntax.Type, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
+                    Dim argumentType As TypeSymbol = Nothing
+                    Dim name As String = Nothing
+                    Dim nameSyntax As IdentifierNameSyntax = Nothing
+
+                    If argumentSyntax.Kind = SyntaxKind.TypedTupleElement Then
+                        Dim typedElement = DirectCast(argumentSyntax, TypedTupleElementSyntax)
+                        argumentType = binder.BindTypeSyntax(typedElement.Type, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
+
+                    Else
+                        Dim namedElement = DirectCast(argumentSyntax, NamedTupleElementSyntax)
+                        nameSyntax = namedElement.Identifier
+                        name = nameSyntax.Identifier.GetIdentifierText()
+
+                        argumentType = binder.DecodeIdentifierType(nameSyntax.Identifier, namedElement.AsClause, getRequireTypeDiagnosticInfoFunc:=Nothing, diagBag:=diagnostics)
+                    End If
+
                     types.Add(argumentType)
 
                     If argumentType.IsRestrictedType() Then
                         Binder.ReportDiagnostic(diagnostics, argumentSyntax, ERRID.ERR_RestrictedType1, argumentType)
                     End If
 
-                    Dim name As String = Nothing
-                    Dim nameSyntax As IdentifierNameSyntax = argumentSyntax.IdentifierName
 
                     If nameSyntax IsNot Nothing Then
-                        name = nameSyntax.Identifier.ValueText
-
                         ' validate name if we have one
                         hasExplicitNames = True
                         Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)

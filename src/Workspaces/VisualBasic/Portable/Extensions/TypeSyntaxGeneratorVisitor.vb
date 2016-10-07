@@ -129,10 +129,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim hasNames = Not names.IsDefault
 
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(
-                types.Select(Function(t, i) SyntaxFactory.TupleElement(
-                    If(hasNames AndAlso names(i) IsNot Nothing, SyntaxFactory.IdentifierName(names(i)), Nothing),
-                    If(hasNames AndAlso names(i) IsNot Nothing, SyntaxFactory.Token(SyntaxKind.AsKeyword), Nothing),
-                    t.GenerateTypeSyntax()))))
+                types.Select(Function(t, i) If(hasNames AndAlso names(i) IsNot Nothing,
+                                                        SyntaxFactory.NamedTupleElement(
+                                                                        SyntaxFactory.IdentifierName(names(i)),
+                                                                        SyntaxFactory.SimpleAsClause(
+                                                                                    SyntaxFactory.Token(SyntaxKind.AsKeyword),
+                                                                                    Nothing,
+                                                                                    t.GenerateTypeSyntax())),
+                                                        DirectCast(SyntaxFactory.TypedTupleElement(
+                                                                        t.GenerateTypeSyntax()), TupleElementSyntax)))))
         End Function
 
         Public Overrides Function VisitNamedType(symbol As INamedTypeSymbol) As TypeSyntax

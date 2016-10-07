@@ -138,6 +138,185 @@ hello
         End Sub
 
         <Fact>
+        Public Sub TupleTypeBindingTypeChar()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+option strict on
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (A%, B$) = Nothing
+        console.writeline(t.GetType())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+System.ValueTuple`2[System.Int32,System.String]
+            ]]>)
+
+            verifier.VerifyDiagnostics()
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (System.ValueTuple(Of Integer, String) V_0) //t
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "System.ValueTuple(Of Integer, String)"
+  IL_0008:  ldloc.0
+  IL_0009:  box        "System.ValueTuple(Of Integer, String)"
+  IL_000e:  call       "Function Object.GetType() As System.Type"
+  IL_0013:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0018:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleTypeBindingTypeChar1()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+option strict off
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (A%, B$) = Nothing
+        console.writeline(t.GetType())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+System.ValueTuple`2[System.Int32,System.String]
+            ]]>)
+
+            verifier.VerifyDiagnostics()
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (System.ValueTuple(Of Integer, String) V_0) //t
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "System.ValueTuple(Of Integer, String)"
+  IL_0008:  ldloc.0
+  IL_0009:  box        "System.ValueTuple(Of Integer, String)"
+  IL_000e:  call       "Function Object.GetType() As System.Type"
+  IL_0013:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0018:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleTypeBindingTypeCharErr()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="TupleTypeBindingTypeCharErr">
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+        console.writeline(t.A.Length)  'A should not take the type from % in this case
+
+        Dim t1 as (String$, String%) = nothing
+        console.writeline(t1.GetType())
+
+        Dim B = 1
+        
+        Dim t2 = (A% := "qq", B$) 
+        console.writeline(t2.A.Length) 'A should not take the type from % in this case
+
+        Dim t3 As (V1(), V2%()) = Nothing
+        console.writeline(t3.Item1.Length) 
+    End Sub
+
+   Async Sub T()
+        Dim t4 as (Integer% As String, Await As String, Function$) = nothing
+        console.writeline(t4.Integer.Length)  
+        console.writeline(t4.Await.Length)  
+        console.writeline(t4.Function.Length)  
+
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+        console.writeline(t4.Function.Length)  
+
+    End Sub
+
+    class V2
+    end class
+End Module
+
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30302: Type character '%' cannot be used in a declaration with an explicit type.
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+                  ~~
+BC30302: Type character '$' cannot be used in a declaration with an explicit type.
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+                                ~~
+BC30468: Type declaration characters are not valid in this context.
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+                                                   ~~~~~~~
+BC37262: Tuple element names must be unique.
+        Dim t1 as (String$, String%) = nothing
+                            ~~~~~~~
+BC37270: Type characters cannot be used in tuple literals.
+        Dim t2 = (A% := "qq", B$) 
+                  ~~
+BC30277: Type character '$' does not match declared data type 'Integer'.
+        Dim t2 = (A% := "qq", B$) 
+                              ~~
+BC30002: Type 'V1' is not defined.
+        Dim t3 As (V1(), V2%()) = Nothing
+                   ~~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        Dim t3 As (V1(), V2%()) = Nothing
+                            ~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+   Async Sub T()
+             ~
+BC30302: Type character '%' cannot be used in a declaration with an explicit type.
+        Dim t4 as (Integer% As String, Await As String, Function$) = nothing
+                   ~~~~~~~~
+BC30183: Keyword is not valid as an identifier.
+        Dim t4 as (Integer% As String, Await As String, Function$) = nothing
+                                       ~~~~~
+BC30180: Keyword does not name a type.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                   ~
+BC30180: Keyword does not name a type.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                       ~
+BC30002: Type 'Junk2' is not defined.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                     ~~~~~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                           ~~~~~~~~
+BC30002: Type 'Junk4' is not defined.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                                     ~~~~~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                                           ~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
         Public Sub TupleTypeBindingNoTuple()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
@@ -198,7 +377,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (, )
             ]]>)
 
@@ -261,7 +440,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.ValueTuple`2[System.Object[],System.Object[]]
 System.ValueTuple`2[System.Object,System.Object][]
             ]]>)
@@ -288,7 +467,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 VB$AnonymousDelegate_0`1[System.ValueTuple`2[System.Object,System.Object][]]
 VB$AnonymousDelegate_0`1[System.ValueTuple`2[System.Object,System.Object]][]
             ]]>)
@@ -319,7 +498,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Object[]
 System.Object[,]
 
@@ -351,7 +530,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 VB$AnonymousDelegate_0`2[System.Int32,VB$AnonymousDelegate_1`1[System.Int32]]
 VB$AnonymousDelegate_0`2[System.Int64,System.ValueTuple`2[System.Object[],System.Object[]][]]
             ]]>)
@@ -390,7 +569,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.String
 System.String
 System.String
@@ -423,7 +602,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -458,7 +637,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Action
 VB$AnonymousDelegate_0
             ]]>)
@@ -495,7 +674,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -4538,7 +4717,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:="42 Alice")
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:="42 Alice")
 
         End Sub
 
@@ -5956,7 +6135,7 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_0`1[System.Object]]
 System.ValueTuple`2[System.Object,VB$AnonymousDelegate_1`2[System.Object,System.Object]]
 System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_1`2[System.Object,System.Object]]
@@ -6537,7 +6716,7 @@ Module C
 End Module
 
     </file>
- </compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+ </compilation>, additionalRefs:=s_valueTupleRefs)
 
             Dim comp = verifier.Compilation
             Dim tree = comp.SyntaxTrees(0)
@@ -6562,7 +6741,7 @@ Public Class A
      End Function
 End Class
      </file>
- </compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+ </compilation>, additionalRefs:=s_valueTupleRefs)
             libComp.AssertNoDiagnostics()
 
 
@@ -7714,7 +7893,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:="1 hello 3")
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:="1 hello 3")
 
         End Sub
 
@@ -7728,7 +7907,7 @@ Interface I(Of Out T)
     Function M() As System.ValueTuple(Of Integer, T)
 End Interface
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -7748,7 +7927,7 @@ Interface I(Of Out T)
     Function M() As (Integer, T)
 End Interface
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -7768,7 +7947,7 @@ Interface I(Of In T)
     Sub M(x As (Boolean, T))
 End Interface
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -8623,7 +8802,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+</compilation>, additionalRefs:=s_valueTupleRefs,
                 options:=TestOptions.DebugExe, expectedOutput:="9",
                 sourceSymbolValidator:=
                     Sub(m As ModuleSymbol)
