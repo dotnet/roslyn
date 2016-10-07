@@ -19,14 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly static InfoBarButton s_enableItem = new InfoBarButton(ServicesVSResources.Enable);
         private readonly static InfoBarButton s_enableAndIgnoreItem = new InfoBarButton(ServicesVSResources.Enable_and_ignore_future_errors);
 
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
         public VisualStudioErrorReportingService(
-            VisualStudioWorkspaceImpl workspace, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
+            SVsServiceProvider serviceProvider, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
         {
-            _workspace = workspace;
+            _serviceProvider = serviceProvider;
             _foregroundNotificationService = foregroundNotificationService;
             _listener = listener;
         }
@@ -38,11 +38,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 IVsWindowFrame frame;
                 IVsInfoBarUIFactory factory;
-                if (_workspace.TryGetInfoBarData(out frame, out factory))
+                if (TryGetInfoBarData(out frame, out factory))
                 {
                     CreateInfoBar(factory, frame, message, items);
                 }
             }, _listener.BeginAsyncOperation("Show InfoBar"));
+        }
+
+        private bool TryGetInfoBarData(out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
+        {
+            frame = null;
+            factory = null;
+            var monitorSelectionService = _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+            object value = null;
+
+            // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list or interactive window
+            if (monitorSelectionService != null &&
+               ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out value)))
+            {
+                frame = value as IVsWindowFrame;
+            }
+            else
+            {
+                return false;
+            }
+
+            factory = _serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+            return frame != null && factory != null;
         }
 
         private void CreateInfoBar(IVsInfoBarUIFactory factory, IVsWindowFrame frame, string message, ErrorReportingUI[] items)

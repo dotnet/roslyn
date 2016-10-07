@@ -718,28 +718,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             CloseDocumentCore(documentId);
         }
 
-        public bool TryGetInfoBarData(out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
-        {
-            frame = null;
-            factory = null;
-            var monitorSelectionService = ServiceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            object value = null;
-
-            // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list or interactive window
-            if (monitorSelectionService != null &&
-               ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out value)))
-            {
-                frame = value as IVsWindowFrame;
-            }
-            else
-            {
-                return false;
-            }
-
-            factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
-            return frame != null && factory != null;
-        }
-
         public void OpenDocumentCore(DocumentId documentId, bool activate = true)
         {
             if (documentId == null)
