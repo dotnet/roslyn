@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public virtual Task<Document> AddEventAsync(
             Solution solution, INamedTypeSymbol destination, IEventSymbol @event,
-             CodeGenerationOptions options, CancellationToken cancellationToken)
+            CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution,
