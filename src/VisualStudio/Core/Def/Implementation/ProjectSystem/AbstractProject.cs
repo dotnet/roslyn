@@ -130,6 +130,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             CommandLineParserService = commandLineParserServiceOpt;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSourceOpt;
 
+            // Set the default value for last design time build result to be true, until the project system lets us know that it failed.
+            LastDesignTimeBuildSucceeded = true;
+
             UpdateProjectDisplayNameAndFilePath(projectSystemName, projectFilePath);
 
             if (ProjectFilePath != null)
@@ -260,8 +263,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Flag indicating if the latest design time build has succeeded for current project state.
         /// </summary>
-        /// <remarks>Defaults to true if the project system never sets the design time build result with <see cref="SetIntellisenseBuildResultAndNotifyWorkspaceHosts(bool)"/>.</remarks>
-        protected bool LastDesignTimeBuildSucceeded { get; }
+        /// <remarks>Default value is true.</remarks>
+        protected bool LastDesignTimeBuildSucceeded { get; private set; }
 
         internal VsENCRebuildableProjectImpl EditAndContinueImplOpt { get; private set; }
 
@@ -295,14 +298,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
                     additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
 
-                return info.WithHasAllInformation(hasAllInformation: _lastDesignTimeBuildSucceeded);
+                return info.WithHasAllInformation(hasAllInformation: LastDesignTimeBuildSucceeded);
             }
         }
 
         protected void SetIntellisenseBuildResultAndNotifyWorkspaceHosts(bool succeeded)
         {
             // set intellisense related info
-            _lastDesignTimeBuildSucceeded = succeeded;
+            LastDesignTimeBuildSucceeded = succeeded;
 
             if (PushingChangesToWorkspaceHosts)
             {
