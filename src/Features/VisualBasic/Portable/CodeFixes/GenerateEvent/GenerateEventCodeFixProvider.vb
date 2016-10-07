@@ -117,10 +117,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             End If
 
             ' We also need to generate the delegate type
-            Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(Nothing, Accessibility.Public, Nothing,
-                                                                                        semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                                                                                        name:=eventHandlerName,
-                                                                                        parameters:=delegateSymbol.GetParameters())
+            Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
+                attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
+                returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
+                name:=eventHandlerName, parameters:=delegateSymbol.GetParameters())
+
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
                 attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
                 accessibility:=Accessibility.Public, modifiers:=Nothing,
@@ -260,34 +261,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 End If
 
                 Dim returnType = If(eventType.DelegateInvokeMethod IsNot Nothing,
-                                        eventType.DelegateInvokeMethod.ReturnType,
-                                        semanticModel.Compilation.GetSpecialType(SpecialType.System_Void))
+                    eventType.DelegateInvokeMethod.ReturnType,
+                    semanticModel.Compilation.GetSpecialType(SpecialType.System_Void))
 
                 Dim parameters As IList(Of IParameterSymbol) = If(eventType.DelegateInvokeMethod IsNot Nothing,
                                         eventType.DelegateInvokeMethod.Parameters,
                                         SpecializedCollections.EmptyList(Of IParameterSymbol)())
 
                 Dim eventHandlerType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
-                        eventType.GetAttributes(),
-                        eventType.DeclaredAccessibility,
-                        Nothing,
-                        returnType,
-                        actualEventName + "EventHandler",
-                        eventType.TypeParameters,
-                        parameters)
+                    eventType.GetAttributes(), eventType.DeclaredAccessibility,
+                    modifiers:=Nothing, returnType:=returnType,
+                    name:=actualEventName + "EventHandler",
+                    typeParameters:=eventType.TypeParameters, parameters:=parameters)
 
                 Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
-                        boundEvent.GetAttributes(), boundEvent.DeclaredAccessibility,
-                        modifiers:=Nothing, type:=eventHandlerType, explicitInterfaceSymbol:=Nothing,
-                        name:=actualEventName)
+                    boundEvent.GetAttributes(), boundEvent.DeclaredAccessibility,
+                    modifiers:=Nothing, type:=eventHandlerType, explicitInterfaceSymbol:=Nothing,
+                    name:=actualEventName)
 
+                ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
+                ' instead of an 'As' clause.
                 eventHandlerType.AssociatedSymbol = generatedEvent
+
                 Return New GenerateEventCodeAction(
                         document.Project.Solution, targetType, generatedEvent,
                         codeGenService, New CodeGenerationOptions())
             Else
-
-                ' C# with no delegate type or VB
+                ' Event with no parameters.
                 Dim generatedMember = CodeGenerationSymbolFactory.CreateEventSymbol(boundEvent, name:=actualEventName)
                 Return New GenerateEventCodeAction(
                     document.Project.Solution, targetType, generatedMember, codeGenService, New CodeGenerationOptions())
@@ -372,14 +372,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             ' We need to generate the delegate, too.
             Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
-                Nothing, Accessibility.Public, Nothing, semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
+                attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
+                returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
                 name:=actualEventName + "Handler", parameters:=boundMethod.GetParameters())
 
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
-                attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
-                accessibility:=Accessibility.Public, modifiers:=Nothing,
+                attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
                 explicitInterfaceSymbol:=Nothing,
                 type:=delegateType, name:=actualEventName)
+
+            ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
+            ' instead of an 'As' clause.
             delegateType.AssociatedSymbol = generatedEvent
 
             Return New GenerateEventCodeAction(
