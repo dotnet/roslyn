@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class TypeofTests : CSharpTestBase
     {
         [Fact, WorkItem(1720, "https://github.com/dotnet/roslyn/issues/1720")]
-        public void GetSymbolsOnResultOfNameof()
+        public void GetSymbolsOnResultOfTypeof()
         {
             var source = @"
 class C
@@ -27,9 +27,9 @@ class C
             var identifierName = node.Type;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal(symbolInfo.Symbol.ToTestDisplayString(), "C..ctor(System.Int32 i)");
-
-            Assert.Equal(TypeKind.Class, model.GetTypeInfo(node).Type.TypeKind);
+            Assert.Equal("C..ctor(System.Int32 i)", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
 
         }
     }
