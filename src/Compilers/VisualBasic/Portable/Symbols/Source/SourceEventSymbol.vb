@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
@@ -8,7 +7,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SourceEventSymbol
@@ -323,6 +321,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property IEventSymbol_Parameters As ImmutableArray(Of IParameterSymbol)
+            Get
+                ' Only return parameters if they were directly declared on this Event.  Do not
+                ' return the parameters of the underlying Delegate type.
+                Dim syntax = DirectCast(_syntaxRef.GetSyntax(), EventStatementSyntax)
+                If syntax.AsClause IsNot Nothing Then
+                    Return Nothing
+                Else
+                    Debug.Assert(Me.DelegateParameters.All(Function(p) Me.Equals(p.ContainingSymbol)))
+                    Return ImmutableArray(Of IParameterSymbol).CastUp(Me.DelegateParameters)
+                End If
+            End Get
+        End Property
+
         Private Function BindEventAccessor(blockSyntax As AccessorBlockSyntax,
                                            binder As Binder) As CustomEventAccessorSymbol
 
@@ -356,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim method As New CustomEventAccessorSymbol(
                 Me._containingType,
                 Me,
-                binder.GetAccessorName(Me.Name, flags.ToMethodKind(), isWinMd:=False),
+                Binder.GetAccessorName(Me.Name, flags.ToMethodKind(), isWinMd:=False),
                 flags,
                 binder.GetSyntaxReference(syntax),
                 location)

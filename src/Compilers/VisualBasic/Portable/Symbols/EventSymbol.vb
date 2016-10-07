@@ -137,6 +137,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overridable ReadOnly Property IEventSymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IEventSymbol.Parameters
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         ''' <summary>
         ''' Gets the return type of the event (typically System.Void). 
         ''' </summary>
