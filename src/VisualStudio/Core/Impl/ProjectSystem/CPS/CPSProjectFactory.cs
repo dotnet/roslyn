@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
-        private readonly Dictionary<string, IVsReportExternalErrors> _externalErrorReporterMap;
+        private readonly Dictionary<ProjectId, IVsReportExternalErrors> _externalErrorReporterMap;
         private readonly ImmutableDictionary<string, string> _projectLangaugeToErrorCodePrefixMap =
             ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, new[]
             {
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _serviceProvider = serviceProvider;
             _visualStudioWorkspace = visualStudioWorkspace;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _externalErrorReporterMap = new Dictionary<string, IVsReportExternalErrors>(StringComparer.OrdinalIgnoreCase);
+            _externalErrorReporterMap = new Dictionary<ProjectId, IVsReportExternalErrors>();
         }
 
         // internal for testing purposes only.
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             lock (_externalErrorReporterMap)
             {
                 IVsReportExternalErrors errorReporter;
-                if (!_externalErrorReporterMap.TryGetValue(languageName, out errorReporter))
+                if (!_externalErrorReporterMap.TryGetValue(projectId, out errorReporter))
                 {
                     string errorCodePrefix;
                     if (!_projectLangaugeToErrorCodePrefixMap.TryGetValue(languageName, out errorCodePrefix))
@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     }
 
                     errorReporter = new ProjectExternalErrorReporter(projectId, errorCodePrefix, _serviceProvider);
-                    _externalErrorReporterMap.Add(languageName, errorReporter);
+                    _externalErrorReporterMap.Add(projectId, errorReporter);
                 }
 
                 return errorReporter;
