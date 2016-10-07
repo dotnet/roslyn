@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return;
             }
 
-            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(
+            vsWorkspace.DeferredState.ProjectTracker.RegisterWorkspaceHost(
                 new WorkspaceHost(vsWorkspace, client));
         }
 

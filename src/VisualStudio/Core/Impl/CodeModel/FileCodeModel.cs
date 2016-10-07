@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return false;
             }
 
-            var project = ((VisualStudioWorkspaceImpl)this.State.Workspace).ProjectTracker.GetProject(_incomingProjectId);
+            var project = ((VisualStudioWorkspaceImpl)this.State.Workspace).DeferredState?.ProjectTracker.GetProject(_incomingProjectId);
             if (project == null)
             {
                 return false;
@@ -415,7 +415,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal AbstractProject GetAbstractProject()
         {
-            return ((VisualStudioWorkspaceImpl)Workspace).ProjectTracker.GetProject(GetProjectId());
+            return ((VisualStudioWorkspaceImpl)Workspace).DeferredState.ProjectTracker.GetProject(GetProjectId());
         }
 
         internal SyntaxNode LookupNode(SyntaxNodeKey nodeKey)

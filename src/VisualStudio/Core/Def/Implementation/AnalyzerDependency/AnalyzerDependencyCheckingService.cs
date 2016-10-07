@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var conflicts = results.Conflicts;
             var missingDependencies = results.MissingDependencies;
 
-            foreach (var project in _workspace.ProjectTracker.ImmutableProjects)
+            foreach (var project in _workspace.DeferredState.ProjectTracker.ImmutableProjects)
             {
                 builder.Clear();
 

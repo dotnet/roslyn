@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -34,20 +36,13 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
-            SVsServiceProvider serviceProvider,
-            SaveEventsService saveEventsService,
+            ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
             [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
-            : base(
-                serviceProvider,
-                backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
+            : base(exportProvider.AsExportProvider())
         {
-            PrimaryWorkspace.Register(this);
-
-            InitializeStandardVisualStudioWorkspace(serviceProvider, saveEventsService);
-
             _navigableItemsPresenters = navigableItemsPresenters;
             _referencedSymbolsPresenters = referencedSymbolsPresenters;
             _externalDefinitionProviders = externalDefinitionProviders;
@@ -65,7 +60,13 @@ namespace Microsoft.VisualStudio.LanguageServices
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            var project = ProjectTracker.GetProject(documentId.ProjectId);
+            if (DeferredState == null)
+            {
+                // We haven't gotten any projects added yet, so we don't know where this came from
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
+            }
+
+            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
             if (project == null)
             {
                 throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            var project = ProjectTracker.GetProject(documentId.ProjectId);
+            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
             if (project == null)
             {
                 return false;
@@ -153,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            return new InvisibleEditor(ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
+            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
         }
 
         private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)

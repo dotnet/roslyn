@@ -23,10 +23,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Function CreateProject(wszName As String, punkProject As Object, pProjHier As IVsHierarchy, pVbCompilerHost As IVbCompilerHost) As IVbCompilerProject Implements IVbCompiler.CreateProject
             Dim hostDiagnosticUpdateSource = ComponentModel.GetService(Of HostDiagnosticUpdateSource)()
 
-            Workspace.ProjectTracker.TryDisconnectExistingDeferredProject(pProjHier, wszName)
+            Dim projectTracker = Workspace.GetProjectTrackerAndInitializeIfNecessary(Me)
+
+            projectTracker.TryDisconnectExistingDeferredProject(pProjHier, wszName)
 
             Return New VisualBasicProjectShimWithServices(
-                Workspace.ProjectTracker,
+                projectTracker,
                 pVbCompilerHost,
                 wszName,
                 pProjHier,

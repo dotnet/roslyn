@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
+using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private readonly object _gate = new object();
         private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly SVsServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
         // We refer to the package services through proxy types so that we can
@@ -62,12 +64,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         [ImportingConstructor]
         public PackageInstallerService(
             VisualStudioWorkspaceImpl workspace,
+            SVsServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
             : base(workspace, SymbolSearchOptions.Enabled,
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
+            _serviceProvider = serviceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
         }
 
@@ -80,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         protected override void EnableService()
         {
             // Our service has been enabled.  Now load the VS package dlls.
-            var componentModel = _workspace.GetVsService<SComponentModel, IComponentModel>();
+            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
 
             var packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
             var packageInstaller = componentModel.GetExtensions<IVsPackageInstaller>().FirstOrDefault();
@@ -150,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (workspace == _workspace && _workspace != null && _packageServices != null)
             {
                 var projectId = documentId.ProjectId;
-                var dte = _workspace.GetVsService<SDTE, EnvDTE.DTE>();
+                var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(SDTE));
                 var dteProject = _workspace.TryGetDTEProject(projectId);
                 if (dteProject != null)
                 {
@@ -494,7 +498,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             this.AssertIsForeground();
 
-            var shell = _workspace.GetVsService<SVsShell, IVsShell>();
+            var shell = (IVsShell)_serviceProvider.GetService(typeof(SVsShell));
             if (shell == null)
             {
                 return;
