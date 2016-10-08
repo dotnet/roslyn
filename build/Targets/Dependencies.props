@@ -66,6 +66,7 @@
     <SystemThreadingTasksVersion>4.0.11</SystemThreadingTasksVersion>
     <SystemThreadingTasksParallelVersion>4.0.1</SystemThreadingTasksParallelVersion>
     <SystemThreadingThreadVersion>4.0.0</SystemThreadingThreadVersion>
+    <SystemValueTupleVersion>4.3.0-preview1-24530-04</SystemValueTupleVersion>
     <SystemXmlReaderWriterVersion>4.0.11</SystemXmlReaderWriterVersion>
     <SystemXmlXDocumentVersion>4.0.11</SystemXmlXDocumentVersion>
     <SystemXmlXmlDocumentVersion>4.0.1</SystemXmlXmlDocumentVersion>

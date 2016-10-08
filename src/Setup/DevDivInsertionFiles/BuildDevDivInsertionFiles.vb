@@ -122,6 +122,7 @@ Public Class BuildDevDivInsertionFiles
         "System.Security.Principal.Windows.dll",
         "System.Text.Encoding.CodePages.dll",
         "System.Threading.Thread.dll",
+        "System.ValueTuple.dll",
         "System.Xml.XmlDocument.dll",
         "System.Xml.XPath.dll",
         "System.Xml.XPath.XDocument.dll",

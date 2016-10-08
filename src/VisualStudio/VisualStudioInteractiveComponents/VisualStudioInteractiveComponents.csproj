@@ -161,6 +161,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -179,9 +180,6 @@
       <Link>ProvideRoslynBindingRedirection.cs</Link>
     </Compile>
     <Compile Include="AssemblyRedirects.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

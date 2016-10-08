@@ -34,7 +34,8 @@
     "System.Xml.ReaderWriter": "4.0.11",
     "System.Xml.XDocument": "4.0.11",
     "System.Xml.XmlDocument": "4.0.1",
-    "System.Xml.XPath.XDocument": "4.0.1"
+    "System.Xml.XPath.XDocument": "4.0.1",
+    "System.ValueTuple": "4.3.0-preview1-24530-04",
   },
   "frameworks": {
     "net46": {}
