@@ -7,16 +7,20 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        private readonly string _id;
-        private readonly string _title;
-        private readonly DiagnosticDescriptor _descriptor;
-        private readonly DiagnosticDescriptor _unnecessaryWithSuggestionDescriptor;
-        private readonly DiagnosticDescriptor _unnecessaryWithoutSuggestionDescriptor;
+        protected readonly string _id;
 
-        protected AbstractCodeStyleDiagnosticAnalyzer(string id, string title)
+        private readonly LocalizableString _localizableTitle;
+        private readonly LocalizableString _localizableMessage;
+
+        private readonly DiagnosticDescriptor _descriptor;
+        protected readonly DiagnosticDescriptor _unnecessaryWithSuggestionDescriptor;
+        protected readonly DiagnosticDescriptor _unnecessaryWithoutSuggestionDescriptor;
+
+        protected AbstractCodeStyleDiagnosticAnalyzer(string id, LocalizableString title, LocalizableString message)
         {
             _id = id;
-            _title = title;
+            _localizableTitle = title;
+            _localizableMessage = message;
             _descriptor = CreateDescriptor(id, DiagnosticSeverity.Hidden);
             _unnecessaryWithSuggestionDescriptor = CreateDescriptor(
                 id, DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
@@ -28,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-        private DiagnosticDescriptor CreateDescriptor(string id, DiagnosticSeverity severity, params string[] customTags)
+        protected DiagnosticDescriptor CreateDescriptor(string id, DiagnosticSeverity severity, params string[] customTags)
             => new DiagnosticDescriptor(
                 id,
-                _title,
-                _title,
+                _localizableTitle,
+                _localizableMessage,
                 DiagnosticCategory.Style,
                 severity,
                 isEnabledByDefault: true,
