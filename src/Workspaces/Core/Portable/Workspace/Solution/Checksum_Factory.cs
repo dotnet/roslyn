@@ -2,13 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using Roslyn.Utilities;
 using System.Security.Cryptography;
+using Microsoft.CodeAnalysis.Serialization;
 
-namespace Microsoft.CodeAnalysis.Execution
+namespace Microsoft.CodeAnalysis
 {
     // various factory methods.
     // all these are just helper methods
@@ -53,37 +53,24 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public static Checksum Create<T>(string kind, ImmutableArray<T> objects) where T : ChecksumObject
-        {
-            using (var pool = Creator.CreateList<Checksum>())
-            {
-                for (var i = 0; i < objects.Length; i++)
-                {
-                    pool.Object.Add(objects[i].Checksum);
-                }
-
-                return Create(kind, pool.Object);
-            }
-        }
-
-        public static Checksum Create<T>(T value, string kind, Action<T, ObjectWriter, CancellationToken> writer)
+        public static Checksum Create(string kind, Action<ObjectWriter, CancellationToken> writer)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var objectWriter = new ObjectWriter(stream))
             {
                 objectWriter.WriteString(kind);
-                writer(value, objectWriter, CancellationToken.None);
+                writer(objectWriter, CancellationToken.None);
                 return Create(stream);
             }
         }
 
-        public static Checksum Create<T1, T2>(T1 value1, T2 value2, string kind, Action<T1, T2, ObjectWriter, CancellationToken> writer)
+        public static Checksum Create<T>(T value, string kind, Serializer serializer)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var objectWriter = new ObjectWriter(stream))
             {
                 objectWriter.WriteString(kind);
-                writer(value1, value2, objectWriter, CancellationToken.None);
+                serializer.Serialize(value, objectWriter, CancellationToken.None);
                 return Create(stream);
             }
         }

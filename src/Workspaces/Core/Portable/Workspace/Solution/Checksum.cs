@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Execution
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Checksum of data can be used later to see whether two data are same or not

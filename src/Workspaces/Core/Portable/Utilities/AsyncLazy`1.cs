@@ -474,7 +474,8 @@ namespace Roslyn.Utilities
                 if (_cacheResult && task.Status == TaskStatus.RanToCompletion)
                 {
                     // Hold onto the completed task. We can get rid of the computation functions for good
-                    _cachedResult = task;
+                    Volatile.Write(ref _cachedResult, task);
+
                     _asynchronousComputeFunction = null;
                     _synchronousComputeFunction = null;
                 }

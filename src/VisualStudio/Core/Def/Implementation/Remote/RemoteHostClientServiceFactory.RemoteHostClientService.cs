@@ -134,9 +134,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return SpecializedTasks.Default<RemoteHostClient>();
                 }
 
-                // ensure we have solution checksum
-                _checksumUpdater.EnsureSolutionChecksum(cancellationToken);
-
                 return instanceTask;
             }
 
@@ -161,8 +158,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
-                    var assetBuilder = new AssetBuilder(_workspace.CurrentSolution);
+                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
+                    var assetBuilder = new CustomAssetBuilder(_workspace.CurrentSolution);
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {
@@ -176,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_RemoveGlobalAssets, CancellationToken.None))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
+                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {

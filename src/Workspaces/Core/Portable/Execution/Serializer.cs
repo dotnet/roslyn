@@ -3,11 +3,15 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Execution
+namespace Microsoft.CodeAnalysis.Serialization
 {
     /// <summary>
     /// serialize and deserialize objects to straem.
@@ -19,20 +23,122 @@ namespace Microsoft.CodeAnalysis.Execution
     internal partial class Serializer
     {
         private readonly HostWorkspaceServices _workspaceServices;
+        private readonly IReferenceSerializationService _hostSerializationService;
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
-
-        public readonly IReferenceSerializationService HostSerializationService;
 
         public Serializer(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;
+            _hostSerializationService = _workspaceServices.GetService<IReferenceSerializationService>();
 
-            HostSerializationService = _workspaceServices.GetService<IReferenceSerializationService>();
             _lazyLanguageSerializationService = new ConcurrentDictionary<string, IOptionsSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
+        }
 
-            // TODO: figure out how to support Serialize like the way Deserialize work. tried once, couldn't figure out since
-            //       different kind of data require different number of data to serialize it. that is required so that we don't hold on
-            //       to any red node.
+        public Checksum CreateChecksum(object value, CancellationToken cancellationToken)
+        {
+            var kind = value.GetWellKnownSynchronizationKinds();
+
+            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, kind, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (value is IHasChecksum)
+                {
+                    return ((IHasChecksum)value).Checksum;
+                }
+
+                switch (kind)
+                {
+                    case WellKnownSynchronizationKinds.Null:
+                        return Checksum.Null;
+
+                    case WellKnownSynchronizationKinds.SolutionInfo:
+                    case WellKnownSynchronizationKinds.ProjectInfo:
+                    case WellKnownSynchronizationKinds.DocumentInfo:
+                    case WellKnownSynchronizationKinds.CompilationOptions:
+                    case WellKnownSynchronizationKinds.ParseOptions:
+                    case WellKnownSynchronizationKinds.ProjectReference:
+                        return Checksum.Create(value, kind, this);
+
+                    case WellKnownSynchronizationKinds.MetadataReference:
+                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((MetadataReference)value, cancellationToken));
+
+                    case WellKnownSynchronizationKinds.AnalyzerReference:
+                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, cancellationToken));
+
+                    case WellKnownSynchronizationKinds.SourceText:
+                        return Checksum.Create(kind, new Checksum(((SourceText)value).GetChecksum()));
+
+                    default:
+                        // object that is not part of solution is not supported since we don't know what inputs are required to
+                        // serialize it
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
+            }
+        }
+
+        public void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            var kind = value.GetWellKnownSynchronizationKinds();
+
+            using (Logger.LogBlock(FunctionId.Serializer_Serialize, kind, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (value is ChecksumWithChildren)
+                {
+                    SerializeChecksumWithChildren((ChecksumWithChildren)value, writer, cancellationToken);
+                    return;
+                }
+
+                switch (kind)
+                {
+                    case WellKnownSynchronizationKinds.Null:
+                        // do nothing
+                        return;
+
+                    case WellKnownSynchronizationKinds.SolutionInfo:
+                        SerializeSerializedSolutionInfo((SerializedSolutionInfo)value, writer, cancellationToken);
+                        return;
+
+                    case WellKnownSynchronizationKinds.ProjectInfo:
+                        SerializeSerializedProjectInfo((SerializedProjectInfo)value, writer, cancellationToken);
+                        return;
+
+                    case WellKnownSynchronizationKinds.DocumentInfo:
+                        SerializeSerializedDocumentInfo((SerializedDocumentInfo)value, writer, cancellationToken);
+                        return;
+
+                    case WellKnownSynchronizationKinds.CompilationOptions:
+                        SerializeCompilationOptions((CompilationOptions)value, writer, cancellationToken);
+                        return;
+
+                    case WellKnownSynchronizationKinds.ParseOptions:
+                        SerializeParseOptions((ParseOptions)value, writer, cancellationToken);
+                        return;
+
+                    case WellKnownSynchronizationKinds.ProjectReference:
+                        SerializeProjectReference((ProjectReference)value, writer, cancellationToken);
+                        return;
+
+                    case WellKnownSynchronizationKinds.MetadataReference:
+                        SerializeMetadataReference((MetadataReference)value, writer, cancellationToken);
+                        return;
+
+                    case WellKnownSynchronizationKinds.AnalyzerReference:
+                        SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken);
+                        return;
+
+                    case WellKnownSynchronizationKinds.SourceText:
+                        SerializeSourceText(storage: null, text: (SourceText)value, writer: writer, cancellationToken: cancellationToken);
+                        return;
+
+                    default:
+                        // object that is not part of solution is not supported since we don't know what inputs are required to
+                        // serialize it
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
+            }
         }
 
         public T Deserialize<T>(string kind, ObjectReader reader, CancellationToken cancellationToken)
@@ -43,49 +149,88 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 switch (kind)
                 {
-                    case WellKnownChecksumObjects.Null:
+                    case WellKnownSynchronizationKinds.Null:
                         return default(T);
 
-                    case SolutionChecksumObject.Name:
-                        return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
-                    case ProjectChecksumObject.Name:
-                        return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
-                    case DocumentChecksumObject.Name:
-                        return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
+                    case WellKnownSynchronizationKinds.SolutionState:
+                    case WellKnownSynchronizationKinds.ProjectState:
+                    case WellKnownSynchronizationKinds.DocumentState:
+                    case WellKnownSynchronizationKinds.Projects:
+                    case WellKnownSynchronizationKinds.Documents:
+                    case WellKnownSynchronizationKinds.TextDocuments:
+                    case WellKnownSynchronizationKinds.ProjectReferences:
+                    case WellKnownSynchronizationKinds.MetadataReferences:
+                    case WellKnownSynchronizationKinds.AnalyzerReferences:
+                        return (T)(object)DeserializeChecksumWithChildren(reader, cancellationToken);
 
-                    case WellKnownChecksumObjects.Projects:
-                    case WellKnownChecksumObjects.Documents:
-                    case WellKnownChecksumObjects.TextDocuments:
-                    case WellKnownChecksumObjects.ProjectReferences:
-                    case WellKnownChecksumObjects.MetadataReferences:
-                    case WellKnownChecksumObjects.AnalyzerReferences:
-                        return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
-
-                    case WellKnownChecksumObjects.SolutionChecksumObjectInfo:
-                        return (T)(object)DeserializeSolutionChecksumObjectInfo(reader, cancellationToken);
-                    case WellKnownChecksumObjects.ProjectChecksumObjectInfo:
-                        return (T)(object)DeserializeProjectChecksumObjectInfo(reader, cancellationToken);
-                    case WellKnownChecksumObjects.DocumentChecksumObjectInfo:
-                        return (T)(object)DeserializeDocumentChecksumObjectInfo(reader, cancellationToken);
-                    case WellKnownChecksumObjects.CompilationOptions:
+                    case WellKnownSynchronizationKinds.SolutionInfo:
+                        return (T)(object)DeserializeSerializedSolutionInfo(reader, cancellationToken);
+                    case WellKnownSynchronizationKinds.ProjectInfo:
+                        return (T)(object)DeserializeSerializedProjectInfo(reader, cancellationToken);
+                    case WellKnownSynchronizationKinds.DocumentInfo:
+                        return (T)(object)DeserializeSerializedDocumentInfo(reader, cancellationToken);
+                    case WellKnownSynchronizationKinds.CompilationOptions:
                         return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
-                    case WellKnownChecksumObjects.ParseOptions:
+                    case WellKnownSynchronizationKinds.ParseOptions:
                         return (T)(object)DeserializeParseOptions(reader, cancellationToken);
-                    case WellKnownChecksumObjects.ProjectReference:
+                    case WellKnownSynchronizationKinds.ProjectReference:
                         return (T)(object)DeserializeProjectReference(reader, cancellationToken);
-                    case WellKnownChecksumObjects.MetadataReference:
+                    case WellKnownSynchronizationKinds.MetadataReference:
                         return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
-                    case WellKnownChecksumObjects.AnalyzerReference:
+                    case WellKnownSynchronizationKinds.AnalyzerReference:
                         return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
-                    case WellKnownChecksumObjects.SourceText:
+                    case WellKnownSynchronizationKinds.SourceText:
                         return (T)(object)DeserializeSourceText(reader, cancellationToken);
-                    case WellKnownChecksumObjects.OptionSet:
+                    case WellKnownSynchronizationKinds.OptionSet:
                         return (T)(object)DeserializeOptionSet(reader, cancellationToken);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);
                 }
             }
+        }
+
+        private string GetLanguageName(object value)
+        {
+            // for given object, we need to figure out which language the object belong to. 
+            // we can't blindly get language service since that will bring in language specific dlls.
+            foreach (var languageName in _workspaceServices.SupportedLanguages)
+            {
+                IOptionsSerializationService service;
+                if (_lazyLanguageSerializationService.TryGetValue(languageName, out service))
+                {
+                    if (service.Owns(value))
+                    {
+                        return languageName;
+                    }
+
+                    continue;
+                }
+
+                // this should be only reached once per language value actually belong to
+                var mefWorkspaceServices = _workspaceServices as MefWorkspaceServices;
+                if (mefWorkspaceServices != null)
+                {
+                    MefLanguageServices languageServices;
+                    if (!mefWorkspaceServices.TryGetLanguageServices(languageName, out languageServices))
+                    {
+                        // this is a bit fragile since it depends on implementation detail but there is no other way
+                        // to figure out which language a type belong to without loading other languages
+                        //
+                        // if a language's language services is not created yet, then it means that language is not loaded
+                        continue;
+                    }
+                }
+
+                service = GetOptionsSerializationService(languageName);
+                if (service.Owns(value))
+                {
+                    return languageName;
+                }
+            }
+
+            // shouldn't reach here
+            throw ExceptionUtilities.UnexpectedValue(value);
         }
 
         private IOptionsSerializationService GetOptionsSerializationService(string languageName)

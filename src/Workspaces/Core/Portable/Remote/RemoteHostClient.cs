@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Contract.ThrowIfFalse(solution.Workspace == _workspace);
 
-            var service = _workspace.Services.GetService<ISolutionChecksumService>();
-            var snapshot = await service.CreateChecksumAsync(solution, cancellationToken).ConfigureAwait(false);
+            var service = _workspace.Services.GetService<ISolutionSynchronizationService>();
+            var snapshot = await service.CreateSynchronizationScopeAsync(solution, cancellationToken).ConfigureAwait(false);
 
             return await CreateServiceSessionAsync(serviceName, snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
         }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected abstract void OnDisconnected();
 
-        protected abstract Task<Session> CreateServiceSessionAsync(string serviceName, ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken);
+        protected abstract Task<Session> CreateServiceSessionAsync(string serviceName, SynchronizationScope snapshot, object callbackTarget, CancellationToken cancellationToken);
 
         internal void Shutdown()
         {
@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Remote
         // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism
         public abstract class Session : IDisposable
         {
-            protected readonly ChecksumScope ChecksumScope;
+            protected readonly SynchronizationScope ChecksumScope;
             protected readonly CancellationToken CancellationToken;
 
             private bool _disposed;
 
-            protected Session(ChecksumScope scope, CancellationToken cancellationToken)
+            protected Session(SynchronizationScope scope, CancellationToken cancellationToken)
             {
                 _disposed = false;
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
 
-            public void AddAdditionalAssets(Asset asset)
+            public void AddAdditionalAssets(CustomAsset asset)
             {
                 ChecksumScope.AddAdditionalAsset(asset, CancellationToken);
             }

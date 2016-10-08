@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ServiceHubRemoteHostClient_CreateAsync,
         SolutionChecksumServiceFactory_CreateChecksumAsync,
         SolutionChecksumServiceFactory_GetChecksumObject,
-        ChecksumTreeNode_GetOrCreateChecksumObjectAsync,
+        Serializer_Serialize,
         Serializer_Deserialize,
         CodeAnalysisService_CalculateDiagnosticsAsync,
         CodeAnalysisService_SerializeDiagnosticResultAsync,
@@ -350,10 +350,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         AssetService_SynchronizeAssetsAsync,
         AssetService_SynchronizeSolutionAssetsAsync,
         SolutionChecksumServiceFactory_GetChecksumObjects,
-        ChecksumTreeNode_GetOrCreateChecksumObject,
         CodeAnalysisService_GetReferenceCountAsync,
         CodeAnalysisService_FindReferenceLocationsAsync,
         CodeAnalysisService_FindReferenceMethodsAsync,
         CodeAnalysisService_GetFullyQualifiedName,
+        Serializer_CreateChecksum,
     }
 }

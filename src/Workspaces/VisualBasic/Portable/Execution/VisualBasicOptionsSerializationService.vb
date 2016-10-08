@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
     Friend Class VisualBasicOptionsSerializationService
         Inherits AbstractOptionsSerializationService
 
+        Public Overrides Function Owns(value As Object) As Boolean
+            Return (TypeOf value Is VisualBasicCompilationOptions) OrElse (TypeOf value Is VisualBasicParseOptions)
+        End Function
+
         Public Overrides Sub WriteTo(options As CompilationOptions, writer As ObjectWriter, cancellationToken As CancellationToken)
             WriteCompilationOptionsTo(options, writer, cancellationToken)
 

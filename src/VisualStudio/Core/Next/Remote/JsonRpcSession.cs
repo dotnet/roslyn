@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
         public JsonRpcSession(
-            ChecksumScope snapshot,
+            SynchronizationScope snapshot,
             Stream snapshotStream,
             object callbackTarget,
             Stream serviceStream,
@@ -43,28 +44,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.Checksum.ToArray()).ToArray());
+            return _serviceClient.InvokeAsync(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.ToArray()).ToArray());
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.Checksum.ToArray()).ToArray());
+            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.ToArray()).ToArray());
         }
 
         public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.Checksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
+            return _serviceClient.InvokeAsync(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.Checksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
+            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
         }
 
         protected override void OnDisposed()
@@ -116,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _source = new CancellationTokenSource();
             }
 
-            private ChecksumScope ChecksumScope => _owner.ChecksumScope;
+            private SynchronizationScope ChecksumScope => _owner.ChecksumScope;
 
             /// <summary>
             /// this is callback from remote host side to get asset associated with checksum from VS.
@@ -175,9 +176,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task WriteOneAssetAsync(ObjectWriter writer, byte[] checksum)
             {
-                var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionChecksumService>();
+                var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionSynchronizationService>();
 
-                var checksumObject = service.GetChecksumObject(new Checksum(checksum), _source.Token);
+                var checksumObject = service.GetSynchronizationObject(new Checksum(checksum), _source.Token);
                 writer.WriteInt32(1);
 
                 writer.WriteValue(checksum);
@@ -188,9 +189,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task WriteMultipleAssetsAsync(ObjectWriter writer, byte[][] checksums)
             {
-                var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionChecksumService>();
+                var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionSynchronizationService>();
 
-                var checksumObjectMap = service.GetChecksumObjects(checksums.Select(c => new Checksum(c)), _source.Token);
+                var checksumObjectMap = service.GetSynchronizationObjects(checksums.Select(c => new Checksum(c)), _source.Token);
                 writer.WriteInt32(checksumObjectMap.Count);
 
                 foreach (var kv in checksumObjectMap)

@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal interface IOptionsSerializationService : ILanguageService
     {
+        bool Owns(object value);
+
         void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
         void WriteTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
         void WriteTo(OptionSet options, ObjectWriter writer, CancellationToken cancellationToken);

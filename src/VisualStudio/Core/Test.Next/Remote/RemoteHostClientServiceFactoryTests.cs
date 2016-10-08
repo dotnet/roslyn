@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Text.Editor;
@@ -57,7 +58,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // make sure client is ready
             var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
 
-            var checksumService = workspace.Services.GetService<ISolutionChecksumService>();
+            var checksumService = workspace.Services.GetService<ISolutionSynchronizationService>();
             var asset = checksumService.GetGlobalAsset(analyzerReference, CancellationToken.None);
             Assert.NotNull(asset);
 
@@ -88,18 +89,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             //       this delay is temporary until I set all .Next unit test hardness to setup correctly
             await Task.Delay(TimeSpan.FromSeconds(1));
 
-            var checksumService = workspace.Services.GetService<ISolutionChecksumService>();
-
-            Checksum checksum;
-            using (var scope = await checksumService.CreateChecksumAsync(workspace.CurrentSolution, CancellationToken.None))
-            {
-                // create solution checksum and hold onto the checksum and let it go
-                checksum = scope.SolutionChecksum.Checksum;
-            }
-
-            // there should be one held in memory by solution checksum updator
-            var solutionObject = checksumService.GetChecksumObject(checksum, CancellationToken.None);
-            Assert.Equal(solutionObject.Checksum, checksum);
+            // checksum should already exist
+            SolutionStateChecksums checksums;
+            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out checksums));
 
             service.Disable();
         }
@@ -107,8 +99,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(Workspace workspace = null, IEnumerable<AnalyzerReference> hostAnalyzerReferences = null)
         {
             workspace = workspace ?? new AdhocWorkspace(TestHostServices.CreateHostServices());
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHost, true)
-                                                 .WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
+            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true)
                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, true);
 
