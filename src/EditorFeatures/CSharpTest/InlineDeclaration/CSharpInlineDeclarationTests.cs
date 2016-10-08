@@ -719,5 +719,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     }
 }", compareTokens: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestComments7()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int j, /*prefix*/ [|i|] /*suffix*/;
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int j;
+        {
+            if (int.TryParse(v, out int /*prefix*/ i /*suffix*/))
+            {
+            }
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestComments8()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        // prefix
+        int j, [|i|]; // suffix
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        // prefix
+        int j; // suffix
+        {
+            if (int.TryParse(v, out int i))
+            {
+            }
+        }
+    }
+}", compareTokens: false);
+        }
     }
 }
