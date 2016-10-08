@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpInlineDeclarationCodeFixProvider : CodeFixProvider
+    internal partial class CSharpInlineDeclarationCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
@@ -36,11 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
+        private Task<Document> FixAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+            => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
 
         private async Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
@@ -117,24 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
                 : base(FeaturesResources.Inline_variable_declaration, createChangedDocument)
             {
-            }
-        }
-
-        private class InlineDeclarationFixAllProvider : DocumentBasedFixAllProvider
-        {
-            private readonly CSharpInlineDeclarationCodeFixProvider _provider;
-
-            public InlineDeclarationFixAllProvider(CSharpInlineDeclarationCodeFixProvider provider)
-            {
-                _provider = provider;
-            }
-
-            protected override Task<Document> FixDocumentAsync(
-                Document document, 
-                ImmutableArray<Diagnostic> diagnostics, 
-                CancellationToken cancellationToken)
-            {
-                return _provider.FixAllAsync(document, diagnostics, cancellationToken);
             }
         }
     }
