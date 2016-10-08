@@ -2520,5 +2520,150 @@ Anonymous Types:
                 state.AssertMatchesTextStartingAtLine(3, "Dim b As B.C(Of Integer) = New B.C(Of Integer)(")
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSymbolInTupleLiteral() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Fo")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Fo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSymbolInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+]]></Document>)
+                ' TODO BROKEN
+                state.SendTypeChars("Fo")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, F:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestKeywordInTupleLiteral() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Functio")
+                Await state.AssertSelectedCompletionItem(displayText:="Function", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Functio:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestKeywordInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+}]]></Document>)
+                ' TODO BROKEN
+                state.SendTypeChars("Functio")
+                Await state.AssertSelectedCompletionItem(displayText:="Function", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Functio:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSymbolInTupleType() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+       Dim t As ($$) 
+    End Sub
+End Class
+]]></Document>)
+                ' TODO BROKEN
+                state.SendTypeChars("Integ")
+                Await state.AssertSelectedCompletionItem(displayText:="Integer", isHardSelected:=True)
+                state.SendTypeChars(",")
+                Assert.Contains("(Integer,", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParenthesizedExpression() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+       ($$)
+    End Sub
+End Class
+]]></Document>)
+                ' TODO BROKEN
+                state.SendTypeChars("Fo")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(".")
+                Assert.Contains("(Foo.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInvocationExpression() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo(Alice As Integer)
+       Foo($$)
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("Alic")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Foo(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInvocationExpressionAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo(Alice As Integer, Bob As Integer)
+       Foo(1, $$)
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("B")
+                Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Foo(1, Bob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
     End Class
 End Namespace

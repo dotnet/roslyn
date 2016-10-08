@@ -1019,5 +1019,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
         End Function
 
+        <Extension>
+        Friend Function IsPossibleTupleContext(token As SyntaxToken, position As Integer) As Boolean
+            token = token.GetPreviousTokenIfTouchingWord(position)
+
+            If token.IsKind(SyntaxKind.OpenParenToken) Then
+                Return token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.TupleExpression)
+            End If
+
+            Return token.IsKind(SyntaxKind.CommaToken) AndAlso token.Parent.IsKind(SyntaxKind.TupleExpression)
+        End Function
+
     End Module
 End Namespace

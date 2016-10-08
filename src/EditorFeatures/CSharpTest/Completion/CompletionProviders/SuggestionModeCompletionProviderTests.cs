@@ -472,7 +472,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var x = (a: a, b$$)
+        System.Action x = (a: a, b$$)
     }
 }";
             await VerifyNotBuilderAsync(markup);

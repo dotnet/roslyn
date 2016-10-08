@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPossibleTupleContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var token = semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            return token.IsPossibleTupleElementNameContext(position);
+            return token.IsPossibleTupleContext(position);
         }
     }
 }
