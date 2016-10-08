@@ -130,5 +130,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestAvailableInOuterScopeIfNotWrittenOutside()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i = 0;
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+            i = 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingIfWrittenAfterInOuterScope()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i = 0;
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+        i = 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingIfWrittenBetweenInOuterScope()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i = 0;
+        {
+            i = 1;
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+    }
+}");
+        }
     }
 }
