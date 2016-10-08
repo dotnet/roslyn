@@ -79,6 +79,19 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
+            var argumentList = argumentNode.Parent as ArgumentListSyntax;
+            if (argumentList == null)
+            {
+                return;
+            }
+
+            var invocationOrCreation = argumentList.Parent;
+            if (!invocationOrCreation.IsKind(SyntaxKind.InvocationExpression) &&
+                !invocationOrCreation.IsKind(SyntaxKind.ObjectCreationExpression))
+            {
+                return;
+            }
+
             var argumentExpression = argumentNode.Expression;
             if (argumentExpression.Kind() != SyntaxKind.IdentifierName)
             {
@@ -154,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             var allLocations = ImmutableArray.Create(
                 localDeclarator.GetLocation(),
-                identifierName.GetLocation());
+                identifierName.GetLocation(),
+                invocationOrCreation.GetLocation());
 
             // If the local variable only has one declarator, then report the suggestion on the whole
             // declaration.  Otherwise, return the suggestion only on the single declarator.

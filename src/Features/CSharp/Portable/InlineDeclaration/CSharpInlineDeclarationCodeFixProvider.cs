@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
@@ -52,23 +53,26 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(root, editor, diagnostic, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes, cancellationToken);
+                await AddEditsAsync(document, editor, diagnostic, 
+                    useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes, 
+                    cancellationToken).ConfigureAwait(false);
             }
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private void AddEdits(
-            SyntaxNode root, SyntaxEditor editor, Diagnostic diagnostic, 
-            bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes, 
-            CancellationToken cancellationToken)
+        private async Task AddEditsAsync(
+            Document document, SyntaxEditor editor, Diagnostic diagnostic, 
+            bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes, CancellationToken cancellationToken)
         {
             var declaratorLocation = diagnostic.AdditionalLocations[0];
             var identifierLocation = diagnostic.AdditionalLocations[1];
+            var invocationOrCreationLocation = diagnostic.AdditionalLocations[2];
 
             var declarator = (VariableDeclaratorSyntax)declaratorLocation.FindNode(cancellationToken);
             var identifier = (IdentifierNameSyntax)identifierLocation.FindNode(cancellationToken);
+            var invocationOrCreation = (ExpressionSyntax)invocationOrCreationLocation.FindNode(cancellationToken);
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;
             if (declaration.Variables.Count == 1)
@@ -82,15 +86,77 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 editor.RemoveNode(declarator);
             }
 
-            var type = this.GetDeclarationType(declaration.Type, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes)
-                           .WithoutTrivia()
-                           .WithAdditionalAnnotations(Formatter.Annotation);
+            var newType = this.GetDeclarationType(declaration.Type, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes);
 
-            var declarationExpression = SyntaxFactory.DeclarationExpression(
-                SyntaxFactory.TypedVariableComponent(
-                    type, SyntaxFactory.SingleVariableDesignation(identifier.Identifier)));
+            var declarationExpression = GetDeclarationExpression(identifier, newType);
+
+            var semanticsChanged = await SemanticsChangedAsync(
+                document, declaration, invocationOrCreation, newType,
+                identifier, declarationExpression, cancellationToken).ConfigureAwait(false);
+            if (semanticsChanged)
+            {
+                // Switching to 'var' changed semantics.  Just use the original type the user wrote.
+                declarationExpression = GetDeclarationExpression(identifier, declaration.Type);
+            }
 
             editor.ReplaceNode(identifier, declarationExpression);
+        }
+
+        private static DeclarationExpressionSyntax GetDeclarationExpression(
+            IdentifierNameSyntax identifier, TypeSyntax newType)
+        {
+            newType = newType.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
+            var declarationExpression = SyntaxFactory.DeclarationExpression(
+                SyntaxFactory.TypedVariableComponent(
+                    newType, SyntaxFactory.SingleVariableDesignation(identifier.Identifier)));
+            return declarationExpression;
+        }
+
+        private async Task<bool> SemanticsChangedAsync(
+            Document document,
+            VariableDeclarationSyntax declaration,
+            ExpressionSyntax invocationOrCreation,
+            TypeSyntax newType,
+            IdentifierNameSyntax identifier,
+            DeclarationExpressionSyntax declarationExpression,
+            CancellationToken cancellationToken)
+        {
+            if (!declaration.Type.IsVar &&
+                newType.IsVar)
+            {
+                // Options want us to use 'var' if we can.  Make sure we didn't change
+                // the semantics of teh call by doing this.
+
+                // Find the symbol that the existing invocation points to.
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var previousSymbol = semanticModel.GetSymbolInfo(invocationOrCreation).Symbol;
+
+                var annotation = new SyntaxAnnotation();
+                var updatedInvocationOrCreation = invocationOrCreation.ReplaceNode(
+                    identifier, declarationExpression).WithAdditionalAnnotations(annotation);
+
+                // Note(cyrusn): "https://github.com/dotnet/roslyn/issues/14384" prevents us from just
+                // speculatively binding the new expression.  So, instead, we fork things and see if
+                // the new symbol we bind to is equivalent to the previous one.
+                var newDocument = document.WithSyntaxRoot(
+                    root.ReplaceNode(invocationOrCreation, updatedInvocationOrCreation));
+
+                var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var newSemanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                updatedInvocationOrCreation = (ExpressionSyntax)newRoot.GetAnnotatedNodes(annotation).Single();
+
+                var updatedSymbol = newSemanticModel.GetSymbolInfo(updatedInvocationOrCreation).Symbol;
+
+                if (!SymbolEquivalenceComparer.Instance.Equals(previousSymbol, updatedSymbol))
+                {
+                    // We're pointing at a new symbol now.  Semantic have changed.
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private TypeSyntax GetDeclarationType(
