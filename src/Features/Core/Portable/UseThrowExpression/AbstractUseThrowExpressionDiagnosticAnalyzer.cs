@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            var descriptor = CreateDescriptor(_id, option.Notification.Value);
+            var descriptor = CreateDescriptor(Id, option.Notification.Value);
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             var tokenBeforeThrow = throwStatement.GetFirstToken().GetPreviousToken();
             var tokenAfterThrow = throwStatement.GetLastToken().GetNextToken();
             context.ReportDiagnostic(
-                Diagnostic.Create(_unnecessaryWithSuggestionDescriptor,
+                Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
                     Location.Create(syntaxTree, TextSpan.FromBounds(
                         ifOperation.Syntax.SpanStart,
                         tokenBeforeThrow.Span.End)),
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             if (ifOperation.Syntax.Span.End > tokenAfterThrow.Span.Start)
             {
                 context.ReportDiagnostic(
-                    Diagnostic.Create(_unnecessaryWithSuggestionDescriptor,
+                    Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
                         Location.Create(syntaxTree, TextSpan.FromBounds(
                             tokenAfterThrow.Span.Start,
                             ifOperation.Syntax.Span.End)),

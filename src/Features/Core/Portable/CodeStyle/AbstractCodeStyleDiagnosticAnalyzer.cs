@@ -7,27 +7,26 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        protected readonly string _id;
+        protected readonly string Id;
+        protected readonly DiagnosticDescriptor UnnecessaryWithSuggestionDescriptor;
+        protected readonly DiagnosticDescriptor UnnecessaryWithoutSuggestionDescriptor;
 
         private readonly LocalizableString _localizableTitle;
         private readonly LocalizableString _localizableMessage;
-
         private readonly DiagnosticDescriptor _descriptor;
-        protected readonly DiagnosticDescriptor _unnecessaryWithSuggestionDescriptor;
-        protected readonly DiagnosticDescriptor _unnecessaryWithoutSuggestionDescriptor;
 
         protected AbstractCodeStyleDiagnosticAnalyzer(string id, LocalizableString title, LocalizableString message)
         {
-            _id = id;
+            Id = id;
             _localizableTitle = title;
             _localizableMessage = message;
             _descriptor = CreateDescriptor(id, DiagnosticSeverity.Hidden);
-            _unnecessaryWithSuggestionDescriptor = CreateDescriptor(
+            UnnecessaryWithSuggestionDescriptor = CreateDescriptor(
                 id, DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
-            _unnecessaryWithoutSuggestionDescriptor = CreateDescriptor(id + "WithoutSuggestion",
+            UnnecessaryWithoutSuggestionDescriptor = CreateDescriptor(id + "WithoutSuggestion",
                 DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
             SupportedDiagnostics = ImmutableArray.Create(
-                _descriptor, _unnecessaryWithoutSuggestionDescriptor, _unnecessaryWithSuggestionDescriptor);
+                _descriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }

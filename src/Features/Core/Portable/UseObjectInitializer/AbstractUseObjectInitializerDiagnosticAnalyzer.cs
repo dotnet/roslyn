@@ -27,14 +27,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TAssignmentStatementSyntax : TStatementSyntax
         where TVariableDeclarator : SyntaxNode
     {
-        private static readonly string Id = IDEDiagnosticIds.UseObjectInitializerDiagnosticId;
-
         protected abstract bool FadeOutOperatorToken { get; }
 
         public bool OpenFileOnly(Workspace workspace) => false;
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer() 
-            : base(Id,
+            : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
                   new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                   new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -108,12 +106,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     match.MemberAccessExpression.SpanStart, end));
 
                 context.ReportDiagnostic(Diagnostic.Create(
-                    _unnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
+                    UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
 
                 if (match.Statement.Span.End > match.Initializer.FullSpan.End)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        _unnecessaryWithoutSuggestionDescriptor,
+                        UnnecessaryWithoutSuggestionDescriptor,
                         Location.Create(syntaxTree, TextSpan.FromBounds(
                             match.Initializer.FullSpan.End,
                             match.Statement.Span.End)),
