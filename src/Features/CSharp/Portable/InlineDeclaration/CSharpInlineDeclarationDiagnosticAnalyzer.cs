@@ -104,12 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 return;
             }
-            
-            var enclosingBlockOfOutArgument = containingStatement.Parent as BlockSyntax;
-            if (enclosingBlockOfOutArgument == null)
-            {
-                return;
-            }
 
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
@@ -157,7 +151,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
-            var dataFlow = semanticModel.AnalyzeDataFlow(enclosingBlockOfOutArgument);
+            // Find the scope that the out-declaration variable will live in after we
+            // rewrite things.
+            var outArgumentScope = containingStatement.Parent is BlockSyntax
+                ? (BlockSyntax)containingStatement.Parent
+                : containingStatement;
+
+            // Make sure that variable is not accessed outside of that scope.
+            var dataFlow = semanticModel.AnalyzeDataFlow(outArgumentScope);
             if (dataFlow.ReadOutside.Contains(outSymbol) || dataFlow.WrittenOutside.Contains(outSymbol))
             {
                 // The variable is read or written from outside the block that the new variable

@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-        public async Task TestMissingInEmbeddedStatement()
+        public async Task TestMissingInEmbeddedStatementWithWriteAfterwards()
         {
             await TestMissingAsync(
 @"class C
@@ -333,6 +333,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         while (true)
             if (int.TryParse(v, out i))
             {
+            } 
+        i = 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInEmbeddedStatement()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        while (true)
+            if (int.TryParse(v, out i))
+            {
+                i = 1;
+            } 
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        while (true)
+            if (int.TryParse(v, out int i))
+            {
+                i = 1;
             } 
     }
 }");
