@@ -44,13 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceFiles = Arguments.SourceFiles;
             var trees = new SyntaxTree[sourceFiles.Length];
             var normalizedFilePaths = new String[sourceFiles.Length];
+            var diagnosticBag = DiagnosticBag.GetInstance();
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
                 Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
                 {
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], errorLogger, out normalizedFilePaths[i]);
+                    trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
                 }));
             }
             else
@@ -58,14 +59,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < sourceFiles.Length; i++)
                 {
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], errorLogger, out normalizedFilePaths[i]);
+                    trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
                 }
             }
 
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
             if (hadErrors)
             {
+                ReportErrors(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger);
                 return null;
+            }
+            else
+            {
+                diagnosticBag.Free();
             }
 
             var diagnostics = new List<DiagnosticInfo>();
@@ -144,21 +150,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private SyntaxTree ParseFile(
-            TextWriter consoleOutput,
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
             ref bool hadErrors,
             CommandLineSourceFile file,
-            ErrorLogger errorLogger,
+            DiagnosticBag diagnostics,
             out string normalizedFilePath)
         {
-            var fileReadDiagnostics = new List<DiagnosticInfo>();
-            var content = TryReadFileContent(file, fileReadDiagnostics, out normalizedFilePath);
+            var fileDiagnostics = new List<DiagnosticInfo>();
+            var content = TryReadFileContent(file, fileDiagnostics, out normalizedFilePath);
 
             if (content == null)
             {
-                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger);
-                fileReadDiagnostics.Clear();
+                foreach (var info in fileDiagnostics)
+                {
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(info));
+                }
+                fileDiagnostics.Clear();
                 hadErrors = true;
                 return null;
             }
