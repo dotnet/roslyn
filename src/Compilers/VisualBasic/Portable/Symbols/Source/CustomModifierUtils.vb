@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' method (incorrectly) has a different return type than the overridden method.  In such cases,
             ' we want to retain the original (incorrect) return type to avoid hiding the return type
             ' given in source.
-            If destinationReturnType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
+            If destinationReturnType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptionsForVB) Then
                 destinationReturnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, destinationReturnType, containingAssembly)
             End If
 
@@ -99,11 +99,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             <[In], Out> ByRef thisParam As ParameterSymbol
         ) As Boolean
             Debug.Assert(TypeOf thisParam Is SourceParameterSymbolBase)
-            Debug.Assert(thisParam.Type.IsSameTypeIgnoringCustomModifiers(overriddenParam.Type))
+            Debug.Assert(thisParam.Type.IsSameType(overriddenParam.Type, TypeCompareKind.AllIgnoreOptionsForVB))
 
             If Not overriddenParam.CustomModifiers.SequenceEqual(thisParam.CustomModifiers) OrElse
                (overriddenParam.IsByRef AndAlso thisParam.IsByRef AndAlso overriddenParam.CountOfCustomModifiersPrecedingByRef <> thisParam.CountOfCustomModifiersPrecedingByRef) OrElse
-               Not thisParam.Type.IsSameType(overriddenParam.Type, TypeCompareKind.IgnoreTupleNames) Then
+               Not thisParam.Type.IsSameType(overriddenParam.Type, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
 
                 Dim thisParamType As TypeSymbol = thisParam.Type
                 Dim overriddenParamType As TypeSymbol = overriddenParam.Type

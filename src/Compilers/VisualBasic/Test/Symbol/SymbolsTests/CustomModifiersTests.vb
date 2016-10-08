@@ -1723,10 +1723,7 @@ End Class
             Dim comp2 = CreateCompilationWithCustomILSource(source2, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
             comp2.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'C' must implement 'Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)' for interface 'I'.
-    Implements I
-               ~
-BC30402: 'M' cannot implement 'M' because there is no matching function on interface 'I' with matching tuple element names.
+BC30402: 'M' cannot implement function 'M' on interface 'I' because the tuple element names in 'Public Function M(x As (Object, Object)) As (a As Object, b As Object)' do not match those in 'Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)'.
     Public Function M(x As (Object, Object)) As (a As Object, b As Object) Implements I.M
                                                                                       ~~~
 </errors>)
@@ -1756,10 +1753,7 @@ End Class
             Dim comp3 = CreateCompilationWithCustomILSource(source3, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
             comp3.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'C' must implement 'Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)' for interface 'I'.
-    Implements I
-               ~
-BC30402: 'M' cannot implement 'M' because there is no matching function on interface 'I' with matching tuple element names.
+BC30402: 'M' cannot implement function 'M' on interface 'I' because the tuple element names in 'Public Function M(x As (c As Object, d As Object)) As (Object, Object)' do not match those in 'Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)'.
     Public Function M(x As (c As Object, d As Object)) As (Object, Object) Implements I.M
                                                                                       ~~~
 </errors>)
@@ -1854,10 +1848,7 @@ End Class
             Dim comp2 = CreateCompilationWithCustomILSource(source2, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
             comp2.AssertTheseDiagnostics(
 <errors>
-BC30149: Class 'C' must implement 'Property P As (a As Object, b As Object)' for interface 'I'.
-    Implements I
-               ~
-BC30402: 'P' cannot implement 'P' because there is no matching property on interface 'I' with matching tuple element names.
+BC30402: 'P' cannot implement property 'P' on interface 'I' because the tuple element names in 'Public Property P As (Object, Object)' do not match those in 'Property P As (a As Object, b As Object)'.
     Public Property P As (Object, Object) Implements I.P
                                                      ~~~
 </errors>)
@@ -2046,12 +2037,10 @@ BC40001: 'Public Overrides Property P As (Object, Object)' cannot override 'Publ
 
             Assert.Equal("Function C.M(x As (c As System.Object, d As System.Object)) As (System.Object, System.Object)",
                          classMethod2.ToTestDisplayString())
-            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)",
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
                          classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString())
             Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
                          classMethod2.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
-
-            ' TODO REVIEW This last check seems strange (both in C# and VB)
 
             Dim source3 =
 <compilation>

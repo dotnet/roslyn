@@ -1177,7 +1177,8 @@ class C : Base
                     classProperty2.Type.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object, System.Object) C.M((System.Object c, System.Object d) y)", classMethod2.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
+                    classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     classMethod2.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
 
