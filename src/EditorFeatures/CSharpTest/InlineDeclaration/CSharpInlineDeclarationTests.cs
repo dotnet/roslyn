@@ -538,6 +538,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestGenericInferenceDoNotUseVar3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        if (M2(out i))
+        {
+        } 
+    }
+
+    void M2<T>(out T i)
+    {
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (M2(out int i))
+        {
+        } 
+    }
+
+    void M2<T>(out T i)
+    {
+    }
+}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task TestComments1()
         {
             await TestAsync(

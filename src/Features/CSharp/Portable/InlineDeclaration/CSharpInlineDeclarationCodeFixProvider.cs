@@ -47,9 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+            // Create an editor to do all the transformations.  This allows us to fix all
+            // the diagnostics in a clean manner.  If we used the normal batch fix provider
+            // then it might fail to apply all the individual text changes as many of the 
+            // changes produced by the diff might end up overlapping others.
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var options = document.Project.Solution.Workspace.Options;
 
+            // Attempt to use an out-var declaration if that's the style the user prefers.
+            // Note: if using 'var' would cause a problem, we will use the actual type
+            // of hte local.  This is necessary in some cases (for example, when the
+            // type of the out-var-decl affects overload resolution or generic instantiation).
             var useVarWhenDeclaringLocals = options.GetOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals);
             var useImplicitTypeForIntrinsicTypes = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
 
@@ -71,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+            // Recover the nodes we care about.
             var declaratorLocation = diagnostic.AdditionalLocations[0];
             var identifierLocation = diagnostic.AdditionalLocations[1];
             var invocationOrCreationLocation = diagnostic.AdditionalLocations[2];
@@ -122,11 +131,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 }
             }
 
+            // get the type that we want to put in the out-var-decl based on the user's options.
+            // i.e. prefer 'out var' if that is what the user wants.
             var newType = this.GetDeclarationType(declaration.Type, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes);
 
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
 
+            // Check if using out-var changed problem semantics.
             var semanticsChanged = await SemanticsChangedAsync(
                 document, declaration, invocationOrCreation, newType,
                 identifier, declarationExpression, cancellationToken).ConfigureAwait(false);
