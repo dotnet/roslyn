@@ -8,6 +8,8 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <OutputPath>$(OutDir)Insertion</OutputPath>
     <IsPackage>true</IsPackage>
+    <FinalizeValidate>false</FinalizeValidate>
+    <ValidateManifest>false</ValidateManifest>
   </PropertyGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.props" />
@@ -28,4 +30,6 @@
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
   </ItemGroup>
+
+  <Target Name="ValidateManifest" />
 </Project>

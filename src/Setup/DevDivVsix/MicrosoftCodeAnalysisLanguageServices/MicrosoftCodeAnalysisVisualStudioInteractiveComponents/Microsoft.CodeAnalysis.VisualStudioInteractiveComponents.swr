@@ -15,6 +15,7 @@ vs.payloads
   vs.payload source=$(OutputPath)Roslyn.VisualStudio.InteractiveComponents.vsix
 
 vs.dependencies
+  vs.dependency id=Microsoft.VisualStudio.MinShell
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
                 version=$(Version)
                 type=Required
