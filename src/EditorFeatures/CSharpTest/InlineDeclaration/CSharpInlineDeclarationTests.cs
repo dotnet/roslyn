@@ -70,5 +70,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     }
 }", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestAvailableWhenWrittenAfter1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        if (int.TryParse(v, out i))
+        {
+        }
+        i = 0;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (int.TryParse(v, out int i))
+        {
+        }
+        i = 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingWhenWrittenBetween1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        i = 0;
+        if (int.TryParse(v, out i))
+        {
+        }
+    }
+}");
+        }
     }
 }
