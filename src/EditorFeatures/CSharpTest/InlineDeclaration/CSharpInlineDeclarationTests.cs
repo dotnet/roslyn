@@ -536,5 +536,98 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     }
 }", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestComments1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        // prefix comment
+        [|int|] i;
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            // prefix comment
+            if (int.TryParse(v, out int i))
+            {
+            }
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestComments2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i; // suffix comment
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            // suffix comment
+            if (int.TryParse(v, out int i))
+            {
+            }
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestComments3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        // prefix comment
+        [|int|] i; // suffix comment
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            // prefix comment
+            // suffix comment
+            if (int.TryParse(v, out int i))
+            {
+            }
+        }
+    }
+}", compareTokens: false);
+        }
     }
 }

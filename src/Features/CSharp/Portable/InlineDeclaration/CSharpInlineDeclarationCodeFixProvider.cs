@@ -70,10 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var declaratorLocation = diagnostic.AdditionalLocations[0];
             var identifierLocation = diagnostic.AdditionalLocations[1];
             var invocationOrCreationLocation = diagnostic.AdditionalLocations[2];
+            var outArgumentContainingStatementLocation = diagnostic.AdditionalLocations[3];
 
             var declarator = (VariableDeclaratorSyntax)declaratorLocation.FindNode(cancellationToken);
             var identifier = (IdentifierNameSyntax)identifierLocation.FindNode(cancellationToken);
             var invocationOrCreation = (ExpressionSyntax)invocationOrCreationLocation.FindNode(cancellationToken);
+            var outArgumentContainingStatement = (StatementSyntax)outArgumentContainingStatementLocation.FindNode(cancellationToken);
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;
             if (declaration.Variables.Count == 1)
@@ -107,6 +109,22 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             editor.ReplaceNode(identifier, declarationExpression);
+
+            if (declaration.Variables.Count == 1)
+            {
+                // If we're removing the declaration entirely, move the leading/trailing comments it 
+                // had to sit above the statement containing the out-var declaration.
+                var comments = declaration.Parent.GetLeadingTrivia().Concat(declaration.Parent.GetTrailingTrivia())
+                                                                    .Where(t => t.IsSingleOrMultiLineComment())
+                                                                    .SelectMany(t => ImmutableArray.Create(t, SyntaxFactory.ElasticCarriageReturnLineFeed))
+                                                                    .ToImmutableArray();
+                if (comments.Length > 0)
+                {
+                    editor.ReplaceNode(
+                        outArgumentContainingStatement,
+                        (s, g) => s.WithPrependedLeadingTrivia(comments).WithAdditionalAnnotations(Formatter.Annotation));
+                }
+            }
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(

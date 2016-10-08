@@ -30,10 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return kinds.Contains(trivia.Kind());
         }
 
+        public static bool IsSingleOrMultiLineComment(this SyntaxTrivia trivia)
+            => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+
         public static bool IsRegularComment(this SyntaxTrivia trivia)
-        {
-            return trivia.IsSingleLineComment() || trivia.IsMultiLineComment() || trivia.IsShebangDirective();
-        }
+            => trivia.IsSingleOrMultiLineComment() || trivia.IsShebangDirective();
 
         public static bool IsRegularOrDocComment(this SyntaxTrivia trivia)
         {
