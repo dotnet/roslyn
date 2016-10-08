@@ -629,5 +629,95 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     }
 }", compareTokens: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestComments4()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int [|i|] /*suffix*/, j;
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int j;
+        {
+            if (int.TryParse(v, out int i /*suffix*/))
+            {
+            }
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestComments5()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int /*prefix*/ [|i|], j;
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int j;
+        {
+            if (int.TryParse(v, out int /*prefix*/ i))
+            {
+            }
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestComments6()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int /*prefix*/ [|i|] /*suffix*/, j;
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int j;
+        {
+            if (int.TryParse(v, out int /*prefix*/ i /*suffix*/))
+            {
+            }
+        }
+    }
+}", compareTokens: false);
+        }
     }
 }

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
@@ -67,6 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             Document document, SyntaxEditor editor, Diagnostic diagnostic, 
             bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes, CancellationToken cancellationToken)
         {
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
             var declaratorLocation = diagnostic.AdditionalLocations[0];
             var identifierLocation = diagnostic.AdditionalLocations[1];
             var invocationOrCreationLocation = diagnostic.AdditionalLocations[2];
@@ -78,7 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var outArgumentContainingStatement = (StatementSyntax)outArgumentContainingStatementLocation.FindNode(cancellationToken);
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;
-            if (declaration.Variables.Count == 1)
+            var singleDeclarator = declaration.Variables.Count == 1;
+            if (singleDeclarator)
             {
                 // Remove the entire declaration statement.
                 editor.RemoveNode(declaration.Parent);
@@ -87,11 +91,24 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 // Otherwise, just remove the single declarator.
                 editor.RemoveNode(declarator);
+                if (declarator == declaration.Variables[0])
+                {
+                    // If we're removing the first declarator, and it's on the same line
+                    // as the previous token, then we want to remove all the trivia belonging
+                    // to the previous token.  We're going to move it along with this declarator.
+                    if (sourceText.AreOnSameLine(declarator.GetFirstToken(), declarator.GetFirstToken().GetPreviousToken(includeSkipped: true)))
+                    {
+                        editor.ReplaceNode(
+                            declaration.Type, 
+                            (t, g) => t.WithTrailingTrivia(SyntaxFactory.ElasticSpace).WithoutAnnotations(Formatter.Annotation));
+                    }
+                }
             }
 
             var newType = this.GetDeclarationType(declaration.Type, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes);
 
-            var declarationExpression = GetDeclarationExpression(identifier, newType);
+            var declarationExpression = GetDeclarationExpression(
+                sourceText, identifier, newType, singleDeclarator ? null : declarator);
 
             var semanticsChanged = await SemanticsChangedAsync(
                 document, declaration, invocationOrCreation, newType,
@@ -105,7 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // If the user originally wrote it something other than 'var', then use what they
                 // wrote.  Otherwise, synthesize the actual type of the local.
                 var explicitType = declaration.Type.IsVar ? local.Type?.GenerateTypeSyntax() : declaration.Type;
-                declarationExpression = GetDeclarationExpression(identifier, explicitType);
+                declarationExpression = GetDeclarationExpression(
+                    sourceText, identifier, explicitType, singleDeclarator ? null : declarator);
             }
 
             editor.ReplaceNode(identifier, declarationExpression);
@@ -128,13 +146,31 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(
-            IdentifierNameSyntax identifier, TypeSyntax newType)
+            SourceText sourceText, IdentifierNameSyntax identifier,
+            TypeSyntax newType, VariableDeclaratorSyntax declaratorOpt)
         {
             newType = newType.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
-            var declarationExpression = SyntaxFactory.DeclarationExpression(
-                SyntaxFactory.TypedVariableComponent(
-                    newType, SyntaxFactory.SingleVariableDesignation(identifier.Identifier)));
-            return declarationExpression;
+            var designation = SyntaxFactory.SingleVariableDesignation(identifier.Identifier);
+
+            if (declaratorOpt != null)
+            {
+                // We're removing a single declarator.  Copy any comments it has to the out-var
+                // First, copy all the preceding trivia that's on the same line. 
+                var precedingTrivia = declaratorOpt.GetAllPrecedingTriviaToPreviousToken(
+                    sourceText, includePreviousTokenTrailingTriviaOnlyIfOnSameLine: true);
+                if (precedingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                {
+                    designation = designation.WithPrependedLeadingTrivia(precedingTrivia.Where(t => t.IsWhitespaceOrSingleOrMultiLineComment()));
+                }
+
+                if (declaratorOpt.GetTrailingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+                {
+                    designation = designation.WithAppendedTrailingTrivia(declaratorOpt.GetTrailingTrivia().Where(t => t.IsWhitespaceOrSingleOrMultiLineComment()));
+                }
+            }
+
+            return SyntaxFactory.DeclarationExpression(
+                SyntaxFactory.TypedVariableComponent(newType, designation));
         }
 
         private async Task<bool> SemanticsChangedAsync(

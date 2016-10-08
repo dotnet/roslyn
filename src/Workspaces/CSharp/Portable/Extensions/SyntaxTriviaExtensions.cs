@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsRegularComment(this SyntaxTrivia trivia)
             => trivia.IsSingleOrMultiLineComment() || trivia.IsShebangDirective();
 
+        public static bool IsWhitespaceOrSingleOrMultiLineComment(this SyntaxTrivia trivia)
+            => trivia.IsWhitespace() || trivia.IsSingleOrMultiLineComment();
+
         public static bool IsRegularOrDocComment(this SyntaxTrivia trivia)
         {
             return trivia.IsRegularComment() || trivia.IsDocComment();
@@ -169,8 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsWhitespaceOrEndOfLine(this SyntaxTrivia trivia)
         {
-            return trivia.Kind() == SyntaxKind.WhitespaceTrivia || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
+            return IsWhitespace(trivia) || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
         }
+
+        public static bool IsWhitespace(this SyntaxTrivia trivia)
+            => trivia.Kind() == SyntaxKind.WhitespaceTrivia;
 
         public static SyntaxTrivia GetPreviousTrivia(
             this SyntaxTrivia trivia, SyntaxTree syntaxTree, CancellationToken cancellationToken, bool findInsideTrivia = false)
