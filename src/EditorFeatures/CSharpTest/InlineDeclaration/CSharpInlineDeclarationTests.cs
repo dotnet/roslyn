@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-        public async Task TestMissingWithInitializer()
+        public async Task TestMissingWhenReadBetween1()
         {
             await TestMissingAsync(
 @"class C
@@ -166,9 +166,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M()
     {
         [|int|] i = 0;
+        M1(i);
         if (int.TryParse(v, out i))
         {
         }
+    }
+
+    void M1(int i)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingWithComplexInitializer()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i = M1();
+        if (int.TryParse(v, out i))
+        {
+        }
+    }
+
+    int M1()
+    {
     }
 }");
         }
@@ -353,6 +378,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M()
     {
         [|int|] i;
+        if (M2(out i))
+        {
+        } 
+    }
+
+    void M2(out int i)
+    {
+    }
+
+    void M2(out string s)
+    {
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (M2(out int i))
+        {
+        } 
+    }
+
+    void M2(out int i)
+    {
+    }
+
+    void M2(out string s)
+    {
+    }
+}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestOverloadResolutionDoNotUseVar2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] i = 0;
         if (M2(out i))
         {
         } 

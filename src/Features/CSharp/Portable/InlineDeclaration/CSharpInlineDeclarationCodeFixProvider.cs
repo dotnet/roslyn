@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -95,8 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 identifier, declarationExpression, cancellationToken).ConfigureAwait(false);
             if (semanticsChanged)
             {
-                // Switching to 'var' changed semantics.  Just use the original type the user wrote.
-                declarationExpression = GetDeclarationExpression(identifier, declaration.Type);
+                // Switching to 'var' changed semantics.  Just use the original type of the local.
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+
+                // If the user originally wrote it something other than 'var', then use what they
+                // wrote.  Otherwise, synthesize the actual type of the local.
+                var explicitType = declaration.Type.IsVar ? local.Type?.GenerateTypeSyntax() : declaration.Type;
+                declarationExpression = GetDeclarationExpression(identifier, explicitType);
             }
 
             editor.ReplaceNode(identifier, declarationExpression);
@@ -121,8 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             DeclarationExpressionSyntax declarationExpression,
             CancellationToken cancellationToken)
         {
-            if (!declaration.Type.IsVar &&
-                newType.IsVar)
+            if (newType.IsVar)
             {
                 // Options want us to use 'var' if we can.  Make sure we didn't change
                 // the semantics of teh call by doing this.
