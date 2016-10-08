@@ -249,5 +249,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return DirectCast(n.GetSyntax(cancellationToken), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
                 End Function)
         End Function
+
+        Public Function IsPossibleTupleContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsPossibleTupleContext
+            Throw New NotImplementedException()
+        End Function
     End Class
 End Namespace
