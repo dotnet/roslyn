@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -47,6 +48,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingInCSharp6()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        if (int.TryParse(v, out i))
+        {
+        } 
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task InlineVariablePreferVar1()
         {
             await TestAsync(
@@ -69,6 +86,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         } 
     }
 }", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariablePreferVarExceptForPredefinedTypes1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string v)
+    {
+        [|int|] i;
+        if (int.TryParse(v, out i))
+        {
+        } 
+    }
+}",
+@"class C
+{
+    void M(string v)
+    {
+        if (int.TryParse(v, out int i))
+        {
+        } 
+    }
+}", options: UseImplicitTypeTests.ImplicitTypeButKeepIntrinsics());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -216,6 +258,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         if (int.TryParse(v, out this.i))
         {
         } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingInField2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    [|int|] i;
+    void M()
+    {
+        if (int.TryParse(v, out i))
+        {
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingInNonLocalStatement()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        foreach ([|int|] i in e)
+        {
+            if (int.TryParse(v, out i))
+            {
+            }
+        }
     }
 }");
         }
