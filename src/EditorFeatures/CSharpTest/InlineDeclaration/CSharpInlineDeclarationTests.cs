@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-        public async Task TestAvailabeInNestedBlock()
+        public async Task TestAvailableInNestedBlock()
         {
             await TestAsync(
 @"class C
