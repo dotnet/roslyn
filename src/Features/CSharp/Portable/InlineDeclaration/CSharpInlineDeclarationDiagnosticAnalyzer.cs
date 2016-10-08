@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     {
         public CSharpInlineDeclarationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
@@ -197,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 : localDeclarator;
 
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(this.Id, option.Notification.Value),
+                CreateDescriptor(this.DescriptorId, option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
         }
