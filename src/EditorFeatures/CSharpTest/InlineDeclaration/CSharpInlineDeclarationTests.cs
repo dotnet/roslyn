@@ -343,5 +343,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestOverloadResolutionDoNotUseVar1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        if (M2(out i))
+        {
+        } 
+    }
+
+    void M2(out int i)
+    {
+    }
+
+    void M2(out string s)
+    {
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (M2(out int i))
+        {
+        } 
+    }
+
+    void M2(out int i)
+    {
+    }
+
+    void M2(out string s)
+    {
+    }
+}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+        }
     }
 }

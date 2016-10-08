@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(CodeStyleOptions),
             nameof(PreferInlinedVariableDeclaration),
             defaultValue: trueWithSuggestionEnforcement,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferOutVariable"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferInlinedVariableDeclaration"));
 
     }
 }
