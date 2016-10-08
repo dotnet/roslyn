@@ -22,34 +22,19 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     /// 
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpInlineDeclarationDiagnosticAnalyzer : DiagnosticAnalyzer
+    internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-
-        private static DiagnosticDescriptor s_descriptor =
-            CreateDescriptor(DiagnosticSeverity.Hidden);
-
-        private static DiagnosticDescriptor s_unnecessaryCodeDescriptor =
-            CreateDescriptor(DiagnosticSeverity.Hidden, customTags: DiagnosticCustomTags.Unnecessary);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(s_descriptor, s_unnecessaryCodeDescriptor);
+        public CSharpInlineDeclarationDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+        {
+        }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         public bool OpenFileOnly(Workspace workspace) => false;
-
-        private static DiagnosticDescriptor CreateDescriptor(DiagnosticSeverity severity, params string[] customTags)
-            => new DiagnosticDescriptor(
-                    IDEDiagnosticIds.InlineDeclarationDiagnosticId,
-                    s_localizableTitle,
-                    s_localizableMessage,
-                    DiagnosticCategory.Style,
-                    severity,
-                    isEnabledByDefault: true,
-                    customTags: customTags);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -212,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 : localDeclarator;
 
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(option.Notification.Value),
+                CreateDescriptor(this.Id, option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
         }
