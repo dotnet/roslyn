@@ -114,5 +114,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingWithInitializer()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i = 0;
+        if (int.TryParse(v, out i))
+        {
+        }
+    }
+}");
+        }
     }
 }
