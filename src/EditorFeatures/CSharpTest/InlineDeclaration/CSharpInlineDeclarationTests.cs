@@ -187,5 +187,85 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingInNonOut()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        if (int.TryParse(v, i))
+        {
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingInField()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    [|int|] i;
+    void M()
+    {
+        if (int.TryParse(v, out this.i))
+        {
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingInEmbeddedStatement()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        while (true)
+            if (int.TryParse(v, out this.i))
+            {
+            } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestAvailabeInNestedBlock()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        while (true)
+        {
+            if (int.TryParse(v, out i))
+            {
+            } 
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        while (true)
+        {
+            if (int.TryParse(v, out int i))
+            {
+            }
+        } 
+    }
+}");
+        }
     }
 }
