@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -49,11 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var options = document.Project.Solution.Workspace.Options;
+
+            var useVarWhenDeclaringLocals = options.GetOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals);
+            var useImplicitTypeForIntrinsicTypes = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
 
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(root, editor, diagnostic, cancellationToken);
+                AddEdits(root, editor, diagnostic, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes, cancellationToken);
             }
 
             var newRoot = editor.GetChangedRoot();
@@ -61,7 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private void AddEdits(
-            SyntaxNode root, SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
+            SyntaxNode root, SyntaxEditor editor, Diagnostic diagnostic, 
+            bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes, 
+            CancellationToken cancellationToken)
         {
             var declaratorLocation = diagnostic.AdditionalLocations[0];
             var identifierLocation = diagnostic.AdditionalLocations[1];
@@ -81,12 +89,30 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 editor.RemoveNode(declarator);
             }
 
+            var type = this.GetDeclarationType(declaration.Type, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes)
+                           .WithoutTrivia()
+                           .WithAdditionalAnnotations(Formatter.Annotation);
+
             var declarationExpression = SyntaxFactory.DeclarationExpression(
                 SyntaxFactory.TypedVariableComponent(
-                    declaration.Type.WithoutTrivia().WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation),
-                    SyntaxFactory.SingleVariableDesignation(identifier.Identifier)));
+                    type, SyntaxFactory.SingleVariableDesignation(identifier.Identifier)));
 
             editor.ReplaceNode(identifier, declarationExpression);
+        }
+
+        private TypeSyntax GetDeclarationType(
+            TypeSyntax type, bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes)
+        {
+            if (useVarWhenDeclaringLocals)
+            {
+                if (useImplicitTypeForIntrinsicTypes ||
+                    !TypeStyleHelper.IsPredefinedType(type))
+                {
+                    return SyntaxFactory.IdentifierName("var");
+                }
+            }
+
+            return type;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
