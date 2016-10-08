@@ -278,6 +278,7 @@
     <Compile Include="Formatting\Indentation\SmartIndenterTests_Performance.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatRangeTests.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
     <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
     <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
     <Compile Include="Interactive\NavigateTo\InteractiveNavigateToTests.cs" />
