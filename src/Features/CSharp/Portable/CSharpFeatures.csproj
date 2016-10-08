@@ -359,6 +359,9 @@
     <Compile Include="Organizing\Organizers\PropertyDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\StructDeclarationOrganizer.cs" />
     <Compile Include="Structure\Providers\SwitchStatementStructureProvider.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationDiagnosticAnalyzer.cs" />
+    <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="Structure\CSharpBlockStructureProvider.cs" />
     <Compile Include="Structure\CSharpStructureHelpers.cs" />
@@ -421,7 +424,6 @@
     <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider_NormalType.cs" />
     <Compile Include="SignatureHelp\SignatureHelpUtilities.cs" />
     <Compile Include="SolutionCrawler\CSharpDocumentDifferenceService.cs" />
-    <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerDiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>

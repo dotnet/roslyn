@@ -297,6 +297,30 @@ class Customer
     }
 }
 ";
+
+        private static readonly string s_preferInlinedVariableDeclaration = @"
+using System;
+
+class Customer
+{
+    public Customer(string value)
+    {
+//[
+        // Prefer:
+        if (int.TryParse(value, out int i))
+        {
+        }
+
+        // Over:
+        int i;
+        if (int.TryParse(value, out i))
+        {
+        }
+//]
+    }
+}
+";
+
         #endregion
 
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
@@ -309,6 +333,7 @@ class Customer
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
             var nullCheckingGroupTitle = CSharpVSResources.null_checking_colon;
             var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
+            var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
 
             var qualifyMemberAccessPreferences = new List<CodeStylePreference>
             {
@@ -341,6 +366,8 @@ class Customer
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferInlinedVariableDeclaration, ServicesVSResources.Prefer_inlined_variable_declaration, s_preferInlinedVariableDeclaration, s_preferInlinedVariableDeclaration, this, optionSet, variablePreferencesGroupTitle));
+
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, s_preferThrowExpression, s_preferThrowExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingGroupTitle));
         }

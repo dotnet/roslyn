@@ -68,5 +68,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer"));
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferInlinedVariableDeclaration = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferInlinedVariableDeclaration),
+            defaultValue: trueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferOutVariable"));
+
     }
 }
