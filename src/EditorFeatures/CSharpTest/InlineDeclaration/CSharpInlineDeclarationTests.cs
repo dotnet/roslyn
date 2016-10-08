@@ -48,6 +48,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariableWithConstructor1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        if (new C1(v, out i))
+        {
+        } 
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (new C1(v, out int i))
+        {
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariableMissingWithIndexer1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        if (this[out i])
+        {
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task InlineVariableIntoFirstOut1()
         {
             await TestAsync(
