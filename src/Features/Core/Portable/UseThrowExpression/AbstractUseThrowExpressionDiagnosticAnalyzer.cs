@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                     s_localizableTitle,
                     s_localizableMessage,
                     DiagnosticCategory.Style,
-                    DiagnosticSeverity.Hidden,
+                    severity,
                     isEnabledByDefault: true,
                     customTags: customTags);
 
