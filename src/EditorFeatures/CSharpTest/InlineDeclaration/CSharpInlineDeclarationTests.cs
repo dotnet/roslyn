@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         [|int|] i;
         while (true)
-            if (int.TryParse(v, out this.i))
+            if (int.TryParse(v, out i))
             {
             } 
     }
