@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -82,20 +83,36 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;
             var singleDeclarator = declaration.Variables.Count == 1;
+
             if (singleDeclarator)
             {
-                // Remove the entire declaration statement.
+                // This was a local statement with a single variable in it.  Just Remove 
+                // the entire local declaration statement.  Note that comments belonging to
+                // this local statement will be moved to be above the statement containing
+                // the out-var. 
                 editor.RemoveNode(declaration.Parent);
             }
             else
             {
-                // Otherwise, just remove the single declarator.
+                // Otherwise, just remove the single declarator. Note: we'll move the comments
+                // 'on' the declarator to the out-var location.  This is a little bit trickier
+                // than normal due to how our comment-association rules work.  i.e. if you have:
+                //
+                //      var /*c1*/ i /*c2*/, /*c3*/ j /*c4*/;
+                //
+                // In this case 'c1' is owned by the 'var' token, not 'i', and 'c3' is owned by 
+                // the comment token not 'j'.  
+
                 editor.RemoveNode(declarator);
                 if (declarator == declaration.Variables[0])
                 {
                     // If we're removing the first declarator, and it's on the same line
                     // as the previous token, then we want to remove all the trivia belonging
                     // to the previous token.  We're going to move it along with this declarator.
+                    // If we don't, then the comment will stay with the previous token.
+                    //
+                    // Note that hte moving of the comment happens later on when we make the
+                    // declaration expression.
                     if (sourceText.AreOnSameLine(declarator.GetFirstToken(), declarator.GetFirstToken().GetPreviousToken(includeSkipped: true)))
                     {
                         editor.ReplaceNode(
@@ -154,23 +171,44 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             if (declaratorOpt != null)
             {
-                // We're removing a single declarator.  Copy any comments it has to the out-var
-                // First, copy all the preceding trivia that's on the same line. 
+                // We're removing a single declarator.  Copy any comments it has to the out-var.
+                //
+                // Note: this is tricky due to comment ownership.  We want hte comments that logically
+                // belong to the declarator, even if our syntax model attaches them to other tokens.
                 var precedingTrivia = declaratorOpt.GetAllPrecedingTriviaToPreviousToken(
                     sourceText, includePreviousTokenTrailingTriviaOnlyIfOnSameLine: true);
                 if (precedingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
                 {
-                    designation = designation.WithPrependedLeadingTrivia(precedingTrivia.Where(t => t.IsWhitespaceOrSingleOrMultiLineComment()));
+                    designation = designation.WithPrependedLeadingTrivia(MassageTrivia(precedingTrivia));
                 }
 
                 if (declaratorOpt.GetTrailingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
                 {
-                    designation = designation.WithAppendedTrailingTrivia(declaratorOpt.GetTrailingTrivia().Where(t => t.IsWhitespaceOrSingleOrMultiLineComment()));
+                    designation = designation.WithAppendedTrailingTrivia(MassageTrivia(declaratorOpt.GetTrailingTrivia()));
                 }
             }
 
             return SyntaxFactory.DeclarationExpression(
                 SyntaxFactory.TypedVariableComponent(newType, designation));
+        }
+
+        private static IEnumerable<SyntaxTrivia> MassageTrivia(IEnumerable<SyntaxTrivia> triviaList)
+        {
+            foreach (var trivia in triviaList)
+            {
+                if (trivia.IsSingleOrMultiLineComment())
+                {
+                    yield return trivia;
+                }
+                else if (trivia.IsWhitespace())
+                {
+                    // Condense whitespace down to single spaces. We don't want things like
+                    // indentation spaces to be inserted in the out-var location.  It is appropraite
+                    // though to have single spaces to help separate out things like comments and
+                    // tokens though.
+                    yield return SyntaxFactory.Space;
+                }
+            }
         }
 
         private async Task<bool> SemanticsChangedAsync(
