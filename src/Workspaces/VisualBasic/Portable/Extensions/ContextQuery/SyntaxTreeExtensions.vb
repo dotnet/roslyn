@@ -323,6 +323,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
 
+            ' Tuple elements are in expression context if the tuple is in expression context
+            While targetToken.IsPossibleTupleContext(position)
+                Dim possibleTuple = targetToken.Parent
+                position = possibleTuple.FullSpan.Start
+                targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
+            End While
+
             If targetToken.FollowsEndOfStatement(position) OrElse targetToken.Kind = SyntaxKind.None Then
                 Return False
             End If
@@ -454,6 +461,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             Contract.Requires(token = syntaxTree.GetTargetToken(position, cancellationToken))
+
+            ' Tuple elements are in type context if the tuple is in type context
+            While token.IsPossibleTupleContext(position)
+                Dim possibleTuple = token.Parent
+                position = possibleTuple.FullSpan.Start
+                token = syntaxTree.GetTargetToken(position, cancellationToken)
+            End While
 
             ' Types may start anywhere a full expression may be given
             If syntaxTree.IsExpressionContext(position, token, cancellationToken, semanticModelOpt) Then
@@ -1024,10 +1038,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position)
 
             If token.IsKind(SyntaxKind.OpenParenToken) Then
-                Return token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.TupleExpression)
+                Return token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.TupleExpression, SyntaxKind.TupleType)
             End If
 
-            Return token.IsKind(SyntaxKind.CommaToken) AndAlso token.Parent.IsKind(SyntaxKind.TupleExpression)
+            Return token.IsKind(SyntaxKind.CommaToken) AndAlso token.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType)
         End Function
 
     End Module
