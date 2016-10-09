@@ -6,8 +6,6 @@
     "System.Collections.Immutable": "1.2.0",
     "System.Reflection.Metadata": "1.4.1-beta-24430-01",
     "ManagedEsent": "1.9.4",
-    "Microsoft.VisualStudio.InteractiveWindow": "2.0.0-beta5-60820-04",
-    "Microsoft.VisualStudio.VsInteractiveWindow": "2.0.0-beta5-60820-04",
     "System.AppContext": "4.1.0",
     "System.Console": "4.0.0",
     "System.Collections": "4.0.11",
@@ -36,7 +34,8 @@
     "System.Xml.ReaderWriter": "4.0.11",
     "System.Xml.XDocument": "4.0.11",
     "System.Xml.XmlDocument": "4.0.1",
-    "System.Xml.XPath.XDocument": "4.0.1"
+    "System.Xml.XPath.XDocument": "4.0.1",
+    "System.ValueTuple": "4.3.0-preview1-24530-04",
   },
   "frameworks": {
     "net46": {}

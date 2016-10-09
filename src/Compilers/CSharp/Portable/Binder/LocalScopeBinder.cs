@@ -516,16 +516,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (declaredInThisScope && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
             {
-                // TODO: Message should change to something like "A {0} named '{1}' is already defined in this scope"
-
-                // A local variable named '{0}' is already defined in this scope
+                // A local variable or function named '{0}' is already defined in this scope
                 diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
                 return true;
             }
 
             if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Method || newSymbolKind == SymbolKind.TypeParameter)
             {
-                // TODO: Fix up the message for local functions and type parameters. Maybe like the above todo - $"A {newSymbolKind.Localize()} named '{name}' cannot ..."
                 // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                 return true;

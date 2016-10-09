@@ -29,6 +29,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact]
+        [WorkItem(13193, "https://github.com/dotnet/roslyn/issues/13193")]
+        public void LocalFunctionConflictingName()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M<TLocal>()
+    {
+        void TLocal() { }
+        TLocal();
+    }
+    public void M(int Local)
+    {
+        void Local() { }
+        Local();
+    }
+    public void M()
+    {
+        int local = 0;
+
+        void local() { }
+        local();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,14): error CS0412: 'TLocal': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void TLocal() { }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "TLocal").WithArguments("TLocal").WithLocation(6, 14),
+                // (11,14): error CS0136: A local or parameter named 'Local' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void Local() { }
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "Local").WithArguments("Local").WithLocation(11, 14),
+                // (18,14): error CS0128: A local variable or function named 'local' is already defined in this scope
+                //         void local() { }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "local").WithArguments("local").WithLocation(18, 14),
+                // (16,13): warning CS0219: The variable 'local' is assigned but its value is never used
+                //         int local = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local").WithArguments("local").WithLocation(16, 13));
+        }
 
         [Fact]
         public void ForgotSemicolonLocalFunctionsMistake()
