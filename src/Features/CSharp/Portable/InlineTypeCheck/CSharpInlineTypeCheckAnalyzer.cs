@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
             // look for the form "if (a != null)" or "if (null != a)"
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
 
-            // ?. is only available in C# 6.0 and above.  Don't offer this refactoring
+            // "x is Type" is only available in C# 7.0 and above.  Don't offer this refactoring
             // in projects targetting a lesser version.
             if (((CSharpParseOptions)ifStatement.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
