@@ -48,11 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ConditionallyAddDocumentationCommentTo(declaration, method, options));
         }
 
-        private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(Workspace workspace, OperatorDeclarationSyntax declaration)
+        private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
+            Workspace workspace, OperatorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
-                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
                 if (preferExpressionBody)
                 {
                     var expressionBody = CodeGenerationHelpers.TryConvertToExpressionBody(declaration.Body);
