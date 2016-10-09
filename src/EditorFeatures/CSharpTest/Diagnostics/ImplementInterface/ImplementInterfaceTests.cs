@@ -565,8 +565,8 @@ public interface DD
 public class A : DD
 {
     public int this[int i] { 
-        get { throw new NotImplementedException(); }
-        set { throw new NotImplementedException(); }
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
     }
 }");
         }
