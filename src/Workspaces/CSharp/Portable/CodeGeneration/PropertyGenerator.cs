@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,10 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static CompilationUnitSyntax AddPropertyTo(
             CompilationUnitSyntax destination,
             IPropertySymbol property,
+            Workspace workspace,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var declaration = GeneratePropertyOrIndexer(property, CodeGenerationDestination.CompilationUnit, options);
+            var declaration = GeneratePropertyOrIndexer(
+                property, CodeGenerationDestination.CompilationUnit, workspace, options);
 
             var members = Insert(destination.Members, declaration, options,
                 availableIndices, after: LastPropertyOrField, before: FirstMember);
@@ -43,10 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddPropertyTo(
             TypeDeclarationSyntax destination,
             IPropertySymbol property,
+            Workspace workspace,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var declaration = GeneratePropertyOrIndexer(property, GetDestination(destination), options);
+            var declaration = GeneratePropertyOrIndexer(property, GetDestination(destination), workspace, options);
 
             // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, declaration, options,
@@ -60,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static MemberDeclarationSyntax GeneratePropertyOrIndexer(
             IPropertySymbol property,
             CodeGenerationDestination destination,
+            Workspace workspace,
             CodeGenerationOptions options)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MemberDeclarationSyntax>(property, options);
@@ -70,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var declaration = property.IsIndexer
                 ? GenerateIndexerDeclaration(property, destination, options)
-                : GeneratePropertyDeclaration(property, destination, options);
+                : GeneratePropertyDeclaration(property, destination, workspace, options);
 
             return ConditionallyAddDocumentationCommentTo(declaration, property, options);
         }
@@ -93,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static MemberDeclarationSyntax GeneratePropertyDeclaration(
-           IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
+           IPropertySymbol property, CodeGenerationDestination destination,
+           Workspace workspace, CodeGenerationOptions options)
         {
             var initializerNode = CodeGenerationPropertyInfo.GetInitializer(property) as ExpressionSyntax;
 
@@ -105,16 +112,81 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var accessorList = GenerateAccessorList(property, destination, options);
 
+            var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
+                attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
+                modifiers: GenerateModifiers(property, destination, options),
+                type: property.Type.GenerateTypeSyntax(),
+                explicitInterfaceSpecifier: explicitInterfaceSpecifier,
+                identifier: property.Name.ToIdentifierToken(),
+                accessorList: accessorList,
+                expressionBody: default(ArrowExpressionClauseSyntax),
+                initializer: initializer);
+
+            propertyDeclaration = UseExpressionBodyIfDesired(
+                workspace, propertyDeclaration);
+
             return AddCleanupAnnotationsTo(
-                AddAnnotationsTo(property, SyntaxFactory.PropertyDeclaration(
-                    attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
-                    modifiers: GenerateModifiers(property, destination, options),
-                    type: property.Type.GenerateTypeSyntax(),
-                    explicitInterfaceSpecifier: explicitInterfaceSpecifier,
-                    identifier: property.Name.ToIdentifierToken(),
-                    accessorList: accessorList,
-                    expressionBody: default(ArrowExpressionClauseSyntax),
-                    initializer: initializer)));
+                AddAnnotationsTo(property, propertyDeclaration));
+        }
+
+        private static PropertyDeclarationSyntax UseExpressionBodyIfDesired(
+            Workspace workspace, PropertyDeclarationSyntax propertyDeclaration)
+        {
+            var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
+            if (preferExpressionBody)
+            {
+                if (propertyDeclaration.Initializer == null &&
+                    propertyDeclaration.AccessorList.Accessors.Count == 1)
+                {
+                    var accessor = propertyDeclaration.AccessorList.Accessors[0];
+                    if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
+                    {
+                        var expressionBody = TryGetExpressionBody(accessor);
+                        if (expressionBody != null)
+                        {
+                            propertyDeclaration = propertyDeclaration.WithAccessorList(null)
+                                                                     .WithExpressionBody(expressionBody)
+                                                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                        }
+                    }
+                }
+            }
+
+            return propertyDeclaration;
+        }
+
+        private static ArrowExpressionClauseSyntax TryGetExpressionBody(AccessorDeclarationSyntax accessor)
+        {
+            // If the accessor has an expression body already, then use that as the expression body
+            // for the property.
+            if (accessor.ExpressionBody != null)
+            {
+                return accessor.ExpressionBody;
+            }
+
+            if (accessor.Body != null)
+            {
+                if (accessor.Body.Statements.Count == 1)
+                {
+                    var firstStatement = accessor.Body.Statements[0];
+                    if (firstStatement.Kind() == SyntaxKind.ReturnStatement)
+                    {
+                        var returnStatement = (ReturnStatementSyntax)firstStatement;
+                        if (returnStatement.Expression != null)
+                        {
+                            return SyntaxFactory.ArrowExpressionClause(returnStatement.Expression);
+                        }
+                    }
+                    else if (firstStatement.Kind() == SyntaxKind.ThrowStatement)
+                    {
+                        var throwStatement = (ThrowStatementSyntax)firstStatement;
+                        return SyntaxFactory.ArrowExpressionClause(
+                            SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression));
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static AccessorListSyntax GenerateAccessorList(

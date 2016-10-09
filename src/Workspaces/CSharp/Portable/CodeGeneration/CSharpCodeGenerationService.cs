@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService
     {
         public CSharpCodeGenerationService(HostLanguageServices languageServices)
-            : base(languageServices.GetService<ISymbolDeclarationService>())
+            : base(languageServices.GetService<ISymbolDeclarationService>(), 
+                   languageServices.WorkspaceServices.Workspace)
         {
         }
 
@@ -227,11 +228,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (destination is TypeDeclarationSyntax)
             {
-                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(Cast<TypeDeclarationSyntax>(destination), property, options, availableIndices));
+                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
+                    Cast<TypeDeclarationSyntax>(destination), property, Workspace, options, availableIndices));
             }
             else
             {
-                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(Cast<CompilationUnitSyntax>(destination), property, options, availableIndices));
+                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
+                    Cast<CompilationUnitSyntax>(destination), property, Workspace, options, availableIndices));
             }
         }
 
@@ -633,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode CreatePropertyDeclaration(
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            return PropertyGenerator.GeneratePropertyOrIndexer(property, destination, options);
+            return PropertyGenerator.GeneratePropertyOrIndexer(property, destination, Workspace, options);
         }
 
         public override SyntaxNode CreateNamedTypeDeclaration(
