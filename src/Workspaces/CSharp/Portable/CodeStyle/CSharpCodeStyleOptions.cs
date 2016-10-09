@@ -22,5 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option<CodeStyleOption<bool>> PreferConditionalDelegateCall = new Option<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferConditionalDelegateCall), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferConditionalDelegateCall"));
+
+        public static readonly Option<CodeStyleOption<bool>> PreferExpressionBodiedConstructors = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferExpressionBodiedConstructors), defaultValue: CodeStyleOptions.falseWithNoneEnforcement,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedConstructors)}"));
+
+        public static readonly Option<CodeStyleOption<bool>> PreferExpressionBodiedMethods = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferExpressionBodiedMethods), defaultValue: CodeStyleOptions.falseWithNoneEnforcement,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedMethods)}"));
+
+        public static readonly Option<CodeStyleOption<bool>> PreferExpressionBodiedProperties = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferExpressionBodiedProperties), defaultValue: CodeStyleOptions.trueWithNoneEnforcement,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedProperties)}"));
     }
 }

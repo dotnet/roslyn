@@ -11,8 +11,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// One such default(s), is that the feature is turned on, so that codegen consumes it,
         /// but with none enforcement, so that the user is not prompted about their usage.
         /// </remarks>
-        private static readonly CodeStyleOption<bool> trueWithNoneEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.None);
+        internal static readonly CodeStyleOption<bool> trueWithNoneEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.None);
         internal static readonly CodeStyleOption<bool> trueWithSuggestionEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Suggestion);
+        internal static readonly CodeStyleOption<bool> falseWithNoneEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.None);
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.
