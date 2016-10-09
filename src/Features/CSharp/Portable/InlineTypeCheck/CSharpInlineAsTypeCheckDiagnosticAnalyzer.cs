@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
             var options = syntaxContext.Options.GetOptionSet();
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferInlinedTypeCheck);
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternToAsWithNullCheck);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.

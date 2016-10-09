@@ -880,11 +880,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer inlined type check.
+        ///   Looks up a localized string similar to Prefer pattern to &apos;as&apos; with &apos;null&apos; check.
         /// </summary>
-        internal static string Prefer_inlined_type_check {
+        internal static string Prefer_pattern_to_as_with_null_check {
             get {
-                return ResourceManager.GetString("Prefer_inlined_type_check", resourceCulture);
+                return ResourceManager.GetString("Prefer_pattern_to_as_with_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer pattern to &apos;is&apos; with &apos;cast&apos; check.
+        /// </summary>
+        internal static string Prefer_pattern_to_is_with_cast_check {
+            get {
+                return ResourceManager.GetString("Prefer_pattern_to_is_with_cast_check", resourceCulture);
             }
         }
         

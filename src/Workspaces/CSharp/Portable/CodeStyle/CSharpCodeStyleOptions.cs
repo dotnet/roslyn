@@ -23,8 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly Option<CodeStyleOption<bool>> PreferConditionalDelegateCall = new Option<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferConditionalDelegateCall), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferConditionalDelegateCall"));
 
-        public static readonly Option<CodeStyleOption<bool>> PreferInlinedTypeCheck = new Option<CodeStyleOption<bool>>(
-            nameof(CodeStyleOptions), nameof(PreferInlinedTypeCheck), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferInlinedTypeCheck"));
+        public static readonly Option<CodeStyleOption<bool>> PreferPatternToAsWithNullCheck = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferPatternToAsWithNullCheck), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternToAsWithNullCheck)}"));
+
+        public static readonly Option<CodeStyleOption<bool>> PreferPatternToIsWithCastCheck = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferPatternToIsWithCastCheck), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternToIsWithCastCheck)}"));
     }
 }

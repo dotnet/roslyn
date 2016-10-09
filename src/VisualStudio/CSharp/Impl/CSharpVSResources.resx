@@ -489,7 +489,10 @@
   <data name="Prefer_conditional_delegate_call" xml:space="preserve">
     <value>Prefer conditional delegate call</value>
   </data>
-  <data name="Prefer_inlined_type_check" xml:space="preserve">
-    <value>Prefer inlined type check</value>
+  <data name="Prefer_pattern_to_is_with_cast_check" xml:space="preserve">
+    <value>Prefer pattern to 'is' with 'cast' check</value>
+  </data>
+  <data name="Prefer_pattern_to_as_with_null_check" xml:space="preserve">
+    <value>Prefer pattern to 'as' with 'null' check</value>
   </data>
 </root>
