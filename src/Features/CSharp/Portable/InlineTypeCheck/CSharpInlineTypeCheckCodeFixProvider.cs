@@ -65,10 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
         {
             var localDeclarationLocation = diagnostic.AdditionalLocations[0];
             var ifStatementLocation = diagnostic.AdditionalLocations[1];
-            var asExpressionLocation = diagnostic.AdditionalLocations[2];
+            var conditionLocation = diagnostic.AdditionalLocations[2];
+            var asExpressionLocation = diagnostic.AdditionalLocations[3];
 
             var localDeclaration = (LocalDeclarationStatementSyntax)localDeclarationLocation.FindNode(cancellationToken);
             var ifStatement = (IfStatementSyntax)ifStatementLocation.FindNode(cancellationToken);
+            var condition = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
 
             var updatedCondition = SyntaxFactory.IsPatternExpression(
@@ -82,15 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
                                          .SelectMany(t => ImmutableArray.Create(t, SyntaxFactory.ElasticCarriageReturnLineFeed))
                                          .ToImmutableArray();
 
+            var updatedIfStatement = ifStatement.ReplaceNode(condition, updatedCondition)
+                                                .WithPrependedLeadingTrivia(trivia)
+                                                .WithAdditionalAnnotations(Formatter.Annotation);
+
             editor.RemoveNode(localDeclaration);
-            editor.ReplaceNode(ifStatement,
-                (i, g) =>
-                {
-                    var currentIf = (IfStatementSyntax)i;
-                    return currentIf.ReplaceNode(currentIf.Condition, updatedCondition)
-                                    .WithPrependedLeadingTrivia(trivia)
-                                    .WithAdditionalAnnotations(Formatter.Annotation);
-                });
+            editor.ReplaceNode(ifStatement, updatedIfStatement);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

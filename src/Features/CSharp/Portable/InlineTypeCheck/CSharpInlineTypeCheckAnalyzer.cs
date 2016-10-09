@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -46,12 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
                 return;
             }
 
-            if (!ifStatement.Condition.IsKind(SyntaxKind.NotEqualsExpression))
+            // We need to find the leftmost expression in teh if-condition.  If this is a
+            // "x != null" expression the we can replace it with "o as Type x".  
+            var condition = GetLeftmostCondition(ifStatement.Condition);
+            if (!condition.IsKind(SyntaxKind.NotEqualsExpression))
             {
                 return;
             }
 
-            var condition = (BinaryExpressionSyntax)ifStatement.Condition;
             CheckVariableAndIfStatementForm(
                 syntaxContext, ifStatement, condition, severity);
         }
@@ -126,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
             var additionalLocations = ImmutableArray.Create(
                 localDeclarationStatement.GetLocation(),
                 ifStatement.GetLocation(),
+                condition.GetLocation(),
                 initializerValue.GetLocation());
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
@@ -133,6 +137,22 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
                 CreateDescriptor(this.DescriptorId, severity),
                 localDeclarationStatement.GetLocation(),
                 additionalLocations));
+        }
+
+        private BinaryExpressionSyntax GetLeftmostCondition(ExpressionSyntax condition)
+        {
+            switch (condition.Kind())
+            {
+                case SyntaxKind.ParenthesizedExpression:
+                    return GetLeftmostCondition(((ParenthesizedExpressionSyntax)condition).Expression);
+                case SyntaxKind.ConditionalExpression:
+                    return GetLeftmostCondition(((ConditionalExpressionSyntax)condition).Condition);
+                case SyntaxKind.LogicalAndExpression:
+                case SyntaxKind.LogicalOrExpression:
+                    return GetLeftmostCondition(((BinaryExpressionSyntax)condition).Left);
+            }
+
+            return condition as BinaryExpressionSyntax;
         }
 
         private bool IsNullCheckExpression(ExpressionSyntax left, ExpressionSyntax right) =>

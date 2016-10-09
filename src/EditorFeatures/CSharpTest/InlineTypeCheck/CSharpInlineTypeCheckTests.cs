@@ -288,5 +288,80 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
     }
 }", compareTokens: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task InlineTypeCheckComplexCondition1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+        if (x != null ? 0 : 1)
+        {
+        } 
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (o is string x ? 0 : 1)
+        {
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task InlineTypeCheckComplexCondition2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+        if ((x != null))
+        {
+        } 
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if ((o is string x))
+        {
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task InlineTypeCheckComplexCondition3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+        if (x != null && x.Length > 0)
+        {
+        } 
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (o is string x && x.Length > 0)
+        {
+        } 
+    }
+}");
+        }
     }
 }
