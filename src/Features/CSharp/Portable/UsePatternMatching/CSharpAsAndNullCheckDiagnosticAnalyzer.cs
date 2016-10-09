@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     if (o is Type x) ...
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpInlineAsTypeCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public CSharpInlineAsTypeCheckDiagnosticAnalyzer()
+        public CSharpAsAndNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
                    new LocalizableResourceString(nameof(FeaturesResources.Inline_type_check), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

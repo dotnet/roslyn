@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpUsePatternMatchingOverIsAndCastCheckCodeFixProvider : CodeFixProvider
+    internal partial class CSharpIsAndCastCheckCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineIsTypeCheckId);
