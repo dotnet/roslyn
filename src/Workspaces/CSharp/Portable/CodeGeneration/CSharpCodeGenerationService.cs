@@ -154,12 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 if (method.MethodKind == MethodKind.Conversion)
                 {
-                    return Cast<TDeclarationNode>(ConversionGenerator.AddConversionTo(typeDeclaration, method, options, availableIndices));
+                    return Cast<TDeclarationNode>(ConversionGenerator.AddConversionTo(
+                        typeDeclaration, method, Workspace, options, availableIndices));
                 }
 
                 if (method.MethodKind == MethodKind.UserDefinedOperator)
                 {
-                    return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(typeDeclaration, method, options, availableIndices));
+                    return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(
+                        typeDeclaration, method, Workspace, options, availableIndices));
                 }
 
                 return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
@@ -626,11 +628,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (method.IsUserDefinedOperator())
             {
-                return OperatorGenerator.GenerateOperatorDeclaration(method, destination, options);
+                return OperatorGenerator.GenerateOperatorDeclaration(method, destination, Workspace, options);
             }
             else if (method.IsConversion())
             {
-                return ConversionGenerator.GenerateConversionDeclaration(method, destination, options);
+                return ConversionGenerator.GenerateConversionDeclaration(method, destination, Workspace, options);
             }
             else
             {

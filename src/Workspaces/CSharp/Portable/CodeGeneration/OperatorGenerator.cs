@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -16,10 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddOperatorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol method,
+            Workspace workspace,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var methodDeclaration = GenerateOperatorDeclaration(method, GetDestination(destination), options);
+            var methodDeclaration = GenerateOperatorDeclaration(
+                method, GetDestination(destination), workspace, options);
 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
@@ -29,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
             IMethodSymbol method,
             CodeGenerationDestination destination,
+            Workspace workspace,
             CodeGenerationOptions options)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<OperatorDeclarationSyntax>(method, options);
@@ -38,9 +42,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var declaration = GenerateOperatorDeclarationWorker(method, destination, options);
+            declaration = UseExpressionBodyIfDesired(workspace, declaration);
 
             return AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options));
+        }
+
+        private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(Workspace workspace, OperatorDeclarationSyntax declaration)
+        {
+            if (declaration.ExpressionBody == null)
+            {
+                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+                if (preferExpressionBody)
+                {
+                    var expressionBody = CodeGenerationHelpers.TryConvertToExpressionBody(declaration.Body);
+                    if (expressionBody != null)
+                    {
+                        return declaration.WithBody(null)
+                                          .WithExpressionBody(expressionBody)
+                                          .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                    }
+                }
+            }
+
+            return declaration;
         }
 
         private static OperatorDeclarationSyntax GenerateOperatorDeclarationWorker(
