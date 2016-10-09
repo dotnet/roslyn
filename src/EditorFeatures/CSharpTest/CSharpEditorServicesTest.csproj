@@ -280,10 +280,10 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
-    <Compile Include="InlineTypeCheck\CSharpInlineIsTypeCheckTests_FixAllTests.cs" />
-    <Compile Include="InlineTypeCheck\CSharpInlineIsTypeCheckTests.cs" />
-    <Compile Include="InlineTypeCheck\CSharpInlineAsTypeCheckTests.cs" />
-    <Compile Include="InlineTypeCheck\CSharpInlineAsTypeCheckTests_FixAllTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpInlineIsTypeCheckTests_FixAllTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpInlineIsTypeCheckTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpInlineAsTypeCheckTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpInlineAsTypeCheckTests_FixAllTests.cs" />
     <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
     <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
     <Compile Include="Interactive\NavigateTo\InteractiveNavigateToTests.cs" />
