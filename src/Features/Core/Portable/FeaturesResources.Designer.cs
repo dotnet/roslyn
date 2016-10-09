@@ -1414,6 +1414,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inline variable declaration.
+        /// </summary>
+        internal static string Inline_variable_declaration {
+            get {
+                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install &apos;{0} {1}&apos;.
         /// </summary>
         internal static string Install_0_1 {
@@ -2913,6 +2922,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to use pattern matching.
+        /// </summary>
+        internal static string Use_pattern_matching {
+            get {
+                return ResourceManager.GetString("Use_pattern_matching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
         /// </summary>
         internal static string Use_throw_expression {
@@ -2956,27 +2974,5 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("You_can_use_the_navigation_bar_to_switch_context", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to You can use the navigation bar to switch context..
-        /// </summary>
-        internal static string Inline_variable_declaration
-        {
-            get
-            {
-                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to You can use the navigation bar to switch context..
-        /// </summary>
-        internal static string Inline_type_check
-        {
-            get
-            {
-                return ResourceManager.GetString("Inline_type_check", resourceCulture);
-            }
-        }
     }
-} 
+}
