@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         // Tuple literals aren't recognized by the parser until there is a comma
         // So a parenthesized expression is a possible tuple context too
-        public static bool IsPossibleTupleContext(this SyntaxToken token, int position)
+        public static bool IsPossibleTupleContext(this SyntaxTree syntaxTree, SyntaxToken token, int position)
         {
             token = token.GetPreviousTokenIfTouchingWord(position);
 

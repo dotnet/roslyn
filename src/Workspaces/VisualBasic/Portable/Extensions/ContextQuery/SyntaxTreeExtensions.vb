@@ -324,11 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
 
             ' Tuple elements are in expression context if the tuple is in expression context
-            While targetToken.IsPossibleTupleContext(position)
-                Dim possibleTuple = targetToken.Parent
-                position = possibleTuple.FullSpan.Start
-                targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
-            End While
+            PositionOutsideTupleIfApplicable(syntaxTree, position, targetToken, cancellationToken)
 
             If targetToken.FollowsEndOfStatement(position) OrElse targetToken.Kind = SyntaxKind.None Then
                 Return False
@@ -463,11 +459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Contract.Requires(token = syntaxTree.GetTargetToken(position, cancellationToken))
 
             ' Tuple elements are in type context if the tuple is in type context
-            While token.IsPossibleTupleContext(position)
-                Dim possibleTuple = token.Parent
-                position = possibleTuple.FullSpan.Start
-                token = syntaxTree.GetTargetToken(position, cancellationToken)
-            End While
+            PositionOutsideTupleIfApplicable(syntaxTree, position, token, cancellationToken)
 
             ' Types may start anywhere a full expression may be given
             If syntaxTree.IsExpressionContext(position, token, cancellationToken, semanticModelOpt) Then
@@ -519,6 +511,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             ' ...otherwise any other SimpleAsClause is good
             Return token.IsChildToken(Of SimpleAsClauseSyntax)(Function(asClause) asClause.AsKeyword)
         End Function
+
+        Private Sub PositionOutsideTupleIfApplicable(syntaxTree As SyntaxTree, ByRef position As Integer,
+                                                     ByRef token As SyntaxToken, cancellationToken As CancellationToken)
+
+            While syntaxTree.IsPossibleTupleContext(token, position)
+                Dim possibleTuple = token.Parent
+                position = possibleTuple.FullSpan.Start
+                token = syntaxTree.GetTargetToken(position, cancellationToken)
+            End While
+        End Sub
 
         <Extension()>
         Public Function IsNameOfContext(syntaxTree As SyntaxTree, position As Integer, Optional cancellationToken As CancellationToken = Nothing) As Boolean
@@ -1033,15 +1035,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
         End Function
 
+        ' Tuple literals aren't recognized by the parser until there is a comma
+        ' So a parenthesized expression is a possible tuple context too
         <Extension>
-        Friend Function IsPossibleTupleContext(token As SyntaxToken, position As Integer) As Boolean
-            token = token.GetPreviousTokenIfTouchingWord(position)
+        Friend Function IsPossibleTupleContext(syntaxTree As SyntaxTree,
+                                               tokenOnLeftOfPosition As SyntaxToken, position As Integer) As Boolean
+            tokenOnLeftOfPosition = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position)
 
-            If token.IsKind(SyntaxKind.OpenParenToken) Then
-                Return token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.TupleExpression, SyntaxKind.TupleType)
+            If tokenOnLeftOfPosition.IsKind(SyntaxKind.OpenParenToken) Then
+                Return tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParenthesizedExpression,
+                                                           SyntaxKind.TupleExpression, SyntaxKind.TupleType)
             End If
 
-            Return token.IsKind(SyntaxKind.CommaToken) AndAlso token.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType)
+            Return tokenOnLeftOfPosition.IsKind(SyntaxKind.CommaToken) AndAlso
+                tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType)
         End Function
 
     End Module

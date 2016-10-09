@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();
             }
 
-
             var span = new TextSpan(position, 0);
             var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
             var isPossibleTupleContext = semanticFacts.IsPossibleTupleContext(semanticModel, position, cancellationToken);
@@ -101,7 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return SpecializedCollections.EmptyEnumerable<CompletionItem>();
                 }
 
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: true, isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: true,
+                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             if (semanticFacts.IsGlobalStatementContext(semanticModel, position, cancellationToken) ||
@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 semanticFacts.IsMemberDeclarationContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
             {
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: false, isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: false,
+                    isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();

@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isInQuery:=leftToken.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing,
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
-                isPossibleTupleContext:=targetToken.IsPossibleTupleContext(position),
+                isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
                 cancellationToken:=cancellationToken)
         End Function
 

@@ -478,6 +478,20 @@ class Program
             await VerifyNotBuilderAsync(markup);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleWithNamesInVarDeclaration()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Action x = (a: a, b$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
         [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BuilderForLinqExpression()
