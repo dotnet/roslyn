@@ -22,5 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option<CodeStyleOption<bool>> PreferConditionalDelegateCall = new Option<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferConditionalDelegateCall), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferConditionalDelegateCall"));
+
+        public static readonly Option<CodeStyleOption<bool>> PreferInlinedTypeCheck = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferInlinedTypeCheck), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferInlinedTypeCheck"));
     }
 }

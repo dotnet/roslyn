@@ -2967,5 +2967,16 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You can use the navigation bar to switch context..
+        /// </summary>
+        internal static string Inline_type_check
+        {
+            get
+            {
+                return ResourceManager.GetString("Inline_type_check", resourceCulture);
+            }
+        }
     }
 } 
