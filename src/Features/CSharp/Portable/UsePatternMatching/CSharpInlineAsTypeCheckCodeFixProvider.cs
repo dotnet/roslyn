@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
+namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpInlineAsTypeCheckCodeFixProvider : CodeFixProvider

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 
-namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
+namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     internal partial class CSharpInlineAsTypeCheckCodeFixProvider : CodeFixProvider
     {

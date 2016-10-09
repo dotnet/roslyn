@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
+namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     /// <summary>
     /// Looks for code of the form:
