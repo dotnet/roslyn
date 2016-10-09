@@ -132,21 +132,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static PropertyDeclarationSyntax UseExpressionBodyIfDesired(
             Workspace workspace, PropertyDeclarationSyntax propertyDeclaration)
         {
-            var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
-            if (preferExpressionBody)
+            if (propertyDeclaration.ExpressionBody == null)
             {
-                if (propertyDeclaration.Initializer == null &&
-                    propertyDeclaration.AccessorList.Accessors.Count == 1)
+                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
+                if (preferExpressionBody)
                 {
-                    var accessor = propertyDeclaration.AccessorList.Accessors[0];
-                    if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
+                    if (propertyDeclaration.Initializer == null &&
+                        propertyDeclaration.AccessorList.Accessors.Count == 1)
                     {
-                        var expressionBody = TryGetExpressionBody(accessor);
-                        if (expressionBody != null)
+                        var accessor = propertyDeclaration.AccessorList.Accessors[0];
+                        if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
                         {
-                            propertyDeclaration = propertyDeclaration.WithAccessorList(null)
-                                                                     .WithExpressionBody(expressionBody)
-                                                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                            var expressionBody = TryGetExpressionBody(accessor);
+                            if (expressionBody != null)
+                            {
+                                propertyDeclaration = propertyDeclaration.WithAccessorList(null)
+                                                                         .WithExpressionBody(expressionBody)
+                                                                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                            }
                         }
                     }
                 }
@@ -159,34 +162,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             // If the accessor has an expression body already, then use that as the expression body
             // for the property.
-            if (accessor.ExpressionBody != null)
-            {
-                return accessor.ExpressionBody;
-            }
-
-            if (accessor.Body != null)
-            {
-                if (accessor.Body.Statements.Count == 1)
-                {
-                    var firstStatement = accessor.Body.Statements[0];
-                    if (firstStatement.Kind() == SyntaxKind.ReturnStatement)
-                    {
-                        var returnStatement = (ReturnStatementSyntax)firstStatement;
-                        if (returnStatement.Expression != null)
-                        {
-                            return SyntaxFactory.ArrowExpressionClause(returnStatement.Expression);
-                        }
-                    }
-                    else if (firstStatement.Kind() == SyntaxKind.ThrowStatement)
-                    {
-                        var throwStatement = (ThrowStatementSyntax)firstStatement;
-                        return SyntaxFactory.ArrowExpressionClause(
-                            SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression));
-                    }
-                }
-            }
-
-            return null;
+            return accessor.ExpressionBody != null
+                ? accessor.ExpressionBody
+                : CodeGenerationHelpers.TryConvertToExpressionBody(accessor.Body);
         }
 
         private static AccessorListSyntax GenerateAccessorList(

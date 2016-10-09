@@ -161,7 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(typeDeclaration, method, options, availableIndices));
                 }
 
-                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(typeDeclaration, method, options, availableIndices));
+                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
+                    typeDeclaration, method, Workspace, options, availableIndices));
             }
 
             if (method.IsConstructor() ||
@@ -173,11 +174,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var compilationUnit = destination as CompilationUnitSyntax;
             if (compilationUnit != null)
             {
-                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(compilationUnit, method, options, availableIndices));
+                return Cast<TDeclarationNode>(
+                    MethodGenerator.AddMethodTo(compilationUnit, method, Workspace, options, availableIndices));
             }
 
             var ns = Cast<NamespaceDeclarationSyntax>(destination);
-            return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(ns, method, options, availableIndices));
+            return Cast<TDeclarationNode>(
+                MethodGenerator.AddMethodTo(ns, method, Workspace, options, availableIndices));
         }
 
         protected override TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions options, IList<bool> availableIndices)
@@ -629,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                return MethodGenerator.GenerateMethodDeclaration(method, destination, options);
+                return MethodGenerator.GenerateMethodDeclaration(method, destination, Workspace, options);
             }
         }
 
