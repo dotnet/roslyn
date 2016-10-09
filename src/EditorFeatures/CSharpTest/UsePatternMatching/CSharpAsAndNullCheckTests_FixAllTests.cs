@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
-    public partial class CSharpInlineAsTypeCheckTests
+    public partial class CSharpAsAndNullCheckTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task FixAllInDocument1()
