@@ -9,6 +9,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
 {
+    /// <summary>
+    /// Looks for code of the form:
+    /// 
+    ///     var x = o as Type;
+    ///     if (x != null) ...
+    ///     
+    /// and converts it to:
+    /// 
+    ///     if (o is Type x) ...
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpInlineTypeCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
@@ -47,6 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
                 return;
             }
 
+            // If has to be in a block so we can at least look for a preceding local variable declaration.
+            if (!ifStatement.Parent.IsKind(SyntaxKind.Block))
+            {
+                return;
+            }
+
             // We need to find the leftmost expression in teh if-condition.  If this is a
             // "x != null" expression the we can replace it with "o as Type x".  
             var condition = GetLeftmostCondition(ifStatement.Condition);
@@ -55,25 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
                 return;
             }
 
-            CheckVariableAndIfStatementForm(
-                syntaxContext, ifStatement, condition, severity);
-        }
-
-        private void CheckVariableAndIfStatementForm(
-            SyntaxNodeAnalysisContext syntaxContext,
-            IfStatementSyntax ifStatement,
-            BinaryExpressionSyntax condition,
-            DiagnosticSeverity severity)
-        {
-            var cancellationToken = syntaxContext.CancellationToken;
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // look for the form "if (a != null)" or "if (null != a)"
-            if (!ifStatement.Parent.IsKind(SyntaxKind.Block))
-            {
-                return;
-            }
-
+            // look for the form "x != null" or "null != x".
             if (!IsNullCheckExpression(condition.Left, condition.Right) &&
                 !IsNullCheckExpression(condition.Right, condition.Left))
             {
@@ -112,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
                 return;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
             if (!Equals(declarator.Identifier.ValueText, conditionName.Identifier.ValueText))
             {
                 return;
