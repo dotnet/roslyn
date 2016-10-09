@@ -28,7 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
             {
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.falseWithNoneEnforcement },
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement }
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.falseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.falseWithNoneEnforcement }
             };
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOn =
@@ -36,7 +39,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
             {
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.trueWithNoneEnforcement },
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.trueWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.trueWithNoneEnforcement }
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.trueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.trueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.trueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.trueWithNoneEnforcement }
+            };
+
+        private static readonly Dictionary<OptionKey, object> AccessorOptionsOn =
+            new Dictionary<OptionKey, object>
+            {
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.falseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.falseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.falseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.trueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.falseWithNoneEnforcement }
             };
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
@@ -57,6 +74,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions,
                 index, compareTokens, options: AllOptionsOn, withScriptOption: withScriptOption);
+        }
+
+        internal async Task TestWithAccessorCodeStyleOptionsOnAsync(
+            string initialMarkup, string expectedMarkup,
+            int index = 0, bool compareTokens = true,
+            ParseOptions parseOptions = null,
+            bool withScriptOption = false)
+        {
+            await TestAsync(initialMarkup, expectedMarkup, parseOptions,
+                index, compareTokens, options: AccessorOptionsOn, withScriptOption: withScriptOption);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -422,6 +449,57 @@ public class A : DD
 
         [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestReadonlyPropertyAccessorBodyYes1()
+        {
+            await TestWithAccessorCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int Prop { get; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int Prop { get; }
+}
+public class A : DD
+{
+    public int Prop { get => throw new NotImplementedException(); }
+}");
+        }
+
+        [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestReadonlyPropertyAccessorBodyYes2()
+        {
+            await TestWithAccessorCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int Prop { get; set; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int Prop { get; set; }
+}
+public class A : DD
+{
+    public int Prop { 
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestReadonlyPropertyExpressionBodyNo1()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -441,6 +519,104 @@ public interface DD
 public class A : DD
 {
     public int Prop { get { throw new NotImplementedException(); } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestIndexerExpressionBodyYes1()
+        {
+            await TestWithAllCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int this[int i] { get; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int this[int i] { get; }
+}
+public class A : DD
+{
+    public int this[int i] => throw new NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestIndexerExpressionBodyNo1()
+        {
+            await TestWithAllCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int this[int i] { get; set; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int this[int i] { get; set; }
+}
+public class A : DD
+{
+    public int this[int i] { 
+        get { throw new NotImplementedException(); }
+        set { throw new NotImplementedException(); }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestIndexerAccessorExpressionBodyYes1()
+        {
+            await TestWithAccessorCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int this[int i] { get; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int this[int i] { get; }
+}
+public class A : DD
+{
+    public int this[int i] { get => throw new NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestIndexerAccessorExpressionBodyYes2()
+        {
+            await TestWithAllCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int this[int i] { get; set; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int this[int i] { get; set; }
+}
+public class A : DD
+{
+    public int this[int i] { 
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
 }");
         }
 
