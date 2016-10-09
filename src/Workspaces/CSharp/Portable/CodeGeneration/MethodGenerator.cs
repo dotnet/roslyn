@@ -120,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (expressionBody != null)
                     {
                         return methodDeclaration.WithBody(null)
-                                                .WithExpressionBody(expressionBody);
+                                                .WithExpressionBody(expressionBody)
+                                                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
                     }
                 }
             }

@@ -67,6 +67,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestExpressionBodiedMethod1()
+        {
+            await TestWithAllCodeStyleOptionsOnAsync(
+@"interface IInterface { void Method1 ( ) ; } class Class : [|IInterface|] { } ",
+@"using System;
+interface IInterface {
+    void Method1 ( ) ; 
+}
+class Class : IInterface { 
+    public void Method1 ( ) => throw new NotImplementedException ( ) ; 
+}");
+        }
+
         private static readonly string s_tupleElementNamesAttribute =
 @"namespace System.Runtime.CompilerServices
 {
