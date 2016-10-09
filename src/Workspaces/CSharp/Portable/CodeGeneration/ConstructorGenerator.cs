@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -21,10 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddConstructorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol constructor,
+            Workspace workspace,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var constructorDeclaration = GenerateConstructorDeclaration(constructor, GetDestination(destination), options);
+            var constructorDeclaration = GenerateConstructorDeclaration(
+                constructor, GetDestination(destination), workspace, options);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
@@ -35,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
-            IMethodSymbol constructor, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IMethodSymbol constructor, CodeGenerationDestination destination, 
+            Workspace workspace, CodeGenerationOptions options)
         {
             options = options ?? CodeGenerationOptions.Default;
 
@@ -56,8 +61,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : GenerateBlock(constructor),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
 
+            declaration = UseExpressionBodyIfDesired(workspace, declaration);
+
             return AddCleanupAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options));
+        }
+
+        private static ConstructorDeclarationSyntax UseExpressionBodyIfDesired(
+            Workspace workspace, ConstructorDeclarationSyntax declaration)
+        {
+            if (declaration.ExpressionBody == null)
+            {
+                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
+                if (preferExpressionBody)
+                {
+                    var expressionBody = CodeGenerationHelpers.TryConvertToExpressionBody(declaration.Body);
+                    if (expressionBody != null)
+                    {
+                        return declaration.WithBody(null)
+                                          .WithExpressionBody(expressionBody)
+                                          .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                    }
+                }
+            }
+
+            return declaration;
         }
 
         private static ConstructorInitializerSyntax GenerateConstructorInitializer(

@@ -143,7 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 if (method.IsConstructor())
                 {
-                    return Cast<TDeclarationNode>(ConstructorGenerator.AddConstructorTo(typeDeclaration, method, options, availableIndices));
+                    return Cast<TDeclarationNode>(ConstructorGenerator.AddConstructorTo(
+                        typeDeclaration, method, Workspace, options, availableIndices));
                 }
 
                 if (method.IsDestructor())
@@ -616,7 +617,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (method.IsConstructor())
             {
-                return ConstructorGenerator.GenerateConstructorDeclaration(method, destination, options);
+                return ConstructorGenerator.GenerateConstructorDeclaration(
+                    method, destination, Workspace, options);
             }
             else if (method.IsDestructor())
             {
