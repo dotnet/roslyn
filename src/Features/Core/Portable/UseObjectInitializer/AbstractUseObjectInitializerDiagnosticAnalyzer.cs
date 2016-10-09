@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
-                  new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                  new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var severity = option.Notification.Value;
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(Id, severity),
+                CreateDescriptor(DescriptorId, severity),
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 

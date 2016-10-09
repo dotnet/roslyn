@@ -1303,6 +1303,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer inlined variable declaration.
+        /// </summary>
+        internal static string Prefer_inlined_variable_declaration {
+            get {
+                return ResourceManager.GetString("Prefer_inlined_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer object initializer.
         /// </summary>
         internal static string Prefer_object_initializer {
@@ -1893,6 +1902,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Validating_breakpoint_location {
             get {
                 return ResourceManager.GetString("Validating_breakpoint_location", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable preferences:.
+        /// </summary>
+        internal static string Variable_preferences_colon {
+            get {
+                return ResourceManager.GetString("Variable_preferences_colon", resourceCulture);
             }
         }
         
