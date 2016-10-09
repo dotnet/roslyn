@@ -274,7 +274,7 @@ class C
 }
 ";
 
-        private static readonly string s_preferPatternToAsWithNullCheck = @"
+        private static readonly string s_preferPatternMatchingOverAsWithNullCheck = @"
 class C
 {
     void M()
@@ -295,7 +295,7 @@ class C
 }
 ";
 
-        private static readonly string s_preferPatternToIsWithCastCheck = @"
+        private static readonly string s_preferPatternMatchingOverIsWithCastCheck = @"
 class C
 {
     void M()
@@ -409,8 +409,8 @@ class Customer
 
             // Expression preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternToIsWithCastCheck, CSharpVSResources.Prefer_pattern_to_is_with_cast_check, s_preferPatternToIsWithCastCheck, s_preferPatternToIsWithCastCheck, this, optionSet, expressionPreferencesGroupTitle));
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternToAsWithNullCheck, CSharpVSResources.Prefer_pattern_to_as_with_null_check, s_preferPatternToAsWithNullCheck, s_preferPatternToAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
 
             // Variable preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferInlinedVariableDeclaration, ServicesVSResources.Prefer_inlined_variable_declaration, s_preferInlinedVariableDeclaration, s_preferInlinedVariableDeclaration, this, optionSet, variablePreferencesGroupTitle));

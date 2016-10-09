@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly Option<CodeStyleOption<bool>> PreferConditionalDelegateCall = new Option<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferConditionalDelegateCall), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferConditionalDelegateCall"));
 
-        public static readonly Option<CodeStyleOption<bool>> PreferPatternToAsWithNullCheck = new Option<CodeStyleOption<bool>>(
-            nameof(CodeStyleOptions), nameof(PreferPatternToAsWithNullCheck), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternToAsWithNullCheck)}"));
+        public static readonly Option<CodeStyleOption<bool>> PreferPatternMatchingOverAsWithNullCheck = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferPatternMatchingOverAsWithNullCheck), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverAsWithNullCheck)}"));
 
-        public static readonly Option<CodeStyleOption<bool>> PreferPatternToIsWithCastCheck = new Option<CodeStyleOption<bool>>(
-            nameof(CodeStyleOptions), nameof(PreferPatternToIsWithCastCheck), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternToIsWithCastCheck)}"));
+        public static readonly Option<CodeStyleOption<bool>> PreferPatternMatchingOverIsWithCastCheck = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferPatternMatchingOverIsWithCastCheck), defaultValue: CodeStyleOptions.trueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverIsWithCastCheck)}"));
     }
 }
