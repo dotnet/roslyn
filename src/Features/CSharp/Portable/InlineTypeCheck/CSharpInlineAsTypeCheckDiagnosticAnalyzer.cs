@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
         public bool OpenFileOnly(Workspace workspace) => false;
 
         public CSharpInlineAsTypeCheckDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.InlineTypeCheckId,
+            : base(IDEDiagnosticIds.InlineAsTypeCheckId,
                    new LocalizableResourceString(nameof(FeaturesResources.Inline_type_check), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
             // look for the form "if (a != null)" or "if (null != a)"
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
 
-            // "x is Type" is only available in C# 7.0 and above.  Don't offer this refactoring
+            // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
             // in projects targetting a lesser version.
             if (((CSharpParseOptions)ifStatement.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {

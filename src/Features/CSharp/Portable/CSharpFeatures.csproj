@@ -60,8 +60,11 @@
     </Compile>
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
+    <Compile Include="InlineTypeCheck\CSharpInlineIsTypeCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
+    <Compile Include="InlineTypeCheck\CSharpInlineIsTypeCheckCodeFixProvider.cs" />
     <Compile Include="InlineTypeCheck\CSharpInlineAsTypeCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.InlineDeclarationFixAllProvider.cs" />
+    <Compile Include="InlineTypeCheck\CSharpInlineIsTypeCheckDiagnosticAnalyzer.cs" />
     <Compile Include="InlineTypeCheck\CSharpInlineAsTypeCheckDiagnosticAnalyzer.cs" />
     <Compile Include="InlineTypeCheck\CSharpInlineAsTypeCheckCodeFixProvider.cs" />
     <Compile Include="Structure\Providers\BlockSyntaxStructureProvider.cs" />
