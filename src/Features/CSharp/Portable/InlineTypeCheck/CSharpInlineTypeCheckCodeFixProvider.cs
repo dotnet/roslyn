@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -76,12 +77,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
                     Extensions.SyntaxTokenExtensions.WithoutTrivia(
                         localDeclaration.Declaration.Variables[0].Identifier)));
 
-            editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepExteriorTrivia);
+            var trivia = localDeclaration.GetLeadingTrivia().Concat(localDeclaration.GetTrailingTrivia())
+                                         .Where(t => t.IsSingleOrMultiLineComment())
+                                         .SelectMany(t => ImmutableArray.Create(t, SyntaxFactory.ElasticCarriageReturnLineFeed))
+                                         .ToImmutableArray();
+
+            editor.RemoveNode(localDeclaration);
             editor.ReplaceNode(ifStatement,
                 (i, g) =>
                 {
                     var currentIf = (IfStatementSyntax)i;
                     return currentIf.ReplaceNode(currentIf.Condition, updatedCondition)
+                                    .WithPrependedLeadingTrivia(trivia)
                                     .WithAdditionalAnnotations(Formatter.Annotation);
                 });
         }

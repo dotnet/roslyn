@@ -16,58 +16,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        int {|FixAllInDocument:i|}, j;
-        if (int.TryParse(v, out i, out j))
+        {|FixAllInDocument:var|} x = o as string;
+        if (x != null)
         {
         } 
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (int.TryParse(v, out int i, out int j))
+
+        var y = o as string;
+        if (y != null)
         {
-        } 
-    }
-}");
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task FixAllInDocument2()
-        {
-
-            await TestAsync(
-@"class C
-{
-    void M()
-    {
-        {|FixAllInDocument:int|} i;
-        if (int.TryParse(v, out i))
-        {
-        } 
-    }
-
-    void M1()
-    {
-        int i;
-        if (int.TryParse(v, out i))
-        {
-        } 
     }
 }",
 @"class C
 {
     void M()
     {
-        if (int.TryParse(v, out int i))
+        if (o is string x)
         {
         } 
-    }
 
-    void M1()
-    {
-        if (int.TryParse(v, out int i))
+        if (o is string y)
         {
         } 
     }
