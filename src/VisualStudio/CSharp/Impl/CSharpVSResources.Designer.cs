@@ -880,6 +880,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer inlined type check.
+        /// </summary>
+        internal static string Prefer_inlined_type_check {
+            get {
+                return ResourceManager.GetString("Prefer_inlined_type_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
         /// </summary>
         internal static string Prefer_this {
