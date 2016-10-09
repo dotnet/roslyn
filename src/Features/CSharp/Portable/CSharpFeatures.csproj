@@ -60,11 +60,11 @@
     </Compile>
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
-    <Compile Include="UsePatternMatching\CSharpInlineIsTypeCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
-    <Compile Include="UsePatternMatching\CSharpInlineIsTypeCheckCodeFixProvider.cs" />
+    <Compile Include="UsePatternMatching\CSharpUsePatternMatchingOverIsAndCastCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
+    <Compile Include="UsePatternMatching\CSharpUsePatternMatchingOverIsAndCastCheckCodeFixProvider.cs" />
     <Compile Include="UsePatternMatching\CSharpInlineAsTypeCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.InlineDeclarationFixAllProvider.cs" />
-    <Compile Include="UsePatternMatching\CSharpInlineIsTypeCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="UsePatternMatching\CSharpUsePatternMatchingOverIsAndCastCheckDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpInlineAsTypeCheckDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpInlineAsTypeCheckCodeFixProvider.cs" />
     <Compile Include="Structure\Providers\BlockSyntaxStructureProvider.cs" />

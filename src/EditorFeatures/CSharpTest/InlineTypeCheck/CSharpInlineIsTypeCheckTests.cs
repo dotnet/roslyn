@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpInlineIsTypeCheckDiagnosticAnalyzer(),
-                new CSharpInlineIsTypeCheckCodeFixProvider());
+                new CSharpUsePatternMatchingOverIsAndCastCheckDiagnosticAnalyzer(),
+                new CSharpUsePatternMatchingOverIsAndCastCheckCodeFixProvider());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]

@@ -8,13 +8,13 @@ using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
-    internal partial class CSharpInlineIsTypeCheckCodeFixProvider : CodeFixProvider
+    internal partial class CSharpUsePatternMatchingOverIsAndCastCheckCodeFixProvider : CodeFixProvider
     {
         private class InlineTypeCheckFixAllProvider : DocumentBasedFixAllProvider
         {
-            private readonly CSharpInlineIsTypeCheckCodeFixProvider _provider;
+            private readonly CSharpUsePatternMatchingOverIsAndCastCheckCodeFixProvider _provider;
 
-            public InlineTypeCheckFixAllProvider(CSharpInlineIsTypeCheckCodeFixProvider provider)
+            public InlineTypeCheckFixAllProvider(CSharpUsePatternMatchingOverIsAndCastCheckCodeFixProvider provider)
             {
                 _provider = provider;
             }

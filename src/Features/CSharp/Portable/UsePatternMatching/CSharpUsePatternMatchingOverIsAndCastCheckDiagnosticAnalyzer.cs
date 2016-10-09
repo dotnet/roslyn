@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     }
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpInlineIsTypeCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal class CSharpUsePatternMatchingOverIsAndCastCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public CSharpInlineIsTypeCheckDiagnosticAnalyzer()
+        public CSharpUsePatternMatchingOverIsAndCastCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,
                    new LocalizableResourceString(nameof(FeaturesResources.Inline_type_check), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
