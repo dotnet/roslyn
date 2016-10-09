@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
             new Dictionary<OptionKey, object>
             {
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, false },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, false },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, false }
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.falseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.falseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement }
             };
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOn =
             new Dictionary<OptionKey, object>
             {
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, true },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, true },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true }
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.trueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.trueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.trueWithNoneEnforcement }
             };
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
@@ -426,8 +426,8 @@ public interface DD
 }
 public class A : DD
 {
-    public int Prop => throw new NotImplementedException();
-}", compareTokens: false);
+    public int Prop { get { throw new NotImplementedException(); } }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
