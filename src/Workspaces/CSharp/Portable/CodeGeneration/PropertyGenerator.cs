@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = CodeGenerationHelpers.TryConvertToExpressionBody(declaration.Body);
+                    var expressionBody = declaration.Body.TryConvertToExpressionBody();
                     if (expressionBody != null)
                     {
                         declaration = declaration.WithBody(null)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // for the property.
             return accessor.ExpressionBody != null
                 ? accessor.ExpressionBody
-                : CodeGenerationHelpers.TryConvertToExpressionBody(accessor.Body);
+                : accessor.Body.TryConvertToExpressionBody();
         }
 
         private static AccessorListSyntax GenerateAccessorList(

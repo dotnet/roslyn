@@ -2,11 +2,11 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
+namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
-    internal static class CodeGenerationHelpers
+    internal static class BlockSyntaxExtensions
     {
-        public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(BlockSyntax block)
+        public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(this BlockSyntax block)
         {
             if (block != null && block.Statements.Count == 1)
             {
@@ -46,5 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return null;
         }
+
     }
 }

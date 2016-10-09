@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = CodeGenerationHelpers.TryConvertToExpressionBody(declaration.Body);
+                    var expressionBody = declaration.Body.TryConvertToExpressionBody();
                     if (expressionBody != null)
                     {
                         return declaration.WithBody(null)

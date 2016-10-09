@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = CodeGenerationHelpers.TryConvertToExpressionBody(methodDeclaration.Body);
+                    var expressionBody = methodDeclaration.Body.TryConvertToExpressionBody();
                     if (expressionBody != null)
                     {
                         return methodDeclaration.WithBody(null)

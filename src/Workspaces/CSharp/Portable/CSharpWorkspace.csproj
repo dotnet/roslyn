@@ -65,7 +65,6 @@
     <Compile Include="Classification\Worker_Preprocesser.cs" />
     <Compile Include="CodeCleanup\CSharpCodeCleanerService.cs" />
     <Compile Include="CodeCleanup\CSharpCodeCleanerServiceFactory.cs" />
-    <Compile Include="CodeGeneration\CodeGenerationHelpers.cs" />
     <Compile Include="CodeGeneration\CSharpCodeGenerationHelpers.cs" />
     <Compile Include="CodeGeneration\CSharpFlagsEnumGenerator.cs" />
     <Compile Include="CodeGeneration\ArgumentGenerator.cs" />
@@ -97,6 +96,7 @@
     <Compile Include="CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
     <Compile Include="Execution\CSharpOptionsSerializationService.cs" />
+    <Compile Include="Extensions\BlockSyntaxExtensions.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="LanguageServices\CSharpCommandLineParserService.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
