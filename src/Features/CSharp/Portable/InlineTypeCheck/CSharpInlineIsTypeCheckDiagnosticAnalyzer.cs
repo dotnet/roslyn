@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
             }
 
             var castExpression = (CastExpressionSyntax)declaratorValue;
-            if (!SyntaxFactory.AreEquivalent(isExpression.Left.WalkDownParentheses(), castExpression.Expression, topLevel: false) ||
+            if (!SyntaxFactory.AreEquivalent(isExpression.Left.WalkDownParentheses(), castExpression.Expression.WalkDownParentheses(), topLevel: false) ||
                 !SyntaxFactory.AreEquivalent(isExpression.Right.WalkDownParentheses(), castExpression.Type, topLevel: false))
             {
                 return;
