@@ -280,6 +280,7 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
+    <Compile Include="InlineTypeCheck\CSharpInlineIsTypeCheckTests_FixAllTests.cs" />
     <Compile Include="InlineTypeCheck\CSharpInlineIsTypeCheckTests.cs" />
     <Compile Include="InlineTypeCheck\CSharpInlineAsTypeCheckTests.cs" />
     <Compile Include="InlineTypeCheck\CSharpInlineAsTypeCheckTests_FixAllTests.cs" />

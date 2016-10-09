@@ -79,6 +79,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingInWrongType()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if (x is string)
+        {
+            [|var|] v = (bool)x;
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingOnMultiVar()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if (x is string)
+        {
+            var [|v|] = (string)x, v1 = "";
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestMissingOnNonDeclaration()
         {
             await TestMissingAsync(
