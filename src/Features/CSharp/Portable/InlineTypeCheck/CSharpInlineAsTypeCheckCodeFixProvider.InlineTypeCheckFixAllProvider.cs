@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
 {
-    internal partial class CSharpInlineTypeCheckCodeFixProvider : CodeFixProvider
+    internal partial class CSharpInlineAsTypeCheckCodeFixProvider : CodeFixProvider
     {
         private class InlineTypeCheckFixAllProvider : DocumentBasedFixAllProvider
         {
-            private readonly CSharpInlineTypeCheckCodeFixProvider _provider;
+            private readonly CSharpInlineAsTypeCheckCodeFixProvider _provider;
 
-            public InlineTypeCheckFixAllProvider(CSharpInlineTypeCheckCodeFixProvider provider)
+            public InlineTypeCheckFixAllProvider(CSharpInlineAsTypeCheckCodeFixProvider provider)
             {
                 _provider = provider;
             }

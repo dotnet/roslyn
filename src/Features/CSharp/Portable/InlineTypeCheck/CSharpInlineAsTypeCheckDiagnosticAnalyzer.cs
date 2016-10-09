@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
     ///     if (o is Type x) ...
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpInlineTypeCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal class CSharpInlineAsTypeCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public CSharpInlineTypeCheckDiagnosticAnalyzer()
+        public CSharpInlineAsTypeCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineTypeCheckId,
                    new LocalizableResourceString(nameof(FeaturesResources.Inline_type_check), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

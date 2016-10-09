@@ -13,13 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
-    public partial class CSharpInlineTypeCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class CSharpInlineAsTypeCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpInlineTypeCheckDiagnosticAnalyzer(),
-                new CSharpInlineTypeCheckCodeFixProvider());
+                new CSharpInlineAsTypeCheckDiagnosticAnalyzer(),
+                new CSharpInlineAsTypeCheckCodeFixProvider());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]

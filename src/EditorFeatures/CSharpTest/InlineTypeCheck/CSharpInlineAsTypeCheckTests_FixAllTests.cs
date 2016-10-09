@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
-    public partial class CSharpInlineTypeCheckTests
+    public partial class CSharpInlineAsTypeCheckTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task FixAllInDocument1()
