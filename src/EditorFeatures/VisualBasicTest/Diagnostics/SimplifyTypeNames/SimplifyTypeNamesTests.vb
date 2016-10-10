@@ -1736,7 +1736,7 @@ NewLines("Class C \n Dim x = 7 \n Sub M() \n x = Nothing \n End Sub \n End Class
         Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
             Await TestDiagnosticSeverityAndCountAsync(
                 "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
-                options:=OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
+                options:=OptionsSet(Tuple.Create(DirectCast(CodeStyleOptions.QualifyPropertyAccess, IOption), False, NotificationOption.Error)),
                 diagnosticCount:=1,
                 diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)

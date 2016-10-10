@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -527,12 +528,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return codeActions?.SelectMany(a => a.HasCodeActions ? a.GetCodeActions().ToArray() : new[] { a }).ToList();
         }
 
-        protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyle.CodeStyleOption<bool>> option, bool value, CodeStyle.NotificationOption notification)
-        {
-            return OptionsSet(Tuple.Create(option, value, notification));
-        }
+        protected IDictionary<OptionKey, object> Option(IOption option, CodeStyleOption<bool> notification)
+            => Option(option, notification.Value, notification.Notification);
 
-        protected IDictionary<OptionKey, object> OptionsSet(params Tuple<PerLanguageOption<CodeStyle.CodeStyleOption<bool>>, bool, CodeStyle.NotificationOption>[] optionsToSet)
+
+        protected IDictionary<OptionKey, object> Option(IOption option, bool value, NotificationOption notification)
+            => OptionsSet(Tuple.Create(option, value, notification));
+
+        protected IDictionary<OptionKey, object> OptionsSet(params Tuple<IOption, bool, NotificationOption>[] optionsToSet)
         {
             var options = new Dictionary<OptionKey, object>();
             foreach (var triple in optionsToSet)
@@ -540,7 +543,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var option = triple.Item1;
                 var value = triple.Item2;
                 var notification = triple.Item3;
-                options.Add(new OptionKey(option, GetLanguage()), new CodeStyle.CodeStyleOption<bool>(value, notification));
+                var optionKey = new OptionKey(option, option.IsPerLanguage ? GetLanguage() : null);
+                options.Add(optionKey, new CodeStyleOption<bool>(value, notification));
             }
 
             return options;

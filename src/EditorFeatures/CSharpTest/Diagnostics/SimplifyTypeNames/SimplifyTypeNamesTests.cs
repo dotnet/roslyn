@@ -3293,7 +3293,7 @@ class Program
         {
             await TestDiagnosticSeverityAndCountAsync(
                 @"class C { int SomeProperty { get; set; } void M() { [|this|].SomeProperty = 1; } }",
-                options: OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning)),
+                options: Option(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning),
                 diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
