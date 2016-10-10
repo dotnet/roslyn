@@ -22,6 +22,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         End Function
 
         <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WorkItem(14391, "https://github.com/dotnet/roslyn/issues/14391")>
+        Public Async Function TestCommitLineWithTupleType() As Task
+            Using testData = Await CommitTestData.CreateAsync(<Workspace>
+                                                                  <Project Language="Visual Basic" CommonReferences="true">
+                                                                      <Document>
+Imports System
+Public Class C
+    Shared Sub Main()
+        Dim t As (In$$)
+    End Sub
+    Shared Sub Int()
+    End Sub
+End Class
+                                                        </Document>
+                                                                  </Project>
+                                                              </Workspace>)
+
+                testData.CommandHandler.ExecuteCommand(New PasteCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertText("t"))
+                testData.CommandHandler.ExecuteCommand(New SaveCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub)
+                testData.AssertHadCommit(True)
+                ' The code cleanup should not add parens after the Int, so no exception.
+            End Using
+        End Function
+
+        <WpfFact>
         <WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestDontCommitOnMultiLinePasteWithPrettyListingOff() As Task
