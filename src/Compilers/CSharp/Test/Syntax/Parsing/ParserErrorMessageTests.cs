@@ -2048,30 +2048,33 @@ namespace x
 ";
             // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
             ParseAndValidate(text, TestOptions.Regular,
-    // (7,21): error CS1031: Type expected
-    //             e = new base;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
-    // (7,21): error CS1526: A new expression requires (), [], or {} after type
-    //             e = new base;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
-    // (7,21): error CS1002: ; expected
-    //             e = new base;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
-    // (8,21): error CS1031: Type expected
-    //             e = new this;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
-    // (8,21): error CS1526: A new expression requires (), [], or {} after type
-    //             e = new this;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
-    // (8,21): error CS1002: ; expected
-    //             e = new this;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-    // (9,21): error CS8096: Tuple type must have at least two elements.
-    //             e = new ();     // CS1031, too few tuple elements
-    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
-    // (9,23): error CS1526: A new expression requires (), [], or {} after type
-    //             e = new ();     // CS1031, too few tuple elements
-    Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
+                // (7,21): error CS1031: Type expected
+                //             e = new base;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
+                // (7,21): error CS1526: A new expression requires (), [], or {} after type
+                //             e = new base;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
+                // (7,21): error CS1002: ; expected
+                //             e = new base;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
+                // (8,21): error CS1031: Type expected
+                //             e = new this;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
+                // (8,21): error CS1526: A new expression requires (), [], or {} after type
+                //             e = new this;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
+                // (8,21): error CS1002: ; expected
+                //             e = new this;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
+                // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //             e = new ();     // CS1031, too few tuple elements
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
+                // (9,21): error CS8124: Tuple must contain at least two elements.
+                //             e = new ();     // CS1031, too few tuple elements
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
+                // (9,23): error CS1526: A new expression requires (), [], or {} after type
+                //             e = new ();     // CS1031, too few tuple elements
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
              );
         }
 
@@ -2111,6 +2114,9 @@ namespace x
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
+                // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //             e = new ();     // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
                 // (9,21): error CS8124: Tuple must contain at least two elements.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
@@ -2416,7 +2422,7 @@ Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
 
         // TODO: extra error CS1014
         [Fact]
-        public void CS1043ERR_SemiOrLBraceExpected()
+        public void CS7887ERR_SemiOrLBraceOrArrowExpected()
         {
             var test = @"
 using System;
@@ -2434,9 +2440,9 @@ return 1;
 ";
 
             ParseAndValidate(test,
-    // (7,13): error CS1043: { or ; expected
+    // (7,13): error CS7887: { or ; or => expected
     //         get return 1;
-    Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "return"),
+    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "return"),
     // (8,2): error CS1513: } expected
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
@@ -3356,15 +3362,18 @@ public class mine {
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (12,17): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-    //         try {B b(3);
-    Diagnostic(ErrorCode.ERR_BadVarDecl, "(3)"),
-    // (12,17): error CS1003: Syntax error, '[' expected
-    //         try {B b(3);
-    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-    // (12,20): error CS1003: Syntax error, ']' expected
-    //         try {B b(3);
-    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
+                // (12,18): error CS1026: ) expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "3").WithLocation(12, 18),
+                // (12,18): error CS1002: ; expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "3").WithLocation(12, 18),
+                // (12,19): error CS1002: ; expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(12, 19),
+                // (12,19): error CS1513: } expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(12, 19));
         }
 
         [Fact]
@@ -3452,6 +3461,7 @@ class MyClass {
         }
 
         // TODO: extra error CS1001
+
         [Fact]
         public void CS1536ERR_NoVoidParameter()
         {
@@ -3469,6 +3479,23 @@ class Test
     // (4,25): error CS1001: Identifier expected
     //     public void foo(void){}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
+        }
+
+        [Fact]
+        public void CS1536ERR_NoVoidParameter_02()
+        {
+            var test = @"
+class Test
+{
+    object o = (ref void x) => {};
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS1536: Invalid parameter type 'void'
+                //     object o = (ref void x) => {};
+                Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(4, 21)
+                );
         }
 
         [Fact]
@@ -5109,30 +5136,19 @@ class Program
 
             SyntaxFactory.ParseSyntaxTree(source).GetDiagnostics().Verify(
                 // (7,14): error CS1514: { expected
+                //     delegate int F1(); 
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "int").WithLocation(7, 14),
                 // (7,14): error CS1002: ; expected
+                //     delegate int F1(); 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(7, 14),
-                // (7,20): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "()").WithLocation(7, 20),
-                // (7,20): error CS1003: Syntax error, '[' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(7, 20),
-                // (7,21): error CS1525: Invalid expression term ')'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 21),
-                // (7,22): error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(7, 22),
                 // (8,14): error CS1514: { expected
+                //     delegate int F2();
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "int").WithLocation(8, 14),
                 // (8,14): error CS1002: ; expected
+                //     delegate int F2();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(8, 14),
-                // (8,20): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "()").WithLocation(8, 20),
-                // (8,20): error CS1003: Syntax error, '[' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 20),
-                // (8,21): error CS1525: Invalid expression term ')'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 21),
-                // (8,22): error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(8, 22),
                 // (9,2): error CS1513: } expected
+                // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 2));
         }
 

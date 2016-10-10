@@ -78,6 +78,9 @@ namespace Roslyn.Test.Utilities
 
                 process.WaitForExit();
 
+                // Double check the process has actually exited
+                Debug.Assert(process.HasExited);
+
                 return new ProcessResult(process.ExitCode, outputBuilder.ToString(), errorBuilder.ToString());
             }
         }

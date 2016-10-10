@@ -28,6 +28,11 @@ namespace RunTests
         public bool Test64 { get; set; }
 
         /// <summary>
+        /// Use the open integration test runner.
+        /// </summary>
+        public bool TestVsi { get; set; }
+
+        /// <summary>
         /// Allow the caching of test results.
         /// </summary>
         public bool UseCachedResults { get; set; }
@@ -75,6 +80,12 @@ namespace RunTests
                 if (comp.Equals(current, "-test64"))
                 {
                     opt.Test64 = true;
+                    index++;
+                }
+                else if (comp.Equals(current, "-testVsi"))
+                {
+                    opt.TestVsi = true;
+                    opt.UseCachedResults = false;
                     index++;
                 }
                 else if (comp.Equals(current, "-xml"))

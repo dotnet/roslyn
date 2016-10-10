@@ -1260,7 +1260,15 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("TupleElementNameCountMismatch", resourceCulture);
             }
         }
-        
+
+        internal static string TupleElementLocationCountMismatch
+        {
+            get
+            {
+                return ResourceManager.GetString("TupleElementLocationCountMismatch", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Tuples must have at least two elements..
         /// </summary>

@@ -10,7 +10,7 @@
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
     <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.0.0</RoslynFileVersionBase>
     <!-- This is the base of the NuGet versioning for prerelease packages -->
-    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-beta5</NuGetPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-beta6</NuGetPreReleaseVersion>
     <!-- Currently we version IW the same as Roslyn. -->
     <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynAssemblyVersionBase)</MicrosoftVisualStudioInteractiveWindowVersion>
   </PropertyGroup>
@@ -52,13 +52,14 @@
 
     <Otherwise>
       <!-- No build version was supplied.  We'll use a special version, higher than anything
-          installed, so that the assembly identity is different.  This will allows us to
-          have a build with an actual number installed, but then build and F5 a build with
-          this number.  -->
+           installed, so that the assembly identity is different.  This will allows us to
+           have a build with an actual number installed, but then build and F5 a build with
+           this number. We will make AssemblyVersion and BuildVersion different, to catch
+           any bugs where people might assume they are the same. -->
       <PropertyGroup>
         <AssemblyVersion>42.42.42.42</AssemblyVersion>
-        <BuildVersion>42.42.42.42</BuildVersion>
-        <VsixVersion>42.42.42.42</VsixVersion>
+        <BuildVersion>42.42.42.42424</BuildVersion>
+        <VsixVersion>42.42.42.42424</VsixVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -80,7 +81,7 @@
             <DotGitDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../.git'))</DotGitDir>
             <HeadFileContent Condition="Exists('$(DotGitDir)/HEAD')">$([System.IO.File]::ReadAllText('$(DotGitDir)/HEAD').Trim())</HeadFileContent>
             <RefPath Condition="$(HeadFileContent.StartsWith('ref: '))">$(DotGitDir)/$(HeadFileContent.Substring(5))</RefPath>
-            <GitHeadSha Condition="'$(RefPath)' != ''">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
+            <GitHeadSha Condition="'$(RefPath)' != '' and Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
             <GitHeadSha Condition="'$(HeadFileContent)' != '' and
                                    '$(RefPath)' == ''">$(HeadFileContent)</GitHeadSha>
           </PropertyGroup>

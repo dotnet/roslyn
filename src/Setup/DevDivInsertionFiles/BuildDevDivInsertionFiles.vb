@@ -28,7 +28,6 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly _setupDirectory As String
     Private ReadOnly _nugetPackageRoot As String
     Private ReadOnly _assemblyVersion As String
-    Private ReadOnly _interactiveWindowPackageVersion As String
 
     Private Sub New(args As String())
         _binDirectory = Path.GetFullPath(args(0))
@@ -37,12 +36,11 @@ Public Class BuildDevDivInsertionFiles
         _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
         _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
         _assemblyVersion = args(3)
-        _interactiveWindowPackageVersion = args(4)
     End Sub
 
     Public Shared Function Main(args As String()) As Integer
-        If args.Length <> 5 Then
-            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version> <interactive window version>")
+        If args.Length <> 4 Then
+            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version>")
             Return 1
         End If
 
@@ -106,19 +104,28 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.DiaSymReader.Native.x86.dll",
         "System.AppContext.dll",
         "System.Console.dll",
+        "System.Diagnostics.FileVersionInfo.dll",
         "System.Diagnostics.Process.dll",
         "System.Diagnostics.StackTrace.dll",
-        "System.IO.Pipes.dll",
+        "System.IO.Compression.dll",
         "System.IO.FileSystem.dll",
         "System.IO.FileSystem.DriveInfo.dll",
         "System.IO.FileSystem.Primitives.dll",
+        "System.IO.Pipes.dll",
         "System.Runtime.InteropServices.RuntimeInformation.dll",
         "System.Security.AccessControl.dll",
         "System.Security.Claims.dll",
         "System.Security.Cryptography.Algorithms.dll",
+        "System.Security.Cryptography.Encoding.dll",
         "System.Security.Cryptography.Primitives.dll",
+        "System.Security.Cryptography.X509Certificates.dll",
         "System.Security.Principal.Windows.dll",
+        "System.Text.Encoding.CodePages.dll",
         "System.Threading.Thread.dll",
+        "System.ValueTuple.dll",
+        "System.Xml.XmlDocument.dll",
+        "System.Xml.XPath.dll",
+        "System.Xml.XPath.XDocument.dll",
         "csc.exe",
         "csc.exe.config",
         "csc.rsp",
@@ -138,7 +145,6 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.VisualStudio.Setup.vsix",
         "ExpressionEvaluatorPackage.vsix",
         "Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Microsoft.VisualStudio.VsInteractiveWindow.vsix",
         "Roslyn.VisualStudio.Setup.Interactive.vsix",
         "Roslyn.VisualStudio.Setup.Next.vsix"
     }
@@ -490,13 +496,6 @@ Public Class BuildDevDivInsertionFiles
             Me.IsFacade = isFacade
         End Sub
 
-        ' TODO: remove
-        Public ReadOnly Property IsInteractiveWindow As Boolean
-            Get
-                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow"
-            End Get
-        End Property
-
         ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
         ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
         Public ReadOnly Property IsCoreXTCompatible As Boolean
@@ -507,7 +506,8 @@ Public Class BuildDevDivInsertionFiles
                           "System.Reflection.TypeExtensions",
                           "System.Net.Security",
                           "System.Diagnostics.Process",
-                          "System.AppContext"
+                          "System.AppContext",
+                          "System.IO.Compression"
 
                         Return False
                     Case Else
@@ -575,10 +575,6 @@ Public Class BuildDevDivInsertionFiles
             Next
         Next
 
-        ' TODO: remove once we have a proper package
-        result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False, isFacade:=False))
-        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False, isFacade:=False))
-
         Return result
     End Function
 
@@ -628,15 +624,11 @@ Public Class BuildDevDivInsertionFiles
                 If Not dependency.IsNative Then
 
                     Dim version As Version
-                    If dependency.IsInteractiveWindow Then
-                        version = Version.Parse(_interactiveWindowPackageVersion.Split("-"c)(0))
-                    Else
-                        Dim dllPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
+                    Dim dllPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
 
-                        Using peReader = New PEReader(File.OpenRead(dllPath))
-                            version = peReader.GetMetadataReader().GetAssemblyDefinition().Version
-                        End Using
-                    End If
+                    Using peReader = New PEReader(File.OpenRead(dllPath))
+                        version = peReader.GetMetadataReader().GetAssemblyDefinition().Version
+                    End Using
 
                     writer.WriteLine($"{Path.GetFileNameWithoutExtension(fileName)},{version}")
                 End If
@@ -646,10 +638,6 @@ Public Class BuildDevDivInsertionFiles
 
     Private Sub CopyDependencies(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
         For Each dependency In dependencies.Values
-            If dependency.IsInteractiveWindow Then
-                Continue For
-            End If
-
             ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
             ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
             If Not dependency.IsCoreXTCompatible Then
@@ -784,37 +772,23 @@ Public Class BuildDevDivInsertionFiles
                         Continue For
                     End If
 
+                    If IsLanguageServiceRegistrationFile(partFileName) Then
+                        Continue For
+                    End If
+
                     If dependencies.ContainsKey(partFileName) Then
                         Continue For
                     End If
 
-                    Dim relativeOutputDir As String
-                    If IsLanguageServiceRegistrationFile(partFileName) Then
-                        relativeOutputDir = Path.Combine(GetExternalApiDirectory(), "LanguageServiceRegistration", vsixName)
-                    Else
-                        relativeOutputDir = GetExternalApiDirectory()
-                    End If
+                    Dim relativeOutputFilePath = Path.Combine(GetExternalApiDirectory(), partFileName)
 
-                    Dim relativeOutputFilePath = Path.Combine(relativeOutputDir, partFileName)
-
+                    ' paths are relative to input directory:
                     If processedFiles.Add(relativeOutputFilePath) Then
-                        If IsLanguageServiceRegistrationFile(partFileName) Then
-                            Dim absoluteOutputFilePath = GetAbsolutePathInOutputDirectory(relativeOutputFilePath)
-                            WriteVsixPartToFile(vsixPart, absoluteOutputFilePath)
+                        ' In Razzle src\ArcProjects\debugger\ConcordSDK.targets references .vsdconfig files under LanguageServiceRegistration\ExpressionEvaluatorPackage
+                        Dim target = If(Path.GetExtension(partFileName).Equals(".vsdconfig"), "LanguageServiceRegistration\ExpressionEvaluatorPackage", "")
 
-                            ' We want to rewrite a few of these things from our standard vsix-installable forms
-                            Select Case Path.GetExtension(absoluteOutputFilePath)
-                                Case ".pkgdef"
-                                    RewritePkgDef(absoluteOutputFilePath)
-
-                                Case ".vsixmanifest"
-                                    RewriteVsixManifest(absoluteOutputFilePath)
-                            End Select
-                        Else
-                            ' paths are relative to input directory:
-                            filesToInsert.Add(New NugetFileInfo(partFileName))
-                            AddXmlDocumentationFile(filesToInsert, partFileName)
-                        End If
+                        filesToInsert.Add(New NugetFileInfo(partFileName, target))
+                        AddXmlDocumentationFile(filesToInsert, partFileName)
                     End If
                 Next
             End Using
@@ -841,12 +815,6 @@ Public Class BuildDevDivInsertionFiles
         End If
     End Sub
 
-    Private Sub WriteVsixPartToFile(vsixPart As PackagePart, path As String)
-        Using outputStream = New FileStream(path, FileMode.Create)
-            vsixPart.GetStream().CopyTo(outputStream)
-        End Using
-    End Sub
-
     ''' <summary>
     ''' Takes a list of paths relative to <see cref="_outputDirectory"/> and generates a nuspec file that includes them.
     ''' </summary>
@@ -863,7 +831,6 @@ Public Class BuildDevDivInsertionFiles
                           <version>0.0</version>
                       </metadata>
                       <files>
-                          <file src=<%= Path.Combine(DevDivInsertionFilesDirName, ExternalApisDirName, "Roslyn", "**") %> target=""/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f.Path).
                               Distinct().
@@ -874,39 +841,26 @@ Public Class BuildDevDivInsertionFiles
         xml.Save(GetAbsolutePathInOutputDirectory(PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
     End Sub
 
-    Private Sub RewriteVsixManifest(fileToRewrite As String)
-        Dim xml = XDocument.Load(fileToRewrite)
-        Dim installationElement = xml.<vsix:PackageManifest>.<vsix:Installation>.Single()
-
-        ' We want to modify the .vsixmanifest to say this was installed via MSI
-        installationElement.@InstalledByMsi = "true"
-
-        ' Ensure the VSIX isn't shown in the extension gallery
-        installationElement.@SystemComponent = "true"
-
-        ' We build our VSIXes with the experimental flag so you can install them as test extensions. In the real MSI, they're not experimental.
-        installationElement.Attribute("Experimental")?.Remove()
-
-        ' Update the path to our MEF/Analyzer Components to be in their new home under PrivateAssemblies
-        Dim assets = From asset In xml...<vsix:Asset>
-                     Where asset.@Type = "Microsoft.VisualStudio.MefComponent" OrElse
-                            asset.@Type = "Microsoft.VisualStudio.Analyzer"
-
-        For Each asset In assets
-            asset.@Path = "$RootFolder$Common7\IDE\PrivateAssemblies\" & asset.@Path
-        Next
-        xml.Save(fileToRewrite)
-    End Sub
-
-    Private Shared Function IsVisualStudioLanguageServiceComponent(fileName As String) As Boolean
-        Return fileName.StartsWith("Microsoft.VisualStudio.LanguageServices.")
-    End Function
 
     Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As IEnumerable(Of String))
         Const PackageName As String = "VS.Tools.Roslyn"
 
         ' No duplicates are allowed
         filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
+
+        ' Write an Init.cmd that sets DEVPATH to the toolset location. This overrides
+        ' assembly loading during the VS build to always look in the Roslyn toolset
+        ' first. This is necessary because there are various incompatible versions
+        ' of Roslyn littered throughout the DEVPATH already and this one should always
+        ' take precedence.
+        Dim fileContents = "@echo off
+
+set RoslynToolsRoot=%~dp0
+set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
+
+        File.WriteAllText(
+            Path.Combine(_binDirectory, "Init.cmd"),
+            fileContents)
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
                   <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
@@ -918,6 +872,7 @@ Public Class BuildDevDivInsertionFiles
                           <version>0.0</version>
                       </metadata>
                       <files>
+                          <file src="Init.cmd"/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
                               Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
@@ -929,7 +884,7 @@ Public Class BuildDevDivInsertionFiles
 
     Private Function IsLanguageServiceRegistrationFile(fileName As String) As Boolean
         Select Case Path.GetExtension(fileName)
-            Case ".vsixmanifest", ".pkgdef", ".png", ".ico", ".vsdconfig"
+            Case ".vsixmanifest", ".pkgdef", ".png", ".ico"
                 Return True
             Case Else
                 Return False
@@ -949,69 +904,4 @@ Public Class BuildDevDivInsertionFiles
 
         Return absolutePath
     End Function
-
-    ''' <summary>
-    ''' Rewrites a .pkgdef file to load any packages from PrivateAssemblies instead of from the .vsix's folder. This allows
-    ''' for better use of ngen'ed images when we are installed into VS.
-    ''' </summary>
-    Private Sub RewritePkgDef(fileToRewrite As String)
-        ' Our VSIXes normally contain a number of CodeBase attributes in our .pkgdefs so Visual Studio knows where
-        ' to load assemblies. These come in one of two forms:
-        '
-        ' 1) as a part of a binding redirection:
-        '
-        '     [$RootKey$\RuntimeConfiguration\dependentAssembly\bindingRedirection\{A907DD23-73A7-8934-9396-93F10C532071}]
-        '     "name"="System.Reflection.Metadata"
-        '     "publicKeyToken"="b03f5f7f11d50a3a"
-        '     "culture"="neutral"
-        '     "oldVersion"="1.0.0.0-1.0.99.0"
-        '     "newVersion"="1.1.0.0"
-        '     "codeBase"="$PackageFolder$\System.Reflection.Metadata.dll"
-        '
-        ' 2) as part of a codebase-only specification without a binding redirect:
-        '
-        '     [$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{8C6E3F81-ED3F-306B-107F-60D6E74DA5B0}]
-        '     "name"="Esent.Interop"
-        '     "publicKeyToken"="31bf3856ad364e35"
-        '     "culture"="neutral"
-        '     "version"="1.9.2.0"
-        '     "codeBase"="$PackageFolder$\Esent.Interop.dll"
-        '
-        ' Each of these use $PackageFolder$ as a way to specify the VSIX-relative path. When we convert our VSIXes
-        ' to be installed as MSIs, we don't want the DLLs in the CommonExtensions next to our .pkgdefs. Instead
-        ' we want them in PrivateAssemblies so they're in the loading path to enable proper ngen. Thus, these CodeBase
-        ' attributes have to go. For #1, we can just delete the codeBase key, and leave the rest of the redirection
-        ' in place. For #2, we can delete the entire section.
-
-        Dim lines = File.ReadAllLines(fileToRewrite)
-        Dim inBindingRedirect = False
-        Dim inCodebase = False
-
-        For i = 0 To lines.Count - 1
-
-            Dim line = lines(i)
-
-            If line.StartsWith("[") Then
-                inBindingRedirect = line.IndexOf("bindingRedirection", StringComparison.OrdinalIgnoreCase) >= 0
-                inCodebase = line.IndexOf("RuntimeConfiguration\dependentAssembly\codeBase", StringComparison.OrdinalIgnoreCase) >= 0
-            End If
-
-            Dim parts = line.Split({"="c}, count:=2)
-
-            If inCodebase Then
-                ' Explicit codebase attributes must always be dropped
-                lines(i) = Nothing
-            ElseIf String.Equals(parts(0), """CodeBase""", StringComparison.OrdinalIgnoreCase) Then
-                If inBindingRedirect Then
-                    ' Drop CodeBase from all binding redirects -- they're only for VSIX installs
-                    lines(i) = Nothing
-                End If
-            ElseIf String.Equals(parts(0), """isPkgDefOverrideEnabled""", StringComparison.OrdinalIgnoreCase) Then
-                ' We always need to drop this, since this is only for experimental VSIXes
-                lines(i) = Nothing
-            End If
-        Next
-
-        File.WriteAllLines(fileToRewrite, lines.Where(Function(l) l IsNot Nothing))
-    End Sub
 End Class

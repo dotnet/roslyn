@@ -35,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Overriding properties are created when a methods "Handles" is bound and can happen concurrently.
         ' We need this table to ensure that we create each override just once.
         Private _lazyWithEventsOverrides As ConcurrentDictionary(Of PropertySymbol, SynthesizedOverridingWithEventsProperty)
+        Private _withEventsOverridesAreFrozen As Boolean
 
         ' method flags for the synthesized delegate methods
         Friend Const DelegateConstructorMethodFlags As SourceMemberFlags = SourceMemberFlags.MethodKindConstructor
@@ -99,7 +100,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Completion"
         Protected Overrides Sub GenerateAllDeclarationErrorsImpl(cancellationToken As CancellationToken)
+#If DEBUG Then
+            EnsureAllHandlesAreBound()
+#End If
+
             MyBase.GenerateAllDeclarationErrorsImpl(cancellationToken)
+            _withEventsOverridesAreFrozen = True
 
             cancellationToken.ThrowIfCancellationRequested()
             PerformComClassAnalysis()
@@ -144,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' for cases where constraint checking may result in a recursive binding attempt.
         Private Function CreateLocationSpecificBinderForType(tree As SyntaxTree, location As BindingLocation) As Binder
             Debug.Assert(location <> BindingLocation.None)
-            Dim binder As binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
+            Dim binder As Binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
             Return New LocationSpecificBinder(location, binder)
         End Function
 #End Region
@@ -164,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim node = syntaxRef.GetVisualBasicSyntax()
 
                 ' Set up a binder for this part of the type.
-                Dim binder As binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, syntaxRef.SyntaxTree, Me)
+                Dim binder As Binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, syntaxRef.SyntaxTree, Me)
 
                 ' Script and implicit classes are syntactically represented by CompilationUnitSyntax or NamespaceBlockSyntax nodes.
                 Dim staticInitializers As ArrayBuilder(Of FieldOrPropertyInitializer) = Nothing
@@ -2126,6 +2132,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' If we start caching information about ComSourceInterfacesAttribute here, implementation of HasComSourceInterfacesAttribute function should be changed accordingly.
             ' If we start caching information about ComVisibleAttribute here, implementation of GetComVisibleState function should be changed accordingly.
 
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
+
             Dim decoded As Boolean = False
 
             Select Case Me.TypeKind
@@ -2381,7 +2391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Dim compilation = Me.DeclaringCompilation
@@ -2439,6 +2449,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             New TypedConstant(GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, eventInterfaceName))))
                 End If
             End If
+
+            Dim baseType As NamedTypeSymbol = Me.BaseTypeNoUseSiteDiagnostics
+            If baseType IsNot Nothing Then
+                If baseType.ContainsTupleNames() Then
+                    AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(baseType))
+                End If
+            End If
         End Sub
 
         Private Function HasDefaultMemberAttribute() As Boolean
@@ -2465,9 +2482,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 ' we need to create a lambda here since we need to close over baseProperty
                 ' we will however create a lambda only on a cache miss, hopefully not very often.
-                Return overridesDict.GetOrAdd(baseProperty, Function() New SynthesizedOverridingWithEventsProperty(baseProperty, Me))
+                Return overridesDict.GetOrAdd(baseProperty, Function()
+                                                                Debug.Assert(Not _withEventsOverridesAreFrozen)
+                                                                Return New SynthesizedOverridingWithEventsProperty(baseProperty, Me)
+                                                            End Function)
             End If
         End Function
+
+        Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            EnsureAllHandlesAreBound()
+
+            Dim overridesDict = Me._lazyWithEventsOverrides
+            If overridesDict IsNot Nothing Then
+                Return overridesDict.Values
+            End If
+
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
+
+        Private Sub EnsureAllHandlesAreBound()
+            If Not _withEventsOverridesAreFrozen Then
+                For Each member In Me.GetMembersUnordered()
+                    If member.Kind = SymbolKind.Method Then
+                        Dim notUsed = DirectCast(member, MethodSymbol).HandledEvents
+                    End If
+                Next
+
+                _withEventsOverridesAreFrozen = True
+            End If
+        End Sub
 
         Protected Overrides Sub AddEntryPointIfNeeded(membersBuilder As MembersAndInitializersBuilder)
             If Me.TypeKind = TypeKind.Class AndAlso Not Me.IsGenericType Then

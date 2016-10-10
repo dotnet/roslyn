@@ -9037,5 +9037,36 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(12, 9)
                 );
         }
+
+        [Fact, WorkItem(13380, "https://github.com/dotnet/roslyn/issues/13380")]
+        public void ImplicitNullableOperatorInEquality()
+        {
+            string source =
+@"public class Class1
+{
+    public static void Main(string[] args)
+    {
+        var a = default(Registration<Something>);
+        var x = (a == Something.Bad); //this line fails in VS2015.3
+        System.Console.WriteLine(x);
+    }
+}
+
+public struct Registration<T> where T : struct
+{
+    public static implicit operator T? (Registration<T> registration)
+    {
+        return null;
+    }
+}
+
+public enum Something
+{
+    Good,
+    Bad
+}";
+            // should be NO errors.
+            CompileAndVerify(source, expectedOutput: @"False");
+        }
     }
 }

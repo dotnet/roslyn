@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -465,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly string _title;
             private readonly Glyph? _glyph;
             private readonly CodeActionPriority _priority;
-            private readonly Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> _getOperations;
+            private readonly Func<CancellationToken, Task<ImmutableArray<CodeActionOperation>>> _getOperations;
             private readonly Func<Workspace, bool> _isApplicable;
 
             public override string Title => _title;
@@ -475,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public OperationBasedCodeAction(
                 string title, Glyph? glyph, CodeActionPriority priority,
-                Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations,
+                Func<CancellationToken, Task<ImmutableArray<CodeActionOperation>>> getOperations,
                 Func<Workspace, bool> isApplicable)
             {
                 _title = title;
@@ -485,10 +486,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _isApplicable = isApplicable;
             }
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-            {
-                return _getOperations(cancellationToken);
-            }
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+                => await _getOperations(cancellationToken).ConfigureAwait(false);
 
             internal override bool PerformFinalApplicabilityCheck => _isApplicable != null;
 

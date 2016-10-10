@@ -11,9 +11,8 @@
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
@@ -90,9 +89,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\HashAlgorithms.cs">
-      <Link>InternalUtilities\HashAlgorithms.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
       <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
     </Compile>
@@ -125,9 +121,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Array.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Array.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs">
       <Link>InternalUtilities\SpecializedCollections.Empty.Collection.cs</Link>
@@ -228,9 +221,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\PortableShim.cs">
-      <Link>InternalUtilities\PortableShim.cs</Link>
-    </Compile>
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
@@ -269,6 +259,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
@@ -285,11 +276,11 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
@@ -310,6 +301,7 @@
     <Compile Include="Classification\ClassificationExtensions.cs" />
     <Compile Include="Classification\ClassificationTypeNames.cs" />
     <Compile Include="Classification\ClassifiedSpan.cs" />
+    <Compile Include="Classification\ClassifiedText.cs" />
     <Compile Include="Classification\Classifier.cs" />
     <Compile Include="Classification\Classifiers\ISyntaxClassifier.cs" />
     <Compile Include="Classification\IClassificationService.cs" />
@@ -327,6 +319,7 @@
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
     <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\DocumentBasedFixAllProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixAllDiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllProviderInfo.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixMultipleDiagnosticProvider.cs" />
@@ -384,10 +377,17 @@
     <Compile Include="Execution\Serializer.cs" />
     <Compile Include="Execution\Serializer_Asset.cs" />
     <Compile Include="Execution\Serializer_ChecksumObjectWithChildren.cs" />
+    <Compile Include="Execution\Serializer_OptionSet.cs" />
     <Compile Include="Execution\SolutionChecksumObjects.cs" />
     <Compile Include="Execution\SolutionChecksumObjectInfo.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.cs" />
     <Compile Include="Execution\SolutionChecksumService.cs" />
+    <Compile Include="FindSymbols\IRemoteSymbolFinder.cs" />
+    <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
+    <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
+    <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
+    <Compile Include="FindSymbols\SymbolFinderOptions.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
@@ -398,8 +398,20 @@
     <Compile Include="Options\IDocumentOptionsProviderFactory.cs" />
     <Compile Include="Options\IGlobalOptionService.cs" />
     <Compile Include="Options\IWorkspaceOptionService.cs" />
+    <Compile Include="Remote\IRemoteHostClientFactory.cs" />
+    <Compile Include="Remote\IRemoteHostClientService.cs" />
+    <Compile Include="Remote\RemoteArguments.cs" />
+    <Compile Include="Remote\RemoteHostClient.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.cs" />
+    <Compile Include="Remote\DefaultRemoteHostClientServiceFactory.RemoteHostClientService.cs" />
+    <Compile Include="Remote\RemoteHostClientExtensions.cs" />
+    <Compile Include="Remote\WellKnownRemoteHostServices.cs" />
+    <Compile Include="Remote\WellKnownServiceHubServices.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
+    <Compile Include="Shared\Utilities\IOUtilities.cs" />
+    <Compile Include="Shared\Utilities\IStreamingProgressTracker.cs" />
+    <Compile Include="Shared\Utilities\StreamingProgressTracker.cs" />
     <Compile Include="Options\OptionStorageLocation.cs" />
     <Compile Include="Options\LocalUserProfileStorageLocation.cs" />
     <Compile Include="Options\RoamingProfileStorageLocation.cs" />
@@ -474,10 +486,13 @@
     <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
+    <Compile Include="FindSymbols\StreamingProgressCollector.cs" />
+    <Compile Include="FindSymbols\SymbolFinder.ServerCallback.cs" />
+    <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
+    <Compile Include="SymbolKey\SymbolKey.AnonymousTypeSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolKey\SymbolKey.PropertySymbolKey.cs" />
-    <Compile Include="SymbolKey\SymbolKey.AnonymousTypeSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.TypeParameterOrdinalSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.TypeParameterSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.ErrorTypeSymbolKey.cs" />
@@ -497,6 +512,11 @@
     <Compile Include="SymbolKey\SymbolKey.ArrayTypeSymbolKey.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyWriter.cs" />
     <Compile Include="SymbolKey\SymbolKey.cs" />
+    <Compile Include="SymbolSearch\IRemoteSymbolSearchUpdateEngine.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchLogService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchUpdateEngine.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchOptions.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchOptionsProvider.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />

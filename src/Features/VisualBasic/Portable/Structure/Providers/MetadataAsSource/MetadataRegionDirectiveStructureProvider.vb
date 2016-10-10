@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
@@ -21,15 +20,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
         End Function
 
         Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             Dim match = regionDirective.GetMatchingStartOrEndDirective(cancellationToken)
             If match IsNot Nothing Then
-                spans.Add(
-                    VisualBasicOutliningHelpers.CreateRegion(
-                        TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
-                        GetBannerText(regionDirective),
-                        autoCollapse:=True))
+                spans.AddIfNotNull(CreateRegion(
+                    TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
+                    GetBannerText(regionDirective),
+                    autoCollapse:=True,
+                    type:=BlockTypes.PreprocessorRegion, isCollapsible:=True))
             End If
         End Sub
 

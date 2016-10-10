@@ -105,12 +105,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var assignmentInfo = node.AssignmentSteps[i];
                 AddPlaceholderReplacement(assignmentInfo.OutputPlaceholder, lhsTargets[i]);
 
-                // All the input placeholders for the assignments should already be set
-                var assignment = VisitExpression(assignmentInfo.Assignment);
+                var assignment = assignmentInfo.Assignment;
+
+                // All the input placeholders for the assignments should already be set with lowered nodes
+                Debug.Assert(assignment.Left.Kind == BoundKind.DeconstructValuePlaceholder);
+                Debug.Assert(assignment.Right.Kind == BoundKind.DeconstructValuePlaceholder);
+                var rewrittenLeft = (BoundExpression)Visit(assignment.Left);
+                var rewrittenRight = (BoundExpression)Visit(assignment.Right);
+
+                var loweredAssignment = MakeAssignmentOperator(assignment.Syntax, rewrittenLeft, rewrittenRight, assignment.Type,
+                                            used: true, isChecked: false, isCompoundAssignment: false);
 
                 RemovePlaceholderReplacement(assignmentInfo.OutputPlaceholder);
 
-                stores.Add(assignment);
+                stores.Add(loweredAssignment);
             }
         }
 
@@ -150,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var variable in variables)
             {
-                lhsReceivers.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: false));
+                lhsReceivers.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: variable.Type.IsDynamic()));
             }
 
             return lhsReceivers.ToImmutableAndFree();

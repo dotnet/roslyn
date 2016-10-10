@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             out IEnumerable<ClassifiedSpan> result)
         {
             var identifierName = name as IdentifierNameSyntax;
-            if (symbolInfo.Symbol.IsValueParameter())
+            if (symbolInfo.Symbol.IsImplicitValueParameter())
             {
                 result = SpecializedCollections.SingletonEnumerable(
                     new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));

@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         public async Task TestEnum()
         {
             const string code = @"
-{|hint:$$enum E{|collapse:
+{|hint:$$enum E{|textspan:
 {
 }|}|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -31,27 +31,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             const string code = @"
 {|span1:// Foo
 // Bar|}
-{|hint2:$$enum E{|collapse2:
+{|hint2:$$enum E{|textspan2:
 {
 }|}|}";
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestEnumWithNestedComments()
         {
             const string code = @"
-{|hint1:$$enum E{|collapse1:
+{|hint1:$$enum E{|textspan1:
 {
     {|span2:// Foo
     // Bar|}
 }|}|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+                Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
                 Region("span2", "// Foo ...", autoCollapse: true));
         }
     }

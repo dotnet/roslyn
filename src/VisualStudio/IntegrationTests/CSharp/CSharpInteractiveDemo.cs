@@ -3,86 +3,71 @@
 using System;
 using System.Threading.Tasks;
 using Roslyn.VisualStudio.Test.Utilities;
-using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpInteractiveDemo : IDisposable
+    public class CSharpInteractiveDemo : AbstractInteractiveWindowTest
     {
-        private readonly VisualStudioInstanceContext _visualStudio;
-        private readonly CSharpInteractiveWindow_OutOfProc _interactiveWindow;
-
         public CSharpInteractiveDemo(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance();
-
-            _interactiveWindow = _visualStudio.Instance.CSharpInteractiveWindow;
-            _interactiveWindow.Initialize();
-
-            _interactiveWindow.ShowWindow();
-            _interactiveWindow.Reset();
-        }
-
-        public void Dispose()
-        {
-            _visualStudio.Dispose();
         }
 
         [Fact]
         public void BclMathCall()
         {
-            _interactiveWindow.SubmitText("Math.Sin(1)");
-            Assert.Equal("0.8414709848078965", _interactiveWindow.GetLastReplOutput());
+            SubmitText("Math.Sin(1)");
+            VerifyLastReplOutput("0.8414709848078965");
         }
 
         [Fact]
         public void BclConsoleCall()
         {
-            _interactiveWindow.SubmitText(@"Console.WriteLine(""Hello, World!"");");
-            Assert.Equal("Hello, World!", _interactiveWindow.GetLastReplOutput());
+            SubmitText(@"Console.WriteLine(""Hello, World!"");");
+            VerifyLastReplOutput("Hello, World!");
         }
 
         [Fact]
         public void ForStatement()
         {
-            _interactiveWindow.SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
-            Assert.EndsWith($"{81}", _interactiveWindow.GetLastReplOutput());
+            SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
+            VerifyLastReplOutputEndsWith($"{81}");
         }
 
         [Fact]
         public void ForEachStatement()
         {
-            _interactiveWindow.SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
-            Assert.Contains(@"c:\windows\win.ini", _interactiveWindow.GetLastReplOutput());
+            SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
+            VerifyLastReplOutputContains(@"c:\windows\win.ini");
         }
 
         [Fact]
         public void TopLevelMethod()
         {
-            _interactiveWindow.SubmitText(@"int Fac(int x)
+            SubmitText(@"int Fac(int x)
 {
     return x < 1 ? 1 : x * Fac(x - 1);
 }
 Fac(4)");
-            Assert.Equal($"{24}", _interactiveWindow.GetLastReplOutput());
+            VerifyLastReplOutput($"{24}");
         }
 
         [Fact]
         public async Task WpfInteraction()
         {
-            _interactiveWindow.SubmitText(@"#r ""WindowsBase""
+            SubmitText(@"#r ""WindowsBase""
 #r ""PresentationCore""
 #r ""PresentationFramework""
 #r ""System.Xaml""");
 
-            _interactiveWindow.SubmitText(@"using System.Windows;
+            SubmitText(@"using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;");
 
-            _interactiveWindow.SubmitText(@"var w = new Window();
+            SubmitText(@"var w = new Window();
 w.Title = ""Hello World"";
 w.FontFamily = new FontFamily(""Calibri"");
 w.FontSize = 24;
@@ -93,7 +78,7 @@ w.Visibility = Visibility.Visible;");
 
             var testValue = Guid.NewGuid();
 
-            _interactiveWindow.SubmitText($@"var b = new Button();
+            SubmitText($@"var b = new Button();
 b.Content = ""{testValue}"";
 b.Margin = new Thickness(40);
 b.Click += (sender, e) => Console.WriteLine(""Hello, World!"");
@@ -102,13 +87,11 @@ var g = new Grid();
 g.Children.Add(b);
 w.Content = g;");
 
-            await _visualStudio.Instance.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
+            await VisualStudio.Instance.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
 
-            _interactiveWindow.WaitForReplOutput("Hello, World!");
-
-            Assert.Equal("Hello, World!", _interactiveWindow.GetLastReplOutput());
-
-            _interactiveWindow.SubmitText("b = null; w.Close(); w = null;");
+            WaitForReplOutput("Hello, World!");
+            VerifyLastReplOutput("Hello, World!");
+            SubmitText("b = null; w.Close(); w = null;");
         }
     }
 }

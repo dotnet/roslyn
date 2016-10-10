@@ -43,7 +43,7 @@ namespace RunTests
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
         {
             if (!CheckAssemblyList(options))
-            { 
+            {
                 return ExitFailure;
             }
 
@@ -80,7 +80,7 @@ namespace RunTests
         }
 
         /// <summary>
-        /// Quick sanity check to look over the set of assemblies to make sure they are valid and something was 
+        /// Quick sanity check to look over the set of assemblies to make sure they are valid and something was
         /// specified.
         /// </summary>
         private static bool CheckAssemblyList(Options options)
@@ -118,7 +118,7 @@ namespace RunTests
             {
                 var name = Path.GetFileName(assemblyPath);
 
-                // As a starting point we will just schedule the items we know to be a performance 
+                // As a starting point we will just schedule the items we know to be a performance
                 // bottleneck.  Can adjust as we get real data.
                 if (name == "Roslyn.Compilers.CSharp.Emit.UnitTests.dll" ||
                     name == "Roslyn.Services.Editor.UnitTests.dll" ||
@@ -170,9 +170,9 @@ namespace RunTests
         {
             // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
             // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
-            // to try it out should feel free to opt into this. 
-            return 
-                StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) || 
+            // to try it out should feel free to opt into this.
+            return
+                StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) ||
                 Constants.IsJenkinsRun;
         }
 
@@ -183,7 +183,8 @@ namespace RunTests
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,
-                test64: options.Test64);
+                test64: options.Test64,
+                testVsi: options.TestVsi);
             var processTestExecutor = new ProcessTestExecutor(testExecutionOptions);
             if (!options.UseCachedResults)
             {
@@ -192,7 +193,7 @@ namespace RunTests
 
             // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
             // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
-            // to try it out should feel free to opt into this. 
+            // to try it out should feel free to opt into this.
             IDataStorage dataStorage = new LocalDataStorage();
             if (CanUseWebStorage())
             {

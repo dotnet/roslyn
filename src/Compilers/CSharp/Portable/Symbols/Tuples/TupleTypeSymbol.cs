@@ -663,22 +663,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
-        public override bool IsReferenceType
-        {
-            get
-            {
-                return _underlyingType.IsErrorType() ? false : _underlyingType.IsReferenceType;
-            }
-        }
-
-        public override bool IsValueType
-        {
-            get
-            {
-                return _underlyingType.IsErrorType() || _underlyingType.IsValueType;
-            }
-        }
-
         internal sealed override bool IsManagedType
         {
             get
@@ -1097,10 +1081,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // only classes and structs can have instance fields as tuple requires.
-                // we need to have some support for classes, but most common case will be struct
-                // in broken scenarios (ErrorType, Enum, Delegate, whatever..) we will just default to struct.
-                return _underlyingType.TypeKind == TypeKind.Class ? TypeKind.Class : TypeKind.Struct;
+                // From the language perspective tuple is a value type 
+                // composed of its underlying elements
+                return TypeKind.Struct;
             }
         }
 

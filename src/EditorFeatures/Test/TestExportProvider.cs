@@ -3,7 +3,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.VisualStudio.Composition;
@@ -75,17 +74,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var types = new[]
             {
                 // ROSLYN
-                typeof(Workspaces.NoCompilationLanguageServiceFactory),
-                typeof(Workspaces.NoCompilationContentTypeDefinitions),
-                typeof(Workspaces.NoCompilationContentTypeLanguageService),
                 typeof(Microsoft.CodeAnalysis.CSharp.IntroduceVariable.CSharpIntroduceVariableService), // Ensures that CSharpFeatures is included in the composition
                 typeof(Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceVariableService), // Ensures that BasicFeatures is included in the composition
                 typeof(Microsoft.CodeAnalysis.Editor.CSharp.ContentType.ContentTypeDefinitions), // CSharp Content Type
                 typeof(Microsoft.CodeAnalysis.Editor.VisualBasic.ContentType.ContentTypeDefinitions), // VB Content Type
-                typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation.VisualBasicIndentationService),
                 typeof(Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation.CSharpIndentationService),
-                typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
                 typeof(Microsoft.CodeAnalysis.CSharp.CSharpCompilationFactoryService),
                 typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationFactoryService),
                 typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTreeFactoryServiceFactory), // CSharpServicesCore
@@ -110,11 +104,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxGenerator),
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
                 typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService),
-                typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider),
-                typeof(CodeAnalysis.Diagnostics.EngineV2.InProcCodeAnalysisDiagnosticAnalyzerExecutor)
+                typeof(TestExportProvider)
             };
 
-            return MinimalTestExportProvider.GetLanguageNeutralTypes()
+            return ServiceTestExportProvider.GetLanguageNeutralTypes()
                 .Concat(types)
                 .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(Microsoft.CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
                 .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(Microsoft.CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))

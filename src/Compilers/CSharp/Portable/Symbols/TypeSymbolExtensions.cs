@@ -794,6 +794,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, Symbol, bool, bool> s_isTypeParameterWithSpecificContainerPredicate =
              (type, parameterContainer, unused) => type.TypeKind == TypeKind.TypeParameter && (object)type.ContainingSymbol == (object)parameterContainer;
 
+        public static bool ContainsTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> parameters)
+        {
+            var result = type.VisitType(s_containsTypeParametersPredicate, parameters);
+            return (object)result != null;
+        }
+
+        private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_containsTypeParametersPredicate =
+            (type, parameters, unused) => type.TypeKind == TypeKind.TypeParameter && parameters.Contains((TypeParameterSymbol)type);
+
         /// <summary>
         /// Return true if the type contains any dynamic type reference.
         /// </summary>
@@ -815,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Return true if the type contains any tuples with element names.
         /// </summary>
         internal static bool ContainsTupleNames(this TypeSymbol type) =>
-            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => t.IsTupleType && !t.TupleElementNames.IsDefault , null) != null;
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault , null) != null;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -1470,9 +1479,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation declaringCompilation,
             Cci.ITypeReference typeRef)
         {
-            if (type.ContainsTuple())
+            if (type.ContainsTupleNames())
             {
-                var attr = declaringCompilation.SynthesizeTupleNamesAttributeOpt(type);
+                var attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
                 if (attr != null)
                 {
                     return new Cci.TypeReferenceWithAttributes(

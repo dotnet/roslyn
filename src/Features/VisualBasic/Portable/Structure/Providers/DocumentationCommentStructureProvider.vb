@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Structure
@@ -71,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
         Protected Overrides Sub CollectBlockSpans(documentationComment As DocumentationCommentTriviaSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
                                                   cancellationToken As CancellationToken)
             Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNullable()
             Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNullable()
@@ -87,8 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
-            spans.Add(
-                CreateRegion(fullSpan, GetBannerText(documentationComment, cancellationToken), autoCollapse:=True))
+            spans.AddIfNotNull(CreateRegion(
+                fullSpan, GetBannerText(documentationComment, cancellationToken),
+                autoCollapse:=True, type:=BlockTypes.Comment, isCollapsible:=True))
         End Sub
     End Class
 End Namespace

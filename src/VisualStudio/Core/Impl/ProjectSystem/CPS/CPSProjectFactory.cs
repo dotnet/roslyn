@@ -59,14 +59,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             object hierarchy,
             string binOutputPath)
         {
-            Contract.ThrowIfNull(hierarchy);
+            // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
             var vsHierarchy = hierarchy as IVsHierarchy;
-            if (vsHierarchy == null)
-            {
-                throw new ArgumentException(nameof(hierarchy));
-            }
-            
+
             Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
+            return new CPSProject(_visualStudioWorkspace.ProjectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
+                vsHierarchy, languageName, projectGuid, binOutputPath, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
+                commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());
+        }
+
+        // TODO: this is a workaround. Factory has to be refactored so that all callers supply their own error reporters
+        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
+            string languageName,
+            string projectDisplayName,
+            string projectFilePath,
+            Guid projectGuid,
+            object hierarchy,
+            string binOutputPath,
+            ProjectExternalErrorReporter errorReporter)
+        {
+            // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
+            var vsHierarchy = hierarchy as IVsHierarchy;
+
+            Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => errorReporter;
             return new CPSProject(_visualStudioWorkspace.ProjectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
                 vsHierarchy, languageName, projectGuid, binOutputPath, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
                 commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());

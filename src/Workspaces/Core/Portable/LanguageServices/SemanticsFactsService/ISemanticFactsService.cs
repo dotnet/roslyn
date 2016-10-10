@@ -74,8 +74,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool LastEnumValueHasInitializer(INamedTypeSymbol namedTypeSymbol);
 
-        bool SupportsParameterizedEvents { get; }
-
         /// <summary>
         /// return speculative semantic model for supported node. otherwise, it will return null
         /// </summary>

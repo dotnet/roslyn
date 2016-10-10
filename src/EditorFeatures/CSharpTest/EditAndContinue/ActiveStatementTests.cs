@@ -8096,6 +8096,409 @@ class C
 
         #endregion
 
+        #region C# 7.0
+
+        [Fact]
+        public void MethodUpdate_IsPattern()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        if (x is int i) { Console.WriteLine(""match""); }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        if (x is string s) { Console.WriteLine(""match""); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "x is string s", CSharpFeaturesResources.is_pattern));
+        }
+
+        [Fact]
+        public void MethodUpdate_DeconstructionDeclarationStatement()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var (x, y) = (1, 2);
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var (x, y) = x;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = x;", CSharpFeaturesResources.deconstruction));
+        }
+
+        [Fact]
+        public void MethodUpdate_DeconstructionForEach()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object o)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        foreach (var (x, y) in new[] { (1, 2) }) { Console.WriteLine(2); }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        foreach (var (x, y) in new[] { o }) { Console.WriteLine(2); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y)", CSharpFeaturesResources.deconstruction));
+        }
+
+        [Fact]
+        public void MethodUpdate_VarDeconstruction()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        for (var (x, y) = o1; ; ) { }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        for (var (x, y) = o2; ; ) { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = o2", CSharpFeaturesResources.deconstruction));
+        }
+
+        [Fact]
+        public void MethodUpdate_TypedDeconstruction()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        for ((int x, int y) = o1; ; ) { }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        for ((int x, int y) = o2; ; ) { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(int x, int y) = o2", CSharpFeaturesResources.deconstruction));
+        }
+
+        [Fact]
+        public void MethodUpdate_Tuple()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object o)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        (int, int) t;
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        (int, int) t = (1, 2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(int, int)", CSharpFeaturesResources.tuple));
+        }
+
+        [Fact]
+        public void MethodUpdate_LocalFunction()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object o)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        void M() { Console.WriteLine(2); }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        void M() { Console.WriteLine(3); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "M", CSharpFeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void MethodUpdate_OutVar()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        M();
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        M(out var x);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var x", CSharpFeaturesResources.out_var));
+        }
+
+        [Fact]
+        public void MethodUpdate_OutVarRemoved()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        M(out var x);
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+               Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "out variable"));
+        }
+
+        [Fact]
+        public void MethodUpdate_Ref()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        ref int i = ref 1;
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        ref int i = ref 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "ref int", CSharpFeaturesResources.ref_local_or_expression));
+        }
+
+        [Fact]
+        public void MethodUpdate_DeconstructionDeclaration()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var (x, y) = o1;
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var (x, y) = o2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = o2;", CSharpFeaturesResources.deconstruction));
+        }
+
+        [Fact]
+        public void MethodUpdate_DeconstructionAssignment()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        int x, y;
+        (x, y) = o1;
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        int x, y;
+        (x, y) = o2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(x, y)", CSharpFeaturesResources.tuple));
+        }
+
+        [Fact]
+        public void MethodUpdate_SwitchWithPattern()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        switch (o1)
+        {
+            case int i:
+                break;
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        switch (o2)
+        {
+            case int i:
+                break;
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "int i", CSharpFeaturesResources.v7_switch));
+        }
+
+        #endregion
+
         #region Misc
 
         [Fact]

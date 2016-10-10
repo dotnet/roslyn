@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
@@ -14,7 +15,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     /// </summary>
     internal class LineSeparatorTag : GraphicsTag
     {
-        public static readonly LineSeparatorTag Instance = new LineSeparatorTag();
+        public LineSeparatorTag(IEditorFormatMap editorFormatMap)
+            : base(editorFormatMap)
+        {
+        }
+
+        protected override Color? GetColor(
+            IWpfTextView view, IEditorFormatMap editorFormatMap)
+        {
+            var brush = view.VisualElement.TryFindResource("outlining.verticalrule.foreground") as SolidColorBrush;
+            return brush?.Color;
+        }
 
         /// <summary>
         /// Creates a very long line at the bottom of bounds.
@@ -24,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             Initialize(view);
 
             var border = new Border();
-            border.BorderBrush = VerticalRuleBrush;
+            border.BorderBrush = _graphicsTagBrush;
             border.BorderThickness = new Thickness(0, 0, 0, bottom: 1);
             border.Height = 1;
             border.Width = view.ViewportWidth;

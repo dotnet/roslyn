@@ -12,36 +12,19 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SourceMemberFieldSymbol : SourceFieldSymbolWithSyntaxReference
+    internal abstract class SourceMemberFieldSymbol : SourceFieldSymbolWithSyntaxReference
     {
         private readonly DeclarationModifiers _modifiers;
-        private readonly bool _hasInitializer;
-
-        private TypeSymbol _lazyType;
-
-        // Non-zero if the type of the field has been inferred from the type of its initializer expression
-        // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
-        private int _lazyFieldTypeInferred;
-
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
 
         internal SourceMemberFieldSymbol(
             SourceMemberContainerTypeSymbol containingType,
-            VariableDeclaratorSyntax declarator,
             DeclarationModifiers modifiers,
-            bool modifierErrors,
-            DiagnosticBag diagnostics)
-            : base(containingType, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
+            string name,
+            SyntaxReference syntax, 
+            Location location)
+            : base(containingType, name, syntax, location)
         {
             _modifiers = modifiers;
-            _hasInitializer = declarator.Initializer != null;
-
-            this.CheckAccessibility(diagnostics);
-
-            if (!modifierErrors)
-            {
-                this.ReportModifiersDiagnostics(diagnostics);
-            }
         }
 
         protected sealed override DeclarationModifiers Modifiers
@@ -52,7 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void TypeChecks(TypeSymbol type, BaseFieldDeclarationSyntax fieldSyntax, DiagnosticBag diagnostics)
+        protected abstract TypeSyntax TypeSyntax { get; }
+
+        protected abstract SyntaxTokenList ModifiersTokenList { get; }
+
+        protected void TypeChecks(TypeSymbol type, DiagnosticBag diagnostics)
         {
             if (type.IsStatic)
             {
@@ -61,16 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.SpecialType == SpecialType.System_Void)
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, fieldSyntax.Declaration.Type.Location);
+                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax.Location);
             }
             else if (type.IsRestrictedType())
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, fieldSyntax.Declaration.Type.Location, type);
+                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax.Location, type);
             }
             else if (IsConst && !type.CanBeConst())
             {
                 SyntaxToken constToken = default(SyntaxToken);
-                foreach (var modifier in fieldSyntax.Modifiers)
+                foreach (var modifier in ModifiersTokenList)
                 {
                     if (modifier.Kind() == SyntaxKind.ConstKeyword)
                     {
@@ -98,232 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(this.ErrorLocation, useSiteDiagnostics);
         }
 
-        public bool HasInitializer
-        {
-            get { return _hasInitializer; }
-        }
-
-        public VariableDeclaratorSyntax VariableDeclaratorNode
-        {
-            get
-            {
-                return (VariableDeclaratorSyntax)this.SyntaxNode;
-            }
-        }
-
-        private static BaseFieldDeclarationSyntax GetFieldDeclaration(CSharpSyntaxNode declarator)
-        {
-            return (BaseFieldDeclarationSyntax)declarator.Parent.Parent;
-        }
-
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-        {
-            get
-            {
-                if (this.containingType.AnyMemberHasAttributes)
-                {
-                    return GetFieldDeclaration(this.SyntaxNode).AttributeLists;
-                }
-
-                return default(SyntaxList<AttributeListSyntax>);
-            }
-        }
-
-        internal override bool HasPointerType
-        {
-            get
-            {
-                if ((object)_lazyType != null)
-                {
-                    Debug.Assert(_lazyType.IsPointerType() ==
-                        IsPointerFieldSyntactically());
-
-                    return _lazyType.IsPointerType();
-                }
-
-                return IsPointerFieldSyntactically();
-            }
-        }
-
-        private bool IsPointerFieldSyntactically()
-        {
-            var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
-            if (declaration.Type.Kind() == SyntaxKind.PointerType)
-            {
-                // public int * Blah;   // pointer
-                return true;
-            }
-
-            foreach (var singleVariable in declaration.Variables)
-            {
-                var argList = singleVariable.ArgumentList;
-                if (argList != null && argList.Arguments.Count != 0)
-                {
-                    // public int Blah[10];     // fixed buffer
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        internal sealed override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-        {
-            Debug.Assert(fieldsBeingBound != null);
-
-            if ((object)_lazyType != null)
-            {
-                return _lazyType;
-            }
-
-            var declarator = VariableDeclaratorNode;
-            var fieldSyntax = GetFieldDeclaration(declarator);
-            var typeSyntax = fieldSyntax.Declaration.Type;
-
-            var compilation = this.DeclaringCompilation;
-
-            var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbol type;
-
-            // When we have multiple declarators, we report the type diagnostics on only the first.
-            DiagnosticBag diagnosticsForFirstDeclarator = DiagnosticBag.GetInstance();
-
-            Symbol associatedPropertyOrEvent = this.AssociatedSymbol;
-            if ((object)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Event)
-            {
-                EventSymbol @event = (EventSymbol)associatedPropertyOrEvent;
-                if (@event.IsWindowsRuntimeEvent)
-                {
-                    NamedTypeSymbol tokenTableType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T);
-                    Binder.ReportUseSiteDiagnostics(tokenTableType, diagnosticsForFirstDeclarator, this.ErrorLocation);
-
-                    // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
-                    // type that has additional generic constraints?
-                    type = tokenTableType.Construct(@event.Type);
-                }
-                else
-                {
-                    type = @event.Type;
-                }
-            }
-            else
-            {
-                var binderFactory = compilation.GetBinderFactory(SyntaxTree);
-                var binder = binderFactory.GetBinder(typeSyntax);
-
-                binder = binder.WithContainingMemberOrLambda(this);
-                if (!ContainingType.IsScriptClass)
-                {
-                    type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
-                    if (IsFixed)
-                    {
-                        type = new PointerTypeSymbol(type);
-                    }
-                }
-                else
-                {
-                    bool isVar;
-                    type = binder.BindType(typeSyntax, diagnostics, out isVar);
-
-                    Debug.Assert((object)type != null || isVar);
-
-                    if (isVar)
-                    {
-                        if (this.IsConst)
-                        {
-                            diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, typeSyntax.Location);
-                        }
-
-                        if (fieldsBeingBound.ContainsReference(this))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
-                            type = null;
-                        }
-                        else if (fieldSyntax.Declaration.Variables.Count > 1)
-                        {
-                            diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, typeSyntax.Location);
-                        }
-                        else
-                        {
-                            fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
-
-                            var initializerBinder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
-                            var initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax)declarator.Initializer, declarator);
-
-                            if (initializerOpt != null)
-                            {
-                                if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
-                                {
-                                    type = initializerOpt.Type;
-                                }
-
-                                _lazyFieldTypeInferred = 1;
-                            }
-                        }
-
-                        if ((object)type == null)
-                        {
-                            type = binder.CreateErrorType("var");
-                        }
-                    }
-                }
-
-                if (IsFixed)
-                {
-                    if (ContainingType.TypeKind != TypeKind.Struct)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
-                    }
-
-                    var elementType = ((PointerTypeSymbol)type).PointedAtType;
-                    int elementSize = elementType.FixedBufferElementSizeInBytes();
-                    if (elementSize == 0)
-                    {
-                        var loc = typeSyntax.Location;
-                        diagnostics.Add(ErrorCode.ERR_IllegalFixedType, loc);
-                    }
-
-                    if (!binder.InUnsafeRegion)
-                    {
-                        diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_UnsafeNeeded, declarator.Location);
-                    }
-                }
-            }
-
-            // update the lazyType only if it contains value last seen by the current thread:
-            if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
-            {
-                TypeChecks(type, fieldSyntax, diagnostics);
-
-                // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
-                compilation.DeclarationDiagnostics.AddRange(diagnostics);
-
-                bool isFirstDeclarator = fieldSyntax.Declaration.Variables[0] == declarator;
-                if (isFirstDeclarator)
-                {
-                    compilation.DeclarationDiagnostics.AddRange(diagnosticsForFirstDeclarator);
-                }
-
-                state.NotePartComplete(CompletionPart.Type);
-            }
-
-            diagnostics.Free();
-            diagnosticsForFirstDeclarator.Free();
-            return _lazyType;
-        }
-
-        internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)
-        {
-            if (!ContainingType.IsScriptClass)
-            {
-                return false;
-            }
-
-            GetFieldType(fieldsBeingBound);
-
-            // lazyIsImplicitlyTypedField can only transition from value 0 to 1:
-            return _lazyFieldTypeInferred != 0 || Volatile.Read(ref _lazyFieldTypeInferred) != 0;
-        }
+        public abstract bool HasInitializer { get; }
 
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
@@ -351,16 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return null;
             }
-        }
-
-        protected sealed override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
-        {
-            if (!this.IsConst || VariableDeclaratorNode.Initializer == null)
-            {
-                return null;
-            }
-
-            return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)VariableDeclaratorNode.Initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
         }
 
         public override int FixedSize
@@ -476,19 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public sealed override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                if (_lazyCustomModifiers.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCustomModifiers, base.CustomModifiers, default(ImmutableArray<CustomModifier>));
-                }
-
-                return _lazyCustomModifiers;
-            }
-        }
-
         internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
             while (true)
@@ -530,6 +269,301 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!this.IsFixed, "Subclasses representing fixed fields must override");
             return null;
+        }
+    }
+
+    internal class SourceMemberFieldSymbolFromDeclarator : SourceMemberFieldSymbol
+    {
+        private readonly bool _hasInitializer;
+
+        private TypeSymbol _lazyType;
+
+        // Non-zero if the type of the field has been inferred from the type of its initializer expression
+        // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
+        private int _lazyFieldTypeInferred;
+
+        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
+
+        internal SourceMemberFieldSymbolFromDeclarator(
+            SourceMemberContainerTypeSymbol containingType,
+            VariableDeclaratorSyntax declarator,
+            DeclarationModifiers modifiers,
+            bool modifierErrors,
+            DiagnosticBag diagnostics)
+            : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
+        {
+            _hasInitializer = declarator.Initializer != null;
+
+            this.CheckAccessibility(diagnostics);
+
+            if (!modifierErrors)
+            {
+                this.ReportModifiersDiagnostics(diagnostics);
+            }
+        }
+
+        protected sealed override TypeSyntax TypeSyntax
+        {
+            get
+            {
+                return GetFieldDeclaration(VariableDeclaratorNode).Declaration.Type;
+            }
+        }
+
+        protected sealed override SyntaxTokenList ModifiersTokenList
+        {
+            get
+            {
+                return GetFieldDeclaration(VariableDeclaratorNode).Modifiers;
+            }
+        }
+
+        public sealed override bool HasInitializer
+        {
+            get { return _hasInitializer; }
+        }
+
+        protected VariableDeclaratorSyntax VariableDeclaratorNode
+        {
+            get
+            {
+                return (VariableDeclaratorSyntax)this.SyntaxNode;
+            }
+        }
+
+        private static BaseFieldDeclarationSyntax GetFieldDeclaration(CSharpSyntaxNode declarator)
+        {
+            return (BaseFieldDeclarationSyntax)declarator.Parent.Parent;
+        }
+
+        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        {
+            get
+            {
+                if (this.containingType.AnyMemberHasAttributes)
+                {
+                    return GetFieldDeclaration(this.SyntaxNode).AttributeLists;
+                }
+
+                return default(SyntaxList<AttributeListSyntax>);
+            }
+        }
+
+        internal override bool HasPointerType
+        {
+            get
+            {
+                if ((object)_lazyType != null)
+                {
+                    Debug.Assert(_lazyType.IsPointerType() ==
+                        IsPointerFieldSyntactically());
+
+                    return _lazyType.IsPointerType();
+                }
+
+                return IsPointerFieldSyntactically();
+            }
+        }
+
+        private bool IsPointerFieldSyntactically()
+        {
+            var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
+            if (declaration.Type.Kind() == SyntaxKind.PointerType)
+            {
+                // public int * Blah;   // pointer
+                return true;
+            }
+
+            foreach (var singleVariable in declaration.Variables)
+            {
+                var argList = singleVariable.ArgumentList;
+                if (argList != null && argList.Arguments.Count != 0)
+                {
+                    // public int Blah[10];     // fixed buffer
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal sealed override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            Debug.Assert(fieldsBeingBound != null);
+
+            if ((object)_lazyType != null)
+            {
+                return _lazyType;
+            }
+
+            var declarator = VariableDeclaratorNode;
+            var fieldSyntax = GetFieldDeclaration(declarator);
+            var typeSyntax = fieldSyntax.Declaration.Type;
+
+            var compilation = this.DeclaringCompilation;
+
+            var diagnostics = DiagnosticBag.GetInstance();
+            TypeSymbol type;
+
+            // When we have multiple declarators, we report the type diagnostics on only the first.
+            DiagnosticBag diagnosticsForFirstDeclarator = DiagnosticBag.GetInstance();
+
+            Symbol associatedPropertyOrEvent = this.AssociatedSymbol;
+            if ((object)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Event)
+            {
+                EventSymbol @event = (EventSymbol)associatedPropertyOrEvent;
+                if (@event.IsWindowsRuntimeEvent)
+                {
+                    NamedTypeSymbol tokenTableType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T);
+                    Binder.ReportUseSiteDiagnostics(tokenTableType, diagnosticsForFirstDeclarator, this.ErrorLocation);
+
+                    // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
+                    // type that has additional generic constraints?
+                    type = tokenTableType.Construct(@event.Type);
+                }
+                else
+                {
+                    type = @event.Type;
+                }
+            }
+            else
+            {
+                var binderFactory = compilation.GetBinderFactory(SyntaxTree);
+                var binder = binderFactory.GetBinder(typeSyntax);
+
+                binder = binder.WithContainingMemberOrLambda(this);
+                if (!ContainingType.IsScriptClass)
+                {
+                    type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
+                }
+                else
+                {
+                    bool isVar;
+                    type = binder.BindType(typeSyntax, diagnostics, out isVar);
+
+                    Debug.Assert((object)type != null || isVar);
+
+                    if (isVar)
+                    {
+                        if (this.IsConst)
+                        {
+                            diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, typeSyntax.Location);
+                        }
+
+                        if (fieldsBeingBound.ContainsReference(this))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
+                            type = null;
+                        }
+                        else if (fieldSyntax.Declaration.Variables.Count > 1)
+                        {
+                            diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, typeSyntax.Location);
+                        }
+                        else
+                        {
+                            fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
+
+                            var initializerBinder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
+                            var initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax)declarator.Initializer, declarator);
+
+                            if (initializerOpt != null)
+                            {
+                                if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
+                                {
+                                    type = initializerOpt.Type;
+                                }
+
+                                _lazyFieldTypeInferred = 1;
+                            }
+                        }
+
+                        if ((object)type == null)
+                        {
+                            type = binder.CreateErrorType("var");
+                        }
+                    }
+                }
+
+                if (IsFixed)
+                {
+                    type = new PointerTypeSymbol(type);
+
+                    if (ContainingType.TypeKind != TypeKind.Struct)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
+                    }
+
+                    var elementType = ((PointerTypeSymbol)type).PointedAtType;
+                    int elementSize = elementType.FixedBufferElementSizeInBytes();
+                    if (elementSize == 0)
+                    {
+                        var loc = typeSyntax.Location;
+                        diagnostics.Add(ErrorCode.ERR_IllegalFixedType, loc);
+                    }
+
+                    if (!binder.InUnsafeRegion)
+                    {
+                        diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_UnsafeNeeded, declarator.Location);
+                    }
+                }
+            }
+
+            // update the lazyType only if it contains value last seen by the current thread:
+            if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
+            {
+                TypeChecks(type, diagnostics);
+
+                // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
+                compilation.DeclarationDiagnostics.AddRange(diagnostics);
+
+                bool isFirstDeclarator = fieldSyntax.Declaration.Variables[0] == declarator;
+                if (isFirstDeclarator)
+                {
+                    compilation.DeclarationDiagnostics.AddRange(diagnosticsForFirstDeclarator);
+                }
+
+                state.NotePartComplete(CompletionPart.Type);
+            }
+
+            diagnostics.Free();
+            diagnosticsForFirstDeclarator.Free();
+            return _lazyType;
+        }
+
+        internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            if (!ContainingType.IsScriptClass)
+            {
+                return false;
+            }
+
+            GetFieldType(fieldsBeingBound);
+
+            // lazyIsImplicitlyTypedField can only transition from value 0 to 1:
+            return _lazyFieldTypeInferred != 0 || Volatile.Read(ref _lazyFieldTypeInferred) != 0;
+        }
+
+        protected sealed override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
+        {
+            if (!this.IsConst || VariableDeclaratorNode.Initializer == null)
+            {
+                return null;
+            }
+
+            return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)VariableDeclaratorNode.Initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
+        }
+
+        public sealed override ImmutableArray<CustomModifier> CustomModifiers
+        {
+            get
+            {
+                if (_lazyCustomModifiers.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCustomModifiers, base.CustomModifiers, default(ImmutableArray<CustomModifier>));
+                }
+
+                return _lazyCustomModifiers;
+            }
         }
 
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))

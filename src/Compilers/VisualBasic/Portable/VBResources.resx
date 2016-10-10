@@ -3127,6 +3127,9 @@
   <data name="ERR_AnonymousTypeDisallowsTypeChar" xml:space="preserve">
     <value>Type characters cannot be used in anonymous type declarations.</value>
   </data>
+  <data name="ERR_TupleLiteralDisallowsTypeChar" xml:space="preserve">
+    <value>Type characters cannot be used in tuple literals.</value>
+  </data>
   <data name="ERR_ExtensionMethodUncallable1" xml:space="preserve">
     <value>Extension method '{0}' has type constraints that can never be satisfied.</value>
   </data>
@@ -5107,6 +5110,7 @@
 /quiet                            Quiet output mode.
 /verbose                          Display verbose messages.
 /parallel[+|-]                    Concurrent build. 
+/version                          Display the compiler version number and exit.
 
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
@@ -5379,20 +5383,29 @@
   <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
     <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
   </data>
-  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
-    <value>Tuple member names must be unique.</value>
+  <data name="ERR_TupleDuplicateElementName" xml:space="preserve">
+    <value>Tuple element names must be unique.</value>
   </data>
-  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
-    <value>Tuple member names must all be provided, if any one is provided.</value>
+  <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
   </data>
-  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
-    <value>Tuple member name '{0}' is only allowed at position {1}.</value>
+  <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
   </data>
-  <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
-    <value>Tuple member name '{0}' is disallowed at any position.</value>
+  <data name="ERR_TupleReservedElementName" xml:space="preserve">
+    <value>Tuple element name '{0}' is only allowed at position {1}.</value>
+  </data>
+  <data name="ERR_TupleReservedElementNameAnyPosition" xml:space="preserve">
+    <value>Tuple element name '{0}' is disallowed at any position.</value>
   </data>
   <data name="ERR_TupleTooFewElements" xml:space="preserve">
     <value>Tuple must contain at least two elements.</value>
+  </data>
+  <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
+    <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
+  </data>
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
+    <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
   </data>
   <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">
     <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
@@ -5402,5 +5415,8 @@
   </data>
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
+  </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
   </data>
 </root>

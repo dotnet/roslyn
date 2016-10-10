@@ -726,4 +726,40 @@ Additional information: {1}</value>
   <data name="For_member_access_expressions" xml:space="preserve">
     <value>For member access expressions</value>
   </data>
+  <data name="Prefer_object_initializer" xml:space="preserve">
+    <value>Prefer object initializer</value>
+  </data>
+  <data name="Expression_preferences_colon" xml:space="preserve">
+    <value>Expression preferences:</value>
+  </data>
+  <data name="Block_Structure_Guides" xml:space="preserve">
+    <value>Block Structure Guides</value>
+  </data>
+  <data name="Outlining" xml:space="preserve">
+    <value>Outlining</value>
+  </data>
+  <data name="Show_guides_for_code_level_constructs" xml:space="preserve">
+    <value>Show guides for code level constructs</value>
+  </data>
+  <data name="Show_guides_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show guides for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_guides_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show guides for declaration level constructs</value>
+  </data>
+  <data name="Show_outlining_for_code_level_constructs" xml:space="preserve">
+    <value>Show outlining for code level constructs</value>
+  </data>
+  <data name="Show_outlining_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show outlining for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_outlining_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show outlining for declaration level constructs</value>
+  </data>
+  <data name="Variable_preferences_colon" xml:space="preserve">
+    <value>Variable preferences:</value>
+  </data>
+  <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
+    <value>Prefer inlined variable declaration</value>
+  </data>
 </root>

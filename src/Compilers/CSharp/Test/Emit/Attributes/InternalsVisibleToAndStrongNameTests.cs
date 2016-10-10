@@ -1016,6 +1016,68 @@ public class C
         #region Signing
 
         [Fact]
+        public void MaxSizeKey()
+        {
+            var pubKey = TestResources.General.snMaxSizePublicKeyString;
+            string pubKeyToken = "1540923db30520b2";
+            var pubKeyTokenBytes = new byte[] { 0x15, 0x40, 0x92, 0x3d, 0xb3, 0x05, 0x20, 0xb2 };
+
+            var comp = CreateCompilationWithMscorlib($@"
+using System;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo(""MaxSizeComp2, PublicKey={pubKey}, PublicKeyToken={pubKeyToken}"")]
+
+internal class C
+{{
+    public static void M()
+    {{
+        Console.WriteLine(""Called M"");
+    }}
+}}",
+                options: TestOptions.ReleaseDll
+                         .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
+                         .WithStrongNameProvider(s_defaultProvider));
+
+            comp.VerifyEmitDiagnostics();
+
+            Assert.True(comp.IsRealSigned);
+            VerifySignedBitSetAfterEmit(comp);
+            Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey);
+            Assert.Equal<byte>(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken);
+
+            var src = @"
+class D
+{
+    public static void Main()
+    {
+        C.M();
+    }
+}";
+            var comp2 = CreateCompilationWithMscorlib(src, 
+references: new[] { comp.ToMetadataReference() },
+assemblyName: "MaxSizeComp2",
+options: TestOptions.ReleaseExe
+        .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
+        .WithStrongNameProvider(s_defaultProvider));
+
+            CompileAndVerify(comp2, expectedOutput: "Called M");
+            Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey);
+            Assert.Equal<byte>(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken);
+
+            var comp3 = CreateCompilationWithMscorlib(src, 
+references: new[] { comp.EmitToImageReference() },
+assemblyName: "MaxSizeComp2",
+options: TestOptions.ReleaseExe
+        .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
+        .WithStrongNameProvider(s_defaultProvider));
+
+            CompileAndVerify(comp3, expectedOutput: "Called M");
+            Assert.Equal(TestResources.General.snMaxSizePublicKey, comp3.Assembly.Identity.PublicKey);
+            Assert.Equal<byte>(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken);
+        }
+
+        [Fact]
         public void SignIt()
         {
             var other = CreateCompilationWithMscorlib(

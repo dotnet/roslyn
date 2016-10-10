@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private async Task<ImmutableArray<TodoItem>> CreateItemsAsync(Document document, IList<TodoComment> comments, CancellationToken cancellationToken)
         {
-            var items = ImmutableArray.CreateBuilder<TodoItem>();
+            var items = ArrayBuilder<TodoItem>.GetInstance();
             if (comments != null)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 }
             }
 
-            return items.ToImmutable();
+            return items.ToImmutableAndFree();
         }
 
         private TodoItem CreateItem(Document document, SourceText text, SyntaxTree tree, TodoComment comment)

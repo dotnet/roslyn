@@ -138,13 +138,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // the description if necessary. We won't do this if the list was triggered to show
                 // snippet shortcuts.
 
-                var totalItemsBuilder = ImmutableArray.CreateBuilder<PresentationItem>();
+                var totalItemsBuilder = ArrayBuilder<PresentationItem>.GetInstance();
                 foreach (var item in originalList.Items)
                 {
                     totalItemsBuilder.Add(new DescriptionModifyingPresentationItem(item, completionService));
                 }
 
-                totalItems = totalItemsBuilder.AsImmutable();
+                totalItems = totalItemsBuilder.ToImmutableAndFree();
                 defaultSuggestionModePresentationItem = new DescriptionModifyingPresentationItem(
                     CreateDefaultSuggestionModeItem(), completionService, isSuggestionModeItem: true);
                 suggestionModePresentationItem = suggestionModeItem != null ? new DescriptionModifyingPresentationItem(suggestionModeItem, completionService, isSuggestionModeItem: true) : null;

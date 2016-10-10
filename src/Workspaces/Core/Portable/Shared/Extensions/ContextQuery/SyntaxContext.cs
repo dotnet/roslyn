@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isInQuery,
             bool isInImportsDirective,
             bool isWithinAsyncMethod,
+            bool isPossibleTupleContext,
             CancellationToken cancellationToken)
         {
             this.Workspace = workspace;
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsInQuery = isInQuery;
             this.IsInImportsDirective = isInImportsDirective;
             this.IsWithinAsyncMethod = isWithinAsyncMethod;
+            this.IsPossibleTupleContext = isPossibleTupleContext;
             this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
         }
 
@@ -80,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsInQuery { get; }
         public bool IsInImportsDirective { get; }
         public bool IsWithinAsyncMethod { get; }
+        public bool IsPossibleTupleContext { get; }
 
         public IEnumerable<ITypeSymbol> InferredTypes { get; }
 

@@ -9,9 +9,8 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -45,6 +44,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.Orchestrator" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
@@ -72,6 +72,9 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
@@ -89,9 +92,30 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToSearchService.Remote.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToSearchService.InProcess.cs" />
+    <Compile Include="NavigateTo\IRemoteNavigateToSearchService.cs" />
+    <Compile Include="NavigateTo\NavigateToItemKind.cs" />
+    <Compile Include="NavigateTo\NavigateToMatchKind.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToSearchService.cs" />
+    <Compile Include="NavigateTo\INavigateToSearchResult.cs" />
+    <Compile Include="NavigateTo\INavigateToSearchService.cs" />
+    <Compile Include="NavigateTo\NavigateToOptions.cs" />
+    <Compile Include="Navigation\INavigableItem.cs" />
+    <Compile Include="Navigation\NavigableItemFactory.cs" />
+    <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
+    <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
+    <Compile Include="Remote\RemoteArguments.cs" />
+    <Compile Include="Structure\BlockStructureOptions.cs" />
+    <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
+    <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="Structure\BlockTypes.cs" />
+    <Compile Include="CodeLens\CodeLensReferencesServiceFactory.cs" />
     <Compile Include="Structure\Syntax\BlockStructureExtensions.cs" />
     <Compile Include="Structure\Syntax\AbstractBlockStructureProvider.cs" />
     <Compile Include="Structure\BlockSpan.cs" />
@@ -162,7 +186,7 @@
     <Compile Include="CodeFixes\Suppression\ExportSuppressionFixProviderAttribute.cs" />
     <Compile Include="CodeFixes\Suppression\WrapperCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.cs" />
-    <Compile Include="CodeLens\CodeLensReferenceService.cs" />
+    <Compile Include="CodeLens\CodeLensReferencesService.cs" />
     <Compile Include="CodeLens\CodeLensFindReferenceProgress.cs" />
     <Compile Include="CodeLens\ICodeLensReferencesService.cs" />
     <Compile Include="CodeLens\ICodeLensDisplayInfoService.cs" />
@@ -368,13 +392,10 @@
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
     <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
-    <Compile Include="Shared\Options\AddImportOptionsProvider.cs" />
     <Compile Include="Shared\Extensions\ProjectExtensions.cs" />
-    <Compile Include="Shared\Options\AddImportOptions.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptionsProvider.cs" />
-    <Compile Include="Shared\Utilities\IOUtilities.cs" />
     <Compile Include="Shared\Utilities\LinkedFilesSymbolEquivalenceComparer.cs" />
     <Compile Include="Shared\Utilities\SupportedPlatformData.cs" />
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />
@@ -650,6 +671,8 @@
     <Compile Include="Common\SymbolDisplayPartKindTags.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyCodeFixProvider.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
+    <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
   </ItemGroup>

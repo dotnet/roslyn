@@ -1562,12 +1562,16 @@
   </AbstractNode>
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
-    <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
+    <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
+         a field that is a member of the script class. -->
+    <Field Name="Variable" Type="Symbol" Null="disallow"/>
     <!-- VariableAccess is an access to the declared symbol, suitable for use
          in the lowered form in either an lvalue or rvalue position. We maintain it separately
-         from the LocalSymbol to facilitate lowerings in which the variable is no longer a simple
-         local access (e.g. the expression evaluator). It is expected to be logically side-effect
-         free. -->
+         from the Symbol to facilitate lowerings in which the variable is no longer a simple
+         variable access (e.g. in the expression evaluator). It is expected to be logically side-effect
+         free. The necessity of this member is a consequence of a design issue documented in
+         https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
+         removed. -->
     <Field Name="VariableAccess" Type="BoundExpression" Null="disallow"/>
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="IsVar" Type="bool"/>
@@ -1581,11 +1585,18 @@
   <Node Name="BoundWildcardPattern" Base="BoundPattern">
   </Node>
 
-  <!-- The node is transformed into BoundLocal after inference -->
-  <Node Name="OutVarLocalPendingInference" Base="BoundExpression">
+  <Node Name="BoundThrowExpression" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+  </Node>
+
+  <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
+  <Node Name="OutVariablePendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
-    <Field Name="LocalSymbol" Type="SourceLocalSymbol"/>
+    <!-- A local symbol or a field symbol representing the variable -->
+    <Field Name="VariableSymbol" Type="Symbol"/>
+    <!-- A field receiver when VariableSymbol is a field -->
+    <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
   </Node>
 
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
@@ -1594,10 +1605,13 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
   </Node>
 
-  <!-- The node is transformed into BoundLocal after inference -->
-  <Node Name="DeconstructionLocalPendingInference" Base="BoundExpression">
+  <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
+  <Node Name="DeconstructionVariablePendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
-    <Field Name="LocalSymbol" Type="SourceLocalSymbol"/>
+    <!-- A local symbol or a field symbol representing the variable -->
+    <Field Name="VariableSymbol" Type="Symbol"/>
+    <!-- A field receiver when VariableSymbol is a field -->
+    <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
   </Node>
 </Tree>

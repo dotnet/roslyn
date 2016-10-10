@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.Structure
     internal abstract class AbstractSyntaxNodeStructureProvider<TSyntaxNode> : AbstractSyntaxStructureProvider
         where TSyntaxNode : SyntaxNode
     {
-        public override void CollectBlockSpans(
+        public sealed override void CollectBlockSpans(
             Document document,
             SyntaxNode node,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             if (!SupportedInWorkspaceKind(document.Project.Solution.Workspace.Kind))
@@ -26,15 +26,15 @@ namespace Microsoft.CodeAnalysis.Structure
         public sealed override void CollectBlockSpans(
             Document document,
             SyntaxTrivia trivia,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
         }
 
         private void CollectBlockSpans(
-            SyntaxNode node, 
-            ImmutableArray<BlockSpan>.Builder spans,
+            SyntaxNode node,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             if (node is TSyntaxNode)
@@ -50,6 +50,6 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         protected abstract void CollectBlockSpans(
-            TSyntaxNode node, ImmutableArray<BlockSpan>.Builder spans, CancellationToken cancellationToken);
+            TSyntaxNode node, ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken);
     }
 }

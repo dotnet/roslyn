@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         // serializer and empty checksum collection task cache - this is to reduce allocations
         private readonly static ConditionalWeakTable<HostWorkspaceServices, Serializer> s_serializerCache = new ConditionalWeakTable<HostWorkspaceServices, Serializer>();
-        private readonly static ConditionalWeakTable<Serializer, ConcurrentDictionary<string, Task<ChecksumCollection>>> s_emptyChecksumCollectionTaskCache = new ConditionalWeakTable<Serializer, ConcurrentDictionary<string, Task<ChecksumCollection>>>();
+        private readonly static ConditionalWeakTable<Serializer, ConcurrentDictionary<string, ChecksumCollection>> s_emptyChecksumCollectionCache = new ConditionalWeakTable<Serializer, ConcurrentDictionary<string, ChecksumCollection>>();
+        private readonly static ConditionalWeakTable<ChecksumCollection, Task<ChecksumCollection>> s_emptyChecksumCollectionTaskCache = new ConditionalWeakTable<ChecksumCollection, Task<ChecksumCollection>>();
 
         /// <summary>
         /// global asset is an asset which life time is same as host
@@ -71,9 +73,16 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
         {
-            // search snapshots we have
-            foreach (var cache in _rootTreeNodes.Values)
+            if (checksum == Checksum.Null)
             {
+                // check nil case
+                return Asset.Null;
+            }
+
+            // search snapshots we have
+            foreach (var kv in _rootTreeNodes)
+            {
+                var cache = kv.Value;
                 var checksumObject = cache.TryGetChecksumObject(checksum, cancellationToken);
                 if (checksumObject != null)
                 {
@@ -82,10 +91,11 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             // search global assets
-            foreach (var asset in _globalAssets.Values)
+            foreach (var kv in _globalAssets)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                var asset = kv.Value;
                 if (asset.Checksum == checksum)
                 {
                     return asset;
@@ -101,11 +111,18 @@ namespace Microsoft.CodeAnalysis.Execution
             using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
             {
                 var numberOfChecksumsToSearch = searchingChecksumsLeft.Object.Count;
-                var result = new Dictionary<Checksum, ChecksumObject>();
+                var result = new Dictionary<Checksum, ChecksumObject>(numberOfChecksumsToSearch);
+
+                // check nil case
+                if (searchingChecksumsLeft.Object.Remove(Checksum.Null))
+                {
+                    result[Checksum.Null] = Asset.Null;
+                }
 
                 // search checksum trees we have
-                foreach (var cache in _rootTreeNodes.Values)
+                foreach (var kv in _rootTreeNodes)
                 {
+                    var cache = kv.Value;
                     cache.AppendChecksumObjects(result, searchingChecksumsLeft.Object, cancellationToken);
                     if (result.Count == numberOfChecksumsToSearch)
                     {
@@ -116,10 +133,11 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
 
                 // search global assets
-                foreach (var asset in _globalAssets.Values)
+                foreach (var kv in _globalAssets)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    var asset = kv.Value;
                     if (searchingChecksumsLeft.Object.Remove(asset.Checksum))
                     {
                         result[asset.Checksum] = asset;
@@ -140,8 +158,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)
         {
-            foreach (var cache in _rootTreeNodes.Values)
+            foreach (var kv in _rootTreeNodes)
             {
+                var cache = kv.Value;
                 var entry = cache.TryGetChecksumObjectEntry(key, kind, cancellationToken);
                 if (entry != null)
                 {
@@ -166,24 +185,34 @@ namespace Microsoft.CodeAnalysis.Execution
         }
 
         private static readonly ConditionalWeakTable<HostWorkspaceServices, Serializer>.CreateValueCallback s_serializerCallback = s => new Serializer(s);
+
         public static Serializer GetOrCreateSerializer(HostWorkspaceServices services)
         {
             return s_serializerCache.GetValue(services, s_serializerCallback);
         }
 
-        private static readonly ConditionalWeakTable<Serializer, ConcurrentDictionary<string, Task<ChecksumCollection>>>.CreateValueCallback s_emptyChecksumCollectionCallback =
-            s => new ConcurrentDictionary<string, Task<ChecksumCollection>>(concurrencyLevel: 2, capacity: 20);
-        public static Task<ChecksumCollection> GetOrCreateEmptyChecksumCollection(Serializer serializer, string kind)
-        {
-            var map = s_emptyChecksumCollectionTaskCache.GetValue(serializer, s_emptyChecksumCollectionCallback);
+        private static readonly ConditionalWeakTable<Serializer, ConcurrentDictionary<string, ChecksumCollection>>.CreateValueCallback s_emptyChecksumCollectionCallback =
+            s => new ConcurrentDictionary<string, ChecksumCollection>(concurrencyLevel: 2, capacity: 20);
 
-            Task<ChecksumCollection> task;
-            if (map.TryGetValue(kind, out task))
+        public static ChecksumCollection GetOrCreateEmptyChecksumCollection(Serializer serializer, string kind)
+        {
+            var map = s_emptyChecksumCollectionCache.GetValue(serializer, s_emptyChecksumCollectionCallback);
+
+            ChecksumCollection collection;
+            if (map.TryGetValue(kind, out collection))
             {
-                return task;
+                return collection;
             }
 
-            return map.GetOrAdd(kind, _ => Task.FromResult(new ChecksumCollection(serializer, kind, SpecializedCollections.EmptyArray<object>())));
+            return map.GetOrAdd(kind, _ => new ChecksumCollection(serializer, kind, Array.Empty<object>()));
+        }
+
+        private static readonly ConditionalWeakTable<ChecksumCollection, Task<ChecksumCollection>>.CreateValueCallback s_emptyChecksumCollectionTaskCallback = c => Task.FromResult(c);
+
+        public static Task<ChecksumCollection> GetOrCreateEmptyChecksumCollectionTask(Serializer serializer, string kind)
+        {
+            var collection = GetOrCreateEmptyChecksumCollection(serializer, kind);
+            return s_emptyChecksumCollectionTaskCache.GetValue(collection, s_emptyChecksumCollectionTaskCallback);
         }
     }
 }

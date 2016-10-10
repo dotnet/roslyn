@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource
         where TSyntaxNode : SyntaxNode
     {
         protected override void CollectBlockSpans(
-            TSyntaxNode node, ImmutableArray<BlockSpan>.Builder spans, CancellationToken cancellationToken)
+            TSyntaxNode node, ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
         {
             var startToken = node.GetFirstToken();
             var endToken = GetEndToken(node);
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource
 
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
+                    type: BlockTypes.Comment,
                     textSpan: TextSpan.FromBounds(startPosition, endPosition),
                     hintSpan: TextSpan.FromBounds(startPosition, hintTextEndToken.Span.End),
                     bannerText: CSharpStructureHelpers.Ellipsis,

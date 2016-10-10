@@ -4,25 +4,64 @@ namespace Microsoft.CodeAnalysis.Structure
 {
     internal static class BlockTypes
     {
-        public const string AccessorBlock = "AccessorBlock";
-        public const string AnonymousMethodBlock = "AnonymousMethodBlock";
-        public const string Case = "Case";
-        public const string Class = "Class";
-        public const string Conditional = "Conditional";
-        public const string Constructor = "Constructor";
-        public const string Destructor = "Destructor";
-        public const string Interface = "Interface";
-        public const string Lock = "Context";
-        public const string Loop = "Loop";
-        public const string Method = "Method";
-        public const string Namespace = "Namespace";
-        public const string Nonstructural = "Nonstructural";
-        public const string Operator = "Operator";
-        public const string PropertyBlock = "PropertyBlock";
-        public const string Standalone = "Standalone";
-        public const string Struct = "Struct";
-        public const string Structural = "Structural";
-        public const string TryCatchFinally = "TryCatchFinally";
-        public const string Unknown = "Unknown";
+        // Basic types.
+        public const string Nonstructural = nameof(Nonstructural);
+
+        // Trivia
+        public const string Comment = nameof(Comment);
+        public const string PreprocessorRegion = nameof(PreprocessorRegion);
+
+        // Top level declarations.
+        public const string Imports = nameof(Imports);
+        public const string Namespace = nameof(Namespace);
+        public const string Type = nameof(Type);
+        public const string Member = nameof(Member);
+
+        // Statements and expressions.
+        public const string Statement = nameof(Statement);
+        public const string Conditional = nameof(Conditional);
+        public const string Loop = nameof(Loop);
+
+        public const string Expression = nameof(Expression);
+
+        internal static bool IsCommentOrPreprocessorRegion(string type)
+        {
+            switch (type)
+            {
+                case Comment:
+                case PreprocessorRegion:
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsExpressionLevelConstruct(string type)
+        {
+            return type == Expression;
+        }
+
+        internal static bool IsStatementLevelConstruct(string type)
+        {
+            switch (type)
+            {
+                case Statement:
+                case Conditional:
+                case Loop:
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsCodeLevelConstruct(string type)
+        {
+            return IsExpressionLevelConstruct(type) || IsStatementLevelConstruct(type);
+        }
+
+        internal static bool IsDeclarationLevelConstruct(string type)
+        {
+            return !IsCodeLevelConstruct(type) && !IsCommentOrPreprocessorRegion(type);
+        }
     }
 }

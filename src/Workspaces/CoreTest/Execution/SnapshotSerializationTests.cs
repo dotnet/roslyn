@@ -2,12 +2,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
 using Roslyn.Utilities;
@@ -311,7 +318,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var trees = new ChecksumTreeCollection();
             var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
 
-            var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
+            var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
             var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
             var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
         }
@@ -391,15 +398,175 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private async Task<Solution> GetSolutionAsync(ISolutionChecksumService service, ChecksumScope snapshot)
+        [Fact]
+        public async Task OptionSet_Serialization()
         {
             var workspace = new AdhocWorkspace();
 
+            await VerifyOptionSetsAsync(workspace, LanguageNames.CSharp).ConfigureAwait(false);
+            await VerifyOptionSetsAsync(workspace, LanguageNames.VisualBasic).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task OptionSet_Serialization_CustomValue()
+        {
+            var workspace = new AdhocWorkspace();
+
+            workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, new CodeStyleOption<bool>(false, NotificationOption.Error))
+                                                 .WithChangedOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.Warning))
+                                                 .WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion))
+                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.None));
+
+            await VerifyOptionSetsAsync(workspace, LanguageNames.CSharp).ConfigureAwait(false);
+            await VerifyOptionSetsAsync(workspace, LanguageNames.VisualBasic).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task Missing_Metadata_Serailization_Test()
+        {
+            var workspace = new AdhocWorkspace();
+            var reference = new MissingMetadataReference();
+
+            var serializer = new Serializer(workspace.Services);
+            var trees = new ChecksumTreeCollection();
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
+
+            // make sure this doesn't throw
+            var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task Missing_Analyzer_Serailization_Test()
+        {
+            var workspace = new AdhocWorkspace();
+            var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+
+            var serializer = new Serializer(workspace.Services);
+            var trees = new ChecksumTreeCollection();
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
+
+            // make sure this doesn't throw
+            var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task Missing_Analyzer_Serailization_Desktop_Test()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+
+            var serializer = new Serializer(workspace.Services);
+            var trees = new ChecksumTreeCollection();
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
+
+            // make sure this doesn't throw
+            var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task SnapshotWithMissingReferencesTest()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var solution = new AdhocWorkspace(hostServices).CurrentSolution;
+            var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+
+            var metadata = new MissingMetadataReference();
+            var analyzer = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+
+            project1 = project1.AddMetadataReference(metadata);
+            project1 = project1.AddAnalyzerReference(analyzer);
+
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(project1.Solution, CancellationToken.None).ConfigureAwait(false))
+            {
+                // this shouldn't throw
+                var recovered = await GetSolutionAsync(snapshotService, snapshot).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public async Task UnknownLanguageTest()
+        {
+            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NullLanguageService).Assembly));
+
+            var solution = new AdhocWorkspace(hostServices).CurrentSolution;
+
+            var project1 = solution.AddProject("Project", "Project.dll", NullLanguageService.TestLanguage);
+
+            var snapshotService = (new SolutionChecksumServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionChecksumService;
+            using (var snapshot = await snapshotService.CreateChecksumAsync(project1.Solution, CancellationToken.None).ConfigureAwait(false))
+            {
+                // this shouldn't throw
+                var recovered = await GetSolutionAsync(snapshotService, snapshot).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public void EmptyAssetChecksumTest()
+        {
+            var document = new AdhocWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
+            var assetBuilder = new AssetBuilder(document.Project.Solution);
+
+            var source = assetBuilder.Build(document.State, document.GetTextAsync().Result, CancellationToken.None);
+            var metadata = assetBuilder.Build(new MissingMetadataReference(), CancellationToken.None);
+            var analyzer = assetBuilder.Build(new AnalyzerFileReference("missing", new MissingAnalyzerLoader()), CancellationToken.None);
+
+            Assert.NotEqual(source.Checksum, metadata.Checksum);
+            Assert.NotEqual(source.Checksum, analyzer.Checksum);
+            Assert.NotEqual(metadata.Checksum, analyzer.Checksum);
+        }
+
+        private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
+        {
+            var assetBuilder = new AssetBuilder(workspace.CurrentSolution);
+            var serializer = new Serializer(workspace.Services);
+
+            var asset = assetBuilder.Build(workspace.Options, language, CancellationToken.None);
+
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream))
+            {
+                await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+
+                stream.Position = 0;
+                using (var reader = new ObjectReader(stream))
+                {
+                    var recovered = serializer.Deserialize<OptionSet>(asset.Kind, reader, CancellationToken.None);
+                    var assetFromStorage = assetBuilder.Build(recovered, language, CancellationToken.None);
+
+                    Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
+
+                    // option should be exactly same
+                    Assert.Equal(0, recovered.GetChangedOptions(workspace.Options).Count());
+                }
+            }
+        }
+
+        private async Task<Solution> GetSolutionAsync(ISolutionChecksumService service, ChecksumScope snapshot)
+        {
+            var workspace = new AdhocWorkspace();
             var solutionInfo = await GetValueAsync<SolutionChecksumObjectInfo>(service, snapshot.SolutionChecksum.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
             foreach (var projectSnapshot in snapshot.SolutionChecksum.Projects.ToProjectObjects(service))
             {
+                var projectInfo = await GetValueAsync<ProjectChecksumObjectInfo>(service, projectSnapshot.Info, WellKnownChecksumObjects.ProjectChecksumObjectInfo).ConfigureAwait(false);
+                if (!workspace.Services.IsSupported(projectInfo.Language))
+                {
+                    continue;
+                }
+
                 var documents = new List<DocumentInfo>();
                 foreach (var documentSnapshot in projectSnapshot.Documents.ToDocumentObjects(service))
                 {
@@ -456,7 +623,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             documentInfo.IsGenerated));
                 }
 
-                var projectInfo = await GetValueAsync<ProjectChecksumObjectInfo>(service, projectSnapshot.Info, WellKnownChecksumObjects.ProjectChecksumObjectInfo).ConfigureAwait(false);
                 var compilationOptions = await GetValueAsync<CompilationOptions>(service, projectSnapshot.CompilationOptions, WellKnownChecksumObjects.CompilationOptions).ConfigureAwait(false);
                 var parseOptions = await GetValueAsync<ParseOptions>(service, projectSnapshot.ParseOptions, WellKnownChecksumObjects.ParseOptions).ConfigureAwait(false);
 
@@ -481,13 +647,66 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))
                 {
-                    var recovered = serializer.Deserialize<MetadataReference>(WellKnownChecksumObjects.MetadataReference, reader, CancellationToken.None);
-                    var assetFromStorage = await assetBuilder.BuildAsync(recovered, CancellationToken.None).ConfigureAwait(false);
+                    var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
+                    var assetFromStorage = BuildAsset(assetBuilder, asset.Kind, recovered);
 
                     Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
-
                     return assetFromStorage;
                 }
+            }
+        }
+
+        private static Asset BuildAsset(AssetBuilder builder, string kind, object value)
+        {
+            switch (kind)
+            {
+                case WellKnownChecksumObjects.AnalyzerReference:
+                    return builder.Build((AnalyzerReference)value, CancellationToken.None);
+                case WellKnownChecksumObjects.MetadataReference:
+                    return builder.Build((MetadataReference)value, CancellationToken.None);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private interface INullLanguageService : ILanguageService { }
+
+        [ExportLanguageService(typeof(INullLanguageService), TestLanguage), Shared]
+        private class NullLanguageService : INullLanguageService
+        {
+            public const string TestLanguage = nameof(TestLanguage);
+
+            // do nothing
+        }
+
+        private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
+        {
+            protected override Assembly LoadFromPathImpl(string fullPath)
+            {
+                throw new FileNotFoundException(fullPath);
+            }
+        }
+
+        private class MissingMetadataReference : PortableExecutableReference
+        {
+            public MissingMetadataReference() :
+                base(MetadataReferenceProperties.Assembly, "missing_reference", XmlDocumentationProvider.Default)
+            {
+            }
+
+            protected override DocumentationProvider CreateDocumentationProvider()
+            {
+                return null;
+            }
+
+            protected override Metadata GetMetadataImpl()
+            {
+                throw new FileNotFoundException("can't find");
+            }
+
+            protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+            {
+                return this;
             }
         }
     }

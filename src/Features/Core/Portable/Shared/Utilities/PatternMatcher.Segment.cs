@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 if (partCount == 0)
                 {
-                    return SpecializedCollections.EmptyArray<TextChunk>();
+                    return Array.Empty<TextChunk>();
                 }
 
                 var result = new TextChunk[partCount];

@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         private static bool IsWorkspaceElement(string text)
         {
-            return text.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal);
+            return TestWorkspace.IsWorkspaceElement(text);
         }
 
         protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(

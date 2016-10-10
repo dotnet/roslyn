@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The produces a deconstruction step with no Deconstruct method since the tuple already has distinct elements.
         /// </summary>
-        private static BoundDeconstructionDeconstructStep MakeTupleDeconstructStep(
+        private BoundDeconstructionDeconstructStep MakeTupleDeconstructStep(
                                                         BoundDeconstructValuePlaceholder targetPlaceholder,
                                                         CSharpSyntaxNode syntax,
                                                         DiagnosticBag diagnostics,
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetPlaceholder.Type.IsTupleType);
 
             var tupleTypes = targetPlaceholder.Type.TupleElementTypes;
-            SetInferredTypes(variables, tupleTypes);
+            SetInferredTypes(variables, tupleTypes, diagnostics);
 
             if (variables.Count != tupleTypes.Length)
             {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            SetInferredTypes(variables, outPlaceholders.SelectAsArray(p => p.Type));
+            SetInferredTypes(variables, outPlaceholders.SelectAsArray(p => p.Type), diagnostics);
 
             return new BoundDeconstructionDeconstructStep(syntax, deconstructInvocation, targetPlaceholder, outPlaceholders);
         }
@@ -220,15 +220,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Inform the variables about found types.
         /// </summary>
-        private static void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes)
+        private void SetInferredTypes(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<TypeSymbol> foundTypes, DiagnosticBag diagnostics)
         {
             var matchCount = Math.Min(variables.Count, foundTypes.Length);
             for (int i = 0; i < matchCount; i++)
             {
                 var variable = variables[i];
-                if (!variable.HasNestedVariables && variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
+                if (!variable.HasNestedVariables && variable.Single.Kind == BoundKind.DeconstructionVariablePendingInference)
                 {
-                    BoundLocal local = ((DeconstructionLocalPendingInference)variable.Single).SetInferredType(foundTypes[i], success: true);
+                    BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).SetInferredType(foundTypes[i], this, diagnostics);
                     variables[i] = new DeconstructionVariable(local, local.Syntax);
                 }
             }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void FailRemainingInferences(ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics)
         {
-            var count = variables.Count;
+            int count = variables.Count;
             for (int i = 0; i < count; i++)
             {
                 var variable = variables[i];
@@ -249,9 +249,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (variable.Single.Kind == BoundKind.DeconstructionLocalPendingInference)
+                    if (variable.Single.Kind == BoundKind.DeconstructionVariablePendingInference)
                     {
-                        var local = ((DeconstructionLocalPendingInference)variable.Single).FailInference(this);
+                        BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, diagnostics);
                         variables[i] = new DeconstructionVariable(local, local.Syntax);
                     }
                 }
@@ -409,11 +409,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // typed-variable on the left
                             mergedType = variable.Single.Type;
                         }
-                        else if ((object)mergedType == null)
-                        {
-                            // typeless-variable on the left and typeless-element on the right
-                            Error(diagnostics, ErrorCode.ERR_DeconstructCouldNotInferMergedType, syntax, variable.Syntax, element.Syntax);
-                        }
                     }
                 }
                 else
@@ -530,7 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var outVars = ArrayBuilder<OutDeconstructVarPendingInference>.GetInstance(numCheckedVariables);
-            DiagnosticBag bag = null;
 
             try
             {
@@ -560,15 +554,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // That step returns placeholder (of correct type) instead of the outVar nodes that were passed in as arguments.
                 // So the generated invocation expression will contain placeholders instead of those outVar nodes.
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
-                bag = DiagnosticBag.GetInstance();
                 BoundExpression result = BindMethodGroupInvocation(
-                                            receiverSyntax, receiverSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, bag, queryClause: null,
+                                            receiverSyntax, receiverSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
                                             allowUnexpandedForm: true);
 
                 result.WasCompilerGenerated = true;
-                diagnostics.AddRange(bag);
 
-                if (bag.HasAnyErrors())
+                if (result.HasErrors && !receiver.HasAnyErrors)
                 {
                     return MissingDeconstruct(receiver, syntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
@@ -602,13 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 analyzedArguments.Free();
                 outVars.Free();
-
-                if (bag != null)
-                {
-                    bag.Free();
-                }
             }
-
         }
 
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, CSharpSyntaxNode syntax, int numParameters, DiagnosticBag diagnostics,
@@ -628,21 +614,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundDeconstructionAssignmentOperator BindDeconstructionDeclaration(CSharpSyntaxNode node, VariableComponentSyntax declaration, ExpressionSyntax right,
                                                         DiagnosticBag diagnostics, BoundDeconstructValuePlaceholder rightPlaceholder = null)
         {
-            DeconstructionVariable locals = BindDeconstructionDeclarationLocals(declaration, diagnostics);
+            DeconstructionVariable locals = BindDeconstructionDeclarationVariables(declaration, diagnostics);
             Debug.Assert(locals.HasNestedVariables);
             var result = BindDeconstructionAssignment(node, right, locals.NestedVariables, diagnostics, isDeclaration: true, rhsPlaceholder: rightPlaceholder);
             FreeDeconstructionVariables(locals.NestedVariables);
             return result;
         }
 
-        private DeconstructionVariable BindDeconstructionDeclarationLocals(VariableComponentSyntax node, DiagnosticBag diagnostics)
+        /// <summary>
+        /// Prepares locals (or fields in global statement) corresponding to the variables of the declaration.
+        /// The locals/fields are kept in a tree which captures the nesting of variables.
+        /// Each local or field is either a simple local or field access (when its type is known) or a deconstruction variable pending inference.
+        /// The caller is responsible for releasing the nested ArrayBuilders.
+        /// </summary>
+        private DeconstructionVariable BindDeconstructionDeclarationVariables(
+            VariableComponentSyntax node,
+            DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.TypedVariableComponent:
                     {
                         var component = (TypedVariableComponentSyntax)node;
-                        return BindDeconstructionDeclarationLocals(component.Type, component.Designation, diagnostics);
+                        return BindDeconstructionDeclarationVariables(component.Type, component.Designation, diagnostics);
                     }
                 case SyntaxKind.ParenthesizedVariableComponent:
                     {
@@ -650,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(component.Variables.Count);
                         foreach (var n in component.Variables)
                         {
-                            builder.Add(BindDeconstructionDeclarationLocals(n, diagnostics));
+                            builder.Add(BindDeconstructionDeclarationVariables(n, diagnostics));
                         }
                         return new DeconstructionVariable(builder, node);
                     }
@@ -659,14 +653,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DeconstructionVariable BindDeconstructionDeclarationLocals(TypeSyntax type, VariableDesignationSyntax node, DiagnosticBag diagnostics)
+        private DeconstructionVariable BindDeconstructionDeclarationVariables(
+            TypeSyntax type,
+            VariableDesignationSyntax node,
+            DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDeconstructionDeclarationLocal(type, single, diagnostics), node);
+                        return new DeconstructionVariable(BindDeconstructionDeclarationVariable(type, single, diagnostics), node);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -674,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeconstructionDeclarationLocals(type, n, diagnostics));
+                            builder.Add(BindDeconstructionDeclarationVariables(type, n, diagnostics));
                         }
                         return new DeconstructionVariable(builder, node);
                     }
@@ -684,30 +681,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Prepares locals corresponding to the variables of the declaration.
-        /// The locals are kept in a tree which captures the nesting of variables.
-        /// Each local is either a simple local (when its type is known) or a deconstruction local pending inference.
-        /// The caller is responsible for releasing the nested ArrayBuilders.
+        /// In embedded statements, returns a BoundLocal when the type was explicit.
+        /// In global statements, returns a BoundFieldAccess when the type was explicit.
+        /// Otherwise returns a DeconstructionVariablePendingInference when the type is implicit.
         /// </summary>
-        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationLocals(VariableComponentAssignmentSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
+        private BoundExpression BindDeconstructionDeclarationVariable(
+            TypeSyntax typeSyntax,
+            SingleVariableDesignationSyntax designation,
+            DiagnosticBag diagnostics)
         {
-            var deconstructionVariable = BindDeconstructionDeclarationLocals(node.VariableComponent, diagnostics);
-            Debug.Assert(deconstructionVariable.HasNestedVariables);
-            return deconstructionVariable.NestedVariables;
-        }
+            SourceLocalSymbol localSymbol = LookupLocal(designation.Identifier);
 
-        /// <summary>
-        /// Returns a BoundLocal when the type was explicit, otherwise returns a DeconstructionLocalPendingInference.
-        /// </summary>
-        private BoundExpression BindDeconstructionDeclarationLocal(TypeSyntax typeSyntax, SingleVariableDesignationSyntax designation, DiagnosticBag diagnostics)
-        {
-            var localSymbol = LocateDeclaredVariableSymbol(designation, typeSyntax);
-
-            // Check for variable declaration errors.
-            // Use the binder that owns the scope for the local because this (the current) binder
-            // might own nested scope.
-            bool hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
-
+            bool hasErrors = false;
             bool isVar;
             bool isConst = false;
             AliasSymbol alias;
@@ -721,11 +706,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);
                     hasErrors = true;
                 }
-
-                return new BoundLocal(designation, localSymbol, constantValueOpt: null, type: declType, hasErrors: hasErrors);
             }
 
-            return new DeconstructionLocalPendingInference(designation, localSymbol);
+            // is this a local?
+            if (localSymbol != null)
+            {
+                // Check for variable declaration errors.
+                // Use the binder that owns the scope for the local because this (the current) binder
+                // might own nested scope.
+                hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+
+                if (!isVar)
+                {
+                    return new BoundLocal(designation, localSymbol, constantValueOpt: null, type: declType, hasErrors: hasErrors);
+                }
+
+                return new DeconstructionVariablePendingInference(designation, localSymbol, receiverOpt: null);
+            }
+
+            // Is this a field?
+            GlobalExpressionVariable field = LookupDeclaredField(designation);
+
+            if ((object)field == null)
+            {
+                // We should have the right binder in the chain, cannot continue otherwise.
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,
+                                            wasCompilerGenerated: true);
+
+            if (!isVar)
+            {
+                TypeSymbol fieldType = field.GetFieldType(this.FieldsBeingBound);
+                return new BoundFieldAccess(designation,
+                                            receiver,
+                                            field,
+                                            constantValueOpt: null,
+                                            resultKind: LookupResultKind.Viable,
+                                            type: fieldType,
+                                            hasErrors: hasErrors);
+            }
+
+            return new DeconstructionVariablePendingInference(designation, field, receiver);
         }
     }
 }

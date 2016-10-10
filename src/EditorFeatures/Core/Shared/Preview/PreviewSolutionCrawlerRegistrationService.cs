@@ -108,6 +108,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 // ask it to reset its stages for the given workspace
                 _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
             }
+
+            public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
+            {
+                // preview solution crawler doesn't support adding and removing analyzer dynamically
+                throw new NotSupportedException();
+            }
         }
     }
 }

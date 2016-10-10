@@ -1064,4 +1064,22 @@ This version used in: {2}</value>
   <data name="Use_framework_type" xml:space="preserve">
     <value>Use framework type</value>
   </data>
+  <data name="Install_package_0" xml:space="preserve">
+    <value>Install package '{0}'</value>
+  </data>
+  <data name="Object_initialization_can_be_simplified" xml:space="preserve">
+    <value>Object initialization can be simplified</value>
+  </data>
+  <data name="Use_throw_expression" xml:space="preserve">
+    <value>Use 'throw' expression</value>
+  </data>
+  <data name="project_space" xml:space="preserve">
+    <value>project </value>
+  </data>
+  <data name="type_space" xml:space="preserve">
+    <value>type </value>
+  </data>
+  <data name="Inline_variable_declaration" xml:space="preserve">
+    <value>Inline variable declaration</value>
+  </data>
 </root>

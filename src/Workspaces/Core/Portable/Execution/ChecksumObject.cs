@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
-            return _serializer.SerializeChecksumObjectWithChildrenAsync(this, writer, cancellationToken);
+            _serializer.SerializeChecksumObjectWithChildren(this, writer, cancellationToken);
+            return SpecializedTasks.EmptyTask;
         }
 
         private static Checksum CreateChecksum(string kind, object[] children)
@@ -72,6 +73,8 @@ namespace Microsoft.CodeAnalysis.Execution
     // TODO: Kind might not actually needed. see whether we can get rid of this
     internal static class WellKnownChecksumObjects
     {
+        public const string Null = nameof(Null);
+
         public const string Projects = nameof(Projects);
         public const string Documents = nameof(Documents);
         public const string TextDocuments = nameof(TextDocuments);
@@ -88,5 +91,6 @@ namespace Microsoft.CodeAnalysis.Execution
         public const string MetadataReference = nameof(MetadataReference);
         public const string AnalyzerReference = nameof(AnalyzerReference);
         public const string SourceText = nameof(SourceText);
+        public const string OptionSet = nameof(OptionSet);
     }
 }

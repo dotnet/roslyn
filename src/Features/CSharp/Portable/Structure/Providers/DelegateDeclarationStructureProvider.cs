@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             DelegateDeclarationSyntax delegateDeclaration,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(delegateDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(delegateDeclaration, spans);
         }
     }
 }

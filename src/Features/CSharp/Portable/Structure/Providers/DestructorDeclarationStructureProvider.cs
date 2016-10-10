@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
@@ -11,10 +10,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             DestructorDeclarationSyntax destructorDeclaration,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(destructorDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, spans);
 
             // fault tolerance
             if (destructorDeclaration.Body == null ||
@@ -24,10 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 destructorDeclaration,
                 destructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
-                autoCollapse: true));
+                autoCollapse: true,
+                type: BlockTypes.Member,
+                isCollapsible: true));
         }
     }
 }

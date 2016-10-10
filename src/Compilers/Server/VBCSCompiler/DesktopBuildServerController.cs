@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override string GetDefaultPipeName()
         {
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            return DesktopBuildClient.GetPipeNameForPath(clientDirectory);
+            return DesktopBuildClient.GetPipeNameForPathOpt(clientDirectory);
         }
 
         protected override bool? WasServerRunning(string pipeName)

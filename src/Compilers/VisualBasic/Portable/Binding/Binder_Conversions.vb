@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -1596,6 +1595,9 @@ DoneWithDiagnostics:
 
             If targetType.IsTupleType Then
                 Dim destTupleType = DirectCast(targetType, TupleTypeSymbol)
+
+                TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType, sourceTuple, diagnostics)
+
                 ' do not lose the original element names in the literal if different from names in the target
                 ' Come back to this, what about locations? (https:'github.com/dotnet/roslyn/issues/11013)
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt)

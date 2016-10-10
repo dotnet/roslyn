@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     _reference = reference;
 
-                    _title = $"{reference.provider.GetDescription(reference.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, reference._packageName)})";
+                    _title = string.Format(FeaturesResources.Install_package_0, reference._packageName);
 
                     // Determine what versions of this package are already installed in some project
                     // in this solution.  We'll offer to add those specific versions to this project,
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         isApplicable: null);
                 }
 
-                private async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+                private async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
                     string versionOpt, 
                     bool isLocal,
                     Document document, 
