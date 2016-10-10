@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
@@ -56,6 +57,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
         {
             return destination.GetInsertionIndices(cancellationToken);
+        }
+
+        public override async Task<Document> AddEventAsync(
+            Solution solution, INamedTypeSymbol destination, IEventSymbol @event,
+            CodeGenerationOptions options, CancellationToken cancellationToken)
+        {
+            var newDocument = await base.AddEventAsync(
+                solution, destination, @event, options, cancellationToken).ConfigureAwait(false);
+
+            var namedType = @event.Type as INamedTypeSymbol;
+            if (namedType?.AssociatedSymbol != null)
+            {
+                // This is a VB event that declares its own type.  i.e. "Public Event E(x As Object)"
+                // We also have to generate "public void delegate EEventHandler(object x)"
+                var compilation = await newDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var newDestinationSymbol = destination.GetSymbolKey().Resolve(compilation).Symbol;
+
+                if (newDestinationSymbol?.ContainingType != null)
+                {
+                    return await this.AddNamedTypeAsync(
+                        newDocument.Project.Solution, newDestinationSymbol.ContainingType, 
+                        namedType, options, cancellationToken).ConfigureAwait(false);
+                }
+                else if (newDestinationSymbol?.ContainingNamespace != null)
+                {
+                    return await this.AddNamedTypeAsync(
+                        newDocument.Project.Solution, newDestinationSymbol.ContainingNamespace,
+                        namedType, options, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return newDocument;
         }
 
         protected override TDeclarationNode AddEvent<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, CodeGenerationOptions options, IList<bool> availableIndices)

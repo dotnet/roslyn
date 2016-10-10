@@ -2940,36 +2940,80 @@ checkNullable:
 
         Private Function ParseTupleType(openParen As PunctuationSyntax) As TypeSyntax
             Dim elementBuilder = _pool.AllocateSeparated(Of TupleElementSyntax)()
+            Dim unexpected As GreenNode = Nothing
 
             Do
                 Dim identifierNameOpt As IdentifierNameSyntax = Nothing
                 Dim asKeywordOpt As KeywordSyntax = Nothing
 
+                ' if there is a type character or As, then this must be a name
                 If CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso
-                        PeekNextToken().Kind = SyntaxKind.AsKeyword Then
+                        (DirectCast(CurrentToken, IdentifierTokenSyntax).TypeCharacter <> TypeCharacter.None OrElse
+                        PeekNextToken().Kind = SyntaxKind.AsKeyword) Then
 
-                    identifierNameOpt = ParseIdentifierNameAllowingKeyword()
+                    identifierNameOpt = SyntaxFactory.IdentifierName(ParseIdentifier())
                     TryGetToken(SyntaxKind.AsKeyword, asKeywordOpt)
-
                 End If
 
-                Dim type = ParseGeneralType()
-                Dim element = SyntaxFactory.TupleElement(identifierNameOpt, asKeywordOpt, type)
+                Dim typeOpt As TypeSyntax = Nothing
+                ' if have "As" or have no element name, must have a type
+                If asKeywordOpt IsNot Nothing OrElse identifierNameOpt Is Nothing Then
+                    typeOpt = ParseGeneralType()
+                End If
+
+                Dim element As TupleElementSyntax
+
+                If identifierNameOpt IsNot Nothing Then
+                    Dim simpleAsClause As SimpleAsClauseSyntax = Nothing
+                    If asKeywordOpt IsNot Nothing Then
+                        Debug.Assert(typeOpt IsNot Nothing)
+                        simpleAsClause = SyntaxFactory.SimpleAsClause(asKeywordOpt, attributeLists:=Nothing, type:=typeOpt)
+                    End If
+
+                    element = SyntaxFactory.NamedTupleElement(identifierNameOpt, simpleAsClause)
+
+                Else
+                    Debug.Assert(typeOpt IsNot Nothing)
+                    element = SyntaxFactory.TypedTupleElement(typeOpt)
+                End If
 
                 elementBuilder.Add(element)
 
-                If CurrentToken.Kind = SyntaxKind.CommaToken Then
-                    Dim commaToken As PunctuationSyntax = Nothing
-                    TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken)
 
+                Dim commaToken As PunctuationSyntax = Nothing
+                If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken) Then
                     elementBuilder.AddSeparator(commaToken)
-                Else
+                    Continue Do
+
+                ElseIf CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse MustEndStatement(CurrentToken) Then
                     Exit Do
+
+                Else
+                    ' There is a syntax error of some kind.
+
+                    Dim skipped = ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}).Node
+                    If skipped IsNot Nothing AndAlso Not element.ContainsDiagnostics Then
+                        skipped = ReportSyntaxError(skipped, ERRID.ERR_ArgumentSyntax)
+                    End If
+
+                    If CurrentToken.Kind = SyntaxKind.CommaToken Then
+                        commaToken = DirectCast(CurrentToken, PunctuationSyntax)
+                        commaToken = commaToken.AddLeadingSyntax(skipped)
+                        elementBuilder.AddSeparator(commaToken)
+                        GetNextToken()
+                    Else
+                        unexpected = skipped
+                        Exit Do
+                    End If
                 End If
             Loop
 
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
+
+            If unexpected IsNot Nothing Then
+                closeParen = closeParen.AddLeadingSyntax(unexpected)
+            End If
 
             Dim tupleElements = elementBuilder.ToList
             _pool.Free(elementBuilder)

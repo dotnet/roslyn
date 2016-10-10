@@ -15,26 +15,26 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(symbol.IsTupleType);
                 visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
                 visitor.WriteStringArray(symbol.TupleElementNames);
-            }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                // The hash of the underlying type is good enough, we don't need to include names.
-                var symbolKeyHashCode = reader.ReadSymbolKey();
-                var elementNames = reader.ReadStringArray();
+                var locations = ArrayBuilder<Location>.GetInstance();
+                for (var i = 0; i < symbol.TupleElementTypes.Length; i++)
+                {
+                    locations.Add(symbol.GetMembers("Item" + (i + 1)).FirstOrDefault()?.Locations.FirstOrDefault());
+                }
 
-                return symbolKeyHashCode;
+                visitor.WriteLocationArray(locations.ToImmutableAndFree());
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var underlyingTypeResolution = reader.ReadSymbolKey();
-                var tupleElementNames = reader.ReadStringArray();
+                var elementNames = reader.ReadStringArray();
+                var elementLocations = reader.ReadLocationArray();
 
                 try
                 {
                     var result = GetAllSymbols<INamedTypeSymbol>(underlyingTypeResolution).Select(
-                        t => reader.Compilation.CreateTupleTypeSymbol(t, tupleElementNames));
+                        t => reader.Compilation.CreateTupleTypeSymbol(t, elementNames, elementLocations));
                     return CreateSymbolInfo(result);
                 }
                 catch (ArgumentException)

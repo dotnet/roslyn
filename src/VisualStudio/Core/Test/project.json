@@ -20,6 +20,10 @@
             "version": "14.3.25407",
             "suppressParent": "all"
         },
+        "RoslynDependencies.Microsoft.VisualStudio.Text.Internal" : {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
         "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": {
             "version": "14.3.25407",
             "suppressParent": "all"

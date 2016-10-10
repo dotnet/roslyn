@@ -16752,30 +16752,18 @@ public class C : I0
 
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8141: The tuple element names in the signature of method 'C.M2((int notA, int notB))' must match the tuple element names of interface method 'I0.M2((int a, int b))' (including on the return type).
+                // (12,13): error CS8141: The tuple element names in the signature of method 'C.I0.M2((int notA, int notB))' must match the tuple element names of interface method 'I0.M2((int a, int b))' (including on the return type).
                 //     void I0.M2((int notA, int notB) z) { }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M2").WithArguments("C.M2((int notA, int notB))", "I0.M2((int a, int b))").WithLocation(12, 13),
-                // (13,32): error CS8141: The tuple element names in the signature of method 'C.MR1()' must match the tuple element names of interface method 'I0.MR1()' (including on the return type).
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M2").WithArguments("C.I0.M2((int notA, int notB))", "I0.M2((int a, int b))").WithLocation(12, 13),
+                // (13,32): error CS8141: The tuple element names in the signature of method 'C.I0.MR1()' must match the tuple element names of interface method 'I0.MR1()' (including on the return type).
                 //     (int notMissing, int b) I0.MR1() { return (1, 2); }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR1").WithArguments("C.MR1()", "I0.MR1()").WithLocation(13, 32),
-                // (14,29): error CS8141: The tuple element names in the signature of method 'C.MR2()' must match the tuple element names of interface method 'I0.MR2()' (including on the return type).
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR1").WithArguments("C.I0.MR1()", "I0.MR1()").WithLocation(13, 32),
+                // (14,29): error CS8141: The tuple element names in the signature of method 'C.I0.MR2()' must match the tuple element names of interface method 'I0.MR2()' (including on the return type).
                 //     (int notA, int notB) I0.MR2() { return (1, 2); }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR2").WithArguments("C.MR2()", "I0.MR2()").WithLocation(14, 29),
-                // (11,13): error CS8141: The tuple element names in the signature of method 'C.M1((int notMissing, int b))' must match the tuple element names of interface method 'I0.M1((int, int b))' (including on the return type).
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "MR2").WithArguments("C.I0.MR2()", "I0.MR2()").WithLocation(14, 29),
+                // (11,13): error CS8141: The tuple element names in the signature of method 'C.I0.M1((int notMissing, int b))' must match the tuple element names of interface method 'I0.M1((int, int b))' (including on the return type).
                 //     void I0.M1((int notMissing, int b) z) { }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M1").WithArguments("C.M1((int notMissing, int b))", "I0.M1((int, int b))").WithLocation(11, 13),
-                // (9,18): error CS0535: 'C' does not implement interface member 'I0.MR2()'
-                // public class C : I0
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.MR2()").WithLocation(9, 18),
-                // (9,18): error CS0535: 'C' does not implement interface member 'I0.M2((int a, int b))'
-                // public class C : I0
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.M2((int a, int b))").WithLocation(9, 18),
-                // (9,18): error CS0535: 'C' does not implement interface member 'I0.MR1()'
-                // public class C : I0
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.MR1()").WithLocation(9, 18),
-                // (9,18): error CS0535: 'C' does not implement interface member 'I0.M1((int, int b))'
-                // public class C : I0
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("C", "I0.M1((int, int b))").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M1").WithArguments("C.I0.M1((int notMissing, int b))", "I0.M1((int, int b))").WithLocation(11, 13)
                 );
         }
 
@@ -19080,6 +19068,45 @@ namespace System
             );
 
         }        
+
+        [Fact]
+        [WorkItem(13472, "https://github.com/dotnet/roslyn/issues/13472")]
+        public void InvalidCastRef()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 _1, T2 _2)
+        {
+            Item1 = _1;
+            Item2 = _2;
+        }
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] names)
+        {
+        }
+    }
+}
+class C
+{
+    static void Main()
+    {
+        (int A, int B) x = (1, 2);
+        ref (int, int) y = ref x;
+    }
+}";
+            var comp = CompileAndVerify(source);
+            comp.EmitAndVerify();
+        }
 
         [Fact]
         [WorkItem(14166, "https://github.com/dotnet/roslyn/issues/14166")]

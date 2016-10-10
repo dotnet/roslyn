@@ -8903,5 +8903,37 @@ class C
             // See https://github.com/dotnet/roslyn/issues/13229
             await VerifyItemExistsAsync(markup, "Item3");
         }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
+        public async Task NoCompletionInLocalFuncGenericParamList()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        int Local<$$";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
+        public async Task CompletionForAwaitWithoutAsync()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        await Local<$$";
+
+            await VerifyAnyItemExistsAsync(markup);
+        }
     }
 }

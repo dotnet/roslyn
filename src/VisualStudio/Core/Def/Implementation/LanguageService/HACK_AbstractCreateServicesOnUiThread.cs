@@ -62,12 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     break;
                 }
             }
-
-            var serializers = componentModel.DefaultExportProvider.GetExports<IOptionPersister>();
-            foreach (var serializer in serializers)
-            {
-                var unused = serializer.Value;
-            }
         }
     }
 }

@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
-        private readonly Dictionary<string, IVsReportExternalErrors> _externalErrorReporterMap;
         private readonly ImmutableDictionary<string, string> _projectLangaugeToErrorCodePrefixMap =
             ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, new[]
             {
@@ -39,7 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _serviceProvider = serviceProvider;
             _visualStudioWorkspace = visualStudioWorkspace;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _externalErrorReporterMap = new Dictionary<string, IVsReportExternalErrors>(StringComparer.OrdinalIgnoreCase);
         }
 
         // internal for testing purposes only.
@@ -89,23 +87,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         private IVsReportExternalErrors GetExternalErrorReporter(ProjectId projectId, string languageName)
         {
-            lock (_externalErrorReporterMap)
+            string errorCodePrefix;
+            if (!_projectLangaugeToErrorCodePrefixMap.TryGetValue(languageName, out errorCodePrefix))
             {
-                IVsReportExternalErrors errorReporter;
-                if (!_externalErrorReporterMap.TryGetValue(languageName, out errorReporter))
-                {
-                    string errorCodePrefix;
-                    if (!_projectLangaugeToErrorCodePrefixMap.TryGetValue(languageName, out errorCodePrefix))
-                    {
-                        throw new NotSupportedException(nameof(languageName));
-                    }
-
-                    errorReporter = new ProjectExternalErrorReporter(projectId, errorCodePrefix, _serviceProvider);
-                    _externalErrorReporterMap.Add(languageName, errorReporter);
-                }
-
-                return errorReporter;
+                throw new NotSupportedException(nameof(languageName));
             }
+
+            return new ProjectExternalErrorReporter(projectId, errorCodePrefix, _serviceProvider);
         }
     }
 }

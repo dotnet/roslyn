@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
@@ -18,6 +19,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
             private readonly CancellationToken _cancellationToken;
+
+            private readonly object _gate = new object();
+            private readonly Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId> _definitionMap =
+                new Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId>();
 
             public ServerCallback(
                 Solution solution,
@@ -49,14 +54,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var symbolAndProjectId = await definition.RehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
+
+                lock (_gate)
+                {
+                    _definitionMap[definition] = symbolAndProjectId;
+                }
+
                 await _progress.OnDefinitionFoundAsync(symbolAndProjectId).ConfigureAwait(false);
             }
 
             public async Task OnReferenceFoundAsync(
                 SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
             {
-                var symbolAndProjectId = await definition.RehydrateAsync(
-                    _solution, _cancellationToken).ConfigureAwait(false);
+                SymbolAndProjectId symbolAndProjectId;
+                lock (_gate)
+                {
+                    symbolAndProjectId = _definitionMap[definition];
+                }
+
                 var referenceLocation = await reference.RehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
 

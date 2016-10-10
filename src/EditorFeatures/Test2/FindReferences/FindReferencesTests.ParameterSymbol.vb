@@ -180,10 +180,11 @@ partial class program
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
         Class C                
-           partial sub PM(x as Integer, y as Integer)
+           partial sub PM({|Definition:x|} as Integer, y as Integer)
               
            End Sub
-           partial sub PM({|Definition:x|} as Integer, y as Integer)
+
+           sub PM({|Definition:x|} as Integer, y as Integer)
                 Dim y as Integer = [|$$x|];;
            End Sub
         End Class

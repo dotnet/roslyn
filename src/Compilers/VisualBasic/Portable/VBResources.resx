@@ -3127,6 +3127,9 @@
   <data name="ERR_AnonymousTypeDisallowsTypeChar" xml:space="preserve">
     <value>Type characters cannot be used in anonymous type declarations.</value>
   </data>
+  <data name="ERR_TupleLiteralDisallowsTypeChar" xml:space="preserve">
+    <value>Type characters cannot be used in tuple literals.</value>
+  </data>
   <data name="ERR_ExtensionMethodUncallable1" xml:space="preserve">
     <value>Extension method '{0}' has type constraints that can never be satisfied.</value>
   </data>
