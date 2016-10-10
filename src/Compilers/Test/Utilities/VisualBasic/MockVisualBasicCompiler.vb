@@ -11,25 +11,26 @@ Friend Class MockVisualBasicCompiler
     Private ReadOnly _analyzers As ImmutableArray(Of DiagnosticAnalyzer)
     Public Compilation As Compilation
 
-    Public Sub New(baseDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
-        MyClass.New(Nothing, baseDirectory, args, analyzer)
+    Public Sub New(baseDirectory As String, tempDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
+        MyClass.New(Nothing, baseDirectory, tempDirectory, args, analyzer)
     End Sub
 
-    Public Sub New(responseFile As String, baseDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
-        MyClass.New(responseFile, baseDirectory, args, If(analyzer Is Nothing, ImmutableArray(Of DiagnosticAnalyzer).Empty, ImmutableArray.Create(analyzer)))
+    Public Sub New(responseFile As String, baseDirectory As String, tempDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
+        MyClass.New(responseFile, baseDirectory, tempDirectory, args, If(analyzer Is Nothing, ImmutableArray(Of DiagnosticAnalyzer).Empty, ImmutableArray.Create(analyzer)))
     End Sub
 
-    Public Sub New(responseFile As String, workingDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory), Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
+    Public Sub New(responseFile As String, workingDirectory As String, tempDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory, tempDirectory), Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
 
         _analyzers = analyzers
     End Sub
 
-    Public Shared Function CreateBuildPaths(workingDirectory As String) As BuildPaths
+    Public Shared Function CreateBuildPaths(workingDirectory As String, tempDirectory As String) As BuildPaths
         Return New BuildPaths(
             clientDir:=Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location),
             workingDir:=workingDirectory,
-            sdkDir:=RuntimeEnvironment.GetRuntimeDirectory())
+            sdkDir:=RuntimeEnvironment.GetRuntimeDirectory(),
+            tempDir:=tempDirectory)
     End Function
 
     Protected Overrides Function ResolveAnalyzersFromArguments(

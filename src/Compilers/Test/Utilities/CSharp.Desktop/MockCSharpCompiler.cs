@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location),
                 workingDir: workingDirectory,
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory());
+                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                tempDir: Path.GetTempPath());
         }
 
         protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(

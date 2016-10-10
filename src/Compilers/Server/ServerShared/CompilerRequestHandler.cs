@@ -19,13 +19,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         public string Language { get; }
         public string CurrentDirectory { get; }
+        public string TempDirectory { get; }
         public string LibDirectory { get; }
         public string[] Arguments { get; }
 
-        public RunRequest(string language, string currentDirectory, string libDirectory, string[] arguments)
+        public RunRequest(string language, string currentDirectory, string tempDirectory, string libDirectory, string[] arguments)
         {
             Language = language;
             CurrentDirectory = currentDirectory;
+            TempDirectory = tempDirectory;
             LibDirectory = libDirectory;
             Arguments = arguments;
         }
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler)
         {
-            var buildPaths = new BuildPaths(ClientDirectory, request.CurrentDirectory, SdkDirectory);
+            var buildPaths = new BuildPaths(ClientDirectory, request.CurrentDirectory, SdkDirectory, request.TempDirectory);
             switch (request.Language)
             {
                 case LanguageNames.CSharp:
@@ -89,6 +91,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             for (int i = 0; i < request.Arguments.Length; ++i)
             {
                 Log($"Argument[{i}] = '{request.Arguments[i]}'");
+            }
+
+            // Compiler server must be provided wiht a valid temporary directory in order to correctly
+            // isolate signing between compilations.
+            if (string.IsNullOrEmpty(request.TempDirectory))
+            {
+                Log($"Rejecting build due to missing temp directory");
+                return new RejectedBuildResponse();
             }
 
             CommonCompiler compiler;

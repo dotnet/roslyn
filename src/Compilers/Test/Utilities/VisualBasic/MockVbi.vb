@@ -16,6 +16,7 @@ Friend Class MockVbi
         Return New BuildPaths(
             clientDir:=Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location),
             workingDir:=workingDirectory,
-            sdkDir:=RuntimeEnvironment.GetRuntimeDirectory())
+            sdkDir:=RuntimeEnvironment.GetRuntimeDirectory(),
+            tempDir:=Path.GetTempPath())
     End Function
 End Class

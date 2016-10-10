@@ -92,6 +92,7 @@
     <Compile Include="AnalyzerConsistencyCheckerTests.cs" />
     <Compile Include="BuildProtocolTest.cs" />
     <Compile Include="ClientConnectionTests.cs" />
+    <Compile Include="CompilerServerHostTests.cs" />
     <Compile Include="CompilerServerApiTest.cs" />
     <Compile Include="CompilerServerTests.cs" />
     <Compile Include="DesktopBuildClientTests.cs" />
