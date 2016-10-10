@@ -531,7 +531,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected IDictionary<OptionKey, object> Option(IOption option, CodeStyleOption<bool> notification)
             => Option(option, notification.Value, notification.Notification);
 
-
         protected IDictionary<OptionKey, object> Option(IOption option, bool value, NotificationOption notification)
             => OptionsSet(Tuple.Create(option, value, notification));
 

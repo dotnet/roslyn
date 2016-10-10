@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                  { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.falseWithNoneEnforcement },
              };
 
-
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
@@ -469,6 +468,285 @@ partial class A {
 
 partial class A : Base { }
 ");
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Method1()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract void M(int x);
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract void M(int x);
+}
+
+class T : A
+{
+    public override void M(int x) => throw new NotImplementedException();
+}
+", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.trueWithNoneEnforcement));
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Property1()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract int M { get; }
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract int M { get; }
+}
+
+class T : A
+{
+    public override int M => throw new NotImplementedException();
+}
+", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.trueWithNoneEnforcement));
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Property3()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract int M { set; }
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract int M { set; }
+}
+
+class T : A
+{
+    public override int M { set { throw new NotImplementedException(); } }
+}
+", options: OptionsSet(
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Property4()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract int M { get; set; }
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract int M { get; set; }
+}
+
+class T : A
+{
+    public override int M { 
+        get { throw new NotImplementedException(); }
+        set { throw new NotImplementedException(); }
+    }
+}
+", options: OptionsSet(
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Indexers1()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract int this[int i] { get; }
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract int this[int i] { get; }
+}
+
+class T : A
+{
+    public override int this[int i] => throw new NotImplementedException();
+}
+", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.trueWithNoneEnforcement));
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Indexer3()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract int this[int i] { set; }
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract int this[int i] { set; }
+}
+
+class T : A
+{
+    public override int this[int i] { set { throw new NotImplementedException(); } }
+}
+", options: OptionsSet(
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Indexer4()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract int this[int i] { get; set; }
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract int this[int i] { get; set; }
+}
+
+class T : A
+{
+    public override int this[int i] { 
+        get { throw new NotImplementedException(); }
+        set { throw new NotImplementedException(); }
+    }
+}
+", options: OptionsSet(
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Accessor1()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract int M { get; }
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract int M { get; }
+}
+
+class T : A
+{
+    public override int M { get => throw new NotImplementedException(); }
+}
+", options: OptionsSet(
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, false, NotificationOption.None),
+    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, true, NotificationOption.None)));
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Accessor3()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract int M { set; }
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract int M { set; }
+}
+
+class T : A
+{
+    public override int M { set => throw new NotImplementedException(); }
+}
+", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.trueWithNoneEnforcement));
+        }
+
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestCodeStyle_Accessor4()
+        {
+            await TestAsync(
+@"abstract class A
+{
+    public abstract int M { get; set; }
+}
+
+class [|T|] : A { }
+",
+@"using System;
+
+abstract class A
+{
+    public abstract int M { get; set; }
+}
+
+class T : A
+{
+    public override int M { 
+        get => throw new NotImplementedException(); 
+        set => throw new NotImplementedException();
+    }
+}
+", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.trueWithNoneEnforcement));
         }
     }
 }
