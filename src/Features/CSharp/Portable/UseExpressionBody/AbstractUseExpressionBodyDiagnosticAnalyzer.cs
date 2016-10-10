@@ -87,6 +87,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return null;
         }
 
+        protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
+        {
+            if (accessorList != null &&
+                accessorList.Accessors.Count == 1 &&
+                accessorList.Accessors[0].IsKind(SyntaxKind.GetAccessorDeclaration))
+            {
+                return accessorList.Accessors[0].Body;
+            }
+
+            return null;
+        }
+
         protected abstract BlockSyntax GetBody(TDeclaration declaration);
         protected abstract ArrowExpressionClauseSyntax GetExpressionBody(TDeclaration declaration);
     }

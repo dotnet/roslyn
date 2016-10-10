@@ -21,15 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override BlockSyntax GetBody(PropertyDeclarationSyntax declaration)
-        {
-            if (declaration.AccessorList != null &&
-                declaration.AccessorList.Accessors.Count == 1)
-            {
-                return declaration.AccessorList.Accessors[0].Body;
-            }
-
-            return null;
-        }
+            => GetBodyFromSingleGetAccessor(declaration.AccessorList);
 
         protected override ArrowExpressionClauseSyntax GetExpressionBody(PropertyDeclarationSyntax declaration)
             => declaration.ExpressionBody;
