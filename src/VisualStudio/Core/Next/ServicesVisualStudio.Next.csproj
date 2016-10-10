@@ -121,7 +121,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
