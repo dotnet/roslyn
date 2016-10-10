@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class UseExpressionBodyForOperatorsDiagnosticAnalyzer :
         AbstractUseExpressionBodyDiagnosticAnalyzer<OperatorDeclarationSyntax>, IBuiltInAnalyzer

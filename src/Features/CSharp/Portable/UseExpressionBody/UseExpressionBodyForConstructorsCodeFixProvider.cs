@@ -39,5 +39,4 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected override bool CreateReturnStatementForExpression(ConstructorDeclarationSyntax declaration) => false;
     }
-
 }
