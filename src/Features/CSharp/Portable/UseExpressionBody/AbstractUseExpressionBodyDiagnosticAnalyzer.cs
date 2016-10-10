@@ -41,10 +41,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var optionSet = context.Options.GetOptionSet();
+            var diagnostic = AnalyzeSyntax(context.Options.GetOptionSet(), (TDeclaration)context.Node);
+            if (diagnostic != null)
+            {
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        internal virtual Diagnostic AnalyzeSyntax(OptionSet optionSet, TDeclaration declaration)
+        {
             var preferExpressionBodiedOption = optionSet.GetOption(_option);
 
-            var declaration = (TDeclaration)context.Node;
             var expressionBody = GetExpressionBody(declaration);
 
             if (preferExpressionBodiedOption.Value)
@@ -57,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     if (expressionBody != null)
                     {
                         var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                        context.ReportDiagnostic(Diagnostic.Create(
+                        return Diagnostic.Create(
                             CreateDescriptor(this.DescriptorId, _expressionBodyTitle, preferExpressionBodiedOption.Notification.Value),
                             GetBody(declaration).Statements[0].GetLocation(),
-                            additionalLocations: additionalLocations));
+                            additionalLocations: additionalLocations);
                     }
                 }
             }
@@ -70,12 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 if (expressionBody != null)
                 {
                     var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                    context.ReportDiagnostic(Diagnostic.Create(
+                    return Diagnostic.Create(
                         CreateDescriptor(this.DescriptorId, _blockBodyTitle, preferExpressionBodiedOption.Notification.Value),
                         expressionBody.GetLocation(),
-                        additionalLocations: additionalLocations));
+                        additionalLocations: additionalLocations);
                 }
             }
+
+            return null;
         }
 
         protected abstract BlockSyntax GetBody(TDeclaration declaration);
