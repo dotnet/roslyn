@@ -1,10 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,11 +22,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 null, new ImplementAbstractClassCodeFixProvider());
         }
+        private static readonly Dictionary<OptionKey, object> AllOptionsOff =
+             new Dictionary<OptionKey, object>
+             {
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.falseWithNoneEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.falseWithNoneEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.falseWithNoneEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.falseWithNoneEnforcement },
+             };
+
+
+        internal Task TestAllOptionsOffAsync(
+            string initialMarkup, string expectedMarkup,
+            int index = 0, bool compareTokens = true,
+            IDictionary<OptionKey, object> options = null)
+        {
+            options = options ?? new Dictionary<OptionKey, object>();
+            foreach (var kvp in AllOptionsOff)
+            {
+                options.Add(kvp);
+            }
+
+            return TestAsync(initialMarkup, expectedMarkup, index, compareTokens, options);
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestSimpleMethods()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"abstract class Foo { protected abstract string FooMethod ( ) ; public abstract void Blah ( ) ; } abstract class Bar : Foo { public abstract bool BarMethod ( ) ; public override void Blah ( ) { } } class [|Program|] : Foo { static void Main ( string [ ] args ) { } } ",
 @"using System ; abstract class Foo { protected abstract string FooMethod ( ) ; public abstract void Blah ( ) ; } abstract class Bar : Foo { public abstract bool BarMethod ( ) ; public override void Blah ( ) { } } class Program : Foo { static void Main ( string [ ] args ) { } public override void Blah ( ) { throw new NotImplementedException ( ) ; } protected override string FooMethod ( ) { throw new NotImplementedException ( ) ; } } ");
         }
@@ -37,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalIntParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( int x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( int x = 3 ) ; } class b : d { public override void foo ( int x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -45,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalCharParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( char x = 'a' ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( char x = 'a' ) ; } class b : d { public override void foo ( char x = 'a' ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -53,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalStringParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( string x = ""x"" ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( string x = ""x"" ) ; } class b : d { public override void foo ( string x = ""x"" ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -61,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalShortParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( short x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( short x = 3 ) ; } class b : d { public override void foo ( short x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -69,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalDecimalParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( decimal x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( decimal x = 3 ) ; } class b : d { public override void foo ( decimal x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -77,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalDoubleParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( double x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( double x = 3 ) ; } class b : d { public override void foo ( double x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -85,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalLongParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( long x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( long x = 3 ) ; } class b : d { public override void foo ( long x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -93,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalFloatParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( float x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( float x = 3 ) ; } class b : d { public override void foo ( float x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -101,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUshortParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( ushort x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( ushort x = 3 ) ; } class b : d { public override void foo ( ushort x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -109,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUintParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( uint x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( uint x = 3 ) ; } class b : d { public override void foo ( uint x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -117,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUlongParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"abstract class d { public abstract void foo ( ulong x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( ulong x = 3 ) ; } class b : d { public override void foo ( ulong x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -125,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalStructParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"struct b { } abstract class d { public abstract void foo ( b x = new b ( ) ) ; } class [|c|] : d { }",
                 @"using System ; struct b { } abstract class d { public abstract void foo ( b x = new b ( ) ) ; } class c : d { public override void foo ( b x = default ( b ) ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -134,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalNullableStructParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"struct b { } abstract class d { public abstract void m ( b? x = null, b? y = default(b?) ) ; } class [|c|] : d { }",
 @"using System ; struct b { } abstract class d { public abstract void m ( b? x = null, b? y = default(b?) ) ; } class c : d { public override void m ( b? x = default(b?), b? y = default(b?) ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -143,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalNullableIntParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"abstract class d { public abstract void m ( int? x = 5, int? y = default(int?) ) ; } class [|c|] : d { }",
 @"using System ; abstract class d { public abstract void m ( int? x = 5, int? y = default(int?) ) ; } class c : d { public override void m ( int? x = 5, int? y = default(int?) ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -151,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalObjectParameter()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
                 @"class b { } abstract class d { public abstract void foo ( b x = null ) ; } class [|c|] : d { }",
                 @"using System ; class b { } abstract class d { public abstract void foo ( b x = null ) ; } class c : d { public override void foo ( b x = null ) { throw new NotImplementedException ( ) ; } }");
         }
@@ -160,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestDifferentAccessorAccessibility()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"abstract class c1 { public abstract c1 this [ c1 x ] { get ; internal set ; } } class [|c2|] : c1 { } ",
 @"using System ; abstract class c1 { public abstract c1 this [ c1 x ] { get ; internal set ; } } class c2 : c1 { public override c1 this [ c1 x ] { get { throw new NotImplementedException ( ) ; } internal set { throw new NotImplementedException ( ) ; } } } ");
         }
@@ -168,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestEvent1()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"using System ; abstract class C { public abstract event Action E ; } class [|D|] : C { } ",
 @"using System ; abstract class C { public abstract event Action E ; } class D : C { public override event Action E ; } ");
         }
@@ -176,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestIndexer1()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"using System ; abstract class C { public abstract int this [ string s ] { get { } internal set { } } } class [|D|] : C { } ",
 @"using System ; abstract class C { public abstract int this [ string s ] { get { } internal set { } } } class D : C { public override int this [ string s ] { get { throw new NotImplementedException ( ) ; } internal set { throw new NotImplementedException ( ) ; } } } ");
         }
@@ -199,7 +229,7 @@ class [|Program|] : Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestGenerateIntoNonHiddenPart()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"using System;
 
 abstract class Foo { public abstract void F(); }
@@ -235,7 +265,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestGenerateIfLocationAvailable()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"#line default
 using System;
 
@@ -276,7 +306,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOnlyGenerateUnimplementedAccessors()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"using System ; abstract class A { public abstract int X { get ; set ; } } abstract class B : A { public override int X { get { throw new NotImplementedException ( ) ; } } } class [|C|] : B { } ",
 @"using System ; abstract class A { public abstract int X { get ; set ; } } abstract class B : A { public override int X { get { throw new NotImplementedException ( ) ; } } } class C : B { public override int X { set { throw new NotImplementedException ( ) ; } } } ");
         }
@@ -285,7 +315,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestParamsArray()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"class A { public virtual void Foo ( int x , params int [ ] y ) { } } abstract class B : A { public abstract override void Foo ( int x , int [ ] y = null ) ; } class [|C|] : B { } ",
 @"using System ; class A { public virtual void Foo ( int x , params int [ ] y ) { } } abstract class B : A { public abstract override void Foo ( int x , int [ ] y = null ) ; } class C : B { public override void Foo ( int x , params int [ ] y ) { throw new NotImplementedException ( ) ; } } ");
         }
@@ -294,7 +324,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNullPointerType()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"abstract class C { unsafe public abstract void Foo ( int * x = null ) ; } class [|D|] : C { } ",
 @"using System ; abstract class C { unsafe public abstract void Foo ( int * x = null ) ; } class D : C { public override unsafe void Foo ( int * x = null ) { throw new NotImplementedException ( ) ; } } ");
         }
@@ -303,7 +333,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestErrorTypeCalledVar()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"extern alias var ; abstract class C { public abstract void Foo ( var :: X x ) ; } class [|D|] : C { } ",
 @"extern alias var ; using System ; abstract class C { public abstract void Foo ( var :: X x ) ; } class D : C { public override void Foo ( X x ) { throw new NotImplementedException ( ) ; } } ");
         }
@@ -312,7 +342,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task Bugfix_581500()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"abstract class A<T>
 {
     public abstract void M(T x);
@@ -345,7 +375,7 @@ abstract class A<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task Bugfix_625442()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"abstract class A<T>
 {
     public abstract void M(T x);
@@ -378,7 +408,7 @@ abstract class A<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task ImplementClassWithInaccessibleMembers()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"using System ; using System . Globalization ; public class [|x|] : EastAsianLunisolarCalendar { } ",
 @"using System ; using System . Globalization ; public class x : EastAsianLunisolarCalendar { public override int [ ] Eras { get { throw new NotImplementedException ( ) ; } } internal override EraInfo [ ] CalEraInfo { get { throw new NotImplementedException ( ) ; } } internal override int MaxCalendarYear { get { throw new NotImplementedException ( ) ; } } internal override DateTime MaxDate { get { throw new NotImplementedException ( ) ; } } internal override int MinCalendarYear { get { throw new NotImplementedException ( ) ; } } internal override DateTime MinDate { get { throw new NotImplementedException ( ) ; } } public override int GetEra ( DateTime time ) { throw new NotImplementedException ( ) ; } internal override int GetGregorianYear ( int year , int era ) { throw new NotImplementedException ( ) ; } internal override int GetYear ( int year , DateTime time ) { throw new NotImplementedException ( ) ; } internal override int GetYearInfo ( int LunarYear , int Index ) { throw new NotImplementedException ( ) ; } } ");
         }
@@ -387,7 +417,7 @@ abstract class A<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestPartialClass1()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"
 using System;
 
@@ -416,7 +446,7 @@ partial class A { }
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestPartialClass2()
         {
-            await TestAsync(
+            await TestAllOptionsOffAsync(
 @"
 using System;
 
