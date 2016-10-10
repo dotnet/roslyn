@@ -423,6 +423,121 @@ public class A : DD
 compareTokens: false);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestProperty_PropertyCodeStyleOn1()
+        {
+            await TestWithAllCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int Prop { get; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int Prop { get; }
+}
+public class A : DD
+{
+    public int Prop => throw new NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestProperty_AccessorCodeStyleOn1()
+        {
+            await TestWithAccessorCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int Prop { get; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int Prop { get; }
+}
+public class A : DD
+{
+    public int Prop { get => throw new NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestIndexer_IndexerCodeStyleOn1()
+        {
+            await TestWithAllCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int this[int i] { get; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int this[int i] { get; }
+}
+public class A : DD
+{
+    public int this[int i] => throw new NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestIndexer_AccessorCodeStyleOn1()
+        {
+            await TestWithAccessorCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int this[int i] { get; }
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int this[int i] { get; }
+}
+public class A : DD
+{
+    public int this[int i] { get => throw new NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethod_AllCodeStyleOn1()
+        {
+            await TestWithAllCodeStyleOptionsOnAsync(
+@"public interface DD
+{
+    int M();
+}
+public class A : [|DD|]
+{
+}",
+@"using System;
+
+public interface DD
+{
+    int M();
+}
+public class A : DD
+{
+    public int M() => throw new NotImplementedException();
+}");
+        }
+
         [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestReadonlyPropertyExpressionBodyYes1()
