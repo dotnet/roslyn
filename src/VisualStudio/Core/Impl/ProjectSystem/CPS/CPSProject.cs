@@ -11,8 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 {
     internal sealed partial class CPSProject : AbstractProject
     {
-        private bool _lastDesignTimeBuildSucceeded;
-
         public CPSProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
@@ -34,11 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             // Now hook up the project to the project tracker.
             projectTracker.AddProject(this);
-
-            _lastDesignTimeBuildSucceeded = true;
         }
-
-        protected sealed override bool LastDesignTimeBuildSucceeded => _lastDesignTimeBuildSucceeded;
 
         // We might we invoked from a background thread, so schedule the disconnect on foreground task scheduler.
         public sealed override void Disconnect()
