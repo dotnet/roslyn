@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override PropertyDeclarationSyntax WithExpressionBody(PropertyDeclarationSyntax declaration, ArrowExpressionClauseSyntax expressionBody)
             => declaration.WithExpressionBody(expressionBody);
 
+        protected override PropertyDeclarationSyntax WithAccessorList(PropertyDeclarationSyntax declaration, AccessorListSyntax accessorListSyntax)
+            => declaration.WithAccessorList(accessorListSyntax);
+
         protected override PropertyDeclarationSyntax WithBody(PropertyDeclarationSyntax declaration, BlockSyntax body)
         {
             if (body == null)
@@ -45,37 +48,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return declaration.WithAccessorList(null);
             }
 
-            return declaration;
+            throw new InvalidOperationException();
         }
 
         protected override PropertyDeclarationSyntax WithGenerateBody(
             PropertyDeclarationSyntax declaration, OptionSet options)
         {
-            var expressionBody = GetExpressionBody(declaration);
-            var semicolonToken = GetSemicolonToken(declaration);
-
-            var preferExpressionBodiedAccessors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
-
-            AccessorDeclarationSyntax accessor;
-            if (preferExpressionBodiedAccessors)
-            {
-                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                        .WithExpressionBody(expressionBody)
-                                        .WithSemicolonToken(semicolonToken);
-            }
-            else
-            {
-                var block = expressionBody.ConvertToBlock(
-                    GetSemicolonToken(declaration),
-                    CreateReturnStatementForExpression(declaration));
-                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, block);
-            }
-
-            return declaration.WithAccessorList(SyntaxFactory.AccessorList(
-                SyntaxFactory.SingletonList(accessor)));
+            return WithAccessorList(declaration, options);
         }
 
         protected override bool CreateReturnStatementForExpression(PropertyDeclarationSyntax declaration) => true;
     }
-
 }

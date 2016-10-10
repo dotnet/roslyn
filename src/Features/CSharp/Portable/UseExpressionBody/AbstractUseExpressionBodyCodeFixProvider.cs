@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -155,6 +156,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 return SyntaxFactory.Token(SyntaxKind.SemicolonToken);
             }
+        }
+
+        protected TDeclaration WithAccessorList(
+            TDeclaration declaration, OptionSet options)
+        {
+            var expressionBody = GetExpressionBody(declaration);
+            var semicolonToken = GetSemicolonToken(declaration);
+
+            var preferExpressionBodiedAccessors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+
+            AccessorDeclarationSyntax accessor;
+            if (preferExpressionBodiedAccessors)
+            {
+                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                        .WithExpressionBody(expressionBody)
+                                        .WithSemicolonToken(semicolonToken);
+            }
+            else
+            {
+                var block = expressionBody.ConvertToBlock(
+                    GetSemicolonToken(declaration),
+                    CreateReturnStatementForExpression(declaration));
+                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, block);
+            }
+
+            return WithAccessorList(declaration, SyntaxFactory.AccessorList(
+                SyntaxFactory.SingletonList(accessor)));
+        }
+
+        protected virtual TDeclaration WithAccessorList(TDeclaration declaration, AccessorListSyntax accessorListSyntax)
+        {
+            throw new NotImplementedException();
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
