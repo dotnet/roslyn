@@ -2,3 +2,4 @@
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Roslyn.Hosting.Diagnostics.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Diagnostics.Runtime.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.CodingConventions.dll")]
