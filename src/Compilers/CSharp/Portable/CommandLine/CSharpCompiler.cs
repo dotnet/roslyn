@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
-            : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories, assemblyLoader)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+            : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader)
         {
-            _diagnosticFormatter = new CommandLineDiagnosticFormatter(baseDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
+            _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
         }
 
         public override DiagnosticFormatter DiagnosticFormatter { get { return _diagnosticFormatter; } }

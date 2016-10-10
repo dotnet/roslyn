@@ -57,15 +57,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler)
         {
+            var buildPaths = new BuildPaths(ClientDirectory, request.CurrentDirectory, SdkDirectory);
             switch (request.Language)
             {
                 case LanguageNames.CSharp:
                     compiler = new CSharpCompilerServer(
                         AssemblyReferenceProvider,
                         args: request.Arguments,
-                        clientDirectory: ClientDirectory,
-                        baseDirectory: request.CurrentDirectory,
-                        sdkDirectory: SdkDirectory,
+                        buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
                         analyzerLoader: AnalyzerAssemblyLoader);
                     return true;
@@ -73,9 +72,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     compiler = new VisualBasicCompilerServer(
                         AssemblyReferenceProvider,
                         args: request.Arguments,
-                        clientDirectory: ClientDirectory,
-                        baseDirectory: request.CurrentDirectory,
-                        sdkDirectory: SdkDirectory,
+                        buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
                         analyzerLoader: AnalyzerAssemblyLoader);
                     return true;

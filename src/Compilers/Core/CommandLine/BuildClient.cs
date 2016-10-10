@@ -16,32 +16,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
 {
     internal delegate int CompileFunc(string[] arguments, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerAssemblyLoader);
 
-    internal struct BuildPaths
-    {
-        /// <summary>
-        /// The path which containts the compiler binaries and response files.
-        /// </summary>
-        internal string ClientDirectory { get; }
-
-        /// <summary>
-        /// The path in which the compilation takes place.
-        /// </summary>
-        internal string WorkingDirectory { get; }
-
-        /// <summary>
-        /// The path which contains mscorlib.  This can be null when specified by the user or running in a 
-        /// CoreClr environment.
-        /// </summary>
-        internal string SdkDirectory { get; }
-
-        internal BuildPaths(string clientDir, string workingDir, string sdkDir)
-        {
-            ClientDirectory = clientDir;
-            WorkingDirectory = workingDir;
-            SdkDirectory = sdkDir;
-        }
-    }
-
     internal struct RunCompilationResult
     {
         internal static readonly RunCompilationResult Succeeded = new RunCompilationResult(CommonCompiler.Succeeded);

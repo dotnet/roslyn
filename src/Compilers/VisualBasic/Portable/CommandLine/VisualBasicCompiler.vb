@@ -19,10 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
         Private _additionalTextFiles As ImmutableArray(Of AdditionalTextFile)
 
-        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), clientDirectory As String, baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, additionalReferenceDirectories, analyzerLoader)
+        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), buildPaths As BuildPaths, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader)
+            MyBase.New(parser, responseFile, args, buildPaths, additionalReferenceDirectories, analyzerLoader)
 
-            _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory, AddressOf GetAdditionalTextFiles)
+            _diagnosticFormatter = New CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, AddressOf GetAdditionalTextFiles)
             _additionalTextFiles = Nothing
         End Sub
 

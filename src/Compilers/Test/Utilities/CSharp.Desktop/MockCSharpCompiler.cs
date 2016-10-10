@@ -19,10 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
         }
 
-        public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
-            : base(CSharpCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), new DesktopAnalyzerAssemblyLoader())
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
+            : base(CSharpCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory), Environment.GetEnvironmentVariable("LIB"), new DesktopAnalyzerAssemblyLoader())
         {
             _analyzers = analyzers;
+        }
+
+        public static BuildPaths CreateBuildPaths(string workingDirectory)
+        {
+            return new BuildPaths(
+                clientDir: Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location),
+                workingDir: workingDirectory,
+                sdkDir: RuntimeEnvironment.GetRuntimeDirectory());
         }
 
         protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(

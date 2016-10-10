@@ -19,6 +19,32 @@ using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal struct BuildPaths
+    {
+        /// <summary>
+        /// The path which containts the compiler binaries and response files.
+        /// </summary>
+        internal string ClientDirectory { get; }
+
+        /// <summary>
+        /// The path in which the compilation takes place.
+        /// </summary>
+        internal string WorkingDirectory { get; }
+
+        /// <summary>
+        /// The path which contains mscorlib.  This can be null when specified by the user or running in a 
+        /// CoreClr environment.
+        /// </summary>
+        internal string SdkDirectory { get; }
+
+        internal BuildPaths(string clientDir, string workingDir, string sdkDir)
+        {
+            ClientDirectory = clientDir;
+            WorkingDirectory = workingDir;
+            SdkDirectory = sdkDir;
+        }
+    }
+
     /// <summary>
     /// Base class for csc.exe, csi.exe, vbc.exe and vbi.exe implementations.
     /// </summary>
@@ -60,10 +86,10 @@ namespace Microsoft.CodeAnalysis
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
             IEnumerable<string> allArgs = args;
-            _clientDirectory = clientDirectory;
+            _clientDirectory = buildPaths.ClientDirectory;
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
             if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
@@ -71,14 +97,14 @@ namespace Microsoft.CodeAnalysis
                 allArgs = new[] { "@" + responseFile }.Concat(allArgs);
             }
 
-            this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
+            this.Arguments = parser.Parse(allArgs, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AssemblyLoader = assemblyLoader;
             this.EmbeddedSourcePaths = GetEmbedddedSourcePaths(Arguments);
 
             if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
             {
-                EmitDeterminismKey(Arguments, args, baseDirectory, parser);
+                EmitDeterminismKey(Arguments, args, buildPaths.WorkingDirectory, parser);
             }
         }
 

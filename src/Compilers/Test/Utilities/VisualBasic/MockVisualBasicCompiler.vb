@@ -19,11 +19,18 @@ Friend Class MockVisualBasicCompiler
         MyClass.New(responseFile, baseDirectory, args, If(analyzer Is Nothing, ImmutableArray(Of DiagnosticAnalyzer).Empty, ImmutableArray.Create(analyzer)))
     End Sub
 
-    Public Sub New(responseFile As String, baseDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
+    Public Sub New(responseFile As String, workingDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory), Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
 
         _analyzers = analyzers
     End Sub
+
+    Public Shared Function CreateBuildPaths(workingDirectory As String) As BuildPaths
+        Return New BuildPaths(
+            clientDir:=Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location),
+            workingDir:=workingDirectory,
+            sdkDir:=RuntimeEnvironment.GetRuntimeDirectory())
+    End Function
 
     Protected Overrides Function ResolveAnalyzersFromArguments(
         diagnostics As List(Of DiagnosticInfo),
