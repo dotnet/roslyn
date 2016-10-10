@@ -7585,10 +7585,13 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function WinformsInstanceMembers() As Task
-            ' MyForms template taken from GropuClassTests.vb
+            ' Setting the the preprocessor symbol _MyType=WindowsForms will cause the
+            ' compiler to automatically generate the My Template. See
+            ' GroupClassTests.vb for the compiler layer equivalent of these tests.
             Dim input =
                 <Workspace>
-                    <Project Language="Visual Basic" CommonReferences="true">
+                    <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="_MyType=WindowsForms">
+
                         <Document name="Form.vb">
                             <![CDATA[
 Namespace Global.System.Windows.Forms
@@ -7596,7 +7599,10 @@ Namespace Global.System.Windows.Forms
         Implements IDisposable
 
         Public Sub InstanceMethod()
-        End SUb
+        End Sub
+
+        Public Shared Sub SharedMethod()
+        End Sub
 
         Public Sub Dispose() Implements IDisposable.Dispose
         End Sub
@@ -7632,15 +7638,14 @@ End Namespace
                     </Project>
                 </Workspace>
 
-            Dim workspace = Await TestWorkspace.CreateAsync(input)
-            Dim oldOptions = DirectCast(workspace.CurrentSolution.Projects.First().CompilationOptions, VisualBasicCompilationOptions)
-            Dim kvp = KeyValuePair.Create("_MYTYPE", CObj("WindowsForms"))
-            Dim parseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(kvp)
-            Dim updatedSolution = workspace.CurrentSolution.Projects.First().WithCompilationOptions(oldOptions.WithParseOptions(parseOptions)).Solution
-            Dim document = updatedSolution.GetDocument(workspace.DocumentWithCursor.Id)
-            Dim position = workspace.DocumentWithCursor.CursorPosition.Value
-            Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                    glyph:=Nothing, matchPriority:=Nothing)
+            Using workspace = Await TestWorkspace.CreateAsync(input)
+                Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
+                Dim position = workspace.DocumentWithCursor.CursorPosition.Value
+                Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                                        glyph:=Nothing, matchPriority:=Nothing)
+                Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                                        glyph:=Nothing, matchPriority:=Nothing)
+            End Using
 
         End Function
 
