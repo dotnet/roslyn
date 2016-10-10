@@ -37,16 +37,16 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Create <see cref="PinnedRemotableDataScope"/> from <see cref="Solution"/>.
         /// </summary>
-        Task<PinnedRemotableDataScope> CreateSynchronizationScopeAsync(Solution solution, CancellationToken cancellationToken);
+        Task<PinnedRemotableDataScope> CreatePinnedRemotableDataScopeAsync(Solution solution, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get <see cref="RemotableData"/> corresponding to given <see cref="Checksum"/>. 
         /// </summary>
-        RemotableData GetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken);
+        RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get <see cref="RemotableData"/>s corresponding to given <see cref="Checksum"/>s. 
         /// </summary>
-        IReadOnlyDictionary<Checksum, RemotableData> GetSynchronizationObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
+        IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
     }
 }

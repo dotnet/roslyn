@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -22,33 +23,36 @@ namespace Microsoft.CodeAnalysis
 
         private async Task<ProjectStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
         {
-            // get states by id order to have deterministic checksum
-            var documentChecksumsTasks = DocumentIds.Select(id => DocumentStates[id].GetChecksumAsync(cancellationToken));
-            var additionalDocumentChecksumTasks = AdditionalDocumentIds.Select(id => AdditionalDocumentStates[id].GetChecksumAsync(cancellationToken));
+            using (Logger.LogBlock(FunctionId.ProjectState_ComputeChecksumsAsync, FilePath, cancellationToken))
+            {
+                // get states by id order to have deterministic checksum
+                var documentChecksumsTasks = DocumentIds.Select(id => DocumentStates[id].GetChecksumAsync(cancellationToken));
+                var additionalDocumentChecksumTasks = AdditionalDocumentIds.Select(id => AdditionalDocumentStates[id].GetChecksumAsync(cancellationToken));
 
-            var serializer = new Serializer(_solutionServices.Workspace.Services);
+                var serializer = new Serializer(_solutionServices.Workspace.Services);
 
-            var infoChecksum = serializer.CreateChecksum(new SerializedProjectInfo(Id, Version, Name, AssemblyName, Language, FilePath, OutputFilePath, IsSubmission), cancellationToken);
+                var infoChecksum = serializer.CreateChecksum(new SerializedProjectInfo(Id, Version, Name, AssemblyName, Language, FilePath, OutputFilePath, IsSubmission), cancellationToken);
 
-            var compilationOptionsChecksum = SupportsCompilation ? serializer.CreateChecksum(CompilationOptions, cancellationToken) : Checksum.Null;
-            var parseOptionsChecksum = SupportsCompilation ? serializer.CreateChecksum(ParseOptions, cancellationToken) : Checksum.Null;
+                var compilationOptionsChecksum = SupportsCompilation ? serializer.CreateChecksum(CompilationOptions, cancellationToken) : Checksum.Null;
+                var parseOptionsChecksum = SupportsCompilation ? serializer.CreateChecksum(ParseOptions, cancellationToken) : Checksum.Null;
 
-            var projectReferenceChecksums = new ProjectReferenceChecksumCollection(ProjectReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray());
-            var metadataReferenceChecksums = new MetadataReferenceChecksumCollection(MetadataReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray());
-            var analyzerReferenceChecksums = new AnalyzerReferenceChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray());
+                var projectReferenceChecksums = new ProjectReferenceChecksumCollection(ProjectReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray());
+                var metadataReferenceChecksums = new MetadataReferenceChecksumCollection(MetadataReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray());
+                var analyzerReferenceChecksums = new AnalyzerReferenceChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray());
 
-            var documentChecksums = await Task.WhenAll(documentChecksumsTasks).ConfigureAwait(false);
-            var additionalChecksums = await Task.WhenAll(additionalDocumentChecksumTasks).ConfigureAwait(false);
+                var documentChecksums = await Task.WhenAll(documentChecksumsTasks).ConfigureAwait(false);
+                var additionalChecksums = await Task.WhenAll(additionalDocumentChecksumTasks).ConfigureAwait(false);
 
-            return new ProjectStateChecksums(
-                infoChecksum,
-                compilationOptionsChecksum,
-                parseOptionsChecksum,
-                new DocumentChecksumCollection(documentChecksums),
-                projectReferenceChecksums,
-                metadataReferenceChecksums,
-                analyzerReferenceChecksums,
-                new TextDocumentChecksumCollection(additionalChecksums));
+                return new ProjectStateChecksums(
+                    infoChecksum,
+                    compilationOptionsChecksum,
+                    parseOptionsChecksum,
+                    new DocumentChecksumCollection(documentChecksums),
+                    projectReferenceChecksums,
+                    metadataReferenceChecksums,
+                    analyzerReferenceChecksums,
+                    new TextDocumentChecksumCollection(additionalChecksums));
+            }
         }
     }
 }

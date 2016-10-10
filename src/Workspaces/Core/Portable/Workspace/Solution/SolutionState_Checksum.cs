@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -22,14 +23,17 @@ namespace Microsoft.CodeAnalysis
 
         private async Task<SolutionStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
         {
-            // get states by id order to have deterministic checksum
-            var projectChecksumTasks = ProjectIds.Select(id => ProjectStates[id].GetChecksumAsync(cancellationToken));
+            using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, FilePath, cancellationToken))
+            {
+                // get states by id order to have deterministic checksum
+                var projectChecksumTasks = ProjectIds.Select(id => ProjectStates[id].GetChecksumAsync(cancellationToken));
 
-            var serializer = new Serializer(_solutionServices.Workspace.Services);
-            var infoChecksum = serializer.CreateChecksum(new SerializedSolutionInfo(Id, Version, FilePath), cancellationToken);
+                var serializer = new Serializer(_solutionServices.Workspace.Services);
+                var infoChecksum = serializer.CreateChecksum(new SerializedSolutionInfo(Id, Version, FilePath), cancellationToken);
 
-            var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-            return new SolutionStateChecksums(infoChecksum, new ProjectChecksumCollection(projectChecksums));
+                var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+                return new SolutionStateChecksums(infoChecksum, new ProjectChecksumCollection(projectChecksums));
+            }
         }
     }
 }

@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionSynchronizationService>();
 
-                var checksumObject = service.GetSynchronizationObject(new Checksum(checksum), _source.Token);
+                var checksumObject = service.GetRemotableData(new Checksum(checksum), _source.Token);
                 writer.WriteInt32(1);
 
                 writer.WriteValue(checksum);
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionSynchronizationService>();
 
-                var checksumObjectMap = service.GetSynchronizationObjects(checksums.Select(c => new Checksum(c)), _source.Token);
+                var checksumObjectMap = service.GetRemotableData(checksums.Select(c => new Checksum(c)), _source.Token);
                 writer.WriteInt32(checksumObjectMap.Count);
 
                 foreach (var kv in checksumObjectMap)

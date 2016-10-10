@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
     {
         public static async Task<T> GetValueAsync<T>(this ISolutionSynchronizationService service, Checksum checksum)
         {
-            var syncService = (SolutionChecksumServiceFactory.Service)service;
-            var syncObject = service.GetSynchronizationObject(checksum, CancellationToken.None);
+            var syncService = (SolutionSynchronizationServiceFactory.Service)service;
+            var syncObject = service.GetRemotableData(checksum, CancellationToken.None);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))

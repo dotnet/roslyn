@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfFalse(solution.Workspace == _workspace);
 
             var service = _workspace.Services.GetService<ISolutionSynchronizationService>();
-            var snapshot = await service.CreateSynchronizationScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+            var snapshot = await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
 
             return await CreateServiceSessionAsync(serviceName, snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
         }

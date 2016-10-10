@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Func<T, string, Serializer, RemotableData> assetGetter)
         {
             // re-create asset from object
-            var syncService = (SolutionChecksumServiceFactory.Service)service;
-            var syncObject = service.GetSynchronizationObject(checksum, CancellationToken.None);
+            var syncService = (SolutionSynchronizationServiceFactory.Service)service;
+            var syncObject = service.GetRemotableData(checksum, CancellationToken.None);
 
             var recoveredValue = await service.GetValueAsync<T>(checksum);
             var recreatedSyncObject = assetGetter(recoveredValue, kind, syncService.Serializer_TestOnly);
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static void VerifyChecksumInService(ISolutionSynchronizationService snapshotService, Checksum checksum, string kind)
         {
             Assert.NotNull(checksum);
-            var otherObject = snapshotService.GetSynchronizationObject(checksum, CancellationToken.None);
+            var otherObject = snapshotService.GetRemotableData(checksum, CancellationToken.None);
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }

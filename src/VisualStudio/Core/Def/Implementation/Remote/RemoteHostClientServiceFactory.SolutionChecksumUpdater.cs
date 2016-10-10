@@ -3,11 +3,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -125,11 +125,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return;
                 }
 
-                var solution = _service.Workspace.CurrentSolution;
-                using (var session = await remoteHostClient.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, ShutdownCancellationToken).ConfigureAwait(false))
+                using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizeAssets, ShutdownCancellationToken))
                 {
-                    // ask remote host to sync initial asset
-                    await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizeAsync).ConfigureAwait(false);
+                    var solution = _service.Workspace.CurrentSolution;
+                    using (var session = await remoteHostClient.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, ShutdownCancellationToken).ConfigureAwait(false))
+                    {
+                        // ask remote host to sync initial asset
+                        await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizeAsync).ConfigureAwait(false);
+                    }
                 }
             }
 

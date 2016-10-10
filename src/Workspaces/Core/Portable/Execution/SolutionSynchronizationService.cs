@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Serialization;
 namespace Microsoft.CodeAnalysis.Execution
 {
     [ExportWorkspaceServiceFactory(typeof(ISolutionSynchronizationService)), Shared]
-    internal class SolutionChecksumServiceFactory : IWorkspaceServiceFactory
+    internal class SolutionSynchronizationServiceFactory : IWorkspaceServiceFactory
     {
         private readonly AssetStorages _assetStorages = new AssetStorages();
 
@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Execution
                 _assetStorages.RemoveGlobalAsset(value, cancellationToken);
             }
 
-            public async Task<PinnedRemotableDataScope> CreateSynchronizationScopeAsync(Solution solution, CancellationToken cancellationToken)
+            public async Task<PinnedRemotableDataScope> CreatePinnedRemotableDataScopeAsync(Solution solution, CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_CreateChecksumAsync, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync, cancellationToken))
                 {
                     var storage = _assetStorages.CreateStorage(solution.State);
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
@@ -61,17 +61,17 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            public RemotableData GetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken)
+            public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObject, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     return _assetStorages.GetSynchronizationObject(checksum, cancellationToken);
                 }
             }
 
-            public IReadOnlyDictionary<Checksum, RemotableData> GetSynchronizationObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+            public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObjects, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
                     return _assetStorages.GetSynchronizationObjects(checksums, cancellationToken);
                 }
