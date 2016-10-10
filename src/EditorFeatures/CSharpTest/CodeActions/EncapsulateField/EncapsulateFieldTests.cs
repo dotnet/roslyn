@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
             new Dictionary<OptionKey, object>
             {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement },
             };
 
         internal Task TestAllOptionsOffAsync(

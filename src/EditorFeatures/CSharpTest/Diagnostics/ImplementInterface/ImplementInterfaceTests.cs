@@ -26,34 +26,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
             new Dictionary<OptionKey, object>
             {
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.falseWithNoneEnforcement }
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.FalseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.FalseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.FalseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.FalseWithNoneEnforcement }
             };
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOn =
             new Dictionary<OptionKey, object>
             {
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.trueWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.trueWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.trueWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.trueWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.trueWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.trueWithNoneEnforcement }
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.TrueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.TrueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.TrueWithNoneEnforcement }
             };
 
         private static readonly Dictionary<OptionKey, object> AccessorOptionsOn =
             new Dictionary<OptionKey, object>
             {
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.falseWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.trueWithNoneEnforcement },
-                {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.falseWithNoneEnforcement }
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.FalseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.FalseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.FalseWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement },
+                {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.FalseWithNoneEnforcement }
             };
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(

@@ -25,23 +25,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         private static readonly Dictionary<OptionKey, object> UseExpressionBody =
             new Dictionary<OptionKey, object>
             {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.trueWithNoneEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithNoneEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement },
             };
 
         private static readonly Dictionary<OptionKey, object> UseBlockBody =
             new Dictionary<OptionKey, object>
             {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement }
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement }
             };
 
 
         private static readonly Dictionary<OptionKey, object> UseBlockBodyExceptAccessor =
             new Dictionary<OptionKey, object>
             {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.trueWithNoneEnforcement }
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement }
             };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

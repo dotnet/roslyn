@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         private static readonly Dictionary<OptionKey, object> UseExpressionBody =
             new Dictionary<OptionKey, object>
             {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.trueWithNoneEnforcement }
+                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement }
             };
 
         private static readonly Dictionary<OptionKey, object> UseBlockBody =
             new Dictionary<OptionKey, object>
             {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.falseWithNoneEnforcement }
+                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.FalseWithNoneEnforcement }
             };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

@@ -2202,8 +2202,8 @@ class C
                 code, expected,
                 New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
                 New Dictionary(Of OptionKey, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement}
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement},
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement}
                 })
         End Function
 
@@ -2253,8 +2253,8 @@ class C
             Await TestAddProperty(
                 code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
                 New Dictionary(Of OptionKey, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement}
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement},
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement}
                 })
         End Function
 

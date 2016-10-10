@@ -664,8 +664,8 @@ class C
                     getStatements: "return String.Empty;",
                     isIndexer: true,
                     options: new Dictionary<OptionKey, object> {
-                        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement },
-                        { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.falseWithNoneEnforcement },
+                        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement },
+                        { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.FalseWithNoneEnforcement },
                     });
             }
 

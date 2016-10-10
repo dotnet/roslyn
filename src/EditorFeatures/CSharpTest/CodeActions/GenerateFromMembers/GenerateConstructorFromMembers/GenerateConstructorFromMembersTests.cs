@@ -33,7 +33,7 @@ index: 0);
             await TestAsync(
 @"using System . Collections . Generic ; class Z { [|int a ;|] } ",
 @"using System . Collections . Generic ; class Z { int a ; public Z ( int a ) => this . a = a ; } ",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.trueWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
