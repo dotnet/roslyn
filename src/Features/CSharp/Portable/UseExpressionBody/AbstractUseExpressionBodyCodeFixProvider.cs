@@ -2,57 +2,50 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class UseExpressionBodyForMethodsDiagnosticAnalyzer : 
-        AbstractUseExpressionBodyDiagnosticAnalyzer<MethodDeclarationSyntax>, IBuiltInAnalyzer
+    internal abstract class AbstractUseExpressionBodyCodeFixProvider<TDeclaration> : CodeFixProvider
+        where TDeclaration : SyntaxNode
     {
-        public UseExpressionBodyForMethodsDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_methods), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_methods), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   ImmutableArray.Create(SyntaxKind.MethodDeclaration),
-                   CSharpCodeStyleOptions.PreferExpressionBodiedMethods)
+        private readonly Option<CodeStyleOption<bool>> _option;
+        private readonly string _useExpressionBodyTitle;
+        private readonly string _useBlockBodyTitle;
+
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
+
+        protected AbstractUseExpressionBodyCodeFixProvider(
+            string diagnosticId,
+            Option<CodeStyleOption<bool>> option,
+            string useExpressionBodyTitle,
+            string useBlockBodyTitle)
         {
+            FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
+            _option = option;
+            _useExpressionBodyTitle = useExpressionBodyTitle;
+            _useBlockBodyTitle = useBlockBodyTitle;
         }
 
-        protected override BlockSyntax GetBody(MethodDeclarationSyntax declaration)
-            => declaration.Body;
-
-        protected override ArrowExpressionClauseSyntax GetExpressionBody(MethodDeclarationSyntax declaration)
-            => declaration.ExpressionBody;
-    }
-
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class UseExpressionBodyForMethodsCodeFixProvider : CodeFixProvider
-    {
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            var option = context.Document.Project.Solution.Workspace.Options.GetOption(
-                CSharpCodeStyleOptions.PreferExpressionBodiedMethods);
+            var option = context.Document.Project.Solution.Workspace.Options.GetOption(_option);
             var title = option.Value
-                ? FeaturesResources.Use_expression_body_for_methods
-                : FeaturesResources.Use_block_body_for_methods;
+                ? _useExpressionBodyTitle
+                : _useBlockBodyTitle;
 
             context.RegisterCodeFix(
                 new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
@@ -73,8 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var option = document.Project.Solution.Workspace.Options.GetOption(
-                CSharpCodeStyleOptions.PreferExpressionBodiedMethods);
+            var option = document.Project.Solution.Workspace.Options.GetOption(_option);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -90,33 +82,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             SyntaxNode root, SyntaxEditor editor, Diagnostic diagnostic,
             bool preferExpressionBody, CancellationToken cancellationToken)
         {
-            var methodLocation = diagnostic.AdditionalLocations[0];
-            var methodDeclaration = (MethodDeclarationSyntax)methodLocation.FindNode(cancellationToken);
+            var declarationLocation = diagnostic.AdditionalLocations[0];
+            var declaration = (TDeclaration)declarationLocation.FindNode(cancellationToken);
 
-            var updatedMethodDeclaration = Update(methodDeclaration, preferExpressionBody).WithAdditionalAnnotations(
+            var updatedDeclaration = Update(declaration, preferExpressionBody).WithAdditionalAnnotations(
                 Formatter.Annotation);
 
-            editor.ReplaceNode(methodDeclaration, updatedMethodDeclaration);
+            editor.ReplaceNode(declaration, updatedDeclaration);
         }
 
-        private MethodDeclarationSyntax Update(MethodDeclarationSyntax methodDeclaration, bool preferExpressionBody)
+        private TDeclaration Update(TDeclaration declaration, bool preferExpressionBody)
         {
             if (preferExpressionBody)
             {
-                return methodDeclaration.WithBody(null)
-                                        .WithExpressionBody(methodDeclaration.Body.TryConvertToExpressionBody())
-                                        .WithSemicolonToken(GetFirstStatementSemicolon(methodDeclaration.Body));
+                return WithSemicolonToken(
+                           WithExpressionBody(
+                               WithBody(declaration, null),
+                               GetBody(declaration).TryConvertToExpressionBody()),
+                           GetFirstStatementSemicolon(GetBody(declaration)));
             }
             else
             {
-                var block = methodDeclaration.ExpressionBody.ConvertToBlock(
-                    methodDeclaration.SemicolonToken, 
-                    createReturnStatementForExpression: !methodDeclaration.ReturnType.IsVoid());
-                return methodDeclaration.WithBody(block)
-                                        .WithExpressionBody(null)
-                                        .WithSemicolonToken(default(SyntaxToken));
+                var block = GetExpressionBody(declaration).ConvertToBlock(
+                    GetSemicolonToken(declaration),
+                    CreateReturnStatementForExpression(declaration));
+                return WithSemicolonToken(
+                           WithExpressionBody(
+                               WithBody(declaration, block),
+                               null),
+                           default(SyntaxToken));
             }
         }
+
+        protected abstract bool CreateReturnStatementForExpression(TDeclaration declaration);
+
+        protected abstract SyntaxToken GetSemicolonToken(TDeclaration declaration);
+        protected abstract ArrowExpressionClauseSyntax GetExpressionBody(TDeclaration declaration);
+        protected abstract BlockSyntax GetBody(TDeclaration declaration);
+
+        protected abstract TDeclaration WithSemicolonToken(TDeclaration declaration, SyntaxToken token);
+        protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax expressionBody);
+        protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax body);
 
         private SyntaxToken GetFirstStatementSemicolon(BlockSyntax body)
         {

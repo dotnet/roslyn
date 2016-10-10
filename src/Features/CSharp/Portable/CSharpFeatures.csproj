@@ -362,8 +362,10 @@
     <Compile Include="Structure\Providers\SwitchStatementStructureProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\AbstractUseExpressionBodyDiagnosticAnalyzer.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForMethods.cs" />
     <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="Structure\CSharpBlockStructureProvider.cs" />
