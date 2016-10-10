@@ -19,6 +19,8 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <DeployExtension Condition="'$(VisualStudioVersion)' == '14.0'">false</DeployExtension>
+    <OutDir>$(OutDir)VisualStudioSetup.Next\</OutDir>
+    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
