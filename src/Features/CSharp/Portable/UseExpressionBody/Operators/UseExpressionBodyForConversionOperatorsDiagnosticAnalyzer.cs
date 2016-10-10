@@ -7,13 +7,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class UseExpressionBodyForConversionOperatorsDiagnosticAnalyzer :
         AbstractUseExpressionBodyDiagnosticAnalyzer<ConversionOperatorDeclarationSyntax>, IBuiltInAnalyzer
     {
         public UseExpressionBodyForConversionOperatorsDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
+            : base(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_operators), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_operators), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    ImmutableArray.Create(SyntaxKind.ConversionOperatorDeclaration),
