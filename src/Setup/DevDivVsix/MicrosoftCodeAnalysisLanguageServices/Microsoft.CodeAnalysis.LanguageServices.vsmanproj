@@ -26,7 +26,6 @@
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
   </ItemGroup>
 
