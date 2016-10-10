@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal abstract class AbstractUseExpressionBodyCodeFixProvider<TDeclaration> : CodeFixProvider
+    internal abstract partial class AbstractUseExpressionBodyCodeFixProvider<TDeclaration> : CodeFixProvider
         where TDeclaration : SyntaxNode
     {
         private readonly Option<CodeStyleOption<bool>> _option;
@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             _useExpressionBodyTitle = useExpressionBodyTitle;
             _useBlockBodyTitle = useBlockBodyTitle;
         }
+
+        public sealed override FixAllProvider GetFixAllProvider() => new UseExpressionBodyFixAllProvider(this);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

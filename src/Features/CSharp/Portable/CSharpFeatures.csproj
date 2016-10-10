@@ -58,6 +58,7 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.InlineDeclarationFixAllProvider.cs" />
