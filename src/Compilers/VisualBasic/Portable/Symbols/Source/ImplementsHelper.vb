@@ -350,20 +350,7 @@ DoneWithErrorReporting:
 
                         If Not errorReported Then
                             ' Further verification of found method.
-                            foundMember = ValidateImplementedMember(implementingSym, foundMember, implementedMemberSyntax, binder, diagBag)
-
-                            If Not MembersHaveMatchingTupleNames(implementingSym, foundMember) Then
-                                Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_ImplementingInterfaceWithDifferentTupleNames5,
-                                        CustomSymbolDisplayFormatter.ShortErrorName(implementingSym),
-                                        implementingSym.GetKindText(),
-                                        implementedMethodName,
-                                        CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(interfaceType),
-                                        implementingSym,
-                                        foundMember)
-
-                                errorReported = True
-                            End If
-
+                            foundMember = ValidateImplementedMember(implementingSym, foundMember, implementedMemberSyntax, binder, diagBag, interfaceType, implementedMethodName, errorReported)
                         End If
 
                         If foundMember IsNot Nothing Then
@@ -450,10 +437,14 @@ DoneWithErrorReporting:
         ''' implementedSym as the implemented symbol.
         ''' </summary>
         Private Function ValidateImplementedMember(Of TSymbol As Symbol)(implementingSym As TSymbol,
-                                                                    implementedSym As TSymbol,
-                                                                    implementedMemberSyntax As QualifiedNameSyntax,
-                                                                    binder As Binder,
-                                                                    diagBag As DiagnosticBag) As TSymbol
+                                                                        implementedSym As TSymbol,
+                                                                        implementedMemberSyntax As QualifiedNameSyntax,
+                                                                        binder As Binder,
+                                                                        diagBag As DiagnosticBag,
+                                                                        interfaceType As TypeSymbol,
+                                                                        implementedMethodName As String,
+                                                                        ByRef errorReported As Boolean) As TSymbol
+
             If Not implementedSym.RequiresImplementation() Then
                 ' TODO: Perhaps give ERR_CantImplementNonVirtual3 like Dev10. But, this message seems more
                 ' TODO: confusing than useful, so for now, just treat it like a method that doesn't exist.
@@ -470,13 +461,28 @@ DoneWithErrorReporting:
                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_PropertyDoesntImplementAllAccessors,
                                             implementedProperty,
                                             implementingProperty.GetPropertyKindText())
+                    errorReported = True
 
                 ElseIf ((implementedProperty.GetMethod Is Nothing) Xor (implementedProperty.SetMethod Is Nothing)) AndAlso
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
-                    InternalSyntax.Parser.CheckFeatureAvailability(diagBag, implementedMemberSyntax.GetLocation(),
-                                                                   DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
-                                                                   InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
+
+                    errorReported = errorReported Or
+                                    Not InternalSyntax.Parser.CheckFeatureAvailability(diagBag, implementedMemberSyntax.GetLocation(),
+                                        DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
+                                        InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
                 End If
+            End If
+
+            If implementedSym IsNot Nothing AndAlso Not MembersHaveMatchingTupleNames(implementingSym, implementedSym) Then
+                Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_ImplementingInterfaceWithDifferentTupleNames5,
+                                        CustomSymbolDisplayFormatter.ShortErrorName(implementingSym),
+                                        implementingSym.GetKindText(),
+                                        implementedMethodName,
+                                        CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(interfaceType),
+                                        implementingSym,
+                                        implementedSym)
+
+                errorReported = True
             End If
 
             ' TODO: If implementing event, check that delegate types are consistent, or maybe set the delegate type.  See Dev10 compiler

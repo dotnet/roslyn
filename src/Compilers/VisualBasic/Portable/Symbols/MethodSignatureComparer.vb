@@ -342,7 +342,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                origDef2.ReturnsByRef,
                                                                New TypeWithModifiers(origDef2.ReturnType, origDef2.ReturnTypeCustomModifiers),
                                                                typeSubstitution2.Value,
-                                                               comparisons)
+                                                               comparisons,
+                                                               stopIfAny)
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done
                 End If
@@ -433,7 +434,8 @@ Done:
             returnsByRef2 As Boolean,
             type2 As TypeWithModifiers,
             typeSubstitution2 As TypeSubstitution,
-            comparisons As SymbolComparisonResults
+            comparisons As SymbolComparisonResults,
+            Optional stopIfAny As SymbolComparisonResults = 0
         ) As SymbolComparisonResults
             If returnsByRef1 <> returnsByRef2 Then
                 Return SymbolComparisonResults.ReturnTypeMismatch
@@ -451,13 +453,20 @@ Done:
             If (comparisons And SymbolComparisonResults.TupleNamesMismatch) <> 0 AndAlso
                     Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreTupleNames) Then
                 result = result Or SymbolComparisonResults.TupleNamesMismatch
+                If (stopIfAny And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                    GoTo Done
+                End If
             End If
 
             If (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
                    Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
                 result = result Or SymbolComparisonResults.CustomModifierMismatch
+                If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
+                    GoTo Done
+                End If
             End If
 
+Done:
             Return result
         End Function
 

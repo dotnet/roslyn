@@ -172,7 +172,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                                        prop2.ReturnsByRef,
                                                                                        New TypeWithModifiers(prop2.Type, prop2.TypeCustomModifiers),
                                                                                        Nothing,
-                                                                                       comparisons)
+                                                                                       comparisons,
+                                                                                       stopIfAny)
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done
                 End If

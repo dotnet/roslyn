@@ -14540,6 +14540,89 @@ BC32072: Cannot implement interface 'I0(Of (notA As T2, notB As T2))' because it
 
         End Sub
 
+        <Fact>
+        Public Sub BC31407ERR_MultipleEventImplMismatch3()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="MultipleEventImplMismatch3">
+        <file name="a.vb"><![CDATA[
+Interface I1
+    Event evtTest1(x As (A As Integer, B As Integer))
+    Event evtTest2(x As (A As Integer, notB As Integer))
+End Interface
+Class C1
+    Implements I1
+    Event evtTest3(x As (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+            Dim expectedErrors1 = <errors><![CDATA[
+BC30402: 'evtTest3' cannot implement event 'evtTest1' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As I1.evtTest1EventHandler' do not match those in 'Event evtTest1(x As (A As Integer, B As Integer))'.
+    Event evtTest3(x As (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                        ~~~~~~~~~~~
+BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As I1.evtTest1EventHandler' do not match those in 'Event evtTest2(x As (A As Integer, notB As Integer))'.
+    Event evtTest3(x As (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                     ~~~~~~~~~~~
+BC31407: Event 'Public Event evtTest3 As I1.evtTest1EventHandler' cannot implement event 'I1.Event evtTest2(x As (A As Integer, notB As Integer))' because its delegate type does not match the delegate type of another event implemented by 'Public Event evtTest3 As I1.evtTest1EventHandler'.
+    Event evtTest3(x As (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                     ~~~~~~~~~~~
+                 ]]></errors>
+            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingEventWithDifferentTupleNames()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="MultipleEventImplMismatch3">
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Event evtTest1 As Action(Of (A As Integer, B As Integer))
+    Event evtTest2 As Action(Of (A As Integer, notB As Integer))
+End Interface
+Class C1
+    Implements I1
+    Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+            Dim expectedErrors1 = <errors><![CDATA[
+BC30402: 'evtTest3' cannot implement event 'evtTest1' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer))' do not match those in 'Event evtTest1 As Action(Of (A As Integer, B As Integer))'.
+    Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                ~~~~~~~~~~~
+BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer))' do not match those in 'Event evtTest2 As Action(Of (A As Integer, notB As Integer))'.
+    Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                             ~~~~~~~~~~~
+                 ]]></errors>
+            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact>
+        Public Sub BC31407ERR_MultipleEventImplMismatch3_2()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="MultipleEventImplMismatch3">
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Event evtTest1 As Action(Of (A As Integer, B As Integer))
+    Event evtTest2 As Action(Of (A As Integer, notB As Integer))
+End Interface
+Class C1
+    Implements I1
+    Event evtTest3(x As (A As Integer, stillNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+            compilation1.AssertTheseDiagnostics(
+<errors>
+BC30402: 'evtTest3' cannot implement event 'evtTest1' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As Action(Of (A As Integer, B As Integer))' do not match those in 'Event evtTest1 As Action(Of (A As Integer, B As Integer))'.
+    Event evtTest3(x As (A As Integer, stillNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                         ~~~~~~~~~~~
+BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As Action(Of (A As Integer, B As Integer))' do not match those in 'Event evtTest2 As Action(Of (A As Integer, notB As Integer))'.
+    Event evtTest3(x As (A As Integer, stillNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                      ~~~~~~~~~~~
+</errors>)
+        End Sub
+
     End Class
 
 End Namespace
