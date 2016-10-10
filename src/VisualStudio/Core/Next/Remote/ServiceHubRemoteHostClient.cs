@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, SynchronizationScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host

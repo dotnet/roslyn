@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// map from solution checksum scope to its associated asset storage
         /// </summary>
-        private readonly ConcurrentDictionary<SynchronizationScope, Storage> _storages;
+        private readonly ConcurrentDictionary<PinnedRemotableDataScope, Storage> _storages;
 
         public AssetStorages()
         {
             _globalAssets = new ConcurrentDictionary<object, CustomAsset>(concurrencyLevel: 2, capacity: 10);
-            _storages = new ConcurrentDictionary<SynchronizationScope, Storage>(concurrencyLevel: 2, capacity: 10);
+            _storages = new ConcurrentDictionary<PinnedRemotableDataScope, Storage>(concurrencyLevel: 2, capacity: 10);
         }
 
         public void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken)
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.Execution
             return new Storage(this, solutionState);
         }
 
-        public SynchronizationObject GetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken)
+        public RemotableData GetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)
             {
                 // check nil case
-                return SynchronizationObject.Null;
+                return RemotableData.Null;
             }
 
             // search snapshots we have
@@ -97,17 +97,17 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(checksum);
         }
 
-        public IReadOnlyDictionary<Checksum, SynchronizationObject> GetSynchronizationObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public IReadOnlyDictionary<Checksum, RemotableData> GetSynchronizationObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
             {
                 var numberOfChecksumsToSearch = searchingChecksumsLeft.Object.Count;
-                var result = new Dictionary<Checksum, SynchronizationObject>(numberOfChecksumsToSearch);
+                var result = new Dictionary<Checksum, RemotableData>(numberOfChecksumsToSearch);
 
                 // check nil case
                 if (searchingChecksumsLeft.Object.Remove(Checksum.Null))
                 {
-                    result[Checksum.Null] = SynchronizationObject.Null;
+                    result[Checksum.Null] = RemotableData.Null;
                 }
 
                 // search checksum trees we have
@@ -147,13 +147,13 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public void RegisterSnapshot(SynchronizationScope snapshot, AssetStorages.Storage storage)
+        public void RegisterSnapshot(PinnedRemotableDataScope snapshot, AssetStorages.Storage storage)
         {
             // duplicates are not allowed, there can be multiple snapshots to same solution, so no ref counting.
             Contract.ThrowIfFalse(_storages.TryAdd(snapshot, storage));
         }
 
-        public void UnregisterSnapshot(SynchronizationScope snapshot)
+        public void UnregisterSnapshot(PinnedRemotableDataScope snapshot)
         {
             // calling it multiple times for same snapshot is not allowed.
             Storage dummy;

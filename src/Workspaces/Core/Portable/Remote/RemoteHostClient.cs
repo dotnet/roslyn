@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected abstract void OnDisconnected();
 
-        protected abstract Task<Session> CreateServiceSessionAsync(string serviceName, SynchronizationScope snapshot, object callbackTarget, CancellationToken cancellationToken);
+        protected abstract Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken);
 
         internal void Shutdown()
         {
@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Remote
         // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism
         public abstract class Session : IDisposable
         {
-            protected readonly SynchronizationScope ChecksumScope;
+            protected readonly PinnedRemotableDataScope ChecksumScope;
             protected readonly CancellationToken CancellationToken;
 
             private bool _disposed;
 
-            protected Session(SynchronizationScope scope, CancellationToken cancellationToken)
+            protected Session(PinnedRemotableDataScope scope, CancellationToken cancellationToken)
             {
                 _disposed = false;
 

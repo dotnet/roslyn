@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private async Task<Solution> GetSolutionAsync(ISolutionSynchronizationService service, SynchronizationScope syncScope)
+        private async Task<Solution> GetSolutionAsync(ISolutionSynchronizationService service, PinnedRemotableDataScope syncScope)
         {
             var workspace = new AdhocWorkspace();
 
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
         }
 
-        private static async Task<SynchronizationObject> CloneAssetAsync(Serializer serializer, SynchronizationObject asset)
+        private static async Task<RemotableData> CloneAssetAsync(Serializer serializer, RemotableData asset)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))

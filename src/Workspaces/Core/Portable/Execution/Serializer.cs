@@ -36,15 +36,15 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public Checksum CreateChecksum(object value, CancellationToken cancellationToken)
         {
-            var kind = value.GetWellKnownSynchronizationKinds();
+            var kind = value.GetWellKnownSynchronizationKind();
 
             using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, kind, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (value is IHasChecksum)
+                if (value is IChecksummedObject)
                 {
-                    return ((IHasChecksum)value).Checksum;
+                    return ((IChecksummedObject)value).Checksum;
                 }
 
                 switch (kind)
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            var kind = value.GetWellKnownSynchronizationKinds();
+            var kind = value.GetWellKnownSynchronizationKind();
 
             using (Logger.LogBlock(FunctionId.Serializer_Serialize, kind, cancellationToken))
             {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 IOptionsSerializationService service;
                 if (_lazyLanguageSerializationService.TryGetValue(languageName, out service))
                 {
-                    if (service.Owns(value))
+                    if (service.CanSerialize(value))
                     {
                         return languageName;
                     }
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 }
 
                 service = GetOptionsSerializationService(languageName);
-                if (service.Owns(value))
+                if (service.CanSerialize(value))
                 {
                     return languageName;
                 }

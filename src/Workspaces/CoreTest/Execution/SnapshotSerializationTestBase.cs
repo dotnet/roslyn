@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ISolutionSynchronizationService service,
             Checksum checksum,
             string kind,
-            Func<T, string, Serializer, SynchronizationObject> assetGetter)
+            Func<T, string, Serializer, RemotableData> assetGetter)
         {
             // re-create asset from object
             var syncService = (SolutionChecksumServiceFactory.Service)service;
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             int expectedAnalyzerReferenceCount,
             int expectedAdditionalDocumentCount)
         {
-            VerifyChecksumInService(snapshotService, projectObject.Checksum, projectObject.GetWellKnownSynchronizationKinds());
+            VerifyChecksumInService(snapshotService, projectObject.Checksum, projectObject.GetWellKnownSynchronizationKind());
             VerifyChecksumInService(snapshotService, projectObject.Info, WellKnownSynchronizationKinds.ProjectInfo);
             VerifyChecksumInService(snapshotService, projectObject.CompilationOptions, WellKnownSynchronizationKinds.CompilationOptions);
             VerifyChecksumInService(snapshotService, projectObject.ParseOptions, WellKnownSynchronizationKinds.ParseOptions);
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal static void VerifyCollectionInService(ISolutionSynchronizationService snapshotService, ChecksumCollection checksums, int expectedCount, string expectedItemKind)
         {
-            VerifyChecksumInService(snapshotService, checksums.Checksum, checksums.GetWellKnownSynchronizationKinds());
+            VerifyChecksumInService(snapshotService, checksums.Checksum, checksums.GetWellKnownSynchronizationKind());
             Assert.Equal(checksums.Count, expectedCount);
 
             foreach (var checksum in checksums)
@@ -245,12 +245,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal static void VerifySnapshotInService(ISolutionSynchronizationService snapshotService, DocumentStateChecksums documentObject)
         {
-            VerifyChecksumInService(snapshotService, documentObject.Checksum, documentObject.GetWellKnownSynchronizationKinds());
+            VerifyChecksumInService(snapshotService, documentObject.Checksum, documentObject.GetWellKnownSynchronizationKind());
             VerifyChecksumInService(snapshotService, documentObject.Info, WellKnownSynchronizationKinds.DocumentInfo);
             VerifyChecksumInService(snapshotService, documentObject.Text, WellKnownSynchronizationKinds.SourceText);
         }
 
-        internal static void VerifySynchronizationObjectInService<T>(ISolutionSynchronizationService snapshotService, T syncObject) where T : SynchronizationObject
+        internal static void VerifySynchronizationObjectInService<T>(ISolutionSynchronizationService snapshotService, T syncObject) where T : RemotableData
         {
             VerifyChecksumInService(snapshotService, syncObject.Checksum, syncObject.Kind);
         }
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }
 
-        internal static void SynchronizationObjectEqual<T>(T checksumObject1, T checksumObject2) where T : SynchronizationObject
+        internal static void SynchronizationObjectEqual<T>(T checksumObject1, T checksumObject2) where T : RemotableData
         {
             ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
         }

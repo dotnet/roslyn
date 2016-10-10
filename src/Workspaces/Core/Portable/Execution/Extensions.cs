@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return (T[])reader.ReadValue();
         }
 
-        public static string GetWellKnownSynchronizationKinds(this object value)
+        public static string GetWellKnownSynchronizationKind(this object value)
         {
             if (value is SolutionStateChecksums)
             {

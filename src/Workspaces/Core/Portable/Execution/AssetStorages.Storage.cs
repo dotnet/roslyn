@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 _additionalAssets.TryAdd(asset.Checksum, asset);
             }
 
-            public SynchronizationObject TryGetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken)
+            public RemotableData TryGetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken)
             {
                 var finder = new SolutionChecksumFinder(SolutionState, _serializer, cancellationToken);
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return null;
             }
 
-            public void AppendSynchronizationObjects(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, SynchronizationObject> result, CancellationToken cancellationToken)
+            public void AppendSynchronizationObjects(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, RemotableData> result, CancellationToken cancellationToken)
             {
                 var finder = new SolutionChecksumFinder(SolutionState, _serializer, cancellationToken);
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             private void AppendSynchronizationObjectsFromAdditionalAssets(
-                Dictionary<Checksum, SynchronizationObject> result, HashSet<Checksum> searchingChecksumsLeft, CancellationToken cancellationToken)
+                Dictionary<Checksum, RemotableData> result, HashSet<Checksum> searchingChecksumsLeft, CancellationToken cancellationToken)
             {
                 // this will iterate through candidate checksums to see whether that checksum exists in both
                 // checksum set we are currently searching for and checksums current node contains
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            private SynchronizationObject GetSynchronizationObjectFromAdditionalAssets(Checksum checksum)
+            private RemotableData GetSynchronizationObjectFromAdditionalAssets(Checksum checksum)
             {
                 CustomAsset asset;
                 if (_additionalAssets.TryGetValue(checksum, out asset))
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 _cancellationToken = cancellationToken;
             }
 
-            public SynchronizationObject Find(Checksum checksum)
+            public RemotableData Find(Checksum checksum)
             {
                 using (var checksumPool = Creator.CreateChecksumSet(SpecializedCollections.SingletonEnumerable(checksum)))
                 using (var resultPool = Creator.CreateResultSet())
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return null;
             }
 
-            public void Append(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, SynchronizationObject> result)
+            public void Append(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, RemotableData> result)
             {
                 using (var resultPool = Creator.CreateResultSet())
                 {

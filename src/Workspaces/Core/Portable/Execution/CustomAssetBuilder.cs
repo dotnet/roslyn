@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// builder to create custom asset which is not part of solution but want to participate in ISolutionSynchronizationService
     /// </summary>
-    internal struct CustomAssetBuilder
+    internal class CustomAssetBuilder
     {
         private readonly Serializer _serializer;
 
@@ -23,14 +23,16 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var serializer = _serializer;
-            return new SimpleCustomAsset(WellKnownSynchronizationKinds.OptionSet, (w, c) => serializer.SerializeOptionSet(options, language, w, c));
+            return new SimpleCustomAsset(WellKnownSynchronizationKinds.OptionSet, 
+                (writer, cancellationTokenOnStreamWriting) => 
+                    _serializer.SerializeOptionSet(options, language, writer, cancellationTokenOnStreamWriting));
         }
 
         public CustomAsset Build(AnalyzerReference reference, CancellationToken cancellationToken)
         {
-            var serializer = _serializer;
-            return new SimpleCustomAsset(WellKnownSynchronizationKinds.AnalyzerReference, (w, c) => serializer.SerializeAnalyzerReference(reference, w, c));
+            return new SimpleCustomAsset(WellKnownSynchronizationKinds.AnalyzerReference, 
+                (writer, cancellationTokenOnStreamWriting) => 
+                    _serializer.SerializeAnalyzerReference(reference, writer, cancellationTokenOnStreamWriting));
         }
     }
 }

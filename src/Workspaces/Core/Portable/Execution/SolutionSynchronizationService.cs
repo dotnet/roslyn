@@ -49,19 +49,19 @@ namespace Microsoft.CodeAnalysis.Execution
                 _assetStorages.RemoveGlobalAsset(value, cancellationToken);
             }
 
-            public async Task<SynchronizationScope> CreateSynchronizationScopeAsync(Solution solution, CancellationToken cancellationToken)
+            public async Task<PinnedRemotableDataScope> CreateSynchronizationScopeAsync(Solution solution, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_CreateChecksumAsync, cancellationToken))
                 {
                     var storage = _assetStorages.CreateStorage(solution.State);
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                    var snapshot = new SynchronizationScope(_assetStorages, storage, checksum);
+                    var snapshot = new PinnedRemotableDataScope(_assetStorages, storage, checksum);
                     return snapshot;
                 }
             }
 
-            public SynchronizationObject GetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken)
+            public RemotableData GetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObject, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            public IReadOnlyDictionary<Checksum, SynchronizationObject> GetSynchronizationObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+            public IReadOnlyDictionary<Checksum, RemotableData> GetSynchronizationObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObjects, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {

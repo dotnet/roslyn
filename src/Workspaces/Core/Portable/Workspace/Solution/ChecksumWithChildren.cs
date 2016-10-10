@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// <summary>
     /// this is a collection that has its own checksum and contains only checksum or checksum collection as its children.
     /// </summary>
-    internal abstract class ChecksumWithChildren : IHasChecksum
+    internal abstract class ChecksumWithChildren : IChecksummedObject
     {
         public ChecksumWithChildren(string kind, params object[] children)
         {

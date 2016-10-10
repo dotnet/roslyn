@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
         public JsonRpcSession(
-            SynchronizationScope snapshot,
+            PinnedRemotableDataScope snapshot,
             Stream snapshotStream,
             object callbackTarget,
             Stream serviceStream,
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _source = new CancellationTokenSource();
             }
 
-            private SynchronizationScope ChecksumScope => _owner.ChecksumScope;
+            private PinnedRemotableDataScope ChecksumScope => _owner.ChecksumScope;
 
             /// <summary>
             /// this is callback from remote host side to get asset associated with checksum from VS.

@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
     /// <summary>
     /// this is a helper collection for unit test. just packaging checksum collection with actual items.
     /// </summary>
-    internal class ChecksumObjectCollection<T> : SynchronizationObject, IEnumerable<T> where T : ChecksumWithChildren
+    internal class ChecksumObjectCollection<T> : RemotableData, IEnumerable<T> where T : ChecksumWithChildren
     {
         public ImmutableArray<T> Children { get; }
 
-        public ChecksumObjectCollection(ISolutionSynchronizationService service, ChecksumCollection collection) : base(collection.Checksum, collection.GetWellKnownSynchronizationKinds())
+        public ChecksumObjectCollection(ISolutionSynchronizationService service, ChecksumCollection collection) : base(collection.Checksum, collection.GetWellKnownSynchronizationKind())
         {
             // using .Result here since we don't want to convert all calls to this to async.
             // and none of ChecksumWithChildren actually use async

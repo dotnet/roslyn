@@ -10,15 +10,16 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// Base for object that will use ISolutionSynchronizationService framework to synchronize data to remote host
     /// </summary>
-    internal abstract partial class SynchronizationObject
+    internal abstract partial class RemotableData
     {
-        public static readonly SynchronizationObject Null = new NullObject();
+        public static readonly RemotableData Null = new NullRemotableData();
 
         /// <summary>
-        /// Indicates what kind of checksum object it is
+        /// Indicates what kind of object it is
         /// <see cref="WellKnownSynchronizationKinds"/> for examples.
         /// 
-        /// this later will be used to deserialize bits to actual object
+        /// this will be used in tranportation framework and deserialization service
+        /// to hand shake how to send over data and deserialize serialized data
         /// </summary>
         public readonly string Kind;
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         public readonly Checksum Checksum;
 
-        public SynchronizationObject(Checksum checksum, string kind)
+        public RemotableData(Checksum checksum, string kind)
         {
             Checksum = checksum;
             Kind = kind;
@@ -43,15 +44,20 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// null asset indicating things that doesn't actually exist
         /// </summary>
-        private sealed class NullObject : SynchronizationObject
+        private sealed class NullRemotableData : RemotableData
         {
-            public NullObject() :
+            public NullRemotableData() :
                 base(Checksum.Null, WellKnownSynchronizationKinds.Null)
             {
+                // null object has null kind and null checksum. 
+                // this null object is known to checksum framework and transportation framework to handle null case
+                // properly.
             }
 
             public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
             {
+                // it write out nothing to stream. for null kind and checksum, checksum/transportation framework knows
+                // there is no data in stream and skip reading any data from the stream.
                 return SpecializedTasks.EmptyTask;
             }
         }

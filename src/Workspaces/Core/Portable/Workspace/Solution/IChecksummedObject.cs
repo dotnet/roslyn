@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Indicates whether a type has checksum or not
     /// </summary>
-    internal interface IHasChecksum
+    internal interface IChecksummedObject
     {
         Checksum Checksum { get; }
     }

@@ -7,27 +7,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SourceCodeKind GetSourceCodeKind(this TextDocumentState state)
         {
             // these can just be abstract property
-            var source = state as DocumentState;
-            if (source != null)
-            {
-                return source.SourceCodeKind;
-            }
-
-            // no source
-            return SourceCodeKind.Regular;
+            return (state as DocumentState)?.SourceCodeKind ?? SourceCodeKind.Regular;
         }
 
         public static bool IsGenerated(this TextDocumentState state)
         {
             // these can just be abstract property
-            var source = state as DocumentState;
-            if (source != null)
-            {
-                return source.IsGenerated;
-            }
-
-            // no source
-            return false;
+            return (state as DocumentState)?.IsGenerated ?? false;
         }
     }
 }

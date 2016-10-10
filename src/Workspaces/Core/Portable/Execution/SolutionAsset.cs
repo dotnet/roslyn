@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// Asset that is part of solution
     /// </summary>
-    internal abstract class SolutionAsset : SynchronizationObject
+    internal abstract class SolutionAsset : RemotableData
     {
         protected SolutionAsset(Checksum checksum, string kind) : base(checksum, kind)
         {
         }
 
-        public static SynchronizationObject Create(Checksum checksum, object value, Serializer serializer)
+        public static RemotableData Create(Checksum checksum, object value, Serializer serializer)
         {
             // treat SourceText specially since we get TextDocumentState rather than SourceText when searching the checksum
             // from solution due to it requiring async-ness when retrieving SourceText.
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly Serializer _serializer;
 
             public SimpleSolutionAsset(Checksum checksum, object value, Serializer serializer) :
-                base(checksum, value.GetWellKnownSynchronizationKinds())
+                base(checksum, value.GetWellKnownSynchronizationKind())
             {
                 _value = value;
                 _serializer = serializer;

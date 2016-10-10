@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Serialization;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// a service that lets one to create <see cref="SynchronizationScope"/> that can be used to pin solution
+    /// a service that lets one to create <see cref="PinnedRemotableDataScope"/> that can be used to pin solution
     /// while working on remote host
     /// </summary>
     internal interface ISolutionSynchronizationService : IWorkspaceService
@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Add global <see cref="CustomAsset"/> which stays alive while host is alive.
         /// 
-        /// this asset can be something that is not part of <see cref="SynchronizationScope"/> 
+        /// this asset can be something that is not part of <see cref="PinnedRemotableDataScope"/> 
         /// 
         /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
-        ///       this should be changed so that custom serializer can be discoverable by <see cref="SynchronizationObject.Kind"/> 
+        ///       this should be changed so that custom serializer can be discoverable by <see cref="RemotableData.Kind"/> 
         /// </summary>
         void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken);
 
@@ -35,18 +35,18 @@ namespace Microsoft.CodeAnalysis.Execution
         void RemoveGlobalAsset(object value, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Create <see cref="SynchronizationScope"/> from <see cref="Solution"/>.
+        /// Create <see cref="PinnedRemotableDataScope"/> from <see cref="Solution"/>.
         /// </summary>
-        Task<SynchronizationScope> CreateSynchronizationScopeAsync(Solution solution, CancellationToken cancellationToken);
+        Task<PinnedRemotableDataScope> CreateSynchronizationScopeAsync(Solution solution, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get <see cref="SynchronizationObject"/> corresponding to given <see cref="Checksum"/>. 
+        /// Get <see cref="RemotableData"/> corresponding to given <see cref="Checksum"/>. 
         /// </summary>
-        SynchronizationObject GetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken);
+        RemotableData GetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get <see cref="SynchronizationObject"/>s corresponding to given <see cref="Checksum"/>s. 
+        /// Get <see cref="RemotableData"/>s corresponding to given <see cref="Checksum"/>s. 
         /// </summary>
-        IReadOnlyDictionary<Checksum, SynchronizationObject> GetSynchronizationObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
+        IReadOnlyDictionary<Checksum, RemotableData> GetSynchronizationObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
     }
 }

@@ -53,17 +53,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create(string kind, Action<ObjectWriter, CancellationToken> writer)
-        {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var objectWriter = new ObjectWriter(stream))
-            {
-                objectWriter.WriteString(kind);
-                writer(objectWriter, CancellationToken.None);
-                return Create(stream);
-            }
-        }
-
         public static Checksum Create<T>(T value, string kind, Serializer serializer)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
