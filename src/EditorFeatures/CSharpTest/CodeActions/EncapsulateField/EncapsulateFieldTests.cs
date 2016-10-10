@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -7,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EncapsulateField;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -128,6 +130,88 @@ class foo
 }
 ";
             await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task TestCodeStyle1()
+        {
+            var text = @"
+class foo
+{
+    private int b[|a|]r;
+
+    void baz()
+    {
+        var q = Bar;
+    }
+}
+";
+
+            var expected = @"
+class foo
+{
+    private int bar;
+
+    public int Bar
+    {
+        get
+        {
+            return bar;
+        }
+
+        set
+        {
+            bar = value;
+        }
+    }
+
+    void baz()
+    {
+        var q = Bar;
+    }
+}
+";
+            await TestAsync(text, expected, 
+                options: OptionsSet(
+                    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
+                    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task TestCodeStyle2()
+        {
+            var text = @"
+class foo
+{
+    private int b[|a|]r;
+
+    void baz()
+    {
+        var q = Bar;
+    }
+}
+";
+
+            var expected = @"
+class foo
+{
+    private int bar;
+
+    public int Bar
+    {
+        get => bar;
+
+        set => bar = value;
+    }
+
+    void baz()
+    {
+        var q = Bar;
+    }
+}
+";
+            await TestAsync(text, expected,
+                options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -1285,7 +1369,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
-        public async Task Tuple()
+        public async Task TestTuple()
         {
             var text = @"
 class C
