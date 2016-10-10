@@ -23,6 +23,8 @@
     <TargetVsixContainerName>Roslyn.VisualStudio.Setup.Interactive.vsix</TargetVsixContainerName>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <OutDir>$(OutDir)VisualStudioSetupInteractive\</OutDir>
+    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">

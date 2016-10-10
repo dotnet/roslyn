@@ -3,4 +3,4 @@
 using Roslyn.VisualStudio.Setup;
 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.CSharp.Repl.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.VisualBasic.Repl.dll")]
+//[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.VisualBasic.Repl.dll")] -- VB not supported in interactive yet
