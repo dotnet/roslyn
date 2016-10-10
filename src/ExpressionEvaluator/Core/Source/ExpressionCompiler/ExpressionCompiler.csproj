@@ -30,6 +30,7 @@
     <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
     <Compile Include="EESymbolProvider.cs" />
     <Compile Include="ILSpan.cs" />
+    <Compile Include="NotImplementedMetadataException.cs" />
     <Compile Include="PDB\MethodDebugInfo.Native.cs" />
     <Compile Include="PDB\MethodDebugInfo.Portable.cs" />
     <Compile Include="Placeholders.cs" />
