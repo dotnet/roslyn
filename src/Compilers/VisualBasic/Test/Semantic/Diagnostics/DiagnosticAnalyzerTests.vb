@@ -982,7 +982,7 @@ End Class
         End Sub
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
-        Public Sub TestLocalsAndParametersAnalyzer_InRegularMethods()
+        Public Sub TestParametersAnalyzer_InRegularMethods()
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
@@ -996,13 +996,13 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New AnalyzerForLocalsAndParameters}, Nothing, Nothing, False,
+            comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                 Diagnostic("Parameter_ID", "a").WithLocation(2, 18),
                                                 Diagnostic("Parameter_ID", "b").WithLocation(2, 32))
         End Sub
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
-        Public Sub TestLocalsAndParametersAnalyzer_InConstructors()
+        Public Sub TestParametersAnalyzer_InConstructors()
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
@@ -1016,13 +1016,13 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New AnalyzerForLocalsAndParameters}, Nothing, Nothing, False,
+            comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                 Diagnostic("Parameter_ID", "a").WithLocation(2, 20),
                                                 Diagnostic("Parameter_ID", "b").WithLocation(2, 34))
         End Sub
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
-        Public Sub TestLocalsAndParametersAnalyzer_InIndexers()
+        Public Sub TestParametersAnalyzer_InIndexers()
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
@@ -1041,14 +1041,14 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New AnalyzerForLocalsAndParameters}, Nothing, Nothing, False,
+            comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                     Diagnostic("Parameter_ID", "a").WithLocation(2, 34),
                                                     Diagnostic("Parameter_ID", "b").WithLocation(2, 48),
                                                     Diagnostic("Parameter_ID", "Value").WithLocation(6, 19))
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14062"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
-        Public Sub TestLocalsAndParametersAnalyzer_InDelegateTypes()
+        Public Sub TestParametersAnalyzer_InDelegateTypes()
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
@@ -1061,13 +1061,13 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New AnalyzerForLocalsAndParameters}, Nothing, Nothing, False,
+            comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                     Diagnostic("Parameter_ID", "a").WithLocation(2, 34),
                                                     Diagnostic("Parameter_ID", "b").WithLocation(2, 48))
         End Sub
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
-        Public Sub TestLocalsAndParametersAnalyzer_InOperators()
+        Public Sub TestParametersAnalyzer_InOperators()
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
@@ -1082,13 +1082,13 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New AnalyzerForLocalsAndParameters}, Nothing, Nothing, False,
+            comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                         Diagnostic("Parameter_ID", "h1").WithLocation(2, 36),
                                                         Diagnostic("Parameter_ID", "h2").WithLocation(2, 51))
         End Sub
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
-        Public Sub TestLocalsAndParametersAnalyzer_InInterfaceImplementations()
+        Public Sub TestParametersAnalyzer_InInterfaceImplementations()
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
@@ -1107,7 +1107,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New AnalyzerForLocalsAndParameters}, Nothing, Nothing, False,
+            comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                             Diagnostic("Parameter_ID", "a").WithLocation(2, 11),
                                                             Diagnostic("Parameter_ID", "b").WithLocation(2, 25),
                                                             Diagnostic("Parameter_ID", "a").WithLocation(7, 18),
@@ -1115,7 +1115,7 @@ End Class
         End Sub
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
-        Public Sub TestLocalsAndParametersAnalyzer_InParameterizedProperties()
+        Public Sub TestParametersAnalyzer_InParameterizedProperties()
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
@@ -1132,7 +1132,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New AnalyzerForLocalsAndParameters}, Nothing, Nothing, False,
+            comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                                 Diagnostic("Parameter_ID", "a").WithLocation(2, 35),
                                                                 Diagnostic("Parameter_ID", "b").WithLocation(2, 49))
         End Sub

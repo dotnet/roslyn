@@ -1657,15 +1657,13 @@ public partial class C33 { }
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_InConstructor()
+        public void TestParametersAnalyzer_InConstructor()
         {
             string source = @"
 public class C
 {
     public C(int a, int b)
     {
-        int c = 0, d = 0;
-        System.Console.WriteLine(c + d);
     }
 }
 ";
@@ -1673,24 +1671,20 @@ public class C
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                     Diagnostic("Parameter_ID", "a").WithLocation(4, 18),
-                    Diagnostic("Parameter_ID", "b").WithLocation(4, 25),
-                    Diagnostic("Local_ID", "c").WithLocation(6, 13),
-                    Diagnostic("Local_ID", "d").WithLocation(6, 20));
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 25));
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_InRegularMethod()
+        public void TestParametersAnalyzer_InRegularMethod()
         {
             string source = @"
 public class C
 {
     void M1(string a, string b)
     {
-        C c = null;
-        System.Console.WriteLine(c);
     }
 }
 ";
@@ -1698,15 +1692,36 @@ public class C
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                     Diagnostic("Parameter_ID", "a").WithLocation(4, 20),
-                    Diagnostic("Parameter_ID", "b").WithLocation(4, 30),
-                    Diagnostic("Local_ID", "c").WithLocation(6, 11));
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 30));
+        }
+
+        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InIndexers()
+        {
+            string source = @"
+public class C
+{
+    public int this[int index]
+    {
+        get { return 0; }
+        set { }
+    }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Parameter_ID", "index").WithLocation(4, 25));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_Lambdas()
+        public void TestParametersAnalyzer_Lambdas()
         {
             string source = @"
 public class C
@@ -1721,7 +1736,7 @@ public class C
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                     Diagnostic("Local_ID", "x").WithLocation(6, 36),
                     Diagnostic("Parameter_ID", "a").WithLocation(6, 45),
@@ -1729,7 +1744,7 @@ public class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_InAnonymousMethods()
+        public void TestParametersAnalyzer_InAnonymousMethods()
         {
             string source = @"
 public class C
@@ -1746,7 +1761,7 @@ public class C
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                         Diagnostic("Parameter_ID", "a").WithLocation(9, 37),
                         Diagnostic("Parameter_ID", "x").WithLocation(6, 26),
@@ -1754,29 +1769,7 @@ public class C
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_InIndexers()
-        {
-            string source = @"
-public class C
-{
-    public int this[int index]
-    {
-        get { return 0; }
-        set { }
-    }
-}
-";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
-            compilation.VerifyDiagnostics();
-
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
-                    Diagnostic("Parameter_ID", "index").WithLocation(4, 25));
-        }
-
-        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_InDelegateTypes()
+        public void TestParametersAnalyzer_InDelegateTypes()
         {
             string source = @"
 public class C
@@ -1788,14 +1781,14 @@ public class C
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                     Diagnostic("Parameter_ID", "x").WithLocation(4, 25),
                     Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_InOperators()
+        public void TestParametersAnalyzer_InOperators()
         {
             string source = @"
 public class C
@@ -1807,13 +1800,13 @@ public class C
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                     Diagnostic("Parameter_ID", "c").WithLocation(4, 44));
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_InExplicitInterfaceImplementations()
+        public void TestParametersAnalyzer_InExplicitInterfaceImplementations()
         {
             string source = @"
 interface I
@@ -1830,7 +1823,7 @@ public class C : I
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                     Diagnostic("Parameter_ID", "c").WithLocation(9, 18),
                     Diagnostic("Parameter_ID", "d").WithLocation(9, 25),
@@ -1839,7 +1832,7 @@ public class C : I
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_InExtensionMethods()
+        public void TestParametersAnalyzer_InExtensionMethods()
         {
             string source = @"
 public static class C
@@ -1851,14 +1844,14 @@ public static class C
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                     Diagnostic("Parameter_ID", "x").WithLocation(4, 28),
                     Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
-        public void TestLocalsAndParametersAnalyzer_InLocalFunctions()
+        public void TestParametersAnalyzer_InLocalFunctions()
         {
             string source = @"
 public class C
@@ -1877,7 +1870,7 @@ public class C
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForLocalsAndParameters() };
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                     Diagnostic("Parameter_ID", "a").WithLocation(4, 18), // ctor
                     Diagnostic("Parameter_ID", "b").WithLocation(4, 25),

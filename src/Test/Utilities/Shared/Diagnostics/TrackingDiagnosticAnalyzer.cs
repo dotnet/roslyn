@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var expectedSymbolKinds = new[] 
             {
-                SymbolKind.Event, SymbolKind.Field, SymbolKind.Local, SymbolKind.Method, SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Parameter, SymbolKind.Property
+                SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Parameter, SymbolKind.Property
             };
 
             var actualSymbolKinds = _callLog.Where(a => FilterByAbstractName(a, "Symbol")).Where(e => e.SymbolKind.HasValue).Select(e => e.SymbolKind.Value).Distinct();

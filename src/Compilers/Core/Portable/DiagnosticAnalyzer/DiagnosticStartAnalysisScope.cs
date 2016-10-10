@@ -609,27 +609,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).AddSymbolAction(analyzerAction);
             _symbolActions = _symbolActions.Add(analyzerAction);
 
-            // The SymbolAnalyzerAction does not handle SymbolKind.Local or SymbolKind.Parameter
-            // because the compiler does not make CompilationEvents for them. As a workaround,
-            // handle them specially by registering further OperationActions (for 
-            // VariableDeclarations) or SymbolActions (for Methods) and utilize the results of
-            // those to construct the necessary SymbolAnalysisContexts.
-
-            if (symbolKinds.Contains(SymbolKind.Local))
-            {
-                RegisterOperationAction(analyzer, opContext =>
-                {
-                    var varDecl = (IVariableDeclaration)opContext.Operation;
-                    action(new SymbolAnalysisContext(
-                        varDecl.Variable,
-                        opContext.Compilation,
-                        opContext.Options,
-                        opContext.ReportDiagnostic,
-                        opContext.IsSupportedDiagnostic,
-                        opContext.CancellationToken));
-                },
-                ImmutableArray.Create(OperationKind.VariableDeclaration));
-            }
+            // The SymbolAnalyzerAction does not handle SymbolKind.Parameter because the compiler
+            // does not make CompilationEvents for them. As a workaround, handle them specially by
+            // registering further SymbolActions (for Methods) and utilize the results to construct
+            // the necessary SymbolAnalysisContexts.
 
             if (symbolKinds.Contains(SymbolKind.Parameter))
             {
