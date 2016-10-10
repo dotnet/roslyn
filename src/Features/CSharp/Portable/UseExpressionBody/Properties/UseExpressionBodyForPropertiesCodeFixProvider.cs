@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -36,11 +39,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             => declaration.WithExpressionBody(expressionBody);
 
         protected override PropertyDeclarationSyntax WithBody(PropertyDeclarationSyntax declaration, BlockSyntax body)
-            => body == null
-                ? declaration.WithAccessorList(null)
-                : declaration.WithAccessorList(SyntaxFactory.AccessorList(
-                    SyntaxFactory.SingletonList(SyntaxFactory.AccessorDeclaration(
-                        SyntaxKind.GetAccessorDeclaration, body))));
+        {
+            if (body == null)
+            {
+                return declaration.WithAccessorList(null);
+            }
+
+            return declaration;
+        }
+
+        protected override PropertyDeclarationSyntax WithGenerateBody(
+            PropertyDeclarationSyntax declaration, OptionSet options)
+        {
+            var expressionBody = GetExpressionBody(declaration);
+            var semicolonToken = GetSemicolonToken(declaration);
+
+            var preferExpressionBodiedAccessors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+
+            AccessorDeclarationSyntax accessor;
+            if (preferExpressionBodiedAccessors)
+            {
+                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                        .WithExpressionBody(expressionBody)
+                                        .WithSemicolonToken(semicolonToken);
+            }
+            else
+            {
+                var block = expressionBody.ConvertToBlock(
+                    GetSemicolonToken(declaration),
+                    CreateReturnStatementForExpression(declaration));
+                accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, block);
+            }
+
+            return declaration.WithAccessorList(SyntaxFactory.AccessorList(
+                SyntaxFactory.SingletonList(accessor)));
+        }
 
         protected override bool CreateReturnStatementForExpression(PropertyDeclarationSyntax declaration) => true;
     }

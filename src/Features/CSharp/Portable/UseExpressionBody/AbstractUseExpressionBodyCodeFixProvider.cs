@@ -68,12 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var option = document.Project.Solution.Workspace.Options.GetOption(_option);
+            var options = document.Project.Solution.Workspace.Options;
+            var preferExpressionBody = document.Project.Solution.Workspace.Options.GetOption(_option).Value;
 
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(root, editor, diagnostic, option.Value, cancellationToken);
+                AddEdits(root, editor, diagnostic, options, preferExpressionBody, cancellationToken);
             }
 
             var newRoot = editor.GetChangedRoot();
@@ -82,18 +83,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private void AddEdits(
             SyntaxNode root, SyntaxEditor editor, Diagnostic diagnostic,
-            bool preferExpressionBody, CancellationToken cancellationToken)
+            OptionSet options, bool preferExpressionBody, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var declaration = (TDeclaration)declarationLocation.FindNode(cancellationToken);
 
-            var updatedDeclaration = Update(declaration, preferExpressionBody).WithAdditionalAnnotations(
-                Formatter.Annotation);
+            var updatedDeclaration = this.Update(declaration, preferExpressionBody, options)
+                                         .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);
         }
 
-        private TDeclaration Update(TDeclaration declaration, bool preferExpressionBody)
+        private TDeclaration Update(TDeclaration declaration, bool preferExpressionBody, OptionSet options)
         {
             if (preferExpressionBody)
             {
@@ -105,12 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
             else
             {
-                var block = GetExpressionBody(declaration).ConvertToBlock(
-                    GetSemicolonToken(declaration),
-                    CreateReturnStatementForExpression(declaration));
                 return WithSemicolonToken(
                            WithExpressionBody(
-                               WithBody(declaration, block),
+                               WithGenerateBody(declaration, options),
                                null),
                            default(SyntaxToken));
             }
@@ -125,6 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected abstract TDeclaration WithSemicolonToken(TDeclaration declaration, SyntaxToken token);
         protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax expressionBody);
         protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax body);
+
+        protected virtual TDeclaration WithGenerateBody(
+            TDeclaration declaration, OptionSet options)
+        {
+            var expressionBody = GetExpressionBody(declaration);
+            var semicolonToken = GetSemicolonToken(declaration);
+            var block = expressionBody.ConvertToBlock(
+                GetSemicolonToken(declaration),
+                CreateReturnStatementForExpression(declaration));
+
+            return WithBody(declaration, block);
+        }
 
         private SyntaxToken GetFirstStatementSemicolon(BlockSyntax body)
         {

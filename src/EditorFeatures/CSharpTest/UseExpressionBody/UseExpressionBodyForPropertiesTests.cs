@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int Foo {
         get => Bar();
     }
-}", options: UseBlockBody);
+}", options: UseBlockBodyExceptAccessor);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
