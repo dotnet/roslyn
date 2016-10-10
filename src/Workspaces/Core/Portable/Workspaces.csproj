@@ -363,6 +363,7 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
+    <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />
     <Compile Include="Execution\SynchronizationObject.cs" />
     <Compile Include="Execution\SynchronizationScope.cs" />
