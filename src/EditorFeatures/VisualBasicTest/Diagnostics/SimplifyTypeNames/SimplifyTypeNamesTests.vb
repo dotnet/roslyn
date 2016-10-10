@@ -839,9 +839,10 @@ End Structure")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestAliasedType() As Task
             Dim source =
-        NewLines("Class Program \n Sub Foo() \n Dim x As New [|Global.Program|] \n End Sub \n End Class")
-            Await TestAsync(source,
-        NewLines("Class Program \n Sub Foo() \n Dim x As New Program \n End Sub \n End Class"), Nothing, 0)
+                NewLines("Class Program \n Sub Foo() \n Dim x As New [|Global.Program|] \n End Sub \n End Class")
+            Await TestAsync(
+                source,
+                NewLines("Class Program \n Sub Foo() \n Dim x As New Program \n End Sub \n End Class"), parseOptions:=Nothing, index:=0)
 
             Await TestMissingAsync(source, GetScriptOptions())
         End Function

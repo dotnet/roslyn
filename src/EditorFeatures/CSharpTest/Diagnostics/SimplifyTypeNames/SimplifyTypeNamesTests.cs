@@ -2051,7 +2051,7 @@ class Program
     {
         Program a = null; 
     }
-}", index: 0);
+}", parseOptions: null, index: 0);
 
             await TestMissingAsync(source, GetScriptOptions());
         }
