@@ -58,10 +58,16 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
-    <Compile Include="UseExpressionBody\UseExpressionBodyForConstructorsDiagnosticAnalyzer.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForOperatorsDiagnosticAnalyzer.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForConstructorsCodeFixProvider.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForOperatorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Indexers\UseExpressionBodyForIndexersCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Indexers\UseExpressionBodyForIndexersDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Properties\UseExpressionBodyForPropertiesCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Properties\UseExpressionBodyForPropertiesDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForConversionOperatorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForConversionOperatorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Constructors\UseExpressionBodyForConstructorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForOperatorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Constructors\UseExpressionBodyForConstructorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForOperatorsCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
@@ -367,8 +373,8 @@
     <Compile Include="Structure\Providers\SwitchStatementStructureProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationDiagnosticAnalyzer.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsCodeFixProvider.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Methods\UseExpressionBodyForMethodsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Methods\UseExpressionBodyForMethodsDiagnosticAnalyzer.cs" />
     <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\AbstractUseExpressionBodyDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />

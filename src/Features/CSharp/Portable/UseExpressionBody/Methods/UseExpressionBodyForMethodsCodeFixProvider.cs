@@ -41,4 +41,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool CreateReturnStatementForExpression(MethodDeclarationSyntax declaration)
             => !declaration.ReturnType.IsVoid();
     }
+
 }

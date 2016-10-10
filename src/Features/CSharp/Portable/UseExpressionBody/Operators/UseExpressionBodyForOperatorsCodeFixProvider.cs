@@ -40,4 +40,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool CreateReturnStatementForExpression(OperatorDeclarationSyntax declaration)
             => true;
     }
+
 }
