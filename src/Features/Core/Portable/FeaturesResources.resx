@@ -1082,4 +1082,10 @@ This version used in: {2}</value>
   <data name="Inline_variable_declaration" xml:space="preserve">
     <value>Inline variable declaration</value>
   </data>
+  <data name="Use_expression_body_for_methods" xml:space="preserve">
+    <value>Use expression body for methods</value>
+  </data>
+  <data name="Use_block_body_for_methods" xml:space="preserve">
+    <value>Use block body for methods</value>
+  </data>
 </root>

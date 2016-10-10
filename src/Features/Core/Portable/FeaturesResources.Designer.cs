@@ -1414,6 +1414,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inline variable declaration.
+        /// </summary>
+        internal static string Inline_variable_declaration {
+            get {
+                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install &apos;{0} {1}&apos;.
         /// </summary>
         internal static string Install_0_1 {
@@ -2885,6 +2894,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use block body for methods.
+        /// </summary>
+        internal static string Use_block_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for methods.
+        /// </summary>
+        internal static string Use_expression_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use framework type.
         /// </summary>
         internal static string Use_framework_type {
@@ -2956,16 +2983,5 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("You_can_use_the_navigation_bar_to_switch_context", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to You can use the navigation bar to switch context..
-        /// </summary>
-        internal static string Inline_variable_declaration
-        {
-            get
-            {
-                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
-            }
-        }
     }
-} 
+}

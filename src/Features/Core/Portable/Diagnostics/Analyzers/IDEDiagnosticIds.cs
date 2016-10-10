@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseObjectInitializerDiagnosticId = "IDE0017";
         public const string InlineDeclarationDiagnosticId = "IDE0018";
 
+        public const string UseExpressionBodyForMethodsDiagnosticId = "IDE0020";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
