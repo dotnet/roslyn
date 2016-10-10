@@ -53,7 +53,7 @@
     <Compile Include="OutOfProcess\VisualStudioWorkspace_OutOfProc.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.VisualStudio.IntegrationTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
   </ItemGroup>
   <ItemGroup>
