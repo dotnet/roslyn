@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,59 +20,23 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class UseExpressionBodyForMethodsDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal class UseExpressionBodyForMethodsDiagnosticAnalyzer : 
+        AbstractUseExpressionBodyDiagnosticAnalyzer<MethodDeclarationSyntax>, IBuiltInAnalyzer
     {
-        public bool OpenFileOnly(Workspace workspace) => true;
-
         public UseExpressionBodyForMethodsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_methods), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_methods), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_methods), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   ImmutableArray.Create(SyntaxKind.MethodDeclaration),
+                   CSharpCodeStyleOptions.PreferExpressionBodiedMethods)
         {
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        protected override BlockSyntax GetBody(MethodDeclarationSyntax declaration)
+            => declaration.Body;
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.MethodDeclaration);
-        }
-
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-        {
-            var optionSet = context.Options.GetOptionSet();
-            var preferExpressionBodiedMethods = optionSet.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods);
-
-            var methodDeclaration = (MethodDeclarationSyntax)context.Node;
-            if (preferExpressionBodiedMethods.Value)
-            {
-                if (methodDeclaration.ExpressionBody == null)
-                {
-                    // They want expression bodies and they don't have one.  See if we can
-                    // convert this to have an expression body.
-                    var expressionBody = methodDeclaration.Body.TryConvertToExpressionBody();
-                    if (expressionBody != null)
-                    {
-                        var additionalLocations = ImmutableArray.Create(methodDeclaration.GetLocation());
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            CreateDescriptor(this.DescriptorId, FeaturesResources.Use_expression_body_for_methods, preferExpressionBodiedMethods.Notification.Value),
-                            methodDeclaration.Body.Statements[0].GetLocation(),
-                            additionalLocations: additionalLocations));
-                    }
-                }
-            }
-            else
-            {
-                // They don't want expression bodies but they have one.  Offer to conver this to a normal block
-                if (methodDeclaration.ExpressionBody != null)
-                {
-                    var additionalLocations = ImmutableArray.Create(methodDeclaration.GetLocation());
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        CreateDescriptor(this.DescriptorId, FeaturesResources.Use_block_body_for_methods, preferExpressionBodiedMethods.Notification.Value),
-                        methodDeclaration.ExpressionBody.GetLocation(),
-                        additionalLocations: additionalLocations));
-                }
-            }
-        }
+        protected override ArrowExpressionClauseSyntax GetExpressionBody(MethodDeclarationSyntax declaration)
+            => declaration.ExpressionBody;
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
