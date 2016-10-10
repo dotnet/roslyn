@@ -102,8 +102,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 }
 
                 // We don't have anything cached, so we'll just get it now lazily and not hold onto it. The workspace layer will ensure
-                // that we maintain snapshot rules for the document options.
-                using (var context = await _codingConventionsManager.GetConventionContextAsync(path, cancellationToken).ConfigureAwait(false))
+                // that we maintain snapshot rules for the document options. We'll also run it on the thread pool
+                // as in some builds the ICodingConventionsManager captures the thread pool.
+                var conventionsAsync = Task.Run(() => _codingConventionsManager.GetConventionContextAsync(path, cancellationToken));
+
+                using (var context = await conventionsAsync.ConfigureAwait(false))
                 {
                     return new DocumentOptions(context.CurrentConventions);
                 }
