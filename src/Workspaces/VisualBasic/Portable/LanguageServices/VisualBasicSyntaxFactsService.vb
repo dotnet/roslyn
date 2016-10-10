@@ -1536,5 +1536,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfAwaitExpression
             Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
+
+        Public Function IsPossibleTupleContext(
+            syntaxTree As SyntaxTree,
+            position As Integer,
+            cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsPossibleTupleContext
+
+            Throw New NotImplementedException()
+        End Function
     End Class
 End Namespace

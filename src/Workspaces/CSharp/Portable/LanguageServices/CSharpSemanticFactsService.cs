@@ -260,11 +260,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
             return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
         }
-
-        public bool IsPossibleTupleContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            var token = semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            return token.IsPossibleTupleContext(position);
-        }
     }
 }

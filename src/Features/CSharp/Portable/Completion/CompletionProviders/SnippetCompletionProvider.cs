@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var span = new TextSpan(position, 0);
             var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            var isPossibleTupleContext = semanticFacts.IsPossibleTupleContext(semanticModel, position, cancellationToken);
+            var isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken);
 
             if (semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
             {

@@ -78,9 +78,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return MyBase.GetFilterText(symbol, displayText, context)
         End Function
 
-        Private Shared cachedRules As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules) = InitCachedRules()
+        Private Shared cachedRules As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules) =
+            InitCachedRules()
 
         Private Shared Function InitCachedRules() As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules)
+
             Dim result = New Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules)()
 
             For importDirective = 0 To 1
@@ -111,7 +113,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, "("c))
 
             Dim importDirectBasline As CompletionItemRules =
-                CompletionItemRules.Create(commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, "."c)))
+                CompletionItemRules.Create(commitCharacterRules:=
+                    ImmutableArray.Create(
+                        CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, "."c)))
 
             Dim rule = If(importDirective, importDirectBasline, generalBaseline)
 
@@ -120,7 +124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             If tuple Then
-                rule = rule.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
+                rule = rule.WithCommitCharacterRule(
+                    CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
             End If
 
             Return rule
@@ -129,7 +134,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol),
                                                             context As SyntaxContext, preselect As Boolean) As CompletionItemRules
 
-            Return If(cachedRules(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext)),
+            Return If(cachedRules(
+                        ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext)),
                     CompletionItemRules.Default)
         End Function
 

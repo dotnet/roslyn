@@ -18,6 +18,22 @@ Class Foo
 End Class]]></document>
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ColonDoesntTriggerSnippetInTupleLiteral() As Task
+            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
+                state.SendTypeChars("Dim t = (Interfac")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ColonDoesntTriggerSnippetInTupleLiteralAfterComma() As Task
+            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
+                state.SendTypeChars("Dim t = (1, Interfac")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
                 state.SendTypeChars("Interfac")
