@@ -122,6 +122,7 @@ Public Class BuildDevDivInsertionFiles
         "System.Security.Principal.Windows.dll",
         "System.Text.Encoding.CodePages.dll",
         "System.Threading.Thread.dll",
+        "System.ValueTuple.dll",
         "System.Xml.XmlDocument.dll",
         "System.Xml.XPath.dll",
         "System.Xml.XPath.XDocument.dll",
@@ -781,9 +782,12 @@ Public Class BuildDevDivInsertionFiles
 
                     Dim relativeOutputFilePath = Path.Combine(GetExternalApiDirectory(), partFileName)
 
+                    ' paths are relative to input directory:
                     If processedFiles.Add(relativeOutputFilePath) Then
-                        ' paths are relative to input directory:
-                        filesToInsert.Add(New NugetFileInfo(partFileName))
+                        ' In Razzle src\ArcProjects\debugger\ConcordSDK.targets references .vsdconfig files under LanguageServiceRegistration\ExpressionEvaluatorPackage
+                        Dim target = If(Path.GetExtension(partFileName).Equals(".vsdconfig"), "LanguageServiceRegistration\ExpressionEvaluatorPackage", "")
+
+                        filesToInsert.Add(New NugetFileInfo(partFileName, target))
                         AddXmlDocumentationFile(filesToInsert, partFileName)
                     End If
                 Next
@@ -880,7 +884,7 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
 
     Private Function IsLanguageServiceRegistrationFile(fileName As String) As Boolean
         Select Case Path.GetExtension(fileName)
-            Case ".vsixmanifest", ".pkgdef", ".png", ".ico", ".vsdconfig"
+            Case ".vsixmanifest", ".pkgdef", ".png", ".ico"
                 Return True
             Case Else
                 Return False

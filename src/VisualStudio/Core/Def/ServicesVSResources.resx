@@ -756,4 +756,10 @@ Additional information: {1}</value>
   <data name="Show_outlining_for_declaration_level_constructs" xml:space="preserve">
     <value>Show outlining for declaration level constructs</value>
   </data>
+  <data name="Variable_preferences_colon" xml:space="preserve">
+    <value>Variable preferences:</value>
+  </data>
+  <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
+    <value>Prefer inlined variable declaration</value>
+  </data>
 </root>

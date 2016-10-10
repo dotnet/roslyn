@@ -2956,5 +2956,16 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("You_can_use_the_navigation_bar_to_switch_context", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You can use the navigation bar to switch context..
+        /// </summary>
+        internal static string Inline_variable_declaration
+        {
+            get
+            {
+                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
+            }
+        }
     }
-}
+} 

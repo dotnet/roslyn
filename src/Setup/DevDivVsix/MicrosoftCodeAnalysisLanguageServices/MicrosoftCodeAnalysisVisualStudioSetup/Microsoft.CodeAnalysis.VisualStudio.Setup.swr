@@ -13,3 +13,6 @@ vs.localizedResources
 
 vs.payloads
   vs.payload source=$(OutputPath)Roslyn.VisualStudio.Setup.vsix
+
+vs.dependencies
+  vs.dependency id=Microsoft.VisualStudio.MinShell

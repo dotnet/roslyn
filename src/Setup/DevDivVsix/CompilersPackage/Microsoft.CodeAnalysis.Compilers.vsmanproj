@@ -7,6 +7,8 @@
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
     <OutputPath>$(OutDir)Insertion\</OutputPath>
     <IsPackage>true</IsPackage>
+    <FinalizeValidate>false</FinalizeValidate>
+    <ValidateManifest>false</ValidateManifest>
   </PropertyGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.props" />
@@ -19,4 +21,6 @@
   <ItemGroup>
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.Compilers.json" />
   </ItemGroup>
+
+  <Target Name="ValidateManifest" />
 </Project>
