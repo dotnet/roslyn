@@ -86,5 +86,90 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int Foo() => throw new NotImplementedException();
 }", options: UseExpressionBody);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseExpressionBody4()
+        {
+            await TestAsync(
+@"class C
+{
+    int Foo()
+    {
+        [|throw|] new NotImplementedException(); // comment
+    }
+}",
+@"class C
+{
+    int Foo() => throw new NotImplementedException(); // comment
+}", compareTokens: false, options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBody1()
+        {
+            await TestAsync(
+@"class C
+{
+    void Foo() [|=>|] Bar();
+}",
+@"class C
+{
+    void Foo()
+    {
+        Bar();
+    }
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBody2()
+        {
+            await TestAsync(
+@"class C
+{
+    int Foo() [|=>|] Bar();
+}",
+@"class C
+{
+    int Foo() 
+    {
+        return Bar();
+    }
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBody3()
+        {
+            await TestAsync(
+@"class C
+{
+    int Foo() [|=>|] throw new NotImplementedException();
+}",
+@"class C
+{
+    int Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBody4()
+        {
+            await TestAsync(
+@"class C
+{
+    int Foo() [|=>|] throw new NotImplementedException(); // comment
+}",
+@"class C
+{
+    int Foo()
+    {
+        throw new NotImplementedException(); // comment
+    }
+}", compareTokens: false, options: UseBlockBody);
+        }
     }
 }
