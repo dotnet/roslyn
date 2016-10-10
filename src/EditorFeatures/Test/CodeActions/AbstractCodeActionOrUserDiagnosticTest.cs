@@ -309,36 +309,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             object fixProviderData = null,
             CodeActionPriority? priority = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
-            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
+            await TestAsync(initialMarkup, expectedMarkup, null, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
+            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
         }
 
         internal async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
+            CompilationOptions compilationOptions = null,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null,
-            bool withScriptOption = false,
-            CodeActionPriority? priority = null)
+            CodeActionPriority? priority = null,
+            bool withScriptOption = false)
         {
-            await TestAsync(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
+            await TestAsync(initialMarkup, expectedMarkup, parseOptions, compilationOptions, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
 
             if (withScriptOption)
             {
-                await TestAsync(initialMarkup, expectedMarkup, parseOptions.WithKind(SourceCodeKind.Script), null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
+                await TestAsync(initialMarkup, expectedMarkup, parseOptions.WithKind(SourceCodeKind.Script), compilationOptions, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
             }
         }
 
-        internal async Task TestAsync(
+        private async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
-            int index = 0, bool compareTokens = true,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null,
-            CodeActionPriority? priority = null)
+            int index, bool compareTokens,
+            IDictionary<OptionKey, object> options,
+            string fixAllActionEquivalenceKey,
+            object fixProviderData,
+            CodeActionPriority? priority)
         {
             string expected;
             IDictionary<string, IList<TextSpan>> spanMap;

@@ -1,10 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EncapsulateField;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,6 +18,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new EncapsulateFieldRefactoringProvider();
+        }
+
+        private static readonly Dictionary<OptionKey, object> AllOptionsOff =
+            new Dictionary<OptionKey, object>
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.falseWithNoneEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.falseWithNoneEnforcement },
+            };
+
+        internal Task TestAllOptionsOffAsync(
+            string initialMarkup, string expectedMarkup,
+            ParseOptions parseOptions = null,
+            CompilationOptions compilationOptions = null,
+            int index = 0, bool compareTokens = true,
+            IDictionary<OptionKey, object> options = null,
+            bool withScriptOption = false)
+        {
+            options = options ?? new Dictionary<OptionKey, object>();
+            foreach (var kvp in AllOptionsOff)
+            {
+                options.Add(kvp);
+            }
+
+            return TestAsync(initialMarkup, expectedMarkup,
+                parseOptions, compilationOptions, index, compareTokens, options, 
+                withScriptOption: withScriptOption);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -56,7 +85,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -98,7 +127,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -140,7 +169,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -182,7 +211,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -210,7 +239,7 @@ class foo
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -242,7 +271,7 @@ class Program
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -272,7 +301,7 @@ class C<T>
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -304,7 +333,7 @@ class foo
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -329,7 +358,7 @@ class foo
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -373,7 +402,7 @@ class d : c
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -428,7 +457,7 @@ class foo
         Y = 2;
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -485,7 +514,7 @@ class foo
         Y = 2;
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -528,7 +557,7 @@ class foo
         y = 2;
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [WorkItem(694057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694057")]
@@ -556,7 +585,7 @@ class Program
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
@@ -584,7 +613,7 @@ class Program
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
@@ -617,7 +646,7 @@ class Program
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")]
@@ -659,7 +688,7 @@ class Program
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -727,7 +756,7 @@ public class D
         </Document>
     </Project>
 </Workspace>";
-            await TestAsync(text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe, compareTokens: false);
         }
 
         [WorkItem(713269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713269")]
@@ -760,7 +789,7 @@ class C
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [WorkItem(713240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713240")]
@@ -803,7 +832,7 @@ internal enum State
     WA
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
@@ -839,7 +868,7 @@ class Program
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
@@ -875,7 +904,7 @@ class Program
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
         }
 
         [WorkItem(765959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765959")]
@@ -908,7 +937,7 @@ partial class Program {
     }
 }
 ";
-            await TestAsync(text, expected);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [WorkItem(829178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829178")]
@@ -984,7 +1013,7 @@ namespace ConsoleApplication1
     }
 }";
 
-            await TestAsync(text, expected);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")]
@@ -1013,7 +1042,7 @@ enum E
         {
             using (new CultureContext("tr-TR"))
             {
-                await TestAsync(@"
+                await TestAllOptionsOffAsync(@"
 class C
 {
     int [|iyi|];
@@ -1045,7 +1074,7 @@ class C
         {
             using (new CultureContext("tr-TR"))
             {
-                await TestAsync(@"
+                await TestAllOptionsOffAsync(@"
 class C
 {
     int [|ırak|];
@@ -1077,7 +1106,7 @@ class C
         {
             using (new CultureContext("ar-EG"))
             {
-                await TestAsync(@"
+                await TestAllOptionsOffAsync(@"
 class C
 {
     int [|بيت|];
@@ -1109,7 +1138,7 @@ class C
         {
             using (new CultureContext("es-ES"))
             {
-                await TestAsync(@"
+                await TestAllOptionsOffAsync(@"
 class C
 {
     int [|árbol|];
@@ -1141,7 +1170,7 @@ class C
         {
             using (new CultureContext("el-GR"))
             {
-                await TestAsync(@"
+                await TestAllOptionsOffAsync(@"
 class C
 {
     int [|σκύλος|];
@@ -1170,7 +1199,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task TestEncapsulateEscapedIdentifier()
         {
-            await TestAsync(@"
+            await TestAllOptionsOffAsync(@"
 class C
 {
     int [|@class|];
@@ -1199,7 +1228,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task TestEncapsulateEscapedIdentifierAndQualifiedAccess()
         {
-            await TestAsync(@"
+            await TestAllOptionsOffAsync(@"
 class C
 {
     int [|@class|];
@@ -1229,7 +1258,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task ApplyCurrentThisPrefixStyle()
         {
-            await TestAsync(@"
+            await TestAllOptionsOffAsync(@"
 class C
 {
     int [|i|];
@@ -1294,7 +1323,7 @@ class C
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1336,7 +1365,7 @@ class C
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
     }
 }

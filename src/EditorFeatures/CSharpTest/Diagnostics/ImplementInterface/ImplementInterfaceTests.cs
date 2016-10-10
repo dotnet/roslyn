@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
             ParseOptions parseOptions = null,
             bool withScriptOption = false)
         {
-            await TestAsync(initialMarkup, expectedMarkup, parseOptions,
+            await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
                 index, compareTokens, options: AllOptionsOff, withScriptOption: withScriptOption);
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
             ParseOptions parseOptions = null,
             bool withScriptOption = false)
         {
-            await TestAsync(initialMarkup, expectedMarkup, parseOptions,
+            await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
                 index, compareTokens, options: AllOptionsOn, withScriptOption: withScriptOption);
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
             ParseOptions parseOptions = null,
             bool withScriptOption = false)
         {
-            await TestAsync(initialMarkup, expectedMarkup, parseOptions,
+            await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
                 index, compareTokens, options: AccessorOptionsOn, withScriptOption: withScriptOption);
         }
 
