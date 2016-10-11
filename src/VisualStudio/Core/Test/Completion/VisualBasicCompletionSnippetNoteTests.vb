@@ -26,25 +26,6 @@ End Class]]></document>
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function ColonDoesntTriggerSnippetInTupleLiteralAfterComma() As Task
-            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
-                state.SendTypeChars("Dim t = (1, Interfac")
-                Await state.AssertNoCompletionSession()
-            End Using
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Task
-            Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
-                state.SendTypeChars("Interfac")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "Interface") & vbCrLf &
-                    VBFeaturesResources.Declares_the_name_of_an_interface_and_the_definitions_of_the_members_of_the_interface & vbCrLf &
-                    String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "Interface"))
-            End Using
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("Interfac")

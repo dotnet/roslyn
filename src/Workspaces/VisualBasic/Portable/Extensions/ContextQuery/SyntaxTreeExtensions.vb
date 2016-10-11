@@ -1039,7 +1039,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         ' So a parenthesized expression is a possible tuple context too
         <Extension>
         Friend Function IsPossibleTupleContext(syntaxTree As SyntaxTree,
-                                               tokenOnLeftOfPosition As SyntaxToken, position As Integer) As Boolean
+                                               tokenOnLeftOfPosition As SyntaxToken,
+                                               position As Integer) As Boolean
+
             tokenOnLeftOfPosition = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position)
 
             If tokenOnLeftOfPosition.IsKind(SyntaxKind.OpenParenToken) Then

@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
@@ -1542,7 +1543,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             position As Integer,
             cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsPossibleTupleContext
 
-            Throw New NotImplementedException()
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Return syntaxTree.IsPossibleTupleContext(token, position)
         End Function
     End Class
 End Namespace
