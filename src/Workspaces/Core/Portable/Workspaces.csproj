@@ -382,6 +382,7 @@
     <Compile Include="Execution\SolutionChecksumObjectInfo.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.cs" />
     <Compile Include="Execution\SolutionChecksumService.cs" />
+    <Compile Include="Experiments\IExperimentationService.cs" />
     <Compile Include="FindSymbols\IRemoteSymbolFinder.cs" />
     <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
