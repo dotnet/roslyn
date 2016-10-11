@@ -20,11 +20,14 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
         [DispId(1610678272)]
         Array AllEnabledCachedFlights { get; }
 
+        void Start();
+
+        bool IsCachedFlightEnabled([ComAliasName("OLE.LPCOLESTR")] string flightName);
+
+        IVsTask IsFlightEnabledAsync([ComAliasName("OLE.LPCOLESTR")] string flightName);
+
         [return: ComAliasName("EnvDTE.ULONG_PTR")]
         uint AdviseFlightEvents(IVsFlightEvents flightSink);
-        bool IsCachedFlightEnabled([ComAliasName("OLE.LPCOLESTR")] string flightName);
-        IVsTask IsFlightEnabledAsync([ComAliasName("OLE.LPCOLESTR")] string flightName);
-        void Start();
         void UnadviseFlightEvents([ComAliasName("EnvDTE.ULONG_PTR")] uint cookie);
     }
 
