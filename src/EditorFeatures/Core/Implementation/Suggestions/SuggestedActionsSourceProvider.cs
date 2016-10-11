@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -30,7 +30,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    using Microsoft.CodeAnalysis.Experiments;
     using CodeFixGroupKey = Tuple<DiagnosticData, CodeActionPriority>;
 
     [Export(typeof(ISuggestedActionsSourceProvider))]
