@@ -4488,7 +4488,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - ADVANCED -
  /baseaddress:&lt;address&gt;        Base address for the library to be built
- /bugreport:&lt;file&gt;             Create a 'Bug Report' file
  /checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file 
                                checksum stored in PDB. Supported values are:
                                SHA1 (default) or SHA256.
