@@ -2590,7 +2590,8 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSnippetInTupleLiteralAfterComma() As Task
             Dim snippetProvider As CompletionProvider =
-                New VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
+                New VisualStudio.LanguageServices.VisualBasic.Snippets.
+                    SnippetCompletionProvider(editorAdaptersFactoryService:=Nothing)
 
             Using state = TestState.CreateVisualBasicTestState(
                   <Document><![CDATA[
