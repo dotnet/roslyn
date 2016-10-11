@@ -46,6 +46,8 @@
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="Experimentation\IVsExperimentationService.cs" />
+    <Compile Include="Experimentation\VisualStudioExperimentationService.cs" />
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyResults.cs" />
     <Compile Include="IAnalyzerNodeSetup.cs" />
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyChecker.cs" />
