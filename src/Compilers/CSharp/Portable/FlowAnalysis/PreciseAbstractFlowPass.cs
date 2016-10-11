@@ -1554,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
             }
 
-    _pendingBranches.Add(new PendingBranch(node, this.State));
+            _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return result;
         }
