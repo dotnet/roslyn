@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceFiles = Arguments.SourceFiles;
             var trees = new SyntaxTree[sourceFiles.Length];
-            var normalizedFilePaths = new String[sourceFiles.Length];
+            var normalizedFilePaths = new string[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
@@ -66,11 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
             if (hadErrors)
             {
+                Debug.Assert(diagnosticBag.HasAnyErrors());
                 ReportErrors(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger);
                 return null;
             }
             else
             {
+                Debug.Assert(!diagnosticBag.HasAnyErrors());
                 diagnosticBag.Free();
             }
 
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SyntaxTree ParseFile(
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
-            ref bool hadErrors,
+            ref bool addedDiagnostics,
             CommandLineSourceFile file,
             DiagnosticBag diagnostics,
             out string normalizedFilePath)
@@ -167,11 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(MessageProvider.CreateDiagnostic(info));
                 }
                 fileDiagnostics.Clear();
-                hadErrors = true;
+                addedDiagnostics = true;
                 return null;
             }
             else
             {
+                Debug.Assert(fileDiagnostics.Count == 0);
                 return ParseFile(parseOptions, scriptParseOptions, content, file);
             }
         }
