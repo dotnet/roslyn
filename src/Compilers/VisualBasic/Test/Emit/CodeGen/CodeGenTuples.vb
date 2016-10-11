@@ -14331,6 +14331,73 @@ additionalRefs:=s_valueTupleRefs)
         End Sub
 
         <Fact>
+        Public Sub IsSameTypeTest()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+Public Class C
+    Public Sub M1(x As (Integer, Integer))
+    End Sub
+
+    Public Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim m1 = comp.GetMember(Of MethodSymbol)("C.M1")
+
+            Dim tuple1 As TypeSymbol = m1.Parameters(0).Type
+            Dim underlying1 As NamedTypeSymbol = tuple1.TupleUnderlyingType
+            Assert.True(tuple1.IsSameType(tuple1, TypeCompareKind.ConsiderEverything))
+            Assert.False(tuple1.IsSameType(underlying1, TypeCompareKind.ConsiderEverything))
+            Assert.False(underlying1.IsSameType(tuple1, TypeCompareKind.ConsiderEverything))
+            Assert.True(underlying1.IsSameType(underlying1, TypeCompareKind.ConsiderEverything))
+
+            Assert.True(tuple1.IsSameType(tuple1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(tuple1.IsSameType(underlying1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(underlying1.IsSameType(tuple1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.True(underlying1.IsSameType(underlying1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+
+            Assert.True(tuple1.IsSameType(tuple1, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(tuple1.IsSameType(underlying1, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(underlying1.IsSameType(tuple1, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(underlying1.IsSameType(underlying1, TypeCompareKind.IgnoreTupleNames))
+
+            Dim m2 = comp.GetMember(Of MethodSymbol)("C.M2")
+            Dim tuple2 As TypeSymbol = m2.Parameters(0).Type
+            Dim underlying2 As NamedTypeSymbol = tuple2.TupleUnderlyingType
+            Assert.True(tuple2.IsSameType(tuple2, TypeCompareKind.ConsiderEverything))
+            Assert.False(tuple2.IsSameType(underlying2, TypeCompareKind.ConsiderEverything))
+            Assert.False(underlying2.IsSameType(tuple2, TypeCompareKind.ConsiderEverything))
+            Assert.True(underlying2.IsSameType(underlying2, TypeCompareKind.ConsiderEverything))
+
+            Assert.True(tuple2.IsSameType(tuple2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(tuple2.IsSameType(underlying2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(underlying2.IsSameType(tuple2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.True(underlying2.IsSameType(underlying2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+
+            Assert.True(tuple2.IsSameType(tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(tuple2.IsSameType(underlying2, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(underlying2.IsSameType(tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(underlying2.IsSameType(underlying2, TypeCompareKind.IgnoreTupleNames))
+
+            Assert.False(tuple1.IsSameType(tuple2, TypeCompareKind.ConsiderEverything))
+            Assert.False(tuple2.IsSameType(tuple1, TypeCompareKind.ConsiderEverything))
+
+            Assert.False(tuple1.IsSameType(tuple2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(tuple2.IsSameType(tuple1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+
+            Assert.True(tuple1.IsSameType(tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(tuple2.IsSameType(tuple1, TypeCompareKind.IgnoreTupleNames))
+
+        End Sub
+
+        <Fact>
         Public Sub PropertySignatureComparer_TupleNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(

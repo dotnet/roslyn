@@ -234,7 +234,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Friend Function IsSameTypeIgnoringAll(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
-            ' TODO REVIEW I should rename this method
             Return IsSameType(t1, t2, TypeCompareKind.AllIgnoreOptionsForVB)
         End Function
 
@@ -271,8 +270,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf kind = SymbolKind.NamedType OrElse kind = SymbolKind.ErrorType Then
                 If t1.IsTupleType OrElse t2.IsTupleType Then
                     If t1.GetTupleUnderlyingTypeOrSelf().IsSameType(t2.GetTupleUnderlyingTypeOrSelf(), compareKind) Then
-                        If (compareKind And TypeCompareKind.IgnoreTupleNames) = 0 AndAlso Not HasSameTupleNames(t1, t2) Then
-                            Return False
+                        If (compareKind And TypeCompareKind.IgnoreTupleNames) = 0 Then
+                            If Not t1.IsTupleType OrElse Not t2.IsTupleType OrElse Not HasSameTupleNames(t1, t2) Then
+                                Return False
+                            End If
                         End If
                         Return True
                     Else
@@ -368,12 +369,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return [mod].SequenceEqual(otherMod)
         End Function
 
-
         Private Function HasSameTupleNames(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
-            If Not t1.IsTupleType AndAlso
-                Not t2.IsTupleType Then
-                Return True
-            End If
+            Debug.Assert(t1.IsTupleType And t2.IsTupleType)
 
             Dim t1Names = t1.TupleElementNames
             Dim t2Names = t2.TupleElementNames
