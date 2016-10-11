@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleElementIndex As Integer)
             MyBase.New(underlyingField)
 
-            Debug.Assert(container.UnderlyingNamedType.IsSameTypeIgnoringCustomModifiers(underlyingField.ContainingType) OrElse TypeOf Me Is TupleVirtualElementFieldSymbol,
+            Debug.Assert(container.UnderlyingNamedType.IsSameTypeIgnoringAll(underlyingField.ContainingType) OrElse TypeOf Me Is TupleVirtualElementFieldSymbol,
                                             "virtual fields should be represented by " + NameOf(TupleVirtualElementFieldSymbol))
 
             _containingTuple = container

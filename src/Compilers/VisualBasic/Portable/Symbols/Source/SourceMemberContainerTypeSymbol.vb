@@ -1051,7 +1051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         For Each constraintInfo As TypeParameterConstraint In param.GetConstraints()
                             If constraintInfo.TypeConstraint IsNot Nothing AndAlso
-                               constraintInfo.TypeConstraint.IsSameTypeIgnoringCustomModifiers(constraint) Then
+                               constraintInfo.TypeConstraint.IsSameTypeIgnoringAll(constraint) Then
                                 location = constraintInfo.LocationOpt
                                 Exit For
                             End If

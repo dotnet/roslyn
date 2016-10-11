@@ -189,7 +189,7 @@ End Class
             Dim withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments)
             Assert.True(withModifiers.HasTypeArgumentsCustomModifiers)
             Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers)
-            Assert.True(withoutModifiers.IsSameTypeIgnoringCustomModifiers(withModifiers))
+            Assert.True(withoutModifiers.IsSameTypeIgnoringAll(withModifiers))
             Assert.NotEqual(withoutModifiers, withModifiers)
 
             CompileAndVerify(compilation, expectedOutput:="Overriden")
@@ -801,11 +801,11 @@ End Class
 
             Assert.True(base1.HasTypeArgumentsCustomModifiers)
             Assert.True(base2.HasTypeArgumentsCustomModifiers)
-            Assert.True(base1.IsSameTypeIgnoringCustomModifiers(base2))
+            Assert.True(base1.IsSameTypeIgnoringAll(base2))
             Assert.NotEqual(base1, base2)
 
             Assert.True(base3.HasTypeArgumentsCustomModifiers)
-            Assert.True(base1.IsSameTypeIgnoringCustomModifiers(base3))
+            Assert.True(base1.IsSameTypeIgnoringAll(base3))
             Assert.Equal(base1, base3)
             Assert.NotSame(base1, base3)
         End Sub
@@ -1644,8 +1644,8 @@ Implemented B")
             Assert.False(t1.Equals(t2))
             Assert.False(t2.Equals(t1))
 
-            Assert.True(t1.IsSameTypeIgnoringCustomModifiers(t2))
-            Assert.True(t2.IsSameTypeIgnoringCustomModifiers(t1))
+            Assert.True(t1.IsSameTypeIgnoringAll(t2))
+            Assert.True(t2.IsSameTypeIgnoringAll(t1))
         End Sub
 
         <Fact>

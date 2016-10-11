@@ -233,9 +233,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Friend Function IsSameTypeIgnoringCustomModifiers(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
+        Friend Function IsSameTypeIgnoringAll(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
             ' TODO REVIEW I should rename this method
-            Return IsSameType(t1, t2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)
+            Return IsSameType(t1, t2, TypeCompareKind.AllIgnoreOptionsForVB)
         End Function
 
         ''' <summary>
@@ -734,7 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function IsOrDerivedFrom(derivedType As NamedTypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Dim current = derivedType
             While current IsNot Nothing
-                If current.IsSameTypeIgnoringCustomModifiers(baseType) Then
+                If current.IsSameTypeIgnoringAll(baseType) Then
                     Return True
                 End If
 

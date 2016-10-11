@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Operand.Kind = BoundKind.UserDefinedConversion Then
                     Dim udc = DirectCast(Operand, BoundUserDefinedConversion)
-                    Debug.Assert(udc.UnderlyingExpression.Type.IsSameTypeIgnoringCustomModifiers(Type))
+                    Debug.Assert(udc.UnderlyingExpression.Type.IsSameTypeIgnoringAll(Type))
 
                     If (ConversionKind And VisualBasic.ConversionKind.Nullable) <> 0 Then
                         Dim underlyingCall As BoundCall = udc.Call

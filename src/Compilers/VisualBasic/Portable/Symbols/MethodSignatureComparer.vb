@@ -906,7 +906,7 @@ Done:
 
         Private Shared Function ContainsIgnoringCustomModifiers(types As ArrayBuilder(Of TypeSymbol), type As TypeSymbol) As Boolean
             For Each t In types
-                If t.IsSameTypeIgnoringCustomModifiers(type) Then
+                If t.IsSameTypeIgnoringAll(type) Then
                     Return True
                 End If
             Next

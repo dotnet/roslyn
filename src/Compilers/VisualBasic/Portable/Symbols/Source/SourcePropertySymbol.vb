@@ -1045,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(propertyWithCustomModifiers IsNot Nothing)
             typeCustomModifiers = propertyWithCustomModifiers.TypeCustomModifiers
             Dim overriddenPropertyType As TypeSymbol = propertyWithCustomModifiers.Type
-            If type.IsSameTypeIgnoringCustomModifiers(overriddenPropertyType) Then
+            If type.IsSameTypeIgnoringAll(overriddenPropertyType) Then
                 type = overriddenPropertyType
             End If
         End Sub
