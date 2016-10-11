@@ -3052,6 +3052,40 @@ class C
         }
 
         [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14384")]
+        public void SpeculateWithExpressionVariables_out3()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int x;
+        TakesOut(out x);
+    }
+    void TakesOut(out int x) { x = 0; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            var info1 = model.GetSymbolInfo(method1);
+            Assert.NotNull(info1.Symbol);
+
+            var position = source.IndexOf("TakesOut", StringComparison.Ordinal);
+            var statementSyntax = SyntaxFactory.ParseExpression("TakesOut(out int x)");
+            var info2 = model.GetSpeculativeSymbolInfo(position, statementSyntax, SpeculativeBindingOption.BindAsExpression);
+            Assert.NotNull(info2.Symbol);
+
+            Assert.Equal(info1.Symbol, info2.Symbol);
+        }
+
+        [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
         [Fact]
         public void SpeculateWithExpressionVariables_pattern()
         {
@@ -3128,6 +3162,40 @@ class C
 
             var method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
             var info2 = speculativeModel.GetSymbolInfo(method2);
+            Assert.NotNull(info2.Symbol);
+
+            Assert.Equal(info1.Symbol, info2.Symbol);
+        }
+
+        [WorkItem(14384, "https://github.com/dotnet/roslyn/issues/14384")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14384")]
+        public void SpeculateWithExpressionVariables_pattern3()
+        {
+            var source = @"
+class C
+{
+    void M(object o)
+    {
+        Method(o is string);
+        string s2 = o as string;
+    }
+    bool Method(bool b) => b;
+}
+";
+
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            var info1 = model.GetSymbolInfo(method1);
+            Assert.NotNull(info1.Symbol);
+
+            var position = source.IndexOf("Method", StringComparison.Ordinal);
+            var statementSyntax = SyntaxFactory.ParseExpression("Method(o is string s)");
+            var info2 = model.GetSpeculativeSymbolInfo(position, statementSyntax, SpeculativeBindingOption.BindAsExpression);
             Assert.NotNull(info2.Symbol);
 
             Assert.Equal(info1.Symbol, info2.Symbol);
