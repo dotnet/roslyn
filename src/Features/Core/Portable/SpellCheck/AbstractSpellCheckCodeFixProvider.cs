@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,12 +92,23 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 }
             }
 
-            var matches = results.OrderBy(kvp => kvp.Key)
-                                 .SelectMany(kvp => kvp.Value.Order())
-                                 .Where(t => t != nameText)
-                                 .Take(3)
-                                 .Select(n => CreateCodeAction(nameNode, nameText, n, document));
-            context.RegisterFixes(matches, context.Diagnostics);
+            var codeActions = results.OrderBy(kvp => kvp.Key)
+                                     .SelectMany(kvp => kvp.Value.Order())
+                                     .Where(t => t != nameText)
+                                     .Take(3)
+                                     .Select(n => CreateCodeAction(nameNode, nameText, n, document))
+                                     .ToImmutableArrayOrEmpty<CodeAction>();
+
+            if (codeActions.Length > 1)
+            {
+                // Wrap the spell checking actions into a single top level suggestion
+                // so as to not clutter the list.
+                context.RegisterCodeFix(new MyCodeAction(codeActions), context.Diagnostics);
+            }
+            else
+            {
+                context.RegisterFixes(codeActions, context.Diagnostics);
+            }
         }
 
         private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -127,6 +139,14 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             public SpellCheckCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
                 : base(title, createChangedDocument, equivalenceKey)
+            {
+            }
+        }
+
+        private class MyCodeAction : CodeAction.SimpleCodeAction
+        {
+            public MyCodeAction(ImmutableArray<CodeAction> nestedActions)
+                : base(FeaturesResources.Fix_spelling, nestedActions)
             {
             }
         }
