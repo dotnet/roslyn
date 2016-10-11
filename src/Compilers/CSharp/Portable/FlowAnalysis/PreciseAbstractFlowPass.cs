@@ -1285,6 +1285,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < arguments.Length; i++)
                 {
                     RefKind refKind = refKindsOpt.Length <= i ? RefKind.None : refKindsOpt[i];
+
+                    // passing as a byref argument is also a potential write
                     if (refKind != RefKind.None)
                     {
                         WriteArgument(arguments[i], refKind, method);
@@ -1549,6 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = VisitRvalue(node.ExpressionOpt);
 
+            // byref return is also a potential write
             if (node.RefKind != RefKind.None)
             {
                 WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
@@ -1646,6 +1649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitLvalue(node.Left);
             VisitRvalue(node.Right);
 
+            // byref assignment is also a potential write
             if (node.RefKind != RefKind.None)
             {
                 WriteArgument(node.Right, node.RefKind, method: null);
