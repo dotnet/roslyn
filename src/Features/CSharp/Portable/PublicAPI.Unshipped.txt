@@ -1,0 +1,12 @@
+Microsoft.CodeAnalysis.CSharp.EditAndContinue.CSharpEditAndContinueAnalyzer
+Microsoft.CodeAnalysis.CSharp.EditAndContinue.CSharpEditAndContinueAnalyzer.CSharpEditAndContinueAnalyzer() -> void
+Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer
+Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer.SyntaxComparer() -> void
+Microsoft.CodeAnalysis.CSharp.EditAndContinue.TopSyntaxComparer
+abstract Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer.TryComputeWeightedDistance(Microsoft.CodeAnalysis.SyntaxNode oldNode, Microsoft.CodeAnalysis.SyntaxNode newNode, out double distance) -> bool
+const Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer.EpsilonDist = 1E-05 -> double
+const Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer.ExactMatchDist = 0 -> double
+override Microsoft.CodeAnalysis.CSharp.EditAndContinue.TopSyntaxComparer.ValuesEqual(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> bool
+override sealed Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer.GetDistance(Microsoft.CodeAnalysis.SyntaxNode oldNode, Microsoft.CodeAnalysis.SyntaxNode newNode) -> double
+override sealed Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer.GetSpan(Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.Text.TextSpan
+override sealed Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer.TreesEqual(Microsoft.CodeAnalysis.SyntaxNode oldNode, Microsoft.CodeAnalysis.SyntaxNode newNode) -> bool

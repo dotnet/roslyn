@@ -3,7 +3,7 @@
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal enum StateMachineKind
+    public enum StateMachineKind
     {
         None,
         Async,

@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
+    public abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
     {
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Document Analysis 
 
-        public async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
+            public async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
             Solution baseSolution,
             ImmutableArray<ActiveStatementSpan> baseActiveStatements,
             Document document,
@@ -2049,7 +2049,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance, distinguishRefFromOut: true);
+        internal static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance, distinguishRefFromOut: true);
 
         protected static bool SignaturesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
         {

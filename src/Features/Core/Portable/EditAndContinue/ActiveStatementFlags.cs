@@ -5,7 +5,7 @@ using System;
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     [Flags]
-    internal enum ActiveStatementFlags
+    public enum ActiveStatementFlags
     {
         None = 0,
 

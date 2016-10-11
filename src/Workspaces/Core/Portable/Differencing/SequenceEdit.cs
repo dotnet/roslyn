@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// Represents an edit operation on a sequence of values.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct SequenceEdit : IEquatable<SequenceEdit>
+    public struct SequenceEdit : IEquatable<SequenceEdit>
     {
         private readonly int _oldIndex;
         private readonly int _newIndex;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// The kind of edit: <see cref="EditKind.Delete"/>, <see cref="EditKind.Insert"/>, or <see cref="EditKind.Update"/>.
         /// </summary>
-        public EditKind Kind
+        internal EditKind Kind
         {
             get
             {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// Index in the old sequence, or -1 if the edit is insert.
         /// </summary>
-        public int OldIndex
+        internal int OldIndex
         {
             get
             {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// Index in the new sequence, or -1 if the edit is delete.
         /// </summary>
-        public int NewIndex
+        internal int NewIndex
         {
             get
             {

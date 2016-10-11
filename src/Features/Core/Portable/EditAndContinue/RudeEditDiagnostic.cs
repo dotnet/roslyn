@@ -4,12 +4,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct RudeEditDiagnostic
+    public struct RudeEditDiagnostic
     {
-        public readonly RudeEditKind Kind;
-        public readonly TextSpan Span;
-        public readonly ushort SyntaxKind;
-        public readonly string[] Arguments;
+        internal readonly RudeEditKind Kind;
+        internal readonly TextSpan Span;
+        internal readonly ushort SyntaxKind;
+        internal readonly string[] Arguments;
 
         internal RudeEditDiagnostic(RudeEditKind kind, TextSpan span, SyntaxNode node = null, string[] arguments = null)
         {

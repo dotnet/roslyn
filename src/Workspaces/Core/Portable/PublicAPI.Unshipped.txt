@@ -14,6 +14,8 @@ Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Name.get -> string
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Name.set -> void
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.set -> void
+Microsoft.CodeAnalysis.Differencing.SequenceEdit
+Microsoft.CodeAnalysis.Differencing.SequenceEdit.Equals(Microsoft.CodeAnalysis.Differencing.SequenceEdit other) -> bool
 Microsoft.CodeAnalysis.Document.GetOptionsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Options.DocumentOptionSet>
 Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs
 Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs.DocumentActiveContextChangedEventArgs(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.Text.SourceTextContainer sourceTextContainer, Microsoft.CodeAnalysis.DocumentId oldActiveContextDocumentId, Microsoft.CodeAnalysis.DocumentId newActiveContextDocumentId) -> void
@@ -44,6 +46,8 @@ override Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Equals(object obj) 
 override Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.GetHashCode() -> int
 abstract Microsoft.CodeAnalysis.XmlDocumentationProvider.GetSourceStream(System.Threading.CancellationToken cancellationToken) -> System.IO.Stream
 override Microsoft.CodeAnalysis.CodeStyle.NotificationOption.ToString() -> string
+override Microsoft.CodeAnalysis.Differencing.SequenceEdit.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Differencing.SequenceEdit.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
 override Microsoft.CodeAnalysis.XmlDocumentationProvider.GetDocumentationForSymbol(string documentationMemberID, System.Globalization.CultureInfo preferredCulture, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> string

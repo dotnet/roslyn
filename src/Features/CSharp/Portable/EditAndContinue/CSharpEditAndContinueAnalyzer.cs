@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     [ExportLanguageService(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
+    public sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
     {
         #region Syntax Analysis
 
