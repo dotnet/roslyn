@@ -95,7 +95,7 @@ if defined TestPerfRun (
 
             REM Check if we are in a PR or this is a rolling submission
             if defined ghprbPullTitle (
-                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name "[%ghprbPullAuthorLogin%] PR %ghprbPullId%: %ghprbPullTitle%" --benchview-submission-type private"
+                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name ^"[%ghprbPullAuthorLogin%] PR %ghprbPullId%: %ghprbPullTitle%^" --benchview-submission-type private"
             ) else (
                 set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-type rolling"
             )
