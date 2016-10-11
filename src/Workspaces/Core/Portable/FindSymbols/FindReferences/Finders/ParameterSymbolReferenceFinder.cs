@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
             int ordinal = parameter.Ordinal;
-            if (invokeMethod == null && ordinal >= invokeMethod.Parameters.Length)
+            if (invokeMethod == null || ordinal >= invokeMethod.Parameters.Length)
             {
                 return standardFunction;
             }
