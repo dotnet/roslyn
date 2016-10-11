@@ -11,7 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Helper class for (1) finding reachable and unreachable switch cases in binding, and (2)
-    /// building a decision tree for lowering.
+    /// building a decision tree for lowering. As switch labels are added to the decision tree
+    /// being built, a data structure (decision tree) representing the sequence of operations
+    /// required to select the applicable case branch is constructed. See <see cref="DecisionTree"/>
+    /// for the kinds of decisions that can appear in a decision tree.
     /// </summary>
     internal abstract class DecisionTreeBuilder
     {
@@ -28,8 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected SyntaxNode Syntax { private get; set; }
-
-        protected HashSet<DiagnosticInfo> UseSiteDiagnostics => this._useSiteDiagnostics;
 
         protected DecisionTree AddToDecisionTree(DecisionTree decisionTree, BoundPatternSwitchSection section, BoundPatternSwitchLabel label)
         {

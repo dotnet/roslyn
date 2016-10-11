@@ -25,13 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Add the case label to the subsumption tree. Return true if the label is reachable
-        /// given the expression and previously added labels.
+        /// given the expression and previously added labels. `valueMatched` is set to true
+        /// if and only if the label is a reachable unconditional (no when clause) constant pattern
+        /// whose value is the same as the input expression's constant value, and false otherwise.
         /// </summary>
         internal bool AddLabel(BoundPatternSwitchLabel label, DiagnosticBag diagnostics, out bool valueMatched)
         {
             // Use site diagnostics are reported (and cleared) by this method.
             // So they should be empty when we start.
-            Debug.Assert(UseSiteDiagnostics.Count == 0);
+            Debug.Assert(_useSiteDiagnostics.Count == 0);
 
             valueMatched = false;
 
@@ -90,8 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 // report the use-site diagnostics
-                diagnostics.Add(label.Syntax.Location, UseSiteDiagnostics);
-                UseSiteDiagnostics.Clear();
+                diagnostics.Add(label.Syntax.Location, _useSiteDiagnostics);
+                _useSiteDiagnostics.Clear();
             }
         }
 

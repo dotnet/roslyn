@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Lower the given decision tree into the given statement builder.
+            /// Lower the given pattern switch statement into a decision tree and then to a sequence of statements into the given statement builder.
             /// </summary>
             private void LowerPatternSwitch(BoundExpression loweredExpression, BoundPatternSwitchStatement node, ArrayBuilder<BoundStatement> loweredDecisionTree)
             {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // We discard use-site diagnostics, as they have been reported during initial binding.
-                UseSiteDiagnostics.Clear();
+                _useSiteDiagnostics.Clear();
                 return result;
             }
 
