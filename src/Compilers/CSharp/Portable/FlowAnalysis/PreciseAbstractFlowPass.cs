@@ -1127,7 +1127,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.InitializerOpt != null)
             {
                 VisitRvalue(node.InitializerOpt); // analyze the expression
+
+                // byref assignment is also a potential write
+                if (node.LocalSymbol.RefKind != RefKind.None)
+                {
+                    WriteArgument(node.InitializerOpt, node.LocalSymbol.RefKind, method: null);
+                }
             }
+
             return null;
         }
 
@@ -1541,7 +1548,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitRvalue(node.ExpressionOpt);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+
+            if (node.RefKind != RefKind.None)
+            {
+                WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
+            }
+
+    _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return result;
         }
@@ -1632,6 +1645,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitLvalue(node.Left);
             VisitRvalue(node.Right);
+
+            if (node.RefKind != RefKind.None)
+            {
+                WriteArgument(node.Right, node.RefKind, method: null);
+            }
 
             return null;
         }
