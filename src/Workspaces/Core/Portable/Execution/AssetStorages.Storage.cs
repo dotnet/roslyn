@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 _additionalAssets.TryAdd(asset.Checksum, asset);
             }
 
-            public RemotableData TryGetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken)
+            public RemotableData TryGetRemotableData(Checksum checksum, CancellationToken cancellationToken)
             {
                 var finder = new SolutionChecksumFinder(SolutionState, _serializer, cancellationToken);
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return null;
             }
 
-            public void AppendSynchronizationObjects(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, RemotableData> result, CancellationToken cancellationToken)
+            public void AppendRemotableData(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, RemotableData> result, CancellationToken cancellationToken)
             {
                 var finder = new SolutionChecksumFinder(SolutionState, _serializer, cancellationToken);
 
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.Execution
                     return;
                 }
 
-                AppendSynchronizationObjectsFromAdditionalAssets(result, searchingChecksumsLeft, cancellationToken);
+                AppendRemotableDataFromAdditionalAssets(result, searchingChecksumsLeft, cancellationToken);
             }
 
-            private void AppendSynchronizationObjectsFromAdditionalAssets(
+            private void AppendRemotableDataFromAdditionalAssets(
                 Dictionary<Checksum, RemotableData> result, HashSet<Checksum> searchingChecksumsLeft, CancellationToken cancellationToken)
             {
                 // this will iterate through candidate checksums to see whether that checksum exists in both
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Execution
                         cancellationToken.ThrowIfCancellationRequested();
 
                         // if checksumGetter return null for given checksum, that means current node doesn't have given checksum
-                        var checksumObject = GetSynchronizationObjectFromAdditionalAssets(checksum);
+                        var checksumObject = GetRemotableDataFromAdditionalAssets(checksum);
                         if (checksumObject != null && searchingChecksumsLeft.Contains(checksum))
                         {
                             // found given checksum in current node
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            private RemotableData GetSynchronizationObjectFromAdditionalAssets(Checksum checksum)
+            private RemotableData GetRemotableDataFromAdditionalAssets(Checksum checksum)
             {
                 CustomAsset asset;
                 if (_additionalAssets.TryGetValue(checksum, out asset))

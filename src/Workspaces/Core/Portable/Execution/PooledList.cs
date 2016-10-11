@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal static class Creator
     {
-        public static PooledObject<HashSet<Checksum>> CreateChecksumSet(IEnumerable<Checksum> checksums)
+        public static PooledObject<HashSet<Checksum>> CreateChecksumSet(IEnumerable<Checksum> checksums = null)
         {
             var items = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
-            items.Object.UnionWith(checksums);
+            items.Object.UnionWith(checksums ?? SpecializedCollections.EmptyEnumerable<Checksum>());
 
             return items;
         }

@@ -44,28 +44,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.ToArray()).ToArray());
+            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray());
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.ToArray()).ToArray());
+            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray());
         }
 
         public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
+            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
+            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
         }
 
         protected override void OnDisposed()
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly object _callbackTarget;
 
-            public ServiceJsonRpcClient(Stream stream, object callbackTarget) 
+            public ServiceJsonRpcClient(Stream stream, object callbackTarget)
                 : base(stream, callbackTarget, useThisAsCallback: false)
             {
                 // this one doesn't need cancellation token since it has nothing to cancel
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _source = new CancellationTokenSource();
             }
 
-            private PinnedRemotableDataScope ChecksumScope => _owner.ChecksumScope;
+            private PinnedRemotableDataScope PinnedScope => _owner.PinnedScope;
 
             /// <summary>
             /// this is callback from remote host side to get asset associated with checksum from VS.
@@ -176,33 +176,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task WriteOneAssetAsync(ObjectWriter writer, byte[] checksum)
             {
-                var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionSynchronizationService>();
+                var service = PinnedScope.Workspace.Services.GetRequiredService<ISolutionSynchronizationService>();
 
-                var checksumObject = service.GetRemotableData(new Checksum(checksum), _source.Token);
+                var remotableData = service.GetRemotableData(new Checksum(checksum), _source.Token) ?? RemotableData.Null;
                 writer.WriteInt32(1);
 
                 writer.WriteValue(checksum);
-                writer.WriteString(checksumObject.Kind);
+                writer.WriteString(remotableData.Kind);
 
-                await checksumObject.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
+                await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
             }
 
             private async Task WriteMultipleAssetsAsync(ObjectWriter writer, byte[][] checksums)
             {
-                var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionSynchronizationService>();
+                var service = PinnedScope.Workspace.Services.GetRequiredService<ISolutionSynchronizationService>();
 
-                var checksumObjectMap = service.GetRemotableData(checksums.Select(c => new Checksum(c)), _source.Token);
-                writer.WriteInt32(checksumObjectMap.Count);
+                var remotableDataMap = service.GetRemotableData(checksums.Select(c => new Checksum(c)), _source.Token);
+                writer.WriteInt32(remotableDataMap.Count);
 
-                foreach (var kv in checksumObjectMap)
+                foreach (var kv in remotableDataMap)
                 {
                     var checksum = kv.Key;
-                    var checksumObject = kv.Value;
+                    var remotableData = kv.Value;
 
                     writer.WriteValue(checksum.ToArray());
-                    writer.WriteString(checksumObject.Kind);
+                    writer.WriteString(remotableData.Kind);
 
-                    await checksumObject.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
+                    await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
                 }
             }
 

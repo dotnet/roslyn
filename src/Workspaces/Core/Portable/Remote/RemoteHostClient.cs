@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
         // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism
         public abstract class Session : IDisposable
         {
-            protected readonly PinnedRemotableDataScope ChecksumScope;
+            protected readonly PinnedRemotableDataScope PinnedScope;
             protected readonly CancellationToken CancellationToken;
 
             private bool _disposed;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 _disposed = false;
 
-                ChecksumScope = scope;
+                PinnedScope = scope;
                 CancellationToken = cancellationToken;
             }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public void AddAdditionalAssets(CustomAsset asset)
             {
-                ChecksumScope.AddAdditionalAsset(asset, CancellationToken);
+                PinnedScope.AddAdditionalAsset(asset, CancellationToken);
             }
 
             protected virtual void OnDisposed()
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 OnDisposed();
 
-                ChecksumScope.Dispose();
+                PinnedScope.Dispose();
             }
         }
     }

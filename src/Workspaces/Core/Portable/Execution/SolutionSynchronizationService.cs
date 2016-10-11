@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
-                    return _assetStorages.GetSynchronizationObject(checksum, cancellationToken);
+                    return _assetStorages.GetRemotableData(checksum, cancellationToken);
                 }
             }
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
-                    return _assetStorages.GetSynchronizationObjects(checksums, cancellationToken);
+                    return _assetStorages.GetRemotableData(checksums, cancellationToken);
                 }
             }
         }

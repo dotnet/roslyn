@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new Storage(this, solutionState);
         }
 
-        public RemotableData GetSynchronizationObject(Checksum checksum, CancellationToken cancellationToken)
+        public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)
             {
@@ -71,13 +71,22 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             // search snapshots we have
-            foreach (var kv in _storages)
+            using (var solutionProcessed = Creator.CreateChecksumSet())
             {
-                var storage = kv.Value;
-                var syncObject = storage.TryGetSynchronizationObject(checksum, cancellationToken);
-                if (syncObject != null)
+                foreach (var kv in _storages)
                 {
-                    return syncObject;
+                    if (!solutionProcessed.Object.Add(kv.Key.SolutionChecksum))
+                    {
+                        // already processed
+                        continue;
+                    }
+
+                    var storage = kv.Value;
+                    var syncObject = storage.TryGetRemotableData(checksum, cancellationToken);
+                    if (syncObject != null)
+                    {
+                        return syncObject;
+                    }
                 }
             }
 
@@ -93,11 +102,17 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            // as long as solution snapshot is pinned. it must exist in one of the trees.
-            throw ExceptionUtilities.UnexpectedValue(checksum);
+            // if it reached here, it means things get cancelled. due to involving 2 processes,
+            // current design can make slightly staled requests to running even when things cancelled.
+            // if it is other case, remote host side will throw and close connection which will cause
+            // vs to crash.
+            // this should be changed once I address this design issue
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return null;
         }
 
-        public IReadOnlyDictionary<Checksum, RemotableData> GetSynchronizationObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
             {
@@ -111,15 +126,24 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
 
                 // search checksum trees we have
-                foreach (var kv in _storages)
+                using (var solutionProcessed = Creator.CreateChecksumSet())
                 {
-                    var storage = kv.Value;
-                    storage.AppendSynchronizationObjects(searchingChecksumsLeft.Object, result, cancellationToken);
-                    if (result.Count == numberOfChecksumsToSearch)
+                    foreach (var kv in _storages)
                     {
-                        // no checksum left to find
-                        Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
-                        return result;
+                        if (!solutionProcessed.Object.Add(kv.Key.SolutionChecksum))
+                        {
+                            // already processed
+                            continue;
+                        }
+
+                        var storage = kv.Value;
+                        storage.AppendRemotableData(searchingChecksumsLeft.Object, result, cancellationToken);
+                        if (result.Count == numberOfChecksumsToSearch)
+                        {
+                            // no checksum left to find
+                            Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
+                            return result;
+                        }
                     }
                 }
 
@@ -142,8 +166,14 @@ namespace Microsoft.CodeAnalysis.Execution
                     }
                 }
 
-                // as long as solution snapshot is pinned. it must exist in one of the trees.
-                throw ExceptionUtilities.UnexpectedValue(result.Count);
+                // if it reached here, it means things get cancelled. due to involving 2 processes,
+                // current design can make slightly staled requests to running even when things cancelled.
+                // if it is other case, remote host side will throw and close connection which will cause
+                // vs to crash.
+                // this should be changed once I address this design issue
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return result;
             }
         }
 
