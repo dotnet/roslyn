@@ -2,6 +2,8 @@
 
 REM Parse Arguments.
 
+
+set
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 
