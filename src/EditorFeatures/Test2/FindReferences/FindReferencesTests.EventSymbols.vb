@@ -183,7 +183,7 @@ End Class
         End Function
 
         <WorkItem(553324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553324")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14428"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestEventParameterCascading() As Task
             Dim input =
 <Workspace>

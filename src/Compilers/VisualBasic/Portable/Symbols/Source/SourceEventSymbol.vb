@@ -216,9 +216,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim types = _containingType.GetTypeMembers(Me.Name & EVENT_DELEGATE_SUFFIX)
                     Debug.Assert(Not types.IsDefault)
 
-                    If Not types.IsEmpty Then
-                        type = types(0)
-                    Else
+                    type = Nothing
+
+                    For Each candidate In types
+                        If candidate.AssociatedSymbol Is Me Then
+                            type = candidate
+                            Exit For
+                        End If
+                    Next
+
+                    If type Is Nothing Then
                         ' if we still do not know the type, get a temporary one (it is not a member of the containing class)
                         type = New SynthesizedEventDelegateSymbol(Me._syntaxRef, _containingType)
                     End If
