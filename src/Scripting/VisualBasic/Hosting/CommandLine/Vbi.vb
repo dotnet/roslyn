@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
     Friend NotInheritable Class VisualBasicInteractiveCompiler
         Inherits VisualBasicCompiler
 
-        Friend Sub New(responseFile As String, baseDirectory As String, sdkDirectoryOpt As String, clientDirectory As String, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, Nothing, analyzerLoader)
+        Friend Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
+            MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, buildPaths, Nothing, analyzerLoader)
         End Sub
 
         Friend Overrides Function GetCommandLineMetadataReferenceResolver(loggerOpt As TouchedFileLogger) As MetadataReferenceResolver
