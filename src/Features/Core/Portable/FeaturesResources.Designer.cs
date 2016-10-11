@@ -1045,6 +1045,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix spelling.
+        /// </summary>
+        internal static string Fix_spelling {
+            get {
+                return ResourceManager.GetString("Fix_spelling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to from {0}.
         /// </summary>
         internal static string from_0 {
@@ -1410,6 +1419,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string in_Suppression_File {
             get {
                 return ResourceManager.GetString("in_Suppression_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inline variable declaration.
+        /// </summary>
+        internal static string Inline_variable_declaration {
+            get {
+                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
             }
         }
         
@@ -2956,16 +2974,5 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("You_can_use_the_navigation_bar_to_switch_context", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to You can use the navigation bar to switch context..
-        /// </summary>
-        internal static string Inline_variable_declaration
-        {
-            get
-            {
-                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
-            }
-        }
     }
-} 
+}
