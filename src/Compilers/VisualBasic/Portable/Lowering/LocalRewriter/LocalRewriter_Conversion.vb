@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function MakeTupleConversion(syntax As SyntaxNode, rewrittenOperand As BoundExpression, destinationType As TypeSymbol, isChecked As Boolean) As BoundExpression
-            If destinationType.IsSameTypeIgnoringCustomModifiers(rewrittenOperand.Type) Then
+            If destinationType.IsSameTypeIgnoringAll(rewrittenOperand.Type) Then
                 'binder keeps some tuple conversions just for the purpose of semantic model
                 'otherwisw they are as good as identity conversions
 
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return fromLambda IsNot Nothing AndAlso
                 Not fromLambda.IsSub AndAlso
                 toLambda.IsSub AndAlso
-                MethodSignatureComparer.HaveSameParameterTypes(fromLambda.Parameters, Nothing, toLambda.Parameters, Nothing, considerByRef:=True, considerCustomModifiers:=False)
+                MethodSignatureComparer.HaveSameParameterTypes(fromLambda.Parameters, Nothing, toLambda.Parameters, Nothing, considerByRef:=True, considerCustomModifiers:=False, considerTupleNames:=False)
 
         End Function
 
@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewrittenOperand = DirectCast(Me.Visit(node.Operand), BoundExpression)
 
             If Conversions.IsIdentityConversion(node.ConversionKind) Then
-                Debug.Assert(rewrittenOperand.Type.IsSameTypeIgnoringCustomModifiers(node.Type))
+                Debug.Assert(rewrittenOperand.Type.IsSameTypeIgnoringAll(node.Type))
                 Return rewrittenOperand
             End If
 
@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         resultType))
             End If
 
-            Debug.Assert(Not resultType.IsSameTypeIgnoringCustomModifiers(operandType), "converting to same type")
+            Debug.Assert(Not resultType.IsSameTypeIgnoringAll(operandType), "converting to same type")
             Dim result As BoundExpression = rewrittenOperand
 
             ' unwrap operand if needed and propagate HasValue if needed.
@@ -495,7 +495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim unwrappedResultType = resultType.GetNullableUnderlyingTypeOrSelf
 
             ' apply unlifted conversion
-            If Not operand.Type.IsSameTypeIgnoringCustomModifiers(unwrappedResultType) Then
+            If Not operand.Type.IsSameTypeIgnoringAll(unwrappedResultType) Then
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 Dim convKind = Conversions.ClassifyConversion(operand.Type, unwrappedResultType, useSiteDiagnostics).Key
                 Debug.Assert(Conversions.ConversionExists(convKind))
@@ -920,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result = New BoundCall(node.Syntax, memberSymbol, Nothing, Nothing,
                                        ImmutableArray.Create(operand), Nothing, memberSymbol.ReturnType)
 
-                Debug.Assert(memberSymbol.ReturnType.IsSameTypeIgnoringCustomModifiers(node.Type))
+                Debug.Assert(memberSymbol.ReturnType.IsSameTypeIgnoringAll(node.Type))
             End If
 
             Return result
@@ -995,7 +995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         _diagnostics.Add(node, useSiteDiagnostics)
                     End If
 
-                    Debug.Assert(memberSymbol.ReturnType.IsSameTypeIgnoringCustomModifiers(underlyingTypeTo))
+                    Debug.Assert(memberSymbol.ReturnType.IsSameTypeIgnoringAll(underlyingTypeTo))
                     Debug.Assert(memberSymbol.Parameters(0).Type Is typeFrom)
 
                     result = New BoundCall(node.Syntax, memberSymbol, Nothing, Nothing,
@@ -1003,7 +1003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim targetResultType = node.Type
 
-                    If Not targetResultType.IsSameTypeIgnoringCustomModifiers(memberSymbol.ReturnType) Then
+                    If Not targetResultType.IsSameTypeIgnoringAll(memberSymbol.ReturnType) Then
                         ' Must be conversion to an enum
                         Debug.Assert(targetResultType.IsEnumType())
 
@@ -1075,7 +1075,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim operand = node.Operand
                 Dim operandType = operand.Type
 
-                If Not operandType.IsSameTypeIgnoringCustomModifiers(memberSymbol.Parameters(0).Type) Then
+                If Not operandType.IsSameTypeIgnoringAll(memberSymbol.Parameters(0).Type) Then
                     Dim conv As ConversionKind
 
                     If operandType.IsEnumType() Then
@@ -1146,7 +1146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not ReportMissingOrBadRuntimeHelper(node, member, memberSymbol) Then
                     Dim operand = node.Operand
 
-                    Debug.Assert(memberSymbol.ReturnType.IsSameTypeIgnoringCustomModifiers(underlyingTypeTo))
+                    Debug.Assert(memberSymbol.ReturnType.IsSameTypeIgnoringAll(underlyingTypeTo))
                     Debug.Assert(memberSymbol.Parameters(0).Type Is typeFrom)
 
                     result = New BoundCall(node.Syntax, memberSymbol, Nothing, Nothing,
@@ -1154,7 +1154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim targetResultType = node.Type
 
-                    If Not targetResultType.IsSameTypeIgnoringCustomModifiers(memberSymbol.ReturnType) Then
+                    If Not targetResultType.IsSameTypeIgnoringAll(memberSymbol.ReturnType) Then
                         ' Must be conversion to an enum
                         Debug.Assert(targetResultType.IsEnumType())
                         Dim conv = ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions

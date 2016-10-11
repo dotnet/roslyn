@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     _diagnostics.Add(result, useSiteDiagnostics)
                     result = New BoundDirectCast(node.Syntax, result, conv, node.Type, Nothing)
                 Else
-                    Debug.Assert(node.Type.IsSameTypeIgnoringCustomModifiers(result.Type))
+                    Debug.Assert(node.Type.IsSameTypeIgnoringAll(result.Type))
                 End If
             End If
 

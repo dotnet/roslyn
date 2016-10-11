@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' all other implemented events must be of the same type as the first
                     For i As Integer = 1 To implementedEvents.Length - 1
                         Dim implemented = implementedEvents(i)
-                        If Not implemented.Type = implementedEventType Then
+                        If Not implemented.Type.IsSameType(implementedEventType, TypeCompareKind.IgnoreTupleNames) Then
                             Dim errLocation = GetImplementingLocation(implemented)
                             Binder.ReportDiagnostic(diagnostics,
                                                     errLocation,
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim diagnostics As DiagnosticBag = Nothing
             Dim type = Me.Type
             For Each implemented In ExplicitInterfaceImplementations
-                If Not implemented.Type = type Then
+                If Not implemented.Type.IsSameType(type, TypeCompareKind.IgnoreTupleNames) Then
                     If diagnostics Is Nothing Then
                         diagnostics = DiagnosticBag.GetInstance()
                     End If

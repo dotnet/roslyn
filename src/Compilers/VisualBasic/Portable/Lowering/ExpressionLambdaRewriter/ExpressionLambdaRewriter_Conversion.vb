@@ -389,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If there's an outer conversion, create that.
             Dim outerConversion As BoundConversion = node.OutConversionOpt
             If outerConversion IsNot Nothing Then
-                Debug.Assert(outerConversion.Type.IsSameTypeIgnoringCustomModifiers(resultType))
+                Debug.Assert(outerConversion.Type.IsSameTypeIgnoringAll(resultType))
                 Return CreateBuiltInConversion(methodCallType, resultType, userDefinedConversion,
                                                outerConversion.Checked, outerConversion.ExplicitCastInCode, ConversionSemantics.[Default])
             Else

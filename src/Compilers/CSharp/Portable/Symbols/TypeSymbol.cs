@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int GetHashCode(TypeSymbol obj)
             {
-                return obj.GetHashCode();
+                return (object)obj == null ? 0 : obj.GetHashCode();
             }
 
             public override bool Equals(TypeSymbol x, TypeSymbol y)
