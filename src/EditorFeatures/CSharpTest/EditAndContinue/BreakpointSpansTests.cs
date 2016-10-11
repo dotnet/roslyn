@@ -3986,5 +3986,148 @@ $$        int
     public int Id { get { return 42; } set { [|}|] $$}
 }");
         }
+
+        [Fact]
+        public void WhenClause_1()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+$$      case string s [|when b|]:
+        break;
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void WhenClause_2()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+      case string s [|whe$$n b|]:
+        break;
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void WhenClause_3()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+      case string s [|when b|]:$$
+        break;
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void PatternSwitchCase_1()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+$$      case string s:
+      default:
+        [|break;|]
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void PatternSwitchCase_2()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+      $$case string s:
+      default:
+        [|break;|]
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void PatternSwitchCase_3()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+      case string s:$$
+      default:
+        [|break;|]
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void DeconstructionDeclarationStatement_1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+$$    [|var (x, y) = (1, 2);|]
+  }
+}");
+        }
+
+        [Fact]
+        public void DeconstructionDeclarationStatement_2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|var (x, y) = $$(1, 2);|]
+  }
+}");
+        }
     }
 }
