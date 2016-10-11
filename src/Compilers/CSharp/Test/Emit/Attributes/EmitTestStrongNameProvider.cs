@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 _underlyingProvider.SignAssembly(keys, inputStream, outputStream);
         }
 
-        private class TestDesktopSnProvider : DesktopStrongNameProvider
+        private class TestDesktopStrongNameProvider : DesktopStrongNameProvider
         {
             private readonly Func<string, byte[]> m_readAllBytes;
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             private readonly ReadKeysFromContainerDelegate m_readKeysFromContainer;
 
-            public TestDesktopSnProvider(
+            public TestDesktopStrongNameProvider(
                 Func<string, byte[]> readAllBytes = null,
                 ReadKeysFromContainerDelegate readKeysFromContainer = null)
             {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ExceptionInReadAllBytes()
         {
             var ex = new Exception("Crazy exception you could never have predicted!");
-            var provider = new TestDesktopSnProvider((_) =>
+            var provider = new TestDesktopStrongNameProvider((_) =>
             {
                 throw ex;
             });
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ExceptionInReadKeysFromContainer()
         {
             var ex = new Exception("Crazy exception you could never have predicted!");
-            var provider = new TestDesktopSnProvider(readKeysFromContainer:
+            var provider = new TestDesktopStrongNameProvider(readKeysFromContainer:
                 (string _1, out ImmutableArray<byte> _2) =>
             {
                 throw ex;
