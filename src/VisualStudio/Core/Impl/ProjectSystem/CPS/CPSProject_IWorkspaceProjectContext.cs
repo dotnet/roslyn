@@ -53,11 +53,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             get
             {
-                return _lastDesignTimeBuildSucceeded;
+                return LastDesignTimeBuildSucceeded;
             }
             set
             {
-                _lastDesignTimeBuildSucceeded = value;
+                SetIntellisenseBuildResultAndNotifyWorkspaceHosts(value);
             }
         }
 
