@@ -6,7 +6,7 @@
           "values": [
             "csc.exe",
             "csccore\\csc.exe",
-            "csi\\csi.exe",
+            "csi.exe",
             "csicore\\csi.exe",
             "InteractiveHost.exe",
             "Microsoft.Build.Tasks.CodeAnalysis.dll",
@@ -57,7 +57,7 @@
             "vbc.exe",
             "vbccore\\vbc.exe",
             "VBCSCompiler.exe",
-            "vbi\\vbi.exe",
+            "vbi.exe",
             "vbicore\\vbi.exe"
           ]
         },

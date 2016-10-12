@@ -142,10 +142,10 @@ Public Class BuildDevDivInsertionFiles
     }
 
     Private ReadOnly VsixesToInstall As String() = {
-        "Roslyn.VisualStudio.Setup.vsix",
+        "VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "ExpressionEvaluatorPackage.vsix",
-        "Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Roslyn.VisualStudio.Setup.Next.vsix"
+        "VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
+        "VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix"
     }
 
     ' Files copied to Maddog machines running integration tests that are produced from our builds.
@@ -174,7 +174,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.Diagnostics.Runtime.dll",
-        "Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
+        "VisualStudioSetup.Next\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
         "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
         "Microsoft.VisualStudio.LanguageServices.dll",
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
@@ -318,7 +318,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",
         "Microsoft.DiaSymReader.PortablePdb.dll",
-        "Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
+        "VisualStudioSetup.Next\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
         "Microsoft.VisualStudio.Debugger.Engine.dll",
         "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
         "Microsoft.VisualStudio.LanguageServices.dll",
@@ -467,6 +467,10 @@ Public Class BuildDevDivInsertionFiles
             Return other IsNot Nothing AndAlso
                     StringComparer.OrdinalIgnoreCase.Equals(Path, other.Path) AndAlso
                     StringComparer.OrdinalIgnoreCase.Equals(Target, other.Target)
+        End Function
+
+        Public Overrides Function ToString() As String
+            Return Path
         End Function
     End Class
 
