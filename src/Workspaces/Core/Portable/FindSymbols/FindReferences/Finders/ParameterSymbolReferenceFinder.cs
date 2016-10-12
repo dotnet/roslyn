@@ -143,8 +143,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                 var container = GetContainer(semanticModel, parameterNode, syntaxFactsService);
                                 if (container != null)
                                 {
-                                    results.AddRange(CascadeBetweenAnonymousFunctionParameters(
-                                        document, semanticModel, container, parameterAndProjectId, convertedType, cancellationToken));
+                                    CascadeBetweenAnonymousFunctionParameters(
+                                        document, semanticModel, container, parameterAndProjectId, 
+                                        convertedType, results, cancellationToken);
                                 }
                             }
                         }
@@ -153,16 +154,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private ImmutableArray<SymbolAndProjectId> CascadeBetweenAnonymousFunctionParameters(
+        private void CascadeBetweenAnonymousFunctionParameters(
             Document document,
             SemanticModel semanticModel,
             SyntaxNode container,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             ITypeSymbol convertedType1,
+            ArrayBuilder<SymbolAndProjectId> results,
             CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-
             var parameter = parameterAndProjectId.Symbol;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             foreach (var token in container.DescendantTokens())
@@ -180,13 +180,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                         if (convertedType1.Equals(convertedType2))
                         {
-                            result.Add(parameterAndProjectId.WithSymbol(symbol));
+                            results.Add(parameterAndProjectId.WithSymbol(symbol));
                         }
                     }
                 }
             }
-
-            return result.ToImmutableAndFree();
         }
 
         private bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
