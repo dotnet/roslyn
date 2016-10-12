@@ -529,7 +529,7 @@
     <value>{0} must either be 'default' or have the same length as {1}.</value>
   </data>
   <data name="InconsistentSyntaxTreeFeature" xml:space="preserve">
-    <value>inconsistent syntax tree features</value>
+    <value>Inconsistent syntax tree features</value>
   </data>
   <data name="ReferenceOfTypeIsInvalid1" xml:space="preserve">
     <value>Reference of type '{0}' is not valid for this compilation.</value>

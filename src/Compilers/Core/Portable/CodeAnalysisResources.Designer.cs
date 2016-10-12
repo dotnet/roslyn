@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to inconsistent syntax tree features.
+        ///   Looks up a localized string similar to Inconsistent syntax tree features.
         /// </summary>
         internal static string InconsistentSyntaxTreeFeature {
             get {
