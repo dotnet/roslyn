@@ -6,7 +6,7 @@
           "values": [
             "csc.exe",
             "csccore\\csc.exe",
-            "csi.exe",
+            "csi\\csi.exe",
             "csicore\\csi.exe",
             "InteractiveHost.exe",
             "Microsoft.Build.Tasks.CodeAnalysis.dll",
@@ -43,13 +43,14 @@
             "Microsoft.VisualStudio.LanguageServices.Next.dll",
             "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
             "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-            "Microsoft.VisualStudio.LanguageServices.Xaml.dll",
+            "Xaml\\Microsoft.VisualStudio.LanguageServices.Xaml.dll",
             "Microsoft.VisualStudio.VisualBasic.Repl.dll",
             "Pdb2Xml.exe",
-            "Roslyn.Compilers.Extension.dll",
+            "CompilerExtension\\Roslyn.Compilers.Extension.dll",
             "Roslyn.Hosting.Diagnostics.dll",
             "Roslyn.VisualStudio.DiagnosticsWindow.dll",
-            "Roslyn.VisualStudio.InteractiveComponents.dll",
+            "VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll",
+            "VisualStudioSetupInteractive\\Roslyn.VisualStudio.Setup.Interactive.dll",
             "SDK\\Roslyn.SyntaxVisualizer.DgmlHelper.dll",
             "SDK\\Roslyn.SyntaxVisualizer.Control.dll",
             "SDK\\Roslyn.SyntaxVisualizer.Extension.dll",
@@ -57,7 +58,7 @@
             "vbc.exe",
             "vbccore\\vbc.exe",
             "VBCSCompiler.exe",
-            "vbi.exe",
+            "vbi\\vbi.exe",
             "vbicore\\vbi.exe"
           ]
         },
@@ -87,13 +88,20 @@
             "strongName": null,
             "values": [
                 "ExpressionEvaluatorPackage.vsix",
-                "Roslyn.Compilers.Extension.vsix",
+                "CompilerExtension\\Roslyn.Compilers.Extension.vsix",
                 "Roslyn.Deployment.Full.vsix",
                 "Roslyn.Deployment.Full.Next.vsix",
                 "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
+<<<<<<< HEAD
                 "Roslyn.VisualStudio.InteractiveComponents.vsix",
                 "Roslyn.VisualStudio.Setup.Next.vsix",
                 "Roslyn.VisualStudio.Setup.vsix",
+=======
+                "VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.vsix",
+                "VisualStudioSetupInteractive\\Roslyn.VisualStudio.Setup.Interactive.vsix",
+                "VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
+                "VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
+>>>>>>> e352b36... Build some projects into sub directories
                 "RoslynDeployment.vsix",
                 "SDK\\Roslyn Templates\\Release\\Roslyn SDK.vsix"
             ]
