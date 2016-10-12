@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(!diagnosticBag.HasAnyErrors());
+                Debug.Assert(diagnosticBag.IsEmptyWithoutResolution);
                 diagnosticBag.Free();
             }
 
