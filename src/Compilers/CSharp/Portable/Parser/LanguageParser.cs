@@ -11258,6 +11258,7 @@ tryAgain:
             var pk = this.PeekToken(1).Kind;
             if (isRefOrOutOrParams
                 || (pk != SyntaxKind.CommaToken && pk != SyntaxKind.CloseParenToken && (hasTypes || isFirst))
+                || (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && pk == SyntaxKind.CloseParenToken && (hasTypes || isFirst))
                 || IsPredefinedType(this.CurrentToken.Kind))
             {
                 if (isRefOrOutOrParams)

@@ -1070,5 +1070,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             return this.Options.IsFeatureEnabled(feature);
         }
+
+        // TODO REVIEW
+        protected bool IsMakingProgress(ref int lastTokenOffset)
+        {
+            if (_tokenOffset > lastTokenOffset)
+            {
+                lastTokenOffset = _tokenOffset;
+                return true;
+            }
+            return false;
+        }
     }
 }
