@@ -1706,6 +1706,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_TupleElementNamesAttributeMissing = 37268
         ERR_ExplicitTupleElementNamesAttribute = 37269
         ERR_TupleLiteralDisallowsTypeChar = 37270
+        ERR_NewWithTupleTypeSyntax = 37271
 
         ' Available 37270
         ERR_DuplicateProcDefWithDifferentTupleNames2 = 37271

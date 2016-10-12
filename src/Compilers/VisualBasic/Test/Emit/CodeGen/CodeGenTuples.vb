@@ -1031,17 +1031,45 @@ Module C
         t.a17 = 42
         t.a12 = t.a17
         console.writeline(t.a12)
+
+        TestArray()
+        TestNullable()
     End Sub
+
+    Sub TestArray()
+        Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as Integer,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+                    a17 as integer, a18 as integer)() {Nothing}
+
+        t(0).a17 = 42
+        t(0).a12 = t(0).a17
+        console.writeline(t(0).a12)
+    End Sub
+
+        Sub TestNullable()
+        Dim t as New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as Integer,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+                    a17 as integer, a18 as integer)?
+
+        console.writeline(t.HasValue)
+    End Sub
+
 End Module
 
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 42
+42
+False
             ]]>, additionalRefs:=s_valueTupleRefs)
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
-  // Code size       64 (0x40)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)) V_0) //t
   IL_0000:  ldloca.s   V_0
@@ -1060,9 +1088,55 @@ End Module
   IL_0030:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)).Rest As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)"
   IL_0035:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer)).Item5 As Integer"
   IL_003a:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_003f:  ret
+  IL_003f:  call       "Sub C.TestArray()"
+  IL_0044:  call       "Sub C.Testullable()"
+  IL_0049:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleNewLongErr()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as String,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+                    a17 as integer, a18 as integer)
+
+        console.writeline(t.a12.Length)
+
+        Dim t1 As New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+            a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+            a9 as integer, a10 as Integer, a11 as Integer, a12 as String,
+            a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+            a17 as integer, a18 as integer)
+
+        console.writeline(t1.a12.Length)
+
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            ' should not complain about missing constructor
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37271: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37271: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t1 As New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
         End Sub
 
         <Fact>

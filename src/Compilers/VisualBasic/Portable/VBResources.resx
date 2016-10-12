@@ -3166,6 +3166,9 @@
   <data name="ERR_TupleLiteralDisallowsTypeChar" xml:space="preserve">
     <value>Type characters cannot be used in tuple literals.</value>
   </data>
+  <data name="ERR_NewWithTupleTypeSyntax" xml:space="preserve">
+    <value>'New' cannot be used with tuple type. Use a tuple literal expression instead.</value>
+  </data>
   <data name="ERR_ExtensionMethodUncallable1" xml:space="preserve">
     <value>Extension method '{0}' has type constraints that can never be satisfied.</value>
   </data>

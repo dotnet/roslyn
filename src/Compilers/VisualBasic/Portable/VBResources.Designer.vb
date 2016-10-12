@@ -7801,6 +7801,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;New&apos; cannot be used with tuple type. Use a tuple literal expression instead..
+        '''</summary>
+        Friend ReadOnly Property ERR_NewWithTupleTypeSyntax() As String
+            Get
+                Return ResourceManager.GetString("ERR_NewWithTupleTypeSyntax", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Next control variable does not match For loop control variable &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_NextForMismatch1() As String
@@ -10389,11 +10398,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Tuple member names must be unique..
+        '''  Looks up a localized string similar to Tuple element names must be unique..
         '''</summary>
-        Friend ReadOnly Property ERR_TupleDuplicateMemberName() As String
+        Friend ReadOnly Property ERR_TupleDuplicateElementName() As String
             Get
-                Return ResourceManager.GetString("ERR_TupleDuplicateMemberName", resourceCulture)
+                Return ResourceManager.GetString("ERR_TupleDuplicateElementName", resourceCulture)
             End Get
         End Property
         
@@ -10407,20 +10416,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Tuple member name &apos;{0}&apos; is only allowed at position {1}..
+        '''  Looks up a localized string similar to Type characters cannot be used in tuple literals..
         '''</summary>
-        Friend ReadOnly Property ERR_TupleReservedMemberName() As String
+        Friend ReadOnly Property ERR_TupleLiteralDisallowsTypeChar() As String
             Get
-                Return ResourceManager.GetString("ERR_TupleReservedMemberName", resourceCulture)
+                Return ResourceManager.GetString("ERR_TupleLiteralDisallowsTypeChar", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Tuple member name &apos;{0}&apos; is disallowed at any position..
+        '''  Looks up a localized string similar to Tuple element name &apos;{0}&apos; is only allowed at position {1}..
         '''</summary>
-        Friend ReadOnly Property ERR_TupleReservedMemberNameAnyPosition() As String
+        Friend ReadOnly Property ERR_TupleReservedElementName() As String
             Get
-                Return ResourceManager.GetString("ERR_TupleReservedMemberNameAnyPosition", resourceCulture)
+                Return ResourceManager.GetString("ERR_TupleReservedElementName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple element name &apos;{0}&apos; is disallowed at any position..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleReservedElementNameAnyPosition() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleReservedElementNameAnyPosition", resourceCulture)
             End Get
         End Property
         

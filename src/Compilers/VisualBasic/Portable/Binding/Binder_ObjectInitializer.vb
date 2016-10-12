@@ -315,6 +315,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     resultKind = LookupResultKind.NotCreatable
                     errorReported = True
 
+
+
                 Case TypeKind.Array
                     ' the diagnostic that AsNew cannot be used to init arrays has already been reported
                     ' so there is nothing to do here.
