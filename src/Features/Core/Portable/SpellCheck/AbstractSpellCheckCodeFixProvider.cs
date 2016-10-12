@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 // Wrap the spell checking actions into a single top level suggestion
                 // so as to not clutter the list.
-                context.RegisterCodeFix(new MyCodeAction(codeActions), context.Diagnostics);
+                context.RegisterCodeFix(new MyCodeAction(
+                    String.Format(FeaturesResources.Spell_check_0, nameText), codeActions), context.Diagnostics);
             }
             else
             {
@@ -145,8 +146,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
         private class MyCodeAction : CodeAction.SimpleCodeAction
         {
-            public MyCodeAction(ImmutableArray<CodeAction> nestedActions)
-                : base(FeaturesResources.Fix_spelling, nestedActions)
+            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
+                : base(title, nestedActions)
             {
             }
         }
