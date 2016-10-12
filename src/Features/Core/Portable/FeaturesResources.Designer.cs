@@ -1054,6 +1054,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fully qualify &apos;{0}&apos;.
+        /// </summary>
+        internal static string Fully_qualify_0 {
+            get {
+                return ResourceManager.GetString("Fully_qualify_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos;.
         /// </summary>
         internal static string Generate_0_1 {
@@ -1252,20 +1261,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate type.
+        ///   Looks up a localized string similar to Generate type &apos;{0}&apos;.
         /// </summary>
-        internal static string Generate_type {
+        internal static string Generate_type_0 {
             get {
-                return ResourceManager.GetString("Generate_type", resourceCulture);
+                return ResourceManager.GetString("Generate_type_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate variable.
+        ///   Looks up a localized string similar to Generate variable &apos;{0}&apos;.
         /// </summary>
-        internal static string Generate_variable {
+        internal static string Generate_variable_0 {
             get {
-                return ResourceManager.GetString("Generate_variable", resourceCulture);
+                return ResourceManager.GetString("Generate_variable_0", resourceCulture);
             }
         }
         
@@ -2382,6 +2391,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spell check &apos;{0}&apos;.
+        /// </summary>
+        internal static string Spell_check_0 {
+            get {
+                return ResourceManager.GetString("Spell_check_0", resourceCulture);
             }
         }
         

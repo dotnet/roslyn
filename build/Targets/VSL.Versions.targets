@@ -9,8 +9,12 @@
     <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.0.0</RoslynAssemblyVersionBase>
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
     <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.0.0</RoslynFileVersionBase>
+    <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
+         moniker listed below -->
+    <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">rc2</RoslynNuGetMoniker>
     <!-- This is the base of the NuGet versioning for prerelease packages -->
-    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-beta6</NuGetPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
     <!-- Currently we version IW the same as Roslyn. -->
     <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynAssemblyVersionBase)</MicrosoftVisualStudioInteractiveWindowVersion>
   </PropertyGroup>

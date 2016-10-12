@@ -145,7 +145,6 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.VisualStudio.Setup.vsix",
         "ExpressionEvaluatorPackage.vsix",
         "Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Roslyn.VisualStudio.Setup.Interactive.vsix",
         "Roslyn.VisualStudio.Setup.Next.vsix"
     }
 

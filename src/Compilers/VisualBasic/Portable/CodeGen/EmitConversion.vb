@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Return Not conversion.Operand.IsNothingLiteral AndAlso
                    Not Conversions.IsIdentityConversion(conversion.ConversionKind) AndAlso
-                   Not typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringCustomModifiers(typeTo.GetEnumUnderlyingTypeOrSelf()) AndAlso
+                   Not typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringAll(typeTo.GetEnumUnderlyingTypeOrSelf()) AndAlso
                    Not typeFrom.IsTypeParameter() AndAlso
                    Not typeFrom.IsValueType AndAlso
                    Not typeTo.IsReferenceType
@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim typeTo = conversion.Type
                     Dim typeFrom = conversion.Operand.Type
 
-                    If typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringCustomModifiers(typeTo.GetEnumUnderlyingTypeOrSelf()) Then
+                    If typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringAll(typeTo.GetEnumUnderlyingTypeOrSelf()) Then
                         ' Do nothing, it is the same as identity.
                     ElseIf typeFrom.IsTypeParameter() Then
                         ' For any conversion from a generic parameter to any other type,
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                     Dim [interface] = DirectCast(typeTo, NamedTypeSymbol)
 
                                     If [interface].Arity = 1 AndAlso
-                                       Not [interface].TypeArgumentsNoUseSiteDiagnostics(0).IsSameTypeIgnoringCustomModifiers(fromElementType) Then
+                                       Not [interface].TypeArgumentsNoUseSiteDiagnostics(0).IsSameTypeIgnoringAll(fromElementType) Then
                                         needExplicitCastClass = True
                                     End If
                                 End If

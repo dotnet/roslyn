@@ -47,15 +47,6 @@
                 Location="|VisualStudioInteractiveComponents;VSIXContainerProjectOutputGroup|" 
                 Id="|VisualStudioInteractiveComponents;VSIXIdentifierProjectOutputGroup|" />
     
-    <Dependency d:ProjectName="VisualStudioSetupInteractive" 
-                DisplayName="|VisualStudioSetupInteractive;VSIXNameProjectOutputGroup|" 
-                Version="[|%CurrentProject%;GetBuildVersion|,)"
-                d:Source="Project"  
-                d:InstallSource="Embed" 
-                d:VsixSubPath="Vsixes" 
-                Location="|VisualStudioSetupInteractive;VSIXContainerProjectOutputGroup|" 
-                Id="|VisualStudioSetupInteractive;VSIXIdentifierProjectOutputGroup|" />
-    
     <Dependency  d:ProjectName="ExpressionEvaluatorPackage" 
                  DisplayName="|ExpressionEvaluatorPackage;VSIXNameProjectOutputGroup|" 
                  Version="[|%CurrentProject%;GetBuildVersion|,)"

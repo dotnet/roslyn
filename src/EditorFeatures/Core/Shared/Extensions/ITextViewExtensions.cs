@@ -326,9 +326,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// </summary>
         public static SnapshotSpan? GetVisibleLinesSpan(this ITextView textView, ITextBuffer subjectBuffer, int extraLines = 0)
         {
+            // No point in continuing if the text view has been closed.
+            if (textView.IsClosed)
+            {
+                return null;
+            }
+
             // If we're being called while the textview is actually in the middle of a layout, then 
             // we can't proceed.  Much of the text view state is unsafe to access (and will throw).
             if (textView.InLayout)
+            {
+                return null;
+            }
+
+            // During text view initialization the TextViewLines may be null.  In that case we can't
+            // get an appropriate visisble span.
+            if (textView.TextViewLines == null)
             {
                 return null;
             }

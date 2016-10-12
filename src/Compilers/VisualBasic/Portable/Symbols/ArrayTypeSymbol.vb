@@ -314,34 +314,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend MustOverride Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
 
         Public Overrides Function Equals(obj As Object) As Boolean
+            Return IsSameType(obj, TypeCompareKind.ConsiderEverything)
+        End Function
+
+        Friend Function IsSameType(obj As Object, compareKind As TypeCompareKind) As Boolean
+            Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
+
             If (Me Is obj) Then
                 Return True
             End If
 
             Dim other = TryCast(obj, ArrayTypeSymbol)
 
-            If (other Is Nothing OrElse Not other.HasSameShapeAs(Me) OrElse Not other.ElementType.Equals(ElementType)) Then
+            If (other Is Nothing OrElse Not other.HasSameShapeAs(Me) OrElse Not other.ElementType.IsSameType(ElementType, compareKind)) Then
                 Return False
             End If
 
-            ' Make sure custom modifiers are the same.
-            Dim [mod] As ImmutableArray(Of CustomModifier) = CustomModifiers
-            Dim otherMod As ImmutableArray(Of CustomModifier) = other.CustomModifiers
+            If (compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 Then
+                ' Make sure custom modifiers are the same.
+                Dim [mod] As ImmutableArray(Of CustomModifier) = CustomModifiers
+                Dim otherMod As ImmutableArray(Of CustomModifier) = other.CustomModifiers
 
-            Dim count As Integer = [mod].Length
-
-            If (count <> otherMod.Length) Then
-                Return False
-            End If
-
-            For i As Integer = 0 To count - 1 Step 1
-                If (Not [mod](i).Equals(otherMod(i))) Then
+                If Not [mod].AreSameCustomModifiers(otherMod) Then
                     Return False
                 End If
-            Next
 
-            ' Make sure bounds are the same.
-            Return HasSameSizesAndLowerBoundsAs(other)
+                ' Make sure bounds are the same.
+                Return HasSameSizesAndLowerBoundsAs(other)
+            End If
+
+            Return True
         End Function
 
         Public Overrides Function GetHashCode() As Integer

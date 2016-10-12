@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     {
                         // Wrap the generate type actions into a single top level suggestion
                         // so as to not clutter the list.
-                        return ImmutableArray.Create<CodeAction>(
-                            new MyCodeAction(FeaturesResources.Generate_type, actions.AsImmutable()));
+                        return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                            string.Format(FeaturesResources.Generate_type_0, state.Name), actions.AsImmutable()));
                     }
                     else
                     {
