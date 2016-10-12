@@ -106,15 +106,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
-            await CascadeBetweenAnonymousFunctionParametersAsync(
-                solution, parameterAndProjectId, result, cancellationToken).ConfigureAwait(false);
-
-            CascadeBetweenPropertyAndAccessorParameters(
-                solution, parameterAndProjectId, result, cancellationToken);
-
-            CascadeBetweenDelegateMethodParameters(
-                solution, parameterAndProjectId, result, cancellationToken);
-
+            await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameterAndProjectId, result, cancellationToken).ConfigureAwait(false);
+            CascadeBetweenPropertyAndAccessorParameters(solution, parameterAndProjectId, result);
+            CascadeBetweenDelegateMethodParameters(solution, parameterAndProjectId, result);
             CascadeBetweenPartialMethodParameters(parameterAndProjectId, result);
 
             return result.ToImmutableAndFree();
@@ -226,8 +220,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private void CascadeBetweenPropertyAndAccessorParameters(
             Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
-            ArrayBuilder<SymbolAndProjectId> results,
-            CancellationToken cancellationToken)
+            ArrayBuilder<SymbolAndProjectId> results)
         {
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
@@ -261,8 +254,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private void CascadeBetweenDelegateMethodParameters(
             Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
-            ArrayBuilder<SymbolAndProjectId> results,
-            CancellationToken cancellationToken)
+            ArrayBuilder<SymbolAndProjectId> results)
         {
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
