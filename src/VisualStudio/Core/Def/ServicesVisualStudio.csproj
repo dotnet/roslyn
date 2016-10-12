@@ -46,6 +46,12 @@
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticArguments.cs">
+      <Link>Implementation\Diagnostics\DiagnosticArguments.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
+      <Link>Implementation\Diagnostics\DiagnosticResultSerializer.cs</Link>
+    </Compile>
     <Compile Include="Experimentation\IVsExperimentationService.cs" />
     <Compile Include="Experimentation\VisualStudioExperimentationService.cs" />
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyResults.cs" />
@@ -57,7 +63,6 @@
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
-    <Compile Include="Implementation\Diagnostics\IRemoteHostDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
