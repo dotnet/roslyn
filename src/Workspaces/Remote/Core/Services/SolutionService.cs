@@ -69,9 +69,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
+            // synchronize whole solution first
+            await RoslynServices.AssetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
             var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            // TODO: Make these to do work concurrently
             var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
             var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedSolutionInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
