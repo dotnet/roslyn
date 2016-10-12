@@ -1063,6 +1063,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fully qualify name.
+        /// </summary>
+        internal static string Fully_qualify_name {
+            get {
+                return ResourceManager.GetString("Fully_qualify_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos;.
         /// </summary>
         internal static string Generate_0_1 {
