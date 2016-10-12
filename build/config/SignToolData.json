@@ -92,16 +92,9 @@
                 "Roslyn.Deployment.Full.vsix",
                 "Roslyn.Deployment.Full.Next.vsix",
                 "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
-<<<<<<< HEAD
-                "Roslyn.VisualStudio.InteractiveComponents.vsix",
-                "Roslyn.VisualStudio.Setup.Next.vsix",
-                "Roslyn.VisualStudio.Setup.vsix",
-=======
                 "VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.vsix",
-                "VisualStudioSetupInteractive\\Roslyn.VisualStudio.Setup.Interactive.vsix",
                 "VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
                 "VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
->>>>>>> e352b36... Build some projects into sub directories
                 "RoslynDeployment.vsix",
                 "SDK\\Roslyn Templates\\Release\\Roslyn SDK.vsix"
             ]
