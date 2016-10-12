@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     WhenFalse.AssertRValue()
                 End If
                 Debug.Assert(Condition.IsNothingLiteral() OrElse Condition.Type.IsBooleanType() OrElse Condition.Type.IsReferenceType())
-                Debug.Assert(WhenTrue.Type.IsSameTypeIgnoringCustomModifiers(WhenFalse.Type))
-                Debug.Assert(Type.IsSameTypeIgnoringCustomModifiers(WhenTrue.Type))
+                Debug.Assert(WhenTrue.Type.IsSameTypeIgnoringAll(WhenFalse.Type))
+                Debug.Assert(Type.IsSameTypeIgnoringAll(WhenTrue.Type))
             End If
         End Sub
 #End If

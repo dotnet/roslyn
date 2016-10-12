@@ -757,8 +757,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' property (incorrectly) has a different return type than the overridden property.  In such cases,
                     ' we want to retain the original (incorrect) return type to avoid hiding the return type
                     ' given in source.
-                    If retType.IsSameTypeIgnoringCustomModifiers(returnTypeWithCustomModifiers) Then
-                        retType = returnTypeWithCustomModifiers
+                    If retType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
+                        retType = CustomModifierUtils.CopyTypeCustomModifiers(returnTypeWithCustomModifiers, retType, Me.ContainingAssembly)
                     End If
 
                     params = CustomModifierUtils.CopyParameterCustomModifiers(overridden.Parameters, params)
@@ -1045,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(propertyWithCustomModifiers IsNot Nothing)
             typeCustomModifiers = propertyWithCustomModifiers.TypeCustomModifiers
             Dim overriddenPropertyType As TypeSymbol = propertyWithCustomModifiers.Type
-            If type.IsSameTypeIgnoringCustomModifiers(overriddenPropertyType) Then
+            If type.IsSameTypeIgnoringAll(overriddenPropertyType) Then
                 type = overriddenPropertyType
             End If
         End Sub

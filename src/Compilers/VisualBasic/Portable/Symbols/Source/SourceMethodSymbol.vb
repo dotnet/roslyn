@@ -2111,33 +2111,7 @@ lReportErrorOnTwoTokens:
                 Dim overridden = overriddenMembers.OverriddenMember
 
                 If overridden IsNot Nothing Then
-                    ' Copy custom modifiers
-
-                    ' For the most part, we will copy custom modifiers by copying types.
-                    ' The only time when this fails Is when the type refers to a type parameter
-                    ' owned by the overridden method.  We need to replace all such references
-                    ' with (equivalent) type parameters owned by this method.  We know that
-                    ' we can perform this mapping positionally, because the method signatures
-                    ' have already been compared.
-                    Dim constructedMethodWithCustomModifiers As MethodSymbol
-
-                    If Me.Arity > 0 Then
-                        constructedMethodWithCustomModifiers = overridden.Construct(Me.TypeParameters.As(Of TypeSymbol))
-                    Else
-                        constructedMethodWithCustomModifiers = overridden
-                    End If
-
-                    Dim returnTypeWithCustomModifiers As TypeSymbol = constructedMethodWithCustomModifiers.ReturnType
-
-                    ' We do an extra check before copying the return type to handle the case where the overriding
-                    ' method (incorrectly) has a different return type than the overridden method.  In such cases,
-                    ' we want to retain the original (incorrect) return type to avoid hiding the return type
-                    ' given in source.
-                    If retType.IsSameTypeIgnoringCustomModifiers(returnTypeWithCustomModifiers) Then
-                        retType = returnTypeWithCustomModifiers
-                    End If
-
-                    params = CustomModifierUtils.CopyParameterCustomModifiers(constructedMethodWithCustomModifiers.Parameters, params)
+                    CustomModifierUtils.CopyMethodCustomModifiers(overridden, Me.TypeArguments, retType, Me.ContainingAssembly, params)
                 End If
 
                 ' Unlike MethodSymbol, in SourceMethodSymbol we cache the result of MakeOverriddenOfHiddenMembers, because we use

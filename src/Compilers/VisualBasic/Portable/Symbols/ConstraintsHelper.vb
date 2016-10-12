@@ -1030,7 +1030,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(constraintType IsNot Nothing)
             For Each constraint In constraints
                 Dim type = constraint.TypeConstraint
-                If (type IsNot Nothing) AndAlso constraintType.IsSameTypeIgnoringCustomModifiers(type) Then
+                If (type IsNot Nothing) AndAlso constraintType.IsSameTypeIgnoringAll(type) Then
                     Return True
                 End If
             Next
