@@ -358,5 +358,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SolutionState_ComputeChecksumsAsync,
         ProjectState_ComputeChecksumsAsync,
         DocumentState_ComputeChecksumsAsync,
+        JsonRpcSession_RequestAssetAsync,
     }
 }

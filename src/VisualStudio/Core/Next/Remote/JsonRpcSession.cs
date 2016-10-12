@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -126,6 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 try
                 {
+                    using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, _source.Token))
                     using (var stream = await DirectStream.GetAsync(streamName, _source.Token).ConfigureAwait(false))
                     {
                         using (var writer = new ObjectWriter(stream))
