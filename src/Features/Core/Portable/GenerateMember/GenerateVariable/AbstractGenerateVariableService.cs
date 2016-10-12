@@ -78,8 +78,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 {
                     // Wrap the generate variable actions into a single top level suggestion
                     // so as to not clutter the list.
-                    return ImmutableArray.Create<CodeAction>(
-                        new MyCodeAction(FeaturesResources.Generate_variable, actions.ToImmutableAndFree()));
+                    return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                        string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
+                        actions.ToImmutableAndFree()));
                 }
 
                 return actions.ToImmutableAndFree();

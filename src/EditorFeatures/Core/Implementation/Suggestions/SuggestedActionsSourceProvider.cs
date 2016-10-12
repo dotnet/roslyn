@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
 
                     var allActionSets = result.ToList();
-                    allActionSets = FilterOutDuplicatesFurtherAwayFromCaret(allActionSets);
+                    // allActionSets = FilterOutDuplicatesFurtherAwayFromCaret(allActionSets);
                     allActionSets = InlineActionSetsIfDesirable(allActionSets);
                     return allActionSets;
                 }
