@@ -14690,6 +14690,39 @@ BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because 
 </errors>)
         End Sub
 
+        <Fact>
+        Public Sub ConversionToBase()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Public Class Base(Of T)
+End Class
+
+Public Class Derived
+    Inherits Base(Of (a As Integer, b As Integer))
+
+    Public Shared Narrowing Operator CType(ByVal arg As Derived) As Base(Of (Integer, Integer))
+        Return Nothing
+    End Operator
+
+    Public Shared Narrowing Operator CType(ByVal arg As Base(Of (Integer, Integer))) As Derived
+        Return Nothing
+    End Operator
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation1.AssertTheseDiagnostics(
+<errors>
+BC33026: Conversion operators cannot convert from a type to its base type.
+    Public Shared Narrowing Operator CType(ByVal arg As Derived) As Base(Of (Integer, Integer))
+                                     ~~~~~
+BC33030: Conversion operators cannot convert from a base type.
+    Public Shared Narrowing Operator CType(ByVal arg As Base(Of (Integer, Integer))) As Derived
+                                     ~~~~~
+</errors>)
+        End Sub
+
     End Class
 
 End Namespace
