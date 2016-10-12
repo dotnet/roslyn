@@ -62,12 +62,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private static string NormalizePath(string path)
         {
-            if (path == null)
+            if (string.IsNullOrEmpty(path))
             {
                 return path;
             }
 
-            if (path.EndsWith("/"))
+            var c = path[path.Length - 1];
+            if (c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar)
             {
                 path = path.Substring(0, path.Length - 1);
             }
