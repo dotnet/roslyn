@@ -1728,7 +1728,7 @@ ProduceBoundNode:
                             commonReturnType = returnType
 
                         ElseIf commonReturnType IsNot ErrorTypeSymbol.UnknownResultType AndAlso
-                            Not commonReturnType.IsSameTypeIgnoringCustomModifiers(returnType) Then
+                            Not commonReturnType.IsSameTypeIgnoringAll(returnType) Then
                             commonReturnType = ErrorTypeSymbol.UnknownResultType
                         End If
                     End If
@@ -2455,7 +2455,7 @@ ProduceBoundNode:
 
             If argument.IsSupportingAssignment() Then
 
-                If Not (argument.IsLValue() AndAlso targetType.IsSameTypeIgnoringCustomModifiers(argument.Type)) Then
+                If Not (argument.IsLValue() AndAlso targetType.IsSameTypeIgnoringAll(argument.Type)) Then
 
                     If Not ReportByValConversionErrors(param, argument, targetType, reportNarrowingConversions, diagnostics,
                                                        diagnosticNode:=diagnosticNode,

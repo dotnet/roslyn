@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For i = 0 To signatureParameterCount - 1
                             Dim parameter As ParameterSymbol = parameters(i)
                             If parameter.IsByRef <> signatureTypes(i).IsByRef OrElse
-                                    Not parameter.Type.IsSameTypeIgnoringCustomModifiers(signatureTypes(i).Type) Then
+                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(i).Type) Then
 
                                 ' Signature does not match
                                 Exit Select
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
 
                         If returnType IsNot Nothing Then
-                            If candidateMethod.IsSub OrElse Not candidateMethod.ReturnType.IsSameTypeIgnoringCustomModifiers(returnType) Then
+                            If candidateMethod.IsSub OrElse Not candidateMethod.ReturnType.IsSameTypeIgnoringAll(returnType) Then
                                 ' Return type does not match
                                 Exit Select
                             End If
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For i = 0 To signatureParameterCount - 1
                             Dim parameter As ParameterSymbol = parameters(i)
                             If parameter.IsByRef <> signatureTypes(i).IsByRef OrElse
-                                    Not parameter.Type.IsSameTypeIgnoringCustomModifiers(signatureTypes(i).Type) Then
+                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(i).Type) Then
 
                                 ' Signature does not match
                                 Exit Select

@@ -31,7 +31,10 @@ nuget install Microsoft.Net.Compilers   # Install C# and VB compilers
 nuget install Microsoft.CodeAnalysis    # Install Language APIs and Services
 ```
 
-To get the latest "preview" drop, published about once per month, add the `-pre` switch to the nuget commands.
+Daily NuGet builds of the project are also available in our MyGet feed:
+
+> [https://dotnet.myget.org/F/roslyn/api/v3/index.json](https://dotnet.myget.org/F/roslyn/api/v3/index.json)
+
 
 ### Source code
 

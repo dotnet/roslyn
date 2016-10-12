@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Execution
 {
     internal abstract class AbstractOptionsSerializationService : IOptionsSerializationService
     {
+        public abstract bool CanSerialize(object value);
+
         public abstract void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
         public abstract void WriteTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
         public abstract void WriteTo(OptionSet options, ObjectWriter writer, CancellationToken cancellationToken);

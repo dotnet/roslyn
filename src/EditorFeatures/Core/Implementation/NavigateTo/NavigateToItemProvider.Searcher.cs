@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         await Task.WhenAll(searchTasks).ConfigureAwait(false);
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                }
                 finally
                 {
                     _callback.Done();

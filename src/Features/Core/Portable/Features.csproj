@@ -84,6 +84,7 @@
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.Test.Apex.VisualStudio" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.ReferencesProvider" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.TestsProvider" />
@@ -93,6 +94,11 @@
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="FeaturesResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FeaturesResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
@@ -366,11 +372,6 @@
     <Compile Include="EditAndContinue\StateMachineKind.cs" />
     <Compile Include="EditAndContinue\TraceLog.cs" />
     <Compile Include="ExtractMethod\ExtractMethodOptionsProvider.cs" />
-    <Compile Include="FeaturesResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>FeaturesResources.resx</DependentUpon>
-    </Compile>
     <Compile Include="GenerateMember\GenerateConstructor\GenerateConstructorHelpers.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\AbstractGenerateConversionService.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\AbstractGenerateConversionService.State.cs" />

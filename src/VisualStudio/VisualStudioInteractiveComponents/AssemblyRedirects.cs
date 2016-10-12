@@ -12,8 +12,10 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures.dll")]
 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.InteractiveFeatures.dll")]
-
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.InteractiveServices.dll")]
+
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.CSharp.Repl.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.VisualBasic.Repl.dll")]
 
 [assembly: ProvideRoslynBindingRedirection("InteractiveHost.exe")]
 

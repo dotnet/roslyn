@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Debug.Assert(resultExpression.Type.IsSameTypeIgnoringCustomModifiers(type0))
+            Debug.Assert(resultExpression.Type.IsSameTypeIgnoringAll(type0))
             Debug.Assert(LookupResult.WorseResultKind(resultKind, resultExpression.ResultKind) = resultExpression.ResultKind)
 
             Return resultExpression
