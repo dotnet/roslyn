@@ -181,77 +181,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
 
                     var allActionSets = result.ToList();
-                    // allActionSets = FilterOutDuplicatesFurtherAwayFromCaret(allActionSets);
                     allActionSets = InlineActionSetsIfDesirable(allActionSets);
                     return allActionSets;
                 }
-            }
-
-            private List<SuggestedActionSet> FilterOutDuplicatesFurtherAwayFromCaret(
-                List<SuggestedActionSet> allActionSets)
-            {
-                var caret = _textView.GetCaretPoint(_subjectBuffer)?.Position;
-                if (caret == null)
-                {
-                    // Couldn't get the caret position in the buffer, don't do any filtering.
-                    return allActionSets;
-                }
-
-                // If the action set is always applicable (i.e. a refactoring which has already
-                // verified it runs on the cursor/selection in the view), or the applicable
-                // span intersects the caret-position (i.e. a fix for a diagnostic the cursor is
-                // on), then keep this entire set.
-                var suggestedActionsSetsToAlwaysKeep = allActionSets.Where(
-                    set => set.ApplicableToSpan == null || set.ApplicableToSpan.Value.IntersectsWith(caret.Value)).ToSet();
-
-                var reservedTitles = suggestedActionsSetsToAlwaysKeep.SelectMany(s => s.Actions)
-                                                                     .Select(a => a.DisplayText)
-                                                                     .ToSet();
-
-                var result = new List<SuggestedActionSet>();
-                foreach (var actionSet in allActionSets)
-                {
-                    if (suggestedActionsSetsToAlwaysKeep.Contains(actionSet))
-                    {
-                        // This was either a refactoring or a set of fixes for diagnostics right where
-                        // the caret is.
-                        result.Add(actionSet);
-                    }
-                    else
-                    {
-                        // This is a set of fixes on the same line, but not actually intersecting the
-                        // caret.  Only keep the fixes in this set that don't have duplicate titles
-                        // with items from the sets we are going to keep.
-                        var filteredSet = FilterOutDuplicatesNotIntersectingCaret(
-                            actionSet, reservedTitles);
-                        if (filteredSet != null)
-                        {
-                            result.Add(filteredSet);
-                        }
-                    }
-                }
-
-                return result;
-            }
-
-            private SuggestedActionSet FilterOutDuplicatesNotIntersectingCaret(
-                SuggestedActionSet actionSet, ISet<string> reservedTitles)
-            {
-                var actionsToKeep = new List<ISuggestedAction>();
-                foreach (var action in actionSet.Actions)
-                {
-                    // If this is the first time seeing an action with this title, then include it.
-                    // Otherwise, filter it out as it does not apply to what's under hte cursor 
-                    // and it will be confusing to see the same title shown several times.
-                    if (reservedTitles.Add(action.DisplayText))
-                    {
-                        actionsToKeep.Add(action);
-                    }
-                }
-
-                return actionsToKeep.Count == 0 
-                    ? null
-                    : new SuggestedActionSet(actionsToKeep, actionSet.Title, actionSet.Priority, actionSet.ApplicableToSpan);
             }
 
             private List<SuggestedActionSet> InlineActionSetsIfDesirable(List<SuggestedActionSet> allActionSets)
