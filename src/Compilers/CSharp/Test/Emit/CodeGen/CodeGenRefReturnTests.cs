@@ -2424,5 +2424,67 @@ class C
             Assert.Equal("ref System.Object B2.P { get; }", property.ToTestDisplayString());
             Assert.Equal("ref System.Object A.P { get; }", property.OverriddenProperty.ToTestDisplayString());
         }
+
+        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [Fact]
+        public void RefReturnFieldUse001()
+        {
+            var text = @"
+public class A<T>
+{
+    private T _f;
+    public ref T F()
+    {
+        return ref _f;
+    }
+
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                 // no diagnostics expected
+                );
+        }
+
+        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [Fact]
+        public void RefAssignFieldUse001()
+        {
+            var text = @"
+public class A<T>
+{
+    private T _f;
+    public ref T F()
+    {
+        ref var r = ref _f;
+        return ref r;
+    }
+
+    private T _p;
+    public ref T P
+    {
+        get 
+        { 
+            ref var r = ref _p;
+            return ref r;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // no diagnostics expected
+                );
+        }
+
     }
 }
