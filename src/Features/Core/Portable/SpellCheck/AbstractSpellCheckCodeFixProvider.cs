@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
 
             SemanticModel semanticModel = null;
-            foreach (var name in node.DescendantNodesAndSelf().OfType<TSimpleName>())
+            foreach (var name in node.DescendantNodesAndSelf(DescendIntoChildren).OfType<TSimpleName>())
             {
                 // Only bother with identifiers that are at least 3 characters long.
                 // We don't want to be too noisy as you're just starting to type something.
@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 }
             }
         }
+
+        protected abstract bool DescendIntoChildren(SyntaxNode arg);
 
         private async Task CreateSpellCheckCodeIssueAsync(CodeFixContext context, TSimpleName nameNode, string nameText, CancellationToken cancellationToken)
         {
@@ -103,7 +105,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 // Wrap the spell checking actions into a single top level suggestion
                 // so as to not clutter the list.
-                context.RegisterCodeFix(new MyCodeAction(codeActions), context.Diagnostics);
+                context.RegisterCodeFix(new MyCodeAction(
+                    String.Format(FeaturesResources.Spell_check_0, nameText), codeActions), context.Diagnostics);
             }
             else
             {
@@ -145,8 +148,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
         private class MyCodeAction : CodeAction.SimpleCodeAction
         {
-            public MyCodeAction(ImmutableArray<CodeAction> nestedActions)
-                : base(FeaturesResources.Fix_spelling, nestedActions)
+            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
+                : base(title, nestedActions)
             {
             }
         }
