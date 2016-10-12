@@ -1085,4 +1085,7 @@ This version used in: {2}</value>
   <data name="Fix_spelling" xml:space="preserve">
     <value>Fix spelling</value>
   </data>
+  <data name="Fully_qualify_name" xml:space="preserve">
+    <value>Fully qualify name</value>
+  </data>
 </root>
