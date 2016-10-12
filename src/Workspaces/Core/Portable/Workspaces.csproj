@@ -237,11 +237,11 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.Orchestrator" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.Orchestrator.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
@@ -362,6 +362,7 @@
     <Compile Include="Execution\CustomAssetBuilder.cs" />
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
+    <Compile Include="Experiments\IExperimentationService.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />

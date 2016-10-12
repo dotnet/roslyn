@@ -14,29 +14,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     {
         private static readonly object s_diagnosticKey = new object();
 
-        // set default to true so that we maintain old behavior when project system doesn't
-        // implement IIntellisenseBuildTarget
-        private bool _intellisenseBuildSucceeded = true;
-        private string _intellisenseBuildFailureReason = null;
-
-        protected override bool LastDesignTimeBuildSucceeded => _intellisenseBuildSucceeded;
-
-        public void SetIntellisenseBuildResult(bool succeeded, string reason)
+        void IIntellisenseBuildTarget.SetIntellisenseBuildResult(bool succeeded, string reason)
         {
-            // set intellisense related info
-            _intellisenseBuildSucceeded = succeeded;
-            _intellisenseBuildFailureReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+            SetIntellisenseBuildResultAndNotifyWorkspaceHosts(succeeded);
 
-            UpdateHostDiagnostics(succeeded, reason);
-
-            if (PushingChangesToWorkspaceHosts)
-            {
-                // set workspace reference info
-                ProjectTracker.NotifyWorkspaceHosts(host => (host as IVisualStudioWorkspaceHost2)?.OnHasAllInformation(Id, succeeded));
-            }
+            UpdateIntellisenseBuildFailureDiagnostic(succeeded, reason);
         }
 
-        private void UpdateHostDiagnostics(bool succeeded, string reason)
+        private void UpdateIntellisenseBuildFailureDiagnostic(bool succeeded, string reason)
         {
             if (!succeeded)
             {

@@ -193,6 +193,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.DefaultSwitchLabel:
                     return TryCreateSpanForSwitchLabel((SwitchLabelSyntax)node, position);
 
+                case SyntaxKind.CasePatternSwitchLabel:
+                    var caseClause = (CasePatternSwitchLabelSyntax)node;
+                    return caseClause.WhenClause == null
+                        ? TryCreateSpanForSwitchLabel((SwitchLabelSyntax)node, position)
+                        : CreateSpan(caseClause.WhenClause);
+
+                case SyntaxKind.WhenClause:
+                    return CreateSpan(node);
+
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                     var body = ((AccessorDeclarationSyntax)node).Body;
@@ -535,6 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.EmptyStatement:
+                case SyntaxKind.DeconstructionDeclarationStatement:
                 default:
                     // Fallback case.  If it was none of the above types of statements, then we make a span
                     // over the entire statement.  Note: this is not a very desirable thing to do (as

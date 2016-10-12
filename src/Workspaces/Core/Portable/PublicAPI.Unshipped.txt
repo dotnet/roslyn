@@ -35,14 +35,18 @@ Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.StorageLocations.get -> Syst
 Microsoft.CodeAnalysis.Solution.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.Workspace.DocumentActiveContextChanged -> System.EventHandler<Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs>
 Microsoft.CodeAnalysis.Workspace.RaiseDocumentActiveContextChangedEventAsync(Microsoft.CodeAnalysis.Text.SourceTextContainer sourceTextContainer, Microsoft.CodeAnalysis.DocumentId oldActiveContextDocumentId, Microsoft.CodeAnalysis.DocumentId newActiveContextDocumentId) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.XmlDocumentationProvider
+Microsoft.CodeAnalysis.XmlDocumentationProvider.XmlDocumentationProvider() -> void
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ThrowExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.GetHashCode() -> int
+abstract Microsoft.CodeAnalysis.XmlDocumentationProvider.GetSourceStream(System.Threading.CancellationToken cancellationToken) -> System.IO.Stream
 override Microsoft.CodeAnalysis.CodeStyle.NotificationOption.ToString() -> string
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
+override Microsoft.CodeAnalysis.XmlDocumentationProvider.GetDocumentationForSymbol(string documentationMemberID, System.Globalization.CultureInfo preferredCulture, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> string
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Default.get -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.FromXElement(System.Xml.Linq.XElement element) -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.NamingPreferences.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
@@ -51,6 +55,8 @@ static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyFieldA
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyMethodAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyPropertyAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.SolutionId.CreateFromSerialized(System.Guid id, string debugName = null) -> Microsoft.CodeAnalysis.SolutionId
+static Microsoft.CodeAnalysis.XmlDocumentationProvider.CreateFromBytes(byte[] xmlDocCommentBytes) -> Microsoft.CodeAnalysis.XmlDocumentationProvider
+static Microsoft.CodeAnalysis.XmlDocumentationProvider.CreateFromFile(string xmlDocCommentFilePath) -> Microsoft.CodeAnalysis.XmlDocumentationProvider
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyEventAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
