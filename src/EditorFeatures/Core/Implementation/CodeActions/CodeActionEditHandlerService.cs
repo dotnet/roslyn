@@ -153,28 +153,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                 using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
                 {
-                    operations[0].Apply(workspace, cancellationToken);
-                    return;
+                    operations.Single().Apply(workspace, cancellationToken);
                 }
             }
-
-            // More than just a single document changed.  Make a global undo to run 
-            // all the changes under.
-            using (var transaction = workspace.OpenGlobalUndoTransaction(title))
+            else
             {
-                // ConfigureAwait(true) so we come back to the same thread as 
-                // we do all application on the UI thread.
-                ProcessOperations(
-                    workspace, operations, progressTracker,
-                    cancellationToken);
-
-                // link current file in the global undo transaction
-                if (fromDocument != null)
+                // More than just a single document changed.  Make a global undo to run 
+                // all the changes under.
+                using (var transaction = workspace.OpenGlobalUndoTransaction(title))
                 {
-                    transaction.AddDocument(fromDocument.Id);
-                }
+                    // ConfigureAwait(true) so we come back to the same thread as 
+                    // we do all application on the UI thread.
+                    ProcessOperations(
+                        workspace, operations, progressTracker,
+                        cancellationToken);
 
-                transaction.Commit();
+                    // link current file in the global undo transaction
+                    if (fromDocument != null)
+                    {
+                        transaction.AddDocument(fromDocument.Id);
+                    }
+
+                    transaction.Commit();
+                }
             }
 
 #if DEBUG
