@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public ServerTests()
             {
-                var wo = Temp.CreateDirectory();
                 _buildPaths = ServerUtil.CreateBuildPaths(
                     workingDir: Temp.CreateDirectory().Path,
                     tempDir: Temp.CreateDirectory().Path);
