@@ -17,17 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         public void Initialize(IServiceProvider serviceProvider)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
-
-            // set initial logger
-            var optionService = workspace.Services.GetService<IOptionService>();
-            var loggingChecker = Logger.GetLoggingChecker(optionService);
+            var optionService = componentModel.GetService<IGlobalOptionService>();
 
             var telemetryService = serviceProvider.GetService(typeof(SVsTelemetryService)) as IVsTelemetryService;
             Logger.SetLogger(
                 AggregateLogger.Create(
                     CodeMarkerLogger.Instance,
-                    new EtwLogger(loggingChecker),
+                    new EtwLogger(optionService),
                     new VSTelemetryLogger(telemetryService),
                     new VSTelemetryActivityLogger(telemetryService),
                     Logger.GetLogger()));
