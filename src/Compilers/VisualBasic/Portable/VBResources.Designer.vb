@@ -9118,6 +9118,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Predefined type &apos;{0}&apos; must be a structure..
+        '''</summary>
+        Friend ReadOnly Property ERR_PredefinedValueTupleTypeMustBeStruct() As String
+            Get
+                Return ResourceManager.GetString("ERR_PredefinedValueTupleTypeMustBeStruct", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for PrincipalPermission attribute..
         '''</summary>
         Friend ReadOnly Property ERR_PrincipalPermissionInvalidAction() As String

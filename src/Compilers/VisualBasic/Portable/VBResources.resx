@@ -3169,6 +3169,9 @@
   <data name="ERR_NewWithTupleTypeSyntax" xml:space="preserve">
     <value>'New' cannot be used with tuple type. Use a tuple literal expression instead.</value>
   </data>
+  <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
+    <value>Predefined type '{0}' must be a structure.</value>
+  </data>
   <data name="ERR_ExtensionMethodUncallable1" xml:space="preserve">
     <value>Extension method '{0}' has type constraints that can never be satisfied.</value>
   </data>
