@@ -7,17 +7,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-        /// <summary>
-        /// Handles references to source symbols both from the current project the user is invoking
-        /// 'add-import' from, as well as symbols from other viable projects.
-        /// 
-        /// In the case where the reference is from another project we put a glyph in the add using
-        /// light bulb and we say "(from ProjectXXX)" to make it clear that this will do more than
-        /// just add a using/import.
-        /// </summary>
         private partial class ProjectSymbolReference : SymbolReference
         {
-
             private class AddProjectReferenceCodeActionOperation : CodeActionOperation
             {
                 private readonly DocumentId _contextDocumentId;

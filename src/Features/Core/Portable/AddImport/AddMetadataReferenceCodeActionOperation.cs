@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private partial class MetadataSymbolReference : SymbolReference
         {
-
             private class AddMetadataReferenceCodeActionOperation: CodeActionOperation
             {
                 private readonly DocumentId _documentId;
