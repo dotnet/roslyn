@@ -138,10 +138,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return !token.IsKind(SyntaxKind.CloseParenToken) || !token.Parent.IsKind(SyntaxKind.UsingStatement);
         }
 
-        private static bool TokenShouldNotFormatOnTypeChar(SyntaxToken token)
+        private static bool TokenShouldNotFormatOnTypeChar(
+            SyntaxToken token, CancellationToken cancellationToken)
         {
-            return (token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement)) ||
-                (token.IsKind(SyntaxKind.ColonToken) && !(token.Parent.IsKind(SyntaxKind.LabeledStatement) || token.Parent is SwitchLabelSyntax));
+            if (token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement))
+            {
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.ColonToken) && !(token.Parent.IsKind(SyntaxKind.LabeledStatement) || token.Parent is SwitchLabelSyntax))
+            {
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.OpenBraceToken) && !token.IsFirstTokenOnLine(token.SyntaxTree.GetText()))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
@@ -149,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var formattingRules = this.GetFormattingRules(document, caretPosition);
 
             // first, find the token user just typed.
-            SyntaxToken token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
+            var token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
             if (token.IsMissing ||
                 !ValidSingleOrMultiCharactersTokenKind(typedChar, token.Kind()) ||
@@ -167,7 +182,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // Check to see if any of the below. If not, bail.
             // case 1: The token is ')' and the parent is an using statement.
             // case 2: The token is ':' and the parent is either labelled statement or case switch or default switch
-            if (TokenShouldNotFormatOnTypeChar(token))
+            // 
+            if (TokenShouldNotFormatOnTypeChar(token, cancellationToken))
             {
                 return null;
             }
