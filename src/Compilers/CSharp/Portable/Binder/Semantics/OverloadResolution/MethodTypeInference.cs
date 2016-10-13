@@ -2522,7 +2522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // SPEC: 4.7 The Dynamic Type
             //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-            if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreTupleNames))
+            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreDynamic))
             {
                 return first;
             }
@@ -2538,7 +2538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second)
         {
-            if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
+            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreTupleNames) ||
                 !first.ContainsTupleNames())
             {
                 return first;

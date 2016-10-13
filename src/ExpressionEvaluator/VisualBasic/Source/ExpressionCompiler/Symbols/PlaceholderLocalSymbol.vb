@@ -26,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overloads Shared Function Create(
             typeNameDecoder As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol),
             containingMethod As MethodSymbol,
-            sourceAssembly As AssemblySymbol,
             [alias] As [Alias]) As PlaceholderLocalSymbol
 
             Dim typeName = [alias].Type

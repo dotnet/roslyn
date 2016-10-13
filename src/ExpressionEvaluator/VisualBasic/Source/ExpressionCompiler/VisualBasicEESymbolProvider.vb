@@ -13,12 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class VisualBasicEESymbolProvider
         Inherits EESymbolProvider(Of TypeSymbol, LocalSymbol)
 
-        Private ReadOnly _sourceAssembly As SourceAssemblySymbol
         Private ReadOnly _metadataDecoder As MetadataDecoder
         Private ReadOnly _method As PEMethodSymbol
 
-        Public Sub New(sourceAssembly As SourceAssemblySymbol, [module] As PEModuleSymbol, method As PEMethodSymbol)
-            _sourceAssembly = sourceAssembly
+        Public Sub New([module] As PEModuleSymbol, method As PEMethodSymbol)
             _metadataDecoder = New MetadataDecoder([module], method)
             _method = method
         End Sub

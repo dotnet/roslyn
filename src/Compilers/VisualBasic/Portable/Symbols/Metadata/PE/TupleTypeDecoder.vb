@@ -248,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function DecodeArrayType(type As ArrayTypeSymbol) As ArrayTypeSymbol
             Dim decodedElementType = DecodeType(type.ElementType)
-            Return If(decodedElementType Is type, type, type.WithElementType(decodedElementType))
+            Return If(decodedElementType Is type.ElementType, type, type.WithElementType(decodedElementType))
         End Function
 
         Private Function EatElementNamesIfAvailable(numberOfElements As Integer) As ImmutableArray(Of String)

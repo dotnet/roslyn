@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' we want to retain the original (incorrect) return type to avoid hiding the return type
             ' given in source.
             If destinationReturnType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptionsForVB) Then
-                destinationReturnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, destinationReturnType, containingAssembly)
+                destinationReturnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, destinationReturnType)
             End If
 
         End Sub
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' sourceType has the custom modifiers
         ''' </summary>
-        Friend Shared Function CopyTypeCustomModifiers(sourceType As TypeSymbol, destinationType As TypeSymbol, containingAssembly As AssemblySymbol) As TypeSymbol
+        Friend Shared Function CopyTypeCustomModifiers(sourceType As TypeSymbol, destinationType As TypeSymbol) As TypeSymbol
             Dim resultType As TypeSymbol
 
             Debug.Assert(sourceType.IsSameType(destinationType, TypeCompareKind.AllIgnoreOptionsForVB))

@@ -758,7 +758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' we want to retain the original (incorrect) return type to avoid hiding the return type
                     ' given in source.
                     If retType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
-                        retType = CustomModifierUtils.CopyTypeCustomModifiers(returnTypeWithCustomModifiers, retType, Me.ContainingAssembly)
+                        retType = CustomModifierUtils.CopyTypeCustomModifiers(returnTypeWithCustomModifiers, retType)
                     End If
 
                     params = CustomModifierUtils.CopyParameterCustomModifiers(overridden.Parameters, params)

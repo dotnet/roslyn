@@ -35,7 +35,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim local = PlaceholderLocalSymbol.Create(
                     typeNameDecoder,
                     containingMethod,
-                    sourceAssembly,
                     [alias])
                 _implicitDeclarations.Add(local.Name, local)
             Next

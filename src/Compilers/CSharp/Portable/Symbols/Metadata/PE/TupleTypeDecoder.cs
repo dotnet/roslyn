@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ArrayTypeSymbol DecodeArrayType(ArrayTypeSymbol type)
         {
             var decodedElementType = DecodeType(type.ElementType);
-            return ReferenceEquals(decodedElementType, type)
+            return ReferenceEquals(decodedElementType, type.ElementType)
                 ? type
                 : type.WithElementType(decodedElementType);
         }

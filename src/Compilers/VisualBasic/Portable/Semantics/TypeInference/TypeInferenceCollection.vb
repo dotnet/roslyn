@@ -579,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each competitor As DominantTypeData In Me.GetTypeDataList()
 
                     ' Do not merge array literals with other expressions
-                    If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameType(competitor.ResultType, TypeCompareKind.AllIgnoreOptionsForVB) Then
+                    If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringAll(competitor.ResultType) Then
                         competitor.ResultType = MergeTupleNames(type, competitor.ResultType)
                         competitor.InferenceRestrictions = Conversions.CombineConversionRequirements(
                                                         competitor.InferenceRestrictions,
