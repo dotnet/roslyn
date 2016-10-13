@@ -14723,6 +14723,140 @@ BC33030: Conversion operators cannot convert from a base type.
 </errors>)
         End Sub
 
+        <Fact>
+        Public Sub IsBaseOf_WithoutCustomModifiers()
+            ' The IL is from this code, but with modifiers
+            ' public class Base<T> { }
+            ' public class Derived<T> : Base<T> { }
+            ' public class Test
+            ' {
+            '    public Base<Object> GetBaseWithModifiers() { return null; }
+            '    public Derived<Object> GetDerivedWithoutModifiers() { return null; }
+            ' }
+
+            Dim il = <![CDATA[
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly extern System.Core {}
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly '<<GeneratedFileName>>' { }
+
+.class public auto ansi beforefieldinit Base`1<T>
+	extends [mscorlib]System.Object
+{
+	// Methods
+	.method public hidebysig specialname rtspecialname
+		instance void .ctor () cil managed
+	{
+		// Method begins at RVA 0x2050
+		// Code size 8 (0x8)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method Base`1::.ctor
+
+} // end of class Base`1
+
+.class public auto ansi beforefieldinit Derived`1<T>
+	extends class Base`1<!T>
+{
+	// Methods
+	.method public hidebysig specialname rtspecialname
+		instance void .ctor () cil managed
+	{
+		// Method begins at RVA 0x2059
+		// Code size 8 (0x8)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void class Base`1<!T>::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method Derived`1::.ctor
+
+} // end of class Derived`1
+
+.class public auto ansi beforefieldinit Test
+	extends [mscorlib]System.Object
+{
+	// Methods
+	.method public hidebysig
+		instance class Base`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> GetBaseWithModifiers () cil managed
+	{
+		// Method begins at RVA 0x2064
+		// Code size 7 (0x7)
+		.maxstack 1
+		.locals init (
+			[0] class Base`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+		)
+
+		IL_0000: nop
+		IL_0001: ldnull
+		IL_0002: stloc.0
+		IL_0003: br.s IL_0005
+
+		IL_0005: ldloc.0
+		IL_0006: ret
+	} // end of method Test::GetBaseWithModifiers
+
+	.method public hidebysig
+		instance class Derived`1<object> GetDerivedWithoutModifiers () cil managed
+	{
+		// Method begins at RVA 0x2078
+		// Code size 7 (0x7)
+		.maxstack 1
+		.locals init (
+			[0] class Derived`1<object>
+		)
+
+		IL_0000: nop
+		IL_0001: ldnull
+		IL_0002: stloc.0
+		IL_0003: br.s IL_0005
+
+		IL_0005: ldloc.0
+		IL_0006: ret
+	} // end of method Test::GetDerivedWithoutModifiers
+
+	.method public hidebysig specialname rtspecialname
+		instance void .ctor () cil managed
+	{
+		// Method begins at RVA 0x2050
+		// Code size 8 (0x8)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method Test::.ctor
+
+} // end of class Test
+]]>.Value
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(source1, il, appendDefaultHeader:=False)
+            comp1.AssertTheseDiagnostics()
+
+            Dim baseWithModifiers = comp1.GlobalNamespace.GetMember(Of MethodSymbol)("Test.GetBaseWithModifiers").ReturnType
+            Assert.Equal("Base(Of System.Object modopt(System.Runtime.CompilerServices.IsLong))", baseWithModifiers.ToTestDisplayString())
+
+            Dim derivedWithoutModifiers = comp1.GlobalNamespace.GetMember(Of MethodSymbol)("Test.GetDerivedWithoutModifiers").ReturnType
+            Assert.Equal("Derived(Of System.Object)", derivedWithoutModifiers.ToTestDisplayString())
+
+            Dim diagnostics = New HashSet(Of DiagnosticInfo)()
+            Assert.True(baseWithModifiers.IsBaseTypeOf(derivedWithoutModifiers, diagnostics))
+            Assert.True(derivedWithoutModifiers.IsOrDerivedFrom(derivedWithoutModifiers, diagnostics))
+
+        End Sub
+
     End Class
 
 End Namespace
