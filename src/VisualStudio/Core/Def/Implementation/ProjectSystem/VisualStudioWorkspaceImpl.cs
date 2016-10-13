@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,9 +19,9 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Feedback.Interop;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Remote;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -33,13 +31,14 @@ using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
 using VSLangProj140;
 using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     /// <summary>
     /// The Workspace for running inside Visual Studio.
     /// </summary>
-    internal abstract class VisualStudioWorkspaceImpl : VisualStudioWorkspace
+    internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspace
     {
         private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
         private const string AppCodeFolderName = "App_Code";
@@ -342,7 +341,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        protected override void ApplyMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
+        protected override void ApplyMetadataReferenceAdded(
+            ProjectId projectId, MetadataReference metadataReference)
         {
             if (projectId == null)
             {
@@ -364,10 +364,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 VSProject vsProject = (VSProject)project.Object;
                 vsProject.References.Add(filePath);
+
+                var undoManager = TryGetUndoManager();
+                undoManager?.Add(new RemoveMetadataReferenceUndoUnit(this, projectId, filePath));
             }
         }
 
-        protected override void ApplyMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
+        protected override void ApplyMetadataReferenceRemoved(
+            ProjectId projectId, MetadataReference metadataReference)
         {
             if (projectId == null)
             {
@@ -388,15 +392,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (filePath != null)
             {
                 VSProject vsProject = (VSProject)project.Object;
-                Reference reference = vsProject.References.Find(filePath);
-                if (reference != null)
+                foreach (Reference reference in vsProject.References)
                 {
-                    reference.Remove();
+                    if (StringComparer.OrdinalIgnoreCase.Equals(reference.Path, filePath))
+                    {
+                        reference.Remove();
+                        var undoManager = TryGetUndoManager();
+                        undoManager?.Add(new AddMetadataReferenceUndoUnit(this, projectId, filePath));
+                        break;
+                    }
                 }
             }
         }
 
-        protected override void ApplyProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
+        protected override void ApplyProjectReferenceAdded(
+            ProjectId projectId, ProjectReference projectReference)
         {
             if (projectId == null)
             {
@@ -420,9 +430,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var vsProject = (VSProject)project.Object;
             vsProject.References.AddProject(refProject);
+
+            var undoManager = TryGetUndoManager();
+            undoManager?.Add(new RemoveProjectReferenceUndoUnit(
+                this, projectId, projectReference.ProjectId));
         }
 
-        protected override void ApplyProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
+        private OleInterop.IOleUndoManager TryGetUndoManager()
+        {
+            var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
+            if (documentTrackingService != null)
+            {
+                var documentId = documentTrackingService.GetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
+                if (documentId != null)
+                {
+                    var composition = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
+                    var exportProvider = composition.DefaultExportProvider;
+                    var editorAdaptersService = exportProvider.GetExportedValue<IVsEditorAdaptersFactoryService>();
+
+                    return editorAdaptersService.TryGetUndoManager(this, documentId, CancellationToken.None);
+                }
+            }
+
+            return null;
+        }
+
+        protected override void ApplyProjectReferenceRemoved(
+            ProjectId projectId, ProjectReference projectReference)
         {
             if (projectId == null)
             {
@@ -450,6 +484,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (reference.SourceProject == refProject)
                 {
                     reference.Remove();
+                    var undoManager = TryGetUndoManager();
+                    undoManager?.Add(new AddProjectReferenceUndoUnit(this, projectId, projectReference.ProjectId));
                 }
             }
         }

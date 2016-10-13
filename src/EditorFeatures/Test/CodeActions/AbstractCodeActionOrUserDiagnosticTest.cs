@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expected,
-            IEnumerable<CodeActionOperation> operations,
+            ImmutableArray<CodeActionOperation> operations,
             bool hasProjectChange,
             ProjectId modifiedProjectId,
             IList<string> expectedFolders,
@@ -466,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        internal static async Task<IEnumerable<CodeActionOperation>> VerifyInputsAndGetOperationsAsync(
+        internal static async Task<ImmutableArray<CodeActionOperation>> VerifyInputsAndGetOperationsAsync(
             int index, IList<CodeAction> actions, CodeActionPriority? priority = null)
         {
             Assert.NotNull(actions);

@@ -2,8 +2,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         /// light bulb and we say "(from ProjectXXX)" to make it clear that this will do more than
         /// just add a using/import.
         /// </summary>
-        private class ProjectSymbolReference : SymbolReference
+        private partial class ProjectSymbolReference : SymbolReference
         {
             private readonly Project _project;
 
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return CodeActionPriority.Low;
             }
 
-            protected override Solution UpdateSolution(Document newDocument)
+            protected override Solution GetUpdatedSolution(Document newDocument)
             {
                 if (_project.Id == newDocument.Project.Id)
                 {
@@ -69,9 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 // If this reference came from searching another project, then add a project reference
                 // as well.
-                var newProject = newDocument.Project;
-                newProject = newProject.AddProjectReference(new ProjectReference(_project.Id));
-
+                var newProject = newDocument.Project.AddProjectReference(new ProjectReference(_project.Id));
                 return newProject.Solution;
             }
 

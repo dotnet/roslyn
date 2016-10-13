@@ -1088,4 +1088,7 @@ This version used in: {2}</value>
   <data name="Fully_qualify_0" xml:space="preserve">
     <value>Fully qualify '{0}'</value>
   </data>
+  <data name="Remove_reference_to_0" xml:space="preserve">
+    <value>Remove reference to '{0}'.</value>
+  </data>
 </root>
