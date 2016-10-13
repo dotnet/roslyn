@@ -1630,7 +1630,7 @@ End Module
             Assert.Equal("(a:=100, b:=100)", node.ToString())
             Assert.Equal("(a As Integer, b As Integer)", model.GetTypeInfo(node).Type.ToDisplayString())
             Assert.Equal("(x As System.Byte, y As System.Byte)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
         End Sub
 
         <Fact>
@@ -2491,6 +2491,747 @@ End Class
 (3, (4, 5))
 (6, (7, (8, (9, (10, (11, (12, (13, (14, (15, (16, 17)))))))))))
             ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+    Shared Sub Main()
+        Dim x1 As Byte = 300
+        Dim x2 As Byte() = { 300 }
+        Dim x3 As (Byte, Byte) = (300, 300)
+
+        Dim x4 As Byte? = 300
+        Dim x5 As Byte?() = { 300 }
+        Dim x6 As (Byte?, Byte?) = (300, 300)
+        Dim x7 As (Byte, Byte)? = (300, 300)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M1 (x as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M2 (x as Byte(), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M2 (x as Byte(), y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M3 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M3 (x as (Short, Short))
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M4 (x as (Byte, Byte), y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M5 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M5 (x as Short?)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M6 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M6 (x as (Short?, Short?))
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M7 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M7 (x as (Short, Short)?)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M8 (x as (Byte, Byte)?, y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M8 (x as (Byte, Byte)?, y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub Main()
+        M1(70000)
+        M2({ 300 }, 70000)
+        M3((70000, 70000))
+        M4((300, 300), 70000)
+
+        M5(70000)
+        M6((70000, 70000))
+        M7((70000, 70000))
+        M8((300, 300), 70000)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M1 (x as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M2 (x as Byte(), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M2 (x as Byte(), y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M3 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M3 (x as (Short, Short))
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M4 (x as (Byte, Byte), y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M5 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M5 (x as Short?)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M6 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M6 (x as (Short?, Short?))
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M7 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M7 (x as (Short, Short)?)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M8 (x as (Byte, Byte)?, y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M8 (x as (Byte, Byte)?, y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub Main()
+        M1(70000)
+        M2({ 300 }, 70000)
+        M3((70000, 70000))
+        M4((300, 300), 70000)
+
+        M5(70000)
+        M6((70000, 70000))
+        M7((70000, 70000))
+        M8((300, 300), 70000)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M1 (x as Integer)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M2 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M2 (x as Integer?)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M3 (x as Byte())
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M3 (x as Integer())
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M4 (x as (Integer, Integer))
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M5 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M5 (x as (Integer?, Integer?))
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M6 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M6 (x as (Integer, Integer)?)
+        System.Console.WriteLine("Integer")
+    End Sub
+    
+    Shared Sub M7 (x as (Byte, Byte)())
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M7 (x as (Integer, Integer)())
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub Main()
+        M1(1)
+        M2(1)
+        M3({1})
+        M4((1, 1))
+        M5((1, 1))
+        M6((1, 1))
+        M7({(1, 1)})
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(True), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Integer
+Integer
+Integer
+Integer
+Integer
+Integer
+Integer")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_05()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M1 (x as Long)
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M2 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M2 (x as Long?)
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M3 (x as Byte())
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M3 (x as Long())
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M4 (x as (Long, Long))
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M5 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M5 (x as (Long?, Long?))
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M6 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M6 (x as (Long, Long)?)
+        System.Console.WriteLine("Long")
+    End Sub
+    
+    Shared Sub M7 (x as (Byte, Byte)())
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M7 (x as (Long, Long)())
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub Main()
+        M1(1)
+        M2(1)
+        M3({1})
+        M4((1, 1))
+        M5((1, 1))
+        M6((1, 1))
+        M7({(1, 1)})
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(True), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Long
+Long
+Long
+Long
+Long
+Long
+Long")
+        End Sub
+
+        <Fact>
+        <WorkItem(14473, "https://github.com/dotnet/roslyn/issues/14473")>
+        Public Sub NarrowingFromNumericConstant_06()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M2 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M3 (x as Byte())
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M5 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M6 (x as Byte?())
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M7 (x as (Byte, Byte)())
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub Main()
+        Dim a as Byte? = 1
+        Dim b as Byte() = {1}
+        Dim c as (Byte?, Byte?) = (1, 1)
+        Dim d as Byte?() = {1}
+        Dim e as (Byte, Byte)() = {(1, 1)}
+        M2(1)
+        M3({1})
+        M5((1, 1))
+        M6({1})
+        M7({(1, 1)})
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(True), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Byte
+Byte
+Byte
+Byte
+Byte")
+        End Sub
+
+        <Fact>
+        <WorkItem(14473, "https://github.com/dotnet/roslyn/issues/14473")>
+        Public Sub NarrowingFromNumericConstant_07()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M2 (x as Byte(), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M3 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M5 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M6 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M7 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M8 (x as (Byte, Byte)?, y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub Main()
+        M1(300)
+        M2({ 300 }, 300)
+        M3((300, 300))
+        M4((300, 300), 300)
+
+        M5(70000)
+        M6((70000, 70000))
+        M7((70000, 70000))
+        M8((300, 300), 300)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_08()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x00 As (Integer, Integer) = (1, 1)
+        Dim x01 As (Byte, Integer) = (1, 1)
+        Dim x02 As (Integer, Byte) = (1, 1)
+        Dim x03 As (Byte, Long) = (1, 1)
+        Dim x04 As (Long, Byte) = (1, 1)
+        Dim x05 As (Byte, Integer) = (300, 1)
+        Dim x06 As (Integer, Byte) = (1, 300)
+        Dim x07 As (Byte, Long) = (300, 1)
+        Dim x08 As (Long, Byte) = (1, 300)
+        Dim x09 As (Long, Long) = (1, 300)
+        Dim x10 As (Byte, Byte) = (1, 300)
+        Dim x11 As (Byte, Byte) = (300, 1)
+        Dim one As Integer = 1
+        Dim x12 As (Byte, Byte, Byte) = (one, 300, 1)
+        Dim x13 As (Byte, Byte, Byte) = (300, one, 1)
+        Dim x14 As (Byte, Byte, Byte) = (300, 1, one)
+        Dim x15 As (Byte, Byte) = (one, one)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ToArray()
+
+            AssertConversions(model, nodes(0), ConversionKind.Identity, ConversionKind.Identity, ConversionKind.Identity)
+            AssertConversions(model, nodes(1), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(2), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(3), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric)
+            AssertConversions(model, nodes(4), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(5), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(6), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(7), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric)
+            AssertConversions(model, nodes(8), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(9), ConversionKind.WideningTuple,
+                              ConversionKind.WideningNumeric,
+                              ConversionKind.WideningNumeric)
+            AssertConversions(model, nodes(10), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(11), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(12), ConversionKind.NarrowingTuple,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(13), ConversionKind.NarrowingTuple,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(14), ConversionKind.NarrowingTuple,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric)
+            AssertConversions(model, nodes(15), ConversionKind.NarrowingTuple,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.NarrowingNumeric)
+        End Sub
+
+        Private Shared Sub AssertConversions(model As SemanticModel, literal As TupleExpressionSyntax, aggregate As ConversionKind, ParamArray parts As ConversionKind())
+            If parts.Length > 0 Then
+                Assert.Equal(literal.Arguments.Count, parts.Length)
+
+                For i As Integer = 0 To parts.Length - 1
+                    Assert.Equal(parts(i), model.GetConversion(literal.Arguments(i).Expression).Kind)
+                Next
+            End If
+
+            Assert.Equal(aggregate, model.GetConversion(literal).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub Narrowing_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M2 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M5 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub Main()
+        Dim x as integer = 1
+        Dim a as Byte? = x
+        Dim b as (Byte?, Byte?) = (x, x)
+        M2(x)
+        M5((x, x))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(True), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp,
+<expected>
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        Dim a as Byte? = x
+                         ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        Dim b as (Byte?, Byte?) = (x, x)
+                                   ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        Dim b as (Byte?, Byte?) = (x, x)
+                                      ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        M2(x)
+           ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        M5((x, x))
+            ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        M5((x, x))
+               ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub OverloadResolution_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M1 (x as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M1 (x as Integer)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M2 (x as Short?)
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M2 (x as Integer?)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M3 (x as (Short, Short))
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M3(x as (Integer, Integer))
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M4 (x as (Short?, Short?))
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M4(x as (Integer?, Integer?))
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M5 (x as (Short, Short)?)
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M5(x as (Integer, Integer)?)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub Main()
+        Dim x as Byte = 1
+        M1(x)
+        M2(x)
+        M3((x, x))
+        M4((x, x))
+        M5((x, x))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Short
+Short
+Short
+Short
+Short")
         End Sub
 
         <Fact>
@@ -9441,9 +10182,24 @@ End Module
             Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
 
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
-            Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
-            Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
+            Assert.Equal("(e As System.Int32, f As System.String)", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+
+            Dim e = node.Arguments(0).Expression
+            Assert.Equal("1", e.ToString())
+            typeInfo = model.GetTypeInfo(e)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Int16", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(e).Kind)
+
+            Dim f = node.Arguments(1).Expression
+            Assert.Equal("""hello""", f.ToString())
+            typeInfo = model.GetTypeInfo(f)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(f).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9474,7 +10230,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9513,7 +10269,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
@@ -9548,7 +10304,7 @@ End Module
             Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
             Assert.Equal("(System.Int32, System.String)", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             CompileAndVerify(comp)
 
@@ -9578,7 +10334,21 @@ End Module
             Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
             Assert.Equal("(e As System.Int32, f As System.String)", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+
+            Dim e = node.Arguments(0).Expression
+            Assert.Equal("1", e.ToString())
+            typeInfo = model.GetTypeInfo(e)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Int16", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(e).Kind)
+
+            Dim f = node.Arguments(1).Expression
+            Assert.Equal("""hello""", f.ToString())
+            typeInfo = model.GetTypeInfo(f)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(f).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9608,11 +10378,12 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
+            Assert.Equal("DirectCast((e:=1, f:=""hello""), (c As Short, d As String))", node.Parent.ToString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9643,11 +10414,11 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9970,7 +10741,21 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(a As System.Int16, b As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+
+            Dim e = node.Arguments(0).Expression
+            Assert.Equal("1", e.ToString())
+            Dim typeInfo = model.GetTypeInfo(e)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Int16", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(e).Kind)
+
+            Dim f = node.Arguments(1).Expression
+            Assert.Equal("""hello""", f.ToString())
+            typeInfo = model.GetTypeInfo(f)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(f).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As (a As System.Int16, b As System.String)", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -10008,7 +10793,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
@@ -10042,7 +10827,7 @@ End Module
             Assert.Equal("(e:=1, f:=Nothing)", node.ToString())
             Assert.Null(model.GetTypeInfo(node).Type)
             Assert.Equal("(a As System.Int16, b As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As (a As System.Int16, b As System.String)", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -10080,7 +10865,7 @@ End Module
             Assert.Equal("(e:=1, f:=Nothing)", node.ToString())
             Assert.Null(model.GetTypeInfo(node).Type)
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
