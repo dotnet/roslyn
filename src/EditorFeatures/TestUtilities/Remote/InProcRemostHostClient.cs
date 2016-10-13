@@ -131,6 +131,11 @@ namespace Roslyn.Test.Utilities.Remote
                         return s_traceSource;
                     }
 
+                    if (typeof(AssetStorage) == serviceType)
+                    {
+                        return AssetStorage.Default;
+                    }
+
                     throw ExceptionUtilities.UnexpectedValue(serviceType);
                 }
             }
