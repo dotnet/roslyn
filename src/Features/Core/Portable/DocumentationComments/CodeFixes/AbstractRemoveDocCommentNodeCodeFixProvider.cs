@@ -99,14 +99,14 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                             // until we hit the next newline.  If that's all we can remove the preceding
                             // '///'.  Otherwise we'll want to keep it to keep whatever comes after
                             // this node valid.
-                            foreach (var child in GetTextTokens(textSyntax))
+                            foreach (var childToken in GetTextTokens(textSyntax))
                             {
-                                if (IsXmlWhitespaceToken(child))
+                                if (IsXmlWhitespaceToken(childToken))
                                 {
                                     continue;
                                 }
 
-                                if (IsXmlNewLineToken(child))
+                                if (IsXmlNewLineToken(childToken))
                                 {
                                     return true;
                                 }
