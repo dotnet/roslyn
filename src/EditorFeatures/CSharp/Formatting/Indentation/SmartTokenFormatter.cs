@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 (endToken.Parent.IsParentKind(SyntaxKind.TryStatement) || endToken.Parent.IsParentKind(SyntaxKind.DoStatement));
         }
 
-        public Task<IList<TextChange>> FormatTokenAsync(Workspace workspace, SyntaxToken token, CancellationToken cancellationToken)
+        public Task<IList<TextChange>> FormatTokenAsync(
+            Workspace workspace, SyntaxToken token, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None || token.Kind() == SyntaxKind.EndOfFileToken);
 
@@ -100,7 +101,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             var smartTokenformattingRules = (new SmartTokenFormattingRule()).Concat(_formattingRules);
             var adjustedStartPosition = previousToken.SpanStart;
             var indentStyle = _optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
-            if (token.IsKind(SyntaxKind.OpenBraceToken) && token.IsFirstTokenOnLine(token.SyntaxTree.GetText()) && indentStyle != FormattingOptions.IndentStyle.Smart)
+            if (token.IsKind(SyntaxKind.OpenBraceToken) &&
+                token.IsFirstTokenOnLine(token.SyntaxTree.GetText(cancellationToken)) &&
+                indentStyle != FormattingOptions.IndentStyle.Smart)
             {
                 adjustedStartPosition = token.SpanStart;
             }
