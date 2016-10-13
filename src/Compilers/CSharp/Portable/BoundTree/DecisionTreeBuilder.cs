@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        return AddByValue(decisionTree, constantPattern.Value,
+                        return AddByValue(decisionTree, constantPattern,
                             (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), sectionSyntax, guard, label));
                     }
                 case BoundKind.DeclarationPattern:
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression,
             TypeSymbol type);
 
-        private DecisionTree AddByValue(DecisionTree decision, BoundExpression value, DecisionMaker makeDecision)
+        private DecisionTree AddByValue(DecisionTree decision, BoundConstantPattern value, DecisionMaker makeDecision)
         {
             if (decision.MatchIsComplete)
             {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DecisionTree AddByValue(DecisionTree.Guarded guarded, BoundExpression value, DecisionMaker makeDecision)
+        private DecisionTree AddByValue(DecisionTree.Guarded guarded, BoundConstantPattern value, DecisionMaker makeDecision)
         {
             if (guarded.Default != null)
             {
@@ -114,9 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddByValue(guarded.Default, value, makeDecision);
         }
 
-        private DecisionTree AddByValue(DecisionTree.ByValue byValue, BoundExpression value, DecisionMaker makeDecision)
+        private DecisionTree AddByValue(DecisionTree.ByValue byValue, BoundConstantPattern value, DecisionMaker makeDecision)
         {
-            Debug.Assert(value.Type == byValue.Type);
+            Debug.Assert(value.Value.Type == byValue.Type);
             if (byValue.Default != null)
             {
                 return AddByValue(byValue.Default, value, makeDecision);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return valueDecision;
         }
 
-        private DecisionTree AddByValue(DecisionTree.ByType byType, BoundExpression value, DecisionMaker makeDecision)
+        private DecisionTree AddByValue(DecisionTree.ByType byType, BoundConstantPattern value, DecisionMaker makeDecision)
         {
             if (byType.Default != null)
             {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var decision = kvp.Value;
 
                 // See if the test is already subsumed
-                switch (ExpressionOfTypeMatchesPatternType(value.Type, matchedType, ref _useSiteDiagnostics))
+                switch (ExpressionOfTypeMatchesPatternType(value.Value.Type, matchedType, ref _useSiteDiagnostics))
                 {
                     case true:
                         if (decision.MatchIsComplete)
@@ -199,12 +199,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kvp = byType.TypeAndDecision[i];
                 var matchedType = kvp.Key;
                 var decision = kvp.Value;
-                if (matchedType.TupleUnderlyingTypeOrSelf() == value.Type.TupleUnderlyingTypeOrSelf())
+                if (matchedType.TupleUnderlyingTypeOrSelf() == value.Value.Type.TupleUnderlyingTypeOrSelf())
                 {
                     forType = decision;
                     break;
                 }
-                else if (ExpressionOfTypeMatchesPatternType(value.Type, matchedType, ref _useSiteDiagnostics) != false)
+                else if (ExpressionOfTypeMatchesPatternType(value.Value.Type, matchedType, ref _useSiteDiagnostics) != false)
                 {
                     break;
                 }
@@ -212,11 +212,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (forType == null)
             {
-                var type = value.Type;
+                var type = value.Value.Type;
                 var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
                 var narrowedExpression = new BoundLocal(Syntax, localSymbol, null, type);
-                forType = new DecisionTree.ByValue(narrowedExpression, value.Type.TupleUnderlyingTypeOrSelf(), localSymbol);
-                byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Type, forType));
+                forType = new DecisionTree.ByValue(narrowedExpression, value.Value.Type.TupleUnderlyingTypeOrSelf(), localSymbol);
+                byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Value.Type, forType));
             }
 
             return AddByValue(forType, value, makeDecision);

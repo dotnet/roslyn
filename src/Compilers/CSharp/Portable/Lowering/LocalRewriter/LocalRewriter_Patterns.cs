@@ -50,6 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var declPattern = (BoundDeclarationPattern)pattern;
                         return declPattern.Update(declPattern.Variable, VisitExpression(declPattern.VariableAccess), declPattern.DeclaredType, declPattern.IsVar);
                     }
+                case BoundKind.ConstantPattern:
+                    {
+                        var constantPattern = (BoundConstantPattern)pattern;
+                        return constantPattern.Update(VisitExpression(constantPattern.Value), constantPattern.ConstantValue);
+                    }
                 default:
                     return pattern;
             }
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeIsConstantPattern(BoundConstantPattern loweredPattern, BoundExpression loweredInput)
         {
-            return CompareWithConstant(loweredInput, VisitExpression(loweredPattern.Value));
+            return CompareWithConstant(loweredInput, loweredPattern.Value);
         }
 
         private BoundExpression MakeIsDeclarationPattern(BoundDeclarationPattern loweredPattern, BoundExpression loweredInput)
