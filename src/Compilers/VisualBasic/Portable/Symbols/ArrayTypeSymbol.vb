@@ -579,12 +579,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property HasDefaultSizesAndLowerBounds As Boolean
-                Get
-                    Return True
-                End Get
-            End Property
-
         End Class
 
         Private NotInheritable Class MDArrayNoSizesOrBounds
@@ -597,6 +591,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Function WithElementType(newElementType As TypeSymbol) As ArrayTypeSymbol
                 Return New MDArrayNoSizesOrBounds(newElementType, CustomModifiers, Rank, BaseTypeNoUseSiteDiagnostics)
             End Function
+
+            Friend Overrides ReadOnly Property HasDefaultSizesAndLowerBounds As Boolean
+                Get
+                    Return True
+                End Get
+            End Property
+
         End Class
 
         Private NotInheritable Class MDArrayWithSizesAndBounds
