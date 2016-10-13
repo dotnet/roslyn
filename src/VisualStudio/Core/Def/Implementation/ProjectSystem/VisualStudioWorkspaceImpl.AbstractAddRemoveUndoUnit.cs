@@ -5,23 +5,20 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.AddImport;
 using Microsoft.VisualStudio.OLE.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.AddImport
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class VisualStudioAddImportUndoService : IAddImportUndoService
+    internal partial class VisualStudioWorkspaceImpl
     {
         private abstract class AbstractAddRemoveUndoUnit : IOleUndoUnit
         {
-            protected readonly DocumentId ContextDocumentId;
             protected readonly ProjectId FromProjectId;
-            protected readonly VisualStudioAddImportUndoService Service;
+            protected readonly VisualStudioWorkspaceImpl Workspace;
 
             protected AbstractAddRemoveUndoUnit(
-                VisualStudioAddImportUndoService service,
-                DocumentId contextDocumentId,
+                VisualStudioWorkspaceImpl workspace,
                 ProjectId fromProjectId)
             {
-                Service = service;
-                ContextDocumentId = contextDocumentId;
+                Workspace = workspace;
                 FromProjectId = fromProjectId;
             }
 

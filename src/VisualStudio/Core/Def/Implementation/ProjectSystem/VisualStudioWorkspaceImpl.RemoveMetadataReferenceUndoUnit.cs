@@ -1,32 +1,40 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes.AddImport;
 using Microsoft.VisualStudio.OLE.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.AddImport
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class VisualStudioAddImportUndoService : IAddImportUndoService
+    internal partial class VisualStudioWorkspaceImpl
     {
         private class RemoveMetadataReferenceUndoUnit : AbstractAddRemoveUndoUnit
         {
             private readonly string _filePath;
 
             public RemoveMetadataReferenceUndoUnit(
-                VisualStudioAddImportUndoService service, 
-                DocumentId contextDocumentId, 
+                VisualStudioWorkspaceImpl workspace, 
                 ProjectId fromProjectId, 
                 string filePath)
-                : base(service, contextDocumentId, fromProjectId)
+                : base(workspace, fromProjectId)
             {
                 _filePath = filePath;
             }
 
             public override void Do(IOleUndoManager pUndoManager)
             {
-                Service.TryRemoveMetadataReferenceAndAddUndoUnit(
-                    ContextDocumentId, FromProjectId, _filePath, pUndoManager);
+                var currentSolution = Workspace.CurrentSolution;
+                var fromProject = currentSolution.GetProject(FromProjectId);
+                var reference = fromProject?.MetadataReferences.OfType<PortableExecutableReference>()
+                                            .FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.FilePath, _filePath));
+
+                if (reference != null)
+                {
+                    var updatedProject = fromProject.RemoveMetadataReference(reference);
+                    Workspace.TryApplyChanges(updatedProject.Solution);
+                }
             }
 
             public override void GetDescription(out string pBstr)

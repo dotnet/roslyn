@@ -36,10 +36,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     Path.GetFileName(_reference.FilePath));
             }
 
-            protected override CodeActionOperation GetAdditionalOperation(Document newDocument)
+            protected override Solution GetUpdatedSolution(Document newDocument)
             {
-                return new AddMetadataReferenceCodeActionOperation(newDocument.Id, _reference);
+                var newProject = newDocument.Project.AddMetadataReference(_reference);
+                return newProject.Solution;
             }
+
+            //protected override CodeActionOperation GetAdditionalOperation(Document newDocument)
+            //{
+            //    return new AddMetadataReferenceCodeActionOperation(newDocument.Id, _reference);
+            //}
 
             protected override CodeActionPriority GetPriority(Document document)
             {

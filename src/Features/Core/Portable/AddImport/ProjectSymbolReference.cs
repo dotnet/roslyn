@@ -56,16 +56,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return CodeActionPriority.Low;
             }
 
-            protected override CodeActionOperation GetAdditionalOperation(Document newDocument)
+            protected override Solution GetUpdatedSolution(Document newDocument)
             {
                 if(_project.Id == newDocument.Project.Id)
                 {
                     // This reference was found while searching in the project for our document.  No
                     // need to add any additional operations.
-                    return null;
+                    return base.GetUpdatedSolution(newDocument);
                 }
 
-                return new AddProjectReferenceCodeActionOperation(newDocument.Id, _project.Id);
+                var newProject = newDocument.Project.AddProjectReference(new ProjectReference(_project.Id));
+                return newProject.Solution;
+                // return new AddProjectReferenceCodeActionOperation(newDocument.Id, _project.Id);
             }
 
             protected override string TryGetDescription(Project project, SyntaxNode node, SemanticModel semanticModel)

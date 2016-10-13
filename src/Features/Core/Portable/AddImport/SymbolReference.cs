@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.SymbolResult = symbolResult;
             }
 
-            protected abstract CodeActionOperation GetAdditionalOperation(Document newDocument);
+            // protected abstract CodeActionOperation GetAdditionalOperation(Document newDocument);
             protected abstract Glyph? GetGlyph(Document document);
             protected abstract bool CheckForExistingImport(Project project);
 
@@ -49,14 +49,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
             {
                 var newDocument = await UpdateDocumentAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                var updatedSolution = GetUpdatedSolution(newDocument);
 
-                var operation = new ApplyChangesOperation(newDocument.Project.Solution);
-                var additionalOperation = this.GetAdditionalOperation(newDocument);
+                var operation = new ApplyChangesOperation(updatedSolution);
+                return ImmutableArray.Create<CodeActionOperation>(operation);
+                //var operation = new ApplyChangesOperation(newDocument.Project.Solution);
+                //var additionalOperation = this.GetAdditionalOperation(newDocument);
 
-                return additionalOperation != null
-                    ? ImmutableArray.Create(operation, additionalOperation)
-                    : ImmutableArray.Create<CodeActionOperation>(operation);
+                //return additionalOperation != null
+                //    ? ImmutableArray.Create(operation, additionalOperation)
+                //    : ImmutableArray.Create<CodeActionOperation>(operation);
             }
+
+            protected virtual Solution GetUpdatedSolution(Document newDocument)
+                => newDocument.Project.Solution;
 
             private async Task<Document> UpdateDocumentAsync(
                 Document document, SyntaxNode contextNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)

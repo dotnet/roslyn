@@ -52,7 +52,6 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
       <Link>Implementation\Diagnostics\DiagnosticResultSerializer.cs</Link>
     </Compile>
-    <Compile Include="AddImport\VisualStudioAddImportUndoService.cs" />
     <Compile Include="Experimentation\IVsExperimentationService.cs" />
     <Compile Include="Experimentation\VisualStudioExperimentationService.cs" />
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyResults.cs" />
@@ -201,11 +200,11 @@
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
     <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
-    <Compile Include="AddImport\VisualStudioAddImportUndoService.AbstractAddRemoveUndoUnit.cs" />
-    <Compile Include="AddImport\VisualStudioAddImportUndoService.AddMetadataReferenceUndoUnit.cs" />
-    <Compile Include="AddImport\VisualStudioAddImportUndoService.AddProjectReferenceUndoUnit.cs" />
-    <Compile Include="AddImport\VisualStudioAddImportUndoService.RemoveMetadataReferenceUndoUnit.cs" />
-    <Compile Include="AddImport\VisualStudioAddImportUndoService.RemoveProjectReferenceUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractAddRemoveUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddMetadataReferenceUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddProjectReferenceUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveMetadataReferenceUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveProjectReferenceUndoUnit.cs" />
     <Compile Include="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
