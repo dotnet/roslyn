@@ -11,10 +11,9 @@ using Microsoft.VisualStudio.LanguageServices.Setup;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
-    [Export(typeof(IRoslynTelemetrySetup))]
-    internal class RoslynTelemetrySetup : IRoslynTelemetrySetup
+    internal static class RoslynTelemetrySetup
     {
-        public void Initialize(IServiceProvider serviceProvider)
+        public static void Initialize(IServiceProvider serviceProvider)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             var optionService = componentModel.GetService<IGlobalOptionService>();
