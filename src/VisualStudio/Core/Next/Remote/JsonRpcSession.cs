@@ -40,32 +40,86 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _cancellationRegistration = CancellationToken.Register(Dispose);
         }
 
-        public override Task InvokeAsync(string targetName, params object[] arguments)
+        public override async Task InvokeAsync(string targetName, params object[] arguments)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray());
+            try
+            {
+                await _serviceClient.InvokeAsync(
+                    targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray()).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
+                // can cause this exception to happen. newer version supports cancellation token natively, but
+                // we can't use it now, so we will catch object disposed exception and check cancellation token
+                CancellationToken.ThrowIfCancellationRequested();
+                throw;
+            }
         }
 
-        public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
+        public override async Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray());
+            try
+            {
+                return await _serviceClient.InvokeAsync<T>(
+                    targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray()).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
+                // can cause this exception to happen. newer version supports cancellation token natively, but
+                // we can't use it now, so we will catch object disposed exception and check cancellation token
+                CancellationToken.ThrowIfCancellationRequested();
+                throw;
+            }
         }
 
-        public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+        public override async Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
+            try
+            {
+                await _serviceClient.InvokeAsync(
+                    targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(),
+                    funcWithDirectStreamAsync, CancellationToken).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
+                // can cause this exception to happen. newer version supports cancellation token natively, but
+                // we can't use it now, so we will catch object disposed exception and check cancellation token
+                CancellationToken.ThrowIfCancellationRequested();
+                throw;
+            }
         }
 
-        public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        public override async Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
+            try
+            {
+                return await _serviceClient.InvokeAsync<T>(
+                    targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(),
+                    funcWithDirectStreamAsync, CancellationToken).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
+                // can cause this exception to happen. newer version supports cancellation token natively, but
+                // we can't use it now, so we will catch object disposed exception and check cancellation token
+                CancellationToken.ThrowIfCancellationRequested();
+                throw;
+            }
         }
 
         protected override void OnDisposed()
