@@ -58,16 +58,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             protected override Solution GetUpdatedSolution(Document newDocument)
             {
-                if(_project.Id == newDocument.Project.Id)
+                if (_project.Id == newDocument.Project.Id)
                 {
                     // This reference was found while searching in the project for our document.  No
-                    // need to add any additional operations.
-                    return base.GetUpdatedSolution(newDocument);
+                    // need to make any solution changes.
+                    return newDocument.Project.Solution;
                 }
 
+                // If this reference came from searching another project, then add a project reference
+                // as well.
                 var newProject = newDocument.Project.AddProjectReference(new ProjectReference(_project.Id));
                 return newProject.Solution;
-                // return new AddProjectReferenceCodeActionOperation(newDocument.Id, _project.Id);
             }
 
             protected override string TryGetDescription(Project project, SyntaxNode node, SemanticModel semanticModel)
