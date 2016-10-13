@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             CancellationToken cancellationToken);
     }
 
-    [ExportWorkspaceService(typeof(IWorkspaceService)), Shared]
+    [ExportWorkspaceService(typeof(IAddImportUndoService)), Shared]
     internal class DefaultAddImportUndoService : IAddImportUndoService
     {
         public bool TryAddMetadataReference(

@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _reference = reference;
                 }
 
+                internal override bool ApplyDuringTests => true;
+
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
                     var service = workspace.Services.GetService<IAddImportUndoService>();

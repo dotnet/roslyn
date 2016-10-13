@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             get { return _changedSolution; }
         }
 
+        internal override bool ApplyDuringTests => true;
+
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
             this.Apply(workspace, new ProgressTracker(), cancellationToken);
