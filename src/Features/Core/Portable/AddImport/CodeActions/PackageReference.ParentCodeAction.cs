@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             ? string.Format(FeaturesResources.Use_local_version_0, versionOpt)
                             : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
-                    var getOperations = new AsyncLazy<ValueTuple<ApplyChangesOperation, InstallNugetPackageOperation>>(
+                    var getOperations = new AsyncLazy<ValueTuple<Document, Document, InstallNugetPackageOperation>>(
                         c => GetOperationsAsync(versionOpt, isLocal, document, node, placeSystemNamespaceFirst, c),
                         cacheResult: true);
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         title, CodeActionPriority.Low, getOperations);
                 }
 
-                private async Task<ValueTuple<ApplyChangesOperation, InstallNugetPackageOperation>> GetOperationsAsync(
+                private async Task<ValueTuple<Document, Document, InstallNugetPackageOperation>> GetOperationsAsync(
                     string versionOpt, 
                     bool isLocal,
                     Document document, 
@@ -95,23 +95,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     bool placeSystemNamespaceFirst, 
                     CancellationToken cancellationToken)
                 {
+                    var oldDocument = document;
                     _reference.ReplaceNameNode(ref node, ref document, cancellationToken);
 
                     var newDocument = await _reference.provider.AddImportAsync(
                         node, _reference.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-                    var newSolution = newDocument.Project.Solution;
 
-                    // Create a dummy code action here so that we go through the codepath
-                    // where the solution is 'preprocessed' (i.e. formatting/simplification/etc.
-                    // is run). 
-                    var codeAction = new SolutionChangeAction("", c => Task.FromResult(newSolution));
-                    var codeActionOperations =  await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                    // We're going to be manually applying this new document to the workspace
+                    // (so we can roll it back ourselves if installing the nuget package fails).
+                    // As such, we need to do the postprocessing ourselves of tihs document to 
+                    // ensure things like formatting/simplification happen to it.
+                    newDocument = await this.PostProcessChangesAsync(
+                        newDocument, cancellationToken).ConfigureAwait(false);
 
-                    var operation1 = (ApplyChangesOperation)codeActionOperations.Single();
-                    var operation2 = new InstallNugetPackageOperation(
+                    var installOperation = new InstallNugetPackageOperation(
                         _reference._installerService, document, _reference._source, _reference._packageName, versionOpt, isLocal);
 
-                    return ValueTuple.Create(operation1, operation2);
+                    return ValueTuple.Create(oldDocument, newDocument, installOperation);
                 }
             }
         }
