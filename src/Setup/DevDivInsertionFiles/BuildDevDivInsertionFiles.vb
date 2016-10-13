@@ -770,6 +770,9 @@ Public Class BuildDevDivInsertionFiles
 
         add("Xaml\Microsoft.VisualStudio.LanguageServices.Xaml.dll")
         add("VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.dll")
+        add("EditorFeatures.Next\Microsoft.CodeAnalysis.EditorFeatures.Next.dll")
+        add("Roslyn.Deployment.Full.Next\remoteSymbolSearchUpdateEngine.servicehub.service.json")
+        add("Roslyn.Deployment.Full.Next\snapshotService.servicehub.service.json")
         Return map
     End Function
 
