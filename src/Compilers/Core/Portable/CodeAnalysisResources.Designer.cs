@@ -126,6 +126,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} must either be &apos;default&apos; or have the same length as {1}..
+        /// </summary>
+        internal static string AnonymousTypeArgumentCountMismatch2 {
+            get {
+                return ResourceManager.GetString("AnonymousTypeArgumentCountMismatch2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} and {1} must have the same length..
+        /// </summary>
+        internal static string AnonymousTypeMemberAndNamesCountMismatch2 {
+            get {
+                return ResourceManager.GetString("AnonymousTypeMemberAndNamesCountMismatch2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
         internal static string ArgumentCannotBeEmpty {
@@ -551,6 +569,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inconsistent syntax tree features.
+        /// </summary>
+        internal static string InconsistentSyntaxTreeFeature {
+            get {
+                return ResourceManager.GetString("InconsistentSyntaxTreeFeature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;in-memory assembly&gt;.
         /// </summary>
         internal static string InMemoryAssembly {
@@ -794,6 +821,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MetadataReference &apos;{0}&apos; not found to remove..
+        /// </summary>
+        internal static string MetadataRefNotFoundToRemove1 {
+            get {
+                return ResourceManager.GetString("MetadataRefNotFoundToRemove1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string Method {
@@ -1015,6 +1051,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Property {
             get {
                 return ResourceManager.GetString("Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference of type &apos;{0}&apos; is not valid for this compilation..
+        /// </summary>
+        internal static string ReferenceOfTypeIsInvalid1 {
+            get {
+                return ResourceManager.GetString("ReferenceOfTypeIsInvalid1", resourceCulture);
             }
         }
         
@@ -1253,6 +1298,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to If tuple element locations are specified, the number of locations must match the cardinality of the tuple..
+        /// </summary>
+        internal static string TupleElementLocationCountMismatch {
+            get {
+                return ResourceManager.GetString("TupleElementLocationCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to If tuple element names are specified, the number of element names must match the cardinality of the tuple..
         /// </summary>
         internal static string TupleElementNameCountMismatch {
@@ -1260,15 +1314,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("TupleElementNameCountMismatch", resourceCulture);
             }
         }
-
-        internal static string TupleElementLocationCountMismatch
-        {
-            get
-            {
-                return ResourceManager.GetString("TupleElementLocationCountMismatch", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Tuples must have at least two elements..
         /// </summary>
