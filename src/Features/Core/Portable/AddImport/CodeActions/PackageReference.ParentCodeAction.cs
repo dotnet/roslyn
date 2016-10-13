@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private partial class PackageReference : Reference
         {
+            /// <summary>
+            /// This is the top level 'Install Nuget Package' code action we show in 
+            /// the lightbulb.  It will have children to 'Install Latest', 
+            /// 'Install Version 'X' ..., and 'Install with package manager'.
+            /// </summary>
             private class ParentCodeAction : CodeAction
             {
                 private readonly PackageReference _reference;
