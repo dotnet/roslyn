@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.SymbolResult = symbolResult;
             }
 
-            // protected abstract CodeActionOperation GetAdditionalOperation(Document newDocument);
             protected abstract Glyph? GetGlyph(Document document);
             protected abstract bool CheckForExistingImport(Project project);
 
@@ -53,12 +52,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 var operation = new ApplyChangesOperation(updatedSolution);
                 return ImmutableArray.Create<CodeActionOperation>(operation);
-                //var operation = new ApplyChangesOperation(newDocument.Project.Solution);
-                //var additionalOperation = this.GetAdditionalOperation(newDocument);
-
-                //return additionalOperation != null
-                //    ? ImmutableArray.Create(operation, additionalOperation)
-                //    : ImmutableArray.Create<CodeActionOperation>(operation);
             }
 
             protected virtual Solution GetUpdatedSolution(Document newDocument)
