@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             CustomTypeInfo.Decode([alias].CustomTypeInfoId, [alias].CustomTypeInfo, dynamicFlags, tupleElementNames)
 
             If tupleElementNames IsNot Nothing Then
-                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, sourceAssembly, tupleElementNames.AsImmutable())
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNames.AsImmutable())
             End If
 
             Dim name = [alias].FullName

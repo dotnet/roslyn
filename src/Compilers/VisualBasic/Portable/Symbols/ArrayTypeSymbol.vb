@@ -363,6 +363,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Hash.Combine(current, hashCode)
         End Function
 
+        Friend MustOverride Function WithElementType(elementType As TypeSymbol) As ArrayTypeSymbol
+
 #Region "Use-Site Diagnostics"
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
@@ -538,6 +540,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return True
                 End Get
             End Property
+
+            Friend Overrides Function WithElementType(elementType As TypeSymbol) As ArrayTypeSymbol
+                Return New SZArray(elementType, CustomModifiers, BaseTypeNoUseSiteDiagnostics, Interfaces)
+            End Function
         End Class
 
         ''' <summary>
@@ -578,6 +584,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return True
                 End Get
             End Property
+
+            Friend Overrides Function WithElementType(newElementType As TypeSymbol) As ArrayTypeSymbol
+                Return New MDArray(newElementType, CustomModifiers, Rank, BaseTypeNoUseSiteDiagnostics)
+            End Function
         End Class
 
         Private NotInheritable Class MDArrayWithSizesAndBounds
@@ -619,6 +629,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End Get
             End Property
+
+            Friend Overrides Function WithElementType(newElementType As TypeSymbol) As ArrayTypeSymbol
+                Return New MDArrayWithSizesAndBounds(newElementType, CustomModifiers, Rank, Sizes, LowerBounds, BaseTypeNoUseSiteDiagnostics)
+            End Function
         End Class
 
     End Class

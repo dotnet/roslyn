@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If destinationType.ContainsTuple() AndAlso Not sourceType.IsSameType(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
                 Dim names As ImmutableArray(Of String) = VisualBasicCompilation.TupleNamesEncoder.Encode(destinationType)
-                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(sourceType, containingAssembly, names)
+                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(sourceType, names)
             Else
                 resultType = sourceType
             End If
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If thisParamType.ContainsTuple() AndAlso Not overriddenParam.Type.IsSameType(thisParamType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
                     Dim names As ImmutableArray(Of String) = VisualBasicCompilation.TupleNamesEncoder.Encode(thisParamType)
-                    overriddenParamType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(overriddenParamType, thisParamType.ContainingAssembly, names)
+                    overriddenParamType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(overriddenParamType, names)
                 End If
 
                 thisParam = DirectCast(thisParam, SourceParameterSymbolBase).WithTypeAndCustomModifiers(

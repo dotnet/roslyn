@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Function IncludeTupleElementNamesIfAny(type As TypeSymbol, tupleElementNamesOpt As ImmutableArray(Of String)) As TypeSymbol
             Return If(tupleElementNamesOpt.IsDefault,
                 type,
-                TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _sourceAssembly, tupleElementNamesOpt))
+                TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNamesOpt))
         End Function
 
     End Class
