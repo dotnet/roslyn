@@ -144,11 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             // forces all files to save.  And that's rather a heavyweight and 
             // unexpected experience for users (for the common case where a single 
             // file got edited).
-            //
-            // When we have multiple operations we assume that this is going to be 
-            // more heavyweight. (After all, a full Roslyn solution change can be represented
-            // with a single operation).  As such, we wrap with an undo so all the operations
-            // can be undone at once.
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
             {
