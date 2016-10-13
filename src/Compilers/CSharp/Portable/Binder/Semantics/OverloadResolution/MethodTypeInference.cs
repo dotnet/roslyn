@@ -2492,7 +2492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
                         Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
-                        best = MergeTupleNames(best, candidate, MergeDynamic(best, candidate, best, _conversions.CorLibrary), _conversions.CorLibrary);
+                        best = MergeTupleNames(best, candidate, MergeDynamic(best, candidate, best, _conversions.CorLibrary));
                     }
 
                     OuterBreak:
@@ -2536,7 +2536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Takes the names from the two types, finds the common names, and applies them onto the target.
         /// </summary>
-        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second, TypeSymbol target, AssemblySymbol corLibrary)
+        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second, TypeSymbol target)
         {
             if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
                 !target.ContainsTupleNames())
@@ -2565,7 +2565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(target, corLibrary, mergedNames);
+            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(target, mergedNames);
         }
 
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

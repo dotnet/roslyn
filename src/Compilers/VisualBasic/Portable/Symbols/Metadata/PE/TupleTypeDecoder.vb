@@ -148,9 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                              DecodeNamedType(DirectCast(type, NamedTypeSymbol)))
 
                 Case SymbolKind.ArrayType
-                    Dim arrayType As ArrayTypeSymbol = DirectCast(type, ArrayTypeSymbol)
-                    Dim decodedElementType = DecodeType(arrayType.ElementType)
-                    Return If(decodedElementType Is type, type, arrayType.WithElementType(decodedElementType))
+                    Return DecodeArrayType(DirectCast(type, ArrayTypeSymbol))
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(type.TypeKind)
@@ -246,6 +244,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             decodedArgs.ReverseContents()
             Return decodedArgs.ToImmutableAndFree()
+        End Function
+
+        Private Function DecodeArrayType(type As ArrayTypeSymbol) As ArrayTypeSymbol
+            Dim decodedElementType = DecodeType(type.ElementType)
+            Return If(decodedElementType Is type, type, type.WithElementType(decodedElementType))
         End Function
 
         Private Function EatElementNamesIfAvailable(numberOfElements As Integer) As ImmutableArray(Of String)
