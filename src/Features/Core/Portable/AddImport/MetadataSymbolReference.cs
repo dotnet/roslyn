@@ -37,21 +37,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected override Solution GetUpdatedSolution(Document newDocument)
-            {
-                var newProject = newDocument.Project.AddMetadataReference(_reference);
-                return newProject.Solution;
-            }
+                => newDocument.Project.AddMetadataReference(_reference).Solution;
 
-            //protected override CodeActionOperation GetAdditionalOperation(Document newDocument)
-            //{
-            //    return new AddMetadataReferenceCodeActionOperation(newDocument.Id, _reference);
-            //}
-
+            // Adding metadata references should be considered lower pri than anything else.
             protected override CodeActionPriority GetPriority(Document document)
-            {
-                // Adding metadata references should be considered lower pri than anything else.
-                return CodeActionPriority.Low;
-            }
+                => CodeActionPriority.Low;
 
             protected override Glyph? GetGlyph(Document document) => Glyph.AddReference;
 
