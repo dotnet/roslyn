@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private partial class PackageReference
         {
+            /// <summary>
+            /// Operation responsible purely for installing a nuget package with a specific 
+            /// version, or a the latest version of a nuget package.  Is not responsible
+            /// for adding an import to user code.
+            /// </summary>
             private class InstallNugetPackageOperation : CodeActionOperation
             {
                 private readonly Document _document;
