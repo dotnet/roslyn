@@ -13850,6 +13850,11 @@ BC40001: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Inte
                               ~~
 </errors>)
 
+            Dim m3 = comp.GetMember(Of MethodSymbol)("Derived.M3").ReturnType
+            Assert.Equal("(notA As System.Int32, notB As System.Int32)()", m3.ToTestDisplayString())
+            Assert.Equal({"System.Collections.Generic.IList(Of (notA As System.Int32, notB As System.Int32))"},
+                         m3.Interfaces.SelectAsArray(Function(t) t.ToTestDisplayString()))
+
         End Sub
 
         <Fact>

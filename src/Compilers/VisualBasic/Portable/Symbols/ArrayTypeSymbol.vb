@@ -541,8 +541,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Function WithElementType(elementType As TypeSymbol) As ArrayTypeSymbol
-                Return New SZArray(elementType, CustomModifiers, BaseTypeNoUseSiteDiagnostics, Interfaces)
+            Friend Overrides Function WithElementType(newElementType As TypeSymbol) As ArrayTypeSymbol
+                Dim newInterfaces As ImmutableArray(Of NamedTypeSymbol) = _interfaces
+                If newInterfaces.Length > 0 Then
+                    newInterfaces = newInterfaces.SelectAsArray(Function(i) i.OriginalDefinition.Construct(newElementType))
+                End If
+
+                Return New SZArray(newElementType, CustomModifiers, BaseTypeNoUseSiteDiagnostics, newInterfaces)
             End Function
         End Class
 

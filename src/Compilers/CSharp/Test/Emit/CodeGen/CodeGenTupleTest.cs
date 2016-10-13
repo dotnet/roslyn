@@ -16465,6 +16465,11 @@ public class Derived : Base
                 //     public override (dynamic notA, dynamic) M6() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M6").WithArguments("Derived.M6()", "Base.M6()").WithLocation(18, 45)
                 );
+
+            var m3 = comp.GetMember<MethodSymbol>("Derived.M3").ReturnType;
+            Assert.Equal("(System.Int32 notA, System.Int32 notB)[]", m3.ToTestDisplayString());
+            Assert.Equal(new []{"System.Collections.Generic.IList<(System.Int32 notA, System.Int32 notB)>"},
+                         m3.Interfaces.SelectAsArray(t => t.ToTestDisplayString()));
         }
 
         [Fact]
