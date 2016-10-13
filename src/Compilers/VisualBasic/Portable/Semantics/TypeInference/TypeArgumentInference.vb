@@ -375,6 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' Do not merge array literals with other expressions
                         If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringAll(competitor.ResultType) Then
+                            competitor.ResultType = TypeInferenceCollection.MergeTupleNames(competitor.ResultType, type)
                             competitor.InferenceRestrictions = Conversions.CombineConversionRequirements(
                                                                         competitor.InferenceRestrictions,
                                                                         inferenceRestrictions)

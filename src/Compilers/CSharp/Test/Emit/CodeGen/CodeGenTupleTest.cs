@@ -16299,18 +16299,20 @@ public class C
                 //         System.Console.Write(t.c);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "c").WithArguments("(int a, int)", "c").WithLocation(9, 32)
                 );
+            // Some missing warnings here. See issue https://github.com/dotnet/roslyn/issues/14485
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
             var invocation1 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().First());
-            Assert.Equal("(System.Int32 a, System.Int32) C.M2<(System.Int32 a, System.Int32)>((System.Int32 a, System.Int32) x1, (System.Int32 a, System.Int32) x2)", invocation1.Symbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32)", ((MethodSymbol)invocation1.Symbol).ReturnType.ToTestDisplayString());
 
             var invocation2 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(4).First());
-            Assert.Equal("(System.Int32, System.Int32) C.M2<(System.Int32, System.Int32)>((System.Int32, System.Int32) x1, (System.Int32, System.Int32) x2)", invocation2.Symbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", ((MethodSymbol)invocation2.Symbol).ReturnType.ToTestDisplayString());
 
             var invocation3 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(5).First());
-            Assert.Equal("(System.Int32, System.Int32)[] C.M2<(System.Int32, System.Int32)[]>((System.Int32, System.Int32)[] x1, (System.Int32, System.Int32)[] x2)", invocation3.Symbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)[]", ((MethodSymbol)invocation3.Symbol).ReturnType.ToTestDisplayString());
+            // TODO REVIEW  Are those expectations wrong?
         }
 
         [Fact]

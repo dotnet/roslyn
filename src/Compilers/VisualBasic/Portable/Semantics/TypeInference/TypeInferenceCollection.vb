@@ -579,19 +579,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each competitor As DominantTypeData In Me.GetTypeDataList()
 
                     ' Do not merge array literals with other expressions
-                    If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol Then
-                        If type.IsSameType(competitor.ResultType, TypeCompareKind.AllIgnoreOptionsForVB) Then
+                    If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameType(competitor.ResultType, TypeCompareKind.AllIgnoreOptionsForVB) Then
+                        competitor.ResultType = MergeTupleNames(type, competitor.ResultType)
+                        competitor.InferenceRestrictions = Conversions.CombineConversionRequirements(
+                                                        competitor.InferenceRestrictions,
+                                                        conversion)
 
-                            competitor.ResultType = MergeTupleNames(type, competitor.ResultType)
-
-                            competitor.InferenceRestrictions = Conversions.CombineConversionRequirements(
-                                                            competitor.InferenceRestrictions,
-                                                            conversion)
-
-                            ' TODO: should we simply get out of the loop here? For some reason Dev10 continues, I guess it verifies uniqueness this way.
-                            Debug.Assert(Not foundInList, "List is supposed to be unique: how can we already find two of the same type in this list.")
-                            foundInList = True
-                        End If
+                        ' TODO: should we simply get out of the loop here? For some reason Dev10 continues, I guess it verifies uniqueness this way.
+                        Debug.Assert(Not foundInList, "List is supposed to be unique: how can we already find two of the same type in this list.")
+                        foundInList = True
                     End If
                 Next
             End If
@@ -605,7 +601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function MergeTupleNames(first As TypeSymbol, second As TypeSymbol) As TypeSymbol
+        Friend Shared Function MergeTupleNames(first As TypeSymbol, second As TypeSymbol) As TypeSymbol
             If first.IsSameType(second, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreTupleNames) OrElse
                 Not first.ContainsTupleNames() Then
 
