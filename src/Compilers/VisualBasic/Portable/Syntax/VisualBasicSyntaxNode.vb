@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not stream.CanRead Then
-                Throw New InvalidOperationException(VBResources.TheStreamCannotBeReadFrom)
+                Throw New InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom)
             End If
 
             Try

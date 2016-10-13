@@ -3144,6 +3144,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; has multiple definitions with identical signatures with different tuple element names, including &apos;{1}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_DuplicateProcDefWithDifferentTupleNames2() As String
+            Get
+                Return ResourceManager.GetString("ERR_DuplicateProcDefWithDifferentTupleNames2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Get&apos; is already declared..
         '''</summary>
         Friend ReadOnly Property ERR_DuplicatePropertyGet() As String
@@ -5216,6 +5225,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; cannot implement {1} &apos;{2}&apos; on interface &apos;{3}&apos; because the tuple element names in &apos;{4}&apos; do not match those in &apos;{5}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_ImplementingInterfaceWithDifferentTupleNames5() As String
+            Get
+                Return ResourceManager.GetString("ERR_ImplementingInterfaceWithDifferentTupleNames5", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type parameter not allowed in &apos;Implements&apos; clause..
         '''</summary>
         Friend ReadOnly Property ERR_ImplementsGenericParam() As String
@@ -5573,6 +5591,78 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InterfaceImplementedTwice1() As String
             Get
                 Return ResourceManager.GetString("ERR_InterfaceImplementedTwice1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Interface &apos;{0}&apos; can be implemented only once by this type, but already appears with different tuple element names, as &apos;{1}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterfaceImplementedTwiceWithDifferentTupleNames2() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterfaceImplementedTwiceWithDifferentTupleNames2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Interface &apos;{0}&apos; can be implemented only once by this type, but already appears with different tuple element names, as &apos;{1}&apos; (via &apos;{2}&apos;)..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterfaceImplementedTwiceWithDifferentTupleNames3() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterfaceImplementedTwiceWithDifferentTupleNames3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Interface &apos;{0}&apos; (via &apos;{1}&apos;) can be implemented only once by this type, but already appears with different tuple element names, as &apos;{2}&apos; (via &apos;{3}&apos;)..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterfaceImplementedTwiceWithDifferentTupleNames4() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterfaceImplementedTwiceWithDifferentTupleNames4", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Interface &apos;{0}&apos; (via &apos;{1}&apos;) can be implemented only once by this type, but already appears with different tuple element names, as &apos;{2}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Interface &apos;{0}&apos; can be inherited only once by this interface, but already appears with different tuple element names, as &apos;{1}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterfaceInheritedTwiceWithDifferentTupleNames2() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterfaceInheritedTwiceWithDifferentTupleNames2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Interface &apos;{0}&apos; can be inherited only once by this interface, but already appears with different tuple element names, as &apos;{1}&apos; (via &apos;{2}&apos;)..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterfaceInheritedTwiceWithDifferentTupleNames3() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterfaceInheritedTwiceWithDifferentTupleNames3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Interface &apos;{0}&apos; (via &apos;{1}&apos;) can be inherited only once by this interface, but already appears with different tuple element names, as &apos;{2}&apos; (via &apos;{3}&apos;)..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterfaceInheritedTwiceWithDifferentTupleNames4() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterfaceInheritedTwiceWithDifferentTupleNames4", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Interface &apos;{0}&apos; (via &apos;{1}&apos;) can be inherited only once by this interface, but already appears with different tuple element names, as &apos;{2}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3", resourceCulture)
             End Get
         End Property
         
@@ -10389,11 +10479,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Tuple member names must be unique..
+        '''  Looks up a localized string similar to Tuple element names must be unique..
         '''</summary>
-        Friend ReadOnly Property ERR_TupleDuplicateMemberName() As String
+        Friend ReadOnly Property ERR_TupleDuplicateElementName() As String
             Get
-                Return ResourceManager.GetString("ERR_TupleDuplicateMemberName", resourceCulture)
+                Return ResourceManager.GetString("ERR_TupleDuplicateElementName", resourceCulture)
             End Get
         End Property
         
@@ -10407,20 +10497,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Tuple member name &apos;{0}&apos; is only allowed at position {1}..
+        '''  Looks up a localized string similar to Type characters cannot be used in tuple literals..
         '''</summary>
-        Friend ReadOnly Property ERR_TupleReservedMemberName() As String
+        Friend ReadOnly Property ERR_TupleLiteralDisallowsTypeChar() As String
             Get
-                Return ResourceManager.GetString("ERR_TupleReservedMemberName", resourceCulture)
+                Return ResourceManager.GetString("ERR_TupleLiteralDisallowsTypeChar", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Tuple member name &apos;{0}&apos; is disallowed at any position..
+        '''  Looks up a localized string similar to Tuple element name &apos;{0}&apos; is only allowed at position {1}..
         '''</summary>
-        Friend ReadOnly Property ERR_TupleReservedMemberNameAnyPosition() As String
+        Friend ReadOnly Property ERR_TupleReservedElementName() As String
             Get
-                Return ResourceManager.GetString("ERR_TupleReservedMemberNameAnyPosition", resourceCulture)
+                Return ResourceManager.GetString("ERR_TupleReservedElementName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple element name &apos;{0}&apos; is disallowed at any position..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleReservedElementNameAnyPosition() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleReservedElementNameAnyPosition", resourceCulture)
             End Get
         End Property
         
@@ -11319,9 +11418,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported..
         '''</summary>
-        Friend ReadOnly Property ERR_ValueTupleTypeRefResolutionError() As String
+        Friend ReadOnly Property ERR_ValueTupleTypeRefResolutionError1() As String
             Get
-                Return ResourceManager.GetString("ERR_ValueTupleTypeRefResolutionError", resourceCulture)
+                Return ResourceManager.GetString("ERR_ValueTupleTypeRefResolutionError1", resourceCulture)
             End Get
         End Property
         
@@ -12357,15 +12456,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ThereIsNoDynamicTypeInVB() As String
             Get
                 Return ResourceManager.GetString("ThereIsNoDynamicTypeInVB", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to The stream cannot be read from..
-        '''</summary>
-        Friend ReadOnly Property TheStreamCannotBeReadFrom() As String
-            Get
-                Return ResourceManager.GetString("TheStreamCannotBeReadFrom", resourceCulture)
             End Get
         End Property
         
@@ -13464,6 +13554,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_InvalidAssemblyName_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_InvalidAssemblyName_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; cannot override &apos;{1}&apos; because they differ by their tuple element names..
+        '''</summary>
+        Friend ReadOnly Property WRN_InvalidOverrideDueToTupleNames2() As String
+            Get
+                Return ResourceManager.GetString("WRN_InvalidOverrideDueToTupleNames2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Member cannot override because it differs by its tuple element names..
+        '''</summary>
+        Friend ReadOnly Property WRN_InvalidOverrideDueToTupleNames2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_InvalidOverrideDueToTupleNames2_Title", resourceCulture)
             End Get
         End Property
         

@@ -1244,11 +1244,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The stream cannot be read from..
+        /// </summary>
+        internal static string TheStreamCannotBeReadFrom {
+            get {
+                return ResourceManager.GetString("TheStreamCannotBeReadFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The stream cannot be written to..
         /// </summary>
         internal static string TheStreamCannotBeWrittenTo {
             get {
                 return ResourceManager.GetString("TheStreamCannotBeWrittenTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If tuple element locations are specified, the number of locations must match the cardinality of the tuple..
+        /// </summary>
+        internal static string TupleElementLocationCountMismatch {
+            get {
+                return ResourceManager.GetString("TupleElementLocationCountMismatch", resourceCulture);
             }
         }
         
@@ -1260,15 +1278,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("TupleElementNameCountMismatch", resourceCulture);
             }
         }
-
-        internal static string TupleElementLocationCountMismatch
-        {
-            get
-            {
-                return ResourceManager.GetString("TupleElementLocationCountMismatch", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Tuples must have at least two elements..
         /// </summary>
