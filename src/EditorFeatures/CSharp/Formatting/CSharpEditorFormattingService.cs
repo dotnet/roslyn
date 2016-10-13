@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return !token.IsKind(SyntaxKind.CloseParenToken) || !token.Parent.IsKind(SyntaxKind.UsingStatement);
         }
 
-        private static bool TokenShouldNotFormatOnTypeChar(
+        private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
             SyntaxToken token, CancellationToken cancellationToken)
         {
             if (token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement))
@@ -151,9 +151,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.OpenBraceToken) && !token.IsFirstTokenOnLine(token.SyntaxTree.GetText()))
+            // Only format an { if it is the first token on a line.  We don't want to 
+            // mess with it if it's inside a line.
+            if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
-                return true;
+                var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                if (!token.IsFirstTokenOnLine(text))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -182,8 +188,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // Check to see if any of the below. If not, bail.
             // case 1: The token is ')' and the parent is an using statement.
             // case 2: The token is ':' and the parent is either labelled statement or case switch or default switch
-            // 
-            if (TokenShouldNotFormatOnTypeChar(token, cancellationToken))
+            var shouldNotFormat = await TokenShouldNotFormatOnTypeCharAsync(token, cancellationToken).ConfigureAwait(false);
+            if (shouldNotFormat)
             {
                 return null;
             }
