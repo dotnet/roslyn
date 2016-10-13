@@ -16,14 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// </summary>
     internal class JsonRpcClient : IDisposable
     {
-        private readonly Stream _stream;
         private readonly JsonRpc _rpc;
 
         public JsonRpcClient(Stream stream, object callbackTarget, bool useThisAsCallback)
         {
-            _stream = stream;
-
             var target = useThisAsCallback ? this : callbackTarget;
+
             _rpc = JsonRpc.Attach(stream, target);
             _rpc.Disconnected += OnDisconnected;
         }
@@ -53,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             OnDisposed();
 
             _rpc.Dispose();
-            _stream.Dispose();
         }
 
         protected virtual void OnDisposed()

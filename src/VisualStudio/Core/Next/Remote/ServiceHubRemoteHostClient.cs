@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
         private readonly HubClient _hubClient;
-        private readonly Stream _stream;
         private readonly JsonRpc _rpc;
 
         public static async Task<RemoteHostClient> CreateAsync(
@@ -66,7 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             base(workspace)
         {
             _hubClient = hubClient;
-            _stream = stream;
 
             _rpc = JsonRpc.Attach(stream, target: this);
 
@@ -94,7 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected override void OnDisconnected()
         {
             _rpc.Dispose();
-            _stream.Dispose();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

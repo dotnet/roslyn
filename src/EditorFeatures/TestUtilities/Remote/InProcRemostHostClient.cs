@@ -19,7 +19,6 @@ namespace Roslyn.Test.Utilities.Remote
     internal class InProcRemoteHostClient : RemoteHostClient
     {
         private readonly InProcRemoteServices _inprocServices;
-        private readonly Stream _stream;
         private readonly JsonRpc _rpc;
 
         public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
@@ -48,7 +47,6 @@ namespace Roslyn.Test.Utilities.Remote
         {
             _inprocServices = inprocServices;
 
-            _stream = stream;
             _rpc = JsonRpc.Attach(stream, target: this);
 
             // handle disconnected situation
@@ -75,7 +73,6 @@ namespace Roslyn.Test.Utilities.Remote
         protected override void OnDisconnected()
         {
             _rpc.Dispose();
-            _stream.Dispose();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

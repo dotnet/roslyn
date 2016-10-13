@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private static int s_instanceId;
 
         private readonly int _instanceId;
-        private readonly Stream _stream;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         protected readonly JsonRpc Rpc;
@@ -32,8 +31,6 @@ namespace Microsoft.CodeAnalysis.Remote
         protected ServiceHubServiceBase(Stream stream, IServiceProvider serviceProvider)
         {
             _instanceId = Interlocked.Add(ref s_instanceId, 1);
-
-            _stream = stream;
 
             // in unit test, service provider will return asset storage, otherwise, use the default one
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
@@ -93,8 +90,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public void Dispose()
         {
             Rpc.Dispose();
-            _stream.Dispose();
-
             Dispose(false);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
