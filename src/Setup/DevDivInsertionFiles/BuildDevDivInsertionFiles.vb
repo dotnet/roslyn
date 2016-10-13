@@ -753,8 +753,30 @@ Public Class BuildDevDivInsertionFiles
         Next
     End Sub
 
+    ''' <summary>
+    ''' Recently a number of our compontents have moved from the root of the output directory to sub-directories. The
+    ''' map returned from this function maps file names to their relative path in the build output.
+    '''
+    ''' This is still pretty terrible though.  Instead of doing all this name matching we should have explicit paths 
+    ''' and match on file contents.  That is a large change for this tool though.  As a temporary work around this 
+    ''' map will be used instead.
+    ''' </summary>
+    Private Shared Function CreateVsixPathMap() As Dictionary(Of String, String)
+        Dim map As New Dictionary(Of String, String)
+        Dim add = Sub(filePath As String)
+                      Dim name = Path.GetFileName(filePath)
+                      map(name) = filePath
+                  End Sub
+
+        add("Xaml\Microsoft.VisualStudio.LanguageServices.Xaml.dll")
+        add("VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.dll")
+        Return map
+    End Function
+
     Private Sub ProcessVsixFiles(filesToInsert As List(Of NugetFileInfo), dependencies As Dictionary(Of String, DependencyInfo))
         Dim processedFiles = New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+        Dim map = CreateVsixPathMap()
+        Dim allGood = True
 
         ' We build our language service authoring by cracking our .vsixes and pulling out the bits that matter
         For Each vsixFileName In VsixesToInstall
@@ -790,12 +812,27 @@ Public Class BuildDevDivInsertionFiles
                         ' In Razzle src\ArcProjects\debugger\ConcordSDK.targets references .vsdconfig files under LanguageServiceRegistration\ExpressionEvaluatorPackage
                         Dim target = If(Path.GetExtension(partFileName).Equals(".vsdconfig"), "LanguageServiceRegistration\ExpressionEvaluatorPackage", "")
 
-                        filesToInsert.Add(New NugetFileInfo(partFileName, target))
-                        AddXmlDocumentationFile(filesToInsert, partFileName)
+                        Dim partPath = partFileName
+                        Dim mappedPath As String = Nothing
+                        If map.TryGetValue(partFileName, mappedPath) Then
+                            partPath = mappedPath
+                        End If
+
+                        If Not File.Exists(Path.Combine(_binDirectory, partPath)) Then
+                            Console.WriteLine($"File {partPath} does not exist at {_binDirectory}")
+                            allGood = False
+                        End If
+
+                        filesToInsert.Add(New NugetFileInfo(partPath, target))
+                        AddXmlDocumentationFile(filesToInsert, partPath)
                     End If
                 Next
             End Using
         Next
+
+        If Not allGood Then
+            Throw New Exception("Error processing VSIX files")
+        End If
     End Sub
 
     Private Function GetPartRelativePath(part As PackagePart) As String
@@ -823,6 +860,17 @@ Public Class BuildDevDivInsertionFiles
     ''' </summary>
     Private Sub GenerateRoslynNuSpec(filesToInsert As List(Of NugetFileInfo))
         Const PackageName As String = "VS.ExternalAPIs.Roslyn"
+
+        ' Do a quick sanity check for the files existing.  If they don't exist at this time then the tool output
+        ' is going to be unusable
+        Dim allGood = True
+        For Each fileInfo In filesToInsert
+            Dim filePath = Path.Combine(_binDirectory, fileInfo.Path)
+            If Not File.Exists(filePath) Then
+                allGood = False
+                Console.WriteLine($"File {fileInfo.Path} does not exist at {_binDirectory}")
+            End If
+        Next
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
                   <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
