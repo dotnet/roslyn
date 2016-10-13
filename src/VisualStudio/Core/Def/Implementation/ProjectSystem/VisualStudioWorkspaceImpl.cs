@@ -388,10 +388,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (filePath != null)
             {
                 VSProject vsProject = (VSProject)project.Object;
-                Reference reference = vsProject.References.Find(filePath);
-                if (reference != null)
+                foreach (Reference reference in vsProject.References)
                 {
-                    reference.Remove();
+                    if (StringComparer.OrdinalIgnoreCase.Equals(reference.Path, filePath))
+                    {
+                        reference.Remove();
+                        break;
+                    }
                 }
             }
         }

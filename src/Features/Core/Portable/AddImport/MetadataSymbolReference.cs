@@ -9,11 +9,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-        private class MetadataSymbolReference : SymbolReference
+        private partial class MetadataSymbolReference : SymbolReference
         {
             private readonly PortableExecutableReference _reference;
 
-            public MetadataSymbolReference(AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, SymbolResult<INamespaceOrTypeSymbol> symbolResult, PortableExecutableReference reference)
+            public MetadataSymbolReference(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                SymbolResult<INamespaceOrTypeSymbol> symbolResult, PortableExecutableReference reference)
                 : base(provider, symbolResult)
             {
                 _reference = reference;
@@ -34,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     Path.GetFileName(_reference.FilePath));
             }
 
-            protected override Solution UpdateSolution(Document newDocument)
+            protected override CodeActionOperation GetAdditionalOperation(Document newDocument)
             {
-                return newDocument.Project.AddMetadataReference(_reference).Solution;
+                return new AddMetadataReferenceCodeActionOperation(newDocument.Id, _reference);
             }
 
             protected override CodeActionPriority GetPriority(Document document)

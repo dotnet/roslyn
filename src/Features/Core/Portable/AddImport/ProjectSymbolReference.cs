@@ -2,8 +2,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         /// light bulb and we say "(from ProjectXXX)" to make it clear that this will do more than
         /// just add a using/import.
         /// </summary>
-        private class ProjectSymbolReference : SymbolReference
+        private partial class ProjectSymbolReference : SymbolReference
         {
             private readonly Project _project;
 
@@ -58,21 +56,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return CodeActionPriority.Low;
             }
 
-            protected override Solution UpdateSolution(Document newDocument)
+            protected override CodeActionOperation GetAdditionalOperation(Document newDocument)
             {
-                if (_project.Id == newDocument.Project.Id)
+                if(_project.Id == newDocument.Project.Id)
                 {
                     // This reference was found while searching in the project for our document.  No
-                    // need to make any solution changes.
-                    return newDocument.Project.Solution;
+                    // need to add any additional operations.
+                    return null;
                 }
 
-                // If this reference came from searching another project, then add a project reference
-                // as well.
-                var newProject = newDocument.Project;
-                newProject = newProject.AddProjectReference(new ProjectReference(_project.Id));
-
-                return newProject.Solution;
+                return new AddProjectReferenceCodeActionOperation(newDocument.Id, _project.Id);
             }
 
             protected override string TryGetDescription(Project project, SyntaxNode node, SemanticModel semanticModel)
