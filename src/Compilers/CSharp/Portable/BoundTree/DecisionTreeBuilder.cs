@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected SyntaxNode Syntax { private get; set; }
 
-        protected DecisionTree AddToDecisionTree(DecisionTree decisionTree, BoundPatternSwitchSection section, BoundPatternSwitchLabel label)
+        protected DecisionTree AddToDecisionTree(DecisionTree decisionTree, SyntaxNode sectionSyntax, BoundPatternSwitchLabel label)
         {
             var pattern = label.Pattern;
             var guard = label.Guard;
@@ -46,12 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        return AddByValue(decisionTree, constantPattern.Value, (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), section, guard, label));
+                        return AddByValue(decisionTree, constantPattern.Value,
+                            (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), sectionSyntax, guard, label));
                     }
                 case BoundKind.DeclarationPattern:
                     {
                         var declarationPattern = (BoundDeclarationPattern)pattern;
-                        DecisionMaker maker = (e, t) => new DecisionTree.Guarded(e, t, ImmutableArray.Create(new KeyValuePair<BoundExpression, BoundExpression>(e, declarationPattern.VariableAccess)), section, guard, label);
+                        DecisionMaker maker =
+                            (e, t) => new DecisionTree.Guarded(e, t, ImmutableArray.Create(new KeyValuePair<BoundExpression, BoundExpression>(e, declarationPattern.VariableAccess)), sectionSyntax, guard, label);
                         if (declarationPattern.IsVar)
                         {
                             return Add(decisionTree, maker);

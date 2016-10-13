@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // A sequence of bindings to be assigned before evaluation of the guard or jump to the label.
             // Each one contains the source of the assignment and the destination of the assignment, in that order.
             public readonly ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> Bindings;
-            public readonly BoundPatternSwitchSection Section;
+            public readonly SyntaxNode SectionSyntax;
             public readonly BoundExpression Guard;
             public readonly BoundPatternSwitchLabel Label;
             public DecisionTree Default = null; // decision tree to use if the Guard is false
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression expression,
                 TypeSymbol type,
                 ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> bindings,
-                BoundPatternSwitchSection section,
+                SyntaxNode sectionSyntax,
                 BoundExpression guard,
                 BoundPatternSwitchLabel label)
                 : base(expression, type, null)
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Guard = guard;
                 this.Label = label;
                 this.Bindings = bindings;
-                this.Section = section;
+                this.SectionSyntax = sectionSyntax;
                 Debug.Assert(guard?.ConstantValue != ConstantValue.False);
                 base.MatchIsComplete =
                     (guard == null) || (guard.ConstantValue == ConstantValue.True);
