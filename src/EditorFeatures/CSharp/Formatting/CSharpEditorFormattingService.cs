@@ -141,11 +141,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
             SyntaxToken token, CancellationToken cancellationToken)
         {
+            // If the token is a )  we only want to format if it's the close paren
+            // of a using statement.  That way if we have nested usings, the inner
+            // using will align with the outer one when the user types the close paren.
             if (token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement))
             {
                 return true;
             }
 
+            // If the token is a :  we only want to format if it's a labeled statement
+            // or case.  When the colon is typed we'll want ot immediately have those
+            // statements snap to their appropriate indentation level.
             if (token.IsKind(SyntaxKind.ColonToken) && !(token.Parent.IsKind(SyntaxKind.LabeledStatement) || token.Parent is SwitchLabelSyntax))
             {
                 return true;
@@ -185,9 +191,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
-            // Check to see if any of the below. If not, bail.
-            // case 1: The token is ')' and the parent is an using statement.
-            // case 2: The token is ':' and the parent is either labelled statement or case switch or default switch
             var shouldNotFormat = await TokenShouldNotFormatOnTypeCharAsync(token, cancellationToken).ConfigureAwait(false);
             if (shouldNotFormat)
             {
