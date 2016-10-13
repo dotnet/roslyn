@@ -10,6 +10,11 @@ REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Ot
 REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
 set MSBuildAdditionalCommandLineArgs=/nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal
 
+REM Github pull request titles are unescaped, so we need to run another program to
+REM do the escaping and replace it.
+for /f %%i in ('csi .\build\scripts\escape_pr_title.csx') set ghprbPullTitle=%%i
+echo "PULL REQUEST TITLE: %ghprbPullTitle%"
+
 :ParseArguments
 if "%1" == "" goto :DoneParsing
 if /I "%1" == "/?" call :Usage && exit /b 1
