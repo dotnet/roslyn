@@ -12,7 +12,7 @@ vs.localizedResources
                        description="Interactive Roslyn components for Visual Studio."
 
 vs.payloads
-  vs.payload source=$(OutputPath)Roslyn.VisualStudio.InteractiveComponents.vsix
+  vs.payload source=$(OutputPath)VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix
 
 vs.dependencies
   vs.dependency id=Microsoft.VisualStudio.MinShell
