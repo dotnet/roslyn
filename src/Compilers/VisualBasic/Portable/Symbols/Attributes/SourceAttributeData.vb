@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._applicationNode = applicationNode
             Me._attributeClass = attrClass
             Me._attributeConstructor = attrMethod
-            Me._constructorArguments = If(constructorArgs.IsDefault, ImmutableArray(Of TypedConstant).Empty, constructorArgs)
+            Me._constructorArguments = constructorArgs.NullToEmpty()
             Me._namedArguments = If(namedArgs.IsDefault, ImmutableArray.Create(Of KeyValuePair(Of String, TypedConstant))(), namedArgs)
             Me._isConditionallyOmitted = isConditionallyOmitted
             Me._hasErrors = hasErrors
