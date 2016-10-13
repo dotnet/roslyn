@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         private static async Task<T> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
-            int searchCap, CancellationToken cancellationToken) where T: class
+            int searchCap, CancellationToken cancellationToken) where T : class
         {
             var document = solution.GetDocument(documentId);
             if (document == null)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             var position = location.SourceSpan.Start;
             var token = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)).FindToken(position, true);
-            var node = GetEnclosingCodeElementNode(document, token, langServices);
+            var node = GetEnclosingCodeElementNode(document, token, langServices, cancellationToken);
             var longName = langServices.GetDisplayName(semanticModel, node);
 
             // get the full line of source text on the line that contains this position
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             // get the actual span of text for the line containing reference
             var textLine = text.Lines.GetLineFromPosition(position);
-            
+
             // turn the span from document relative to line relative
             var spanStart = token.Span.Start - textLine.Span.Start;
             var line = textLine.ToString();
@@ -135,13 +135,15 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 afterLine2.TrimEnd());
         }
 
-        private static SyntaxNode GetEnclosingCodeElementNode(Document document, SyntaxToken token, ICodeLensDisplayInfoService langServices)
+        private static SyntaxNode GetEnclosingCodeElementNode(Document document, SyntaxToken token, ICodeLensDisplayInfoService langServices, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
             var node = token.Parent;
             while (node != null)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (syntaxFactsService.IsDocumentationComment(node))
                 {
                     var structuredTriviaSyntax = (IStructuredTriviaSyntax)node;
@@ -177,24 +179,20 @@ namespace Microsoft.CodeAnalysis.CodeLens
                         .Select(location => GetDescriptorOfEnclosingSymbolAsync(solution, location, cancellationToken))
                         .ToArray();
 
-                    await Task.WhenAll(referenceTasks).ConfigureAwait(false);
+                    var result = await Task.WhenAll(referenceTasks).ConfigureAwait(false);
 
-                    var result = ArrayBuilder<ReferenceLocationDescriptor>.GetInstance();
-                    foreach (var task in referenceTasks)
-                    {
-                        result.Add(await task.ConfigureAwait(false));
-                    }
-
-                    return (IEnumerable<ReferenceLocationDescriptor>)result.ToImmutableAndFree();
+                    return (IEnumerable<ReferenceLocationDescriptor>)result;
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        private static ISymbol GetEnclosingMethod(SemanticModel semanticModel, Location location)
+        private static ISymbol GetEnclosingMethod(SemanticModel semanticModel, Location location, CancellationToken cancellationToken)
         {
             var enclosingSymbol = semanticModel.GetEnclosingSymbol(location.SourceSpan.Start);
 
             for (var current = enclosingSymbol; current != null; current = current.ContainingSymbol)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (current.Kind != SymbolKind.Method)
                 {
                     continue;
@@ -225,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             var document = solution.GetDocument(doc.Id);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var fullName = GetEnclosingMethod(semanticModel, commonLocation)?.ToDisplayString(MethodDisplayFormat);
+            var fullName = GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
 
             return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath) : null;
         }
@@ -240,19 +238,9 @@ namespace Microsoft.CodeAnalysis.CodeLens
                         .Select(location => GetMethodDescriptorAsync(location, solution, cancellationToken))
                         .ToArray();
 
-                    await Task.WhenAll(descriptorTasks).ConfigureAwait(false);
+                    var result = await Task.WhenAll(descriptorTasks).ConfigureAwait(false);
 
-                    var result = ArrayBuilder<ReferenceMethodDescriptor>.GetInstance();
-                    foreach (var task in descriptorTasks)
-                    {
-                        var descriptor = await task.ConfigureAwait(false);
-                        if (result != null)
-                        {
-                            result.Add(descriptor);
-                        }
-                    }
-
-                    return (IEnumerable<ReferenceMethodDescriptor>)result.ToImmutableAndFree();
+                    return (IEnumerable<ReferenceMethodDescriptor>)result;
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken);
         }
 
@@ -269,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var document = solution.GetDocument(doc.Id);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            return GetEnclosingMethod(semanticModel, commonLocation)?.ToDisplayString(MethodDisplayFormat);
+            return GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
         }
     }
 }
