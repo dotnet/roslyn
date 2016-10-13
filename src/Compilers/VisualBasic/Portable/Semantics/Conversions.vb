@@ -1246,6 +1246,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' check arguments against flattened list of target element types 
             Dim result As ConversionKind = wideningConversion
+            Dim involvesNarrowingFromNumericConstant As ConversionKind = Nothing
+            Dim allNarrowingIsFromNumericConstant = ConversionKind.InvolvesNarrowingFromNumericConstant
 
             For i As Integer = 0 To arguments.Length - 1
                 Dim argument = arguments(i)
@@ -1261,12 +1263,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing 'ConversionKind.NoConversion
                 End If
 
+                involvesNarrowingFromNumericConstant = involvesNarrowingFromNumericConstant Or elementConversion
+
                 If IsNarrowingConversion(elementConversion) Then
+                    allNarrowingIsFromNumericConstant = allNarrowingIsFromNumericConstant And elementConversion
                     result = narrowingConversion
                 End If
             Next
 
-            Return result
+            Return result Or
+                   (involvesNarrowingFromNumericConstant And allNarrowingIsFromNumericConstant And ConversionKind.InvolvesNarrowingFromNumericConstant)
         End Function
 
         Private Shared Function ClassifyArrayInitialization(source As BoundArrayInitialization, targetElementType As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind

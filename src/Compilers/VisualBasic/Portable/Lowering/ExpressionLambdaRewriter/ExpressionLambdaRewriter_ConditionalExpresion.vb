@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim convKind As ConversionKind = Conversions.ClassifyPredefinedConversion(parameterType, conversion.Operand.Type, useSiteDiagnostics)
                 Diagnostics.Add(conversion, useSiteDiagnostics)
 
-                If convKind = ConversionKind.NarrowingNullable AndAlso Not toType.IsNullableType Then
+                If (convKind And ConversionKind.NarrowingNullable) = ConversionKind.NarrowingNullable AndAlso Not toType.IsNullableType Then
                     ' Convert to non-nullable type first to mimic Dev11
                     Return Me._factory.Convert(toType, CreateUserDefinedNullableToUnderlyingConversion(parameter, parameterType, isChecked), isChecked)
                 Else
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim innerConversionApplied As Boolean = Not Conversions.IsIdentityConversion(innerConversion)
             If innerConversionApplied Then
-                Debug.Assert(innerConversion = ConversionKind.NarrowingNullable)
+                Debug.Assert((innerConversion And ConversionKind.NarrowingNullable) = ConversionKind.NarrowingNullable)
 
                 'If outConv Is Nothing OrElse outConv.ConversionKind = ConversionKind.WideningNullable Then
                 ' NOTE: in simple cases where inner conversion is (T? -> T) and outer conversion is (S -> S?),
