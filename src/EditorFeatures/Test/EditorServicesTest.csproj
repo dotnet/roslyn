@@ -87,10 +87,6 @@
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
@@ -141,6 +137,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -218,12 +215,13 @@
     <Compile Include="Extensions\WorkspaceExtensions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
     <Compile Include="MoveType\AbstractMoveTypeTest.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToTests.cs" />
+    <Compile Include="Preview\MockPreviewPaneService.cs" />
+    <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxTriviaStructureProviderTests.cs" />
     <Compile Include="Structure\BlockStructureServiceTests.cs" />
-    <Compile Include="Preview\MockPreviewPaneService.cs" />
-    <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />
     <Compile Include="DocumentationComments\AbstractXmlTagCompletionTests.cs" />
@@ -266,7 +264,6 @@
     <Compile Include="MetadataAsSource\MetadataAsSourceTests.cs" />
     <Compile Include="MetadataAsSource\MetadataAsSourceTests.CSharp.cs" />
     <Compile Include="MetadataAsSource\MetadataAsSourceTests.VisualBasic.cs" />
-    <Compile Include="MinimalTestExportProvider.cs" />
     <Compile Include="NavigateTo\NavigateToTestAggregator.Callback.cs" />
     <Compile Include="NavigateTo\NavigateToTestAggregator.cs" />
     <Compile Include="Structure\BlockSpanTests.cs" />
@@ -287,8 +284,6 @@
     <Compile Include="Tagging\AsynchronousTaggerTests.cs" />
     <Compile Include="Tagging\TagSpanIntervalTreeTests.cs" />
     <Compile Include="TestExportProvider.cs" />
-    <Compile Include="TestExtensionErrorHandler.cs" />
-    <Compile Include="TestOptionsServiceFactory.cs" />
     <Compile Include="TextEditorFactoryExtensions.cs" />
     <Compile Include="TextEditor\TextBufferAssociatedViewServiceTests.cs" />
     <Compile Include="TextEditor\TryGetDocumentTests.cs" />
@@ -302,14 +297,8 @@
     <Compile Include="Utilities\SymbolEquivalenceComparerTests.cs" />
     <Compile Include="Utilities\TestEditorOptions.cs" />
     <Compile Include="Utilities\TestWaitContext.cs" />
-    <Compile Include="Utilities\TestWaitIndicator.cs" />
     <Compile Include="Workspaces\CSharpTestWorkspaceFixture.cs" />
     <Compile Include="Workspaces\MefTestWorkspace.cs" />
-    <Compile Include="Workspaces\NoCompilationConstants.cs" />
-    <Compile Include="Workspaces\NoCompilationContentTypeDefinitions.cs" />
-    <Compile Include="Workspaces\NoCompilationContentTypeLanguageService.cs" />
-    <Compile Include="Workspaces\NoCompilationDocumentDiagnosticAnalyzer.cs" />
-    <Compile Include="Workspaces\NoCompilationLanguageServiceFactory.cs" />
     <Compile Include="OptionExtensions.cs" />
     <Compile Include="Workspaces\TestForegroundNotificationService.cs" />
     <Compile Include="Workspaces\TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />

@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
         private void Options_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Feature == ForceLowMemoryMode.OptionName)
+            if (e.Option.Feature == nameof(ForceLowMemoryMode))
             {
                 RefreshFromSettings();
             }

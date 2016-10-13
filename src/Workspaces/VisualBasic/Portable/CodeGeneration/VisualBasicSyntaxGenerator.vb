@@ -276,6 +276,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ThrowStatement(DirectCast(expressionOpt, ExpressionSyntax))
         End Function
 
+        Public Overrides Function ThrowExpression(expression As SyntaxNode) As SyntaxNode
+            Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
+        End Function
+
         Public Overrides Function TypeExpression(typeSymbol As ITypeSymbol) As SyntaxNode
             Return typeSymbol.GenerateTypeSyntax()
         End Function

@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImportTargetKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PortableCustomDebugInfoKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StateMachineHoistedLocalScope.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TupleElementNamesInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VBImportScopeKind.cs" />
   </ItemGroup>
 </Project>

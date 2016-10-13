@@ -78,9 +78,9 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,19): error CS8199: Deconstruction is not supported for an 'out' argument.
+                // (6,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, x2));
-                Diagnostic(ErrorCode.ERR_OutVarDeconstructionIsNotSupported, "var (x1, x2)").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2)").WithLocation(6, 19),
                 // (6,24): error CS0103: The name 'x1' does not exist in the current context
                 //         Test1(out var (x1, x2));
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 24),
@@ -277,9 +277,9 @@ public class Cls
                                                             options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (11,19): error CS8199: Deconstruction is not supported for an 'out' argument.
+                // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (x2, x3)));
-                Diagnostic(ErrorCode.ERR_OutVarDeconstructionIsNotSupported, "var (x1, (x2, x3))").WithLocation(11, 19),
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2, x3))").WithLocation(11, 19),
                 // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
                 //     private static int F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
@@ -318,12 +318,13 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (8,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         Test1(out var (x1));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1)").WithLocation(8, 19),
                 // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
                 //     private static int F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
-
-            CompileAndVerify(compilation, expectedOutput: "123");
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
 
@@ -358,12 +359,13 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         Test1(out var (x1, x2: x2));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2: x2)").WithLocation(9, 19),
                 // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
                 //     private static int F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
-
-            CompileAndVerify(compilation, expectedOutput: "123");
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
 
@@ -398,12 +400,13 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         Test1(out var (ref x1, x2));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (ref x1, x2)").WithLocation(9, 19),
                 // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
                 //     private static int F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
-
-            CompileAndVerify(compilation, expectedOutput: "123");
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
 
@@ -438,12 +441,13 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         Test1(out var (x1, (x2)));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2))").WithLocation(9, 19),
                 // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
                 //     private static int F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
-
-            CompileAndVerify(compilation, expectedOutput: "123");
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
 
@@ -478,12 +482,13 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         Test1(out var ((x1), x2));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var ((x1), x2)").WithLocation(9, 19),
                 // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
                 //     private static int F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
-
-            CompileAndVerify(compilation, expectedOutput: "123");
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
 
@@ -511,9 +516,9 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             compilation.VerifyDiagnostics(
-                // (6,19): error CS8199: Deconstruction is not supported for an 'out' argument.
+                // (6,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, x2));
-                Diagnostic(ErrorCode.ERR_OutVarDeconstructionIsNotSupported, "var (x1, x2)").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2)").WithLocation(6, 19),
                 // (6,24): error CS0103: The name 'x1' does not exist in the current context
                 //         Test1(out var (x1, x2));
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 24),
@@ -605,12 +610,13 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         Test1(ref var (x1, x2));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2)").WithLocation(9, 19),
                 // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
                 //     private static int F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
-
-            CompileAndVerify(compilation, expectedOutput: "123");
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
 
@@ -731,12 +737,13 @@ public class Cls
                                                             options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         Test1(out var (x1, (a: x2, b: x3)));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (a: x2, b: x3))").WithLocation(11, 19),
                 // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
                 //     private static int F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
-
-            CompileAndVerify(compilation, expectedOutput: "123");
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
 
@@ -843,7 +850,9 @@ public class Cls
         {
             var variableDeclaratorSyntax = GetVariableDesignation(decl);
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
+            Assert.NotNull(symbol);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
+            Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
@@ -859,19 +868,21 @@ public class Cls
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
 
             var local = (SourceLocalSymbol)symbol;
+            var typeSyntax = decl.Type();
 
-            if (decl.Type().IsVar && local.IsVar && local.Type.IsErrorType())
+            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
+            Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
+
+            if (typeSyntax.IsVar && local.IsVar && local.Type.IsErrorType())
             {
-                Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
+                Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
             }
             else
             {
-                Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type()).Symbol);
+                Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
             }
 
-            Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-            Assert.Equal(local.Type, model.GetTypeInfo(decl).Type);
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
 
             foreach (var reference in references)
             {
@@ -885,6 +896,32 @@ public class Cls
             {
                 VerifyDataFlow(model, decl, isDelegateCreation, isExecutableCode, references, symbol);
             }
+        }
+
+        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl)
+        {
+            var symbolInfo = model.GetSymbolInfo(decl);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(symbolInfo, ((CSharpSemanticModel)model).GetSymbolInfo(decl));
+
+            var typeInfo = model.GetTypeInfo(decl);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
+
+            var conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
+            Assert.False(conversion.Exists);
+            Assert.Equal(conversion, model.ClassifyConversion(decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, model.ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, model.ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
+
+            Assert.Null(model.GetDeclaredSymbol(decl));
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
@@ -938,6 +975,7 @@ public class Cls
             var variableDesignationSyntax = GetVariableDesignation(decl);
             var symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
+            Assert.Equal(variableDesignationSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDesignationSyntax));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
@@ -970,6 +1008,8 @@ public class Cls
             {
                 var local = (SourceLocalSymbol)symbol;
                 var parent = local.IdentifierToken.Parent;
+
+                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>());
 
                 if (parent.Kind() == SyntaxKind.VariableDeclarator)
                 {
@@ -10638,7 +10678,7 @@ public class X
                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
                   select TakeOutParam(12, out var y12) && y12 > 0
                   into s
-                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12;
+                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12 + (TakeOutParam(13, out var y13) ? y13 : 0);
 
         Dummy(y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12); 
     }
@@ -10716,8 +10756,6 @@ public class X
 
                 switch (i)
                 {
-                    case 1:
-                    case 3:
                     case 12:
                         // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
                         //VerifyNotAnOutLocal(model, yRef[1]);
@@ -10727,6 +10765,11 @@ public class X
                         break;
                 }
             }
+
+            var y13Decl = GetOutVarDeclarations(tree, "y13").Single();
+            var y13Ref = GetReference(tree, "y13");
+            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+            //VerifyModelForOutVar(model, y13Decl, y13Ref);
         }
 
         [Fact]
@@ -14317,9 +14360,15 @@ public class X
                 // (12,63): error CS0841: Cannot use local variable 'x1' before it is declared
                 //         using (var x1 = Dummy(TakeOutParam(true, out var x1), x1))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 63),
+                // (12,63): error CS0165: Use of unassigned local variable 'x1'
+                //         using (var x1 = Dummy(TakeOutParam(true, out var x1), x1))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 63),
                 // (20,73): error CS0128: A local variable named 'x2' is already defined in this scope
                 //         using (System.IDisposable x2 = Dummy(TakeOutParam(true, out var x2), x2))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73)
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73),
+                // (20,78): error CS0165: Use of unassigned local variable 'x2'
+                //         using (System.IDisposable x2 = Dummy(TakeOutParam(true, out var x2), x2))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 78)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -15999,6 +16048,39 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl);
 
             Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type()).ToTestDisplayString());
+        }
+
+
+        [Fact]
+        public void GetAliasInfo_02()
+        {
+            var text = @"
+using var = System.Int32;
+
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out var x1);
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl);
+
+            Assert.Equal("var=System.Int32", model.GetAliasInfo(x1Decl.Type()).ToTestDisplayString());
         }
 
         [Fact]
@@ -17744,9 +17826,9 @@ public class Cls
                 // (8,23): error CS0103: The name 'x3' does not exist in the current context
                 //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(8, 23),
-                // (7,9): error CS0177: The out parameter 'x2' must be assigned to before control leaves the current method
+                // (7,13): error CS0177: The out parameter 'x2' must be assigned to before control leaves the current method
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "int b(out var x2) ").WithArguments("x2").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "b").WithArguments("x2").WithLocation(7, 13),
                 // (6,25): warning CS0219: The variable 'a' is assigned but its value is never used
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 25),
@@ -19669,21 +19751,24 @@ public class X
             var variableDeclaratorSyntax = GetVariableDesignation(decl);
             Assert.Null(model.GetDeclaredSymbol(variableDeclaratorSyntax));
             Assert.Null(model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
+            var identifierText = decl.Identifier().ValueText;
+            Assert.False(model.LookupSymbols(decl.SpanStart, name: identifierText).Any());
 
-            Assert.False(model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Any());
-
-            Assert.False(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
+            Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
             Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
 
-            Assert.Null(model.GetSymbolInfo(decl).Symbol);
-            Assert.Null(model.GetTypeInfo(decl).Type);
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
 
+            VerifyModelNotSupported(model, references);
+        }
+
+        private static void VerifyModelNotSupported(SemanticModel model, params IdentifierNameSyntax[] references)
+        {
             foreach (var reference in references)
             {
                 Assert.Null(model.GetSymbolInfo(reference).Symbol);
-                Assert.False(model.LookupSymbols(reference.SpanStart, name: decl.Identifier().ValueText).Any());
-                Assert.False(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
+                Assert.False(model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Any());
+                Assert.DoesNotContain(reference.Identifier.ValueText, model.LookupNames(reference.SpanStart));
                 Assert.True(((TypeSymbol)model.GetTypeInfo(reference).Type).IsErrorType());
             }
         }
@@ -20032,6 +20117,6978 @@ public unsafe struct X
             var model = compilation.GetSemanticModel(tree);
 
             Assert.False(GetOutVarDeclarations(tree, "x3").Any());
+        }
+
+        [Fact]
+        public void StaticType()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out StaticType x1);
+    }
+
+    static object Test1(out StaticType x)
+    {
+        throw new System.NotSupportedException();
+    }
+
+    static class StaticType {}
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (9,19): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
+                //     static object Test1(out StaticType x)
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "Test1").WithArguments("Cls.StaticType").WithLocation(9, 19),
+                // (6,19): error CS0723: Cannot declare a variable of static type 'Cls.StaticType'
+                //         Test1(out StaticType x1);
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(6, 19)
+                );
+        }
+
+        [Fact]
+        public void GlobalCode_ExpressionStatement_01()
+        {
+            string source =
+@"
+H.TakeOutParam(1, out int x1);
+H.Dummy(x1);
+
+object x2;
+H.TakeOutParam(2, out int x2);
+
+H.TakeOutParam(3, out int x3);
+object x3;
+
+H.Dummy(H.TakeOutParam(41, out int x4),
+        H.TakeOutParam(42, out int x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,27): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 27),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,36): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //         H.TakeOutParam(42, out int x4))
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 36),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,27): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 27),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,36): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //         H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 36),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        private static void AssertNoGlobalStatements(SyntaxTree tree)
+        {
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
+        }
+
+        [Fact]
+        public void GlobalCode_ExpressionStatement_02()
+        {
+            string source =
+@"
+H.TakeOutParam(1, out var x1);
+H.Dummy(x1);
+
+object x2;
+H.TakeOutParam(2, out var x2);
+
+H.TakeOutParam(3, out var x3);
+object x3;
+
+H.Dummy(H.TakeOutParam(41, out var x4),
+        H.TakeOutParam(42, out var x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,27): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 27),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,36): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //         H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 36),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,27): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 27),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,36): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //         H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 36),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_ExpressionStatement_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+H.TakeOutParam(1, out var x1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_IfStatement_01()
+        {
+            string source =
+@"
+if (H.TakeOutParam(1, out int x1)) {}
+H.Dummy(x1);
+
+object x2;
+if (H.TakeOutParam(2, out int x2)) {}
+
+if (H.TakeOutParam(3, out int x3)) {}
+object x3;
+
+if (H.Dummy(H.TakeOutParam(41, out int x4),
+            H.TakeOutParam(42, out int x4))) {}
+
+if (H.TakeOutParam(51, out int x5)) 
+{
+    H.TakeOutParam(""52"", out string x5);
+    H.Dummy(x5);
+}
+H.Dummy(x5);
+
+int x6 = 6;
+if (H.Dummy()) 
+{
+    string x6 = ""6"";
+    H.Dummy(x6);
+}
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,31): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // if (H.TakeOutParam(2, out int x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 31),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,40): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //             H.TakeOutParam(42, out int x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 40),
+                // (30,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(30, 17),
+                // (30,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(30, 21),
+                // (30,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(30, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1], x5Ref[0]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,31): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // if (H.TakeOutParam(2, out int x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 31),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,40): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //             H.TakeOutParam(42, out int x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 40),
+                // (16,37): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                //     H.TakeOutParam("52", out string x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(16, 37),
+                // (24,12): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x6'
+                //     string x6 = "6";
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("<invalid-global-code>", "x6").WithLocation(24, 12),
+                // (30,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(30, 13),
+                // (30,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(30, 17),
+                // (30,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(30, 21),
+                // (30,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(30, 25),
+                // (30,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(30, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_IfStatement_02()
+        {
+            string source =
+@"
+if (H.TakeOutParam(1, out var x1)) {}
+H.Dummy(x1);
+
+object x2;
+if (H.TakeOutParam(2, out var x2)) {}
+
+if (H.TakeOutParam(3, out var x3)) {}
+object x3;
+
+if (H.Dummy(H.TakeOutParam(41, out var x4),
+            H.TakeOutParam(42, out var x4))) {}
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+if (H.TakeOutParam(51, out var x5)) 
+{
+    H.TakeOutParam(""52"", out var x5);
+    H.Dummy(x5);
+}
+H.Dummy(x5);
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,31): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // if (H.TakeOutParam(2, out var x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 31),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,40): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //             H.TakeOutParam(42, out var x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 40),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl[0], x5Ref[0], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1], x5Ref[1]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,31): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // if (H.TakeOutParam(2, out var x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 31),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,40): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //             H.TakeOutParam(42, out var x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 40),
+                // (21,34): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                //     H.TakeOutParam("52", out var x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(21, 34),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25),
+                // (16,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(16, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_IfStatement_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+if (H.TakeOutParam(1, out var x1)) 
+{
+    H.TakeOutParam(""11"", out var x1);
+    System.Console.WriteLine(x1);
+}
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+11
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void GlobalCode_IfStatement_04()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+if (H.TakeOutParam(1, out var x1)) 
+    H.Dummy(H.TakeOutParam(""11"", out var x1), x1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static void Dummy(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+11
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void GlobalCode_YieldReturnStatement_01()
+        {
+            string source =
+@"
+yield return H.TakeOutParam(1, out int x1);
+H.Dummy(x1);
+
+object x2;
+yield return H.TakeOutParam(2, out int x2);
+
+yield return H.TakeOutParam(3, out int x3);
+object x3;
+
+yield return H.Dummy(H.TakeOutParam(41, out int x4),
+                     H.TakeOutParam(42, out int x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,40): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // yield return H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 40),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,49): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                      H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 49),
+                // (2,1): error CS7020: Cannot use 'yield' in top-level script code
+                // yield return H.TakeOutParam(1, out int x1);
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(2, 1),
+                // (6,1): error CS7020: Cannot use 'yield' in top-level script code
+                // yield return H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(6, 1),
+                // (8,1): error CS7020: Cannot use 'yield' in top-level script code
+                // yield return H.TakeOutParam(3, out int x3);
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(8, 1),
+                // (11,1): error CS7020: Cannot use 'yield' in top-level script code
+                // yield return H.Dummy(H.TakeOutParam(41, out int x4),
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(11, 1),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,40): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // yield return H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 40),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,49): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                      H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 49),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_YieldReturnStatement_02()
+        {
+            string source =
+@"
+yield return H.TakeOutParam(1, out var x1);
+H.Dummy(x1);
+
+object x2;
+yield return H.TakeOutParam(2, out var x2);
+
+yield return H.TakeOutParam(3, out var x3);
+object x3;
+
+yield return H.Dummy(H.TakeOutParam(41, out var x4),
+                     H.TakeOutParam(42, out var x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,40): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // yield return H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 40),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,49): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                      H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 49),
+                // (2,1): error CS7020: Cannot use 'yield' in top-level script code
+                // yield return H.TakeOutParam(1, out var x1);
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(2, 1),
+                // (6,1): error CS7020: Cannot use 'yield' in top-level script code
+                // yield return H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(6, 1),
+                // (8,1): error CS7020: Cannot use 'yield' in top-level script code
+                // yield return H.TakeOutParam(3, out var x3);
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(8, 1),
+                // (11,1): error CS7020: Cannot use 'yield' in top-level script code
+                // yield return H.Dummy(H.TakeOutParam(41, out var x4),
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(11, 1),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).Type.ToTestDisplayString());
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,40): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // yield return H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 40),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,49): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                      H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 49),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_ReturnStatement_01()
+        {
+            string source =
+@"
+return H.TakeOutParam(1, out int x1);
+H.Dummy(x1);
+
+object x2;
+return H.TakeOutParam(2, out int x2);
+
+return H.TakeOutParam(3, out int x3);
+object x3;
+
+return H.Dummy(H.TakeOutParam(41, out int x4),
+               H.TakeOutParam(42, out int x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,34): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // return H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 34),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,43): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 43),
+                // (3,1): warning CS0162: Unreachable code detected
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "H").WithLocation(3, 1),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,34): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // return H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 34),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,43): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 43),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_ReturnStatement_02()
+        {
+            string source =
+@"
+return H.TakeOutParam(1, out var x1);
+H.Dummy(x1);
+
+object x2;
+return H.TakeOutParam(2, out var x2);
+
+return H.TakeOutParam(3, out var x3);
+object x3;
+
+return H.Dummy(H.TakeOutParam(41, out var x4),
+               H.TakeOutParam(42, out var x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,34): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // return H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 34),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,43): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 43),
+                // (3,1): warning CS0162: Unreachable code detected
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "H").WithLocation(3, 1),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,34): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // return H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 34),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,43): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 43),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_ReturnStatement_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+Test();
+return H.Dummy(H.TakeOutParam(1, out var x1), x1);
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool Dummy(object x, object y) 
+    {
+        System.Console.WriteLine(y);
+        return true;
+    }
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+0
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_ThrowStatement_01()
+        {
+            string source =
+@"
+throw H.TakeOutParam(1, out int x1);
+H.Dummy(x1);
+
+object x2;
+throw H.TakeOutParam(2, out int x2);
+
+throw H.TakeOutParam(3, out int x3);
+object x3;
+
+throw H.Dummy(H.TakeOutParam(41, out int x4),
+              H.TakeOutParam(42, out int x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static System.Exception Dummy(params object[] x) {return null;}
+    public static System.Exception TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return null;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,33): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // throw H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 33),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,42): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //               H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 42),
+                // (3,1): warning CS0162: Unreachable code detected
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "H").WithLocation(3, 1),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,33): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // throw H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 33),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,42): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //               H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 42),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_ThrowStatement_02()
+        {
+            string source =
+@"
+throw H.TakeOutParam(1, out var x1);
+H.Dummy(x1);
+
+object x2;
+throw H.TakeOutParam(2, out var x2);
+
+throw H.TakeOutParam(3, out var x3);
+object x3;
+
+throw H.Dummy(H.TakeOutParam(41, out var x4),
+              H.TakeOutParam(42, out var x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static System.Exception Dummy(params object[] x) {return null;}
+    public static System.Exception TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return null;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,33): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // throw H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 33),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,42): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //               H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 42),
+                // (3,1): warning CS0162: Unreachable code detected
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "H").WithLocation(3, 1),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).Type.ToTestDisplayString());
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,33): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // throw H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 33),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,42): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //               H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 42),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_SwitchStatement_01()
+        {
+            string source =
+@"
+switch (H.TakeOutParam(1, out int x1)) {default: break;}
+H.Dummy(x1);
+
+object x2;
+switch (H.TakeOutParam(2, out int x2)) {default: break;}
+
+switch (H.TakeOutParam(3, out int x3)) {default: break;}
+object x3;
+
+switch (H.Dummy(H.TakeOutParam(41, out int x4),
+                H.TakeOutParam(42, out int x4))) {default: break;}
+
+switch (H.TakeOutParam(51, out int x5)) 
+{
+default:
+    H.TakeOutParam(""52"", out string x5);
+    H.Dummy(x5);
+    break;
+}
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,35): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // switch (H.TakeOutParam(2, out int x2)) {default: break;}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 35),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,44): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                 H.TakeOutParam(42, out int x4))) {default: break;}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 44),
+                // (25,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(25, 17),
+                // (25,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(25, 21),
+                // (25,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(25, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1], x5Ref[0]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,35): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // switch (H.TakeOutParam(2, out int x2)) {default: break;}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 35),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,44): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                 H.TakeOutParam(42, out int x4))) {default: break;}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 44),
+                // (17,37): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                //     H.TakeOutParam("52", out string x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(17, 37),
+                // (25,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(25, 13),
+                // (25,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(25, 17),
+                // (25,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(25, 21),
+                // (25,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(25, 25),
+                // (25,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(25, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_SwitchStatement_02()
+        {
+            string source =
+@"
+switch (H.TakeOutParam(1, out var x1)) {default: break;}
+H.Dummy(x1);
+
+object x2;
+switch (H.TakeOutParam(2, out var x2)) {default: break;}
+
+switch (H.TakeOutParam(3, out var x3)) {default: break;}
+object x3;
+
+switch (H.Dummy(H.TakeOutParam(41, out var x4),
+                H.TakeOutParam(42, out var x4))) {default: break;}
+
+switch (H.TakeOutParam(51, out var x5)) 
+{
+default:
+    H.TakeOutParam(""52"", out var x5);
+    H.Dummy(x5);
+    break;
+}
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,35): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // switch (H.TakeOutParam(2, out var x2)) {default: break;}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 35),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,44): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                 H.TakeOutParam(42, out var x4))) {default: break;}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 44),
+                // (25,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(25, 17),
+                // (25,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(25, 21),
+                // (25,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(25, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1], x5Ref[0]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,35): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // switch (H.TakeOutParam(2, out var x2)) {default: break;}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 35),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,44): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                 H.TakeOutParam(42, out var x4))) {default: break;}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 44),
+                // (17,34): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                //     H.TakeOutParam("52", out var x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(17, 34),
+                // (6,31): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                // switch (H.TakeOutParam(2, out var x2)) {default: break;}
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 31),
+                // (8,31): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                // switch (H.TakeOutParam(3, out var x3)) {default: break;}
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(8, 31),
+                // (11,40): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                // switch (H.Dummy(H.TakeOutParam(41, out var x4),
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(11, 40),
+                // (12,40): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //                 H.TakeOutParam(42, out var x4))) {default: break;}
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(12, 40),
+                // (14,32): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                // switch (H.TakeOutParam(51, out var x5)) 
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(14, 32),
+                // (17,30): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //     H.TakeOutParam("52", out var x5);
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(17, 30),
+                // (2,31): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                // switch (H.TakeOutParam(1, out var x1)) {default: break;}
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(2, 31),
+                // (25,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(25, 13),
+                // (25,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(25, 17),
+                // (25,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(25, 21),
+                // (25,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(25, 25),
+                // (25,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(25, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_SwitchStatement_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+switch (H.TakeOutParam(1, out var x1)) 
+{
+default:
+    H.TakeOutParam(""11"", out var x1);
+    System.Console.WriteLine(x1);
+    break;
+}
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+11
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void GlobalCode_WhileStatement_01()
+        {
+            string source =
+@"
+while (H.TakeOutParam(1, out int x1)) {}
+H.Dummy(x1);
+
+object x2;
+while (H.TakeOutParam(2, out int x2)) {}
+
+while (H.TakeOutParam(3, out int x3)) {}
+object x3;
+
+while (H.Dummy(H.TakeOutParam(41, out int x4),
+               H.TakeOutParam(42, out int x4))) {}
+
+while (H.TakeOutParam(51, out int x5)) 
+{
+    H.TakeOutParam(""52"", out string x5);
+    H.Dummy(x5);
+}
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,34): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // while (H.TakeOutParam(2, out int x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 34),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,43): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                H.TakeOutParam(42, out int x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 43),
+                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
+                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
+                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1], x5Ref[0]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,34): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // while (H.TakeOutParam(2, out int x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 34),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,43): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                H.TakeOutParam(42, out int x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 43),
+                // (16,37): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                //     H.TakeOutParam("52", out string x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(16, 37),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(23, 17),
+                // (23,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(23, 21),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_WhileStatement_02()
+        {
+            string source =
+@"
+while (H.TakeOutParam(1, out var x1)) {}
+H.Dummy(x1);
+
+object x2;
+while (H.TakeOutParam(2, out var x2)) {}
+
+while (H.TakeOutParam(3, out var x3)) {}
+object x3;
+
+while (H.Dummy(H.TakeOutParam(41, out var x4),
+               H.TakeOutParam(42, out var x4))) {}
+
+while (H.TakeOutParam(51, out var x5)) 
+{
+    H.TakeOutParam(""52"", out var x5);
+    H.Dummy(x5);
+}
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,34): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // while (H.TakeOutParam(2, out var x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 34),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,43): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                H.TakeOutParam(42, out var x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 43),
+                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
+                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
+                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1], x5Ref[0]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,34): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // while (H.TakeOutParam(2, out var x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 34),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,43): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                H.TakeOutParam(42, out var x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 43),
+                // (16,34): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                //     H.TakeOutParam("52", out var x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(16, 34),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(23, 17),
+                // (23,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(23, 21),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_WhileStatement_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+while (H.TakeOutParam(1, out var x1)) 
+{
+    H.TakeOutParam(""11"", out var x1);
+    System.Console.WriteLine(x1);
+    break;
+}
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+11
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void GlobalCode_WhileStatement_04()
+        {
+            string source =
+@"
+bool x0 = true;
+System.Console.WriteLine(x1);
+while (x0 && H.TakeOutParam(1, out var x1)) 
+    H.Dummy(H.TakeOutParam(""11"", out var x1) && (x0 = false), x1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static void Dummy(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+11
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void GlobalCode_DoStatement_01()
+        {
+            string source =
+@"
+do {} while (H.TakeOutParam(1, out int x1));
+H.Dummy(x1);
+
+object x2;
+do {} while (H.TakeOutParam(2, out int x2));
+
+do {} while (H.TakeOutParam(3, out int x3));
+object x3;
+
+do {} while (H.Dummy(H.TakeOutParam(41, out int x4),
+                     H.TakeOutParam(42, out int x4)));
+
+do 
+{
+    H.TakeOutParam(""52"", out string x5);
+    H.Dummy(x5);
+}
+while (H.TakeOutParam(51, out int x5));
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,40): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // do {} while (H.TakeOutParam(2, out int x2));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 40),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,49): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                      H.TakeOutParam(42, out int x4)));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 49),
+                // (24,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(24, 17),
+                // (24,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(24, 21),
+                // (24,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(24, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutVar(model, x5Decl[0], x5Ref[0]);
+                VerifyModelForOutField(model, x5Decl[1], x5Ref[1], x5Ref[2]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,40): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // do {} while (H.TakeOutParam(2, out int x2));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 40),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,49): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                      H.TakeOutParam(42, out int x4)));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 49),
+                // (19,35): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                // while (H.TakeOutParam(51, out int x5));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(19, 35),
+                // (24,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(24, 13),
+                // (24,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(24, 17),
+                // (24,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(24, 21),
+                // (24,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(24, 25),
+                // (24,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_DoStatement_02()
+        {
+            string source =
+@"
+do {} while (H.TakeOutParam(1, out var x1));
+H.Dummy(x1);
+
+object x2;
+do {} while (H.TakeOutParam(2, out var x2));
+
+do {} while (H.TakeOutParam(3, out var x3));
+object x3;
+
+do {} while (H.Dummy(H.TakeOutParam(41, out var x4),
+                     H.TakeOutParam(42, out var x4)));
+
+do 
+{
+    H.TakeOutParam(""52"", out var x5);
+    H.Dummy(x5);
+}
+while (H.TakeOutParam(51, out var x5));
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,40): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // do {} while (H.TakeOutParam(2, out var x2));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 40),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,49): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                      H.TakeOutParam(42, out var x4)));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 49),
+                // (24,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(24, 17),
+                // (24,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(24, 21),
+                // (24,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(24, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutVar(model, x5Decl[0], x5Ref[0]);
+                VerifyModelForOutField(model, x5Decl[1], x5Ref[1], x5Ref[2]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,40): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // do {} while (H.TakeOutParam(2, out var x2));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 40),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,49): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                      H.TakeOutParam(42, out var x4)));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 49),
+                // (19,35): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                // while (H.TakeOutParam(51, out var x5));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(19, 35),
+                // (24,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(24, 13),
+                // (24,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(24, 17),
+                // (24,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(24, 21),
+                // (24,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(24, 25),
+                // (24,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_DoStatement_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+do
+{
+    H.TakeOutParam(""11"", out var x1);
+    System.Console.WriteLine(x1);
+}
+while (H.TakeOutParam(1, out var x1) && false);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+11
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref[1]);
+            VerifyModelForOutField(model, x1Decl[1], x1Ref[0], x1Ref[2]);
+        }
+
+        [Fact]
+        public void GlobalCode_DoStatement_04()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+do 
+    H.Dummy(H.TakeOutParam(""11"", out var x1), x1);
+while (H.TakeOutParam(1, out var x1) && false);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static void Dummy(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+11
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref[1]);
+            VerifyModelForOutField(model, x1Decl[1], x1Ref[0], x1Ref[2]);
+        }
+
+        [Fact]
+        public void GlobalCode_LockStatement_01()
+        {
+            string source =
+@"
+lock (H.TakeOutParam(1, out int x1)) {}
+H.Dummy(x1);
+
+object x2;
+lock (H.TakeOutParam(2, out int x2)) {}
+
+lock (H.TakeOutParam(3, out int x3)) {}
+object x3;
+
+lock (H.Dummy(H.TakeOutParam(41, out int x4),
+              H.TakeOutParam(42, out int x4))) {}
+
+lock (H.TakeOutParam(51, out int x5)) 
+{
+    H.TakeOutParam(""52"", out string x5);
+    H.Dummy(x5);
+}
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static object Dummy(params object[] x) {return true;}
+    public static object TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,33): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // lock (H.TakeOutParam(2, out int x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 33),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,42): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //               H.TakeOutParam(42, out int x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 42),
+                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
+                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
+                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1], x5Ref[0]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,33): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // lock (H.TakeOutParam(2, out int x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 33),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,42): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //               H.TakeOutParam(42, out int x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 42),
+                // (16,37): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                //     H.TakeOutParam("52", out string x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(16, 37),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(23, 17),
+                // (23,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(23, 21),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_LockStatement_02()
+        {
+            string source =
+@"
+lock (H.TakeOutParam(1, out var x1)) {}
+H.Dummy(x1);
+
+object x2;
+lock (H.TakeOutParam(2, out var x2)) {}
+
+lock (H.TakeOutParam(3, out var x3)) {}
+object x3;
+
+lock (H.Dummy(H.TakeOutParam(41, out var x4),
+              H.TakeOutParam(42, out var x4))) {}
+
+lock (H.TakeOutParam(51, out var x5)) 
+{
+    H.TakeOutParam(""52"", out var x5);
+    H.Dummy(x5);
+}
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static object Dummy(params object[] x) {return true;}
+    public static object TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,33): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // lock (H.TakeOutParam(2, out var x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 33),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,42): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //               H.TakeOutParam(42, out var x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 42),
+                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
+                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
+                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Decl.Length);
+                Assert.Equal(3, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1], x5Ref[0]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,33): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // lock (H.TakeOutParam(2, out var x2)) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 33),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,42): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //               H.TakeOutParam(42, out var x4))) {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 42),
+                // (16,34): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x5'
+                //     H.TakeOutParam("52", out var x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("<invalid-global-code>", "x5").WithLocation(16, 34),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(23, 17),
+                // (23,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(23, 21),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_LockStatement_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+lock (H.TakeOutParam(1, out var x1)) 
+{
+    H.TakeOutParam(""11"", out var x1);
+    System.Console.WriteLine(x1);
+}
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static object TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+11
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void GlobalCode_LockStatement_04()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+lock (H.TakeOutParam(1, out var x1)) 
+    H.Dummy(H.TakeOutParam(""11"", out var x1), x1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static void Dummy(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+
+    public static object TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+11
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void GlobalCode_DeconstructionDeclarationStatement_01()
+        {
+            string source =
+@"
+(bool a, int b) = (H.TakeOutParam(1, out int x1), 1);
+H.Dummy(x1);
+
+object x2;
+(bool c, int d) = (H.TakeOutParam(2, out int x2), 2);
+
+(bool e, int f) = (H.TakeOutParam(3, out int x3), 3);
+object x3;
+
+(bool g, bool h) = (H.TakeOutParam(41, out int x4),
+                    H.TakeOutParam(42, out int x4));
+
+(bool x5, bool x6) = (H.TakeOutParam(5, out int x5),
+                      H.TakeOutParam(6, out int x6));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5, x6);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                                                                  options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,46): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // (bool c, int d) = (H.TakeOutParam(2, out int x2), 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 46),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,48): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                     H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 48),
+                // (14,49): error CS0102: The type 'Script' already contains a definition for 'x5'
+                // (bool x5, bool x6) = (H.TakeOutParam(5, out int x5),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(14, 49),
+                // (15,49): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //                       H.TakeOutParam(6, out int x6));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(15, 49),
+                // (19,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(19, 17),
+                // (19,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
+                // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25),
+                // (19,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(19, 29),
+                // (19,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(1, x5Ref.Length);
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref[0]);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").ToArray();
+                Assert.Equal(1, x6Ref.Length);
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref[0]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,46): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // (bool c, int d) = (H.TakeOutParam(2, out int x2), 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 46),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,48): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                     H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 48),
+                // (19,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 13),
+                // (19,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(19, 17),
+                // (19,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(19, 21),
+                // (19,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(19, 25),
+                // (19,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(19, 29),
+                // (19,33): error CS0103: The name 'x6' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(19, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_LabeledStatement_01()
+        {
+            string source =
+@"
+a: H.TakeOutParam(1, out int x1);
+H.Dummy(x1);
+
+object x2;
+b: H.TakeOutParam(2, out int x2);
+
+c: H.TakeOutParam(3, out int x3);
+object x3;
+
+d: H.Dummy(H.TakeOutParam(41, out int x4),
+           H.TakeOutParam(42, out int x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,30): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // b: H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 30),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,39): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //            H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 39),
+                // (2,1): warning CS0164: This label has not been referenced
+                // a: H.TakeOutParam(1, out int x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(2, 1),
+                // (6,1): warning CS0164: This label has not been referenced
+                // b: H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b").WithLocation(6, 1),
+                // (8,1): warning CS0164: This label has not been referenced
+                // c: H.TakeOutParam(3, out int x3);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(8, 1),
+                // (11,1): warning CS0164: This label has not been referenced
+                // d: H.Dummy(H.TakeOutParam(41, out int x4),
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(11, 1),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,30): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // b: H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 30),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,39): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //            H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 39),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_LabeledStatement_02()
+        {
+            string source =
+@"
+a: H.TakeOutParam(1, out var x1);
+H.Dummy(x1);
+
+object x2;
+b: H.TakeOutParam(2, out var x2);
+
+c: H.TakeOutParam(3, out var x3);
+object x3;
+
+d: H.Dummy(H.TakeOutParam(41, out var x4),
+           H.TakeOutParam(42, out var x4));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,30): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // b: H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 30),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,39): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //            H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 39),
+                // (2,1): warning CS0164: This label has not been referenced
+                // a: H.TakeOutParam(1, out var x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(2, 1),
+                // (6,1): warning CS0164: This label has not been referenced
+                // b: H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b").WithLocation(6, 1),
+                // (8,1): warning CS0164: This label has not been referenced
+                // c: H.TakeOutParam(3, out var x3);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(8, 1),
+                // (11,1): warning CS0164: This label has not been referenced
+                // d: H.Dummy(H.TakeOutParam(41, out var x4),
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(11, 1),
+                // (16,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(16, 17),
+                // (16,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(16, 21),
+                // (16,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,30): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // b: H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 30),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,39): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //            H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 39),
+                // (16,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 13),
+                // (16,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(16, 17),
+                // (16,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(16, 21),
+                // (16,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_LabeledStatement_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+a:b:c:H.TakeOutParam(1, out var x1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+1").VerifyDiagnostics(
+                // (3,1): warning CS0164: This label has not been referenced
+                // a:b:c:H.TakeOutParam(1, out var x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(3, 1),
+                // (3,3): warning CS0164: This label has not been referenced
+                // a:b:c:H.TakeOutParam(1, out var x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b").WithLocation(3, 3),
+                // (3,5): warning CS0164: This label has not been referenced
+                // a:b:c:H.TakeOutParam(1, out var x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(3, 5)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_LabeledStatement_04()
+        {
+            string source =
+@"
+a: 
+bool b = H.TakeOutParam(1, out int x1);
+H.Dummy(x1);
+object x2;
+c:
+bool d = H.TakeOutParam(2, out int x2);
+e:
+bool f = H.TakeOutParam(3, out int x3);
+object x3;
+g:
+bool h = H.Dummy(H.TakeOutParam(41, out int x4),
+                 H.TakeOutParam(42, out int x4));
+i:
+bool x5 = H.TakeOutParam(5, out int x5);
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (7,36): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // bool d = H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(7, 36),
+                // (10,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(10, 8),
+                // (13,45): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                  H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(13, 45),
+                // (2,1): warning CS0164: This label has not been referenced
+                // a: 
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(2, 1),
+                // (6,1): warning CS0164: This label has not been referenced
+                // c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(6, 1),
+                // (8,1): warning CS0164: This label has not been referenced
+                // e:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "e").WithLocation(8, 1),
+                // (11,1): warning CS0164: This label has not been referenced
+                // g:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "g").WithLocation(11, 1),
+                // (14,1): warning CS0164: This label has not been referenced
+                // i:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "i").WithLocation(14, 1),
+                // (20,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(20, 17),
+                // (20,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(20, 21),
+                // (20,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(20, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl, x5Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool b = H.TakeOutParam(1, out int x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 32),
+                // (7,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool d = H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 32),
+                // (9,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool f = H.TakeOutParam(3, out int x3);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 32),
+                // (12,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool h = H.Dummy(H.TakeOutParam(41, out int x4),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 41),
+                // (13,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //                  H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 41),
+                // (13,45): error CS0128: A local variable named 'x4' is already defined in this scope
+                //                  H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 45),
+                // (15,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool x5 = H.TakeOutParam(5, out int x5);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(15, 33),
+                // (20,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
+                // (20,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(20, 17),
+                // (20,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(20, 21),
+                // (20,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(20, 25),
+                // (20,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyModelNotSupported(model, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyModelNotSupported(model, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyModelNotSupported(model, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyModelNotSupported(model, x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Ref.Length);
+                VerifyModelForOutVar(model, x5Decl);
+                VerifyModelNotSupported(model, x5Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_LabeledStatement_05()
+        {
+            string source =
+@"
+a: 
+bool b = H.TakeOutParam(1, out var x1);
+H.Dummy(x1);
+object x2;
+c:
+bool d = H.TakeOutParam(2, out var x2);
+e:
+bool f = H.TakeOutParam(3, out var x3);
+object x3;
+g:
+bool h = H.Dummy(H.TakeOutParam(41, out var x4),
+                 H.TakeOutParam(42, out var x4));
+i:
+bool x5 = H.TakeOutParam(5, out var x5);
+H.Dummy(x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (7,36): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // bool d = H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(7, 36),
+                // (10,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(10, 8),
+                // (13,45): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                  H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(13, 45),
+                // (2,1): warning CS0164: This label has not been referenced
+                // a: 
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(2, 1),
+                // (6,1): warning CS0164: This label has not been referenced
+                // c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(6, 1),
+                // (8,1): warning CS0164: This label has not been referenced
+                // e:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "e").WithLocation(8, 1),
+                // (11,1): warning CS0164: This label has not been referenced
+                // g:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "g").WithLocation(11, 1),
+                // (14,1): warning CS0164: This label has not been referenced
+                // i:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "i").WithLocation(14, 1),
+                // (20,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(20, 17),
+                // (20,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(20, 21),
+                // (20,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(20, 25)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Ref.Length);
+                VerifyModelForOutField(model, x5Decl, x5Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool b = H.TakeOutParam(1, out var x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 32),
+                // (7,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool d = H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 32),
+                // (9,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool f = H.TakeOutParam(3, out var x3);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 32),
+                // (12,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool h = H.Dummy(H.TakeOutParam(41, out var x4),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 41),
+                // (13,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //                  H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 41),
+                // (13,45): error CS0128: A local variable named 'x4' is already defined in this scope
+                //                  H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 45),
+                // (15,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool x5 = H.TakeOutParam(5, out var x5);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(15, 33),
+                // (20,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
+                // (20,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(20, 17),
+                // (20,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(20, 21),
+                // (20,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(20, 25),
+                // (20,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyModelNotSupported(model, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyModelNotSupported(model, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyModelNotSupported(model, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyModelNotSupported(model, x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(2, x5Ref.Length);
+                VerifyModelForOutVar(model, x5Decl);
+                VerifyModelNotSupported(model, x5Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_LabeledStatement_06()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+a:b:c:
+var d = H.TakeOutParam(1, out var x1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+1").VerifyDiagnostics(
+                // (3,1): warning CS0164: This label has not been referenced
+                // a:b:c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(3, 1),
+                // (3,3): warning CS0164: This label has not been referenced
+                // a:b:c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b").WithLocation(3, 3),
+                // (3,5): warning CS0164: This label has not been referenced
+                // a:b:c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(3, 5)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void GlobalCode_LabeledStatement_07()
+        {
+            string source =
+@"l1:
+(bool a, int b) = (H.TakeOutParam(1, out int x1), 1);
+H.Dummy(x1);
+object x2;
+l2:
+(bool c, int d) = (H.TakeOutParam(2, out int x2), 2);
+l3:
+(bool e, int f) = (H.TakeOutParam(3, out int x3), 3);
+object x3;
+l4:
+(bool g, bool h) = (H.TakeOutParam(41, out int x4),
+                    H.TakeOutParam(42, out int x4));
+l5:
+(bool x5, bool x6) = (H.TakeOutParam(5, out int x5),
+                      H.TakeOutParam(6, out int x6));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5, x6);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                                                                  options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,46): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // (bool c, int d) = (H.TakeOutParam(2, out int x2), 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 46),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,48): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                     H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 48),
+                // (14,49): error CS0102: The type 'Script' already contains a definition for 'x5'
+                // (bool x5, bool x6) = (H.TakeOutParam(5, out int x5),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(14, 49),
+                // (15,49): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //                       H.TakeOutParam(6, out int x6));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(15, 49),
+                // (1,1): warning CS0164: This label has not been referenced
+                // l1:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l1").WithLocation(1, 1),
+                // (5,1): warning CS0164: This label has not been referenced
+                // l2:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l2").WithLocation(5, 1),
+                // (7,1): warning CS0164: This label has not been referenced
+                // l3:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l3").WithLocation(7, 1),
+                // (10,1): warning CS0164: This label has not been referenced
+                // l4:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l4").WithLocation(10, 1),
+                // (13,1): warning CS0164: This label has not been referenced
+                // l5:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l5").WithLocation(13, 1),
+                // (19,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(19, 17),
+                // (19,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
+                // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25),
+                // (19,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(19, 29),
+                // (19,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(1, x5Ref.Length);
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").ToArray();
+                Assert.Equal(1, x6Ref.Length);
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,46): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // (bool c, int d) = (H.TakeOutParam(2, out int x2), 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 46),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,48): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                     H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 48),
+                // (19,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 13),
+                // (19,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(19, 17),
+                // (19,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(19, 21),
+                // (19,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(19, 25),
+                // (19,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(19, 29),
+                // (19,33): error CS0103: The name 'x6' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(19, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void GlobalCode_LabeledStatement_08()
+        {
+            string source =
+@"l1:
+(bool a, int b) = (H.TakeOutParam(1, out var x1), 1);
+H.Dummy(x1);
+object x2;
+l2:
+(bool c, int d) = (H.TakeOutParam(2, out var x2), 2);
+l3:
+(bool e, int f) = (H.TakeOutParam(3, out var x3), 3);
+object x3;
+l4:
+(bool g, bool h) = (H.TakeOutParam(41, out var x4),
+                    H.TakeOutParam(42, out var x4));
+l5:
+(bool x5, bool x6) = (H.TakeOutParam(5, out var x5),
+                      H.TakeOutParam(6, out var x6));
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5, x6);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                                                                  options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (6,46): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // (bool c, int d) = (H.TakeOutParam(2, out var x2), 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 46),
+                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
+                // (12,48): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                     H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 48),
+                // (14,49): error CS0102: The type 'Script' already contains a definition for 'x5'
+                // (bool x5, bool x6) = (H.TakeOutParam(5, out var x5),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(14, 49),
+                // (15,49): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //                       H.TakeOutParam(6, out var x6));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(15, 49),
+                // (1,1): warning CS0164: This label has not been referenced
+                // l1:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l1").WithLocation(1, 1),
+                // (5,1): warning CS0164: This label has not been referenced
+                // l2:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l2").WithLocation(5, 1),
+                // (7,1): warning CS0164: This label has not been referenced
+                // l3:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l3").WithLocation(7, 1),
+                // (10,1): warning CS0164: This label has not been referenced
+                // l4:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l4").WithLocation(10, 1),
+                // (13,1): warning CS0164: This label has not been referenced
+                // l5:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l5").WithLocation(13, 1),
+                // (19,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(19, 17),
+                // (19,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
+                // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25),
+                // (19,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(19, 29),
+                // (19,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").ToArray();
+                Assert.Equal(1, x5Ref.Length);
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").ToArray();
+                Assert.Equal(1, x6Ref.Length);
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (6,46): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                // (bool c, int d) = (H.TakeOutParam(2, out var x2), 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(6, 46),
+                // (9,8): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("<invalid-global-code>", "x3").WithLocation(9, 8),
+                // (12,48): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //                     H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(12, 48),
+                // (19,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 13),
+                // (19,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(19, 17),
+                // (19,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(19, 21),
+                // (19,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(19, 25),
+                // (19,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(19, 29),
+                // (19,33): error CS0103: The name 'x6' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(19, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void GlobalCode_LabeledStatement_09()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+a:b:c:
+var (d, e) = (H.TakeOutParam(1, out var x1), 1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                                                              options: TestOptions.DebugExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+1").VerifyDiagnostics(
+                // (3,1): warning CS0164: This label has not been referenced
+                // a:b:c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(3, 1),
+                // (3,3): warning CS0164: This label has not been referenced
+                // a:b:c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b").WithLocation(3, 3),
+                // (3,5): warning CS0164: This label has not been referenced
+                // a:b:c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(3, 5)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_FieldDeclaration_01()
+        {
+            string source =
+@"
+ 
+bool b = H.TakeOutParam(1, out int x1);
+H.Dummy(x1);
+
+object x2;
+bool d = H.TakeOutParam(2, out int x2);
+
+bool f = H.TakeOutParam(3, out int x3);
+object x3;
+
+bool h = H.Dummy(H.TakeOutParam(41, out int x4),
+                 H.TakeOutParam(42, out int x4));
+
+bool x5 = 
+          H.TakeOutParam(5, out int x5);
+
+bool i = H.TakeOutParam(5, out int x6),
+         x6;
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5, x6);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (7,36): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // bool d = H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(7, 36),
+                // (10,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(10, 8),
+                // (13,45): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                  H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(13, 45),
+                // (16,37): error CS0102: The type 'Script' already contains a definition for 'x5'
+                //           H.TakeOutParam(5, out int x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(16, 37),
+                // (19,10): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //          x6;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(19, 10),
+                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
+                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
+                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25),
+                // (23,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(23, 29),
+                // (23,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").Single();
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool b = H.TakeOutParam(1, out int x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 32),
+                // (7,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool d = H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 32),
+                // (9,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool f = H.TakeOutParam(3, out int x3);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 32),
+                // (12,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool h = H.Dummy(H.TakeOutParam(41, out int x4),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 41),
+                // (13,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //                  H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 41),
+                // (13,45): error CS0128: A local variable named 'x4' is already defined in this scope
+                //                  H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 45),
+                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //           H.TakeOutParam(5, out int x5);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(16, 33),
+                // (18,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool i = H.TakeOutParam(5, out int x6),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(18, 32),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(23, 17),
+                // (23,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(23, 21),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29),
+                // (23,33): error CS0103: The name 'x6' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyModelNotSupported(model, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyModelNotSupported(model, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyModelNotSupported(model, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyModelNotSupported(model, x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutVar(model, x5Decl);
+                VerifyModelNotSupported(model, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").Single();
+                VerifyModelForOutVar(model, x6Decl);
+                VerifyModelNotSupported(model, x6Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_FieldDeclaration_02()
+        {
+            string source =
+@"
+ 
+bool b = H.TakeOutParam(1, out var x1);
+H.Dummy(x1);
+
+object x2;
+bool d = H.TakeOutParam(2, out var x2);
+
+bool f = H.TakeOutParam(3, out var x3);
+object x3;
+
+bool h = H.Dummy(H.TakeOutParam(41, out var x4),
+                 H.TakeOutParam(42, out var x4));
+
+bool x5 = 
+          H.TakeOutParam(5, out var x5);
+
+bool i = H.TakeOutParam(5, out var x6),
+         x6;
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5, x6);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (7,36): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // bool d = H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(7, 36),
+                // (10,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(10, 8),
+                // (13,45): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                  H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(13, 45),
+                // (16,37): error CS0102: The type 'Script' already contains a definition for 'x5'
+                //           H.TakeOutParam(5, out var x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(16, 37),
+                // (19,10): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //          x6;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(19, 10),
+                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
+                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
+                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25),
+                // (23,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(23, 29),
+                // (23,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").Single();
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool b = H.TakeOutParam(1, out var x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 32),
+                // (7,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool d = H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 32),
+                // (9,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool f = H.TakeOutParam(3, out var x3);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 32),
+                // (12,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool h = H.Dummy(H.TakeOutParam(41, out var x4),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 41),
+                // (13,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //                  H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 41),
+                // (13,45): error CS0128: A local variable named 'x4' is already defined in this scope
+                //                  H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 45),
+                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //           H.TakeOutParam(5, out var x5);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(16, 33),
+                // (18,32): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool i = H.TakeOutParam(5, out var x6),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x6").WithLocation(18, 32),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(23, 17),
+                // (23,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(23, 21),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29),
+                // (23,33): error CS0103: The name 'x6' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyModelNotSupported(model, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyModelNotSupported(model, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyModelNotSupported(model, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyModelNotSupported(model, x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutVar(model, x5Decl);
+                VerifyModelNotSupported(model, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").Single();
+                VerifyModelForOutVar(model, x6Decl);
+                VerifyModelNotSupported(model, x6Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_FieldDeclaration_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+var d = H.TakeOutParam(1, out var x1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_FieldDeclaration_04()
+        {
+            string source =
+@"
+static var a = InitA();
+System.Console.WriteLine(x1);
+static var b = H.TakeOutParam(1, out var x1);
+Test();
+static var c = InitB();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+static object InitA()
+{
+    System.Console.WriteLine(""InitA {0}"", x1);
+    return null;
+}
+
+static object InitB()
+{
+    System.Console.WriteLine(""InitB {0}"", x1);
+    return null;
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"InitA 0
+InitB 1
+1
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(4, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_FieldDeclaration_05()
+        {
+            string source =
+@"
+ 
+bool b = H.TakeOutParam(1, out var x1);
+static var d = x1;
+
+static void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.VerifyDiagnostics(
+                // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                // static var d = x1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(4, 16),
+                // (8,13): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_FieldDeclaration_06()
+        {
+            string source =
+@"
+ 
+bool b = H.TakeOutParam(1, out int x1);
+static var d = x1;
+
+static void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.VerifyDiagnostics(
+                // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                // static var d = x1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(4, 16),
+                // (8,13): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_FieldDeclaration_07()
+        {
+            string source =
+@"
+Test();
+bool a = H.TakeOutParam(1, out var x1), b = Test(), c = H.TakeOutParam(2, out var x2);
+Test();
+
+bool Test()
+{
+    System.Console.WriteLine(""{0} {1}"", x1, x2);
+    return false;
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0 0
+1 0
+1 2").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").Single();
+            VerifyModelForOutField(model, x2Decl, x2Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_PropertyDeclaration_01()
+        {
+            string source =
+@"
+ 
+bool b { get; } = H.TakeOutParam(1, out int x1);
+H.Dummy(x1);
+
+object x2;
+bool d { get; } = H.TakeOutParam(2, out int x2);
+
+bool f { get; } = H.TakeOutParam(3, out int x3);
+object x3;
+
+bool h { get; } = H.Dummy(H.TakeOutParam(41, out int x4),
+                          H.TakeOutParam(42, out int x4));
+
+bool x5 { get; } = 
+          H.TakeOutParam(5, out int x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (7,45): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // bool d { get; } = H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(7, 45),
+                // (10,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(10, 8),
+                // (13,54): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                           H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(13, 54),
+                // (16,37): error CS0102: The type 'Script' already contains a definition for 'x5'
+                //           H.TakeOutParam(5, out int x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(16, 37),
+                // (20,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(20, 17),
+                // (20,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(20, 21),
+                // (20,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(20, 25),
+                // (20,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(20, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool b { get; } = H.TakeOutParam(1, out int x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 41),
+                // (7,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool d { get; } = H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 41),
+                // (9,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool f { get; } = H.TakeOutParam(3, out int x3);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 41),
+                // (12,50): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool h { get; } = H.Dummy(H.TakeOutParam(41, out int x4),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 50),
+                // (13,50): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //                           H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 50),
+                // (13,54): error CS0128: A local variable named 'x4' is already defined in this scope
+                //                           H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
+                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //           H.TakeOutParam(5, out int x5);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(16, 33),
+                // (20,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
+                // (20,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(20, 17),
+                // (20,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(20, 21),
+                // (20,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(20, 25),
+                // (20,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyModelNotSupported(model, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyModelNotSupported(model, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyModelNotSupported(model, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyModelNotSupported(model, x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutVar(model, x5Decl);
+                VerifyModelNotSupported(model, x5Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_PropertyDeclaration_02()
+        {
+            string source =
+@"
+ 
+bool b { get; } = H.TakeOutParam(1, out var x1);
+H.Dummy(x1);
+
+object x2;
+bool d { get; } = H.TakeOutParam(2, out var x2);
+
+bool f { get; } = H.TakeOutParam(3, out var x3);
+object x3;
+
+bool h { get; } = H.Dummy(H.TakeOutParam(41, out var x4),
+                          H.TakeOutParam(42, out var x4));
+
+bool x5 { get; } = 
+          H.TakeOutParam(5, out var x5);
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (7,45): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // bool d { get; } = H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(7, 45),
+                // (10,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(10, 8),
+                // (13,54): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                           H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(13, 54),
+                // (16,37): error CS0102: The type 'Script' already contains a definition for 'x5'
+                //           H.TakeOutParam(5, out var x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(16, 37),
+                // (20,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(20, 17),
+                // (20,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(20, 21),
+                // (20,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(20, 25),
+                // (20,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(20, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool b { get; } = H.TakeOutParam(1, out var x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 41),
+                // (7,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool d { get; } = H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 41),
+                // (9,41): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool f { get; } = H.TakeOutParam(3, out var x3);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 41),
+                // (12,50): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // bool h { get; } = H.Dummy(H.TakeOutParam(41, out var x4),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 50),
+                // (13,50): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //                           H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 50),
+                // (13,54): error CS0128: A local variable named 'x4' is already defined in this scope
+                //                           H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
+                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //           H.TakeOutParam(5, out var x5);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(16, 33),
+                // (20,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
+                // (20,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(20, 17),
+                // (20,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(20, 21),
+                // (20,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(20, 25),
+                // (20,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyModelNotSupported(model, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyModelNotSupported(model, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyModelNotSupported(model, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyModelNotSupported(model, x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutVar(model, x5Decl);
+                VerifyModelNotSupported(model, x5Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_PropertyDeclaration_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+bool d { get; set; } = H.TakeOutParam(1, out var x1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_PropertyDeclaration_04()
+        {
+            string source =
+@"
+static var a = InitA();
+System.Console.WriteLine(x1);
+static bool b { get; } = H.TakeOutParam(1, out var x1);
+Test();
+static var c = InitB();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+static object InitA()
+{
+    System.Console.WriteLine(""InitA {0}"", x1);
+    return null;
+}
+
+static object InitB()
+{
+    System.Console.WriteLine(""InitB {0}"", x1);
+    return null;
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"InitA 0
+InitB 1
+1
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(4, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_PropertyDeclaration_05()
+        {
+            string source =
+@"
+ 
+bool b { get; } = H.TakeOutParam(1, out var x1);
+static var d = x1;
+
+static void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.VerifyDiagnostics(
+                // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                // static var d = x1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(4, 16),
+                // (8,13): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_PropertyDeclaration_06()
+        {
+            string source =
+@"
+ 
+bool b { get; } = H.TakeOutParam(1, out int x1);
+static var d = x1;
+
+static void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.VerifyDiagnostics(
+                // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                // static var d = x1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(4, 16),
+                // (8,13): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_EventDeclaration_01()
+        {
+            string source =
+@"
+ 
+event System.Action b = H.TakeOutParam(1, out int x1);
+H.Dummy(x1);
+
+object x2;
+event System.Action d = H.TakeOutParam(2, out int x2);
+
+event System.Action f = H.TakeOutParam(3, out int x3);
+object x3;
+
+event System.Action h = H.Dummy(H.TakeOutParam(41, out int x4),
+                        H.TakeOutParam(42, out int x4));
+
+event System.Action x5 = 
+          H.TakeOutParam(5, out int x5);
+
+event System.Action i = H.TakeOutParam(5, out int x6),
+         x6;
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5, x6);
+}
+
+class H
+{
+    public static System.Action Dummy(params object[] x) {return null;}
+    public static System.Action TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return null;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (7,51): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // event System.Action d = H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(7, 51),
+                // (10,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(10, 8),
+                // (13,52): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                         H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(13, 52),
+                // (16,37): error CS0102: The type 'Script' already contains a definition for 'x5'
+                //           H.TakeOutParam(5, out int x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(16, 37),
+                // (19,10): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //          x6;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(19, 10),
+                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
+                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
+                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25),
+                // (23,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(23, 29),
+                // (23,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").Single();
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action b = H.TakeOutParam(1, out int x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(3, 47),
+                // (7,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action d = H.TakeOutParam(2, out int x2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x2").WithLocation(7, 47),
+                // (9,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action f = H.TakeOutParam(3, out int x3);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 47),
+                // (12,56): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action h = H.Dummy(H.TakeOutParam(41, out int x4),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(12, 56),
+                // (13,48): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //                         H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 48),
+                // (13,52): error CS0128: A local variable named 'x4' is already defined in this scope
+                //                         H.TakeOutParam(42, out int x4));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 52),
+                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //           H.TakeOutParam(5, out int x5);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(16, 33),
+                // (18,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action i = H.TakeOutParam(5, out int x6),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(18, 47),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(23, 17),
+                // (23,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(23, 21),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29),
+                // (23,33): error CS0103: The name 'x6' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyModelNotSupported(model, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyModelNotSupported(model, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyModelNotSupported(model, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyModelNotSupported(model, x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutVar(model, x5Decl);
+                VerifyModelNotSupported(model, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").Single();
+                VerifyModelForOutVar(model, x6Decl);
+                VerifyModelNotSupported(model, x6Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_EventDeclaration_02()
+        {
+            string source =
+@"
+ 
+event System.Action b = H.TakeOutParam(1, out var x1);
+H.Dummy(x1);
+
+object x2;
+event System.Action d = H.TakeOutParam(2, out var x2);
+
+event System.Action f = H.TakeOutParam(3, out var x3);
+object x3;
+
+event System.Action h = H.Dummy(H.TakeOutParam(41, out var x4),
+                        H.TakeOutParam(42, out var x4));
+
+event System.Action x5 = 
+          H.TakeOutParam(5, out var x5);
+
+event System.Action i = H.TakeOutParam(5, out var x6),
+         x6;
+
+void Test()
+{
+    H.Dummy(x1, x2, x3, x4, x5, x6);
+}
+
+class H
+{
+    public static System.Action Dummy(params object[] x) {return null;}
+    public static System.Action TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return null;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (7,51): error CS0102: The type 'Script' already contains a definition for 'x2'
+                // event System.Action d = H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(7, 51),
+                // (10,8): error CS0102: The type 'Script' already contains a definition for 'x3'
+                // object x3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(10, 8),
+                // (13,52): error CS0102: The type 'Script' already contains a definition for 'x4'
+                //                         H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(13, 52),
+                // (16,37): error CS0102: The type 'Script' already contains a definition for 'x5'
+                //           H.TakeOutParam(5, out var x5);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(16, 37),
+                // (19,10): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //          x6;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(19, 10),
+                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
+                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
+                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25),
+                // (23,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(23, 29),
+                // (23,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
+                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").Single();
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action b = H.TakeOutParam(1, out var x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x1").WithLocation(3, 47),
+                // (7,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action d = H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x2").WithLocation(7, 47),
+                // (9,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action f = H.TakeOutParam(3, out var x3);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x3").WithLocation(9, 47),
+                // (12,56): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action h = H.Dummy(H.TakeOutParam(41, out var x4),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(12, 56),
+                // (13,48): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //                         H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x4").WithLocation(13, 48),
+                // (13,52): error CS0128: A local variable named 'x4' is already defined in this scope
+                //                         H.TakeOutParam(42, out var x4));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 52),
+                // (16,33): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //           H.TakeOutParam(5, out var x5);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x5").WithLocation(16, 33),
+                // (18,47): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                // event System.Action i = H.TakeOutParam(5, out var x6),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var x6").WithLocation(18, 47),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,17): error CS0103: The name 'x2' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(23, 17),
+                // (23,21): error CS0103: The name 'x3' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(23, 21),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29),
+                // (23,33): error CS0103: The name 'x6' does not exist in the current context
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyModelNotSupported(model, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyModelNotSupported(model, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyModelNotSupported(model, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                Assert.Equal(2, x4Decl.Length);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyModelNotSupported(model, x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                VerifyModelForOutVar(model, x5Decl);
+                VerifyModelNotSupported(model, x5Ref);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").Single();
+                VerifyModelForOutVar(model, x6Decl);
+                VerifyModelNotSupported(model, x6Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_EventDeclaration_03()
+        {
+            string source =
+@"
+System.Console.WriteLine(x1);
+event System.Action d = H.TakeOutParam(1, out var x1);
+Test();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+class H
+{
+    public static System.Action TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return null;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_EventDeclaration_04()
+        {
+            string source =
+@"
+static var a = InitA();
+System.Console.WriteLine(x1);
+static event System.Action b = H.TakeOutParam(1, out var x1);
+Test();
+static var c = InitB();
+
+void Test()
+{
+    System.Console.WriteLine(x1);
+}
+
+static object InitA()
+{
+    System.Console.WriteLine(""InitA {0}"", x1);
+    return null;
+}
+
+static object InitB()
+{
+    System.Console.WriteLine(""InitB {0}"", x1);
+    return null;
+}
+
+class H
+{
+    public static System.Action TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return null;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"InitA 0
+InitB 1
+1
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(4, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_EventDeclaration_05()
+        {
+            string source =
+@"
+ 
+event System.Action b = H.TakeOutParam(1, out var x1);
+static var d = x1;
+
+static void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static System.Action TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.VerifyDiagnostics(
+                // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                // static var d = x1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(4, 16),
+                // (8,13): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_EventDeclaration_06()
+        {
+            string source =
+@"
+ 
+event System.Action b = H.TakeOutParam(1, out int x1);
+static var d = x1;
+
+static void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static System.Action TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.VerifyDiagnostics(
+                // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                // static var d = x1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(4, 16),
+                // (8,13): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_EventDeclaration_07()
+        {
+            string source =
+@"
+Test();
+event System.Action a = H.TakeOutParam(1, out var x1), b = Test(), c = H.TakeOutParam(2, out var x2);
+Test();
+
+System.Action Test()
+{
+    System.Console.WriteLine(""{0} {1}"", x1, x2);
+    return null;
+}
+
+class H
+{
+    public static System.Action TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return null;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"0 0
+1 0
+1 2").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").Single();
+            VerifyModelForOutField(model, x2Decl, x2Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_DeclaratorArguments_01()
+        {
+            string source =
+@"
+ 
+bool a, b(out var x1);
+H.Dummy(x1);
+
+void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(out var x1").WithLocation(3, 10),
+                // (3,10): error CS1003: Syntax error, '[' expected
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                // (3,11): error CS1525: Invalid expression term 'out'
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(3, 11),
+                // (3,11): error CS1026: ) expected
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(3, 11),
+                // (3,11): error CS1003: Syntax error, ',' expected
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(3, 11),
+                // (3,21): error CS1003: Syntax error, ']' expected
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 21),
+                // (3,21): error CS1003: Syntax error, ',' expected
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(3, 21),
+                // (3,19): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(3, 19)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                AssertContainedInDeclaratorArguments(x1Decl);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(out var x1").WithLocation(3, 10),
+                // (3,10): error CS1003: Syntax error, '[' expected
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                // (3,11): error CS1525: Invalid expression term 'out'
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(3, 11),
+                // (3,11): error CS1003: Syntax error, ',' expected
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(3, 11),
+                // (3,21): error CS1003: Syntax error, ']' expected
+                // bool a, b(out var x1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 21),
+                // (8,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                AssertContainedInDeclaratorArguments(x1Decl);
+                VerifyModelNotSupported(model, x1Decl, x1Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_DeclaratorArguments_02()
+        {
+            string source =
+@"
+label: 
+bool a, b(H.TakeOutParam(1, out var x1));
+H.Dummy(x1);
+
+void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // bool a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 10),
+                // (3,10): error CS1003: Syntax error, '[' expected
+                // bool a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                // (3,41): error CS1003: Syntax error, ']' expected
+                // bool a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 41),
+                // (2,1): warning CS0164: This label has not been referenced
+                // label: 
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                AssertContainedInDeclaratorArguments(x1Decl);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // bool a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 10),
+                // (3,10): error CS1003: Syntax error, '[' expected
+                // bool a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                // (3,41): error CS1003: Syntax error, ']' expected
+                // bool a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 41),
+                // (8,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                AssertContainedInDeclaratorArguments(x1Decl);
+                VerifyModelNotSupported(model, x1Decl, x1Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_DeclaratorArguments_03()
+        {
+            string source =
+@"
+ 
+event System.Action a, b(H.TakeOutParam(1, out var x1));
+H.Dummy(x1);
+
+void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static System.Action Dummy(params object[] x) {return null;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // event System.Action a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 25),
+                // (3,25): error CS1003: Syntax error, '[' expected
+                // event System.Action a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
+                // (3,56): error CS1003: Syntax error, ']' expected
+                // event System.Action a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 56)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                AssertContainedInDeclaratorArguments(x1Decl);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // event System.Action a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 25),
+                // (3,25): error CS1003: Syntax error, '[' expected
+                // event System.Action a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
+                // (3,56): error CS1003: Syntax error, ']' expected
+                // event System.Action a, b(H.TakeOutParam(1, out var x1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 56),
+                // (8,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                AssertContainedInDeclaratorArguments(x1Decl);
+                VerifyModelNotSupported(model, x1Decl, x1Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_DeclaratorArguments_04()
+        {
+            string source =
+@"
+
+fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+H.Dummy(x1);
+
+void Test()
+{
+    H.Dummy(x1);
+}
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static int TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return 3;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), 
+                                                                  parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (3,18): error CS1642: Fixed size buffer fields may only be members of structs
+                // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "b").WithLocation(3, 18),
+                // (3,20): error CS0133: The expression being assigned to 'b' must be constant
+                // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "H.TakeOutParam(1, out var x1)").WithArguments("b").WithLocation(3, 20),
+                // (3,12): error CS1642: Fixed size buffer fields may only be members of structs
+                // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "a").WithLocation(3, 12),
+                // (3,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[2]").WithLocation(3, 12)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                AssertContainedInDeclaratorArguments(x1Decl);
+                VerifyModelForOutField(model, x1Decl, x1Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (3,18): error CS1642: Fixed size buffer fields may only be members of structs
+                // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "b").WithLocation(3, 18),
+                // (3,20): error CS0133: The expression being assigned to '<invalid-global-code>.b' must be constant
+                // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "H.TakeOutParam(1, out var x1)").WithArguments("<invalid-global-code>.b").WithLocation(3, 20),
+                // (3,12): error CS1642: Fixed size buffer fields may only be members of structs
+                // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "a").WithLocation(3, 12),
+                // (3,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[2]").WithLocation(3, 12),
+                // (8,13): error CS0103: The name 'x1' does not exist in the current context
+                //     H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                AssertContainedInDeclaratorArguments(x1Decl);
+                VerifyModelNotSupported(model, x1Decl, x1Ref);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_RestrictedType_01()
+        {
+            string source =
+@"
+ 
+H.TakeOutParam(out var x1);
+
+H.TakeOutParam(out System.ArgIterator x2);
+
+class H
+{
+    public static void TakeOutParam(out System.ArgIterator x) 
+    {
+        x = default(System.ArgIterator);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.GetDeclarationDiagnostics().Verify(
+                // (9,37): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //     public static void TakeOutParam(out System.ArgIterator x) 
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(9, 37),
+                // (5,20): error CS0610: Field or property cannot be of type 'ArgIterator'
+                // H.TakeOutParam(out System.ArgIterator x2);
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(5, 20),
+                // (3,20): error CS0610: Field or property cannot be of type 'ArgIterator'
+                // H.TakeOutParam(out var x1);
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "var").WithArguments("System.ArgIterator").WithLocation(3, 20)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            VerifyModelForOutField(model, x1Decl);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            VerifyModelForOutField(model, x2Decl);
+        }
+
+        [Fact]
+        public void GlobalCode_StaticType_01()
+        {
+            string source =
+@"
+ 
+H.TakeOutParam(out var x1);
+
+H.TakeOutParam(out StaticType x2);
+
+class H
+{
+    public static void TakeOutParam(out StaticType x) 
+    {
+        x = default(System.ArgIterator);
+    }
+}
+
+static class StaticType{}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.GetDeclarationDiagnostics().Verify(
+                // (5,31): error CS0723: Cannot declare a variable of static type 'StaticType'
+                // H.TakeOutParam(out StaticType x2);
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x2").WithArguments("StaticType").WithLocation(5, 31),
+                // (9,24): error CS0721: 'StaticType': static types cannot be used as parameters
+                //     public static void TakeOutParam(out StaticType x) 
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "TakeOutParam").WithArguments("StaticType").WithLocation(9, 24),
+                // (3,24): error CS0723: Cannot declare a variable of static type 'StaticType'
+                // H.TakeOutParam(out var x1);
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x1").WithArguments("StaticType").WithLocation(3, 24)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            VerifyModelForOutField(model, x1Decl);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            VerifyModelForOutField(model, x2Decl);
+        }
+
+        [Fact]
+        public void GlobalCode_InferenceFailure_01()
+        {
+            string source =
+@"
+ 
+H.TakeOutParam(out var x1, x1);
+
+class H
+{
+    public static void TakeOutParam(out int x, long y) 
+    {
+        x = 1;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.GetDeclarationDiagnostics().Verify(
+                // (3,24): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // H.TakeOutParam(out var x1, x1);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 24)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
+        }
+
+        [Fact]
+        public void GlobalCode_InferenceFailure_02()
+        {
+            string source =
+@"
+ 
+var a = b;
+var b = H.TakeOutParam(out var x1, a);
+
+class H
+{
+    public static int TakeOutParam(out int x, long y) 
+    {
+        x = 1;
+        return 123;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
+            Assert.True(b.Type.IsErrorType());
+
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var b = H.TakeOutParam(out var x1, a);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "b").WithArguments("b").WithLocation(4, 5)
+                );
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            VerifyModelForOutField(model, x1Decl);
+            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GlobalCode_InferenceFailure_03()
+        {
+            string source =
+@"
+ 
+var a = H.TakeOutParam(out var x1, b);
+var b = a;
+
+class H
+{
+    public static int TakeOutParam(out int x, long y) 
+    {
+        x = 1;
+        return 123;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
+            Assert.True(b.Type.IsErrorType());
+
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var b = a;
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "b").WithArguments("b").WithLocation(4, 5)
+                );
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            VerifyModelForOutField(model, x1Decl);
+            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GlobalCode_InferenceFailure_04()
+        {
+            string source =
+@"
+ 
+var a = x1;
+var b = H.TakeOutParam(out var x1, a);
+
+class H
+{
+    public static int TakeOutParam(out int x, long y) 
+    {
+        x = 1;
+        return 123;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var a = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "a").Single());
+            Assert.True(a.Type.IsErrorType());
+
+            compilation.VerifyDiagnostics(
+                // (3,5): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var a = x1;
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a").WithLocation(3, 5)
+                );
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            VerifyModelForOutField(model, x1Decl);
+            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            tree = compilation.SyntaxTrees.Single();
+            model = compilation.GetSemanticModel(tree);
+            x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+
+            x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
+
+            compilation.VerifyDiagnostics(
+                // (4,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var b = H.TakeOutParam(out var x1, a);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(4, 32)
+                );
+        }
+
+        [Fact]
+        public void GlobalCode_InferenceFailure_05()
+        {
+            string source =
+@"
+ 
+var a = H.TakeOutParam(out var x1, b);
+var b = x1;
+
+class H
+{
+    public static int TakeOutParam(out int x, long y) 
+    {
+        x = 1;
+        return 123;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            VerifyModelForOutField(model, x1Decl);
+            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
+
+            compilation.VerifyDiagnostics(
+                // (3,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var a = H.TakeOutParam(out var x1, b);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 32)
+                );
+
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            tree = compilation.SyntaxTrees.Single();
+            model = compilation.GetSemanticModel(tree);
+
+            x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+
+            var bDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single();
+            var b = (FieldSymbol)model.GetDeclaredSymbol(bDecl);
+            Assert.True(b.Type.IsErrorType());
+
+            x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+            Assert.False(x1.Type.IsErrorType());
+
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var b = x1;
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "b").WithArguments("b").WithLocation(4, 5)
+                );
+        }
+
+        [Fact]
+        public void GlobalCode_InferenceFailure_06()
+        {
+            string source =
+@"
+H.TakeOutParam(out var x1);
+
+class H
+{
+    public static int TakeOutParam<T>(out T x) 
+    {
+        x = default(T);
+        return 123;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            compilation.VerifyDiagnostics(
+                // (2,24): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
+                // H.TakeOutParam(out var x1);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(2, 24),
+                // (2,3): error CS0411: The type arguments for method 'H.TakeOutParam<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // H.TakeOutParam(out var x1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("H.TakeOutParam<T>(out T)").WithLocation(2, 3)
+                );
+
+            compilation.GetDeclarationDiagnostics().Verify(
+                // (2,24): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
+                // H.TakeOutParam(out var x1);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(2, 24)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            VerifyModelForOutField(model, x1Decl);
+            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
+        }
+
+        [Fact]
+        public void GlobalCode_AliasInfo_01()
+        {
+            string source =
+@"
+H.TakeOutParam(1, out var x1);
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+        }
+
+        [Fact]
+        public void GlobalCode_AliasInfo_02()
+        {
+            string source =
+@"
+using var = System.Int32;
+
+H.TakeOutParam(1, out var x1);
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            Assert.Equal("var=System.Int32", model.GetAliasInfo(x1Decl.Type()).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GlobalCode_AliasInfo_03()
+        {
+            string source =
+@"
+using a = System.Int32;
+
+H.TakeOutParam(1, out a x1);
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type()).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GlobalCode_AliasInfo_04()
+        {
+            string source =
+@"
+H.TakeOutParam(1, out int x1);
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+        }
+
+        private static void VerifyModelForOutField(
+            SemanticModel model,
+            DeclarationExpressionSyntax decl,
+            params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForOutField(model, decl, false, references);
+        }
+
+        private static void VerifyModelForOutFieldDuplicate(
+            SemanticModel model,
+            DeclarationExpressionSyntax decl,
+            params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForOutField(model, decl, true, references);
+        }
+
+        private static void VerifyModelForOutField(
+            SemanticModel model,
+            DeclarationExpressionSyntax decl,
+            bool duplicate,
+            params IdentifierNameSyntax[] references)
+        {
+            var variableDesignationSyntax = GetVariableDesignation(decl);
+            var symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
+            Assert.Equal(decl.Identifier().ValueText, symbol.Name);
+            Assert.Equal(SymbolKind.Field, symbol.Kind);
+            Assert.Equal(variableDesignationSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDesignationSyntax));
+
+            var symbols = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText);
+            var names = model.LookupNames(decl.SpanStart);
+
+            if (duplicate)
+            {
+                Assert.True(symbols.Count() > 1);
+                Assert.Contains(symbol, symbols);
+            }
+            else
+            {
+                Assert.Same(symbol, symbols.Single());
+            }
+
+            Assert.Contains(decl.Identifier().ValueText, names);
+
+            var local = (FieldSymbol)symbol;
+            var typeSyntax = decl.Type();
+
+            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
+            Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
+
+            if (typeSyntax.IsVar && local.Type.IsErrorType())
+            {
+                Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
+            }
+            else
+            {
+                Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
+            }
+
+            var declarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+            var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
+                                           (declarator.ArgumentList?.Contains(decl)).GetValueOrDefault();
+
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
+
+            foreach (var reference in references)
+            {
+                var referenceInfo = model.GetSymbolInfo(reference);
+                symbols = model.LookupSymbols(reference.SpanStart, name: decl.Identifier().ValueText);
+
+                if (duplicate)
+                {
+                    Assert.Null(referenceInfo.Symbol);
+                    Assert.Contains(symbol, referenceInfo.CandidateSymbols);
+                    Assert.True(symbols.Count() > 1);
+                    Assert.Contains(symbol, symbols);
+                }
+                else
+                {
+                    Assert.Same(symbol, referenceInfo.Symbol);
+                    Assert.Same(symbol, symbols.Single());
+                    Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+                }
+
+                Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
+            }
+
+            if (!inFieldDeclaratorArgumentlist)
+            {
+                var dataFlowParent = (ExpressionSyntax)decl.Parent.Parent.Parent;
+
+                if (model.IsSpeculativeSemanticModel)
+                {
+                    Assert.Throws<NotSupportedException>(() => model.AnalyzeDataFlow(dataFlowParent));
+                }
+                else
+                {
+                    var dataFlow = model.AnalyzeDataFlow(dataFlowParent);
+
+                    if (dataFlow.Succeeded)
+                    {
+                        Assert.False(dataFlow.VariablesDeclared.Contains(symbol, ReferenceEqualityComparer.Instance));
+                        Assert.False(dataFlow.AlwaysAssigned.Contains(symbol, ReferenceEqualityComparer.Instance));
+                        Assert.False(dataFlow.WrittenInside.Contains(symbol, ReferenceEqualityComparer.Instance));
+                        Assert.False(dataFlow.DataFlowsIn.Contains(symbol, ReferenceEqualityComparer.Instance));
+                        Assert.False(dataFlow.ReadInside.Contains(symbol, ReferenceEqualityComparer.Instance));
+                        Assert.False(dataFlow.DataFlowsOut.Contains(symbol, ReferenceEqualityComparer.Instance));
+                        Assert.False(dataFlow.ReadOutside.Contains(symbol, ReferenceEqualityComparer.Instance));
+                        Assert.False(dataFlow.WrittenOutside.Contains(symbol, ReferenceEqualityComparer.Instance));
+                    }
+                }
+            }
         }
     }
 }

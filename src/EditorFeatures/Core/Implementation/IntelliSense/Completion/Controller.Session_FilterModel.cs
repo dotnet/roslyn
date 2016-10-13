@@ -211,6 +211,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // Ask the language to determine which of the *matched* items it wants to select.
                 var service = this.Controller.GetCompletionService();
+                if (service == null)
+                {
+                    return null;
+                }
 
                 var matchingCompletionItems = filterResults.Where(r => r.MatchedFilterText)
                                                            .Select(t => t.PresentationItem.Item)

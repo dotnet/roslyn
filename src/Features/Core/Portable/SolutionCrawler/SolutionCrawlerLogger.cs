@@ -87,18 +87,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogActiveFileAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered)
+        public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
         {
-            LogAnalyzersWorker(
-                FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzers, FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzer,
-                correlationId, workspace, reordered);
-        }
-
-        public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered)
-        {
-            LogAnalyzersWorker(
-                FunctionId.IncrementalAnalyzerProcessor_Analyzers, FunctionId.IncrementalAnalyzerProcessor_Analyzer,
-                correlationId, workspace, reordered);
+            if (onlyHighPriorityAnalyzer)
+            {
+                LogAnalyzersWorker(
+                    FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzers, FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzer,
+                    correlationId, workspace, reordered);
+            }
+            else
+            {
+                LogAnalyzersWorker(
+                    FunctionId.IncrementalAnalyzerProcessor_Analyzers, FunctionId.IncrementalAnalyzerProcessor_Analyzer,
+                    correlationId, workspace, reordered);
+            }
         }
 
         private static void LogAnalyzersWorker(

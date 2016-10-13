@@ -66,7 +66,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (pattern.IndexOf('.') < 0)
             {
                 // PERF: Avoid string.Split allocations when the pattern doesn't contain a dot.
-                _dotSeparatedSegments = pattern.Length > 0 ? new Segment[1] { _fullPatternSegment } : SpecializedCollections.EmptyArray<Segment>();
+                _dotSeparatedSegments = pattern.Length > 0
+                    ? new Segment[1] { _fullPatternSegment }
+                    : Array.Empty<Segment>();
             }
             else
             {

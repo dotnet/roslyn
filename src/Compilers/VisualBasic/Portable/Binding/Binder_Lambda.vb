@@ -888,7 +888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If result Is Nothing Then
                 result = candidate
             ElseIf result IsNot LambdaSymbol.ErrorRecoveryInferenceError Then
-                If Not result.IsSameTypeIgnoringCustomModifiers(candidate) Then
+                If Not result.IsSameTypeIgnoringAll(candidate) Then
                     result = LambdaSymbol.ErrorRecoveryInferenceError
                 End If
             End If

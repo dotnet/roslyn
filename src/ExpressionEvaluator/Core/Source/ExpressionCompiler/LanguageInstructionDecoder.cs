@@ -46,6 +46,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 return _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames);
             }
+            catch (NotImplementedMetadataException)
+            {
+                return languageInstructionAddress.GetMethodName(argumentFlags);
+            }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
                 throw ExceptionUtilities.Unreachable;

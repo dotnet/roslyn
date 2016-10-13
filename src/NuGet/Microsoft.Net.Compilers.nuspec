@@ -21,7 +21,7 @@ Supported Platforms:
   <files>
     <file src="$netCompilersPropsPath$" target="build\Microsoft.Net.Compilers.props" />
     <file src="$thirdPartyNoticesPath$" target="" />
-    
+
     <file src="Microsoft.CodeAnalysis.dll" target="tools" />
     <file src="Microsoft.DiaSymReader.Native.amd64.dll" target="tools" />
     <file src="Microsoft.DiaSymReader.Native.x86.dll" target="tools" />
@@ -29,12 +29,6 @@ Supported Platforms:
     <file src="Microsoft.CodeAnalysis.Scripting.dll" target="tools" />
     <file src="Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="tools" />
     <file src="Microsoft.CodeAnalysis.VisualBasic.dll" target="tools" />
-    <file src="System.AppContext.dll" target="tools" />
-    <file src="System.Collections.Immutable.dll" target="tools" />
-    <file src="System.Diagnostics.StackTrace.dll" target="tools" />
-    <file src="System.IO.FileSystem.dll" target="tools" />
-    <file src="System.IO.FileSystem.Primitives.dll" target="tools" />
-    <file src="System.Reflection.Metadata.dll" target="tools" />
     <file src="csc.exe"  target="tools" />
     <file src="csc.exe.config"  target="tools" />
     <file src="csc.rsp"  target="tools" />
@@ -48,5 +42,31 @@ Supported Platforms:
     <file src="Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
     <file src="Microsoft.CSharp.Core.targets" target="tools" />
     <file src="Microsoft.VisualBasic.Core.targets" target="tools" />
+
+    <file src="System.AppContext.dll" target="tools" />
+    <file src="System.Collections.Immutable.dll" target="tools" />
+    <file src="System.Console.dll" target="tools" />
+    <file src="System.Diagnostics.FileVersionInfo.dll" target="tools" />
+    <file src="System.Diagnostics.Process.dll" target="tools" />
+    <file src="System.Diagnostics.StackTrace.dll" target="tools" />
+    <file src="System.IO.Compression.dll" target="tools" />
+    <file src="System.IO.FileSystem.dll" target="tools" />
+    <file src="System.IO.FileSystem.DriveInfo.dll" target="tools" />
+    <file src="System.IO.FileSystem.Primitives.dll" target="tools" />
+    <file src="System.IO.Pipes.dll" target="tools" />
+    <file src="System.Reflection.Metadata.dll" target="tools" />
+    <file src="System.Runtime.InteropServices.RuntimeInformation.dll" target="tools" />
+    <file src="System.Security.AccessControl.dll" target="tools" />
+    <file src="System.Security.Claims.dll" target="tools" />
+    <file src="System.Security.Cryptography.Algorithms.dll" target="tools" />
+    <file src="System.Security.Cryptography.Encoding.dll" target="tools" />
+    <file src="System.Security.Cryptography.Primitives.dll" target="tools" />
+    <file src="System.Security.Cryptography.X509Certificates.dll" target="tools" />
+    <file src="System.Security.Principal.Windows.dll" target="tools" />
+    <file src="System.Text.Encoding.CodePages.dll" target="tools" />
+    <file src="System.Threading.Thread.dll" target="tools" />
+    <file src="System.Xml.XmlDocument.dll" target="tools" />
+    <file src="System.Xml.XPath.dll" target="tools" />
+    <file src="System.Xml.XPath.XDocument.dll" target="tools" />
   </files>
 </package>

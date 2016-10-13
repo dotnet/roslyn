@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
@@ -11,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             AnonymousMethodExpressionSyntax anonymousMethod,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             // fault tolerance
@@ -32,11 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 ? anonymousMethod.ParameterList.GetLastToken(includeZeroWidth: true)
                 : anonymousMethod.DelegateKeyword;
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 anonymousMethod,
                 startToken,
                 lastToken,
-                autoCollapse: false));
+                autoCollapse: false,
+                type: BlockTypes.Expression,
+                isCollapsible: true));
         }
     }
 }

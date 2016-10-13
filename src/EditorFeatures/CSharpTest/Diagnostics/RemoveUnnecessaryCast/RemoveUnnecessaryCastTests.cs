@@ -3856,5 +3856,36 @@ class Program
             parseOptions: TestOptions.Regular,
             withScriptOption: true);
         }
+
+        [WorkItem(12572, "https://github.com/dotnet/roslyn/issues/12572")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastThatUnboxes()
+        {
+            // The cast below can't be removed because it could throw a null ref exception.
+            await TestMissingAsync(
+            @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        object i = null;
+        switch ([|(int)i|])
+        {
+            case 0:
+                Console.WriteLine(0);
+                break;
+            case 1:
+                Console.WriteLine(1);
+                break;
+            case 2:
+                Console.WriteLine(2);
+                break;
+        }
+    }
+}
+");
+        }
     }
 }

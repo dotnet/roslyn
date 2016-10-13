@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -24,16 +25,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<TContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
 
-        private class Comparer : IEqualityComparer<RecommendedKeyword>
+        private class Comparer : IEqualityComparer<CompletionItem>
         {
-            public bool Equals(RecommendedKeyword x, RecommendedKeyword y)
+            public bool Equals(CompletionItem x, CompletionItem y)
             {
-                return x.Glyph == y.Glyph && x.Keyword == y.Keyword;
+                return x.DisplayText == y.DisplayText;
             }
 
-            public int GetHashCode(RecommendedKeyword obj)
+            public int GetHashCode(CompletionItem obj)
             {
-                return Hash.Combine(obj.Keyword.GetHashCode(), obj.Glyph.GetHashCode());
+                return Hash.Combine(obj.DisplayText.GetHashCode(), obj.DisplayText.GetHashCode());
             }
         }
 
@@ -48,23 +49,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var keywords = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
+                var completionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     s_comparer,
-                    (doc, ct) => RecommendKeywordsAsync(doc, position, ct),
+                    (doc, ct) => RecommendCompletionItemsAsync(doc, position, ct),
                     cancellationToken).ConfigureAwait(false);
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var keyword in keywords)
+                foreach (var completionItem in completionItems)
                 {
-                    context.AddItem(CreateItem(keyword));
+                    context.AddItem(completionItem);
                 }
             }
         }
 
+        private async Task<IEnumerable<CompletionItem>> RecommendCompletionItemsAsync(Document doc, int position, CancellationToken ct)
+        {
+            var syntaxContext = await CreateContextAsync(doc, position, ct).ConfigureAwait(false);
+            var keywords = await RecommendKeywordsAsync(doc, position, syntaxContext, ct).ConfigureAwait(false);
+            return keywords?.Select(k => CreateItem(k, syntaxContext));
+        }
+
         private static ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.Intrinsic);
 
-        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword)
+        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword, TContext context)
         {
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
@@ -77,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
             Document document,
             int position,
+            TContext context,
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -85,8 +92,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 return null;
             }
-
-            var context = await CreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             var set = new HashSet<RecommendedKeyword>();
             foreach (var recommender in _keywordRecommenders)

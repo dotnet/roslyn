@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags = default(ImmutableArray<string>),
             CompletionItemRules rules = null)
         {
-            tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
+            tags = tags.NullToEmpty();
 
             if (glyph != null)
             {

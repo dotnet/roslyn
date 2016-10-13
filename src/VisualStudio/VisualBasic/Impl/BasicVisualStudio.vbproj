@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <ProjectLanguage>VB</ProjectLanguage>
   </PropertyGroup>
@@ -130,8 +130,6 @@
     <Compile Include="Options\AutomationObject.vb" />
     <Compile Include="Options\Formatting\CodeStylePage.vb" />
     <Compile Include="Options\NamingStylesOptionPage.vb" />
-    <Compile Include="Options\VisualBasicLanguageSettingsSerializer.vb" />
-    <Compile Include="Options\VisualBasicSettingsManagerOptionSerializer.vb" />
     <Compile Include="Options\StyleOptionPage.vb" />
     <Compile Include="Options\AdvancedOptionPage.vb" />
     <Compile Include="Options\AdvancedOptionPageControl.xaml.vb">

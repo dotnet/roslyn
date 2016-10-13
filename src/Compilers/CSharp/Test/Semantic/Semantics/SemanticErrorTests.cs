@@ -7718,11 +7718,18 @@ class Test
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (7,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "w"),
+                //       using (StreamWriter w) // CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "w").WithLocation(7, 27),
                 // (12,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "x"),
+                //       using (StreamWriter x, y) // CS0210, CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "x").WithLocation(12, 27),
                 // (12,30): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "y"));
+                //       using (StreamWriter x, y) // CS0210, CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "y").WithLocation(12, 30),
+                // (9,10): error CS0165: Use of unassigned local variable 'w'
+                //          w.WriteLine("Hello there");
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "w").WithArguments("w").WithLocation(9, 10)
+                );
         }
 
         [Fact]
@@ -23113,7 +23120,20 @@ namespace System
         public T2 Item2;
         public ValueTuple(T1 item1, T2 item2) { Item1 = item1; Item2 = item2; }
     }
-}";
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// Indicates that the use of <see cref=""System.ValueTuple""/> on a member is meant to be treated as a tuple with element names.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue | AttributeTargets.Class | AttributeTargets.Struct )]
+    public sealed class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] transformNames) { }
+    }
+}
+";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,59): error CS8198: An expression tree may not contain an out argument variable declaration.

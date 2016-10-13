@@ -326,7 +326,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim elementLocations = ArrayBuilder(Of Location).GetInstance(arguments.Count)
 
             Dim elementNames As ArrayBuilder(Of String) = Nothing
-            Dim countOfExplicitNames = 0
 
             ' prepare and check element names and types
             For i As Integer = 0 To numElements - 1
@@ -339,9 +338,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     name = nameSyntax.Identifier.ValueText
                     elementLocations.Add(nameSyntax.GetLocation)
 
-                    countOfExplicitNames += 1
                     If Not CheckTupleMemberName(name, i, argumentSyntax.NameColonEquals.Name, diagnostics, uniqueFieldNames) Then
                         hasErrors = True
+                    End If
+
+                    '  check type character
+                    Dim typeChar As TypeCharacter = nameSyntax.Identifier.GetTypeCharacter()
+                    If typeChar <> TypeCharacter.None Then
+                        ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_TupleLiteralDisallowsTypeChar)
                     End If
                 Else
                     elementLocations.Add(argumentSyntax.GetLocation)
@@ -359,11 +363,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 elementTypes.Add(elementType)
             Next
-
-            If countOfExplicitNames <> 0 AndAlso countOfExplicitNames <> elementTypes.Count Then
-                hasErrors = True
-                ReportDiagnostic(diagnostics, node, ERRID.ERR_TupleExplicitNamesOnAllMembersOrNone)
-            End If
 
             Dim elementNamesArray = If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree())
 
@@ -442,12 +441,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' names would typically all be there or none at all
             ' but in case we need to handle this in error cases
             If elementNames IsNot Nothing Then
-                elementNames.Add(If(name, TupleTypeSymbol.TupleMemberName(position)))
+                elementNames.Add(name)
             Else
                 If name IsNot Nothing Then
                     elementNames = ArrayBuilder(Of String).GetInstance(tupleSize)
                     For j As Integer = 1 To position - 1
-                        elementNames.Add(TupleTypeSymbol.TupleMemberName(j))
+                        elementNames.Add(Nothing)
                     Next
                     elementNames.Add(name)
                 End If
@@ -457,15 +456,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function CheckTupleMemberName(name As String, index As Integer, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, uniqueFieldNames As HashSet(Of String)) As Boolean
             Dim reserved As Integer = TupleTypeSymbol.IsElementNameReserved(name)
             If reserved = 0 Then
-                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberNameAnyPosition, name)
+                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedElementNameAnyPosition, name)
                 Return False
 
             ElseIf reserved > 0 AndAlso reserved <> index + 1 Then
-                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberName, name, reserved)
+                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedElementName, name, reserved)
                 Return False
 
             ElseIf (Not uniqueFieldNames.Add(name)) Then
-                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleDuplicateMemberName)
+                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleDuplicateElementName)
                 Return False
 
             End If

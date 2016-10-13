@@ -355,8 +355,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim peMethod = peCompilation.GlobalNamespace.GetMember(Of PEMethodSymbol)(qualifiedMethodName)
             Dim peModule = DirectCast(peMethod.ContainingModule, PEModuleSymbol)
             Dim symReader = runtime.Modules.Single(Function(mi) mi.ModuleVersionId = peModule.Module.GetModuleVersionIdOrThrow()).SymReader
-            Dim symbolProvider = New VisualBasicEESymbolProvider(peModule, peMethod)
+            Dim symbolProvider = New VisualBasicEESymbolProvider(peCompilation.SourceAssembly, peModule, peMethod)
             Return MethodDebugInfo(Of TypeSymbol, LocalSymbol).ReadMethodDebugInfo(DirectCast(symReader, ISymUnmanagedReader3), symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion:=1, ilOffset:=ilOffset, isVisualBasicMethod:=True)
+        End Function
+
+        Friend Shared Function GetTupleElementNamesAttributeIfAny(method As IMethodSymbol) As SynthesizedAttributeData
+            Return GetAttributeIfAny(method, "System.Runtime.CompilerServices.TupleElementNamesAttribute")
+        End Function
+
+        Friend Shared Function GetAttributeIfAny(method As IMethodSymbol, typeName As String) As SynthesizedAttributeData
+            Return method.GetSynthesizedAttributes(forReturnType:=True).
+                Where(Function(a) a.AttributeClass.ToTestDisplayString() = typeName).
+                SingleOrDefault()
         End Function
     End Class
 End Namespace

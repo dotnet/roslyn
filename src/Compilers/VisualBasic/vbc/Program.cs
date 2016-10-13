@@ -3,13 +3,14 @@
 using System.IO;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     public class Program
     {
         public static int Main(string[] args)
-            => Main(args, SpecializedCollections.EmptyArray<string>());
+            => Main(args, Array.Empty<string>());
 
         public static int Main(string[] args, string[] extraArgs)
             => DesktopBuildClient.Run(args, extraArgs, RequestLanguage.VisualBasicCompile, Vbc.Run, new DesktopAnalyzerAssemblyLoader());

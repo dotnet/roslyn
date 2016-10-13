@@ -455,19 +455,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasExplicitNames)
             {
-                // If the tuple type with names is bound in a declaration
-                // context then we must have the TupleElementNamesAttribute to emit
-                if (syntax.IsTypeInContextWhichNeedsTupleNamesAttribute())
-                {
-                    // Report diagnostics if System.String doesn't exist
-                    this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
+                // If the tuple type with names is bound we must have the TupleElementNamesAttribute to emit
+                // it is typically there though, if we have ValueTuple at all
+                // and we need System.String as well
 
-                    if (!Compilation.HasTupleNamesAttributes)
-                    {
-                        var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                            AttributeDescription.TupleElementNamesAttribute.FullName);
-                        Error(diagnostics, info, syntax);
-                    }
+                // Report diagnostics if System.String doesn't exist
+                this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
+
+                if (!Compilation.HasTupleNamesAttributes)
+                {
+                    var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                        AttributeDescription.TupleElementNamesAttribute.FullName);
+                    Error(diagnostics, info, syntax);
                 }
             }
 
@@ -519,17 +518,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             int reserved = TupleTypeSymbol.IsElementNameReserved(name);
             if (reserved == 0)
             {
-                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberNameAnyPosition, syntax, name);
+                Error(diagnostics, ErrorCode.ERR_TupleReservedElementNameAnyPosition, syntax, name);
                 return false;
             }
             else if (reserved > 0 && reserved != index + 1)
             {
-                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberName, syntax, name, reserved);
+                Error(diagnostics, ErrorCode.ERR_TupleReservedElementName, syntax, name, reserved);
                 return false;
             }
             else if (!uniqueFieldNames.Add(name))
             {
-                Error(diagnostics, ErrorCode.ERR_TupleDuplicateMemberName, syntax);
+                Error(diagnostics, ErrorCode.ERR_TupleDuplicateElementName, syntax);
                 return false;
             }
             return true;

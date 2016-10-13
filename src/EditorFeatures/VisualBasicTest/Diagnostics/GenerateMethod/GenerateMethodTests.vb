@@ -2310,6 +2310,69 @@ Class C
 End Class</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function MethodWithTuple() As Task
+            Await TestAsync(
+"Class Program
+    Private Shared Async Sub Main(args As String())
+        Dim d As (Integer, String) = [|NewMethod|]((1, ""hello""))
+    End Sub
+End Class",
+"Imports System
+
+Class Program
+    Private Shared Async Sub Main(args As String())
+        Dim d As (Integer, String) = NewMethod((1, ""hello""))
+    End Sub
+
+    Private Shared Function NewMethod(p As (Integer, String)) As (Integer, String)
+        Throw New NotImplementedException()
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function MethodWithTupleWithNames() As Task
+            Await TestAsync(
+"Class Program
+    Private Shared Async Sub Main(args As String())
+        Dim d As (a As Integer, b As String) = [|NewMethod|]((c:=1, d:=""hello""))
+    End Sub
+End Class",
+"Imports System
+
+Class Program
+    Private Shared Async Sub Main(args As String())
+        Dim d As (a As Integer, b As String) = NewMethod((c:=1, d:=""hello""))
+    End Sub
+
+    Private Shared Function NewMethod(p As (c As Integer, d As String)) As (a As Integer, b As String)
+        Throw New NotImplementedException()
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function MethodWithTupleWithOneName() As Task
+            Await TestAsync(
+"Class Program
+    Private Shared Async Sub Main(args As String())
+        Dim d As (a As Integer, String) = [|NewMethod|]((c:=1, ""hello""))
+    End Sub
+End Class",
+"Imports System
+
+Class Program
+    Private Shared Async Sub Main(args As String())
+        Dim d As (a As Integer, String) = NewMethod((c:=1, ""hello""))
+    End Sub
+
+    Private Shared Function NewMethod(p As (c As Integer, String)) As (a As Integer, String)
+        Throw New NotImplementedException()
+    End Function
+End Class")
+        End Function
+
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -2594,6 +2657,7 @@ Class Digit
 End Class
 </text>.Value.Replace(vbLf, vbCrLf), compareTokens:=False)
             End Function
+
         End Class
     End Class
 End Namespace

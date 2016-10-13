@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 _identifierName = (TIdentifierNameSyntax)nameToken.Parent;
                 _expression = _identifierName;
-                if (_syntaxFacts.IsMemberAccessExpressionName(_expression))
+                if (_syntaxFacts.IsNameOfMemberAccessExpression(_expression))
                 {
                     _expression = _expression.Parent as TExpressionSyntax;
                 }

@@ -1224,15 +1224,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to project .
-        /// </summary>
-        internal static string project {
-            get {
-                return ResourceManager.GetString("project", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Punctuation.
         /// </summary>
         internal static string Punctuation {
@@ -1468,6 +1459,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Suggestion ellipses (…).
+        /// </summary>
+        internal static string Suggestion_ellipses {
+            get {
+                return ResourceManager.GetString("Suggestion_ellipses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;symbol&apos; cannot be a namespace..
         /// </summary>
         internal static string symbol_cannot_be_a_namespace {
@@ -1572,15 +1572,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string This_session_has_already_been_dismissed {
             get {
                 return ResourceManager.GetString("This_session_has_already_been_dismissed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to type .
-        /// </summary>
-        internal static string type {
-            get {
-                return ResourceManager.GetString("type", resourceCulture);
             }
         }
         

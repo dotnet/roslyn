@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub Validate()
             ValidateConstantValue()
             Operand.AssertRValue()
-            Debug.Assert(HasErrors OrElse Type.IsSameTypeIgnoringCustomModifiers(Operand.Type))
+            Debug.Assert(HasErrors OrElse Type.IsSameTypeIgnoringAll(Operand.Type))
         End Sub
 #End If
 

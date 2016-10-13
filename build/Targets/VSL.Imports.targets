@@ -190,10 +190,6 @@
 
   <Target Name="VerifyBuildFlags">
     <Error 
-        Condition="'$(OfficialBuild)' == 'true' AND '$(BuildVersion)' == '42.42.42.42'"
-        Text="Must specify a build version in order to real sign a build." />
-
-    <Error 
         Condition="'$(CheckForOverflowUnderflow)' != '' OR '$(RemoveIntegerChecks)' != ''"
         Text="The following properties cannot be set by individual projects: CheckForOverflowUnderflow and RemoveIntegerChecks" />
     
@@ -284,6 +280,7 @@
            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0'
            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime'
            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime'
            or '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'
            or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'
            or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime'
@@ -365,7 +362,7 @@
        ==================================================================================== -->
 
   <PropertyGroup>
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\1.3.0-beta5-60518-02\content\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-beta5-60913-03\content\OptimizationData</OptimizationDataFolderPath>
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
 

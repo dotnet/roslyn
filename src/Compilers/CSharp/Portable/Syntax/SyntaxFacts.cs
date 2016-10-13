@@ -138,6 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefValueExpression:
                         return ((RefValueExpressionSyntax)parent).Type == node;
 
+                    case RefType:
+                        return ((RefTypeSyntax)parent).Type == node;
+
                     case Parameter:
                         return ((ParameterSyntax)parent).Type == node;
 
@@ -393,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.IsVar() || IsPredefinedType(node.Kind);
         }
 
-        internal static bool IsDeconstructionType(SyntaxNode node, out SyntaxNode parent)
+        internal static bool IsVariableComponentType(SyntaxNode node, out SyntaxNode parent)
         {
             var component = node.Parent as TypedVariableComponentSyntax;
             parent = component;

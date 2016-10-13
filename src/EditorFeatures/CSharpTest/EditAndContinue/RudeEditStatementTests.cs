@@ -4188,6 +4188,138 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"));
         }
 
+        [Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
+        public void Lambdas_Update_CeaseCapture_SetterValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int D
+    {
+        get { return 0; }
+        set { new Action(() => { Console.Write(value); }).Invoke(); }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int D
+    {
+        get { return 0; }
+        set { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
+        }
+
+        [Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
+        public void Lambdas_Update_CeaseCapture_IndexerSetterValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int this[int a1, int a2]
+    {
+        get { return 0; }
+        set { new Action(() => { Console.Write(value); }).Invoke(); }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int this[int a1, int a2]
+    {
+        get { return 0; }
+        set { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "set", "value"));
+        }
+
+        [Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
+        public void Lambdas_Update_CeaseCapture_EventAdderValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add { new Action(() => { Console.Write(value); }).Invoke(); }
+        remove { }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "add", "value"));
+        }
+
+        [Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")]
+        public void Lambdas_Update_CeaseCapture_EventRemoverValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove { new Action(() => { Console.Write(value); }).Invoke(); }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add { }
+        remove { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "remove", "value"));
+        }
+
         [Fact]
         public void Lambdas_Update_DeleteCapture1()
         {
@@ -4302,6 +4434,105 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_IndexerSetterValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int this[int a1, int a2]
+    {
+        get { return 0; }
+        set {  }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int this[int a1, int a2]
+    {
+        get { return 0; }
+        set { new Action(() => { Console.Write(value); }).Invoke(); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "set", "value"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_EventAdderValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove { }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove { new Action(() => { Console.Write(value); }).Invoke(); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "remove", "value"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_EventRemoverValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove {  }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add { }
+        remove { new Action(() => { Console.Write(value); }).Invoke(); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "remove", "value"));
         }
 
         [Fact]
@@ -6455,11 +6686,11 @@ class C
 
             CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
                 edits,
-                ActiveStatementsDescription.Empty, 
+                ActiveStatementsDescription.Empty,
                 null,
                 null,
-                null, 
-                new[] 
+                null,
+                new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")
                 });
@@ -6499,6 +6730,130 @@ class C
                 null,
                 null,
                 null);
+        }
+
+        [Fact]
+        public void CSharp7SwitchStatement()
+        {
+            var src1 = @"
+class C
+{
+    static void F(object o)
+    {
+        switch (o)
+        {
+            case int i:
+                break;
+        }
+        System.Console.WriteLine(1);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F(object o)
+    {
+        switch (o)
+        {
+            case int i:
+                break;
+        }
+        System.Console.WriteLine(2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, CSharpFeaturesResources.v7_switch)
+                });
+        }
+
+        [Fact]
+        public void AddCSharp7SwitchStatement()
+        {
+            var src1 = @"
+class C
+{
+    static void F(object o)
+    {
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F(object o)
+    {
+        switch (o)
+        {
+            case string s:
+                break;
+        }
+        switch (o)
+        {
+            case int i:
+                break;
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                additionalOldSources: null,
+                additionalNewSources: null,
+                expectedSemanticEdits: null,
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (o)", CSharpFeaturesResources.v7_switch)
+                });
+        }
+
+        [Fact]
+        public void AddCSharp7SwitchStatement2()
+        {
+            var src1 = @"
+class C
+{
+    static void F(object o)
+    {
+        switch (o)
+        {
+            case 1:
+            case """":
+                break;
+        }
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F(object o)
+    {
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                additionalOldSources: null,
+                additionalNewSources: null,
+                expectedSemanticEdits: null,
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, CSharpFeaturesResources.v7_switch)
+                });
         }
 
         #endregion

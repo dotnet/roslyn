@@ -4071,5 +4071,47 @@ class C
 
             await TestAsync(code, expected, index: 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(12802, "https://github.com/dotnet/roslyn/issues/12802")]
+        public async Task Deconstruction2()
+        {
+            var code = @"
+class Program
+{
+    static void Main()
+    {
+        var [||]kvp = KVP.Create(42, ""hello"");
+        var(x1, x2) = kvp;
+    }
+}
+public static class KVP
+{
+    public static KVP<T1, T2> Create<T1, T2>(T1 item1, T2 item2) { return null; }
+}
+public class KVP<T1, T2>
+{
+    public void Deconstruct(out T1 item1, out T2 item2) { item1 = default(T1); item2 = default(T2); }
+}";
+
+            var expected = @"
+class Program
+{
+    static void Main()
+    {
+        var(x1, x2) = KVP.Create(42, ""hello"");
+    }
+}
+public static class KVP
+{
+    public static KVP<T1, T2> Create<T1, T2>(T1 item1, T2 item2) { return null; }
+}
+public class KVP<T1, T2>
+{
+    public void Deconstruct(out T1 item1, out T2 item2) { item1 = default(T1); item2 = default(T2); }
+}";
+
+            await TestAsync(code, expected, index: 0);
+        }
     }
 }

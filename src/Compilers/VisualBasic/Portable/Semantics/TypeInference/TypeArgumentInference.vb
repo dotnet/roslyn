@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If firstInferredType Is Nothing Then
                             firstInferredType = currentTypeInfo.ResultType
 
-                        ElseIf Not firstInferredType.IsSameTypeIgnoringCustomModifiers(currentTypeInfo.ResultType) Then
+                        ElseIf Not firstInferredType.IsSameTypeIgnoringAll(currentTypeInfo.ResultType) Then
                             ' Whidbey failed hard here, in Orcas we added dominant type information.
                             Graph.MarkInferenceLevel(InferenceLevel.Orcas)
                         End If
@@ -374,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each competitor As DominantTypeDataTypeInference In InferenceTypeCollection.GetTypeDataList()
 
                         ' Do not merge array literals with other expressions
-                        If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringCustomModifiers(competitor.ResultType) Then
+                        If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringAll(competitor.ResultType) Then
                             competitor.InferenceRestrictions = Conversions.CombineConversionRequirements(
                                                                         competitor.InferenceRestrictions,
                                                                         inferenceRestrictions)
@@ -1446,7 +1446,7 @@ HandleAsAGeneralExpression:
                         Dim argumentTypeAsNamedType = If(argumentType.Kind = SymbolKind.NamedType, DirectCast(argumentType, NamedTypeSymbol), Nothing)
 
                         If argumentTypeAsNamedType IsNot Nothing AndAlso argumentTypeAsNamedType.IsGenericType Then
-                            If argumentTypeAsNamedType.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(parameterTypeAsNamedType.OriginalDefinition) Then
+                            If argumentTypeAsNamedType.OriginalDefinition.IsSameTypeIgnoringAll(parameterTypeAsNamedType.OriginalDefinition) Then
 
                                 Do
 
@@ -1808,7 +1808,7 @@ HandleAsAGeneralExpression:
                     Return False
                 End If
 
-                If baseSearchType.IsSameTypeIgnoringCustomModifiers(fixedType) Then
+                If baseSearchType.IsSameTypeIgnoringAll(fixedType) Then
                     ' If the types checked were already identical, then exit
                     Return False
                 End If
@@ -1838,7 +1838,7 @@ HandleAsAGeneralExpression:
                 If match Is Nothing Then
                     match = type
                     Return True
-                ElseIf match.IsSameTypeIgnoringCustomModifiers(type) Then
+                ElseIf match.IsSameTypeIgnoringAll(type) Then
                     Return True
                 Else
                     match = Nothing
@@ -1854,7 +1854,7 @@ HandleAsAGeneralExpression:
                 Select Case derivedType.Kind
                     Case SymbolKind.TypeParameter
                         For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                            If constraint.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseInterface.OriginalDefinition) Then
+                            If constraint.OriginalDefinition.IsSameTypeIgnoringAll(baseInterface.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(constraint, match) Then
                                     Return False
                                 End If
@@ -1867,7 +1867,7 @@ HandleAsAGeneralExpression:
 
                     Case Else
                         For Each [interface] In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                            If [interface].OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseInterface.OriginalDefinition) Then
+                            If [interface].OriginalDefinition.IsSameTypeIgnoringAll(baseInterface.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual([interface], match) Then
                                     Return False
                                 End If
@@ -1886,7 +1886,7 @@ HandleAsAGeneralExpression:
                 Select Case derivedType.Kind
                     Case SymbolKind.TypeParameter
                         For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                            If constraint.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseClass.OriginalDefinition) Then
+                            If constraint.OriginalDefinition.IsSameTypeIgnoringAll(baseClass.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(constraint, match) Then
                                     Return False
                                 End If
@@ -1904,7 +1904,7 @@ HandleAsAGeneralExpression:
                         Dim baseType As NamedTypeSymbol = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
 
                         While baseType IsNot Nothing
-                            If baseType.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseClass.OriginalDefinition) Then
+                            If baseType.OriginalDefinition.IsSameTypeIgnoringAll(baseClass.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(baseType, match) Then
                                     Return False
                                 End If
@@ -2212,7 +2212,7 @@ HandleAsAGeneralExpression:
                                     Dim lambdaReturnNamedType = DirectCast(lambdaReturnType, NamedTypeSymbol)
                                     Dim returnNamedType = DirectCast(returnType, NamedTypeSymbol)
                                     If lambdaReturnNamedType.Arity = 1 AndAlso
-                                            IsSameTypeIgnoringCustomModifiers(lambdaReturnNamedType.OriginalDefinition,
+                                            IsSameTypeIgnoringAll(lambdaReturnNamedType.OriginalDefinition,
                                                                               returnNamedType.OriginalDefinition) Then
 
                                         ' We can assume that the lambda will have return type Task(Of T) or IEnumerable(Of T)

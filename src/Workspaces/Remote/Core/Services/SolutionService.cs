@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class SolutionService
     {
+        public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
+
         // TODO: make this simple cache better
         // this simple cache hold onto the last solution created
         private ValueTuple<Checksum, Solution> _lastSolution;
@@ -37,25 +42,58 @@ namespace Microsoft.CodeAnalysis.Remote
             return solution;
         }
 
+        public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
+        {
+            // since option belong to workspace, we can't share solution
+
+            // create new solution
+            var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+            // set merged options
+            solution.Workspace.Options = MergeOptions(solution.Workspace.Options, optionSet);
+
+            // return new solution
+            return solution;
+        }
+
+        private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)
+        {
+            var newOptions = workspaceOptions;
+            foreach (var key in userOptions.GetChangedOptions(workspaceOptions))
+            {
+                newOptions = newOptions.WithChangedOption(key, userOptions.GetOption(key));
+            }
+
+            return newOptions;
+        }
+
         private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObject>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            // synchronize whole solution first
+            await RoslynServices.AssetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            // TODO: Make these to do work concurrently
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices);
-            var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObjectInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
+            var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+            var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
+            var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedSolutionInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
             foreach (var projectChecksum in solutionChecksumObject.Projects)
             {
-                var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObject>(projectChecksum, cancellationToken).ConfigureAwait(false);
+                var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
+                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedProjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                if (!workspace.Services.IsSupported(projectInfo.Language))
+                {
+                    // only add project our workspace supports. 
+                    // workspace doesn't allow creating project with unknown languages
+                    continue;
+                }
 
                 var documents = new List<DocumentInfo>();
                 foreach (var documentChecksum in projectSnapshot.Documents)
                 {
-                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(documentChecksum, cancellationToken).ConfigureAwait(false);
-
-                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     documents.Add(
@@ -101,9 +139,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(documentChecksum, cancellationToken).ConfigureAwait(false);
-
-                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     additionals.Add(
@@ -117,7 +154,6 @@ namespace Microsoft.CodeAnalysis.Remote
                             documentInfo.IsGenerated));
                 }
 
-                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
                 var compilationOptions = await RoslynServices.AssetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, cancellationToken).ConfigureAwait(false);
                 var parseOptions = await RoslynServices.AssetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, cancellationToken).ConfigureAwait(false);
 
@@ -126,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
                         projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                         compilationOptions, parseOptions,
-                        documents, p2p, metadata, analyzers, additionals));
+                        documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission));
             }
 
             return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));

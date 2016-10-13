@@ -75,6 +75,7 @@
     <Compile Include="AssemblyAttributes.vb" />
     <Compile Include="Attributes\AssemblyAttributes.vb" />
     <Compile Include="Attributes\AttributeTests.vb" />
+    <Compile Include="Attributes\AttributeTests_Tuples.vb" />
     <Compile Include="Attributes\AttributeTests_Conditional.vb" />
     <Compile Include="Attributes\AttributeTests_MarshalAs.vb" />
     <Compile Include="Attributes\AttributeTests_ObsoleteAttribute.vb" />
@@ -156,6 +157,7 @@
     <Compile Include="PDB\PDBConstLocalTests.vb" />
     <Compile Include="PDB\PDBExternalSourceDirectiveTests.vb" />
     <Compile Include="PDB\PDBLambdaTests.vb" />
+    <Compile Include="PDB\PDBTupleTests.vb" />
     <Compile Include="PDB\PDBVariableInitializerTests.vb" />
     <Compile Include="PDB\PDBIteratorTests.vb" />
     <Compile Include="PDB\PDBForEachTests.vb" />

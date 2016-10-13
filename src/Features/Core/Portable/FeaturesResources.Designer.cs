@@ -1054,6 +1054,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fully qualify &apos;{0}&apos;.
+        /// </summary>
+        internal static string Fully_qualify_0 {
+            get {
+                return ResourceManager.GetString("Fully_qualify_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos;.
         /// </summary>
         internal static string Generate_0_1 {
@@ -1252,20 +1261,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate type.
+        ///   Looks up a localized string similar to Generate type &apos;{0}&apos;.
         /// </summary>
-        internal static string Generate_type {
+        internal static string Generate_type_0 {
             get {
-                return ResourceManager.GetString("Generate_type", resourceCulture);
+                return ResourceManager.GetString("Generate_type_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate variable.
+        ///   Looks up a localized string similar to Generate variable &apos;{0}&apos;.
         /// </summary>
-        internal static string Generate_variable {
+        internal static string Generate_variable_0 {
             get {
-                return ResourceManager.GetString("Generate_variable", resourceCulture);
+                return ResourceManager.GetString("Generate_variable_0", resourceCulture);
             }
         }
         
@@ -1414,11 +1423,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inline variable declaration.
+        /// </summary>
+        internal static string Inline_variable_declaration {
+            get {
+                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install &apos;{0} {1}&apos;.
         /// </summary>
         internal static string Install_0_1 {
             get {
                 return ResourceManager.GetString("Install_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install package &apos;{0}&apos;.
+        /// </summary>
+        internal static string Install_package_0 {
+            get {
+                return ResourceManager.GetString("Install_package_0", resourceCulture);
             }
         }
         
@@ -1940,6 +1967,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Object initialization can be simplified.
+        /// </summary>
+        internal static string Object_initialization_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Object_initialization_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Only methods with a single argument, which is not an out variable declaration, can be replaced with a property..
         /// </summary>
         internal static string Only_methods_with_a_single_argument_which_is_not_an_out_variable_declaration_can_be_replaced_with_a_property {
@@ -2037,6 +2073,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Project {
             get {
                 return ResourceManager.GetString("Project", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to project .
+        /// </summary>
+        internal static string project_space {
+            get {
+                return ResourceManager.GetString("project_space", resourceCulture);
             }
         }
         
@@ -2350,6 +2395,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Spell check &apos;{0}&apos;.
+        /// </summary>
+        internal static string Spell_check_0 {
+            get {
+                return ResourceManager.GetString("Spell_check_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Structures.
         /// </summary>
         internal static string Structures {
@@ -2592,6 +2646,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Type_Sharphelp_for_more_information {
             get {
                 return ResourceManager.GetString("Type_Sharphelp_for_more_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type .
+        /// </summary>
+        internal static string type_space {
+            get {
+                return ResourceManager.GetString("type_space", resourceCulture);
             }
         }
         
@@ -2873,6 +2936,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_locally_installed_0_version_1_This_version_used_in_colon_2 {
             get {
                 return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_colon_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
+        /// </summary>
+        internal static string Use_throw_expression {
+            get {
+                return ResourceManager.GetString("Use_throw_expression", resourceCulture);
             }
         }
         

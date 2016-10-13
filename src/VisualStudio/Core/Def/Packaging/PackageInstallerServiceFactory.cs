@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -61,9 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public PackageInstallerService(
             VisualStudioWorkspaceImpl workspace,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(workspace, ServiceComponentOnOffOptions.SymbolSearch,
-                              AddImportOptions.SuggestForTypesInReferenceAssemblies,
-                              AddImportOptions.SuggestForTypesInNuGetPackages)
+            : base(workspace, SymbolSearchOptions.Enabled,
+                              SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
+                              SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
@@ -99,20 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _packageServices.SourcesChanged += OnSourceProviderSourcesChanged;
-        }
-
-        protected override void StopWorking()
-        {
-            this.AssertIsForeground();
-
-            if (!IsEnabled)
-            {
-                return;
-            }
-
-            // Stop listening to workspace changes.
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            _packageServices.SourcesChanged -= OnSourceProviderSourcesChanged;
         }
 
         protected override void StartWorking()

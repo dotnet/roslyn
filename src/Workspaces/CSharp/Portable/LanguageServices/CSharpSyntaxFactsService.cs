@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return name.IsRightSideOfQualifiedName();
         }
 
-        public bool IsMemberAccessExpressionName(SyntaxNode node)
+        public bool IsNameOfMemberAccessExpression(SyntaxNode node)
         {
             var name = node as SimpleNameSyntax;
             return name.IsMemberAccessExpressionName();
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public bool IsMemberAccessExpression(SyntaxNode node)
+        public bool IsSimpleMemberAccessExpression(SyntaxNode node)
         {
             return node is MemberAccessExpressionSyntax &&
                 ((MemberAccessExpressionSyntax)node).Kind() == SyntaxKind.SimpleMemberAccessExpression;
@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<string>.Empty;
             }
 
-            var builder = ImmutableArray.CreateBuilder<string>(baseList.Types.Count);
+            var builder = ArrayBuilder<string>.GetInstance(baseList.Types.Count);
 
             // It's not sufficient to just store the textual names we see in the inheritance list
             // of a type.  For example if we have:
@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddInheritanceName(builder, baseType.Type, aliasMaps);
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
             finally
             {
@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void AddInheritanceName(
-            ImmutableArray<string>.Builder builder, TypeSyntax type,
+            ArrayBuilder<string> builder, TypeSyntax type,
             List<Dictionary<string, string>> aliasMaps)
         {
             var name = GetTypeName(type);
@@ -1773,6 +1773,95 @@ namespace Microsoft.CodeAnalysis.CSharp
             // var currentRoot = root.ReplaceNode(contextNode, contextNode.WithAdditionalAnnotations(s_annotation));
             newRoot = new AddFirstMissingCloseBaceRewriter(contextNode).Visit(root);
             newContextNode = newRoot.GetAnnotatedNodes(s_annotation).Single();
+        }
+
+        public SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression)
+        {
+            return ((ObjectCreationExpressionSyntax)objectCreationExpression).Initializer;
+        }
+
+        public bool IsSimpleAssignmentStatement(SyntaxNode statement)
+        {
+            return statement.IsKind(SyntaxKind.ExpressionStatement) &&
+                ((ExpressionStatementSyntax)statement).Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
+        }
+
+        public void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxNode right)
+        {
+            var assignment = (AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression;
+            left = assignment.Left;
+            right = assignment.Right;
+        }
+
+        public SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression)
+        {
+            return ((MemberAccessExpressionSyntax)memberAccessExpression).Name;
+        }
+
+        public SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression)
+        {
+            return ((MemberAccessExpressionSyntax)memberAccessExpression).OperatorToken;
+        }
+
+        public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
+        {
+            return ((SimpleNameSyntax)node).Identifier;
+        }
+
+        public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
+        {
+            return ((VariableDeclaratorSyntax)node).Identifier;
+        }
+
+        public bool IsIdentifierName(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.IdentifierName);
+        }
+
+        public bool IsLocalDeclarationStatement(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.LocalDeclarationStatement);
+        }
+
+        public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
+        {
+            return ((LocalDeclarationStatementSyntax)localDeclarationStatement).Declaration.Variables.Contains(
+                (VariableDeclaratorSyntax)declarator);
+        }
+
+        public bool AreEquivalent(SyntaxToken token1, SyntaxToken token2)
+        {
+            return SyntaxFactory.AreEquivalent(token1, token2);
+        }
+
+        public bool AreEquivalent(SyntaxNode node1, SyntaxNode node2)
+        {
+            return SyntaxFactory.AreEquivalent(node1, node2);
+        }
+
+        public bool IsExpressionOfInvocationExpression(SyntaxNode node)
+        {
+            return node != null && (node.Parent as InvocationExpressionSyntax)?.Expression == node;
+        }
+
+        public bool IsExpressionOfAwaitExpression(SyntaxNode node)
+        {
+            return node != null && (node.Parent as AwaitExpressionSyntax)?.Expression == node;
+        }
+
+        public bool IsExpressionOfMemberAccessExpression(SyntaxNode node)
+        {
+            return node != null && (node.Parent as MemberAccessExpressionSyntax)?.Expression == node;
+        }
+
+        public SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
+        {
+            return ((InvocationExpressionSyntax)node).Expression;
+        }
+
+        public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
+        {
+            return ((AwaitExpressionSyntax)node).Expression;
         }
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter

@@ -49,10 +49,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsObjectCreationExpressionType(SyntaxNode node);
         bool IsObjectCreationExpression(SyntaxNode node);
+        SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression);
+
         bool IsInvocationExpression(SyntaxNode node);
+        bool IsExpressionOfInvocationExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node);
+
+        bool IsExpressionOfAwaitExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
+
+        bool IsSimpleAssignmentStatement(SyntaxNode statement);
+        void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxNode right);
 
         // Left side of any assignment (for example  *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);
@@ -66,26 +76,38 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetRightSideOfDot(SyntaxNode node);
 
         bool IsRightSideOfQualifiedName(SyntaxNode node);
-        bool IsMemberAccessExpressionName(SyntaxNode node);
 
-        bool IsMemberAccessExpression(SyntaxNode node);
+        bool IsNameOfMemberAccessExpression(SyntaxNode node);
+        bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
+
+        SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression);
+        SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode memberAccessExpression);
+        SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression);
+
+        bool IsSimpleMemberAccessExpression(SyntaxNode node);
         bool IsPointerMemberAccessExpression(SyntaxNode node);
+
         bool IsNamedParameter(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
-        SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
+
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
+        SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
+        SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
+
         RefKind GetRefKindOfArgument(SyntaxNode node);
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression);
         bool IsUsingDirectiveName(SyntaxNode node);
+
+        bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
 
         bool IsAttribute(SyntaxNode node);
@@ -99,6 +121,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsForEachStatement(SyntaxNode node);
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
+
+        bool IsLocalDeclarationStatement(SyntaxNode node);
+        bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declator, SyntaxNode localDeclarationStatement);
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
@@ -135,6 +160,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
         bool HasIncompleteParentMember(SyntaxNode node);
 
+        bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
+        bool AreEquivalent(SyntaxNode node1, SyntaxNode node2);
+
         bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
 
         string GetDisplayName(SyntaxNode node, DisplayNameOptions options, string rootNamespace = null);
@@ -151,11 +179,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false);
 
         SyntaxToken ToIdentifierToken(string name);
-
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
-
         int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
         SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId);
         TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
@@ -177,7 +203,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetBindableParent(SyntaxToken token);
 
         IEnumerable<SyntaxNode> GetConstructors(SyntaxNode root, CancellationToken cancellationToken);
-
         bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
 
         /// <summary>

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -26,10 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (sessionOpt == null)
             {
                 // The user may be trying to invoke snippets through question-tab
-                var completionService = GetCompletionService();
-
-                if (completionService != null &&
-                    TryInvokeSnippetCompletion(args, completionService))
+                if (TryInvokeSnippetCompletion(args))
                 {
                     // We've taken care of the tab. Don't send it to the buffer.
                     return;
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
         }
 
-        private bool TryInvokeSnippetCompletion(TabKeyCommandArgs args, CompletionService completionService)
+        private bool TryInvokeSnippetCompletion(TabKeyCommandArgs args)
         {
             var subjectBuffer = args.SubjectBuffer;
             var caretPoint = args.TextView.GetCaretPoint(subjectBuffer).Value.Position;
@@ -99,7 +97,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            var rules = GetCompletionService().GetRules();
+            // There's was a buffer-Document mapping. We should be able
+            // to get a CompletionService.
+            var completionService = GetCompletionService();
+            Contract.ThrowIfNull(completionService, nameof(completionService));
+
+            var rules = completionService.GetRules();
             if (rules.SnippetsRule != SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
             {
                 return false;

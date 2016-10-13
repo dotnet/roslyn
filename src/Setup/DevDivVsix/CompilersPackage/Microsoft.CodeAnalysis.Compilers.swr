@@ -28,25 +28,34 @@ folder InstallDir:\MSBuild\15.0\Bin
     file source=$(OutputPath)\Microsoft.CodeAnalysis.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Collections.Immutable.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Reflection.Metadata.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.ValueTuple.dll vs.file.ngen=yes
 
     file source=$(OutputPath)\Microsoft.DiaSymReader.Native.amd64.dll
     file source=$(OutputPath)\Microsoft.DiaSymReader.Native.x86.dll
 
     file source=$(OutputPath)\System.AppContext.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Console.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Diagnostics.FileVersionInfo.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Diagnostics.Process.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Diagnostics.StackTrace.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.IO.Pipes.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.IO.Compression.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.IO.FileSystem.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.IO.FileSystem.DriveInfo.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.IO.FileSystem.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.IO.Pipes.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Runtime.InteropServices.RuntimeInformation.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.AccessControl.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.Claims.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.Cryptography.Algorithms.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Security.Cryptography.Encoding.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.Cryptography.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Security.Cryptography.X509Certificates.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.Principal.Windows.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Text.Encoding.CodePages.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Threading.Thread.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Xml.XmlDocument.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Xml.XPath.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Xml.XPath.XDocument.dll vs.file.ngen=yes
 
 folder InstallDir:\MSBuild\15.0\Bin\amd64
     file source=$(OutputPath)\VBCSCompiler.exe vs.file.ngen=yes
@@ -73,22 +82,31 @@ folder InstallDir:\MSBuild\15.0\Bin\amd64
     file source=$(OutputPath)\Microsoft.CodeAnalysis.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Collections.Immutable.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Reflection.Metadata.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.ValueTuple.dll vs.file.ngen=yes
 
     file source=$(OutputPath)\Microsoft.DiaSymReader.Native.amd64.dll
     file source=$(OutputPath)\Microsoft.DiaSymReader.Native.x86.dll
 
     file source=$(OutputPath)\System.AppContext.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Console.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Diagnostics.FileVersionInfo.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Diagnostics.Process.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Diagnostics.StackTrace.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.IO.Pipes.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.IO.Compression.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.IO.FileSystem.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.IO.FileSystem.DriveInfo.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.IO.FileSystem.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.IO.Pipes.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Runtime.InteropServices.RuntimeInformation.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.AccessControl.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.Claims.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.Cryptography.Algorithms.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Security.Cryptography.Encoding.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.Cryptography.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Security.Cryptography.X509Certificates.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Security.Principal.Windows.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Text.Encoding.CodePages.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Threading.Thread.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Xml.XmlDocument.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Xml.XPath.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.Xml.XPath.XDocument.dll vs.file.ngen=yes

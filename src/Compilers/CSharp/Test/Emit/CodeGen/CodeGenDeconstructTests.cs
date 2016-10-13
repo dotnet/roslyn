@@ -117,6 +117,63 @@ class C
         }
 
         [Fact]
+        [WorkItem(13632, "https://github.com/dotnet/roslyn/issues/13632")]
+        public void SimpleAssignWithoutConversion()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y;
+
+        (x, y) = new C();
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (int V_0, //x
+                string V_1, //y
+                int V_2,
+                string V_3,
+                string V_4)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_2
+  IL_0007:  ldloca.s   V_3
+  IL_0009:  call       ""void C.Deconstruct(out int, out string)""
+  IL_000e:  ldloc.2
+  IL_000f:  ldloc.3
+  IL_0010:  stloc.s    V_4
+  IL_0012:  dup
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.s    V_4
+  IL_0016:  stloc.1
+  IL_0017:  pop
+  IL_0018:  ldloc.0
+  IL_0019:  box        ""int""
+  IL_001e:  ldstr      "" ""
+  IL_0023:  ldloc.1
+  IL_0024:  call       ""string string.Concat(object, object, object)""
+  IL_0029:  call       ""void System.Console.WriteLine(string)""
+  IL_002e:  ret
+}");
+        }
+
+        [Fact]
         public void DeconstructMethodAmbiguous()
         {
             string source = @"
@@ -395,6 +452,29 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "2 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutParamsDisallowed()
+        {
+            string source = @"
+class C
+{
+    public void Deconstruct(out int a, out string b, out params int[] c)
+    {
+        a = 1;
+        b = ""ignored"";
+        c = new[] { 2, 2 };
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (4,58): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public void Deconstruct(out int a, out string b, out params int[] c)
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "params").WithLocation(4, 58)
+                );
         }
 
         [Fact]
@@ -1355,6 +1435,71 @@ static class D
         }
 
         [Fact]
+        public void UnderspecifiedDeconstructGenericExtensionMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        (x, y) = new C();
+    }
+}
+static class Extension
+{
+    public static void Deconstruct<T>(this C value, out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0411: The type arguments for method 'Extension.Deconstruct<T>(C, out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C()").WithArguments("Extension.Deconstruct<T>(C, out int, out T)").WithLocation(8, 18),
+                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void UnspecifiedGenericMethodIsNotCandidate()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        (x, y) = new C();
+    }
+}
+static class Extension
+{
+    public static void Deconstruct<T>(this C value, out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+    public static void Deconstruct(this C value, out int a, out string b)
+    {
+        a = 2;
+        b = ""hello"";
+        System.Console.Write(""Deconstructed"");
+    }
+}";
+
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DeconstructGenericExtensionMethod()
         {
             string source = @"
@@ -1383,6 +1528,75 @@ static class Extension
 ";
 
             var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructGenericMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = new C1();
+    }
+}
+class C1
+{
+    public void Deconstruct<T>(out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0411: The type arguments for method 'C1.Deconstruct<T>(out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         (x, y) = new C1();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C1()").WithArguments("C1.Deconstruct<T>(out int, out T)").WithLocation(9, 18),
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters.
+                //         (x, y) = new C1();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 18)
+                );
+        }
+
+        [Fact]
+        public void AmbiguousDeconstructGenericMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = new C1();
+        System.Console.Write($""{x} {y}"");
+    }
+}
+class C1
+{
+    public void Deconstruct<T>(out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 2;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -1689,6 +1903,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(13631, "https://github.com/dotnet/roslyn/issues/13631")]
         public void DeconstructionDeclaration()
         {
             string source = @"
@@ -1704,6 +1919,32 @@ class C
 
             var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  3
+  .locals init (int V_0, //x1
+                string V_1, //x2
+                int V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldstr      ""hello""
+  IL_0006:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_000b:  dup
+  IL_000c:  ldfld      ""int System.ValueTuple<int, string>.Item1""
+  IL_0011:  stloc.2
+  IL_0012:  ldfld      ""string System.ValueTuple<int, string>.Item2""
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""int""
+  IL_0020:  ldstr      "" ""
+  IL_0025:  ldloc.1
+  IL_0026:  call       ""string string.Concat(object, object, object)""
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ret
+}
+");
         }
 
         [Fact]
@@ -1727,15 +1968,15 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
@@ -1765,15 +2006,15 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
@@ -1932,15 +2173,15 @@ Deconstructing (1, hello)
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
@@ -1996,12 +2237,31 @@ Deconstructing (1, hello)
             }
         }
 
+        private static void VerifyModelForDeconstructionField(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            var field = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(decl.Identifier.ValueText, field.Name);
+            Assert.Equal(SymbolKind.Field, ((FieldSymbol)field).Kind);
+            Assert.Same(field, model.GetDeclaredSymbol((SyntaxNode)decl));
+            Assert.Same(field, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
+            Assert.Equal(Accessibility.Private, field.DeclaredAccessibility);
+            Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+
+            foreach (var reference in references)
+            {
+                Assert.Same(field, model.GetSymbolInfo(reference).Symbol);
+                Assert.Same(field, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
+                Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
+                Assert.Equal(field.Type, model.GetTypeInfo(reference).Type);
+            }
+        }
+
         private static TypeSyntax GetTypeSyntax(SingleVariableDesignationSyntax decl)
         {
             return (decl.Parent as TypedVariableComponentSyntax)?.Type;
         }
 
-        private static SingleVariableDesignationSyntax GetDeconstructionLocal(SyntaxTree tree, string name)
+        private static SingleVariableDesignationSyntax GetDeconstructionVariable(SyntaxTree tree, string name)
         {
             return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
         }
@@ -2048,11 +2308,11 @@ class var
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
@@ -2093,19 +2353,19 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
 
-                var x4 = GetDeconstructionLocal(tree, "x4");
+                var x4 = GetDeconstructionVariable(tree, "x4");
                 var x4Ref = GetReference(tree, "x4");
                 VerifyModelForDeconstructionLocal(model, x4, x4Ref);
 
@@ -2150,11 +2410,11 @@ class D
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
@@ -2200,11 +2460,11 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 4);
                 VerifyModelForDeconstructionFor(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReferences(tree, "x2", 3);
                 VerifyModelForDeconstructionFor(model, x2, x2Ref);
 
@@ -2245,11 +2505,11 @@ class var
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 3);
                 VerifyModelForDeconstructionFor(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionFor(model, x2, x2Ref);
 
@@ -2291,11 +2551,11 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 3);
                 VerifyModelForDeconstructionFor(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionFor(model, x2, x2Ref);
 
@@ -2340,11 +2600,11 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
@@ -2427,13 +2687,13 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 var symbol = model.GetDeclaredSymbol(x1);
 
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
@@ -2529,11 +2789,11 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
@@ -2643,11 +2903,11 @@ static class Extension
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
@@ -2726,23 +2986,23 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionForeach(model, x3, x3Ref);
 
-                var x4 = GetDeconstructionLocal(tree, "x4");
+                var x4 = GetDeconstructionVariable(tree, "x4");
                 var x4Ref = GetReference(tree, "x4");
                 VerifyModelForDeconstructionForeach(model, x4, x4Ref);
 
-                var x5 = GetDeconstructionLocal(tree, "x5");
+                var x5 = GetDeconstructionVariable(tree, "x5");
                 var x5Ref = GetReference(tree, "x5");
                 VerifyModelForDeconstructionForeach(model, x5, x5Ref);
 
@@ -2853,15 +3113,15 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionForeach(model, x3, x3Ref);
 
@@ -3043,6 +3303,1106 @@ class C
 ";
             var comp = CompileAndVerify(source, expectedOutput: "0 10 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleDeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = (""hello"", ""world"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IntTupleDeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new int[] { 1, 2 };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = (3, 4);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = new C();
+    }
+
+    public void Deconstruct(out string a, out string b)
+    {
+        a = ""hello"";
+        b = ""world"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleDeconstructionIntoDynamicArray()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic[] x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic[] x)
+    {
+        (x[0], x[1]) = (""hello"", ""world"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicArray()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic[] x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic[] x)
+    {
+        (x[0], x[1]) = new C();
+    }
+
+    public void Deconstruct(out string a, out string b)
+    {
+        a = ""hello"";
+        b = ""world"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicMember()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = System.ValueTuple.Create(1, 2);
+        (x.Item1, x.Item2) = new C();
+        System.Console.WriteLine($""{x.Item1} {x.Item2}"");
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 3;
+        b = 4;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FieldAndLocalWithSameName()
+        {
+            string source = @"
+class C
+{
+    public int x = 3;
+    static void Main()
+    {
+        new C().M();
+    }
+    void M()
+    {
+        var (x, y) = (1, 2);
+        System.Console.Write($""{x} {y} {this.x}"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoGlobalDeconstructionUnlessScript()
+        {
+            string source = @"
+class C
+{
+    var (x, y) = (1, 2);
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,2): error CS1520: Method must have a return type
+                // {
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "").WithLocation(3, 2),
+                // (4,11): error CS1001: Identifier expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(4, 11),
+                // (4,14): error CS1001: Identifier expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 14),
+                // (4,16): error CS1002: ; expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(4, 16),
+                // (4,16): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 16),
+                // (4,18): error CS8124: Tuple must contain at least two elements.
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(").WithLocation(4, 18),
+                // (4,19): error CS1031: Type expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(4, 19),
+                // (4,19): error CS1026: ) expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(4, 19),
+                // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
+                // (4,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(4, 10),
+                // (4,13): error CS0246: The type or namespace name 'y' could not be found (are you missing a using directive or an assembly reference?)
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(4, 13),
+                // (4,5): error CS0501: 'C.var(x, y)' must declare a body because it is not marked abstract, extern, or partial
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.var(x, y)").WithLocation(4, 5)
+                );
+
+            var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
+            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.DeconstructionDeclarationStatement));
+        }
+
+        [Fact]
+        public void SimpleDeconstructionInScript()
+        {
+            var source =
+@"
+using alias = System.Int32;
+(string x, alias y) = (""hello"", 42);
+System.Console.Write($""{x} {y}"");
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x = GetDeconstructionVariable(tree, "x");
+                var xSymbol = model.GetDeclaredSymbol(x);
+                var xRef = GetReference(tree, "x");
+                Assert.Equal("System.String Script.x", xSymbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, x, xRef);
+
+                var y = GetDeconstructionVariable(tree, "y");
+                var ySymbol = model.GetDeclaredSymbol(y);
+                var yRef = GetReference(tree, "y");
+                Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, y, yRef);
+
+                // extra checks on x
+                var xType = GetTypeSyntax(x);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(xType).Symbol.Kind);
+                Assert.Equal("string", model.GetSymbolInfo(xType).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(xType));
+
+                // extra checks on y
+                var yType = GetTypeSyntax(y);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(yType).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(yType).Symbol.ToDisplayString());
+                Assert.Equal("alias=System.Int32", model.GetAliasInfo(yType).ToTestDisplayString());
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42", sourceSymbolValidator: validator);
+            verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      151 (0x97)
+  .maxstack  3
+  .locals init (int V_0,
+                object V_1,
+                string V_2,
+                int V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldstr      ""hello""
+    IL_000c:  ldc.i4.s   42
+    IL_000e:  newobj     ""System.ValueTuple<string, int>..ctor(string, int)""
+    IL_0013:  dup
+    IL_0014:  ldfld      ""string System.ValueTuple<string, int>.Item1""
+    IL_0019:  stloc.2
+    IL_001a:  ldfld      ""int System.ValueTuple<string, int>.Item2""
+    IL_001f:  stloc.3
+    IL_0020:  ldarg.0
+    IL_0021:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0026:  ldloc.2
+    IL_0027:  stfld      ""string x""
+    IL_002c:  ldarg.0
+    IL_002d:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0032:  ldloc.3
+    IL_0033:  stfld      ""int y""
+    IL_0038:  ldstr      ""{0} {1}""
+    IL_003d:  ldarg.0
+    IL_003e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0043:  ldfld      ""string x""
+    IL_0048:  ldarg.0
+    IL_0049:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_004e:  ldfld      ""int y""
+    IL_0053:  box        ""int""
+    IL_0058:  call       ""string string.Format(string, object, object)""
+    IL_005d:  call       ""void System.Console.Write(string)""
+    IL_0062:  nop
+    IL_0063:  ldnull
+    IL_0064:  stloc.1
+    IL_0065:  leave.s    IL_0081
+  }
+  catch System.Exception
+  {
+    IL_0067:  stloc.s    V_4
+    IL_0069:  ldarg.0
+    IL_006a:  ldc.i4.s   -2
+    IL_006c:  stfld      ""int <<Initialize>>d__0.<>1__state""
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+    IL_0077:  ldloc.s    V_4
+    IL_0079:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_007e:  nop
+    IL_007f:  leave.s    IL_0096
+  }
+  IL_0081:  ldarg.0
+  IL_0082:  ldc.i4.s   -2
+  IL_0084:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0089:  ldarg.0
+  IL_008a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_008f:  ldloc.1
+  IL_0090:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_0095:  nop
+  IL_0096:  ret
+}");
+        }
+
+        [Fact]
+        public void NoGlobalDeconstructionOutsideScript()
+        {
+            var source =
+@"
+(string x, int y) = (""hello"", 42);
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics(
+                // (2,19): error CS1022: Type or namespace definition, or end-of-file expected
+                // (string x, int y) = ("hello", 42);
+                Diagnostic(ErrorCode.ERR_EOFExpected, "=").WithLocation(2, 19),
+                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
+                // (string x, int y) = ("hello", 42);
+                Diagnostic(ErrorCode.ERR_EOFExpected, @"""hello""").WithLocation(2, 22),
+                // (2,22): error CS1026: ) expected
+                // (string x, int y) = ("hello", 42);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, @"""hello""").WithLocation(2, 22),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+
+            var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
+            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.DeconstructionDeclarationStatement));
+        }
+
+        [Fact]
+        public void NestedDeconstructionInScript()
+        {
+            var source =
+@"
+(string x, (int y, int z)) = (""hello"", (42, 43));
+System.Console.Write($""{x} {y} {z}"");
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43");
+        }
+
+        [Fact]
+        public void VarDeconstructionInScript()
+        {
+            var source =
+@"
+(var x, var y) = (""hello"", 42);
+System.Console.Write($""{x} {y}"");
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42");
+        }
+
+        [Fact]
+        public void NestedVarDeconstructionInScript()
+        {
+            var source =
+@"
+(var x1, var (x2, x3)) = (""hello"", (42, 43));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Symbol = model.GetDeclaredSymbol(x1);
+                var x1Ref = GetReference(tree, "x1");
+                Assert.Equal("System.String Script.x1", x1Symbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Symbol = model.GetDeclaredSymbol(x2);
+                var x2Ref = GetReference(tree, "x2");
+                Assert.Equal("System.Int32 Script.x2", x2Symbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, x2, x2Ref);
+
+                // extra checks on x1's var
+                var x1Type = GetTypeSyntax(x1);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+                Assert.Equal("string", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(x1Type));
+
+                // extra check on x2 and x3's var
+                var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
+                Assert.Equal("var", x23Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43", sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void EvaluationOrderForDeconstructionInScript()
+        {
+            var source =
+    @"
+(int, int) M(out int x) { x = 1; return (2, 3); }
+var (x2, x3) = M(out var x1);
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2 3");
+            verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      182 (0xb6)
+  .maxstack  4
+  .locals init (int V_0,
+                object V_1,
+                int V_2,
+                int V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldarg.0
+    IL_0008:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_000d:  ldarg.0
+    IL_000e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0013:  ldflda     ""int x1""
+    IL_0018:  callvirt   ""(int, int) M(out int)""
+    IL_001d:  dup
+    IL_001e:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_0023:  stloc.2
+    IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_0029:  stloc.3
+    IL_002a:  ldarg.0
+    IL_002b:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0030:  ldloc.2
+    IL_0031:  stfld      ""int x2""
+    IL_0036:  ldarg.0
+    IL_0037:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_003c:  ldloc.3
+    IL_003d:  stfld      ""int x3""
+    IL_0042:  ldstr      ""{0} {1} {2}""
+    IL_0047:  ldarg.0
+    IL_0048:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_004d:  ldfld      ""int x1""
+    IL_0052:  box        ""int""
+    IL_0057:  ldarg.0
+    IL_0058:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_005d:  ldfld      ""int x2""
+    IL_0062:  box        ""int""
+    IL_0067:  ldarg.0
+    IL_0068:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_006d:  ldfld      ""int x3""
+    IL_0072:  box        ""int""
+    IL_0077:  call       ""string string.Format(string, object, object, object)""
+    IL_007c:  call       ""void System.Console.Write(string)""
+    IL_0081:  nop
+    IL_0082:  ldnull
+    IL_0083:  stloc.1
+    IL_0084:  leave.s    IL_00a0
+  }
+  catch System.Exception
+  {
+    IL_0086:  stloc.s    V_4
+    IL_0088:  ldarg.0
+    IL_0089:  ldc.i4.s   -2
+    IL_008b:  stfld      ""int <<Initialize>>d__0.<>1__state""
+    IL_0090:  ldarg.0
+    IL_0091:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+    IL_0096:  ldloc.s    V_4
+    IL_0098:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_009d:  nop
+    IL_009e:  leave.s    IL_00b5
+  }
+  IL_00a0:  ldarg.0
+  IL_00a1:  ldc.i4.s   -2
+  IL_00a3:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_00ae:  ldloc.1
+  IL_00af:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_00b4:  nop
+  IL_00b5:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DeconstructionForEachInScript()
+        {
+            var source =
+@"
+foreach ((string x1, var (x2, x3)) in new[] { (""hello"", (42, ""world"")) })
+{
+    System.Console.Write($""{x1} {x2} {x3}"");
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Symbol = model.GetDeclaredSymbol(x1);
+                Assert.Equal("System.String x1", x1Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Local, x1Symbol.Kind);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Symbol = model.GetDeclaredSymbol(x2);
+                Assert.Equal("System.Int32 x2", x2Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void DeconstructionInForLoopInScript()
+        {
+            var source =
+@"
+for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
+{
+    System.Console.Write($""{x1} {x2} {x3}"");
+    break;
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Symbol = model.GetDeclaredSymbol(x1);
+                Assert.Equal("System.String x1", x1Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Local, x1Symbol.Kind);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Symbol = model.GetDeclaredSymbol(x2);
+                Assert.Equal("System.Int32 x2", x2Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void DeconstructionInCSharp6Script()
+        {
+            var source =
+@"
+var (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x, y)").WithArguments("tuples", "7").WithLocation(2, 1),
+                // (2,14): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        public void InvalidDeconstructionInScript()
+        {
+            var source =
+@"
+int (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (2,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // int (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x").WithLocation(2, 6),
+                // (2,9): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // int (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "y").WithLocation(2, 9)
+                );
+
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xSymbol = model.GetDeclaredSymbol(x);
+            Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.False(xType.IsErrorType());
+            Assert.Equal("System.Int32", xType.ToTestDisplayString());
+
+            var y = GetDeconstructionVariable(tree, "y");
+            var ySymbol = model.GetDeclaredSymbol(y);
+            Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
+            var yType = ((FieldSymbol)ySymbol).Type;
+            Assert.False(yType.IsErrorType());
+            Assert.Equal("System.Int32", yType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NameConflictInDeconstructionInScript()
+        {
+            var source =
+@"
+int x1;
+var (x1, x2) = (1, 2);
+System.Console.Write(x1);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,6): error CS0102: The type 'Script' already contains a definition for 'x1'
+                // var (x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x1").WithArguments("Script", "x1").WithLocation(3, 6),
+                // (4,22): error CS0229: Ambiguity between 'x1' and 'x1'
+                // System.Console.Write(x1);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x1").WithArguments("x1", "x1").WithLocation(4, 22)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var firstX1 = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "x1").Single();
+            var firstX1Symbol = model.GetDeclaredSymbol(firstX1);
+            Assert.Equal("System.Int32 Script.x1", firstX1Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, firstX1Symbol.Kind);
+
+            var secondX1 = GetDeconstructionVariable(tree, "x1");
+            var secondX1Symbol = model.GetDeclaredSymbol(secondX1);
+            Assert.Equal("System.Int32 Script.x1", secondX1Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, secondX1Symbol.Kind);
+
+            Assert.NotEqual(firstX1Symbol, secondX1Symbol);
+        }
+
+        [Fact]
+        public void NameConflictInDeconstructionInScript2()
+        {
+            var source =
+@"
+var (x, y) = (1, 2);
+var (z, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS0102: The type 'Script' already contains a definition for 'y'
+                // var (z, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "y").WithArguments("Script", "y").WithLocation(3, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var firstY = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "y").First();
+            var firstYSymbol = model.GetDeclaredSymbol(firstY);
+            Assert.Equal("System.Int32 Script.y", firstYSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, firstYSymbol.Kind);
+
+            var secondY = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "y").Skip(1).First();
+            var secondYSymbol = model.GetDeclaredSymbol(secondY);
+            Assert.Equal("System.Int32 Script.y", secondYSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, secondYSymbol.Kind);
+
+            Assert.NotEqual(firstYSymbol, secondYSymbol);
+        }
+
+        [Fact]
+        public void NameConflictInDeconstructionInScript3()
+        {
+            var source =
+@"
+var (x, (y, x)) = (1, (2, ""hello""));
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (2,13): error CS0102: The type 'Script' already contains a definition for 'x'
+                // var (x, (y, x)) = (1, (2, "hello"));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x").WithArguments("Script", "x").WithLocation(2, 13)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var firstX = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "x").First();
+            var firstXSymbol = model.GetDeclaredSymbol(firstX);
+            Assert.Equal("System.Int32 Script.x", firstXSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, firstXSymbol.Kind);
+
+            var secondX = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "x").Skip(1).First();
+            var secondXSymbol = model.GetDeclaredSymbol(secondX);
+            Assert.Equal("System.String Script.x", secondXSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, secondXSymbol.Kind);
+
+            Assert.NotEqual(firstXSymbol, secondXSymbol);
+        }
+
+        [Fact]
+        public void UnassignedUsedInDeconstructionInScript()
+        {
+            var source =
+@"
+System.Console.Write(x);
+var (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xSymbol = model.GetDeclaredSymbol(x);
+            var xRef = GetReference(tree, "x");
+            Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x, xRef);
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.False(xType.IsErrorType());
+            Assert.Equal("System.Int32", xType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FailedInferenceInDeconstructionInScript()
+        {
+            var source =
+@"
+var (x, y) = (1, null);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(2, 6),
+                // (2,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(2, 9)
+                );
+
+            comp.VerifyDiagnostics(
+                // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(2, 6),
+                // (2,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(2, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xSymbol = model.GetDeclaredSymbol(x);
+            Assert.Equal("var Script.x", xSymbol.ToTestDisplayString());
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.True(xType.IsErrorType());
+            Assert.Equal("var", xType.ToTestDisplayString());
+
+            var y = GetDeconstructionVariable(tree, "y");
+            var ySymbol = model.GetDeclaredSymbol(y);
+            Assert.Equal("var Script.y", ySymbol.ToTestDisplayString());
+            var yType = ((FieldSymbol)ySymbol).Type;
+            Assert.True(yType.IsErrorType());
+            Assert.Equal("var", yType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FailedCircularInferenceInDeconstructionInScript()
+        {
+            var source =
+@"
+var (x1, x2) = (x2, x1);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (2,10): error CS7019: Type of 'x2' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x1, x2) = (x2, x1);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x2").WithArguments("x2").WithLocation(2, 10),
+                // (2,6): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x1, x2) = (x2, x1);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(2, 6)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+            var x1Type = ((FieldSymbol)x1Symbol).Type;
+            Assert.True(x1Type.IsErrorType());
+            Assert.Equal("var", x1Type.Name);
+
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Symbol = model.GetDeclaredSymbol(x2);
+            var x2Ref = GetReference(tree, "x2");
+            Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x2, x2Ref);
+            var x2Type = ((FieldSymbol)x2Symbol).Type;
+            Assert.True(x2Type.IsErrorType());
+            Assert.Equal("var", x2Type.Name);
+        }
+
+        [Fact]
+        public void FailedCircularInferenceInDeconstructionInScript2()
+        {
+            var source =
+@"
+var (x1, x2) = (y1, y2);
+var (y1, y2) = (x1, x2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (3,6): error CS7019: Type of 'y1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (y1, y2) = (x1, x2);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "y1").WithArguments("y1").WithLocation(3, 6),
+                // (2,6): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x1, x2) = (y1, y2);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(2, 6),
+                // (2,10): error CS7019: Type of 'x2' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x1, x2) = (y1, y2);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x2").WithArguments("x2").WithLocation(2, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+            var x1Type = ((FieldSymbol)x1Symbol).Type;
+            Assert.True(x1Type.IsErrorType());
+            Assert.Equal("var", x1Type.Name);
+
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Symbol = model.GetDeclaredSymbol(x2);
+            var x2Ref = GetReference(tree, "x2");
+            Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x2, x2Ref);
+            var x2Type = ((FieldSymbol)x2Symbol).Type;
+            Assert.True(x2Type.IsErrorType());
+            Assert.Equal("var", x2Type.Name);
+        }
+
+        [Fact]
+        public void VarAliasInVarDeconstructionInScript()
+        {
+            var source =
+@"
+using var = System.Byte;
+var (x1, (x2, x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(3, 6),
+                // (3,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(3, 11),
+                // (3,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(3, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("System.Byte Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("System.Byte Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra check on var
+            var x123Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+            Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+        }
+
+        [Fact]
+        public void VarTypeInVarDeconstructionInScript()
+        {
+            var source =
+@"
+class var
+{
+    public static implicit operator var(int i) { return null; }
+}
+var (x1, (x2, x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 6),
+                // (6,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 11),
+                // (6,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(6, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("Script.var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("Script.var Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra check on var
+            var x123Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+            Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+        }
+
+        [Fact]
+        public void VarAliasInTypedDeconstructionInScript()
+        {
+            var source =
+@"
+using var = System.Byte;
+(var x1, (var x2, var x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2 3");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("System.Byte Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("System.Byte Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra checks on x1's var
+            var x1Type = GetTypeSyntax(x1);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+            Assert.Equal("byte", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+            var x1Alias = model.GetAliasInfo(x1Type);
+            Assert.Equal(SymbolKind.NamedType, x1Alias.Target.Kind);
+            Assert.Equal("byte", x1Alias.Target.ToDisplayString());
+
+            // extra checks on x3's var
+            var x3Type = GetTypeSyntax(x3);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x3Type).Symbol.Kind);
+            Assert.Equal("byte", model.GetSymbolInfo(x3Type).Symbol.ToDisplayString());
+            var x3Alias = model.GetAliasInfo(x3Type);
+            Assert.Equal(SymbolKind.NamedType, x3Alias.Target.Kind);
+            Assert.Equal("byte", x3Alias.Target.ToDisplayString());
+        }
+
+        [Fact]
+        public void VarTypeInTypedDeconstructionInScript()
+        {
+            var source =
+@"
+class var
+{
+    public static implicit operator var(int i) { return new var(); }
+    public override string ToString() { return ""var""; }
+}
+(var x1, (var x2, var x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "var var var");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("Script.var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("Script.var Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra checks on x1's var
+            var x1Type = GetTypeSyntax(x1);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+            Assert.Equal("var", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+            Assert.Null(model.GetAliasInfo(x1Type));
+
+            // extra checks on x3's var
+            var x3Type = GetTypeSyntax(x3);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x3Type).Symbol.Kind);
+            Assert.Equal("var", model.GetSymbolInfo(x3Type).Symbol.ToDisplayString());
+            Assert.Null(model.GetAliasInfo(x3Type));
         }
     }
 }

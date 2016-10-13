@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Execution
@@ -14,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
     [ExportLanguageService(typeof(IOptionsSerializationService), LanguageNames.CSharp), Shared]
     internal class CSharpOptionsSerializationService : AbstractOptionsSerializationService
     {
+        public override bool CanSerialize(object value)
+        {
+            return value is CSharpCompilationOptions || value is CSharpParseOptions;
+        }
+
         public override void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             WriteCompilationOptionsTo(options, writer, cancellationToken);
@@ -30,6 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             var csharpOptions = (CSharpParseOptions)options;
             writer.WriteInt32((int)csharpOptions.LanguageVersion);
             writer.WriteValue(options.PreprocessorSymbolNames.ToArray());
+        }
+
+        public override void WriteTo(OptionSet options, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            WriteOptionSetTo(options, LanguageNames.CSharp, writer, cancellationToken);
+
+            WriteOptionTo(options, CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, writer, cancellationToken);
+            WriteOptionTo(options, CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, writer, cancellationToken);
+            WriteOptionTo(options, CSharpCodeStyleOptions.UseImplicitTypeWherePossible, writer, cancellationToken);
         }
 
         public override CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -87,6 +104,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
 
             var options = new CSharpParseOptions(languageVersion, documentationMode, kind, preprocessorSymbolNames);
             return options.WithFeatures(features);
+        }
+
+        public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
+        {
+            OptionSet options = new SerializedPartialOptionSet();
+
+            options = ReadOptionSetFrom(options, LanguageNames.CSharp, reader, cancellationToken);
+
+            options = ReadOptionFrom(options, CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, reader, cancellationToken);
+            options = ReadOptionFrom(options, CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, reader, cancellationToken);
+            options = ReadOptionFrom(options, CSharpCodeStyleOptions.UseImplicitTypeWherePossible, reader, cancellationToken);
+
+            return options;
         }
     }
 }

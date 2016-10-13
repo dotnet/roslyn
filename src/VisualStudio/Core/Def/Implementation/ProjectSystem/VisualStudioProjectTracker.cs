@@ -3,13 +3,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -28,6 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #region Mutable fields accessed only from foreground thread - don't need locking for access (all accessing methods must have AssertIsForeground).
         private readonly List<WorkspaceHostState> _workspaceHosts;
+
+        private readonly HostWorkspaceServices _workspaceServices;
 
         /// <summary>
         /// The list of projects loaded in this batch between <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
@@ -100,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject));
         }
 
-        public VisualStudioProjectTracker(IServiceProvider serviceProvider)
+        public VisualStudioProjectTracker(IServiceProvider serviceProvider, HostWorkspaceServices workspaceServices)
             : base(assertIsForeground: true)
         {
             _projectMap = new Dictionary<ProjectId, AbstractProject>();
@@ -108,6 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _serviceProvider = serviceProvider;
             _workspaceHosts = new List<WorkspaceHostState>(capacity: 1);
+            _workspaceServices = workspaceServices;
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
@@ -206,17 +214,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RegisterWorkspaceHost(IVisualStudioWorkspaceHost host)
         {
-            AssertIsForeground();
+            ExecuteOrScheduleForegroundAffinitizedAction(
+                () => RegisterWorkspaceHostOnForeground(host));
+        }
 
-            lock (_gate)
+        private void RegisterWorkspaceHostOnForeground(IVisualStudioWorkspaceHost host)
+        {
+            this.AssertIsForeground();
+
+            if (_workspaceHosts.Any(hostState => hostState.Host == host))
             {
-                if (_workspaceHosts.Any(hostState => hostState.Host == host))
-                {
-                    throw new ArgumentException("The workspace host is already registered.", nameof(host));
-                }
-
-                _workspaceHosts.Add(new WorkspaceHostState(this, host));
+                throw new ArgumentException("The workspace host is already registered.", nameof(host));
             }
+
+            _workspaceHosts.Add(new WorkspaceHostState(this, host));
         }
 
         public void StartSendingEventsToWorkspaceHost(IVisualStudioWorkspaceHost host)
@@ -561,6 +572,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }
             }
+        }
+
+        internal void TryDisconnectExistingDeferredProject(IVsHierarchy hierarchy, string projectName)
+        {
+            var projectPath = AbstractLegacyProject.GetProjectFilePath(hierarchy);
+            var projectId = GetOrCreateProjectIdForPath(projectPath, projectName);
+
+            // If we created a project for this while in deferred project load mode, let's close it
+            // now that we're being asked to make a "real" project for it, so that we'll prefer the
+            // "real" project
+            if (IsDeferredSolutionLoadEnabled())
+            {
+                var existingProject = GetProject(projectId);
+                Debug.Assert(existingProject is IWorkspaceProjectContext);
+                existingProject?.Disconnect();
+            }
+        }
+
+        private bool IsDeferredSolutionLoadEnabled()
+        {
+            // NOTE: It is expected that the "as" will fail on Dev14, as IVsSolution7 was
+            // introduced in Dev15.  Be sure to handle the null result here.
+            var solution7 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
+            return solution7?.IsSolutionLoadDeferred() == true;
         }
     }
 }

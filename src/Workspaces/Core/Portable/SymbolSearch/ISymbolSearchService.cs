@@ -1,8 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -17,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        IEnumerable<PackageWithTypeResult> FindPackagesWithType(
+        Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken);
 
         /// <summary>
@@ -29,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+        Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken);
     }
 
@@ -40,15 +45,19 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public readonly string TypeName;
         public readonly string Version;
 
+        internal readonly int Rank;
+
         public PackageWithTypeResult(
             string packageName,
-            string typeName, 
+            string typeName,
             string version,
+            int rank,
             IReadOnlyList<string> containingNamespaceNames)
         {
             PackageName = packageName;
             TypeName = typeName;
             Version = string.IsNullOrWhiteSpace(version) ? null : version;
+            Rank = rank;
             ContainingNamespaceNames = containingNamespaceNames;
         }
     }
@@ -67,6 +76,22 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             AssemblyName = assemblyName;
             TypeName = typeName;
             ContainingNamespaceNames = containingNamespaceNames;
+        }
+    }
+
+    [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
+    internal class DefaultSymbolSearchService : ISymbolSearchService
+    {
+        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            string source, string name, int arity, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+        }
+
+        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            string name, int arity, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
         }
     }
 }

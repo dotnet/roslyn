@@ -12,13 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public override void CollectBlockSpans(
             Document document,
             SyntaxTrivia trivia,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             CollectBlockSpans(trivia.SyntaxTree, trivia, spans, cancellationToken);
         }
 
-        public void CollectBlockSpans(SyntaxTree syntaxTree, SyntaxTrivia trivia, ImmutableArray<BlockSpan>.Builder spans, CancellationToken cancellationToken)
+        public void CollectBlockSpans(
+            SyntaxTree syntaxTree, SyntaxTrivia trivia,
+            ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
         {
             // We'll always be leading trivia of some token.
             var startPos = trivia.FullSpan.Start;
@@ -92,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             spans.Add(new BlockSpan(
                 isCollapsible: true,
                 textSpan: span,
+                type: BlockTypes.PreprocessorRegion,
                 bannerText: CSharpStructureHelpers.Ellipsis,
                 autoCollapse: true));
         }

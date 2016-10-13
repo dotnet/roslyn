@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Feedback.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -77,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void InitializeStandardVisualStudioWorkspace(SVsServiceProvider serviceProvider, SaveEventsService saveEventsService)
         {
-            var projectTracker = new VisualStudioProjectTracker(serviceProvider);
+            var projectTracker = new VisualStudioProjectTracker(serviceProvider, this.Services);
 
             // Ensure the document tracking service is initialized on the UI thread
             var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
@@ -143,8 +145,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
+            var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
+            var projectsToLoad = new HashSet<Guid>();
+            foreach (var pc in projectChanges)
+            {
+                if (pc.GetAddedAdditionalDocuments().Any() ||
+                    pc.GetAddedAnalyzerReferences().Any() ||
+                    pc.GetAddedDocuments().Any() ||
+                    pc.GetAddedMetadataReferences().Any() ||
+                    pc.GetAddedProjectReferences().Any() ||
+                    pc.GetRemovedAdditionalDocuments().Any() ||
+                    pc.GetRemovedAnalyzerReferences().Any() ||
+                    pc.GetRemovedDocuments().Any() ||
+                    pc.GetRemovedMetadataReferences().Any() ||
+                    pc.GetRemovedProjectReferences().Any())
+                {
+                    projectsToLoad.Add(GetHostProject(pc.ProjectId).Guid);
+                }
+            }
+
+            if (projectsToLoad.Any())
+            {
+                var vsSolution4 = GetVsService(typeof(SVsSolution)) as IVsSolution4;
+                vsSolution4.EnsureProjectsAreLoaded(
+                    (uint)projectsToLoad.Count,
+                    projectsToLoad.ToArray(),
+                    (uint)__VSBSLFLAGS.VSBSLFLAGS_None);
+            }
+
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().SelectMany(pd => pd.GetChangedDocuments()).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments()).ToList();
             if (changedDocs.Count > 0)
             {
                 this.EnsureEditableDocuments(changedDocs);
@@ -1242,7 +1272,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private void RegisterPrimarySolutionForPersistentStorage(SolutionId solutionId)
+            private void RegisterPrimarySolutionForPersistentStorage(
+                SolutionId solutionId)
             {
                 var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
                 if (service == null)
@@ -1253,7 +1284,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 service.RegisterPrimarySolution(solutionId);
             }
 
-            private void UnregisterPrimarySolutionForPersistentStorage(SolutionId solutionId, bool synchronousShutdown)
+            private void UnregisterPrimarySolutionForPersistentStorage(
+                SolutionId solutionId, bool synchronousShutdown)
             {
                 var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
                 if (service == null)

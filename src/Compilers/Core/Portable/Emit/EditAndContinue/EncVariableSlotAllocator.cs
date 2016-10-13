@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.Emit
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            bool isDynamic,
-            ImmutableArray<TypedConstant> dynamicTransformFlags)
+            ImmutableArray<TypedConstant> dynamicTransformFlags,
+            ImmutableArray<TypedConstant> tupleElementNames)
         {
             if (id.IsNone)
             {
@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 id,
                 pdbAttributes,
                 constraints,
-                isDynamic,
-                dynamicTransformFlags);
+                dynamicTransformFlags,
+                tupleElementNames);
         }
 
         public override string PreviousStateMachineTypeName => _stateMachineTypeNameOpt;

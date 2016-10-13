@@ -191,6 +191,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Continue For
                     End If
 
+                    typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol,
+                                                                               constraint,
+                                                                               moduleSymbol)
+
                     constraintsBuilder.Add(New TypeParameterConstraint(typeSymbol, Nothing))
                 Next
             End If

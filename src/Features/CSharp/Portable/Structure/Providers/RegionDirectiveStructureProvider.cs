@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         protected override void CollectBlockSpans(
             RegionDirectiveTriviaSyntax regionDirective,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             var match = regionDirective.GetMatchingDirective(cancellationToken);
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
                     textSpan: TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
+                    type: BlockTypes.PreprocessorRegion,
                     bannerText: GetBannerText(regionDirective),
                     autoCollapse: true,
                     isDefaultCollapsed: true));

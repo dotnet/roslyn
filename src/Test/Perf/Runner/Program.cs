@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
@@ -9,29 +9,43 @@ using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using static Roslyn.Test.Performance.Runner.Tools;
 using static Roslyn.Test.Performance.Runner.Benchview;
 using static Roslyn.Test.Performance.Runner.TraceBackup;
-using Roslyn.Test.Performance.Runner;
 using Mono.Options;
 
 namespace Runner
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
-
             bool shouldReportBenchview = false;
             bool shouldUploadTrace = true;
             bool isCiTest = false;
+            string submissionName = null;
+            string submissionType = null;
             string traceDestination = @"\\mlangfs1\public\basoundr\PerfTraces";
+            string branch = null;
 
             var parameterOptions = new OptionSet()
             {
-                {"report-benchview", "report the performance retults to benview.", _ => shouldReportBenchview = true},
+                {"report-benchview", "report the performance results to benchview.", _ => shouldReportBenchview = true},
+                {"benchview-submission-type=", $"submission type to use when uploading to benchview ({String.Join(",", ValidSubmissionTypes)})", type => { submissionType = type; } },
+                {"benchview-submission-name=", "submission name to use when uploading to benchview (required for private and local submissions)", name => { submissionName = name; } },
+                {"branch=", "name of the branch you are measuring on", name => { branch = name; } },
                 {"ci-test", "mention that we are running in the continuous integration lab", _ => isCiTest = true},
                 {"no-trace-upload", "disable the uploading of traces", _ => shouldUploadTrace = false},
                 {"trace-upload_destination", "set the trace uploading destination", loc => { traceDestination = loc; }}
             };
             parameterOptions.Parse(args);
+
+            if (shouldReportBenchview)
+            {
+                if (!CheckBenchViewOptions(submissionType, submissionName) ||
+                    !CheckEnvironment() ||
+                    !DetermineBranch(ref branch))
+                {
+                    return -1;
+                }
+            }
 
             Cleanup();
             AsyncMain(isCiTest).GetAwaiter().GetResult();
@@ -44,7 +58,7 @@ namespace Runner
             if (shouldReportBenchview)
             {
                 Log("Uploading results to benchview");
-                UploadBenchviewReport();
+                UploadBenchviewReport(submissionType, submissionName, branch);
             }
 
             if (shouldUploadTrace)
@@ -52,6 +66,59 @@ namespace Runner
                 Log("Uploading traces");
                 UploadTraces(GetCPCDirectoryPath(), traceDestination);
             }
+
+            return 0;
+        }
+
+        private static bool CheckBenchViewOptions(string submissionType, string submissionName)
+        {
+            if (String.IsNullOrWhiteSpace(submissionType))
+            {
+                Log("Parameter --benchview-submission-type is required when --report-benchview is specified");
+                return false;
+            }
+
+            if (!IsValidSubmissionType(submissionType))
+            {
+                Log($"Parameter --benchview-submission-type must be one of ({String.Join(",", ValidSubmissionTypes)})");
+                return false;
+            }
+
+            if (String.IsNullOrWhiteSpace(submissionName) && submissionType != "rolling")
+            {
+                Log("Parameter --benchview-submission-name is required for \"private\" and \"local\" submissions");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool DetermineBranch(ref string branch)
+        {
+            if (branch != null)
+            {
+                // Workaround for Jenkins. GIT_BRANCH env var prefixes branch name with origin/
+                string prefix = "origin/";
+                if (branch.StartsWith(prefix))
+                {
+                    branch = branch.Substring(prefix.Length);
+                }
+            }
+
+            // If user did not specify branch, determine if we can automatically determine branch name
+            if (String.IsNullOrWhiteSpace(branch))
+            {
+                var result = ShellOut("git", "symbolic-ref --short HEAD");
+                if (result.Failed)
+                {
+                    Log("Parameter --branch is required because we were unable to automatically determine the branch name. You may be in a detached head state");
+                    return false;
+                }
+
+                branch = result.StdOut;
+            }
+
+            return true;
         }
 
         private static void Cleanup()
@@ -74,7 +141,6 @@ namespace Runner
 
         private static async Task AsyncMain(bool isRunningUnderCI)
         {
-
             RuntimeSettings.IsRunnerAttached = true;
 
             var testDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Perf", "tests");
@@ -162,7 +228,6 @@ namespace Runner
                         traceManager.Stop();
                         traceManager.ResetScenarioGenerator();
                     }
-
                 }
                 catch (Exception)
                 {

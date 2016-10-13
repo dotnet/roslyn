@@ -3,14 +3,26 @@
         "Roslyn.Microsoft.Build": "0.0.2",
         "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
         "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407",
-	    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
-			"version": "14.3.25407",
-			"suppressParent": "all"
-		},
-		"RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
-			"version": "14.3.25420",
-			"suppressParent": "all"
-		},
+        "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
+            "version": "14.3.25420",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.ImageCatalog": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Text.UI": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Text.UI.Wpf": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
     },
     "frameworks": {
         "net46": { }

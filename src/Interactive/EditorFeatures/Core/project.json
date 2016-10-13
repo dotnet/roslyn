@@ -1,15 +1,23 @@
 {
-  "dependencies": { 
-    "Microsoft.VisualStudio.Language.Intellisense": {
-        "version": "14.3.25407",
-        "suppressParent": "all"
+    "dependencies": {
+        "Microsoft.VisualStudio.InteractiveWindow": {
+            "version": "2.0.0-beta5-60820-04",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Language.Intellisense": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Editor": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Language.StandardClassification": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        }
     },
-    "Microsoft.VisualStudio.Editor": {
-        "version": "14.3.25407",
-        "suppressParent": "all"
-    }
-  },
-  "frameworks": {
-    "net46": { }
-  },
+    "frameworks": {
+        "net46": { }
+    },
 }

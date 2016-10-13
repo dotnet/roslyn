@@ -191,6 +191,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ErrorFactory.IdToString(ERRID.IDS_ToolName, Culture)
         End Function
 
+        Friend Overrides ReadOnly Property Type As Type
+            Get
+                ' We do not use Me.GetType() so that we don't break mock subtypes
+                Return GetType(VisualBasicCompiler)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Print Commandline help message (up to 80 English characters per line)
         ''' </summary>

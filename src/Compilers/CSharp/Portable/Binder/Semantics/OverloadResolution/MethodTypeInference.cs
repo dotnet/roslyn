@@ -2538,12 +2538,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second, TypeSymbol target, AssemblySymbol corLibrary)
         {
-            if (!target.ContainsTuple() ||
-                first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
+            if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
                 !target.ContainsTupleNames())
             {
                 return target;
             }
+
+            Debug.Assert(target.ContainsTuple());
 
             ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
             ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
@@ -2615,36 +2616,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var anonymousFunction = (UnboundLambda)source;
-
-            // If the anonymous function is an anonymous method with no formal parameter
-            // list then infer the return type; there are no parameters to be typed, so
-            // we should be able to work out the return type regardless of the delegate type.
-
-            // Future optimization: we could return null if
-            // the delegate has any out parameters, since this will then not be applicable.
-
-            if (!anonymousFunction.HasSignature)
+            if (anonymousFunction.HasSignature)
             {
-                return anonymousFunction.InferReturnType(null, ref useSiteDiagnostics);
-            }
+                // Optimization: 
+                // We know that the anonymous function has a parameter list. If it does not
+                // have the same arity as the delegate, then it cannot possibly be applicable.
+                // Rather than have type inference fail, we will simply not make a return
+                // type inference and have type inference continue on.  Either inference
+                // will fail, or we will infer a nonapplicable method. Either way, there
+                // is no change to the semantics of overload resolution.
 
-            // Optimization: 
-            // We know that the anonymous function has a parameter list. If it does not
-            // have the same arity as the delegate, then it cannot possibly be applicable.
-            // Rather than have type inference fail, we will simply not make a return
-            // type inference and have type inference continue on.  Either inference
-            // will fail, or we will infer a nonapplicable method. Either way, there
-            // is no change to the semantics of overload resolution.
+                var originalDelegateParameters = target.DelegateParameters();
+                if (originalDelegateParameters.IsDefault)
+                {
+                    return null;
+                }
 
-            var originalDelegateParameters = target.DelegateParameters();
-            if (originalDelegateParameters.IsDefault)
-            {
-                return null;
-            }
-
-            if (originalDelegateParameters.Length != anonymousFunction.ParameterCount)
-            {
-                return null;
+                if (originalDelegateParameters.Length != anonymousFunction.ParameterCount)
+                {
+                    return null;
+                }
             }
 
             var fixedDelegate = GetFixedDelegate(target);

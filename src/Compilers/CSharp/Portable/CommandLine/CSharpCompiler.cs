@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
-                    using (var appConfigStream = PortableShim.FileStream.Create(appConfigPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read))
+                    using (var appConfigStream = new FileStream(appConfigPath, FileMode.Open, FileAccess.Read))
                     {
                         assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
                     }
@@ -252,6 +252,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine1, Culture), GetToolName(), GetAssemblyFileVersion());
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine2, Culture));
             consoleOutput.WriteLine();
+        }
+
+
+        internal override Type Type
+        {
+            get
+            {
+                // We do not use this.GetType() so that we don't break mock subtypes
+                return typeof(CSharpCompiler);
+            }
         }
 
         internal override string GetToolName()
