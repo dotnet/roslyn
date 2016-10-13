@@ -214,8 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(expression, binder);
             }
 
-            // May be binding an expression in a context that doesn't have a LocalScopeBinder in the chain.
-            return new ExpressionVariableBinder(expression, binder);
+            return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
         private Binder GetSpeculativeBinderForAttribute(int position, AttributeSyntax attribute)
@@ -228,8 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // May be binding an expression in a context that doesn't have a LocalScopeBinder in the chain.
-            return new ExpressionVariableBinder(attribute, binder);
+            return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
         }
 
         private static BoundExpression GetSpeculativelyBoundExpressionHelper(Binder binder, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, DiagnosticBag diagnostics)
