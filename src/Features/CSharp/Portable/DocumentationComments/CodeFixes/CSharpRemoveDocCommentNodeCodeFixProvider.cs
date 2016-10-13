@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         protected override SyntaxTriviaList GetRevisedDocCommentTrivia(string docCommentText)
             => SyntaxFactory.ParseLeadingTrivia(docCommentText);
 
+        protected override SyntaxTokenList GetTextTokens(XmlTextSyntax xmlText)
+            => xmlText.TextTokens;
+
         protected override bool IsXmlWhitespaceToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.XmlTextLiteralToken && IsWhitespace(token.Text);
 

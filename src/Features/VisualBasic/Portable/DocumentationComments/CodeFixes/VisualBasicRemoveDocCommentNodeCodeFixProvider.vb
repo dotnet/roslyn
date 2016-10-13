@@ -59,6 +59,10 @@ Namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             Return SyntaxFactory.ParseLeadingTrivia(docCommentText)
         End Function
 
+        Protected Overrides Function GetTextTokens(xmlText As XmlTextSyntax) As SyntaxTokenList
+            Return xmlText.TextTokens
+        End Function
+
         Protected Overrides Function IsXmlWhitespaceToken(token As SyntaxToken) As Boolean
             Return token.Kind() = SyntaxKind.XmlTextLiteralToken AndAlso IsWhitespace(token.Text)
         End Function

@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         protected abstract SyntaxTriviaList GetRevisedDocCommentTrivia(string docCommentText);
 
+        protected abstract SyntaxTokenList GetTextTokens(TXmlTextSyntax xmlText);
         protected abstract bool IsXmlNewLineToken(SyntaxToken token);
         protected abstract bool IsXmlWhitespaceToken(SyntaxToken token);
 
@@ -98,15 +99,14 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                             // until we hit the next newline.  If that's all we can remove the preceding
                             // '///'.  Otherwise we'll want to keep it to keep whatever comes after
                             // this node valid.
-                            foreach (var child in textSyntax.ChildNodesAndTokens())
+                            foreach (var child in GetTextTokens(textSyntax))
                             {
-                                Debug.Assert(child.IsToken, "All children of an XmlTextSyntax must be tokens");
-                                if (IsXmlWhitespaceToken(child.AsToken()))
+                                if (IsXmlWhitespaceToken(child))
                                 {
                                     continue;
                                 }
 
-                                if (IsXmlNewLineToken(child.AsToken()))
+                                if (IsXmlNewLineToken(child))
                                 {
                                     return true;
                                 }
