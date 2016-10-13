@@ -78,16 +78,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             ? string.Format(FeaturesResources.Use_local_version_0, versionOpt)
                             : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
-                    var getOperations = new AsyncLazy<ValueTuple<Document, Document, InstallNugetPackageOperation>>(
-                        c => GetOperationsAsync(versionOpt, isLocal, document, node, placeSystemNamespaceFirst, c),
+                    var installData = new AsyncLazy<InstallPackageAndAddImportData>(
+                        c => GetInstallDataAsync(versionOpt, isLocal, document, node, placeSystemNamespaceFirst, c),
                         cacheResult: true);
 
                     // Nuget hits should always come after other results.
                     return new InstallPackageAndAddImportCodeAction(
-                        title, CodeActionPriority.Low, getOperations);
+                        title, CodeActionPriority.Low, installData);
                 }
 
-                private async Task<ValueTuple<Document, Document, InstallNugetPackageOperation>> GetOperationsAsync(
+                private async Task<InstallPackageAndAddImportData> GetInstallDataAsync(
                     string versionOpt, 
                     bool isLocal,
                     Document document, 
@@ -111,7 +111,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     var installOperation = new InstallNugetPackageOperation(
                         _reference._installerService, document, _reference._source, _reference._packageName, versionOpt, isLocal);
 
-                    return ValueTuple.Create(oldDocument, newDocument, installOperation);
+                    return new InstallPackageAndAddImportData(
+                        oldDocument, newDocument, installOperation);
                 }
             }
         }

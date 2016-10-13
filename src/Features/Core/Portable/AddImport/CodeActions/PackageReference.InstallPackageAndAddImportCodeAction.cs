@@ -15,11 +15,37 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private partial class PackageReference
         {
+            private struct InstallPackageAndAddImportData
+            {
+                /// <summary>
+                /// The document before we added the import. Used so we can roll back if installing
+                /// the package failed.
+                /// </summary>
+                public readonly Document OldDocument;
+
+                /// <summary>
+                /// The document after the import has been added.
+                /// </summary>
+                public readonly Document NewDocument;
+
+                /// <summary>
+                /// The operation that will actually install the nuget package.
+                /// </summary>
+                public readonly InstallNugetPackageOperation InstallOperation;
+
+                public InstallPackageAndAddImportData(Document oldDocument, Document newDocument, InstallNugetPackageOperation installOperation)
+                {
+                    OldDocument = oldDocument;
+                    NewDocument = newDocument;
+                    InstallOperation = installOperation;
+                }
+            }
+
             private class InstallPackageAndAddImportCodeAction : CodeAction
             {
                 private readonly string _title;
                 private readonly CodeActionPriority _priority;
-                private readonly AsyncLazy<ValueTuple<Document, Document, InstallNugetPackageOperation>> _documentsAndInstallOperation;
+                private readonly AsyncLazy<InstallPackageAndAddImportData> _installData;
 
                 public override string Title => _title;
                 public override string EquivalenceKey => _title;
@@ -27,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 public InstallPackageAndAddImportCodeAction(
                     string title, CodeActionPriority priority,
-                    AsyncLazy<ValueTuple<Document, Document, InstallNugetPackageOperation>> documentsAndInstallOperation)
+                    AsyncLazy<InstallPackageAndAddImportData> installData)
                 {
                     _title = title;
                     _priority = priority;
-                    _documentsAndInstallOperation = documentsAndInstallOperation;
+                    _installData = installData;
                 }
 
                 /// <summary>
@@ -42,13 +68,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 /// </summary>
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
                 {
-                    var newDocumentAndInstallOperation = await _documentsAndInstallOperation.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var installData = await _installData.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Make a SolutionChangeAction.  This way we can let it generate the diff
+                    // preview appropriately.
                     var solutionChangeAction = new SolutionChangeAction(
-                        "", c => Task.FromResult(newDocumentAndInstallOperation.Item2.Project.Solution));
+                        "", c => Task.FromResult(installData.NewDocument.Project.Solution));
 
                     var result = ArrayBuilder<CodeActionOperation>.GetInstance();
                     result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
-                    result.Add(newDocumentAndInstallOperation.Item3);
+                    result.Add(installData.InstallOperation);
                     return result.ToImmutableAndFree();
                 }
 
@@ -60,26 +89,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                     CancellationToken cancellationToken)
                 {
-                    var documentsAndInstallOperation = await _documentsAndInstallOperation.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                    var oldDocument = documentsAndInstallOperation.Item1;
-                    var newDocument = documentsAndInstallOperation.Item2;
+                    var installData = await _installData.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-                    var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var oldText = await installData.OldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await installData.NewDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                    return ImmutableArray.Create<CodeActionOperation>(new CompoundOperation(
-                        oldDocument.Id, oldText, newText, documentsAndInstallOperation.Item3));
+                    return ImmutableArray.Create<CodeActionOperation>(
+                        new InstallPackageAndAddImportOperation(
+                            installData.OldDocument.Id, oldText, newText, installData.InstallOperation));
                 }
             }
 
-            private class CompoundOperation : CodeActionOperation
+            private class InstallPackageAndAddImportOperation : CodeActionOperation
             {
                 private readonly DocumentId _changedDocumentId;
                 private readonly SourceText _oldText;
                 private readonly SourceText _newText;
                 private readonly InstallNugetPackageOperation _installNugetPackage;
 
-                public CompoundOperation(
+                public InstallPackageAndAddImportOperation(
                     DocumentId changedDocumentId, 
                     SourceText oldText,
                     SourceText newText, 
