@@ -5403,4 +5403,7 @@
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
   </data>
+  <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
+    <value>The stream cannot be read from.</value>
+  </data>
 </root>

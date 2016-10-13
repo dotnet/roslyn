@@ -12343,6 +12343,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The stream cannot be read from..
+        '''</summary>
+        Friend ReadOnly Property TheStreamCannotBeReadFrom() As String
+            Get
+                Return ResourceManager.GetString("TheStreamCannotBeReadFrom", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Tree must have a root node with SyntaxKind.CompilationUnit.
         '''</summary>
         Friend ReadOnly Property TreeMustHaveARootNodeWithCompilationUnit() As String
