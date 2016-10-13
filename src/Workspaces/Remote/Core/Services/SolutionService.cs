@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
@@ -24,20 +22,27 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // TODO: make this simple cache better
         // this simple cache hold onto the last solution created
-        private ValueTuple<Checksum, Solution> _lastSolution;
+        private static ValueTuple<Checksum, Solution> s_lastSolution;
+
+        private readonly AssetService _assetService;
+
+        public SolutionService(AssetService assetService)
+        {
+            _assetService = assetService;
+        }
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            if (_lastSolution.Item1 == solutionChecksum)
+            if (s_lastSolution.Item1 == solutionChecksum)
             {
-                return _lastSolution.Item2;
+                return s_lastSolution.Item2;
             }
 
             // create new solution
             var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // save it
-            _lastSolution = ValueTuple.Create(solutionChecksum, solution);
+            s_lastSolution = ValueTuple.Create(solutionChecksum, solution);
 
             return solution;
         }
@@ -70,18 +75,18 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             // synchronize whole solution first
-            await RoslynServices.AssetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
-            var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedSolutionInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
+            var solutionInfo = await _assetService.GetAssetAsync<SerializedSolutionInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
             foreach (var projectChecksum in solutionChecksumObject.Projects)
             {
-                var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
-                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedProjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                var projectSnapshot = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
+                var projectInfo = await _assetService.GetAssetAsync<SerializedProjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
                 if (!workspace.Services.IsSupported(projectInfo.Language))
                 {
                     // only add project our workspace supports. 
@@ -92,8 +97,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var documents = new List<DocumentInfo>();
                 foreach (var documentChecksum in projectSnapshot.Documents)
                 {
-                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await _assetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     documents.Add(
@@ -102,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             documentInfo.Name,
                             documentInfo.Folders,
                             documentInfo.SourceCodeKind,
-                            new RemoteTextLoader(documentSnapshot.Text),
+                            new RemoteTextLoader(_assetService, documentSnapshot.Text),
                             documentInfo.FilePath,
                             documentInfo.IsGenerated));
                 }
@@ -112,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var reference = await RoslynServices.AssetService.GetAssetAsync<ProjectReference>(checksum, cancellationToken).ConfigureAwait(false);
+                    var reference = await _assetService.GetAssetAsync<ProjectReference>(checksum, cancellationToken).ConfigureAwait(false);
                     p2p.Add(reference);
                 }
 
@@ -121,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var reference = await RoslynServices.AssetService.GetAssetAsync<MetadataReference>(checksum, cancellationToken).ConfigureAwait(false);
+                    var reference = await _assetService.GetAssetAsync<MetadataReference>(checksum, cancellationToken).ConfigureAwait(false);
                     metadata.Add(reference);
                 }
 
@@ -130,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var reference = await RoslynServices.AssetService.GetAssetAsync<AnalyzerReference>(checksum, cancellationToken).ConfigureAwait(false);
+                    var reference = await _assetService.GetAssetAsync<AnalyzerReference>(checksum, cancellationToken).ConfigureAwait(false);
                     analyzers.Add(reference);
                 }
 
@@ -139,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await _assetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     additionals.Add(
@@ -149,13 +154,13 @@ namespace Microsoft.CodeAnalysis.Remote
                             documentInfo.Name,
                             documentInfo.Folders,
                             documentInfo.SourceCodeKind,
-                            new RemoteTextLoader(documentSnapshot.Text),
+                            new RemoteTextLoader(_assetService, documentSnapshot.Text),
                             documentInfo.FilePath,
                             documentInfo.IsGenerated));
                 }
 
-                var compilationOptions = await RoslynServices.AssetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, cancellationToken).ConfigureAwait(false);
-                var parseOptions = await RoslynServices.AssetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, cancellationToken).ConfigureAwait(false);
+                var compilationOptions = await _assetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, cancellationToken).ConfigureAwait(false);
+                var parseOptions = await _assetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, cancellationToken).ConfigureAwait(false);
 
                 projects.Add(
                     ProjectInfo.Create(
@@ -171,15 +176,17 @@ namespace Microsoft.CodeAnalysis.Remote
         private class RemoteTextLoader : TextLoader
         {
             private readonly Checksum _checksum;
+            private readonly AssetService _assetService;
 
-            public RemoteTextLoader(Checksum checksum)
+            public RemoteTextLoader(AssetService assetService, Checksum checksum)
             {
                 _checksum = checksum;
+                _assetService = assetService;
             }
 
             public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                var text = await RoslynServices.AssetService.GetAssetAsync<SourceText>(_checksum, cancellationToken).ConfigureAwait(false);
+                var text = await _assetService.GetAssetAsync<SourceText>(_checksum, cancellationToken).ConfigureAwait(false);
                 return TextAndVersion.Create(text, VersionStamp.Create());
             }
         }

@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -41,6 +43,22 @@ namespace Microsoft.CodeAnalysis.Execution
         public void AddAdditionalAsset(CustomAsset asset, CancellationToken cancellationToken)
         {
             _storage.AddAdditionalAsset(asset, cancellationToken);
+        }
+
+        public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
+        {
+            using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
+            {
+                return _storages.GetRemotableData(this, checksum, cancellationToken);
+            }
+        }
+
+        public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        {
+            using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+            {
+                return _storages.GetRemotableData(this, checksums, cancellationToken);
+            }
         }
 
         public void Dispose()

@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _hubClient.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcSession(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken);
+            return await JsonRpcSession.CreateAsync(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken).ConfigureAwait(false);
         }
 
         protected override void OnConnected()

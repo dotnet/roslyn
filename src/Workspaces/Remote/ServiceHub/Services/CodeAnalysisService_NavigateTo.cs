@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.NavigateTo;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -13,8 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<SerializableNavigateToSearchResult[]> SearchDocumentAsync(
              SerializableDocumentId documentId, string searchPattern, byte[] solutionChecksum)
         {
-            var solution = await RoslynServices.SolutionService.GetSolutionAsync(
-                new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+            var solution = await GetSolutionAsync().ConfigureAwait(false);
 
             var project = solution.GetDocument(documentId.Rehydrate());
             var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
@@ -26,8 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<SerializableNavigateToSearchResult[]> SearchProjectAsync(
              SerializableProjectId projectId, string searchPattern, byte[] solutionChecksum)
         {
-            var solution = await RoslynServices.SolutionService.GetSolutionAsync(
-                new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+            var solution = await GetSolutionAsync().ConfigureAwait(false);
 
             var project = solution.GetProject(projectId.Rehydrate());
             var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
