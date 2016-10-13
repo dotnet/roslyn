@@ -5455,7 +5455,6 @@
   <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
     <value>The stream cannot be read from.</value>
   </data>
-</root>
   <data name="ERR_DocFileGen" xml:space="preserve">
     <value>Error writing to XML documentation file: {0}</value>
   </data>
