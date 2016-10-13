@@ -3,11 +3,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -459,42 +457,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private static bool NotNull(SymbolReference reference)
         {
             return reference.SymbolResult.Symbol != null;
-        }
-
-        private class OperationBasedCodeAction : CodeAction
-        {
-            private readonly string _title;
-            private readonly Glyph? _glyph;
-            private readonly CodeActionPriority _priority;
-            private readonly Func<CancellationToken, Task<ImmutableArray<CodeActionOperation>>> _getOperations;
-            private readonly Func<Workspace, bool> _isApplicable;
-
-            public override string Title => _title;
-            internal override int? Glyph => _glyph.HasValue ? (int)_glyph.Value : (int?)null;
-            public override string EquivalenceKey => _title;
-            internal override CodeActionPriority Priority => _priority;
-
-            public OperationBasedCodeAction(
-                string title, Glyph? glyph, CodeActionPriority priority,
-                Func<CancellationToken, Task<ImmutableArray<CodeActionOperation>>> getOperations,
-                Func<Workspace, bool> isApplicable)
-            {
-                _title = title;
-                _glyph = glyph;
-                _priority = priority;
-                _getOperations = getOperations;
-                _isApplicable = isApplicable;
-            }
-
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-                => await _getOperations(cancellationToken).ConfigureAwait(false);
-
-            internal override bool PerformFinalApplicabilityCheck => _isApplicable != null;
-
-            internal override bool IsApplicable(Workspace workspace)
-            {
-                return _isApplicable == null ? true : _isApplicable(workspace);
-            }
         }
     }
 }

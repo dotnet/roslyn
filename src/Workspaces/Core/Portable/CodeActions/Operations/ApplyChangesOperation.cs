@@ -40,13 +40,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
-            this.Apply(workspace, new ProgressTracker(), cancellationToken);
+            this.TryApply(workspace, new ProgressTracker(), cancellationToken);
         }
 
-        internal override void Apply(
+        internal override bool TryApply(
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             workspace.TryApplyChanges(ChangedSolution, progressTracker);
+            return true;
         }
     }
 }
