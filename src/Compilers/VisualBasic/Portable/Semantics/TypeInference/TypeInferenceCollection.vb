@@ -601,6 +601,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        ''' <summary>
+        ''' Returns first Or a modified version Of first With common tuple names from both types.
+        ''' </summary>
         Friend Shared Function MergeTupleNames(first As TypeSymbol, second As TypeSymbol) As TypeSymbol
             If first.IsSameType(second, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreTupleNames) OrElse
                 Not first.ContainsTupleNames() Then
