@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 sourceMethod As MethodSymbol,
                                 destinationTypeParameters As ImmutableArray(Of TypeSymbol),
                                 <[In], Out> ByRef destinationReturnType As TypeSymbol,
-                                containingAssembly As AssemblySymbol,
                                 <[In], Out> ByRef parameters As ImmutableArray(Of ParameterSymbol))
 
             Debug.Assert(sourceMethod IsNot Nothing)
