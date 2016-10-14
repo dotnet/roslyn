@@ -33,12 +33,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>> _documentToLocationMap = new ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>>();
         private static readonly Func<Document, ConcurrentSet<ReferenceLocation>> s_createDocumentLocations = _ => new ConcurrentSet<ReferenceLocation>();
 
-        /// <summary>
-        /// The resultant collection of all references found per symbol.
-        /// </summary>
-        private readonly ConcurrentDictionary<SymbolAndProjectId, ConcurrentSet<ReferenceLocation>> _foundReferences = new ConcurrentDictionary<SymbolAndProjectId, ConcurrentSet<ReferenceLocation>>();
-        private static readonly Func<SymbolAndProjectId, ConcurrentSet<ReferenceLocation>> s_createSymbolLocations = _ => new ConcurrentSet<ReferenceLocation>();
-
         public FindReferencesSearchEngine(
             Solution solution,
             IImmutableSet<Document> documents,
@@ -56,8 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
         }
 
-        public async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
-            SymbolAndProjectId symbolAndProjectId)
+        public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)
         {
             await _progress.OnStartedAsync().ConfigureAwait(false);
             await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
@@ -74,9 +67,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
                 await _progress.OnCompletedAsync().ConfigureAwait(false);
             }
-
-            return _foundReferences.Select(
-                kvp => new ReferencedSymbol(kvp.Key, kvp.Value.ToImmutableArray())).ToImmutableArray();
         }
 
         private async Task ProcessAsync(
@@ -154,7 +144,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
         {
-            _foundReferences.GetOrAdd(symbolAndProjectId, s_createSymbolLocations).Add(location);
             return _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
         }
     }

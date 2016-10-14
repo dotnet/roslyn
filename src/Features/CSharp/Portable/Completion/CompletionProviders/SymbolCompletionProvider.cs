@@ -20,9 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken);
+            return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
+                context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
         protected override bool IsInstrinsic(ISymbol s)

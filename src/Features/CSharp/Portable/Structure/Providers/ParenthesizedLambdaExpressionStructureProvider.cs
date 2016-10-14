@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
+            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 lambdaExpression,
                 lambdaExpression.ArrowToken,
                 lastToken,
                 autoCollapse: false,
-                type: BlockTypes.AnonymousMethod,
+                type: BlockTypes.Expression,
                 isCollapsible: true));
         }
     }

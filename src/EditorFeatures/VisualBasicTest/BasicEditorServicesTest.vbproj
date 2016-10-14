@@ -467,6 +467,7 @@
     <Compile Include="Structure\EventDeclarationStructureTests.vb" />
     <Compile Include="Structure\ExternalMethodDeclarationStructureTests.vb" />
     <Compile Include="Structure\FieldDeclarationStructureTests.vb" />
+    <Compile Include="Structure\ForBlockStructureTests.vb" />
     <Compile Include="Structure\MetadataAsSource\ConstructorDeclarationStructureTests.vb" />
     <Compile Include="Structure\MetadataAsSource\DelegateDeclarationStructureTests.vb" />
     <Compile Include="Structure\MetadataAsSource\EnumDeclarationStructureTests.vb" />
@@ -479,6 +480,15 @@
     <Compile Include="Structure\MetadataAsSource\PropertyDeclarationStructureTests.vb" />
     <Compile Include="Structure\MetadataAsSource\RegionDirectiveStructureTests.vb" />
     <Compile Include="Structure\MetadataAsSource\TypeDeclarationStructureTests.vb" />
+    <Compile Include="Structure\DoLoopBlockStructureTests.vb" />
+    <Compile Include="Structure\SelectBlockStructureTests.vb" />
+    <Compile Include="Structure\MultiLineIfBlockStructureTests.vb" />
+    <Compile Include="Structure\ForEachBlockStructureTests.vb" />
+    <Compile Include="Structure\TryBlockStructureTests.vb" />
+    <Compile Include="Structure\SyncLockBlockStructureTests.vb" />
+    <Compile Include="Structure\WithBlockStructureTests.vb" />
+    <Compile Include="Structure\UsingBlockStructureTests.vb" />
+    <Compile Include="Structure\WhileBlockStructureTests.vb" />
     <Compile Include="Structure\MethodDeclarationStructureTests.vb" />
     <Compile Include="Structure\MultilineLambdaStructureTests.vb" />
     <Compile Include="Structure\NamespaceDeclarationStructureTests.vb" />

@@ -7,9 +7,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class LocationExtensions
     {
         public static SyntaxToken FindToken(this Location location, CancellationToken cancellationToken)
-        {
-            return location.SourceTree.GetRoot(cancellationToken).FindToken(location.SourceSpan.Start);
-        }
+            => location.SourceTree.GetRoot(cancellationToken).FindToken(location.SourceSpan.Start);
+
+        public static SyntaxNode FindNode(this Location location, CancellationToken cancellationToken)
+            => location.SourceTree.GetRoot(cancellationToken).FindNode(location.SourceSpan);
 
         public static bool IsVisibleSourceLocation(this Location loc)
         {

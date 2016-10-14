@@ -84,13 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public ISymbol AssociatedSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public ISymbol AssociatedSymbol { get; internal set; }
 
         public bool MightContainExtensionMethods
         {

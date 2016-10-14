@@ -11,16 +11,39 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract class XmlDocumentationProvider : DocumentationProvider
+    /// <summary>
+    /// A class used to provide XML documentation to the compiler for members from metadata from an XML document source.
+    /// </summary>
+    public abstract class XmlDocumentationProvider : DocumentationProvider
     {
         private readonly NonReentrantLock _gate = new NonReentrantLock();
         private Dictionary<string, string> _docComments;
 
+        /// <summary>
+        /// Gets the source stream for the XML document.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         protected abstract Stream GetSourceStream(CancellationToken cancellationToken);
 
-        public static XmlDocumentationProvider Create(byte[] xmlDocCommentBytes)
+        /// <summary>
+        /// Creates an <see cref="XmlDocumentationProvider"/> from bytes representing XML documentation data.
+        /// </summary>
+        /// <param name="xmlDocCommentBytes">The XML document bytes.</param>
+        /// <returns>An <see cref="XmlDocumentationProvider"/>.</returns>
+        public static XmlDocumentationProvider CreateFromBytes(byte[] xmlDocCommentBytes)
         {
             return new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="XmlDocumentationProvider"/> from an XML documentation file.
+        /// </summary>
+        /// <param name="xmlDocCommentFilePath">The path to the XML file.</param>
+        /// <returns>An <see cref="XmlDocumentationProvider"/>.</returns>
+        public static XmlDocumentationProvider CreateFromFile(string xmlDocCommentFilePath)
+        {
+            return new FileBasedXmlDocumentationProvider(xmlDocCommentFilePath);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.FxCop.Rules.Security.Xml.SecurityXmlRules", "CA3053:UseXmlSecureResolver",
@@ -48,12 +71,16 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                     {
                         _docComments = new Dictionary<string, string>();
 
-                        XDocument doc = this.GetXDocument(cancellationToken);
+                        XDocument doc = GetXDocument(cancellationToken);
                         foreach (var e in doc.Descendants("member"))
                         {
                             if (e.Attribute("name") != null)
                             {
-                                _docComments[e.Attribute("name").Value] = string.Concat(e.Nodes());
+                                using (var reader = e.CreateReader())
+                                {
+                                    reader.MoveToContent();
+                                    _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
+                                }
                             }
                         }
                     }
@@ -122,6 +149,35 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             public override int GetHashCode()
             {
                 return Hash.CombineValues(_xmlDocCommentBytes);
+            }
+        }
+
+        private sealed class FileBasedXmlDocumentationProvider : XmlDocumentationProvider
+        {
+            private readonly string _filePath;
+
+            public FileBasedXmlDocumentationProvider(string filePath)
+            {
+                Contract.ThrowIfNull(filePath);
+                Contract.Requires(PathUtilities.IsAbsolute(filePath));
+
+                _filePath = filePath;
+            }
+
+            protected override Stream GetSourceStream(CancellationToken cancellationToken)
+            {
+                return new FileStream(_filePath, FileMode.Open, FileAccess.Read);
+            }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as FileBasedXmlDocumentationProvider;
+                return other != null && _filePath == other._filePath;
+            }
+
+            public override int GetHashCode()
+            {
+                return _filePath.GetHashCode();
             }
         }
     }

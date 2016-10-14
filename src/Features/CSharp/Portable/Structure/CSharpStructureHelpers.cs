@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible: true,
                 textSpan: span,
                 hintSpan: span,
+                type: BlockTypes.Comment,
                 bannerText: GetCommentBannerText(startComment),
-                autoCollapse: true,
-                type: BlockTypes.Nonstructural);
+                autoCollapse: true);
         }
 
         // For testing purposes
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible);
         }
 
-        public static BlockSpan CreateBlockSpan(
+        public static BlockSpan? CreateBlockSpan(
             SyntaxNode node, SyntaxToken syntaxToken, 
             string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible);
         }
 
-        public static BlockSpan CreateBlockSpan(
+        public static BlockSpan? CreateBlockSpan(
             SyntaxNode node, SyntaxToken startToken, 
             int endPos, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible);
         }
 
-        public static BlockSpan CreateBlockSpan(
+        public static BlockSpan? CreateBlockSpan(
             SyntaxNode node, SyntaxToken startToken, 
             SyntaxToken endToken, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
-        public static BlockSpan CreateBlockSpan(
+        public static BlockSpan? CreateBlockSpan(
             SyntaxNode node, SyntaxToken syntaxToken, 
             bool autoCollapse, string type, bool isCollapsible)
         {
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
-        public static BlockSpan CreateBlockSpan(
+        public static BlockSpan? CreateBlockSpan(
             SyntaxNode node, SyntaxToken startToken, SyntaxToken endToken, 
             bool autoCollapse, string type, bool isCollapsible)
         {
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // Adds the span surrounding the syntax list as a region.  The
         // snippet shown is the text from the first line of the first 
         // node in the list.
-        public static BlockSpan CreateBlockSpan(
+        public static BlockSpan? CreateBlockSpan(
             IEnumerable<SyntaxNode> syntaxList, bool autoCollapse, 
             string type, bool isCollapsible)
         {

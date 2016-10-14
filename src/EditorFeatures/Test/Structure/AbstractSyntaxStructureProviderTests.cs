@@ -19,10 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         protected virtual string WorkspaceKind => TestWorkspace.WorkspaceName;
 
-        private async Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
+        private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
         {
-            var spans = await GetBlockSpansWorkerAsync(document, position);
-            return spans.WhereNotNull().ToImmutableArray();
+            return GetBlockSpansWorkerAsync(document, position);
         }
 
         internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position);
@@ -64,33 +63,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             }
         }
 
-        protected Tuple<string, string, string, bool, bool> Region(string collapseSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
+        protected Tuple<string, string, string, bool, bool> Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
         {
-            return Tuple.Create(collapseSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
+            return Tuple.Create(textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
         }
 
-        protected Tuple<string, string, string, bool, bool> Region(string collapseSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
+        protected Tuple<string, string, string, bool, bool> Region(string textSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
         {
-            return Tuple.Create(collapseSpanName, collapseSpanName, bannerText, autoCollapse, isDefaultCollapsed);
+            return Tuple.Create(textSpanName, textSpanName, bannerText, autoCollapse, isDefaultCollapsed);
         }
 
         private static BlockSpan CreateBlockSpan(Tuple<string, string, string, bool, bool> regionData, IDictionary<string, IList<TextSpan>> spans)
         {
-            var collapseSpanName = regionData.Item1;
+            var textSpanName = regionData.Item1;
             var hintSpanName = regionData.Item2;
             var bannerText = regionData.Item3;
             var autoCollapse = regionData.Item4;
             var isDefaultCollapsed = regionData.Item5;
 
-            Assert.True(spans.ContainsKey(collapseSpanName) && spans[collapseSpanName].Count == 1, $"Test did not specify '{collapseSpanName}' span.");
+            Assert.True(spans.ContainsKey(textSpanName) && spans[textSpanName].Count == 1, $"Test did not specify '{textSpanName}' span.");
             Assert.True(spans.ContainsKey(hintSpanName) && spans[hintSpanName].Count == 1, $"Test did not specify '{hintSpanName}' span.");
 
-            var collapseSpan = spans[collapseSpanName][0];
+            var textSpan = spans[textSpanName][0];
             var hintSpan = spans[hintSpanName][0];
 
             return new BlockSpan(isCollapsible: true,
-                textSpan: collapseSpan, 
+                textSpan: textSpan, 
                 hintSpan: hintSpan,
+                type: BlockTypes.Nonstructural,
                 bannerText: bannerText,
                 autoCollapse: autoCollapse, 
                 isDefaultCollapsed: isDefaultCollapsed);

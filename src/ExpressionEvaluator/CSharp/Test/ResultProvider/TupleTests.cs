@@ -374,7 +374,7 @@ class C
 @"using System;
 namespace System
 {
-    class ValueTuple<T1, T2>
+    struct ValueTuple<T1, T2>
     {
         public T1 Item1;
         public T2 Item2;
@@ -388,7 +388,7 @@ namespace System
 }
 class C
 {
-    ValueTuple<object, int> _1 = null;
+    ValueTuple<object, int> _1 = default(ValueTuple<object, int>);
     ValueTuple<object, int, object>? _2 = new ValueTuple<object, int, object>();
     ValueTuple<object, int>[] _3 = new ValueTuple<object, int>[1];
 }";
@@ -402,7 +402,7 @@ class C
                     EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("_1", "null", "(object, int)", "o._1"),
+                    EvalResult("_1", "(null, 0)", "(object, int)", "o._1", DkmEvaluationResultFlags.Expandable),
                     EvalResult("_2", "(null, 0, null)", "(object, int, object)?", "o._2", DkmEvaluationResultFlags.Expandable),
                     EvalResult("_3", "{(object, int)[1]}", "(object, int)[]", "o._3", DkmEvaluationResultFlags.Expandable));
             }

@@ -1054,6 +1054,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fully qualify &apos;{0}&apos;.
+        /// </summary>
+        internal static string Fully_qualify_0 {
+            get {
+                return ResourceManager.GetString("Fully_qualify_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos;.
         /// </summary>
         internal static string Generate_0_1 {
@@ -1252,20 +1261,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate type.
+        ///   Looks up a localized string similar to Generate type &apos;{0}&apos;.
         /// </summary>
-        internal static string Generate_type {
+        internal static string Generate_type_0 {
             get {
-                return ResourceManager.GetString("Generate_type", resourceCulture);
+                return ResourceManager.GetString("Generate_type_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate variable.
+        ///   Looks up a localized string similar to Generate variable &apos;{0}&apos;.
         /// </summary>
-        internal static string Generate_variable {
+        internal static string Generate_variable_0 {
             get {
-                return ResourceManager.GetString("Generate_variable", resourceCulture);
+                return ResourceManager.GetString("Generate_variable_0", resourceCulture);
             }
         }
         
@@ -1410,6 +1419,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string in_Suppression_File {
             get {
                 return ResourceManager.GetString("in_Suppression_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inline variable declaration.
+        /// </summary>
+        internal static string Inline_variable_declaration {
+            get {
+                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
             }
         }
         
@@ -2059,6 +2077,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to project .
+        /// </summary>
+        internal static string project_space {
+            get {
+                return ResourceManager.GetString("project_space", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         internal static string Properties {
@@ -2127,6 +2154,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_qualification {
             get {
                 return ResourceManager.GetString("Remove_qualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove reference to &apos;{0}&apos;..
+        /// </summary>
+        internal static string Remove_reference_to_0 {
+            get {
+                return ResourceManager.GetString("Remove_reference_to_0", resourceCulture);
             }
         }
         
@@ -2364,6 +2400,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spell check &apos;{0}&apos;.
+        /// </summary>
+        internal static string Spell_check_0 {
+            get {
+                return ResourceManager.GetString("Spell_check_0", resourceCulture);
             }
         }
         
@@ -2610,6 +2655,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Type_Sharphelp_for_more_information {
             get {
                 return ResourceManager.GetString("Type_Sharphelp_for_more_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type .
+        /// </summary>
+        internal static string type_space {
+            get {
+                return ResourceManager.GetString("type_space", resourceCulture);
             }
         }
         

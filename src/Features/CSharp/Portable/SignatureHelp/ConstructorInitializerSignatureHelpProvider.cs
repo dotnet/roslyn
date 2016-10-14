@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleConstructors = type.InstanceConstructors
-                                             .Where(c => c.IsAccessibleWithin(within))
-                                             .Where(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                                             .WhereAsArray(c => c.IsAccessibleWithin(within))
+                                             .WhereAsArray(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                              .Sort(symbolDisplayService, semanticModel, constructorInitializer.SpanStart);
 
             if (!accessibleConstructors.Any())
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
+            return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
                 Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }

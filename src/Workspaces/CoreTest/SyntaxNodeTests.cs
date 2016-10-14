@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public partial class SyntaxNodeTests : TestBase
     {
         [Fact]
-        public void TestReplaceOneNodeAsync()
+        public async Task TestReplaceOneNodeAsync()
         {
             var text = @"public class C { public int X; }";
             var expected = @"public class C { public int Y; }";
@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root = tree.GetRoot();
 
             var node = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-            var newRoot = root.ReplaceNodesAsync(new[] { node }, (o, n, c) =>
+            var newRoot = await root.ReplaceNodesAsync(new[] { node }, (o, n, c) =>
             {
                 var decl = (VariableDeclaratorSyntax)n;
                 return Task.FromResult<SyntaxNode>(decl.WithIdentifier(SyntaxFactory.Identifier("Y")));
-            }, CancellationToken.None).Result;
+            }, CancellationToken.None);
 
             var actual = newRoot.ToString();
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestReplaceNestedNodesAsync()
+        public async Task TestReplaceNestedNodesAsync()
         {
             var text = @"public class C { public int X; }";
             var expected = @"public class C1 { public int X1; }";
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax || n is ClassDeclarationSyntax).ToList();
             int computations = 0;
-            var newRoot = root.ReplaceNodesAsync(nodes, (o, n, c) =>
+            var newRoot = await root.ReplaceNodesAsync(nodes, (o, n, c) =>
             {
                 computations++;
                 var classDecl = n as ClassDeclarationSyntax;
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     return Task.FromResult<SyntaxNode>(varDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia)));
                 }
 
-                return Task.FromResult<SyntaxNode>(n);
-            }, CancellationToken.None).Result;
+                return Task.FromResult(n);
+            }, CancellationToken.None);
 
             var actual = newRoot.ToString();
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestTrackNodesWithDocument()
+        public async Task TestTrackNodesWithDocument()
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var doc = sol.GetDocument(did);
 
             // find initial nodes of interest
-            var root = doc.GetSyntaxRootAsync().Result;
+            var root = await doc.GetSyntaxRootAsync();
             var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
             var methodDecl = classDecl.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var trackedRoot = root.TrackNodes(classDecl, methodDecl);
 
             // use some fancy document centric rewrites
-            var comp = doc.Project.GetCompilationAsync().Result;
+            var comp = await doc.Project.GetCompilationAsync();
 
             var gen = SyntaxGenerator.GetGenerator(doc);
             var cgenField = gen.FieldDeclaration("X", gen.TypeExpression(SpecialType.System_Int32), Accessibility.Private);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             doc = doc.WithSyntaxRoot(trackedRoot);
 
             // re-get root of new document
-            var root2 = doc.GetSyntaxRootAsync().Result;
+            var root2 = await doc.GetSyntaxRootAsync();
             Assert.NotEqual(trackedRoot, root2);
 
             // we can still find the tracked node in the new document

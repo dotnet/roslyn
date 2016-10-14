@@ -2475,6 +2475,29 @@ Anonymous Types:
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        Public Async Function TestAnonymousTypeDescription2() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Imports System.Linq
+
+Public Class Class1
+    Sub Method()
+        Dim x = {New With { Key .x = 1}}.ToArr$$
+    End Sub
+End Class
+]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(description:=
+"<Extension> Function IEnumerable(Of 'a).ToArray() As 'a()
+
+Anonymous Types:
+    'a is New With { Key .x As Integer }")
+            End Using
+        End Function
+
         <WorkItem(11812, "https://github.com/dotnet/roslyn/issues/11812")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestObjectCreationQualifiedName() As Task

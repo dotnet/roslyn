@@ -232,19 +232,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return type.TypeKind = TypeKind.Delegate
         End Function
 
+        <Extension()>
+        Friend Function IsSameTypeIgnoringAll(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
+            Return IsSameType(t1, t2, TypeCompareKind.AllIgnoreOptionsForVB)
+        End Function
+
         ''' <summary>
-        ''' Compares types ignoring type modifiers.
-        ''' Also ignores distinctions between tuple types and their underlying types (thus ignoring tuple element names)
+        ''' Compares types ignoring some differences.
         ''' </summary>
         <Extension()>
-        Friend Function IsSameTypeIgnoringCustomModifiers(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
+        Friend Function IsSameType(t1 As TypeSymbol, t2 As TypeSymbol, compareKind As TypeCompareKind) As Boolean
+            Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
 
-            If t1.IsTupleType Then
-                t1 = t1.TupleUnderlyingType
-            End If
-
-            If t2.IsTupleType Then
-                t2 = t2.TupleUnderlyingType
+            If compareKind = TypeCompareKind.ConsiderEverything Then
+                Return t1.Equals(t2)
             End If
 
             If t1 Is t2 Then
@@ -262,18 +263,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim array1 = DirectCast(t1, ArrayTypeSymbol)
                 Dim array2 = DirectCast(t2, ArrayTypeSymbol)
 
-                Return array1.HasSameShapeAs(array2) AndAlso
-                       array1.ElementType.IsSameTypeIgnoringCustomModifiers(array2.ElementType)
-
+                Return array1.IsSameType(array2, compareKind)
             ElseIf t1.IsAnonymousType AndAlso t2.IsAnonymousType Then
-                Return AnonymousTypeManager.EqualsIgnoringCustomModifiers(t1, t2)
+                Return AnonymousTypeManager.IsSameType(t1, t2, compareKind)
 
             ElseIf kind = SymbolKind.NamedType OrElse kind = SymbolKind.ErrorType Then
+                If t1.IsTupleType OrElse t2.IsTupleType Then
+                    If t1.GetTupleUnderlyingTypeOrSelf().IsSameType(t2.GetTupleUnderlyingTypeOrSelf(), compareKind) Then
+                        If (compareKind And TypeCompareKind.IgnoreTupleNames) = 0 Then
+                            If Not t1.IsTupleType OrElse Not t2.IsTupleType OrElse Not HasSameTupleNames(t1, t2) Then
+                                Return False
+                            End If
+                        End If
+                        Return True
+                    Else
+                        Return False
+                    End If
+                End If
+
                 Dim t1IsDefinition = t1.IsDefinition
                 Dim t2IsDefinition = t2.IsDefinition
 
                 If (t1IsDefinition <> t2IsDefinition) AndAlso
-                   Not (DirectCast(t1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(t2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers) Then
+                   Not ((compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) <> 0 AndAlso
+                            (DirectCast(t1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(t2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers)) Then
                     Return False
                 End If
 
@@ -288,11 +301,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim container2 As NamedTypeSymbol = DirectCast(t2, NamedTypeSymbol)
 
                     Do
+
+                        If (compareKind And Global.Microsoft.CodeAnalysis.TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
+                           Not HasSameTypeArgumentCustomModifiers(container1, container2) Then
+
+                            Return False
+                        End If
+
                         Dim args1 As ImmutableArray(Of TypeSymbol) = container1.TypeArgumentsNoUseSiteDiagnostics
                         Dim args2 As ImmutableArray(Of TypeSymbol) = container2.TypeArgumentsNoUseSiteDiagnostics
 
                         For i As Integer = 0 To args1.Length - 1 Step 1
-                            If Not args1(i).IsSameTypeIgnoringCustomModifiers(args2(i)) Then
+                            If Not args1(i).IsSameType(args2(i), compareKind) Then
                                 Return False
                             End If
                         Next
@@ -304,6 +324,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                            container1 Is container2 Then ' Shortcut
                             Exit Do
                         End If
+
+                        If (container1.IsDefinition <> container2.IsDefinition) AndAlso
+                            Not ((compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) <> 0 AndAlso
+                            (container1.HasTypeArgumentsCustomModifiers OrElse container2.HasTypeArgumentsCustomModifiers)) Then
+
+                            Return False
+                        End If
                     Loop
 
                     Return True
@@ -311,6 +338,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Return (t1 = t2)
+        End Function
+
+        Private Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean
+            Dim hasMods1 = type1.HasTypeArgumentsCustomModifiers()
+            Dim hasMods2 = type2.HasTypeArgumentsCustomModifiers()
+
+            If Not hasMods1 AndAlso Not hasMods2 Then
+                ' Neither has modifiers
+                Return True
+            End If
+
+            If Not hasMods1 OrElse Not hasMods2 Then
+                ' Only one has modifiers
+                Return False
+            End If
+
+            ' Both have modifiers, let's compare them
+            Return type1.TypeArgumentsCustomModifiers.SequenceEqual(type2.TypeArgumentsCustomModifiers, AddressOf AreSameCustomModifiers)
+        End Function
+
+        <Extension()>
+        Friend Function AreSameCustomModifiers([mod] As ImmutableArray(Of CustomModifier), otherMod As ImmutableArray(Of CustomModifier)) As Boolean
+            Dim count As Integer = [mod].Length
+
+            If (count <> otherMod.Length) Then
+                Return False
+            End If
+
+            Return [mod].SequenceEqual(otherMod)
+        End Function
+
+        Private Function HasSameTupleNames(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
+            Debug.Assert(t1.IsTupleType And t2.IsTupleType)
+
+            Dim t1Names = t1.TupleElementNames
+            Dim t2Names = t2.TupleElementNames
+
+            If t1Names.IsDefault AndAlso t2Names.IsDefault Then
+                Return True
+            End If
+
+            If t1Names.IsDefault OrElse t2Names.IsDefault Then
+                Return False
+            End If
+            Debug.Assert(t1Names.Length = t2Names.Length)
+
+            Return t1Names.SequenceEqual(t2Names, AddressOf IdentifierComparison.Equals)
         End Function
 
         <Extension()>
@@ -657,7 +731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function IsOrDerivedFrom(derivedType As NamedTypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Dim current = derivedType
             While current IsNot Nothing
-                If current.IsSameTypeIgnoringCustomModifiers(baseType) Then
+                If current.IsSameTypeIgnoringAll(baseType) Then
                     Return True
                 End If
 

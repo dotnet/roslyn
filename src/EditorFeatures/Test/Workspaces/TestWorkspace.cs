@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public partial class TestWorkspace : Workspace
     {
-        public const string WorkspaceName = "Test";
+        public const string WorkspaceName = TestWorkspaceName.Name;
 
         public ExportProvider ExportProvider { get; }
 
@@ -277,6 +278,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.ChangeDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
                     return this.CanApplyChangeDocument;
+
+                case ApplyChangesKind.AddProjectReference:
+                case ApplyChangesKind.AddMetadataReference:
+                    return true;
 
                 default:
                     return false;

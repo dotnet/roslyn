@@ -65,6 +65,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomaticCompletion\AutomaticLineEnderCommandHandler.cs" />
@@ -144,7 +145,6 @@
     <Compile Include="InlineRename\CSharpEditorInlineRenameService.cs" />
     <Compile Include="LanguageServices\CSharpContentTypeLanguageService.cs" />
     <Compile Include="LineSeparators\CSharpLineSeparatorService.cs" />
-    <Compile Include="NavigateTo\CSharpNavigateToSearchService.cs" />
     <Compile Include="NavigationBar\CSharpNavigationBarItemService.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoProvider.cs" />

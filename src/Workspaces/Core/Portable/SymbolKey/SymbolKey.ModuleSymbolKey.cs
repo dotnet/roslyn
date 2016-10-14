@@ -13,11 +13,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return reader.ReadSymbolKey();
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var containingSymbolResolution = reader.ReadSymbolKey();

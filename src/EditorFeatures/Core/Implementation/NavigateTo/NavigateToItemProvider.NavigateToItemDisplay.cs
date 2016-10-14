@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;

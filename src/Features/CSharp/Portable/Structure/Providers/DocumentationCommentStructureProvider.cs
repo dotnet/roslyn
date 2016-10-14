@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             spans.Add(new BlockSpan(
                 isCollapsible: true,
                 textSpan: span,
+                type: BlockTypes.Comment,
                 bannerText: GetBannerText(documentationComment, cancellationToken),
                 autoCollapse: true));
         }

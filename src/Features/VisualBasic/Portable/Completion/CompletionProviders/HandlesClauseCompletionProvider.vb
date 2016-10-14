@@ -8,21 +8,22 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class HandlesClauseCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
-        Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             Dim vbContext = DirectCast(context, VisualBasicSyntaxContext)
 
             If context.SyntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             If context.TargetToken.Kind = SyntaxKind.None Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             ' Handles or a comma
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Task.FromResult(LookUpEventsAsync(vbContext, context.TargetToken, cancellationToken))
             End If
 
-            Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+            Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
@@ -47,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             context As VisualBasicSyntaxContext,
             token As SyntaxToken,
             cancellationToken As CancellationToken
-        ) As IEnumerable(Of ISymbol)
+        ) As ImmutableArray(Of ISymbol)
 
             Dim containingSymbol = context.SemanticModel.GetEnclosingSymbol(context.Position, cancellationToken)
             Dim containingType = TryCast(containingSymbol, ITypeSymbol)
@@ -58,19 +59,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             If containingType Is Nothing Then
                 ' We've somehow failed to find a containing type.
-                Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
+                Return ImmutableArray(Of ISymbol).Empty
             End If
 
             ' Instance or shared variables declared WithEvents
             Dim symbols = context.SemanticModel.LookupSymbols(context.Position, DirectCast(containingType, INamespaceOrTypeSymbol), includeReducedExtensionMethods:=True)
-            Return symbols.Where(Function(s) IsWithEvents(s))
+            Return symbols.WhereAsArray(Function(s) IsWithEvents(s))
         End Function
 
         Private Function LookUpEventsAsync(
             context As VisualBasicSyntaxContext,
             token As SyntaxToken,
             cancellationToken As CancellationToken
-        ) As IEnumerable(Of ISymbol)
+        ) As ImmutableArray(Of ISymbol)
 
             ' We came up on a dot, so the previous token will tell us in which object we should find events.
             Dim containingSymbol = context.SemanticModel.GetEnclosingSymbol(context.Position, cancellationToken)
@@ -82,29 +83,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             If containingType Is Nothing Then
                 ' We've somehow failed to find a containing type.
-                Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
+                Return ImmutableArray(Of ISymbol).Empty
             End If
 
-            Dim result As IEnumerable(Of ISymbol) = Nothing
+            Dim result = ImmutableArray(Of IEventSymbol).Empty
 
             Dim previousToken = token.GetPreviousToken()
             Select Case previousToken.Kind
                 Case SyntaxKind.MeKeyword, SyntaxKind.MyClassKeyword
-                    result = context.SemanticModel.LookupSymbols(context.Position, containingType).OfType(Of IEventSymbol)()
+                    result = context.SemanticModel.LookupSymbols(context.Position, containingType).
+                        OfType(Of IEventSymbol)().
+                        ToImmutableArray()
                 Case SyntaxKind.MyBaseKeyword
-                    result = context.SemanticModel.LookupSymbols(context.Position, containingType.BaseType).OfType(Of IEventSymbol)()
+                    result = context.SemanticModel.LookupSymbols(context.Position, containingType.BaseType).
+                        OfType(Of IEventSymbol)().
+                        ToImmutableArray()
                 Case SyntaxKind.IdentifierToken
                     ' We must be looking at a WithEvents property.
                     Dim symbolInfo = context.SemanticModel.GetSymbolInfo(previousToken, cancellationToken)
                     If symbolInfo.Symbol IsNot Nothing Then
                         Dim type = TryCast(symbolInfo.Symbol, IPropertySymbol)?.Type
                         If type IsNot Nothing Then
-                            result = context.SemanticModel.LookupSymbols(token.SpanStart, type).OfType(Of IEventSymbol)()
+                            result = context.SemanticModel.LookupSymbols(token.SpanStart, type).
+                                OfType(Of IEventSymbol)().
+                                ToImmutableArray()
                         End If
                     End If
             End Select
 
-            Return result
+            Return ImmutableArray(Of ISymbol).CastUp(result)
         End Function
 
         Private Function CreateCompletionItem(position As Integer,

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
@@ -24,11 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
+            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 operatorDeclaration,
                 operatorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
                 autoCollapse: true,
-                type: BlockTypes.Operator,
+                type: BlockTypes.Member,
                 isCollapsible: true));
         }
     }

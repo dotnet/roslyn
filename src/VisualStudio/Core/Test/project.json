@@ -1,5 +1,9 @@
 ﻿{
     "dependencies": {
+        "Microsoft.VisualStudio.RemoteControl": {
+            "version": "14.0.249-master2E2DC10C",
+            "suppressParent": "all"
+        },
         "Microsoft.VisualStudio.Shell.14.0": {
             "version": "14.3.25407",
             "suppressParent": "all"
@@ -13,6 +17,10 @@
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.Language.Intellisense": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Text.Internal" : {
             "version": "14.3.25407",
             "suppressParent": "all"
         },

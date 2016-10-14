@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression);
 
         bool IsInvocationExpression(SyntaxNode node);
+        bool IsExpressionOfInvocationExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node);
+
+        bool IsExpressionOfAwaitExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
@@ -72,7 +77,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsRightSideOfQualifiedName(SyntaxNode node);
 
-        bool IsMemberAccessExpressionName(SyntaxNode node);
+        bool IsNameOfMemberAccessExpression(SyntaxNode node);
+        bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
+
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression);
         SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode memberAccessExpression);
         SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression);

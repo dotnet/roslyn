@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression LowerDeclarationPattern(BoundDeclarationPattern pattern, BoundExpression input)
         {
-            Debug.Assert(pattern.IsVar || pattern.LocalSymbol.Type == pattern.DeclaredType.Type);
+            Debug.Assert(pattern.Variable.GetTypeOrReturnType() == pattern.DeclaredType.Type);
             var variableAccess = VisitExpression(pattern.VariableAccess);
 
             if (pattern.IsVar)
             {
-                Debug.Assert(input.Type == pattern.LocalSymbol.Type);
+                Debug.Assert(input.Type == pattern.Variable.GetTypeOrReturnType());
                 var assignment = _factory.AssignmentExpression(variableAccess, input);
                 var result = _factory.Literal(true);
                 return _factory.MakeSequence(assignment, result);

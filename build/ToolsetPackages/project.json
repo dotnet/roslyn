@@ -2,7 +2,7 @@
   "dependencies": {
     "MicroBuild.Core.Sentinel": "1.0.0",
     "MicroBuild.Core": "0.2.0",
-    "MicroBuild.Plugins.SwixBuild": "1.0.24",
+    "MicroBuild.Plugins.SwixBuild": "1.0.60",
     "Microsoft.NETCore.Platforms": "1.0.1",
     "Microsoft.DiaSymReader.Native": "1.5.0-beta1",
     "Microsoft.Net.Compilers": "1.3.2",

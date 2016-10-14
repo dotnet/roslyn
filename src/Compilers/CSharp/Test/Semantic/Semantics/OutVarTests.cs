@@ -850,6 +850,7 @@ public class Cls
         {
             var variableDeclaratorSyntax = GetVariableDesignation(decl);
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
+            Assert.NotNull(symbol);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
@@ -881,9 +882,7 @@ public class Cls
                 Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
             }
 
-            Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-            Assert.Equal(local.Type, model.GetTypeInfo(decl).Type);
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
 
             foreach (var reference in references)
             {
@@ -897,6 +896,32 @@ public class Cls
             {
                 VerifyDataFlow(model, decl, isDelegateCreation, isExecutableCode, references, symbol);
             }
+        }
+
+        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl)
+        {
+            var symbolInfo = model.GetSymbolInfo(decl);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(symbolInfo, ((CSharpSemanticModel)model).GetSymbolInfo(decl));
+
+            var typeInfo = model.GetTypeInfo(decl);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
+
+            var conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
+            Assert.False(conversion.Exists);
+            Assert.Equal(conversion, model.ClassifyConversion(decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, model.ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, model.ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
+
+            Assert.Null(model.GetDeclaredSymbol(decl));
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
@@ -983,6 +1008,8 @@ public class Cls
             {
                 var local = (SourceLocalSymbol)symbol;
                 var parent = local.IdentifierToken.Parent;
+
+                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>());
 
                 if (parent.Kind() == SyntaxKind.VariableDeclarator)
                 {
@@ -10651,7 +10678,7 @@ public class X
                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
                   select TakeOutParam(12, out var y12) && y12 > 0
                   into s
-                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12;
+                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12 + (TakeOutParam(13, out var y13) ? y13 : 0);
 
         Dummy(y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12); 
     }
@@ -10729,8 +10756,6 @@ public class X
 
                 switch (i)
                 {
-                    case 1:
-                    case 3:
                     case 12:
                         // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
                         //VerifyNotAnOutLocal(model, yRef[1]);
@@ -10740,6 +10765,11 @@ public class X
                         break;
                 }
             }
+
+            var y13Decl = GetOutVarDeclarations(tree, "y13").Single();
+            var y13Ref = GetReference(tree, "y13");
+            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+            //VerifyModelForOutVar(model, y13Decl, y13Ref);
         }
 
         [Fact]
@@ -19727,9 +19757,8 @@ public class X
             Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
             Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
 
-            Assert.Null(model.GetSymbolInfo(decl).Symbol);
-            Assert.Null(model.GetTypeInfo(decl).Type);
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
+
             VerifyModelNotSupported(model, references);
         }
 
@@ -26590,7 +26619,7 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            compilation.VerifyDiagnostics(
+            compilation.GetDeclarationDiagnostics().Verify(
                 // (3,24): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // H.TakeOutParam(out var x1, x1);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 24)
@@ -27010,18 +27039,8 @@ class H
             var declarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
                                            (declarator.ArgumentList?.Contains(decl)).GetValueOrDefault();
-            if (inFieldDeclaratorArgumentlist)
-            {
-                Assert.Null(model.GetSymbolInfo(decl).Symbol);
-                Assert.Null(model.GetSymbolInfo(decl).Symbol);
-            }
-            else
-            {
-                Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-                Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-            }
 
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
 
             foreach (var reference in references)
             {

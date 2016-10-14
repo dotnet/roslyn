@@ -83,18 +83,6 @@ deployed.
   result providers, the components that are used by the debugger to parse and
   evaluate C# and VB expressions in the Watch window, Immediate window, and
   more. These components are only used when debugging.
-- **VisualStudioInteractiveWindow**: this project can be found inside the
-  Interactive folder from the Solution Explorer, and builds 
-  Microsoft.VisualStudio.VsInteractiveWindow.vsix.
-  This includes the "base" interactive window experience that is shared by
-  Roslyn, Python, and other languages. This code is core support only and
-  doesn't include any language-specific logic.
-- **VisualStudioSetupInteractive**: this project can be found inside the
-  Interactive\Setup folder from the Solution Explorer, and builds
-  Roslyn.VisualStudio.Setup.Interactive.vsix.
-  It deploys the Roslyn (i.e. C# and VB) specific parts of the interactive
-  window. If you're working on the interactive experience, this is the project
-  you want to use as your startup project.
 
 The experimental instance used by Roslyn is an entirely separate instance of
 Visual Studio with it's own settings and installed extensions. It's also, by

@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Structure
 {
@@ -34,18 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
         {
         }
 
-        public override bool Equals(IBlockTag x, IBlockTag y)
-        {
-            // This is only called if the spans for the tags were the same. In that case, we consider ourselves the same
-            // unless the CollapsedForm properties are different.
-            return EqualityComparer<object>.Default.Equals(x.CollapsedForm, y.CollapsedForm);
-        }
-
-        public override int GetHashCode(IBlockTag obj)
-        {
-            return EqualityComparer<object>.Default.GetHashCode(obj.CollapsedForm);
-        }
-
         protected override IBlockTag CreateTag(
             IBlockTag parentTag, ITextSnapshot snapshot, BlockSpan region)
         {
@@ -63,9 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             public SnapshotSpan Span { get; }
             public SnapshotSpan StatementSpan { get; }
 
-            public string Type => ConvertType(BlockSpan.Type);
-
-            public bool IsCollapsible => true;
+            public string Type => BlockSpan.Type;
+            public bool IsCollapsible => BlockSpan.IsCollapsible;
 
             public RoslynBlockTag(
                 ITextEditorFactoryService textEditorFactoryService,
@@ -73,65 +61,48 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 IEditorOptionsFactoryService editorOptionsFactoryService,
                 IBlockTag parent,
                 ITextSnapshot snapshot,
-                BlockSpan outliningSpan) :
+                BlockSpan blockSpan) :
                 base(textEditorFactoryService,
                     projectionBufferFactoryService,
                     editorOptionsFactoryService,
-                    snapshot, outliningSpan)
+                    snapshot, blockSpan)
             {
                 Parent = parent;
                 Level = parent == null ? 0 : parent.Level + 1;
-                Span = outliningSpan.TextSpan.ToSnapshotSpan(snapshot);
-                StatementSpan = outliningSpan.HintSpan.ToSnapshotSpan(snapshot);
+                Span = blockSpan.TextSpan.ToSnapshotSpan(snapshot);
+                StatementSpan = blockSpan.HintSpan.ToSnapshotSpan(snapshot);
             }
 
-            private string ConvertType(string type)
+            public override bool Equals(object obj)
+                => Equals(obj as RoslynBlockTag);
+
+            /// <summary>
+            /// This is only called if the spans for the tags were the same.  However, even if we 
+            /// have the same span as the previous tag (taking into account span mapping) that 
+            /// doesn't mean we can use the old block tag.  Specifically, the editor will look at
+            /// other fields in the tags So we need to make sure that these values have not changed
+            /// if we want to reuse the old block tag.  For example, perhaps the item's type changed
+            /// (i.e. from class to struct).  It will have the same span, but might have a new 
+            /// presentation as the 'Type' will be different.
+            /// </summary>
+            public bool Equals(RoslynBlockTag tag)
             {
-                switch (type)
-                {
-                    // Basic types.
-                    case BlockTypes.Structural: return PredefinedStructureTypes.Structural;
-                    case BlockTypes.Nonstructural: return PredefinedStructureTypes.Nonstructural;
+                return tag != null &&
+                       this.IsCollapsible == tag.IsCollapsible &&
+                       this.Level == tag.Level &&
+                       this.Type == tag.Type &&
+                       EqualityComparer<object>.Default.Equals(this.CollapsedForm, tag.CollapsedForm) &&
+                       this.StatementSpan == tag.StatementSpan &&
+                       this.Span == tag.Span;
+            }
 
-                    // Top level declarations.  Note that Enum is not currently supported
-                    // and that we map Module down to Class.
-                    case BlockTypes.Namespace: return PredefinedStructureTypes.Namespace;
-                    case BlockTypes.Structure: return PredefinedStructureTypes.Struct;
-                    case BlockTypes.Interface: return PredefinedStructureTypes.Interface;
-                    case BlockTypes.Module:
-                    case BlockTypes.Class: return PredefinedStructureTypes.Class;
-
-                    // Member declarations
-                    case BlockTypes.Accessor: return PredefinedStructureTypes.AccessorBlock;
-                    case BlockTypes.Constructor: return PredefinedStructureTypes.Constructor;
-                    case BlockTypes.Destructor: return PredefinedStructureTypes.Destructor;
-                    case BlockTypes.Method: return PredefinedStructureTypes.Method;
-                    case BlockTypes.Operator: return PredefinedStructureTypes.Operator;
-
-                    // Map events/indexers/properties all to the 'property' type.
-                    case BlockTypes.Event:
-                    case BlockTypes.Indexer:
-                    case BlockTypes.Property: return PredefinedStructureTypes.PropertyBlock;
-
-                    // Statements
-                    case BlockTypes.Case: return PredefinedStructureTypes.Case;
-                    case BlockTypes.Conditional: return PredefinedStructureTypes.Conditional;
-                    case BlockTypes.Lock: return PredefinedStructureTypes.Lock;
-                    case BlockTypes.Loop: return PredefinedStructureTypes.Loop;
-                    case BlockTypes.TryCatchFinally: return PredefinedStructureTypes.TryCatchFinally;
-                    case BlockTypes.Standalone: return PredefinedStructureTypes.Standalone;
-
-                    // Expressions
-                    case BlockTypes.AnonymousMethod: return PredefinedStructureTypes.AnonymousMethodBlock;
-
-                    // These types don't currently map to any editor types.  Just make them
-                    // the 'Unknown' type for now.
-                    case BlockTypes.Enum:
-                    case BlockTypes.Other:
-                    case BlockTypes.Xml:
-                    default:
-                        return PredefinedStructureTypes.Unknown;
-                }
+            public override int GetHashCode()
+            {
+                return Hash.Combine(this.IsCollapsible,
+                       Hash.Combine(this.Level,
+                       Hash.Combine(this.Type, 
+                       Hash.Combine(this.CollapsedForm,
+                       Hash.Combine(this.StatementSpan.GetHashCode(), this.Span.GetHashCode())))));
             }
         }
     }

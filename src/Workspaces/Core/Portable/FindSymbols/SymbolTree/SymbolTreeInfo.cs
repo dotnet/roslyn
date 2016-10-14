@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _spellCheckerTask = spellCheckerTask;
         }
 
-        public Task<IEnumerable<ISymbol>> FindAsync(
+        public Task<ImmutableArray<ISymbol>> FindAsync(
             SearchQuery query, IAssemblySymbol assembly, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return this.FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), filter, cancellationToken);
         }
 
-        public async Task<IEnumerable<ISymbol>> FindAsync(
+        public async Task<ImmutableArray<ISymbol>> FindAsync(
             SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 filter);
         }
 
-        private Task<IEnumerable<ISymbol>> FindAsyncWorker(
+        private Task<ImmutableArray<ISymbol>> FindAsyncWorker(
             SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -161,18 +161,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
         /// </summary>
-        private async Task<IEnumerable<ISymbol>> FuzzyFindAsync(
+        private async Task<ImmutableArray<ISymbol>> FuzzyFindAsync(
             AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
         {
             if (_spellCheckerTask.Status != TaskStatus.RanToCompletion)
             {
                 // Spell checker isn't ready.  Just return immediately.
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
-            var spellChecker = _spellCheckerTask.Result;
+            var spellChecker = await _spellCheckerTask.ConfigureAwait(false);
             var similarNames = spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
-            var result = new List<ISymbol>();
+            var result = ArrayBuilder<ISymbol>.GetInstance();
 
             foreach (var similarName in similarNames)
             {
@@ -180,20 +180,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 result.AddRange(symbols);
             }
 
-            return result;
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
-        private async Task<IEnumerable<ISymbol>> FindAsync(
+        private async Task<ImmutableArray<ISymbol>> FindAsync(
             AsyncLazy<IAssemblySymbol> lazyAssembly,
             string name,
             bool ignoreCase,
             CancellationToken cancellationToken)
         {
             var comparer = GetComparer(ignoreCase);
-            var result = new List<ISymbol>();
+            var results = ArrayBuilder<ISymbol>.GetInstance();
             IAssemblySymbol assemblySymbol = null;
 
             foreach (var node in FindNodeIndices(name, comparer))
@@ -201,10 +201,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
                 assemblySymbol = assemblySymbol ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-                result.AddRange(Bind(node, assemblySymbol.GlobalNamespace, cancellationToken));
+                Bind(node, assemblySymbol.GlobalNamespace, results, cancellationToken);
             }
 
-            return result;
+            return results.ToImmutableAndFree(); ;
         }
 
         private static StringSliceComparer GetComparer(bool ignoreCase)
@@ -409,26 +409,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         #region Binding 
 
         // returns all the symbols in the container corresponding to the node
-        private IEnumerable<ISymbol> Bind(
-            int index, INamespaceOrTypeSymbol rootContainer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using (var symbols = SharedPools.Default<List<ISymbol>>().GetPooledObject())
-            {
-                BindWorker(index, rootContainer, symbols.Object, cancellationToken);
-
-                foreach (var symbol in symbols.Object)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    yield return symbol;
-                }
-            }
-        }
-
-        // returns all the symbols in the container corresponding to the node
-        private void BindWorker(
-            int index, INamespaceOrTypeSymbol rootContainer, List<ISymbol> results, CancellationToken cancellationToken)
+        private void Bind(
+            int index, INamespaceOrTypeSymbol rootContainer, ArrayBuilder<ISymbol> results, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -444,16 +426,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                using (var containerSymbols = SharedPools.Default<List<ISymbol>>().GetPooledObject())
+                var containerSymbols = ArrayBuilder<ISymbol>.GetInstance();
+                try
                 {
-                    BindWorker(node.ParentIndex, rootContainer, containerSymbols.Object, cancellationToken);
+                    Bind(node.ParentIndex, rootContainer, containerSymbols, cancellationToken);
 
-                    foreach (var containerSymbol in containerSymbols.Object.OfType<INamespaceOrTypeSymbol>())
+                    foreach (var containerSymbol in containerSymbols)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        results.AddRange(containerSymbol.GetMembers(GetName(node)));
+                        var nsOrType = containerSymbol as INamespaceOrTypeSymbol;
+                        if (nsOrType != null)
+                        {
+                            results.AddRange(nsOrType.GetMembers(GetName(node)));
+                        }
                     }
+                }
+                finally
+                {
+                    containerSymbols.Free();
                 }
             }
         }
@@ -541,16 +532,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        public IEnumerable<INamedTypeSymbol> GetDerivedMetadataTypes(
+        public ImmutableArray<INamedTypeSymbol> GetDerivedMetadataTypes(
             string baseTypeName, Compilation compilation, CancellationToken cancellationToken)
         {
             var baseTypeNameIndex = BinarySearch(baseTypeName);
             var derivedTypeIndices = _inheritanceMap[baseTypeNameIndex];
 
-            return from derivedTypeIndex in derivedTypeIndices
-                   from symbol in Bind(derivedTypeIndex, compilation.GlobalNamespace, cancellationToken)
-                   let namedType = symbol as INamedTypeSymbol
-                   select namedType;
+            var builder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
+
+            foreach (var derivedTypeIndex in derivedTypeIndices)
+            {
+                var tempBuilder = ArrayBuilder<ISymbol>.GetInstance();
+                try
+                {
+                    Bind(derivedTypeIndex, compilation.GlobalNamespace, tempBuilder, cancellationToken);
+                    foreach (var symbol in tempBuilder)
+                    {
+                        var namedType = symbol as INamedTypeSymbol;
+                        if (namedType != null)
+                        {
+                            builder.Add(namedType);
+                        }
+                    }
+                }
+                finally
+                {
+                    tempBuilder.Free();
+                }
+            }
+
+            return builder.ToImmutableAndFree();
         }
     }
 }

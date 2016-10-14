@@ -13,16 +13,14 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService, TProject> : AbstractContainedLanguage
-        where TPackage : AbstractPackage<TPackage, TLanguageService, TProject>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService, TProject>
-        where TProject : AbstractProject
+    internal partial class ContainedLanguage<TPackage, TLanguageService> : AbstractContainedLanguage
+        where TPackage : AbstractPackage<TPackage, TLanguageService>
+        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly TLanguageService _languageService;
 
         protected readonly Workspace Workspace;
-        protected readonly new TProject Project;
         protected readonly IComponentModel ComponentModel;
         protected readonly ContainedDocument ContainedDocument;
 
@@ -35,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
-            TProject project,
+            AbstractProject project,
             IVsHierarchy hierarchy,
             uint itemid,
             TLanguageService languageService,
@@ -45,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
-            this.Project = project;
             _languageService = languageService;
 
             this.Workspace = componentModel.GetService<VisualStudioWorkspace>();

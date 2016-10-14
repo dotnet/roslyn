@@ -8561,7 +8561,7 @@ tryAgain:
             }
 
             // the two forms of component are
-            // (1) type deginator
+            // (1) type designator
             // (2) ( component ... )
             VariableComponentSyntax result;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
@@ -8897,8 +8897,13 @@ tryAgain:
             // "did you mean to make this method be an async method?" (it's invalid either way, so the spec doesn't care)
             var resetPoint = this.GetResetPoint();
 
-            // if forceAccept is true, then the parse is okay to return a local function statement even if a body doesn't follow the declaration.
-            var forceAccept = false;
+            // Indicates this must be parsed as a local function, even if there's no body
+            bool forceLocalFunc = true;
+            if (type.Kind == SyntaxKind.IdentifierName)
+            {
+                var id = ((IdentifierNameSyntax)type).Identifier;
+                forceLocalFunc = id.ContextualKind != SyntaxKind.AwaitKeyword;
+            }
 
             bool parentScopeIsInAsync = IsInAsync;
             IsInAsync = false;
@@ -8909,10 +8914,10 @@ tryAgain:
                 {
                     case SyntaxKind.AsyncKeyword:
                         IsInAsync = true;
-                        forceAccept = true;
+                        forceLocalFunc = true;
                         break;
                     case SyntaxKind.UnsafeKeyword:
-                        forceAccept = true;
+                        forceLocalFunc = true;
                         break;
                     case SyntaxKind.StaticKeyword:
                     case SyntaxKind.ReadOnlyKeyword:
@@ -8938,14 +8943,14 @@ tryAgain:
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
             // "await x()" is ambiguous (see note at start of this method), but we assume "await x(await y)" is meant to be a function if it's in a non-async context.
-            if (!forceAccept)
+            if (!forceLocalFunc)
             {
                 var paramListSyntax = paramList.Parameters;
                 for (int i = 0; i < paramListSyntax.Count; i++)
                 {
                     // "await x(y)" still parses as a parameter list, so check to see if it's a valid parameter (like "x(t y)")
-                    forceAccept |= !paramListSyntax[i].ContainsDiagnostics;
-                    if (forceAccept)
+                    forceLocalFunc |= !paramListSyntax[i].ContainsDiagnostics;
+                    if (forceLocalFunc)
                         break;
                 }
             }
@@ -8955,7 +8960,7 @@ tryAgain:
             {
                 constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
                 this.ParseTypeParameterConstraintClauses(typeParameterListOpt != null, constraints);
-                forceAccept = true;
+                forceLocalFunc = true;
             }
 
             BlockSyntax blockBody;
@@ -8965,7 +8970,7 @@ tryAgain:
 
             IsInAsync = parentScopeIsInAsync;
 
-            if (!forceAccept && blockBody == null && expressionBody == null)
+            if (!forceLocalFunc && blockBody == null && expressionBody == null)
             {
                 this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
@@ -10676,7 +10681,13 @@ tryAgain:
                         SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
                 }
 
-                return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+                var objectCreation = _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
+                if (type.Kind == SyntaxKind.TupleType)
+                {
+                    objectCreation = this.AddError(objectCreation, type, ErrorCode.ERR_NewWithTupleTypeSyntax);
+                }
+
+                return objectCreation;
             }
         }
 

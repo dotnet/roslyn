@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// WARNING: THIS FILE IS BEING CONSUMED THROUGH INTERNALSVISIBLETO
+// BY THE RULSET EDITOR. Until you fix that, do not delete this file.
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 //

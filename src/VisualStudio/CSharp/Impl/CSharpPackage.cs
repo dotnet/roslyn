@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -64,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ProvideAutomationProperties("TextEditor", "CSharp-Specific", packageGuid: Guids.CSharpPackageIdString, profileNodeLabelId: 104, profileNodeDescriptionId: 105)]
     [ProvideService(typeof(CSharpLanguageService), ServiceName = "C# Language Service")]
     [ProvideService(typeof(ICSharpTempPECompilerService), ServiceName = "C# TempPE Compiler Service")]
-    internal class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService, CSharpProjectShim>, IVsUserSettingsQuery
+    internal class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {
         private ObjectBrowserLibraryManager _libraryManager;
         private uint _libraryManagerCookie;

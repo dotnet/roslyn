@@ -42,6 +42,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
+        [Fact]
+        public async Task DynamicallyAddAnalyzer()
+        {
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                // create solution and wait for it to settle
+                var solution = GetInitialSolutionInfo(workspace);
+                workspace.OnSolutionAdded(solution);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                // create solution crawler and add new analyzer provider dynamically
+                var service = new SolutionCrawlerRegistrationService(
+                    SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
+                    GetListeners(workspace.ExportProvider));
+
+                service.Register(workspace);
+
+                var provider = new AnalyzerProvider(new Analyzer());
+                service.AddAnalyzerProvider(provider, Metadata.Crawler);
+
+                // wait for everything to settle
+                await WaitAsync(service, workspace);
+
+                service.Unregister(workspace);
+
+                // check whether everything ran as expected
+                Assert.Equal(10, provider.Analyzer.SyntaxDocumentIds.Count);
+                Assert.Equal(10, provider.Analyzer.DocumentIds.Count);
+            }
+        }
+
         [Fact, WorkItem(747226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747226")]
         public async Task SolutionAdded_Simple()
         {
@@ -997,23 +1028,23 @@ End Class";
 
         private class AnalyzerProvider : IIncrementalAnalyzerProvider
         {
-            private readonly Analyzer _analyzer;
+            public readonly Analyzer Analyzer;
 
             public AnalyzerProvider(Analyzer analyzer)
             {
-                _analyzer = analyzer;
+                Analyzer = analyzer;
             }
 
             public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
             {
-                return _analyzer;
+                return Analyzer;
             }
         }
 
         internal class Metadata : IncrementalAnalyzerProviderMetadata
         {
             public Metadata(params string[] workspaceKinds)
-                : base(new Dictionary<string, object> { { "WorkspaceKinds", workspaceKinds }, { "HighPriorityForActiveFile", false } })
+                : base(new Dictionary<string, object> { { "WorkspaceKinds", workspaceKinds }, { "HighPriorityForActiveFile", false }, { "Name", "TestAnalyzer" } })
             {
             }
 

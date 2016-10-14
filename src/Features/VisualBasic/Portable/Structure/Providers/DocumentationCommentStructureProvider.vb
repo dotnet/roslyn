@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Structure
@@ -87,9 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
-            spans.Add(CreateRegion(
+            spans.AddIfNotNull(CreateRegion(
                 fullSpan, GetBannerText(documentationComment, cancellationToken),
-                autoCollapse:=True, type:=BlockTypes.Nonstructural, isCollapsible:=True))
+                autoCollapse:=True, type:=BlockTypes.Comment, isCollapsible:=True))
         End Sub
     End Class
 End Namespace

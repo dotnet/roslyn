@@ -18,12 +18,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Return "' " & comment.ToString().Substring(1).Trim() & SpaceEllipsis
         End Function
 
-        Private Function CreateCommentsRegion(startComment As SyntaxTrivia, endComment As SyntaxTrivia) As BlockSpan
+        Private Function CreateCommentsRegion(startComment As SyntaxTrivia,
+                                              endComment As SyntaxTrivia) As BlockSpan?
             Return CreateRegion(
                 TextSpan.FromBounds(startComment.SpanStart, endComment.Span.End),
                 GetCommentBannerText(startComment),
                 autoCollapse:=True,
-                type:=BlockTypes.Nonstructural,
+                type:=BlockTypes.Comment,
                 isCollapsible:=True)
         End Function
 
@@ -50,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                         trivia.Kind <> SyntaxKind.EndOfFileToken Then
 
                         If startComment IsNot Nothing Then
-                            spans.Add(CreateCommentsRegion(startComment.Value, endComment.Value))
+                            spans.AddIfNotNull(CreateCommentsRegion(startComment.Value, endComment.Value))
                             startComment = Nothing
                             endComment = Nothing
                         End If
@@ -59,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
                 ' Add any final span
                 If startComment IsNot Nothing Then
-                    spans.Add(CreateCommentsRegion(startComment.Value, endComment.Value))
+                    spans.AddIfNotNull(CreateCommentsRegion(startComment.Value, endComment.Value))
                 End If
             End If
         End Sub
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 autoCollapse As Boolean,
                 type As String,
                 isCollapsible As Boolean,
-                Optional isDefaultCollapsed As Boolean = False) As BlockSpan
+                Optional isDefaultCollapsed As Boolean = False) As BlockSpan?
             Return New BlockSpan(
                 textSpan:=span,
                 bannerText:=bannerText,
@@ -96,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 bannerText As String,
                 autoCollapse As Boolean,
                 type As String,
-                isCollapsible As Boolean) As BlockSpan
+                isCollapsible As Boolean) As BlockSpan?
             Return CreateRegion(blockNode.Span, bannerText, autoCollapse, type, isCollapsible)
         End Function
 
@@ -105,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 bannerNode As SyntaxNode,
                 autoCollapse As Boolean,
                 type As String,
-                isCollapsible As Boolean) As BlockSpan
+                isCollapsible As Boolean) As BlockSpan?
             Return CreateRegion(
                 blockNode.Span, GetNodeBannerText(bannerNode),
                 autoCollapse, type, isCollapsible)
@@ -115,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                      bannerText As String,
                                      autoCollapse As Boolean,
                                      type As String,
-                                     isCollapsible As Boolean) As BlockSpan
+                                     isCollapsible As Boolean) As BlockSpan?
             If syntaxList.IsEmpty() Then
                 Return Nothing
             End If

@@ -193,9 +193,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                                 foreach (var task in tasks)
                                 {
-                                    if (task.Result.Diagnostics.Any())
+                                    var projectAndDiagnostics = await task.ConfigureAwait(false);
+                                    if (projectAndDiagnostics.Diagnostics.Any())
                                     {
-                                        projectsAndDiagnostics[task.Result.Project] = task.Result.Diagnostics;
+                                        projectsAndDiagnostics[projectAndDiagnostics.Project] = projectAndDiagnostics.Diagnostics;
                                     }
                                 }
 

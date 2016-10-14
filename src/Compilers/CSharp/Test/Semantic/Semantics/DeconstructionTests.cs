@@ -2506,5 +2506,86 @@ class C
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.Deconstruct(out int, out int)", "Deprecated").WithLocation(6, 27)
                 );
         }
+
+        [Fact]
+        public void DeconstructionLocalsDeclaredNotUsed()
+        {
+            // Check that there are no *use sites* within this code for local variables.
+            // They are declared herein, but nowhere used. So they should not be returned
+            // by SemanticModel.GetSymbolInfo.
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        var (x1, y1) = (1, 2);
+
+        (var x2, var y2) = (1, 2);
+    }
+
+    static void M((int, int) t)
+    {
+        var (x3, y3) = t;
+
+        (var x4, var y4) = t;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            foreach (var node in nodes)
+            {
+                var si = model.GetSymbolInfo(node);
+                var symbol = si.Symbol;
+                if (symbol == null) continue;
+                Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+            }
+        }
+
+        [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
+        public void TupleDeconstructionStatementWithTypesCannotBeConst()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        const (int x, int y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0106: The modifier 'const' is not valid for this item
+                //         const (int x, int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "(int x, int y)").WithArguments("const").WithLocation(6, 15)
+                );
+        }
+
+        [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
+        public void TupleDeconstructionStatementWithoutTypesCannotBeConst()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        const var (x, y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0106: The modifier 'const' is not valid for this item
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "var (x, y)").WithArguments("const").WithLocation(6, 15)
+                );
+        }
     }
 }

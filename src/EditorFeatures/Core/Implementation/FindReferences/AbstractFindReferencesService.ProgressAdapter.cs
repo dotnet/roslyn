@@ -1,10 +1,12 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Navigation;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
@@ -68,6 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
             {
+                // Ignore duplicate locations.  We don't want to clutter the UI with them.
+                if (location.IsDuplicateReferenceLocation)
+                {
+                    return;
+                }
+
                 var referenceItem = location.TryCreateSourceReferenceItem(
                     GetDefinitionItem(definition));
 

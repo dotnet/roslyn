@@ -162,14 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool SupportsParameterizedEvents
-        {
-            get
-            {
-                return true;
-            }
-        }
-
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
             Contract.Requires(oldNode.Kind() == newNode.Kind());

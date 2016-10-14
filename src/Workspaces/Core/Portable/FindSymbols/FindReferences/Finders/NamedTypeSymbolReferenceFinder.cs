@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -85,6 +84,64 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamedTypeSymbol namedType,
             Document document,
             CancellationToken cancellationToken)
+        {
+            var namedTypereferences = await FindReferencesInDocumentWorker(
+                namedType, document, cancellationToken).ConfigureAwait(false);
+
+            // Mark any references that are also Constructor references.  Some callers
+            // will want to know about these so they won't display duplicates.
+            return await MarkConstructorReferences(
+                namedType, document, namedTypereferences, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ImmutableArray<ReferenceLocation>> MarkConstructorReferences(
+            INamedTypeSymbol namedType, Document document, 
+            ImmutableArray<ReferenceLocation> namedTypereferences,
+            CancellationToken cancellationToken)
+        {
+            var constructorReferences = ArrayBuilder<ReferenceLocation>.GetInstance();
+            foreach (var constructor in namedType.Constructors)
+            {
+                var references = await ConstructorSymbolReferenceFinder.Instance.FindAllReferencesInDocumentAsync(
+                    constructor, document, cancellationToken).ConfigureAwait(false);
+                constructorReferences.AddRange(references);
+            }
+
+            var result = ArrayBuilder<ReferenceLocation>.GetInstance();
+            foreach (var reference in namedTypereferences)
+            {
+                if (Contains(constructorReferences, reference))
+                {
+                    var localReference = reference;
+                    localReference.IsDuplicateReferenceLocation = true;
+                    result.Add(localReference);
+                }
+                else
+                {
+                    result.Add(reference);
+                }
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        private bool Contains(
+            ArrayBuilder<ReferenceLocation> constructorReferences,
+            ReferenceLocation reference)
+        {
+            foreach (var constructorRef in constructorReferences)
+            {
+                if (reference.Location == constructorRef.Location)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentWorker(
+            INamedTypeSymbol namedType, Document document, CancellationToken cancellationToken)
         {
             var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, cancellationToken).ConfigureAwait(false);
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);

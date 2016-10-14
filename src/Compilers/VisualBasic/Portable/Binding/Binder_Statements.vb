@@ -1149,7 +1149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                diagnostics,
                                                                                asNewVariablePlaceholder)
 
-                                Debug.Assert(valueExpression.Type.IsSameTypeIgnoringCustomModifiers(declType))
+                                Debug.Assert(valueExpression.Type.IsSameTypeIgnoringAll(declType))
                             End If
 
                         Case SyntaxKind.AnonymousObjectCreationExpression
@@ -1165,7 +1165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, asNew.NewExpression.NewKeyword, ERRID.ERR_AsNewArray)
                         valueExpression = BadExpression(asNew, valueExpression, type)
                     ElseIf valueExpression IsNot Nothing AndAlso Not valueExpression.HasErrors AndAlso
-                           Not type.IsSameTypeIgnoringCustomModifiers(valueExpression.Type) Then
+                           Not type.IsSameTypeIgnoringAll(valueExpression.Type) Then
                         ' An error must have been reported elsewhere.    
                         valueExpression = BadExpression(asNew, valueExpression, valueExpression.Type)
                     End If
@@ -2290,15 +2290,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim tokenType As NamedTypeSymbol = Me.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
 
                             If node.Kind = SyntaxKind.AddHandlerStatement Then
-                                If Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(targetType) OrElse
-                                   Not method.ReturnType.IsSameTypeIgnoringCustomModifiers(tokenType) Then
+                                If Not method.Parameters(0).Type.IsSameTypeIgnoringAll(targetType) OrElse
+                                   Not method.ReturnType.IsSameTypeIgnoringAll(tokenType) Then
                                     badShape = True
                                 End If
-                            ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(tokenType) OrElse Not method.IsSub Then
+                            ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringAll(tokenType) OrElse Not method.IsSub Then
                                 badShape = True
                             End If
 
-                        ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(targetType) Then
+                        ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringAll(targetType) Then
                             badShape = True
                         End If
 
@@ -3218,9 +3218,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim bestCandidate As OverloadResolution.Candidate = userDefinedOperator.BestResult.Value.Candidate
 
-            If Not bestCandidate.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(left.Type) OrElse
-               Not bestCandidate.Parameters(1).Type.IsSameTypeIgnoringCustomModifiers(left.Type) OrElse
-               (Not isRelational AndAlso Not bestCandidate.ReturnType.IsSameTypeIgnoringCustomModifiers(left.Type)) Then
+            If Not bestCandidate.Parameters(0).Type.IsSameTypeIgnoringAll(left.Type) OrElse
+               Not bestCandidate.Parameters(1).Type.IsSameTypeIgnoringAll(left.Type) OrElse
+               (Not isRelational AndAlso Not bestCandidate.ReturnType.IsSameTypeIgnoringAll(left.Type)) Then
 
                 If isRelational Then
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_UnacceptableForLoopRelOperator2, bestCandidate.UnderlyingSymbol,

@@ -27,10 +27,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private const int MaxHighPriorityQueueCache = 29;
 
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
-
-                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
                     private readonly ConcurrentDictionary<DocumentId, IDisposable> _higherPriorityDocumentsNotProcessed;
-
                     private readonly HashSet<ProjectId> _currentSnapshotVersionTrackingSet;
 
                     private ProjectId _currentProjectProcessing;
@@ -47,10 +44,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         int backOffTimeSpanInMs,
                         CancellationToken shutdownToken) :
-                        base(listener, processor, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
-                        _lazyAnalyzers = lazyAnalyzers;
-
                         _running = SpecializedTasks.EmptyTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
@@ -61,14 +56,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _currentSnapshotVersionTrackingSet = new HashSet<ProjectId>();
 
                         Start();
-                    }
-
-                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
                     }
 
                     public void Enqueue(WorkItem item)

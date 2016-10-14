@@ -138,6 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefValueExpression:
                         return ((RefValueExpressionSyntax)parent).Type == node;
 
+                    case RefType:
+                        return ((RefTypeSyntax)parent).Type == node;
+
                     case Parameter:
                         return ((ParameterSyntax)parent).Type == node;
 

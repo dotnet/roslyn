@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbNode IsNot Nothing AndAlso vbNode.IsRightSideOfQualifiedName()
         End Function
 
-        Public Function IsMemberAccessExpressionName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMemberAccessExpressionName
+        Public Function IsNameOfMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNameOfMemberAccessExpression
             Dim vbNode = TryCast(node, SimpleNameSyntax)
             Return vbNode IsNot Nothing AndAlso vbNode.IsMemberAccessExpressionName()
         End Function
@@ -1515,6 +1515,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function AreEquivalent(node1 As SyntaxNode, node2 As SyntaxNode) As Boolean Implements ISyntaxFactsService.AreEquivalent
             Return SyntaxFactory.AreEquivalent(node1, node2)
+        End Function
+
+        Public Function IsExpressionOfInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfInvocationExpression
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, InvocationExpressionSyntax)?.Expression Is node
+        End Function
+
+        Public Function IsExpressionOfAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfAwaitExpression
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, AwaitExpressionSyntax)?.Expression Is node
+        End Function
+
+        Public Function IsExpressionOfMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfMemberAccessExpression
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, MemberAccessExpressionSyntax)?.Expression Is node
+        End Function
+
+        Public Function GetExpressionOfInvocationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfInvocationExpression
+            Return DirectCast(node, InvocationExpressionSyntax).Expression
+        End Function
+
+        Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfAwaitExpression
+            Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
     End Class
 End Namespace

@@ -91,11 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             /// </remarks>
             private bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement)
             {
-                var predefinedType = GetTypeSyntaxFromDeclaration(declarationStatement) as PredefinedTypeSyntax;
-
-                return predefinedType != null
-                    ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
-                    : false;
+                return TypeStyleHelper.IsPredefinedType(
+                    GetTypeSyntaxFromDeclaration(declarationStatement));
             }
 
             private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)

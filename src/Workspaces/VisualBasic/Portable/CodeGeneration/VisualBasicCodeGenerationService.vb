@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 options As CodeGenerationOptions,
                 availableIndices As IList(Of Boolean)) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax)(destinationType)
-            Return Cast(Of TDeclarationNode)(EventGenerator.AddEventTo(Cast(Of TypeBlockSyntax)(destinationType), [event], options, availableIndices))
+            Return Cast(Of TDeclarationNode)(AddEventTo(Cast(Of TypeBlockSyntax)(destinationType), [event], options, availableIndices))
         End Function
 
         Protected Overrides Function AddField(Of TDeclarationNode As SyntaxNode)(

@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             spans.Add(new BlockSpan(
                 isCollapsible: true,
                 textSpan: span,
+                type: BlockTypes.PreprocessorRegion,
                 bannerText: CSharpStructureHelpers.Ellipsis,
                 autoCollapse: true));
         }
