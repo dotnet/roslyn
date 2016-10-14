@@ -142,8 +142,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // ask one of asset source for data
-            return await source.RequestAssetsAsync(_sessionId, checksums, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                // ask one of asset source for data
+                return await source.RequestAssetsAsync(_sessionId, checksums, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                // object disposed exception can happen if StreamJsonRpc get disconnected
+                // in the middle of read/write due to cancellation
+                cancellationToken.ThrowIfCancellationRequested();
+                throw;
+            }
         }
 
         private struct ChecksumSynchronizer
