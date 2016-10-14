@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public sealed class ApplyChangesOperation : CodeActionOperation
     {
-        private readonly Solution _changedSolution;
+        public Solution ChangedSolution { get; }
 
         public ApplyChangesOperation(Solution changedSolution)
         {
@@ -33,13 +33,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 throw new ArgumentNullException(nameof(changedSolution));
             }
 
-            _changedSolution = changedSolution;
+            ChangedSolution = changedSolution;
         }
 
-        public Solution ChangedSolution
-        {
-            get { return _changedSolution; }
-        }
+        internal override bool ApplyDuringTests => true;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
@@ -49,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal override void Apply(
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            workspace.TryApplyChanges(_changedSolution, progressTracker);
+            workspace.TryApplyChanges(ChangedSolution, progressTracker);
         }
     }
 }

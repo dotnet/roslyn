@@ -53,11 +53,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim codeActions = diagnosticAndFix.Item2.Fixes.Select(Function(f) f.Action).ToList()
                 codeActions = MassageActions(codeActions)
                 Dim codeAction = codeActions(codeActionIndex)
-                Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
-                Dim edit = operations.OfType(Of ApplyChangesOperation)().First()
 
                 Dim oldSolution = workspace.CurrentSolution
-                Dim updatedSolution = edit.ChangedSolution
+                Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
+
+                For Each operation In operations
+                    If operation.ApplyDuringTests Then
+                        operation.Apply(workspace, CancellationToken.None)
+                    End If
+                Next
+
+                Dim updatedSolution = workspace.CurrentSolution
 
                 verifySolutions?.Invoke(oldSolution, updatedSolution)
 

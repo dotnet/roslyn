@@ -9,11 +9,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-        private class MetadataSymbolReference : SymbolReference
+        private partial class MetadataSymbolReference : SymbolReference
         {
             private readonly PortableExecutableReference _reference;
 
-            public MetadataSymbolReference(AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, SymbolResult<INamespaceOrTypeSymbol> symbolResult, PortableExecutableReference reference)
+            public MetadataSymbolReference(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                SymbolResult<INamespaceOrTypeSymbol> symbolResult, PortableExecutableReference reference)
                 : base(provider, symbolResult)
             {
                 _reference = reference;
@@ -34,16 +36,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     Path.GetFileName(_reference.FilePath));
             }
 
-            protected override Solution UpdateSolution(Document newDocument)
-            {
-                return newDocument.Project.AddMetadataReference(_reference).Solution;
-            }
+            protected override Solution GetUpdatedSolution(Document newDocument)
+                => newDocument.Project.AddMetadataReference(_reference).Solution;
 
+            // Adding metadata references should be considered lower pri than anything else.
             protected override CodeActionPriority GetPriority(Document document)
-            {
-                // Adding metadata references should be considered lower pri than anything else.
-                return CodeActionPriority.Low;
-            }
+                => CodeActionPriority.Low;
 
             protected override Glyph? GetGlyph(Document document) => Glyph.AddReference;
 
