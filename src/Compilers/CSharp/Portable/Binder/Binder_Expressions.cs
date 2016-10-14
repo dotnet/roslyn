@@ -2344,6 +2344,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
                 }
+                else if (argument.Kind == BoundKind.TupleLiteral)
+                {
+                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    TupleTypeSymbol.ReportNamesMismatchesIfAny(parameterType, (BoundTupleLiteral)argument, diagnostics);
+                }
             }
         }
 
