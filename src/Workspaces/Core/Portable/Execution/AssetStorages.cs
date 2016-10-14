@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.Execution
             _globalAssets.TryRemove(value, out asset);
         }
 
-        public AssetStorages.Storage CreateStorage(SolutionState solutionState)
+        public Storage CreateStorage(SolutionState solutionState)
         {
             return new Storage(this, solutionState);
         }
 
-        public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
+        public RemotableData GetRemotableData(PinnedRemotableDataScope scope, Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)
             {
@@ -71,22 +71,12 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             // search snapshots we have
-            using (var solutionProcessed = Creator.CreateChecksumSet())
+            foreach (var storage in GetStorages(scope))
             {
-                foreach (var kv in _storages)
+                var syncObject = storage.TryGetRemotableData(checksum, cancellationToken);
+                if (syncObject != null)
                 {
-                    if (!solutionProcessed.Object.Add(kv.Key.SolutionChecksum))
-                    {
-                        // already processed
-                        continue;
-                    }
-
-                    var storage = kv.Value;
-                    var syncObject = storage.TryGetRemotableData(checksum, cancellationToken);
-                    if (syncObject != null)
-                    {
-                        return syncObject;
-                    }
+                    return syncObject;
                 }
             }
 
@@ -112,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return null;
         }
 
-        public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(PinnedRemotableDataScope scope, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
             {
@@ -126,24 +116,14 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
 
                 // search checksum trees we have
-                using (var solutionProcessed = Creator.CreateChecksumSet())
+                foreach (var storage in GetStorages(scope))
                 {
-                    foreach (var kv in _storages)
+                    storage.AppendRemotableData(searchingChecksumsLeft.Object, result, cancellationToken);
+                    if (result.Count == numberOfChecksumsToSearch)
                     {
-                        if (!solutionProcessed.Object.Add(kv.Key.SolutionChecksum))
-                        {
-                            // already processed
-                            continue;
-                        }
-
-                        var storage = kv.Value;
-                        storage.AppendRemotableData(searchingChecksumsLeft.Object, result, cancellationToken);
-                        if (result.Count == numberOfChecksumsToSearch)
-                        {
-                            // no checksum left to find
-                            Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
-                            return result;
-                        }
+                        // no checksum left to find
+                        Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
+                        return result;
                     }
                 }
 
@@ -188,6 +168,28 @@ namespace Microsoft.CodeAnalysis.Execution
             // calling it multiple times for same snapshot is not allowed.
             Storage dummy;
             Contract.ThrowIfFalse(_storages.TryRemove(snapshot, out dummy));
+        }
+
+        private IEnumerable<Storage> GetStorages(PinnedRemotableDataScope scope)
+        {
+            if (scope != null)
+            {
+                yield return _storages[scope];
+                yield break;
+            }
+
+            using (var solutionProcessed = Creator.CreateChecksumSet())
+            {
+                foreach (var kv in _storages)
+                {
+                    if (!solutionProcessed.Object.Add(kv.Key.SolutionChecksum))
+                    {
+                        continue;
+                    }
+
+                    yield return kv.Value;
+                }
+            }
         }
     }
 }

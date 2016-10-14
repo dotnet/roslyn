@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.CodeLens;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, CancellationToken))
                 {
-                    var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync().ConfigureAwait(false);
                     var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(solution, documentId,
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, CancellationToken))
                 {
-                    var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync().ConfigureAwait(false);
                     var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(solution, documentId,
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, CancellationToken))
                 {
-                    var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync().ConfigureAwait(false);
                     var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(solution, documentId,
@@ -116,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, CancellationToken))
                 {
-                    var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync().ConfigureAwait(false);
                     var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedName(solution, documentId,

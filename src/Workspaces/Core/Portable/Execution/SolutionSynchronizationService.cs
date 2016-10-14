@@ -63,17 +63,17 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionSynchronizationService_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
-                    return _assetStorages.GetRemotableData(checksum, cancellationToken);
+                    return _assetStorages.GetRemotableData(scope: null, checksum: checksum, cancellationToken: cancellationToken);
                 }
             }
 
             public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionSynchronizationService_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
-                    return _assetStorages.GetRemotableData(checksums, cancellationToken);
+                    return _assetStorages.GetRemotableData(scope: null, checksums: checksums, cancellationToken: cancellationToken);
                 }
             }
         }
