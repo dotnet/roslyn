@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
                 else if (operation.ApplyDuringTests)
                 {
-                    operation.Apply(workspace, new ProgressTracker(), CancellationToken.None);
+                    operation.TryApply(workspace, new ProgressTracker(), CancellationToken.None);
                 }
             }
 
