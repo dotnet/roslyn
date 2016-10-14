@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Text
         private TextLineCollection _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
         private ImmutableArray<byte> _precomputedEmbeddedTextBlob;
- 
+
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
         protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer container = null)
@@ -95,6 +95,47 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return new StringText(text, encoding, checksumAlgorithm: checksumAlgorithm);
+        }
+
+        /// <summary>
+        /// Constructs a <see cref="SourceText"/> from text in a string.
+        /// </summary>
+        /// <param name="reader">TextReader</param>
+        /// <param name="length">length of content from <paramref name="reader"/></param>
+        /// <param name="encoding">
+        /// Encoding of the file that the <paramref name="reader"/> was read from or is going to be saved to.
+        /// <c>null</c> if the encoding is unspecified.
+        /// If the encoding is not specified the resulting <see cref="SourceText"/> isn't debuggable.
+        /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
+        /// </param>
+        /// <param name="checksumAlgorithm">
+        /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="reader"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
+        public static SourceText From(
+            TextReader reader,
+            int length,
+            Encoding encoding = null,
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+        {
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
+            ValidateChecksumAlgorithm(checksumAlgorithm);
+
+            encoding = encoding ?? s_utf8EncodingWithNoBOM;
+
+            // If the resulting string would end up on the large object heap, then use LargeEncodedText.
+            if (length >= LargeObjectHeapLimitInChars)
+            {
+                return LargeText.Decode(reader, length, encoding, checksumAlgorithm);
+            }
+
+            string text = reader.ReadToEnd();
+            return From(text, encoding, checksumAlgorithm);
         }
 
         // 1.0 BACKCOMPAT OVERLOAD - DO NOT TOUCH
@@ -192,9 +233,9 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="DecoderFallbackException">If the given encoding is set to use a throwing decoder as a fallback</exception>
         /// <exception cref="InvalidDataException">Two consecutive NUL characters were detected in the decoded text and <paramref name="throwIfBinaryDetected"/> was true.</exception>
         public static SourceText From(
-            byte[] buffer, 
-            int length, 
-            Encoding encoding = null, 
+            byte[] buffer,
+            int length,
+            Encoding encoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool throwIfBinaryDetected = false,
             bool canBeEmbedded = false)

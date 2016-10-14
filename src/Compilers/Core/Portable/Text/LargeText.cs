@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Text
             _chunks = chunks;
             _encoding = encoding;
             _chunkStartOffsets = new int[chunks.Length];
+
             int offset = 0;
             for (int i = 0; i < chunks.Length; i++)
             {
@@ -40,6 +41,11 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             _length = offset;
+        }
+
+        internal LargeText(ImmutableArray<char[]> chunks, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+            : this(chunks, encoding, default(ImmutableArray<byte>), checksumAlgorithm, default(ImmutableArray<byte>))
+        {
         }
 
         internal static SourceText Decode(Stream stream, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected, bool canBeEmbedded)
@@ -58,48 +64,69 @@ namespace Microsoft.CodeAnalysis.Text
 
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: Math.Min(length, 4096), leaveOpen: true))
             {
-                ArrayBuilder<char[]> chunks = ArrayBuilder<char[]>.GetInstance(1 + maxCharRemainingGuess / ChunkSize);
-                while (!reader.EndOfStream)
-                {
-                    var nextChunkSize = ChunkSize;
-                    if (maxCharRemainingGuess < ChunkSize)
-                    {
-                        // maxCharRemainingGuess typically overestimates a little
-                        // so we will first fill a slightly smaller (maxCharRemainingGuess - 64) chunk
-                        // and then use 64 char tail, which is likley to be resized.
-                        nextChunkSize = Math.Max(maxCharRemainingGuess - 64, 64);
-                    }
-
-                    char[] chunk = new char[nextChunkSize];
-
-                    int charsRead = reader.ReadBlock(chunk, 0, chunk.Length);
-                    if (charsRead == 0)
-                    {
-                        break;
-                    }
-
-                    maxCharRemainingGuess -= charsRead;
-
-                    if (charsRead < chunk.Length)
-                    {
-                        Array.Resize(ref chunk, charsRead);
-                    }
-
-                    // Check for binary files
-                    if (throwIfBinaryDetected && IsBinary(chunk))
-                    {
-                        throw new InvalidDataException();
-                    }
-
-                    chunks.Add(chunk);
-                }
+                var chunks = ReadFromTextReader(reader, maxCharRemainingGuess, throwIfBinaryDetected);
 
                 // We must compute the checksum and embedded text blob now while we still have the original bytes in hand.
                 // We cannot re-encode to obtain checksum and blob as the encoding is not guaranteed to round-trip.
                 var checksum = CalculateChecksum(stream, checksumAlgorithm);
                 var embeddedTextBlob = canBeEmbedded ? EmbeddedText.CreateBlob(stream) : default(ImmutableArray<byte>);
-                return new LargeText(chunks.ToImmutableAndFree(), reader.CurrentEncoding, checksum, checksumAlgorithm, embeddedTextBlob);
+                return new LargeText(chunks, reader.CurrentEncoding, checksum, checksumAlgorithm, embeddedTextBlob);
             }
+        }
+
+        internal static SourceText Decode(TextReader reader, int length, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+        {
+            if (length == 0)
+            {
+                return SourceText.From(string.Empty, encoding, checksumAlgorithm);
+            }
+
+            // throwIfBinaryDetected == false since we are given text reader from the beginning
+            var chunks = ReadFromTextReader(reader, length, throwIfBinaryDetected: false);
+
+            return new LargeText(chunks, encoding, checksumAlgorithm);
+        }
+
+        private static ImmutableArray<char[]> ReadFromTextReader(TextReader reader, int maxCharRemainingGuess, bool throwIfBinaryDetected)
+        {
+            var chunks = ArrayBuilder<char[]>.GetInstance(1 + maxCharRemainingGuess / ChunkSize);
+
+            while (reader.Peek() != -1)
+            {
+                var nextChunkSize = ChunkSize;
+                if (maxCharRemainingGuess < ChunkSize)
+                {
+                    // maxCharRemainingGuess typically overestimates a little
+                    // so we will first fill a slightly smaller (maxCharRemainingGuess - 64) chunk
+                    // and then use 64 char tail, which is likley to be resized.
+                    nextChunkSize = Math.Max(maxCharRemainingGuess - 64, 64);
+                }
+
+                char[] chunk = new char[nextChunkSize];
+
+                int charsRead = reader.ReadBlock(chunk, 0, chunk.Length);
+                if (charsRead == 0)
+                {
+                    break;
+                }
+
+                maxCharRemainingGuess -= charsRead;
+
+                if (charsRead < chunk.Length)
+                {
+                    Array.Resize(ref chunk, charsRead);
+                }
+
+                // Check for binary files
+                if (throwIfBinaryDetected && IsBinary(chunk))
+                {
+                    throw new InvalidDataException();
+                }
+
+                chunks.Add(chunk);
+            }
+
+            return chunks.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -272,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Text
                         case '\u0085':
                         case '\u2028':
                         case '\u2029':
-                        line_break:
+                            line_break:
                             arrayBuilder.Add(position);
                             position = index;
                             break;

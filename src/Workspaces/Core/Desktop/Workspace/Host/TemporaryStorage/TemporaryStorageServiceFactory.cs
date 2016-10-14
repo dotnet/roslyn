@@ -170,18 +170,29 @@ namespace Microsoft.CodeAnalysis.Host
                     return new DirectMemoryAccessStreamReader(src + 1, streamLength / sizeof(char) - 1);
                 }
 
-                private unsafe class DirectMemoryAccessStreamReader : TextReader
+                private unsafe class DirectMemoryAccessStreamReader : TemporaryStorageTextReader
                 {
                     private char* _position;
                     private readonly char* _end;
 
-                    public DirectMemoryAccessStreamReader(char* src, int length)
+                    public DirectMemoryAccessStreamReader(char* src, int length) :
+                        base(length)
                     {
                         Debug.Assert(src != null);
                         Debug.Assert(length >= 0);
 
                         _position = src;
                         _end = _position + length;
+                    }
+
+                    public override int Peek()
+                    {
+                        if (_position >= _end)
+                        {
+                            return -1;
+                        }
+
+                        return *_position;
                     }
 
                     public override int Read()
@@ -336,6 +347,16 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
             }
+        }
+
+        internal class TemporaryStorageTextReader : TextReader
+        {
+            public TemporaryStorageTextReader(int length)
+            {
+                Length = length;
+            }
+
+            public int Length { get; }
         }
     }
 }
