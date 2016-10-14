@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
-            var projectDirectory = Path.GetDirectoryName(projectFilename);
+            var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
                 projectInfo.CommandLineArguments,
                 projectDirectory,
@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
             // TODO: Should come from sln file?
-            var projectName = Path.GetFileNameWithoutExtension(projectFilename);
+            var projectName = PathUtilities.GetFileName(projectFilename, includeExtension: false);
             var projectId = GetOrCreateProjectIdForPath(projectFilename, projectName);
 
             // See if we've already created this project and we're now in a recursive call to
@@ -306,7 +306,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             foreach (var reference in commandLineArguments.AnalyzerReferences)
             {
-                projectContext.AddAnalyzerReference(reference.FilePath);
+                var path = reference.FilePath;
+                if (!PathUtilities.IsAbsolute(path))
+                {
+                    path = PathUtilities.CombineAbsoluteAndRelativePaths(
+                        projectDirectory,
+                        path);
+                }
+
+                projectContext.AddAnalyzerReference(path);
             }
 
             return (AbstractProject)projectContext;
@@ -314,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static string GetLanguageOfProject(string projectFilename)
         {
-            switch (Path.GetExtension(projectFilename))
+            switch (PathUtilities.GetExtension(projectFilename))
             {
                 case ".csproj":
                     return LanguageNames.CSharp;
