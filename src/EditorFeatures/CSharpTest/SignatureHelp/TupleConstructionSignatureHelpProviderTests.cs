@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,8 +46,8 @@ class C
             var markup = @"
 class C
 {
-    (int, int) y = [|($$)
-|]}";
+    (int, int) y = [|($$)|]
+}";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0));
@@ -59,7 +61,7 @@ class C
             var markup = @"
 class C
 {
-    (int, int) y = [|(1, $$
+    (int, int) y = [|(1,$$
 |]}";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
@@ -74,8 +76,8 @@ class C
             var markup = @"
 class C
 {
-    (int, int) y = [|(1, $$)
-|]}";
+    (int, int) y = [|(1,$$)|]
+}";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 1));
@@ -138,11 +140,41 @@ class C
             var markup = @"
 class C
 {
-    (int, object) y = [|(1, (2, $$
+    (int, object) y = [|(1, (2,$$
 |]}";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("(int, object)", currentParameterIndex: 1));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task NestedTupleWhenNotInferred3()
+        {
+            var markup = @"
+class C
+{
+    (int, object) y = [|(1, ($$
+|]}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(int, object)", currentParameterIndex: 1));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task NestedTupleWhenNotInferred4()
+        {
+            var markup = @"
+class C
+{
+    (object, object) y = [|(($$
+|]}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(object, object)", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }

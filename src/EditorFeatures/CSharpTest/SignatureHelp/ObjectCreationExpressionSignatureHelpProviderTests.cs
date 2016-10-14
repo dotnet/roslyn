@@ -598,7 +598,7 @@ class C
     public C(object o) { }
     public C M()
     {
-        return [|new C((1, $$)
+        return [|new C((1,$$)
     |]}
 
 }";
@@ -638,7 +638,7 @@ class C
     public C(object o) { }
     public C M()
     {
-        return [|new C((1, (2, $$)
+        return [|new C((1, (2,$$)
     |]}
 
 }";

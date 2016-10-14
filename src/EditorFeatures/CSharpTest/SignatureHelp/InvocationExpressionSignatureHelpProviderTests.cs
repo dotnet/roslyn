@@ -2049,7 +2049,7 @@ class C
 {
     int Foo(object x)
     {
-        [|Foo((1, $$|]);
+        [|Foo((1,$$)|];
     }
 }";
 
@@ -2085,7 +2085,7 @@ class C
 {
     int Foo(object x)
     {
-        [|Foo((1, (2, $$|]);
+        [|Foo((1, (2,$$)|];
     }
 }";
 

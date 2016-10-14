@@ -510,7 +510,7 @@ class C
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem(displayText:="(int a, string b)", selectedParameter:="string b")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="(int a, string b)", selectedParameter:="int a")
             End Using
         End Function
 

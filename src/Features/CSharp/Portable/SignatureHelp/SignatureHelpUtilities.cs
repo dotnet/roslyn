@@ -92,9 +92,26 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
             {
                 var parenthesizedExpr = ((ParenthesizedExpressionSyntax)token.Parent).WalkUpParentheses();
-                return parenthesizedExpr.Parent is ArgumentSyntax &&
-                       ((parenthesizedExpr.Parent.Parent is ArgumentListSyntax && parenthesizedExpr.Parent.Parent.Parent is TSyntaxNode) ||
-                        (parenthesizedExpr.Parent.Parent is TupleExpressionSyntax && parenthesizedExpr.GetAncestor<TSyntaxNode>() != null));
+                if (parenthesizedExpr.Parent is ArgumentSyntax)
+                {
+                    var parent = parenthesizedExpr.Parent;
+                    var grandParent = parent.Parent;
+                    if (grandParent is ArgumentListSyntax && grandParent.Parent is TSyntaxNode)
+                    {
+                        // Argument to TSyntaxNode's argument list
+                        return true;
+                    }
+                    else
+                    {
+                        // Argument to a tuple in TSyntaxNode's argument list
+                        return grandParent is TupleExpressionSyntax && parenthesizedExpr.GetAncestor<TSyntaxNode>() != null;
+                    }
+                }
+                else
+                {
+                    // Not an argument
+                    return false;
+                }
             }
 
             // Don't dismiss if the user types ',' to add a member to a tuple

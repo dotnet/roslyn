@@ -69,7 +69,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IEnumerable<SignatureHelpParameter> parameters,
             IEnumerable<SymbolDisplayPart> descriptionParts)
             : this(isVariadic,
-                  c => documentationFactory(c).ToTaggedText(), 
+                  documentationFactory != null 
+                    ? c => documentationFactory(c).ToTaggedText()
+                    : s_emptyDocumentationFactory, 
                   prefixParts.ToTaggedText(),
                   separatorParts.ToTaggedText(),
                   suffixParts.ToTaggedText(),

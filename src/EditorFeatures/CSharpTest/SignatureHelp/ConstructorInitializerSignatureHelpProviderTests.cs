@@ -539,8 +539,7 @@ class C : D
 class D { public D(object o) {} }
 class C : D
 {
-    public C() [|: base((1, $$)
-    |]{}
+    public C() [|: base((1,$$) |]{}
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
@@ -573,8 +572,7 @@ class C : D
 class D { public D(object o) {} }
 class C : D
 {
-    public C() : [|base((1, (2, $$)
-    |]{}
+    public C() [|: base((1, (2,$$) |]{}
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
