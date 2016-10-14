@@ -16299,7 +16299,6 @@ public class C
                 //         System.Console.Write(t.c);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "c").WithArguments("(int a, int)", "c").WithLocation(9, 32)
                 );
-            // Some missing warnings here. See issue https://github.com/dotnet/roslyn/issues/14485
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -16312,7 +16311,6 @@ public class C
 
             var invocation3 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(5).First());
             Assert.Equal("(System.Int32, System.Int32)[]", ((MethodSymbol)invocation3.Symbol).ReturnType.ToTestDisplayString());
-            // TODO REVIEW  Are those expectations wrong?
         }
 
         [Fact]
