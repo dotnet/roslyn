@@ -989,9 +989,9 @@ class Program
             var tree = Parse(text);
             var comp = CreateCompilationWithMscorlib(tree);
             comp.GetMethodBodyDiagnostics().Verify(
-                // (23,15): error CS0457: Ambiguous user defined conversions 'D.explicit operator D(Foo)' and 'D.implicit operator D(Action)' when converting from 'method' to 'D'
+                // (23,15): error CS0457: Ambiguous user defined conversions 'D.explicit operator D(Foo)' and 'D.implicit operator D(Action)' when converting from 'method group' to 'D'
                 //          D d = (D) Main;
-                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(D) Main").WithArguments("D.explicit operator D(Foo)", "D.implicit operator D(System.Action)", "method", "D").WithLocation(23, 15)
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(D) Main").WithArguments("D.explicit operator D(Foo)", "D.implicit operator D(System.Action)", "method group", "D").WithLocation(23, 15)
                 );
         }
     }
