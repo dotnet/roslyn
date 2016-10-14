@@ -768,7 +768,7 @@ Public Class BuildDevDivInsertionFiles
                       map(name) = filePath
                   End Sub
 
-        add("Xaml\Microsoft.VisualStudio.LanguageServices.Xaml.dll")
+        add("XamlVisualStudio\Microsoft.VisualStudio.LanguageServices.Xaml.dll")
         add("VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.dll")
         add("EditorFeatures.Next\Microsoft.CodeAnalysis.EditorFeatures.Next.dll")
         add("Roslyn.Deployment.Full.Next\remoteSymbolSearchUpdateEngine.servicehub.service.json")

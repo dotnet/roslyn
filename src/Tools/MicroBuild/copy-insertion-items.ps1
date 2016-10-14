@@ -30,7 +30,7 @@ try
     foreach ($item in $items) 
     {
         $sourcePath = join-path $binariesPath $item
-        $destPath = join-path $baseDestPath $item
+        $destPath = join-path $baseDestPath (split-path -leaf $item)
 
         # Many of these files are only produced in the Official MicroBuild runs.  On test runs, which run locally,
         # we need to guard agains this.
