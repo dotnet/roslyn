@@ -229,6 +229,43 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Throws<InvalidDataException>(() => SourceText.From(stream, throwIfBinaryDetected: true));
         }
 
+        [Fact]
+        public void FromTextReader()
+        {
+            var expected = "Text reader source text test";
+            var expectedSourceText = SourceText.From(expected);
+
+            var actual = new StringReader(expected);
+            var actualSourceText = SourceText.From(actual, expected.Length);
+
+            Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
+
+            var utf8NoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
+            Assert.Same(s_utf8, SourceText.From(actual, expected.Length, s_utf8).Encoding);
+            Assert.Same(s_unicode, SourceText.From(actual, expected.Length, s_unicode).Encoding);
+            Assert.Equal(utf8NoBOM, SourceText.From(actual, expected.Length, null).Encoding);
+        }
+
+        [Fact]
+        public void FromTextReader_Large()
+        {
+            var expected = new string('l', SourceText.LargeObjectHeapLimitInChars);
+            var expectedSourceText = SourceText.From(expected);
+
+            var actual = new StringReader(expected);
+            var actualSourceText = SourceText.From(actual, expected.Length);
+
+            Assert.IsType<LargeText>(actualSourceText);
+            Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
+
+            var utf8NoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
+            Assert.Same(s_utf8, SourceText.From(actual, expected.Length, s_utf8).Encoding);
+            Assert.Same(s_unicode, SourceText.From(actual, expected.Length, s_unicode).Encoding);
+            Assert.Equal(utf8NoBOM, SourceText.From(actual, expected.Length, null).Encoding);
+        }
+
         private static void TestTryReadByteOrderMark(Encoding expectedEncoding, int expectedPreambleLength, byte[] data)
         {
             TestTryReadByteOrderMark(expectedEncoding, expectedPreambleLength, data, data == null ? 0 : data.Length);
