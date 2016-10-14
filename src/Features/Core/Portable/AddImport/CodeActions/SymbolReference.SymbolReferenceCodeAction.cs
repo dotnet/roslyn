@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _isApplicable = isApplicable;
                 }
 
-                internal override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
+                protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
                     => ImmutableArray.Create(await _getOperation.GetValueAsync(cancellationToken).ConfigureAwait(false));
 
                 internal override bool PerformFinalApplicabilityCheck
