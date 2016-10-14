@@ -205,7 +205,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // TODO: Should come from sln file?
             var projectName = PathUtilities.GetFileName(projectFilename, includeExtension: false);
-            var projectId = GetOrCreateProjectIdForPath(projectFilename, projectName);
+
+            // `AbstractProject` only sets the filename if it actually exists.  Since we want 
+            // our ids to match, mimic that behavior here.
+            var projectId = File.Exists(projectFilename)
+                ? GetOrCreateProjectIdForPath(projectFilename, projectName)
+                : GetOrCreateProjectIdForPath(projectName, projectName);
 
             // See if we've already created this project and we're now in a recursive call to
             // hook up a P2P ref.
@@ -217,7 +222,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
             var solution5 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution5;
-            var projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
+
+            // If the index is stale, it might give us a path that doesn't exist anymore that the 
+            // solution doesn't know about - be resilient to that case.
+            Guid projectGuid;
+            try
+            {
+                projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
+            }
+            catch (ArgumentException)
+            {
+                var message = $"Failed to get the project guid for '{projectFilename}' from the solution, using  random guid instead.";
+                Debug.Fail(message);
+                OutputToOutputWindow(message);
+                projectGuid = Guid.NewGuid();
+            }
 
             // NOTE: If the indexing service fails for a project, it will give us an *empty*
             // target path, which we aren't prepared to handle.  Instead, convert it to a *null*
