@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             if (accessorList != null &&
                 accessorList.Accessors.Count == 1 &&
+                accessorList.Accessors[0].AttributeLists.Count == 0 && 
                 accessorList.Accessors[0].IsKind(SyntaxKind.GetAccessorDeclaration))
             {
                 return accessorList.Accessors[0].Body;

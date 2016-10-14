@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement }
             };
 
-
         private static readonly Dictionary<OptionKey, object> UseBlockBodyExceptAccessor =
             new Dictionary<OptionKey, object>
             {
@@ -73,6 +72,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             [|return|] Bar();
         }
         set { }
+    }
+}", options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestMissingWithAttribute()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    int Foo {
+        [A]
+        get {
+            [|return|] Bar();
+        }
     }
 }", options: UseExpressionBody);
         }
