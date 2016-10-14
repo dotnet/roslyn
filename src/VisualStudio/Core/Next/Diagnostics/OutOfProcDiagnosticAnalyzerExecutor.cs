@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
         // TODO: this should be removed once we move options down to compiler layer
-        private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, Asset>> _lastOptionSetPerLanguage;
+        private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
 
         [ImportingConstructor]
         public OutOfProcDiagnosticAnalyzerExecutor(
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             // we can't load all options without loading all language specific dlls.
             // we have tracking issue for this.
             // https://github.com/dotnet/roslyn/issues/13643
-            _lastOptionSetPerLanguage = new ConcurrentDictionary<string, ValueTuple<OptionSet, Asset>>();
+            _lastOptionSetPerLanguage = new ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>>();
         }
 
         public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             RemoteHostClient client, CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var snapshotService = solution.Workspace.Services.GetService<ISolutionChecksumService>();
+            var snapshotService = solution.Workspace.Services.GetService<ISolutionSynchronizationService>();
 
             // TODO: this should be moved out
             var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers);
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             }
         }
 
-        private Asset GetOptionsAsset(Solution solution, string language, CancellationToken cancellationToken)
+        private CustomAsset GetOptionsAsset(Solution solution, string language, CancellationToken cancellationToken)
         {
             // TODO: we need better way to deal with options. optionSet itself is green node but
             //       it is not part of snapshot and can't save option to solution since we can't use language
@@ -111,14 +111,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             var options = solution.Options;
 
             // we have cached options
-            ValueTuple<OptionSet, Asset> value;
+            ValueTuple<OptionSet, CustomAsset> value;
             if (_lastOptionSetPerLanguage.TryGetValue(language, out value) && value.Item1 == options)
             {
                 return value.Item2;
             }
 
             // otherwise, we need to build one.
-            var assetBuilder = new AssetBuilder(solution);
+            var assetBuilder = new CustomAssetBuilder(solution);
             var asset = assetBuilder.Build(options, language, cancellationToken);
 
             _lastOptionSetPerLanguage[language] = ValueTuple.Create(options, asset);
@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             }
         }
 
-        private ImmutableArray<byte[]> GetHostAnalyzerReferences(ISolutionChecksumService snapshotService, IEnumerable<AnalyzerReference> references, CancellationToken cancellationToken)
+        private ImmutableArray<byte[]> GetHostAnalyzerReferences(ISolutionSynchronizationService snapshotService, IEnumerable<AnalyzerReference> references, CancellationToken cancellationToken)
         {
             // TODO: cache this to somewhere
             var builder = ImmutableArray.CreateBuilder<byte[]>();
