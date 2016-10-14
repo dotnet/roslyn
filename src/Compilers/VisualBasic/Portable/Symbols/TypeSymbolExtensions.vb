@@ -717,7 +717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     current.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
                 End If
 
-                If current = superType Then
+                If current.IsSameTypeIgnoringAll(superType) Then
                     Return True
                 End If
 
