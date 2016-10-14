@@ -11818,7 +11818,7 @@ BC36651: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14246")>
+        <Fact>
         Public Sub Inference11()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -11863,9 +11863,6 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 
             Assert.Equal("Sub C.Test3(Of (System.Int32, System.Int32))(ByRef x As (System.Int32, System.Int32), ByRef y As (System.Int32, System.Int32))",
                          model.GetSymbolInfo(test3).Symbol.ToTestDisplayString())
-
-            ' Currently, the wrong type is inferred for type arguments and T is inferred to (int a, int b)
-            ' https://github.com/dotnet/roslyn/issues/14246
 
         End Sub
 
