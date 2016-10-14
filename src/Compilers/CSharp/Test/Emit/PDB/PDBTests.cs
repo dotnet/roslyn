@@ -5109,6 +5109,128 @@ class C
 </symbols>");
         }
 
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void ExpressionBodiedConstructor()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+using System;
+
+class C
+{
+    public int X;
+    public C(Int32 x) => X = x;
+}");
+            comp.VerifyDiagnostics();
+
+            comp.VerifyPdb(@"<symbols>
+  <methods>
+    <method containingType=""C"" name="".ctor"" parameterNames=""x"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""22"" />
+        <entry offset=""0x6"" startLine=""7"" startColumn=""26"" endLine=""7"" endColumn=""31"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xe"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void ExpressionBodiedDestructor()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    public int X;
+    ~C() => X = 0;
+}");
+            comp.VerifyDiagnostics();
+
+            comp.VerifyPdb(@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""Finalize"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""13"" endLine=""5"" endColumn=""18"" />
+        <entry offset=""0x9"" hidden=""true"" />
+        <entry offset=""0x10"" hidden=""true"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void ExpressionBodiedAccessor()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    public int x;
+    public int X
+    {
+        get => x;
+        set => x = value;
+    }
+    public event System.Action E
+    {
+        add => x = 1;
+        remove => x = 0;
+    }
+}");
+            comp.VerifyDiagnostics();
+
+            comp.VerifyPdb(@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""get_X"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""16"" endLine=""7"" endColumn=""17"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""set_X"" parameterNames=""value"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_X"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""16"" endLine=""8"" endColumn=""25"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""add_E"" parameterNames=""value"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_X"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""21"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""remove_E"" parameterNames=""value"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_X"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""13"" startColumn=""19"" endLine=""13"" endColumn=""24"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         #endregion
 
         #region Synthesized Methods

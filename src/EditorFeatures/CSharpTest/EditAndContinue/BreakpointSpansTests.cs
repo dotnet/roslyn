@@ -4393,5 +4393,185 @@ $$    [|var (x, y) = (1, 2);|]
   }
 }");
         }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody1()
+        {
+            TestSpan(
+@"class C
+{
+    public int Id { get => [|12$$3|]; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody2()
+        {
+            TestSpan(
+@"class C
+{
+    public int Id { get $$=> [|123|]; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody3()
+        {
+            TestSpan(
+@"class C
+{
+    $$public int Id { get => [|123|]; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody4()
+        {
+            TestSpan(
+@"class C
+{
+    public int Id { get => [|123|];   $$ }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody5()
+        {
+            TestSpan(
+@"class C
+{
+$$    public event Action Foo { add => [|123|]; remove => 456; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody6()
+        {
+            TestSpan(
+@"class C
+{
+    public event Action Foo { add => [|123|];$$ remove => 456; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody7()
+        {
+            TestSpan(
+@"class C
+{
+    public event Action Foo { add => 123; $$remove => [|456|]; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody8()
+        {
+            TestSpan(
+@"class C
+{
+    public event Action Foo { add => 123; remove => [|456|]; }$$
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody1()
+        {
+            TestSpan(
+@"class C
+{
+$$    public C() => [|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody2()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => $$[|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody3()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => [|x =$$ 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody4()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => [|x = 1|]$$;
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody5()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => [|x = 1|];$$
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody1()
+        {
+            TestSpan(
+@"class C
+{
+$$    public ~C() => [|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody2()
+        {
+            TestSpan(
+@"class C
+{
+    public ~C() => $$[|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody3()
+        {
+            TestSpan(
+@"class C
+{
+    public ~C() => [|x =$$ 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody4()
+        {
+            TestSpan(
+@"class C
+{
+    public ~C() => [|x = 1|]$$;
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody5()
+        {
+            TestSpan(
+@"class C
+{
+    public ~C() => [|x = 1|];$$
+}");
+        }
     }
 }
