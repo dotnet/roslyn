@@ -169,5 +169,116 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     }
 }", compareTokens: false, options: UseBlockBody);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestComments1()
+        {
+            await TestAsync(
+@"class C
+{
+    void Foo()
+    {
+        // Comment
+        [|Bar|]();
+    }
+}",
+@"class C
+{
+    void Foo() =>
+        // Comment
+        Bar();
+}", options: UseExpressionBody, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestComments2()
+        {
+            await TestAsync(
+@"class C
+{
+    void Foo()
+    {
+        // Comment
+        return [|Bar|]();
+    }
+}",
+@"class C
+{
+    void Foo() =>
+        // Comment
+        Bar();
+}", options: UseExpressionBody, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestComments3()
+        {
+            await TestAsync(
+@"class C
+{
+    void Foo()
+    {
+        // Comment
+        throw [|Bar|]();
+    }
+}",
+@"class C
+{
+    void Foo() =>
+        // Comment
+        throw Bar();
+}", options: UseExpressionBody, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestComments4()
+        {
+            await TestAsync(
+@"class C
+{
+    void Foo()
+    {
+        [|Bar|](); // Comment
+    }
+}",
+@"class C
+{
+    void Foo() => Bar(); // Comment
+}", options: UseExpressionBody, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestComments5()
+        {
+            await TestAsync(
+@"class C
+{
+    void Foo()
+    {
+        return [|Bar|](); // Comment
+    }
+}",
+@"class C
+{
+    void Foo() => Bar(); // Comment
+}", options: UseExpressionBody, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestComments6()
+        {
+            await TestAsync(
+@"class C
+{
+    void Foo()
+    {
+        throw [|Bar|](); // Comment
+    }
+}",
+@"class C
+{
+    void Foo() => throw Bar(); // Comment
+}", options: UseExpressionBody, compareTokens: false);
+        }
     }
 }

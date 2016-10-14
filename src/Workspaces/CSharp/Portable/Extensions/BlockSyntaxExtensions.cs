@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -32,7 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var returnStatement = (ReturnStatementSyntax)firstStatement;
                 if (returnStatement.Expression != null)
                 {
-                    return returnStatement.Expression;
+                    // If there are any comments on the return keyword, move them to
+                    // the expression.
+                    return firstStatement.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment())
+                        ? returnStatement.Expression.WithLeadingTrivia(returnStatement.GetLeadingTrivia())
+                        : returnStatement.Expression;
                 }
             }
             else if (firstStatement.Kind() == SyntaxKind.ThrowStatement)
@@ -46,6 +51,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return null;
         }
-
     }
 }
