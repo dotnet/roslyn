@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var item in projectInfos)
             {
                 var targetPath = item.Value.TargetPath;
-                if (targetPath != null)
+                if (!string.IsNullOrEmpty(targetPath))
                 {
                     if (!builder.ContainsKey(targetPath))
                     {
@@ -218,13 +218,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
             var solution5 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution5;
             var projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
+
+            // NOTE: If the indexing service fails for a project, it will give us an *empty*
+            // target path, which we aren't prepared to handle.  Instead, convert it to a *null*
+            // value, which we do handle.
+            var outputPath = projectInfo.TargetPath;
+            if (outputPath == string.Empty)
+            {
+                outputPath = null;
+            }
+
             var projectContext = workspaceProjectContextFactory.CreateProjectContext(
                 languageName,
                 projectName,
                 projectFilename,
                 projectGuid: projectGuid,
                 hierarchy: null,
-                binOutputPath: projectInfo.TargetPath);
+                binOutputPath: outputPath);
 
             projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
 
