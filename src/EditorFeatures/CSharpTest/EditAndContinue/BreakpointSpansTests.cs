@@ -391,6 +391,21 @@ $$    (
 }");
         }
 
+        [Fact]
+        public void ForEachDeconstructionStatementExpression()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in [|Foo().B$$ar()|])
+    {
+    }
+  }
+}");
+        }
+
         #region Lambdas
 
         [Fact]
@@ -2498,6 +2513,255 @@ expr().blah())
   void Foo()
   {
     foreach (var v in expr().blah())
+  $$ [|{|]
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionKeyword1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+$$    [|foreach|] (var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionKeyword2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|fo$$reach|] (var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionKeyword3()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|foreach|]    $$    
+(var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionKeyword4()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|foreach|]        
+$$         (var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionKeyword5()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|foreach|] $$(var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionType1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (   $$   
+[|var (x, y)|] in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionType2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach ([|v$$ar (x, y)|] in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionIdentifier()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach ([|var (v$$v, y)|] in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionIn1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) [|i$$n|] expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionIn2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) 
+$$         [|in|] expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionIn3()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) 
+         [|in|] $$
+expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionExpr1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in [|expr($$).blah()|])
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionExpr2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in [|expr().blah()|]   
+     $$    )
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionExpr3()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in 
+   $$ [|expr().blah()|]   
+     )
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionStatement()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|foreach|](var (x, y) in expr().blah())    $$ 
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionBlock1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in expr().blah())
   $$ [|{|]
     }
   }
