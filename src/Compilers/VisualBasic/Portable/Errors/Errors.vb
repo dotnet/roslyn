@@ -1706,8 +1706,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_TupleElementNamesAttributeMissing = 37268
         ERR_ExplicitTupleElementNamesAttribute = 37269
         ERR_TupleLiteralDisallowsTypeChar = 37270
-        ERR_NewWithTupleTypeSyntax = 37271
-        ERR_PredefinedValueTupleTypeMustBeStruct = 37272
 
         ' Available 37270
         ERR_DuplicateProcDefWithDifferentTupleNames2 = 37271
@@ -1720,6 +1718,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InterfaceInheritedTwiceWithDifferentTupleNames3 = 37277
         ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3 = 37278
         ERR_InterfaceInheritedTwiceWithDifferentTupleNames4 = 37279
+
+        ERR_NewWithTupleTypeSyntax = 37280
+        ERR_PredefinedValueTupleTypeMustBeStruct = 37281
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

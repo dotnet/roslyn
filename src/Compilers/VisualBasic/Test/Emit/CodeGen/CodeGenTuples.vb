@@ -1143,10 +1143,10 @@ End Module
             ' should not complain about missing constructor
             comp.AssertTheseDiagnostics(
 <errors>
-BC37271: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
         Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37271: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
         Dim t1 As New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -15600,7 +15600,7 @@ options:=TestOptions.DebugExe)
 
             comp.AssertTheseEmitDiagnostics(
 <errors>
-BC37272: Predefined type 'ValueTuple`2' must be a structure.
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
         Dim x as (a As Integer, b As String)
             ~
 </errors>)
@@ -15664,10 +15664,10 @@ end Namespace
 
             comp.AssertTheseEmitDiagnostics(
 <errors>
-BC37272: Predefined type 'ValueTuple`2' must be a structure.
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
         Dim x = (1,2,3,4,5,6,7,8,9)
             ~
-BC37272: Predefined type 'ValueTuple`8' must be a structure.
+BC37281: Predefined type 'ValueTuple`8' must be a structure.
         Dim x = (1,2,3,4,5,6,7,8,9)
             ~
 </errors>)
@@ -15740,7 +15740,7 @@ options:=TestOptions.DebugExe)
 
             comp.AssertTheseEmitDiagnostics(
 <errors>
-BC37272: Predefined type 'ValueTuple`2' must be a structure.
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
 </errors>)
 
         End Sub
@@ -15772,7 +15772,7 @@ options:=TestOptions.DebugExe)
 
             comp.AssertTheseEmitDiagnostics(
 <errors>
-BC37272: Predefined type 'ValueTuple`2' must be a structure.
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
 </errors>)
 
         End Sub
@@ -15814,7 +15814,7 @@ options:=TestOptions.DebugExe)
 
             comp.AssertTheseEmitDiagnostics(
 <errors>
-BC37272: Predefined type 'ValueTuple`2' must be a structure.
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
         Dim x as (a As Integer, b As String)() = Nothing
             ~
 </errors>)
@@ -15856,7 +15856,7 @@ options:=TestOptions.DebugExe)
 
             comp.AssertTheseEmitDiagnostics(
 <errors>
-BC37272: Predefined type 'ValueTuple`2' must be a structure.
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
     Shared Function Test2()as (a As Integer, b As Integer)
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
