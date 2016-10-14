@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -18,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
             SerializableSymbolAndProjectId symbolAndProjectIdArg, SerializableDocumentId[] documentArgs, 
             byte[] solutionChecksum)
         {
-            var solution = await RoslynServices.SolutionService.GetSolutionAsync(
-                new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+            var solution = await GetSolutionAsync().ConfigureAwait(false);
 
             var symbolAndProjectId = await symbolAndProjectIdArg.RehydrateAsync(
                 solution, CancellationToken).ConfigureAwait(false);

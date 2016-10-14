@@ -4,9 +4,9 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class WellKnownServiceHubServices
     {
-        public const string SnapshotService = "snapshotService";
-        public const string SnapshotService_Done = "Done";
+        public const string ServiceHubServiceBase_Initialize = "Initialize";
 
+        public const string SnapshotService = "snapshotService";
         public const string CodeAnalysisService = "codeAnalysisService";
         public const string CodeAnalysisService_CalculateDiagnosticsAsync = "CalculateDiagnosticsAsync";
 
