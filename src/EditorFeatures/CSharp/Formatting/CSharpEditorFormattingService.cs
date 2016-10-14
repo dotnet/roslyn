@@ -138,10 +138,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return !token.IsKind(SyntaxKind.CloseParenToken) || !token.Parent.IsKind(SyntaxKind.UsingStatement);
         }
 
-        private static bool TokenShouldNotFormatOnTypeChar(SyntaxToken token)
+        private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
+            SyntaxToken token, CancellationToken cancellationToken)
         {
-            return (token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement)) ||
-                (token.IsKind(SyntaxKind.ColonToken) && !(token.Parent.IsKind(SyntaxKind.LabeledStatement) || token.Parent is SwitchLabelSyntax));
+            // If the token is a )  we only want to format if it's the close paren
+            // of a using statement.  That way if we have nested usings, the inner
+            // using will align with the outer one when the user types the close paren.
+            if (token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement))
+            {
+                return true;
+            }
+
+            // If the token is a :  we only want to format if it's a labeled statement
+            // or case.  When the colon is typed we'll want ot immediately have those
+            // statements snap to their appropriate indentation level.
+            if (token.IsKind(SyntaxKind.ColonToken) && !(token.Parent.IsKind(SyntaxKind.LabeledStatement) || token.Parent is SwitchLabelSyntax))
+            {
+                return true;
+            }
+
+            // Only format an { if it is the first token on a line.  We don't want to 
+            // mess with it if it's inside a line.
+            if (token.IsKind(SyntaxKind.OpenBraceToken))
+            {
+                var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                if (!token.IsFirstTokenOnLine(text))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
@@ -149,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var formattingRules = this.GetFormattingRules(document, caretPosition);
 
             // first, find the token user just typed.
-            SyntaxToken token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
+            var token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
             if (token.IsMissing ||
                 !ValidSingleOrMultiCharactersTokenKind(typedChar, token.Kind()) ||
@@ -164,10 +191,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
-            // Check to see if any of the below. If not, bail.
-            // case 1: The token is ')' and the parent is an using statement.
-            // case 2: The token is ':' and the parent is either labelled statement or case switch or default switch
-            if (TokenShouldNotFormatOnTypeChar(token))
+            var shouldNotFormat = await TokenShouldNotFormatOnTypeCharAsync(token, cancellationToken).ConfigureAwait(false);
+            if (shouldNotFormat)
             {
                 return null;
             }

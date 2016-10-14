@@ -280,6 +280,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.ChangeAdditionalDocument:
                     return this.CanApplyChangeDocument;
 
+                case ApplyChangesKind.AddProjectReference:
+                case ApplyChangesKind.AddMetadataReference:
+                    return true;
+
                 default:
                     return false;
             }

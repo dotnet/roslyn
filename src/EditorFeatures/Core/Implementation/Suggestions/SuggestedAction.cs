@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // ConfigureAwait(true) so we come back to the same thread as 
                 // we do all application on the UI thread.
-                await EditHandler.ApplyAsync(Workspace, getFromDocument(), operations, CodeAction.Title, 
+                await EditHandler.ApplyAsync(Workspace, getFromDocument(), 
+                    operations.ToImmutableArray(), CodeAction.Title, 
                     progressTracker, cancellationToken).ConfigureAwait(true);
             }
         }

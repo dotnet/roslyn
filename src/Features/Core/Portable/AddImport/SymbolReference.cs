@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.SymbolResult = symbolResult;
             }
 
-            protected abstract Solution UpdateSolution(Document newDocument);
             protected abstract Glyph? GetGlyph(Document document);
             protected abstract bool CheckForExistingImport(Project project);
 
@@ -45,14 +44,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst,
+                CancellationToken cancellationToken)
             {
-                var newSolution = await UpdateSolutionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-                var operation = new ApplyChangesOperation(newSolution);
+                var newDocument = await UpdateDocumentAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                var updatedSolution = GetUpdatedSolution(newDocument);
+
+                var operation = new ApplyChangesOperation(updatedSolution);
                 return ImmutableArray.Create<CodeActionOperation>(operation);
             }
 
-            private async Task<Solution> UpdateSolutionAsync(
+            protected virtual Solution GetUpdatedSolution(Document newDocument)
+                => newDocument.Project.Solution;
+
+            private async Task<Document> UpdateDocumentAsync(
                 Document document, SyntaxNode contextNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 ReplaceNameNode(ref contextNode, ref document, cancellationToken);
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     this.SymbolResult.Symbol, document,
                     placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                return this.UpdateSolution(newDocument);
+                return newDocument;
             }
 
             public override async Task<CodeAction> CreateCodeActionAsync(
