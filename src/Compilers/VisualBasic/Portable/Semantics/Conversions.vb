@@ -4503,5 +4503,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Friend Overrides Function WithElementType(elementType As TypeSymbol) As ArrayTypeSymbol
+            Throw ExceptionUtilities.Unreachable
+        End Function
     End Class
 End Namespace

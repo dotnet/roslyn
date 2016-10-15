@@ -11708,7 +11708,7 @@ test2_1
 2
 test2_1
 1
-test2_1
+test2_2
 1
 ")
 
@@ -11758,7 +11758,7 @@ test2_1
 2
 test2_1
 1
-test2_1
+test2_2
 1
 ")
 
@@ -11818,7 +11818,7 @@ BC36651: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14246")>
+        <Fact>
         Public Sub Inference11()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -11863,9 +11863,6 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 
             Assert.Equal("Sub C.Test3(Of (System.Int32, System.Int32))(ByRef x As (System.Int32, System.Int32), ByRef y As (System.Int32, System.Int32))",
                          model.GetSymbolInfo(test3).Symbol.ToTestDisplayString())
-
-            ' Currently, the wrong type is inferred for type arguments and T is inferred to (int a, int b)
-            ' https://github.com/dotnet/roslyn/issues/14246
 
         End Sub
 
@@ -13850,6 +13847,11 @@ BC40001: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Inte
                               ~~
 </errors>)
 
+            Dim m3 = comp.GetMember(Of MethodSymbol)("Derived.M3").ReturnType
+            Assert.Equal("(notA As System.Int32, notB As System.Int32)()", m3.ToTestDisplayString())
+            Assert.Equal({"System.Collections.Generic.IList(Of (notA As System.Int32, notB As System.Int32))"},
+                         m3.Interfaces.SelectAsArray(Function(t) t.ToTestDisplayString()))
+
         End Sub
 
         <Fact>
@@ -15509,6 +15511,212 @@ BC33030: Conversion operators cannot convert from a base type.
         End Sub
 
         <Fact>
+        Public Sub TernaryTypeInferenceWithDynamicAndTupleNames()
+            ' No dynamic in VB
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim flag As Boolean = True
+        Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
+        System.Console.Write(x1.a)
+    End Sub
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
+                                 ~~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
+                                               ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(1).First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As (a As System.Int32, System.Int32)", x1Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TernaryTypeInferenceWithNoNames()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim flag As Boolean = True
+        Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
+        Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
+    End Sub
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'a' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
+                           ~~~~
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
+                                 ~~~~
+BC41009: The tuple element name 'a' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
+                                   ~~~~
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
+                                         ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(1).First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As (System.Int32, System.Int32)", x1Symbol.ToTestDisplayString())
+
+            Dim x2 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(2).First().Names(0)
+            Dim x2Symbol = model.GetDeclaredSymbol(x2)
+            Assert.Equal("x2 As (System.Int32, System.Int32)", x2Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub TernaryTypeInferenceDropsCandidates()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim flag As Boolean = True
+        Dim x1 = If(flag, (a:=1, b:=CType(2, Long)), (a:=CType(1, Byte), c:=3))
+    End Sub
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, b As Long)'.
+        Dim x1 = If(flag, (a:=1, b:=CType(2, Long)), (a:=CType(1, Byte), c:=3))
+                                                                         ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(1).First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As (a As System.Int32, b As System.Int64)", x1Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub LambdaTypeInferenceWithTupleNames()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim x1 = M2(Function()
+            Dim flag = True
+            If flag Then
+                Return (a:=1, b:=2)
+            Else
+                If flag Then
+                    Return (a:=1, c:=3)
+                Else
+                    Return (a:=1, d:=4)
+                End If
+            End If
+        End Function)
+    End Sub
+    Function M2(Of T)(f As System.Func(Of T)) As T
+        Return f()
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+                Return (a:=1, b:=2)
+                              ~~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+                    Return (a:=1, c:=3)
+                                  ~~~~
+BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+                    Return (a:=1, d:=4)
+                                  ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As (a As System.Int32, System.Int32)", x1Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub LambdaTypeInferenceFallsBackToObject()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim x1 = M2(Function()
+            Dim flag = True
+            Dim l1 = CType(2, Long)
+            If flag Then
+                Return (a:=1, b:=l1)
+            Else
+                If flag Then
+                    Return (a:=l1, c:=3)
+                Else
+                    Return (a:=1, d:=l1)
+                End If
+            End If
+        End Function)
+    End Sub
+    Function M2(Of T)(f As System.Func(Of T)) As T
+        Return f()
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As System.Object", x1Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
         Public Sub IsBaseOf_WithoutCustomModifiers()
             ' The IL is from this code, but with modifiers
             ' public class Base<T> { }
@@ -15639,6 +15847,145 @@ BC33030: Conversion operators cannot convert from a base type.
             Dim diagnostics = New HashSet(Of DiagnosticInfo)()
             Assert.True(baseWithModifiers.IsBaseTypeOf(derivedWithoutModifiers, diagnostics))
             Assert.True(derivedWithoutModifiers.IsOrDerivedFrom(derivedWithoutModifiers, diagnostics))
+
+        End Sub
+
+        <Fact>
+        Public Sub WarnForDroppingNamesInConversion()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim x1 As (a As Integer, Integer) = (1, b:=2)
+        Dim x2 As (a As Integer, String) = (1, b:=Nothing)
+    End Sub
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim x1 As (a As Integer, Integer) = (1, b:=2)
+                                                ~~~~
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, String)'.
+        Dim x2 As (a As Integer, String) = (1, b:=Nothing)
+                                               ~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub MethodTypeInferenceMergesTupleNames()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
+        System.Console.Write(t.a)
+        System.Console.Write(t.b)
+        System.Console.Write(t.c)
+        M2((1, 2), (c:=1, d:=3))
+        M2({(a:=1, b:=2)}, {(1, 3)})
+    End Sub
+    Function M2(Of T)(x1 As T, x2 As T) As T
+        Return x1
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
+                          ~~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
+                                        ~~~~
+BC30456: 'b' is not a member of '(a As Integer, Integer)'.
+        System.Console.Write(t.b)
+                             ~~~
+BC30456: 'c' is not a member of '(a As Integer, Integer)'.
+        System.Console.Write(t.c)
+                             ~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        M2((1, 2), (c:=1, d:=3))
+                    ~~~~
+BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        M2((1, 2), (c:=1, d:=3))
+                          ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim invocation1 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().First())
+            Assert.Equal("(a As System.Int32, System.Int32)",
+                         DirectCast(invocation1.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+            Dim invocation2 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().Skip(4).First())
+            Assert.Equal("(System.Int32, System.Int32)",
+                         DirectCast(invocation2.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+            Dim invocation3 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().Skip(5).First())
+            Assert.Equal("(a As System.Int32, b As System.Int32)()",
+                         DirectCast(invocation3.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub MethodTypeInferenceDropsCandidates()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        M2((a:=1, b:=2), (a:=CType(1, Byte), c:=CType(3, Byte)))
+        M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
+        M2((a:=CType(1, Long), b:=2), (CType(1, Byte), 3))
+    End Sub
+    Function M2(Of T)(x1 As T, x2 As T) As T
+        Return x1
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, b As Integer)'.
+        M2((a:=1, b:=2), (a:=CType(1, Byte), c:=CType(3, Byte)))
+                                             ~~~~~~~~~~~~~~~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(Long, b As Integer)'.
+        M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
+                                    ~~~~
+BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(Long, b As Integer)'.
+        M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
+                                          ~~~~~~~~~~~~~~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim invocation1 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().First())
+            Assert.Equal("(a As System.Int32, b As System.Int32)",
+                         DirectCast(invocation1.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+            Dim invocation2 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().Skip(1).First())
+            Assert.Equal("(System.Int64, b As System.Int32)",
+                         DirectCast(invocation2.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+            Dim invocation3 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().Skip(2).First())
+            Assert.Equal("(a As System.Int64, b As System.Int32)",
+                         DirectCast(invocation3.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
 
         End Sub
 

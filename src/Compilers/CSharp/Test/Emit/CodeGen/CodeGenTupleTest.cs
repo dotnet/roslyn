@@ -16304,13 +16304,13 @@ public class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
             var invocation1 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().First());
-            Assert.Equal("(System.Int32 a, System.Int32) C.M2<(System.Int32 a, System.Int32)>((System.Int32 a, System.Int32) x1, (System.Int32 a, System.Int32) x2)", invocation1.Symbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32)", ((MethodSymbol)invocation1.Symbol).ReturnType.ToTestDisplayString());
 
             var invocation2 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(4).First());
-            Assert.Equal("(System.Int32, System.Int32) C.M2<(System.Int32, System.Int32)>((System.Int32, System.Int32) x1, (System.Int32, System.Int32) x2)", invocation2.Symbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", ((MethodSymbol)invocation2.Symbol).ReturnType.ToTestDisplayString());
 
             var invocation3 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(5).First());
-            Assert.Equal("(System.Int32, System.Int32)[] C.M2<(System.Int32, System.Int32)[]>((System.Int32, System.Int32)[] x1, (System.Int32, System.Int32)[] x2)", invocation3.Symbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)[]", ((MethodSymbol)invocation3.Symbol).ReturnType.ToTestDisplayString());
         }
 
         [Fact]
@@ -16463,6 +16463,11 @@ public class Derived : Base
                 //     public override (dynamic notA, dynamic) M6() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M6").WithArguments("Derived.M6()", "Base.M6()").WithLocation(18, 45)
                 );
+
+            var m3 = comp.GetMember<MethodSymbol>("Derived.M3").ReturnType;
+            Assert.Equal("(System.Int32 notA, System.Int32 notB)[]", m3.ToTestDisplayString());
+            Assert.Equal(new []{"System.Collections.Generic.IList<(System.Int32 notA, System.Int32 notB)>"},
+                         m3.Interfaces.SelectAsArray(t => t.ToTestDisplayString()));
         }
 
         [Fact]
