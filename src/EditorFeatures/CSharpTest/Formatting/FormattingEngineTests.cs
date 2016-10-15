@@ -1166,6 +1166,70 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task DoNotFormatStatementIfSemicolonOptionIsOff()
+        {
+            var code = 
+                @"namespace N
+{
+    class C
+    {
+        int x   =   10     ;$$
+    }
+}
+";
+
+            var expected =
+@"namespace N
+{
+    class C
+    {
+        int x   =   10     ;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task DoNotFormatStatementIfTypingOptionIsOff()
+        {
+            var code =
+                @"namespace N
+{
+    class C
+    {
+        int x   =   10     ;$$
+    }
+}
+";
+
+            var expected =
+@"namespace N
+{
+    class C
+    {
+        int x   =   10     ;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
         [WpfFact, WorkItem(4435, "https://github.com/dotnet/roslyn/issues/4435")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task OpenCurlyNotFormattedIfNotAtStartOfLine()
