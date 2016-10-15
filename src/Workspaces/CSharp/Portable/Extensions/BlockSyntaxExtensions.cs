@@ -7,15 +7,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class BlockSyntaxExtensions
     {
-        public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(this BlockSyntax block)
+        public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(
+            this BlockSyntax block, ParseOptions options)
         {
-            if (block != null && block.Statements.Count == 1)
+            if ((options as CSharpParseOptions)?.LanguageVersion >= LanguageVersion.CSharp7)
             {
-                var firstStatement = block.Statements[0];
-                var expression = TryGetExpression(firstStatement);
-                if (expression != null)
+                if (block != null && block.Statements.Count == 1)
                 {
-                    return SyntaxFactory.ArrowExpressionClause(expression);
+                    var firstStatement = block.Statements[0];
+                    var expression = TryGetExpression(firstStatement);
+                    if (expression != null)
+                    {
+                        return SyntaxFactory.ArrowExpressionClause(expression);
+                    }
                 }
             }
 

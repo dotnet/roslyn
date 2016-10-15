@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var declaration = GeneratePropertyOrIndexer(
-                property, CodeGenerationDestination.CompilationUnit, workspace, options);
+                property, CodeGenerationDestination.CompilationUnit, workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             var members = Insert(destination.Members, declaration, options,
                 availableIndices, after: LastPropertyOrField, before: FirstMember);
@@ -51,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var declaration = GeneratePropertyOrIndexer(property, GetDestination(destination), workspace, options);
+            var declaration = GeneratePropertyOrIndexer(property, GetDestination(destination), workspace,
+                options, destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, declaration, options,
@@ -66,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IPropertySymbol property,
             CodeGenerationDestination destination,
             Workspace workspace,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MemberDeclarationSyntax>(property, options);
             if (reusableSyntax != null)
@@ -75,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var declaration = property.IsIndexer
-                ? GenerateIndexerDeclaration(property, destination, workspace, options)
-                : GeneratePropertyDeclaration(property, destination, workspace, options);
+                ? GenerateIndexerDeclaration(property, destination, workspace, options, parseOptions)
+                : GeneratePropertyDeclaration(property, destination, workspace, options, parseOptions);
 
             return ConditionallyAddDocumentationCommentTo(declaration, property, options);
         }
@@ -85,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IPropertySymbol property,
             CodeGenerationDestination destination,
             Workspace workspace,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
@@ -95,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     type: property.Type.GenerateTypeSyntax(),
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, explicitInterfaceSpecifier != null, options),
-                    accessorList: GenerateAccessorList(property, destination, workspace, options));
-            declaration = UseExpressionBodyIfDesired(workspace, declaration);
+                    accessorList: GenerateAccessorList(property, destination, workspace, options, parseOptions));
+            declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 
             return AddCleanupAnnotationsTo(
                 AddAnnotationsTo(property, declaration));
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static MemberDeclarationSyntax GeneratePropertyDeclaration(
            IPropertySymbol property, CodeGenerationDestination destination,
-           Workspace workspace, CodeGenerationOptions options)
+           Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
             var initializerNode = CodeGenerationPropertyInfo.GetInitializer(property) as ExpressionSyntax;
 
@@ -114,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
-            var accessorList = GenerateAccessorList(property, destination, workspace, options);
+            var accessorList = GenerateAccessorList(property, destination, workspace, options, parseOptions);
 
             var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
@@ -127,20 +131,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 initializer: initializer);
 
             propertyDeclaration = UseExpressionBodyIfDesired(
-                workspace, propertyDeclaration);
+                workspace, propertyDeclaration, parseOptions);
 
             return AddCleanupAnnotationsTo(
                 AddAnnotationsTo(property, propertyDeclaration));
         }
 
-        private static ArrowExpressionClauseSyntax TryGetExpressionBody(AccessorListSyntax accessorList)
+        private static ArrowExpressionClauseSyntax TryGetExpressionBody(
+            AccessorListSyntax accessorList, ParseOptions options)
         {
             if (accessorList.Accessors.Count == 1)
             {
                 var accessor = accessorList.Accessors[0];
                 if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
                 {
-                    return TryGetExpressionBody(accessor);
+                    return TryGetExpressionBody(accessor, options);
                 }
             }
 
@@ -148,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static PropertyDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, PropertyDeclarationSyntax declaration)
+            Workspace workspace, PropertyDeclarationSyntax declaration, ParseOptions options)
         {
             if (declaration.ExpressionBody == null)
             {
@@ -157,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     if (declaration.Initializer == null)
                     {
-                        var expressionBody = TryGetExpressionBody(declaration.AccessorList);
+                        var expressionBody = TryGetExpressionBody(declaration.AccessorList, options);
                         if (expressionBody != null)
                         {
                             declaration = declaration.WithAccessorList(null)
@@ -172,14 +177,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static IndexerDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, IndexerDeclarationSyntax declaration)
+            Workspace workspace, IndexerDeclarationSyntax declaration, ParseOptions options)
         {
             if (declaration.ExpressionBody == null)
             {
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = TryGetExpressionBody(declaration.AccessorList);
+                    var expressionBody = TryGetExpressionBody(declaration.AccessorList, options);
                     if (expressionBody != null)
                     {
                         declaration = declaration.WithAccessorList(null)
@@ -193,14 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AccessorDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, AccessorDeclarationSyntax declaration)
+            Workspace workspace, AccessorDeclarationSyntax declaration, ParseOptions options)
         {
             if (declaration.ExpressionBody == null)
             {
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = declaration.Body.TryConvertToExpressionBody();
+                    var expressionBody = declaration.Body.TryConvertToExpressionBody(options);
                     if (expressionBody != null)
                     {
                         declaration = declaration.WithBody(null)
@@ -213,23 +218,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static ArrowExpressionClauseSyntax TryGetExpressionBody(AccessorDeclarationSyntax accessor)
+        private static ArrowExpressionClauseSyntax TryGetExpressionBody(
+            AccessorDeclarationSyntax accessor, ParseOptions options)
         {
             // If the accessor has an expression body already, then use that as the expression body
             // for the property.
             return accessor.ExpressionBody != null
                 ? accessor.ExpressionBody
-                : accessor.Body.TryConvertToExpressionBody();
+                : accessor.Body.TryConvertToExpressionBody(options);
         }
 
         private static AccessorListSyntax GenerateAccessorList(
             IPropertySymbol property, CodeGenerationDestination destination, 
-            Workspace workspace, CodeGenerationOptions options)
+            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
             var accessors = new List<AccessorDeclarationSyntax>
             {
-                GenerateAccessorDeclaration(property, property.GetMethod, SyntaxKind.GetAccessorDeclaration, destination, workspace, options),
-                GenerateAccessorDeclaration(property, property.SetMethod, SyntaxKind.SetAccessorDeclaration, destination, workspace, options),
+                GenerateAccessorDeclaration(property, property.GetMethod, SyntaxKind.GetAccessorDeclaration, destination, workspace, options, parseOptions),
+                GenerateAccessorDeclaration(property, property.SetMethod, SyntaxKind.SetAccessorDeclaration, destination, workspace, options, parseOptions),
             };
 
             return accessors[0] == null && accessors[1] == null
@@ -243,12 +249,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             SyntaxKind kind,
             CodeGenerationDestination destination,
             Workspace workspace,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var hasBody = options.GenerateMethodBodies && HasAccessorBodies(property, destination, accessor);
             return accessor == null
                 ? null
-                : GenerateAccessorDeclaration(property, accessor, kind, hasBody, workspace, options);
+                : GenerateAccessorDeclaration(property, accessor, kind, hasBody, workspace, options, parseOptions);
         }
 
         private static AccessorDeclarationSyntax GenerateAccessorDeclaration(
@@ -257,14 +264,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             SyntaxKind kind,
             bool hasBody,
             Workspace workspace,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var declaration = SyntaxFactory.AccessorDeclaration(kind)
                                            .WithModifiers(GenerateAccessorModifiers(property, accessor, options))
                                            .WithBody(hasBody ? GenerateBlock(accessor) : null)
                                            .WithSemicolonToken(hasBody ? default(SyntaxToken) : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-            declaration = UseExpressionBodyIfDesired(workspace, declaration);
+            declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 
             return AddAnnotationsTo(accessor, declaration);
         }

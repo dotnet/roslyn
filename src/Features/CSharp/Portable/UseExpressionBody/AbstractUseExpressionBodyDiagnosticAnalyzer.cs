@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 {
                     // They want expression bodies and they don't have one.  See if we can
                     // convert this to have an expression body.
-                    expressionBody = GetBody(declaration).TryConvertToExpressionBody();
+                    expressionBody = GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options);
                     if (expressionBody != null)
                     {
                         var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
