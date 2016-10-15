@@ -141,8 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             else if (args is TypeCharCommandArgs)
             {
                 var typedChar = ((TypeCharCommandArgs)args).TypedChar;
-                if (!options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping) ||
-                    !service.SupportsFormattingOnTypedCharacter(document, typedChar) ||
+                if (!service.SupportsFormattingOnTypedCharacter(document, typedChar) ||
                     !TryFormat(textView, document, service, typedChar, caretPositionMarker, formatOnReturn: false, cancellationToken: cancellationToken))
                 {
                     return;

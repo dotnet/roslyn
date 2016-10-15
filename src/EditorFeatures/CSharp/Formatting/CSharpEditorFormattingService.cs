@@ -46,11 +46,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
             var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-
             var smartIndentOn = options.GetOption(FormattingOptions.SmartIndent) == FormattingOptions.IndentStyle.Smart;
 
-            if ((ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && !smartIndentOn) ||
-                (ch == ';' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnSemicolon)))
+            // We consider the proper placement of a close curly when it is typed at the start of the
+            // line to be a smart-indentation operation.  As such, even if "format on typing" is off,
+            // if "smart indent" is on, we'll still format this.  (However, we won't touch anything
+            // else in teh block this close curly belongs to.).
+            //
+            // TODO(cyrusn): Should we expose an option for this?  Personally, i don't think so.
+            // If a user doesn't want this behavior, they can turn off 'smart indent' and control
+            // everything themselves.  
+            if (ch == '}' && smartIndentOn)
+            {
+                return true;
+            }
+
+            // If format-on-typing is not on, then we don't support formatting on any other characters.
+            var autoFormattingOnTyping = options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping);
+            if (!autoFormattingOnTyping)
+            {
+                return false;
+            }
+            
+            if (ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace))
+            {
+                return false;
+            }
+
+            if (ch == ';' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnSemicolon))
             {
                 return false;
             }
