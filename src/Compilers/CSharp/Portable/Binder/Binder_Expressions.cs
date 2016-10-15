@@ -2320,7 +2320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                if (!kind.IsIdentity)
+                if (!kind.IsIdentity || argument.Kind == BoundKind.TupleLiteral)
                 {
                     TypeSymbol type = GetCorrespondingParameterType(ref result, parameters, arg);
 
@@ -2343,11 +2343,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
-                }
-                else if (argument.Kind == BoundKind.TupleLiteral)
-                {
-                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
-                    TupleTypeSymbol.ReportNamesMismatchesIfAny(parameterType, (BoundTupleLiteral)argument, diagnostics);
                 }
             }
         }
