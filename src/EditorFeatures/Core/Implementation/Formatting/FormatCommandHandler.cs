@@ -119,8 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-
             var service = document.GetLanguageService<IEditorFormattingService>();
             if (service == null)
             {
@@ -131,8 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var caretPositionMarker = new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, caretPosition.Value);
             if (args is ReturnKeyCommandArgs)
             {
-                if (!options.GetOption(FeatureOnOffOptions.AutoFormattingOnReturn) ||
-                    !service.SupportsFormatOnReturn ||
+                if (!service.SupportsFormatOnReturn ||
                     !TryFormat(textView, document, service, ' ', caretPositionMarker, formatOnReturn: true, cancellationToken: cancellationToken))
                 {
                     return;
