@@ -250,6 +250,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 publicSign:=other.PublicSign)
         End Sub
 
+        Public Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Friend Overrides Function GetImports() As ImmutableArray(Of String)
             ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
             Dim importNames = ArrayBuilder(Of String).GetInstance(GlobalImports.Length)
