@@ -1192,7 +1192,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey, object>
             {
-                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
