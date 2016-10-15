@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
@@ -118,6 +119,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
+            var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+
             var service = document.GetLanguageService<IEditorFormattingService>();
             if (service == null)
             {
@@ -128,7 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var caretPositionMarker = new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, caretPosition.Value);
             if (args is ReturnKeyCommandArgs)
             {
-                if (!service.SupportsFormatOnReturn ||
+                if (!options.GetOption(FeatureOnOffOptions.AutoFormattingOnReturn) ||
+                    !service.SupportsFormatOnReturn ||
                     !TryFormat(textView, document, service, ' ', caretPositionMarker, formatOnReturn: true, cancellationToken: cancellationToken))
                 {
                     return;
@@ -137,7 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             else if (args is TypeCharCommandArgs)
             {
                 var typedChar = ((TypeCharCommandArgs)args).TypedChar;
-                if (!service.SupportsFormattingOnTypedCharacter(document, typedChar) ||
+                if (!options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping) ||
+                    !service.SupportsFormattingOnTypedCharacter(document, typedChar) ||
                     !TryFormat(textView, document, service, typedChar, caretPositionMarker, formatOnReturn: false, cancellationToken: cancellationToken))
                 {
                     return;

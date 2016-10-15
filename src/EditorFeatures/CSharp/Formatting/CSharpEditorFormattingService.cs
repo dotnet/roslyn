@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
             var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+
             var smartIndentOn = options.GetOption(FormattingOptions.SmartIndent) == FormattingOptions.IndentStyle.Smart;
 
             if ((ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && !smartIndentOn) ||
@@ -100,6 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             var formattingRules = this.GetFormattingRules(document, caretPosition);
 
             // first, find the token user just typed.
@@ -173,6 +176,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             var formattingRules = this.GetFormattingRules(document, caretPosition);
 
             // first, find the token user just typed.
@@ -196,8 +201,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             {
                 return null;
             }
-
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // don't attempt to format on close brace if autoformat on close brace feature is off, instead just smart indent
             bool smartIndentOnly =

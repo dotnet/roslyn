@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             public override IndentationResult? GetDesiredIndentation()
             {
                 var indentStyle = OptionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
-
                 if (indentStyle == FormattingOptions.IndentStyle.None)
                 {
                     return null;

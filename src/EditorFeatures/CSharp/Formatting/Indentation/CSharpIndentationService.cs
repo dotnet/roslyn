@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 {
@@ -58,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);
+
+            if (!optionSet.GetOption(FeatureOnOffOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
+            {
+                return false;
+            }
 
             if (optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp) != FormattingOptions.IndentStyle.Smart)
             {
