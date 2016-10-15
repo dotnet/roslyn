@@ -199,7 +199,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                 IOptionsSerializationService service;
                 if (_lazyLanguageSerializationService.TryGetValue(languageName, out service))
                 {
-                    if (service.CanSerialize(value))
+                    // language such as type script will not have the service
+                    if (service?.CanSerialize(value) == true)
                     {
                         return languageName;
                     }
@@ -223,7 +224,9 @@ namespace Microsoft.CodeAnalysis.Serialization
                 }
 
                 service = GetOptionsSerializationService(languageName);
-                if (service.CanSerialize(value))
+
+                // language such as type script will not have the service
+                if (service?.CanSerialize(value) == true)
                 {
                     return languageName;
                 }
