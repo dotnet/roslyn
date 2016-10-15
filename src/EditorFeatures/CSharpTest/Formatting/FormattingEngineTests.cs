@@ -1198,6 +1198,61 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
         }
 
+        [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task KeepTabsInCommentsWhenFormattingIsOff()
+        {
+            var code = 
+@"class Program
+{
+    static void Main()
+    {
+        return;		/* Comment preceded by tabs */		// This one too
+        }$$
+}";
+
+            var expected =
+@"class Program
+{
+    static void Main()
+    {
+        return;		/* Comment preceded by tabs */		// This one too
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task DoNotKeepTabsInCommentsWhenFormattingIsOn()
+        {
+            var code = @"class Program
+{
+    static void Main()
+    {
+        return;		/* Comment preceded by tabs */		// This one too
+        }$$
+}";
+
+            var expected = 
+@"class Program
+{
+    static void Main()
+    {
+        return;     /* Comment preceded by tabs */      // This one too
+    }
+}
+";
+
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task DoNotFormatStatementIfSemicolonOptionIsOff()

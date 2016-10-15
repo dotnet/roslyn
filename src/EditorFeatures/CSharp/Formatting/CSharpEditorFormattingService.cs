@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 {
@@ -232,17 +233,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             bool smartIndentOnly = token.IsKind(SyntaxKind.CloseBraceToken) && autoFormattingCloseBraceOff;
 
-            if (!smartIndentOnly)
+            if (smartIndentOnly)
             {
-                // if formatting range fails, do format token one at least
-                var changes = await FormatRangeAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
-                if (changes.Count > 0)
-                {
-                    return changes;
-                }
+                // if we're only doing smart indent, then ignore all edits to this token that occur before
+                // the span of the token. They're irrelevant and may screw up other code the user doesn't 
+                // want touched.
+                var tokenEdits = await FormatTokenAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
+                var filteredEdits = tokenEdits.Where(t => t.Span.Start >= token.FullSpan.Start).ToList();
+                return filteredEdits;
             }
 
-            // if we can't, do normal smart indentation
+            // if formatting range fails, do format token one at least
+            var changes = await FormatRangeAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
+            if (changes.Count > 0)
+            {
+                return changes;
+            }
             return await FormatTokenAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
         }
 
