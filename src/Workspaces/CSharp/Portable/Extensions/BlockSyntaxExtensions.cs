@@ -9,13 +9,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(this BlockSyntax block)
         {
-            if (block != null && block.Statements.Count == 1)
+            if (((CSharpParseOptions)block.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp7)
             {
-                var firstStatement = block.Statements[0];
-                var expression = TryGetExpression(firstStatement);
-                if (expression != null)
+                if (block != null && block.Statements.Count == 1)
                 {
-                    return SyntaxFactory.ArrowExpressionClause(expression);
+                    var firstStatement = block.Statements[0];
+                    var expression = TryGetExpression(firstStatement);
+                    if (expression != null)
+                    {
+                        return SyntaxFactory.ArrowExpressionClause(expression);
+                    }
                 }
             }
 
