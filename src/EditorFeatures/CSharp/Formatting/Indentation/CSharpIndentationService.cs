@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,7 +15,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using System.Collections.Generic;
+using System.Composition;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 {
