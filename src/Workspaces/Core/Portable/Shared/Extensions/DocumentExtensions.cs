@@ -112,17 +112,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return errors.Length > 0;
         }
 
-        public static async Task<ImmutableArray<Diagnostic>> GetErrorsAsync(this Document document, CancellationToken cancellationToken, List<string> ignoreErrorCode = null)
+        public static async Task<ImmutableArray<Diagnostic>> GetErrorsAsync(this Document document, CancellationToken cancellationToken, IList<string> ignoreErrorCode = null)
         {
             if (!document.SupportsSemanticModel)
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
+            ignoreErrorCode = ignoreErrorCode ?? SpecializedCollections.EmptyList<string>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return semanticModel.GetDiagnostics(cancellationToken: cancellationToken).WhereAsArray(
-                diag => diag.Severity == DiagnosticSeverity.Error &&
-                (ignoreErrorCode == null || !ignoreErrorCode.Contains(diag.Id)));
+                diag => diag.Severity == DiagnosticSeverity.Error && !ignoreErrorCode.Contains(diag.Id));
         }
 
         /// <summary>
