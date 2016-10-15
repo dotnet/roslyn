@@ -13575,7 +13575,14 @@ class C
             var comp = CompileAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: "2");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,41): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the target type '(int c, int d)'.
+                //         System.Console.WriteLine(Local((d: 1, c: 2)).b);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "d: 1").WithArguments("d", "(int c, int d)").WithLocation(7, 41),
+                // (7,47): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int c, int d)'.
+                //         System.Console.WriteLine(Local((d: 1, c: 2)).b);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 2").WithArguments("c", "(int c, int d)").WithLocation(7, 47)
+                );
         }
 
         [Fact, CompilerTrait(CompilerFeature.LocalFunctions)]
@@ -16292,12 +16299,24 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
+                // (6,27): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
+                //         var t = M2((a: 1, b: 2), (a: 1, c: 3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int a, int)").WithLocation(6, 27),
+                // (6,41): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int)'.
+                //         var t = M2((a: 1, b: 2), (a: 1, c: 3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int a, int)").WithLocation(6, 41),
                 // (8,32): error CS1061: '(int a, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(t.b);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int a, int)", "b").WithLocation(8, 32),
                 // (9,32): error CS1061: '(int a, int)' does not contain a definition for 'c' and no extension method 'c' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(t.c);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "c").WithArguments("(int a, int)", "c").WithLocation(9, 32)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "c").WithArguments("(int a, int)", "c").WithLocation(9, 32),
+                // (10,21): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int, int)'.
+                //         M2((1, 2), (c: 1, d: 3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 1").WithArguments("c", "(int, int)").WithLocation(10, 21),
+                // (10,27): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the target type '(int, int)'.
+                //         M2((1, 2), (c: 1, d: 3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "d: 3").WithArguments("d", "(int, int)").WithLocation(10, 27)
                 );
 
             var tree = comp.SyntaxTrees.First();
