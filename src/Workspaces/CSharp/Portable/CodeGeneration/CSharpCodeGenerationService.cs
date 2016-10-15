@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (method.IsConstructor())
             {
                 return ConstructorGenerator.GenerateConstructorDeclaration(
-                    method, destination, Workspace, options);
+                    method, destination, Workspace, options, options.ParseOptions);
             }
             else if (method.IsDestructor())
             {
@@ -628,22 +628,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (method.IsUserDefinedOperator())
             {
-                return OperatorGenerator.GenerateOperatorDeclaration(method, destination, Workspace, options);
+                return OperatorGenerator.GenerateOperatorDeclaration(
+                    method, destination, Workspace, options, options.ParseOptions);
             }
             else if (method.IsConversion())
             {
-                return ConversionGenerator.GenerateConversionDeclaration(method, destination, Workspace, options);
+                return ConversionGenerator.GenerateConversionDeclaration(
+                    method, destination, Workspace, options, options.ParseOptions);
             }
             else
             {
-                return MethodGenerator.GenerateMethodDeclaration(method, destination, Workspace, options);
+                return MethodGenerator.GenerateMethodDeclaration(
+                    method, destination, Workspace, options, options.ParseOptions);
             }
         }
 
         public override SyntaxNode CreatePropertyDeclaration(
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            return PropertyGenerator.GeneratePropertyOrIndexer(property, destination, Workspace, options);
+            return PropertyGenerator.GeneratePropertyOrIndexer(
+                property, destination, Workspace, options, options.ParseOptions);
         }
 
         public override SyntaxNode CreateNamedTypeDeclaration(

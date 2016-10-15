@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(
             this BlockSyntax block, ParseOptions options)
         {
-            if (options != null && ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7)
+            if ((options as CSharpParseOptions)?.LanguageVersion >= LanguageVersion.CSharp7)
             {
                 if (block != null && block.Statements.Count == 1)
                 {

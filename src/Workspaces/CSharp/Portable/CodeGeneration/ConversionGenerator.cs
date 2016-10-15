@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var methodDeclaration = GenerateConversionDeclaration(
-                method, GetDestination(destination), workspace, options);
+                method, GetDestination(destination), workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
@@ -33,9 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol method,
             CodeGenerationDestination destination,
             Workspace workspace,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
-            var declaration = GenerateConversionDeclarationWorker(method, destination, workspace, options);
+            var declaration = GenerateConversionDeclarationWorker(method, destination, workspace, options, parseOptions);
             return AddCleanupAnnotationsTo(AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options)));
         }
@@ -44,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol method,
             CodeGenerationDestination destination,
             Workspace workspace,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var hasNoBody = !options.GenerateMethodBodies || method.IsExtern;
 
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
-            declaration = UseExpressionBodyIfDesired(workspace, declaration, options.ParseOptions);
+            declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 
             return declaration;
         }

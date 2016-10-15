@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var declaration = GenerateMethodDeclaration(
-                method, CodeGenerationDestination.Namespace, workspace, options);
+                method, CodeGenerationDestination.Namespace, workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
             var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var declaration = GenerateMethodDeclaration(
-                method, CodeGenerationDestination.CompilationUnit, workspace, options);
+                method, CodeGenerationDestination.CompilationUnit, workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
             var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
@@ -50,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var methodDeclaration = GenerateMethodDeclaration(
-                method, GetDestination(destination), workspace, options);
+                method, GetDestination(destination), workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastMethod);
@@ -60,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public static MethodDeclarationSyntax GenerateMethodDeclaration(
             IMethodSymbol method, CodeGenerationDestination destination, 
-            Workspace workspace, CodeGenerationOptions options)
+            Workspace workspace, CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             options = options ?? CodeGenerationOptions.Default;
 
@@ -70,7 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var declaration = GenerateMethodDeclarationWorker(method, destination, workspace, options);
+            var declaration = GenerateMethodDeclarationWorker(
+                method, destination, workspace, options, parseOptions);
 
             return AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options));
@@ -78,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static MethodDeclarationSyntax GenerateMethodDeclarationWorker(
             IMethodSymbol method, CodeGenerationDestination destination, 
-            Workspace workspace, CodeGenerationOptions options)
+            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
             var hasNoBody = !options.GenerateMethodBodies ||
                             destination == CodeGenerationDestination.InterfaceType ||
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 expressionBody: default(ArrowExpressionClauseSyntax),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
-            methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration, options.ParseOptions);
+            methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration, parseOptions);
 
             return AddCleanupAnnotationsTo(methodDeclaration);
         }
