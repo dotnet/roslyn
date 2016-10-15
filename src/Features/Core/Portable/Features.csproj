@@ -94,6 +94,9 @@
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\PackageReference.InstallNugetPackageOperation.cs" />
+    <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
@@ -110,8 +113,10 @@
     <Compile Include="Navigation\NavigableItemFactory.cs" />
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
+    <Compile Include="AddImport\CodeActions\PackageReference.ParentCodeAction.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
+    <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
     <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.FixAllProvider.cs" />
@@ -137,13 +142,13 @@
     <Compile Include="ChangeSignature\IUnifiedArgumentSyntax.cs" />
     <Compile Include="ChangeSignature\ParameterConfiguration.cs" />
     <Compile Include="ChangeSignature\SignatureChange.cs" />
-    <Compile Include="AddImport\MetadataSymbolReference.cs" />
-    <Compile Include="AddImport\AssemblyReference.cs" />
-    <Compile Include="AddImport\PackageReference.cs" />
-    <Compile Include="AddImport\ProjectSymbolReference.cs" />
-    <Compile Include="AddImport\Reference.cs" />
+    <Compile Include="AddImport\References\MetadataSymbolReference.cs" />
+    <Compile Include="AddImport\References\AssemblyReference.cs" />
+    <Compile Include="AddImport\References\PackageReference.cs" />
+    <Compile Include="AddImport\References\ProjectSymbolReference.cs" />
+    <Compile Include="AddImport\References\Reference.cs" />
     <Compile Include="AddImport\SearchScope.cs" />
-    <Compile Include="AddImport\SymbolReference.cs" />
+    <Compile Include="AddImport\References\SymbolReference.cs" />
     <Compile Include="AddImport\SymbolReferenceFinder.cs" />
     <Compile Include="AddImport\SymbolResult.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />

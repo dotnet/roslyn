@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-        private abstract class SymbolReference : Reference
+        private abstract partial class SymbolReference : Reference
         {
             public readonly SymbolResult<INamespaceOrTypeSymbol> SymbolResult;
 
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
             }
 
-            private async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+            private async Task<CodeActionOperation> GetOperationAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst,
                 CancellationToken cancellationToken)
             {
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var updatedSolution = GetUpdatedSolution(newDocument);
 
                 var operation = new ApplyChangesOperation(updatedSolution);
-                return ImmutableArray.Create<CodeActionOperation>(operation);
+                return operation;
             }
 
             protected virtual Solution GetUpdatedSolution(Document newDocument)
@@ -87,8 +85,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     description = $"{this.SearchResult.DesiredName} - {description}";
                 }
 
-                return new OperationBasedCodeAction(description, GetGlyph(document), GetPriority(document),
-                    c => this.GetOperationsAsync(document, node, placeSystemNamespaceFirst, c),
+                var getOperation = new AsyncLazy<CodeActionOperation>(
+                    c => this.GetOperationAsync(document, node, placeSystemNamespaceFirst, c),
+                    cacheResult: true);
+
+                return new SymbolReferenceCodeAction(
+                    description, GetGlyph(document), GetPriority(document),
+                    getOperation,
                     this.GetIsApplicableCheck(document.Project));
             }
 
