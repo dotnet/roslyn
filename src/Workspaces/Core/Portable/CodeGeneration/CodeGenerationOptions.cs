@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public bool ReuseSyntax { get; }
 
+        public ParseOptions ParseOptions { get; }
+
         public CodeGenerationOptions(
             Location contextLocation = null,
             Location afterThisLocation = null,
@@ -137,7 +139,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool generateMethodBodies = true,
             bool generateDocumentationComments = false,
             bool autoInsertionLocation = true,
-            bool reuseSyntax = false)
+            bool reuseSyntax = false,
+            ParseOptions parseOptions = null)
         {
             CheckLocation(contextLocation, nameof(contextLocation));
             CheckLocation(afterThisLocation, nameof(afterThisLocation));
@@ -157,6 +160,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.GenerateDocumentationComments = generateDocumentationComments;
             this.AutoInsertionLocation = autoInsertionLocation;
             this.ReuseSyntax = reuseSyntax;
+            this.ParseOptions = parseOptions;
+
+            if (parseOptions == null)
+            {
+                this.ParseOptions = this.BestLocation?.SourceTree.Options;
+            }
         }
 
         private void CheckLocation(Location location, string name)
