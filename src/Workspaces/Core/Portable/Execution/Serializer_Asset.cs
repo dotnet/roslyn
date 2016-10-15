@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // TODO: once compiler team adds ability to serialize compilation options to ObjectWriter directly, we won't need this.
-            var language = GetLanguageName(options);
+            var language = options.Language;
 
+            // TODO: once compiler team adds ability to serialize compilation options to ObjectWriter directly, we won't need this.
             writer.WriteString(language);
 
             var service = GetOptionsSerializationService(language);
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var language = GetLanguageName(options);
+            var language = options.Language;
 
             // TODO: once compiler team adds ability to serialize parse options to ObjectWriter directly, we won't need this.
             writer.WriteString(language);
