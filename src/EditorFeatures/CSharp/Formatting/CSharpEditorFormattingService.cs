@@ -125,8 +125,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var formattingRules = this.GetFormattingRules(document, caretPosition);
 
             // first, find the token user just typed.
