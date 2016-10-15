@@ -61,21 +61,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : GenerateBlock(constructor),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
 
-            declaration = UseExpressionBodyIfDesired(workspace, declaration);
+            declaration = UseExpressionBodyIfDesired(workspace, declaration, options.ParseOptions);
 
             return AddCleanupAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options));
         }
 
         private static ConstructorDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, ConstructorDeclarationSyntax declaration)
+            Workspace workspace, ConstructorDeclarationSyntax declaration, ParseOptions options)
         {
             if (declaration.ExpressionBody == null)
             {
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = declaration.Body.TryConvertToExpressionBody();
+                    var expressionBody = declaration.Body.TryConvertToExpressionBody(options);
                     if (expressionBody != null)
                     {
                         return declaration.WithBody(null)

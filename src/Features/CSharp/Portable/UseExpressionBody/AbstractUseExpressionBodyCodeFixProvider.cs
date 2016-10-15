@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return WithSemicolonToken(
                            WithExpressionBody(
                                WithBody(declaration, null),
-                               GetBody(declaration).TryConvertToExpressionBody()),
+                               GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options)),
                            GetFirstStatementSemicolon(GetBody(declaration)));
             }
             else
