@@ -160,12 +160,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.GenerateDocumentationComments = generateDocumentationComments;
             this.AutoInsertionLocation = autoInsertionLocation;
             this.ReuseSyntax = reuseSyntax;
-            this.ParseOptions = parseOptions;
 
-            if (parseOptions == null)
-            {
-                this.ParseOptions = this.BestLocation?.SourceTree.Options;
-            }
+            this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree.Options;
         }
 
         private void CheckLocation(Location location, string name)
