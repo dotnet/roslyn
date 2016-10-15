@@ -13,10 +13,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// </summary>
     public partial class AbstractCodeModelObject
     {
-        private static CodeGenerationOptions GetCodeGenerationOptions(EnvDTE.vsCMAccess access)
+        private static CodeGenerationOptions GetCodeGenerationOptions(
+            EnvDTE.vsCMAccess access, ParseOptions parseOptions)
         {
             var generateDefaultAccessibility = (access & EnvDTE.vsCMAccess.vsCMAccessDefault) == 0;
-            return new CodeGenerationOptions(generateDefaultAccessibility: generateDefaultAccessibility);
+            return new CodeGenerationOptions(
+                generateDefaultAccessibility: generateDefaultAccessibility,
+                parseOptions: parseOptions);
         }
 
         protected SyntaxNode CreateConstructorDeclaration(SyntaxNode containerNode, string typeName, EnvDTE.vsCMAccess access)
@@ -32,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return CodeGenerationService.CreateMethodDeclaration(
                 newMethodSymbol, destination,
-                options: GetCodeGenerationOptions(access));
+                options: GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options));
         }
 
         protected SyntaxNode CreateDestructorDeclaration(SyntaxNode containerNode, string typeName)
@@ -60,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return CodeGenerationService.CreateNamedTypeDeclaration(
                 newTypeSymbol, destination,
-                options: GetCodeGenerationOptions(access));
+                options: GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options));
         }
 
         protected SyntaxNode CreateEventDeclaration(SyntaxNode containerNode, string name, EnvDTE.vsCMAccess access, ITypeSymbol type, bool createPropertyStyleEvent)
@@ -105,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return CodeGenerationService.CreateEventDeclaration(
                 newEventSymbol, destination,
-                options: GetCodeGenerationOptions(access));
+                options: GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options));
         }
 
         protected SyntaxNode CreateFieldDeclaration(SyntaxNode containerNode, string name, EnvDTE.vsCMAccess access, ITypeSymbol type)
@@ -121,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return CodeGenerationService.CreateFieldDeclaration(
                 newFieldSymbol, destination,
-                options: GetCodeGenerationOptions(access));
+                options: GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options));
         }
 
         protected SyntaxNode CreateMethodDeclaration(SyntaxNode containerNode, string name, EnvDTE.vsCMAccess access, ITypeSymbol returnType)
@@ -140,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return CodeGenerationService.CreateMethodDeclaration(
                 newMethodSymbol, destination,
-                options: GetCodeGenerationOptions(access));
+                options: GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options));
         }
 
         protected SyntaxNode CreatePropertyDeclaration(SyntaxNode containerNode, string name, bool generateGetter, bool generateSetter, EnvDTE.vsCMAccess access, ITypeSymbol type)
@@ -189,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return CodeGenerationService.CreatePropertyDeclaration(
                 newPropertySymbol, destination,
-                options: GetCodeGenerationOptions(access));
+                options: GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options));
         }
 
         protected SyntaxNode CreateNamespaceDeclaration(SyntaxNode containerNode, string name)
@@ -228,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return CodeGenerationService.CreateNamedTypeDeclaration(
                 newTypeSymbol, destination,
-                options: GetCodeGenerationOptions(access));
+                options: GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options));
         }
     }
 }
