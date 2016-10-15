@@ -87,13 +87,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             }
 
             var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet);
-            if (lineOperation != null && lineOperation.Option != AdjustNewLinesOption.ForceLinesIfOnSingleLine)
+            if (lineOperation == null || lineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
-                return true;
+                // no indentation operation, nothing to do for smart token formatter
+                return false;
             }
 
-            // no indentation operation, nothing to do for smart token formatter
-            return false;
+            // We're pressing enter between two tokens, have the formatter figure out hte appropriate
+            // indentation.
+            return true;
         }
 
         private class FormattingRule : AbstractFormattingRule
