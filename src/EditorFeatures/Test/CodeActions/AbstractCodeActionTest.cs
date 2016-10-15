@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
-            applyChangesOperation.Apply(workspace, new ProgressTracker(), CancellationToken.None);
+            applyChangesOperation.TryApply(workspace, new ProgressTracker(), CancellationToken.None);
 
             foreach (var document in workspace.Documents)
             {

@@ -507,7 +507,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
                 else if (operation.ApplyDuringTests)
                 {
-                    operation.Apply(workspace, new ProgressTracker(), CancellationToken.None);
+                    var oldSolution = workspace.CurrentSolution;
+                    operation.TryApply(workspace, new ProgressTracker(), CancellationToken.None);
+                    var newSolution = workspace.CurrentSolution;
+                    result = Tuple.Create(oldSolution, newSolution);
                 }
             }
 
