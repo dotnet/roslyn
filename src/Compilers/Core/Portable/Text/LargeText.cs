@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly ImmutableArray<char[]> _chunks;
         private readonly int[] _chunkStartOffsets;
         private readonly int _length;
-        private readonly Encoding _encoding;
+        private readonly Encoding _encodingOpt;
 
-        internal LargeText(ImmutableArray<char[]> chunks, Encoding encoding, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> embeddedTextBlob)
+        internal LargeText(ImmutableArray<char[]> chunks, Encoding encodingOpt, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> embeddedTextBlob)
             : base(checksum, checksumAlgorithm, embeddedTextBlob)
         {
             _chunks = chunks;
-            _encoding = encoding;
+            _encodingOpt = encodingOpt;
             _chunkStartOffsets = new int[chunks.Length];
 
             int offset = 0;
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Text
             _length = offset;
         }
 
-        internal LargeText(ImmutableArray<char[]> chunks, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
-            : this(chunks, encoding, default(ImmutableArray<byte>), checksumAlgorithm, default(ImmutableArray<byte>))
+        internal LargeText(ImmutableArray<char[]> chunks, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
+            : this(chunks, encodingOpt, default(ImmutableArray<byte>), checksumAlgorithm, default(ImmutableArray<byte>))
         {
         }
 
@@ -74,17 +74,17 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal static SourceText Decode(TextReader reader, int length, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+        internal static SourceText Decode(TextReader reader, int length, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
         {
             if (length == 0)
             {
-                return SourceText.From(string.Empty, encoding, checksumAlgorithm);
+                return SourceText.From(string.Empty, encodingOpt, checksumAlgorithm);
             }
 
             // throwIfBinaryDetected == false since we are given text reader from the beginning
             var chunks = ReadFromTextReader(reader, length, throwIfBinaryDetected: false);
 
-            return new LargeText(chunks, encoding, checksumAlgorithm);
+            return new LargeText(chunks, encodingOpt, checksumAlgorithm);
         }
 
         private static ImmutableArray<char[]> ReadFromTextReader(TextReader reader, int maxCharRemainingGuess, bool throwIfBinaryDetected)
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override Encoding Encoding => _encoding;
+        public override Encoding Encoding => _encodingOpt;
 
         public override int Length => _length;
 

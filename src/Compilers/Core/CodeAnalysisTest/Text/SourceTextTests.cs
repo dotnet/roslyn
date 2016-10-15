@@ -240,11 +240,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
 
-            var utf8NoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-
             Assert.Same(s_utf8, SourceText.From(actual, expected.Length, s_utf8).Encoding);
             Assert.Same(s_unicode, SourceText.From(actual, expected.Length, s_unicode).Encoding);
-            Assert.Equal(utf8NoBOM, SourceText.From(actual, expected.Length, null).Encoding);
+            Assert.Null(SourceText.From(actual, expected.Length, null).Encoding);
         }
 
         [Fact]
@@ -263,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             Assert.Same(s_utf8, SourceText.From(actual, expected.Length, s_utf8).Encoding);
             Assert.Same(s_unicode, SourceText.From(actual, expected.Length, s_unicode).Encoding);
-            Assert.Equal(utf8NoBOM, SourceText.From(actual, expected.Length, null).Encoding);
+            Assert.Null(SourceText.From(actual, expected.Length, null).Encoding);
         }
 
         private static void TestTryReadByteOrderMark(Encoding expectedEncoding, int expectedPreambleLength, byte[] data)

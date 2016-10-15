@@ -124,10 +124,6 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException(nameof(reader));
             }
 
-            ValidateChecksumAlgorithm(checksumAlgorithm);
-
-            encoding = encoding ?? s_utf8EncodingWithNoBOM;
-
             // If the resulting string would end up on the large object heap, then use LargeEncodedText.
             if (length >= LargeObjectHeapLimitInChars)
             {
