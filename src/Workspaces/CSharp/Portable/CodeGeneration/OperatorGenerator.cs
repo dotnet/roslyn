@@ -42,21 +42,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var declaration = GenerateOperatorDeclarationWorker(method, destination, options);
-            declaration = UseExpressionBodyIfDesired(workspace, declaration);
+            declaration = UseExpressionBodyIfDesired(workspace, declaration, options.ParseOptions);
 
             return AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options));
         }
 
         private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, OperatorDeclarationSyntax declaration)
+            Workspace workspace, OperatorDeclarationSyntax declaration, ParseOptions options)
         {
             if (declaration.ExpressionBody == null)
             {
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = declaration.Body.TryConvertToExpressionBody();
+                    var expressionBody = declaration.Body.TryConvertToExpressionBody(options);
                     if (expressionBody != null)
                     {
                         return declaration.WithBody(null)

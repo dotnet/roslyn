@@ -69,20 +69,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
-            declaration = UseExpressionBodyIfDesired(workspace, declaration);
+            declaration = UseExpressionBodyIfDesired(workspace, declaration, options.ParseOptions);
 
             return declaration;
         }
 
         private static ConversionOperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, ConversionOperatorDeclarationSyntax declaration)
+            Workspace workspace, ConversionOperatorDeclarationSyntax declaration, ParseOptions options)
         {
             if (declaration.ExpressionBody == null)
             {
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = declaration.Body.TryConvertToExpressionBody();
+                    var expressionBody = declaration.Body.TryConvertToExpressionBody(options);
                     if (expressionBody != null)
                     {
                         return declaration.WithBody(null)
