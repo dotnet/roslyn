@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, explicitInterfaceSpecifier != null, options),
                     accessorList: GenerateAccessorList(property, destination, workspace, options));
-            declaration = UseExpressionBodyIfDesired(workspace, declaration);
+            declaration = UseExpressionBodyIfDesired(workspace, declaration, options.ParseOptions);
 
             return AddCleanupAnnotationsTo(
                 AddAnnotationsTo(property, declaration));
@@ -127,20 +127,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 initializer: initializer);
 
             propertyDeclaration = UseExpressionBodyIfDesired(
-                workspace, propertyDeclaration);
+                workspace, propertyDeclaration, options.ParseOptions);
 
             return AddCleanupAnnotationsTo(
                 AddAnnotationsTo(property, propertyDeclaration));
         }
 
-        private static ArrowExpressionClauseSyntax TryGetExpressionBody(AccessorListSyntax accessorList)
+        private static ArrowExpressionClauseSyntax TryGetExpressionBody(
+            AccessorListSyntax accessorList, ParseOptions options)
         {
             if (accessorList.Accessors.Count == 1)
             {
                 var accessor = accessorList.Accessors[0];
                 if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
                 {
-                    return TryGetExpressionBody(accessor);
+                    return TryGetExpressionBody(accessor, options);
                 }
             }
 
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static PropertyDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, PropertyDeclarationSyntax declaration)
+            Workspace workspace, PropertyDeclarationSyntax declaration, ParseOptions options)
         {
             if (declaration.ExpressionBody == null)
             {
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     if (declaration.Initializer == null)
                     {
-                        var expressionBody = TryGetExpressionBody(declaration.AccessorList);
+                        var expressionBody = TryGetExpressionBody(declaration.AccessorList, options);
                         if (expressionBody != null)
                         {
                             declaration = declaration.WithAccessorList(null)
@@ -172,14 +173,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static IndexerDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, IndexerDeclarationSyntax declaration)
+            Workspace workspace, IndexerDeclarationSyntax declaration, ParseOptions options)
         {
             if (declaration.ExpressionBody == null)
             {
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = TryGetExpressionBody(declaration.AccessorList);
+                    var expressionBody = TryGetExpressionBody(declaration.AccessorList, options);
                     if (expressionBody != null)
                     {
                         declaration = declaration.WithAccessorList(null)
@@ -193,14 +194,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AccessorDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, AccessorDeclarationSyntax declaration)
+            Workspace workspace, AccessorDeclarationSyntax declaration, ParseOptions options)
         {
             if (declaration.ExpressionBody == null)
             {
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = declaration.Body.TryConvertToExpressionBody();
+                    var expressionBody = declaration.Body.TryConvertToExpressionBody(options);
                     if (expressionBody != null)
                     {
                         declaration = declaration.WithBody(null)
@@ -213,13 +214,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static ArrowExpressionClauseSyntax TryGetExpressionBody(AccessorDeclarationSyntax accessor)
+        private static ArrowExpressionClauseSyntax TryGetExpressionBody(
+            AccessorDeclarationSyntax accessor, ParseOptions options)
         {
             // If the accessor has an expression body already, then use that as the expression body
             // for the property.
             return accessor.ExpressionBody != null
                 ? accessor.ExpressionBody
-                : accessor.Body.TryConvertToExpressionBody();
+                : accessor.Body.TryConvertToExpressionBody(options);
         }
 
         private static AccessorListSyntax GenerateAccessorList(
@@ -264,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                            .WithBody(hasBody ? GenerateBlock(accessor) : null)
                                            .WithSemicolonToken(hasBody ? default(SyntaxToken) : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-            declaration = UseExpressionBodyIfDesired(workspace, declaration);
+            declaration = UseExpressionBodyIfDesired(workspace, declaration, options.ParseOptions);
 
             return AddAnnotationsTo(accessor, declaration);
         }

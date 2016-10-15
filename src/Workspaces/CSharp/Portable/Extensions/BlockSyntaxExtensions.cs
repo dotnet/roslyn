@@ -7,9 +7,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class BlockSyntaxExtensions
     {
-        public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(this BlockSyntax block)
+        public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(
+            this BlockSyntax block, ParseOptions options)
         {
-            if (((CSharpParseOptions)block.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp7)
+            if (options != null && ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7)
             {
                 if (block != null && block.Statements.Count == 1)
                 {

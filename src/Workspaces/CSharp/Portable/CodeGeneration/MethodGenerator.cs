@@ -103,20 +103,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 expressionBody: default(ArrowExpressionClauseSyntax),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
-            methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration);
+            methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration, options.ParseOptions);
 
             return AddCleanupAnnotationsTo(methodDeclaration);
         }
 
         private static MethodDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, MethodDeclarationSyntax methodDeclaration)
+            Workspace workspace, MethodDeclarationSyntax methodDeclaration, ParseOptions options)
         {
             if (methodDeclaration.ExpressionBody == null)
             {
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = methodDeclaration.Body.TryConvertToExpressionBody();
+                    var expressionBody = methodDeclaration.Body.TryConvertToExpressionBody(options);
                     if (expressionBody != null)
                     {
                         return methodDeclaration.WithBody(null)
