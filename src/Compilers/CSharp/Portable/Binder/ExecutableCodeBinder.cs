@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableArray<MethodSymbol> MethodSymbolsWithYield
+        protected override ImmutableArray<MethodSymbol> MethodSymbolsWithYield
         {
             get
             {
