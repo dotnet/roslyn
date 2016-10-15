@@ -650,7 +650,8 @@ class C
                     type: typeof(string),
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
-                    isIndexer: true);
+                    isIndexer: true,
+                    codeGenerationOptions: new CodeGenerationOptions(parseOptions: CSharpParseOptions.Default));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
