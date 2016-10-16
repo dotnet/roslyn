@@ -1202,6 +1202,8 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task KeepTabsInCommentsWhenFormattingIsOff()
         {
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // not remove these as we are explicitly testing tab behavior.
             var code = 
 @"class Program
 {
@@ -1232,6 +1234,8 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task DoNotKeepTabsInCommentsWhenFormattingIsOn()
         {
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // not remove these as we are explicitly testing tab behavior.
             var code = @"class Program
 {
     static void Main()
