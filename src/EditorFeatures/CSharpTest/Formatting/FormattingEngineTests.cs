@@ -1244,15 +1244,14 @@ class C : Attribute
         }$$
 }";
 
-            var expected = 
+            var expected =
 @"class Program
 {
     static void Main()
     {
-        return;     /* Comment preceded by tabs */      // This one too
+        return;     /* Comment preceded by tabs */        // This one too
     }
-}
-";
+}";
 
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
