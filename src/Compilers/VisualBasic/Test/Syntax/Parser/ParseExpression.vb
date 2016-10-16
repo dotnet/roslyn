@@ -438,9 +438,9 @@ ToString]]>.Value)
             End Module
         ]]>,
 <errors>
-    <error id="37271" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="87" end="93"/>
-    <error id="37271" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="126" End="132"/>
-    <error id="37271" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="167" End="185"/>
+    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="87" end="93"/>
+    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="126" End="132"/>
+    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="167" End="185"/>
 </errors>
         )
 
@@ -459,9 +459,9 @@ ToString]]>.Value)
             End Module
         ]]>,
                        <errors>
-                           <error id="37271" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="88" end="94"/>
-                           <error id="37271" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="128" end="134"/>
-                           <error id="37271" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="170" end="188"/>
+                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="88" end="94"/>
+                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="128" end="134"/>
+                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="170" end="188"/>
                        </errors>
         )
     End Sub
