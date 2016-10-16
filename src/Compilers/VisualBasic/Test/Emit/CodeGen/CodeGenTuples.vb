@@ -51,6 +51,19 @@ namespace System.Runtime.CompilerServices
 End Namespace
 
 "
+
+        ReadOnly s_tupleattributes As String = "
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.Property Or AttributeTargets.ReturnValue Or AttributeTargets.Class Or AttributeTargets.Struct )>
+    public class TupleElementNamesAttribute : Inherits Attribute
+        public Sub New(transformNames As String())
+	    End Sub
+    End Class
+End Namespace
+
+"
+
+
         ReadOnly s_trivial3uple As String = "
 Namespace System
     Public Structure ValueTuple(Of T1, T2, T3)
@@ -1031,17 +1044,45 @@ Module C
         t.a17 = 42
         t.a12 = t.a17
         console.writeline(t.a12)
+
+        TestArray()
+        TestNullable()
     End Sub
+
+    Sub TestArray()
+        Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as Integer,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+                    a17 as integer, a18 as integer)() {Nothing}
+
+        t(0).a17 = 42
+        t(0).a12 = t(0).a17
+        console.writeline(t(0).a12)
+    End Sub
+
+        Sub TestNullable()
+        Dim t as New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as Integer,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+                    a17 as integer, a18 as integer)?
+
+        console.writeline(t.HasValue)
+    End Sub
+
 End Module
 
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 42
+42
+False
             ]]>, additionalRefs:=s_valueTupleRefs)
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
-  // Code size       64 (0x40)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)) V_0) //t
   IL_0000:  ldloca.s   V_0
@@ -1060,9 +1101,55 @@ End Module
   IL_0030:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)).Rest As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)"
   IL_0035:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer)).Item5 As Integer"
   IL_003a:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_003f:  ret
+  IL_003f:  call       "Sub C.TestArray()"
+  IL_0044:  call       "Sub C.TestNullable()"
+  IL_0049:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleNewLongErr()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as String,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+                    a17 as integer, a18 as integer)
+
+        console.writeline(t.a12.Length)
+
+        Dim t1 As New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+            a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+            a9 as integer, a10 as Integer, a11 as Integer, a12 as String,
+            a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+            a17 as integer, a18 as integer)
+
+        console.writeline(t1.a12.Length)
+
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            ' should not complain about missing constructor
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t1 As New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
         End Sub
 
         <Fact>
@@ -15477,6 +15564,117 @@ BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because 
 </errors>)
         End Sub
 
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct0()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+        Dim x as (a As Integer, b As String)
+        x.Item1 = 1
+        x.b = "2"
+ 
+        ' by the language rules tuple x is definitely assigned
+        ' since all its elements are definitely assigned
+        System.Console.WriteLine(x)
+    end sub
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+        Dim x as (a As Integer, b As String)
+            ~
+</errors>)
+
+        End Sub
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct1()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            <compilation name="Tuples">
+                <file name="a.vb">
+class C
+    Shared Sub Main()
+        Dim x = (1,2,3,4,5,6,7,8,9)
+ 
+        System.Console.WriteLine(x)
+    end sub
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+
+    public class ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)
+        public Item1 As T1
+        public Item2 As T2
+        public Item3 As T3
+        public Item4 As T4
+        public Item5 As T5
+        public Item6 As T6
+        public Item7 As T7
+        public Rest As TRest
+
+        public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, rest As TRest)
+            Item1 = item1
+            Item2 = item2
+            Item3 = item3
+            Item4 = item4
+            Item5 = item5
+            Item6 = item6
+            Item7 = item7
+            Rest = rest
+        end Sub
+
+    End Class
+end Namespace
+
+    <%= s_tupleattributes %>
+                </file>
+            </compilation>,
+            options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+        Dim x = (1,2,3,4,5,6,7,8,9)
+            ~
+BC37281: Predefined type 'ValueTuple`8' must be a structure.
+        Dim x = (1,2,3,4,5,6,7,8,9)
+            ~
+</errors>)
+        End Sub
+
         <Fact>
         Public Sub ConversionToBase()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -15508,6 +15706,163 @@ BC33030: Conversion operators cannot convert from a base type.
     Public Shared Narrowing Operator CType(ByVal arg As Base(Of (Integer, Integer))) As Derived
                                      ~~~~~
 </errors>)
+        End Sub
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+    end sub
+
+    Shared Sub Test2(arg as (a As Integer, b As Integer))
+    End Sub
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+</errors>)
+
+        End Sub
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct2i()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+    end sub
+
+    Shared Sub Test2(arg as (a As Integer, b As Integer))
+    End Sub
+end class
+
+namespace System
+    public interface ValueTuple(Of T1, T2)
+    End Interface
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+</errors>)
+
+        End Sub
+
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct3()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+        Dim x as (a As Integer, b As String)() = Nothing
+ 
+        ' by the language rules tuple x is definitely assigned
+        ' since all its elements are definitely assigned
+        System.Console.WriteLine(x)
+    end sub
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+        Dim x as (a As Integer, b As String)() = Nothing
+            ~
+</errors>)
+
+        End Sub
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct4()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+
+    end sub
+    
+    Shared Function Test2()as (a As Integer, b As Integer)
+    End Function
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+    Shared Function Test2()as (a As Integer, b As Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
         End Sub
 
         <Fact>
