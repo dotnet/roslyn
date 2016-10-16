@@ -26,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
     public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        private readonly TWorkspaceFixture _workspaceFixture;
+        protected TWorkspaceFixture WorkspaceFixture;
 
         protected AbstractCompletionProviderTests(TWorkspaceFixture workspaceFixture)
         {
-            _workspaceFixture = workspaceFixture;
+            this.WorkspaceFixture = workspaceFixture;
         }
 
         public override void Dispose()
         {
-            _workspaceFixture.CloseTextViewAsync().Wait();
+            this.WorkspaceFixture.CloseTextViewAsync().Wait();
             base.Dispose();
         }
 
@@ -58,35 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected abstract string ItemPartiallyWritten(string expectedItemOrNull);
 
         protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string fileContents);
-
-        private Task<TestWorkspace> GetWorkspaceAsync(out bool dispose, IEnumerable<KeyValuePair<OptionKey, object>> options = null)
-        {
-            if (options == null || options.IsEmpty())
-            {
-                dispose = false;
-                return _workspaceFixture.GetWorkspaceAsync();
-            }
-
-            // If there are options to be set, the fixture cannot be used,
-            // since the options may impact the behaviour of other tests
-            dispose = true;
-            return CreateWorkspaceAsync(string.Empty)
-                .ContinueWith(
-                    task =>
-                    {
-                        var workspace = task.Result;
-
-                        foreach (var option in options)
-                        {
-                            workspace.Options = workspace.Options.WithChangedOption(option.Key, option.Value);
-                        }
-
-                        return workspace;
-                    },
-                    CancellationToken.None,
-                    TaskContinuationOptions.OnlyOnRanToCompletion,
-                    TaskScheduler.Default);
-        }
 
         protected abstract Task BaseVerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
@@ -298,25 +269,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 expectedGlyph = (Glyph)glyph.Value;
             }
 
-            bool dispose;
-            var workspace = await GetWorkspaceAsync(out dispose, options: options);
+            var workspace = await WorkspaceFixture.GetWorkspaceAsync();
+
+            OptionSet defaultOptions = null;
+
+            if (options != null && options.Any())
+            {
+                defaultOptions = workspace.Options;
+
+                foreach (var option in options)
+                {
+                    workspace.Options = workspace.Options.WithChangedOption(option.Key, option.Value);
+                }
+            }
 
             try
             {
-                var document1 = workspace.UpdateSingleDocument(code, sourceCodeKind);
+                var document1 = await WorkspaceFixture.UpdateDocumentAsync(code, sourceCodeKind);
                 await CheckResultsAsync(document1, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph, matchPriority);
 
                 if (await CanUseSpeculativeSemanticModelAsync(document1, position))
                 {
-                    var document2 = workspace.UpdateSingleDocument(code, sourceCodeKind, cleanBeforeUpdate: false);
+                    var document2 = await WorkspaceFixture.UpdateDocumentAsync(code, sourceCodeKind, cleanBeforeUpdate: false);
                     await CheckResultsAsync(document2, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph, matchPriority);
                 }
             }
             finally
             {
-                if (dispose && workspace != null)
+                if (defaultOptions != null)
                 {
-                    workspace.Dispose();
+                    workspace.Options = defaultOptions;
                 }
             }
         }
@@ -330,31 +312,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
         protected virtual async Task VerifyCustomCommitProviderWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind sourceCodeKind, char? commitChar = null)
         {
-            bool dispose;
-            var workspace = await GetWorkspaceAsync(out dispose);
+            var document1 = await WorkspaceFixture.UpdateDocumentAsync(codeBeforeCommit, sourceCodeKind);
+            await VerifyCustomCommitProviderCheckResultsAsync(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
-            try
+            if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
-                var document1 = workspace.UpdateSingleDocument(codeBeforeCommit, sourceCodeKind);
-                await VerifyCustomCommitProviderCheckResultsAsync(workspace, document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
-
-                if (await CanUseSpeculativeSemanticModelAsync(document1, position))
-                {
-                    var document2 = workspace.UpdateSingleDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
-                    await VerifyCustomCommitProviderCheckResultsAsync(workspace, document2, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
-                }
-            }
-            finally
-            {
-                if (dispose && workspace != null)
-                {
-                    workspace.Dispose();
-                }
+                var document2 = await WorkspaceFixture.UpdateDocumentAsync(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
+                await VerifyCustomCommitProviderCheckResultsAsync(document2, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
-        private async Task VerifyCustomCommitProviderCheckResultsAsync(TestWorkspace workspace, Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
+        private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
+            var workspace = await WorkspaceFixture.GetWorkspaceAsync();
             var textBuffer = workspace.Documents.Single().TextBuffer;
 
             var service = GetCompletionService(workspace);
@@ -365,18 +335,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (customCommitCompletionProvider != null)
             {
                 var completionRules = GetCompletionHelper(document);
-                var textView = workspace.Documents.Single().GetTextView();
+                var textView = (await WorkspaceFixture.GetWorkspaceAsync()).Documents.Single().GetTextView();
                 VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
             else
             {
-                await VerifyCustomCommitWorkerAsync(service, workspace, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                await VerifyCustomCommitWorkerAsync(service, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
         internal async Task VerifyCustomCommitWorkerAsync(
             CompletionServiceWithProviders service,
-            TestWorkspace workspace,
             Document document,
             CompletionItem completionItem,
             string codeBeforeCommit,
@@ -401,8 +370,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
-            var textBuffer = workspace.Documents.Single().TextBuffer;
-            var textView = workspace.Documents.Single().GetTextView();
+            var textBuffer = (await WorkspaceFixture.GetWorkspaceAsync()).Documents.Single().TextBuffer;
+            var textView = (await WorkspaceFixture.GetWorkspaceAsync()).Documents.Single().GetTextView();
 
             string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition != null ? commit.NewPosition.Value : textView.Caret.Position.BufferPosition.Position;
@@ -452,33 +421,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected virtual async Task VerifyProviderCommitWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit,
             char? commitChar, string textTypedSoFar, SourceCodeKind sourceCodeKind)
         {
-            bool dispose;
-            var workspace = await GetWorkspaceAsync(out dispose);
+            var document1 = await WorkspaceFixture.UpdateDocumentAsync(codeBeforeCommit, sourceCodeKind);
+            await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
 
-            try
+            if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
-                var document1 = workspace.UpdateSingleDocument(codeBeforeCommit, sourceCodeKind);
-                await VerifyProviderCommitCheckResultsAsync(workspace, document1, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
-
-                if (await CanUseSpeculativeSemanticModelAsync(document1, position))
-                {
-                    var document2 = workspace.UpdateSingleDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
-                    await VerifyProviderCommitCheckResultsAsync(workspace, document2, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
-                }
-            }
-            finally
-            {
-                if (dispose && workspace != null)
-                {
-                    workspace.Dispose();
-                }
+                var document2 = await WorkspaceFixture.UpdateDocumentAsync(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
+                await VerifyProviderCommitCheckResultsAsync(document2, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
             }
         }
 
         private async Task VerifyProviderCommitCheckResultsAsync(
-            TestWorkspace workspace, Document document, int position, string itemToCommit, string expectedCodeAfterCommit,
-            char? commitCharOpt, string textTypedSoFar)
+            Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
         {
+            var workspace = await WorkspaceFixture.GetWorkspaceAsync();
             var textBuffer = workspace.Documents.Single().TextBuffer;
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
