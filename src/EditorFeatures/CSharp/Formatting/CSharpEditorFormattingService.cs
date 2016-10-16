@@ -36,13 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         {
         }
 
-        public bool SupportsFormatDocument { get { return true; } }
-
-        public bool SupportsFormatOnPaste { get { return true; } }
-
-        public bool SupportsFormatSelection { get { return true; } }
-
-        public bool SupportsFormatOnReturn { get { return true; } }
+        public bool SupportsFormatDocument => true;
+        public bool SupportsFormatOnPaste => true;
+        public bool SupportsFormatSelection => true;
+        public bool SupportsFormatOnReturn => true;
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {

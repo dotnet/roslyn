@@ -28,22 +28,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(FormatOnSemicolonCheckBox, FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp);
             BindToOption(FormatOnReturnCheckBox, FeatureOnOffOptions.AutoFormattingOnReturn, LanguageNames.CSharp);
             BindToOption(FormatOnPasteCheckBox, FeatureOnOffOptions.FormatOnPaste, LanguageNames.CSharp);
+            SetNestedCheckboxesEnabled();
         }
 
         private void FormatWhenTypingCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            FormatOnCloseBraceCheckBox.IsEnabled = true;
-            FormatOnSemicolonCheckBox.IsEnabled = true;
             FormatOnCloseBraceCheckBox.IsChecked = true;
             FormatOnSemicolonCheckBox.IsChecked = true;
+
+            SetNestedCheckboxesEnabled();
         }
 
         private void FormatWhenTypingCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            FormatOnCloseBraceCheckBox.IsEnabled = false;
-            FormatOnSemicolonCheckBox.IsEnabled = false;
             FormatOnCloseBraceCheckBox.IsChecked = false;
             FormatOnSemicolonCheckBox.IsChecked = false;
+
+            SetNestedCheckboxesEnabled();
+        }
+
+        private void SetNestedCheckboxesEnabled()
+        {
+            FormatOnCloseBraceCheckBox.IsEnabled = FormatWhenTypingCheckBox.IsChecked == true;
+            FormatOnSemicolonCheckBox.IsEnabled = FormatWhenTypingCheckBox.IsChecked == true;
         }
     }
 }
