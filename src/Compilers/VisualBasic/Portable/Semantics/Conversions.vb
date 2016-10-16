@@ -301,6 +301,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WideningNumeric = [Widening] Or Numeric
         NarrowingNumeric = [Narrowing] Or Numeric
 
+        ''' <summary>
+        ''' Can be combined with <see cref="ConversionKind.Tuple"/> to indicate that the underlying value conversion is a predefined tuple conversion
+        ''' </summary>
         Nullable = 1 << 4
         WideningNullable = [Widening] Or Nullable
         NarrowingNullable = [Narrowing] Or Nullable
@@ -384,9 +387,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         InterpolatedString = [Widening] Or (1 << 25)
 
         ' Tuple conversions
+        ''' <summary>
+        ''' Can be combined with <see cref="ConversionKind.Nullable"/> to indicate that the underlying value conversion is a predefined tuple conversion
+        ''' </summary>
         Tuple = (1 << 26)
         WideningTuple = [Widening] Or Tuple
         NarrowingTuple = [Narrowing] Or Tuple
+        WideningNullableTuple = WideningNullable Or Tuple
+        NarrowingNullableTuple = NarrowingNullable Or Tuple
 
         ' Bits 28 - 31 are reserved for failure flags.
     End Enum
@@ -1225,8 +1233,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If destination.IsNullableType Then
                 destination = destination.GetNullableUnderlyingType()
 
-                wideningConversion = ConversionKind.WideningNullable
-                narrowingConversion = ConversionKind.NarrowingNullable
+                wideningConversion = ConversionKind.WideningNullableTuple
+                narrowingConversion = ConversionKind.NarrowingNullableTuple
             End If
 
             ' tuple literal converts to its inferred type 
@@ -1246,8 +1254,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' check arguments against flattened list of target element types 
             Dim result As ConversionKind = wideningConversion
+
+            ' Note, as an optimization this local may accumulate flags other than ConversionKind.InvolvesNarrowingFromNumericConstant,
+            ' but we are going to pay attention only to that bit at the end.
             Dim involvesNarrowingFromNumericConstant As ConversionKind = Nothing
             Dim allNarrowingIsFromNumericConstant = ConversionKind.InvolvesNarrowingFromNumericConstant
+
+            Dim maxDelegateRelaxationLevel = ConversionKind.DelegateRelaxationLevelNone
 
             For i As Integer = 0 To arguments.Length - 1
                 Dim argument = arguments(i)
@@ -1263,6 +1276,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing 'ConversionKind.NoConversion
                 End If
 
+                Dim elementDelegateRelaxationLevel = elementConversion And ConversionKind.DelegateRelaxationLevelMask
+                If elementDelegateRelaxationLevel > maxDelegateRelaxationLevel Then
+                    maxDelegateRelaxationLevel = elementDelegateRelaxationLevel
+                End If
+
                 involvesNarrowingFromNumericConstant = involvesNarrowingFromNumericConstant Or elementConversion
 
                 If IsNarrowingConversion(elementConversion) Then
@@ -1271,8 +1289,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Return result Or
-                   (involvesNarrowingFromNumericConstant And allNarrowingIsFromNumericConstant And ConversionKind.InvolvesNarrowingFromNumericConstant)
+            Debug.Assert((allNarrowingIsFromNumericConstant And Not ConversionKind.InvolvesNarrowingFromNumericConstant) = 0)
+            Return result Or (involvesNarrowingFromNumericConstant And allNarrowingIsFromNumericConstant) Or maxDelegateRelaxationLevel
         End Function
 
         Private Shared Function ClassifyArrayInitialization(source As BoundArrayInitialization, targetElementType As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
@@ -1382,12 +1400,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return conv.Key And (Not ConversionKind.Identity) Or (ConversionKind.Widening Or ConversionKind.Lambda) Or conversionKindExpressionTree
                     ElseIf NoConversion(conv.Key) Then
                         Return conv.Key Or (ConversionKind.Lambda Or ConversionKind.FailedDueToQueryLambdaBodyMismatch) Or conversionKindExpressionTree
-                    ElseIf conv.Value IsNot Nothing Then
-                        Debug.Assert((conv.Key And ConversionKind.UserDefined) <> 0)
-                        Return (conv.Key And (Not (ConversionKind.UserDefined Or ConversionKind.Nullable))) Or ConversionKind.Lambda Or conversionKindExpressionTree
                     Else
-                        Debug.Assert((conv.Key And ConversionKind.UserDefined) = 0)
-                        Return conv.Key Or ConversionKind.Lambda Or conversionKindExpressionTree
+                        Debug.Assert(((conv.Key And ConversionKind.UserDefined) <> 0) = (conv.Value IsNot Nothing))
+                        Return (conv.Key And (Not (ConversionKind.UserDefined Or ConversionKind.Nullable Or ConversionKind.Tuple))) Or ConversionKind.Lambda Or conversionKindExpressionTree
                     End If
                 End If
             ElseIf invoke.ReturnType.IsSameTypeIgnoringAll(source.LambdaSymbol.ReturnType) Then
@@ -3464,6 +3479,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            Const preserveConversionKindFromUnderlyingPredefinedConversion As ConversionKind = ConversionKind.Tuple Or ConversionKind.DelegateRelaxationLevelMask
+
             If srcIsNullable Then
 
                 Dim conv As ConversionKind
@@ -3472,19 +3489,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     'From a type T? to a type S?
                     conv = ClassifyPredefinedConversion(srcUnderlying, dstUnderlying, useSiteDiagnostics)
                     Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
+                    Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
 
                     If IsWideningConversion(conv) Then
                         'From a type T? to a type S?, where there is a widening conversion from the type T to the type S.
-                        Return ConversionKind.WideningNullable
+                        Return ConversionKind.WideningNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                     ElseIf IsNarrowingConversion(conv) Then
                         'From a type T? to a type S?, where there is a narrowing conversion from the type T to the type S.
-                        Return ConversionKind.NarrowingNullable
+                        Return ConversionKind.NarrowingNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                     End If
 
                 ElseIf IsInterfaceType(destination) Then
                     ' !!! Note that the spec doesn't mention anything about variance, but 
                     ' !!! it appears to be taken into account by Dev10 compiler.
                     conv = ClassifyDirectCastConversion(srcUnderlying, destination, useSiteDiagnostics)
+                    Debug.Assert((conv And ConversionKind.Tuple) = 0)
 
                     If IsWideningConversion(conv) Then
                         'From a type T? to an interface type that the type T implements.
@@ -3497,9 +3516,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf srcUnderlying.IsSameTypeIgnoringAll(destination) Then
                     'From a type T? to a type T.
                     Return ConversionKind.NarrowingNullable
-                ElseIf ConversionExists(ClassifyPredefinedConversion(srcUnderlying, destination, useSiteDiagnostics)) Then
-                    'From a type S? to a type T, where there is a conversion from the type S to the type T.
-                    Return ConversionKind.NarrowingNullable
+                Else
+                    conv = ClassifyPredefinedConversion(srcUnderlying, destination, useSiteDiagnostics)
+                    Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
+
+                    If ConversionExists(conv) Then
+                        'From a type S? to a type T, where there is a conversion from the type S to the type T.
+                        Return ConversionKind.NarrowingNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
+                    End If
                 End If
 
             Else
@@ -3513,13 +3537,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim conv = ClassifyPredefinedConversion(source, dstUnderlying, useSiteDiagnostics)
                 Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
+                Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
 
                 If IsWideningConversion(conv) Then
                     'From a type T to a type S?, where there is a widening conversion from the type T to the type S.
-                    Return ConversionKind.WideningNullable
+                    Return ConversionKind.WideningNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                 ElseIf IsNarrowingConversion(conv) Then
                     'From a type T to a type S?, where there is a narrowing conversion from the type T to the type S.
-                    Return ConversionKind.NarrowingNullable
+                    Return ConversionKind.NarrowingNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                 End If
 
             End If
@@ -3545,6 +3570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' check arguments against flattened list of target element types 
             Dim result As ConversionKind = ConversionKind.WideningTuple
+            Dim maxDelegateRelaxationLevel = ConversionKind.DelegateRelaxationLevelNone
 
             For i As Integer = 0 To sourceElementTypes.Length - 1
                 Dim argumentType = sourceElementTypes(i)
@@ -3560,12 +3586,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing 'ConversionKind.NoConversion
                 End If
 
+                Debug.Assert((elementConversion And ConversionKind.InvolvesNarrowingFromNumericConstant) = 0)
+                Dim elementDelegateRelaxationLevel = elementConversion And ConversionKind.DelegateRelaxationLevelMask
+                If elementDelegateRelaxationLevel > maxDelegateRelaxationLevel Then
+                    maxDelegateRelaxationLevel = elementDelegateRelaxationLevel
+                End If
+
                 If IsNarrowingConversion(elementConversion) Then
                     result = ConversionKind.NarrowingTuple
                 End If
             Next
 
-            Return result
+            Return result Or maxDelegateRelaxationLevel
         End Function
 
         Public Shared Function ClassifyStringConversion(source As TypeSymbol, destination As TypeSymbol) As ConversionKind
