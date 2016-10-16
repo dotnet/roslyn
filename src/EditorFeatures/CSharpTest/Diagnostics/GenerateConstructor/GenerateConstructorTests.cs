@@ -3089,5 +3089,16 @@ withScriptOption: true);
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
 withScriptOption: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(13749, "https://github.com/dotnet/roslyn/issues/13749")]
+        public async Task Support_Readonly_Properties()
+        {
+            await TestAsync(
+@"class C { public int Prop { get ; } } class P { static void M ( ) { var prop = 42 ; var c = new [|C|] ( prop ) ; } } ",
+@"class C { public C ( int prop ) { Prop = prop ; } public int Prop { get ; } } class P { static void M ( ) { var prop = 42 ; var c = new C ( prop ) ; } } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
     }
 }
