@@ -94,6 +94,11 @@
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="FeaturesResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FeaturesResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallNugetPackageOperation.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
@@ -372,11 +377,6 @@
     <Compile Include="EditAndContinue\StateMachineKind.cs" />
     <Compile Include="EditAndContinue\TraceLog.cs" />
     <Compile Include="ExtractMethod\ExtractMethodOptionsProvider.cs" />
-    <Compile Include="FeaturesResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>FeaturesResources.resx</DependentUpon>
-    </Compile>
     <Compile Include="GenerateMember\GenerateConstructor\GenerateConstructorHelpers.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\AbstractGenerateConversionService.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\AbstractGenerateConversionService.State.cs" />

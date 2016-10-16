@@ -83,6 +83,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
+            public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";
             public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
             public const string CodeActionsUseFrameworkType = "CodeActions.UseFrameworkType";
