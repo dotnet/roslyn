@@ -23,7 +23,7 @@
         <dependency id="System.IO.FileSystem" version="$SystemIOFileSystemVersion$" />
         <dependency id="System.Net.Sockets" version="$SystemNetSocketsVersion$" />
         <dependency id="System.Runtime.Loader" version="$SystemRuntimeLoaderVersion$" />
-        <dependency id="System.Threading.Thread" version="$SystemThreadThreadVersion$" />
+        <dependency id="System.Threading.Thread" version="$SystemThreadingThreadVersion$" />
       </group>
     </dependencies>
   </metadata>
