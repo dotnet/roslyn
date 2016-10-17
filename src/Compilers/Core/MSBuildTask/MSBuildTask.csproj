@@ -46,6 +46,7 @@
       <Link>DesktopBuildClient.cs</Link>
     </Compile>
     <Compile Include="CanonicalError.cs" />
+    <Compile Include="ValidateBootstrap.cs" />
     <Compile Include="CommandLineBuilderExtension.cs" />
     <Compile Include="Csc.cs" />
     <Compile Include="Csi.cs" />

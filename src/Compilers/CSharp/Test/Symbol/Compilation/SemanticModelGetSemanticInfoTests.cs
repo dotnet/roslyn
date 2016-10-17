@@ -3837,7 +3837,7 @@ class D {
 
             Assert.Null(semanticInfo.Symbol);
 
-            // Should bind to "field" with a candidateReason (not a typeornamespace>)Skip:
+            // Should bind to "field" with a candidateReason (not a typeornamespace>)
             Assert.NotEqual(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.NotEqual(0, semanticInfo.CandidateSymbols.Length);
 

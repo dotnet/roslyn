@@ -1719,6 +1719,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3 = 37278
         ERR_InterfaceInheritedTwiceWithDifferentTupleNames4 = 37279
 
+        ERR_NewWithTupleTypeSyntax = 37280
+        ERR_PredefinedValueTupleTypeMustBeStruct = 37281
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001

@@ -65,6 +65,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
     <NuGetPackageToIncludeInVsix Include="System.Linq.Parallel" />
     <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
+    <NuGetPackageToIncludeInVsix Include="System.Reflection" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
     <NuGetPackageToIncludeInVsix Include="System.Runtime.InteropServices.RuntimeInformation" />
     <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />

@@ -214,11 +214,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(expression, binder);
             }
 
-            // May be binding an expression in a context that doesn't have a LocalScopeBinder in the chain.
-            return new LocalScopeBinder(binder);
+            return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
-        private Binder GetSpeculativeBinderForAttribute(int position)
+        private Binder GetSpeculativeBinderForAttribute(int position, AttributeSyntax attribute)
         {
             position = CheckAndAdjustPositionForSpeculativeAttribute(position);
 
@@ -228,8 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // May be binding an expression in a context that doesn't have a LocalScopeBinder in the chain.
-            return new LocalScopeBinder(binder);
+            return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
         }
 
         private static BoundExpression GetSpeculativelyBoundExpressionHelper(Binder binder, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, DiagnosticBag diagnostics)
@@ -396,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(attribute));
             }
 
-            binder = this.GetSpeculativeBinderForAttribute(position);
+            binder = this.GetSpeculativeBinderForAttribute(position, attribute);
             if (binder == null)
             {
                 return null;
@@ -2393,7 +2391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckModelAndSyntaxNodeToSpeculate(attribute);
 
-            var binder = GetSpeculativeBinderForAttribute(position);
+            var binder = GetSpeculativeBinderForAttribute(position, attribute);
             if (binder == null)
             {
                 speculativeModel = null;

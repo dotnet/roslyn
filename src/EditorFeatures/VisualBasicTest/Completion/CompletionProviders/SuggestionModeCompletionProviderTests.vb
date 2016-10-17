@@ -350,6 +350,30 @@ End Namespace
             Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TupleType() As Task
+            Dim markup = <a>
+Class C
+    Sub M()
+        Dim t As (a$$, b)
+    End Sub
+End Class</a>
+
+            Await VerifyNotBuilderAsync(markup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TupleTypeAfterComma() As Task
+            Dim markup = <a>
+Class C
+    Sub M()
+        Dim t As (a, b$$)
+    End Sub
+End Class</a>
+
+            Await VerifyNotBuilderAsync(markup)
+        End Function
+
         Private Function VerifyNotBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTrigger? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
             Return VerifySuggestionModeWorkerAsync(markup, isBuilder:=False, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
         End Function

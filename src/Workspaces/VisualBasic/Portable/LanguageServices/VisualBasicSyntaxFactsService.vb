@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
@@ -1535,6 +1536,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfAwaitExpression
             Return DirectCast(node, AwaitExpressionSyntax).Expression
+        End Function
+
+        Public Function IsPossibleTupleContext(
+            syntaxTree As SyntaxTree,
+            position As Integer,
+            cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsPossibleTupleContext
+
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Return syntaxTree.IsPossibleTupleContext(token, position)
         End Function
     End Class
 End Namespace

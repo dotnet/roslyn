@@ -119,12 +119,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             OutputToOutputWindow($"Getting project information - start");
             var start = DateTimeOffset.UtcNow;
-            // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-            var projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
-                $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
-                cancellationToken).ConfigureAwait(true);
-            AssertIsForeground();
 
+            var projectInfos = SpecializedCollections.EmptyReadOnlyDictionary<string, DeferredProjectInformation>();
+
+            // Note that `solutionConfig` may be null. For example: if the solution doesn't actually
+            // contain any projects.
+            if (solutionConfig != null)
+            {
+                // Capture the context so that we come back on the UI thread, and do the actual project creation there.
+                projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
+                    $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
+                    cancellationToken).ConfigureAwait(true);
+            }
+
+            AssertIsForeground();
             cancellationToken.ThrowIfCancellationRequested();
             OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
 
@@ -154,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var item in projectInfos)
             {
                 var targetPath = item.Value.TargetPath;
-                if (targetPath != null)
+                if (!string.IsNullOrEmpty(targetPath))
                 {
                     if (!builder.ContainsKey(targetPath))
                     {
@@ -196,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
-            var projectDirectory = Path.GetDirectoryName(projectFilename);
+            var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
                 projectInfo.CommandLineArguments,
                 projectDirectory,
@@ -204,8 +212,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
             // TODO: Should come from sln file?
-            var projectName = Path.GetFileNameWithoutExtension(projectFilename);
-            var projectId = GetOrCreateProjectIdForPath(projectFilename, projectName);
+            var projectName = PathUtilities.GetFileName(projectFilename, includeExtension: false);
+
+            // `AbstractProject` only sets the filename if it actually exists.  Since we want 
+            // our ids to match, mimic that behavior here.
+            var projectId = File.Exists(projectFilename)
+                ? GetOrCreateProjectIdForPath(projectFilename, projectName)
+                : GetOrCreateProjectIdForPath(projectName, projectName);
 
             // See if we've already created this project and we're now in a recursive call to
             // hook up a P2P ref.
@@ -217,14 +230,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
             var solution5 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution5;
-            var projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
+
+            // If the index is stale, it might give us a path that doesn't exist anymore that the 
+            // solution doesn't know about - be resilient to that case.
+            Guid projectGuid;
+            try
+            {
+                projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
+            }
+            catch (ArgumentException)
+            {
+                var message = $"Failed to get the project guid for '{projectFilename}' from the solution, using  random guid instead.";
+                Debug.Fail(message);
+                OutputToOutputWindow(message);
+                projectGuid = Guid.NewGuid();
+            }
+
+            // NOTE: If the indexing service fails for a project, it will give us an *empty*
+            // target path, which we aren't prepared to handle.  Instead, convert it to a *null*
+            // value, which we do handle.
+            var outputPath = projectInfo.TargetPath;
+            if (outputPath == string.Empty)
+            {
+                outputPath = null;
+            }
+
             var projectContext = workspaceProjectContextFactory.CreateProjectContext(
                 languageName,
                 projectName,
                 projectFilename,
                 projectGuid: projectGuid,
                 hierarchy: null,
-                binOutputPath: projectInfo.TargetPath);
+                binOutputPath: outputPath);
 
             projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
 
@@ -296,7 +333,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             foreach (var reference in commandLineArguments.AnalyzerReferences)
             {
-                projectContext.AddAnalyzerReference(reference.FilePath);
+                var path = reference.FilePath;
+                if (!PathUtilities.IsAbsolute(path))
+                {
+                    path = PathUtilities.CombineAbsoluteAndRelativePaths(
+                        projectDirectory,
+                        path);
+                }
+
+                projectContext.AddAnalyzerReference(path);
             }
 
             return (AbstractProject)projectContext;
@@ -304,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static string GetLanguageOfProject(string projectFilename)
         {
-            switch (Path.GetExtension(projectFilename))
+            switch (PathUtilities.GetExtension(projectFilename))
             {
                 case ".csproj":
                     return LanguageNames.CSharp;

@@ -1127,7 +1127,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.InitializerOpt != null)
             {
                 VisitRvalue(node.InitializerOpt); // analyze the expression
+
+                // byref assignment is also a potential write
+                if (node.LocalSymbol.RefKind != RefKind.None)
+                {
+                    WriteArgument(node.InitializerOpt, node.LocalSymbol.RefKind, method: null);
+                }
             }
+
             return null;
         }
 
@@ -1278,6 +1285,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < arguments.Length; i++)
                 {
                     RefKind refKind = refKindsOpt.Length <= i ? RefKind.None : refKindsOpt[i];
+
+                    // passing as a byref argument is also a potential write
                     if (refKind != RefKind.None)
                     {
                         WriteArgument(arguments[i], refKind, method);
@@ -1541,6 +1550,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitRvalue(node.ExpressionOpt);
+
+            // byref return is also a potential write
+            if (node.RefKind != RefKind.None)
+            {
+                WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
+            }
+
             _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return result;
@@ -1632,6 +1648,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitLvalue(node.Left);
             VisitRvalue(node.Right);
+
+            // byref assignment is also a potential write
+            if (node.RefKind != RefKind.None)
+            {
+                WriteArgument(node.Right, node.RefKind, method: null);
+            }
 
             return null;
         }

@@ -26,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overloads Shared Function Create(
             typeNameDecoder As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol),
             containingMethod As MethodSymbol,
-            sourceAssembly As AssemblySymbol,
             [alias] As [Alias]) As PlaceholderLocalSymbol
 
             Dim typeName = [alias].Type
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             CustomTypeInfo.Decode([alias].CustomTypeInfoId, [alias].CustomTypeInfo, dynamicFlags, tupleElementNames)
 
             If tupleElementNames IsNot Nothing Then
-                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, sourceAssembly, tupleElementNames.AsImmutable())
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNames.AsImmutable())
             End If
 
             Dim name = [alias].FullName
