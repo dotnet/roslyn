@@ -90,9 +90,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var span = textSpan.HasValue ? textSpan.Value : new TextSpan(0, root.FullSpan.Length);
+            var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
-            return Formatter.GetFormattedTextChanges(root, new TextSpan[] { formattingSpan }, document.Project.Solution.Workspace, options, cancellationToken);
+            return Formatter.GetFormattedTextChanges(root, 
+                SpecializedCollections.SingletonEnumerable(formattingSpan),
+                document.Project.Solution.Workspace, options, cancellationToken);
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -201,8 +203,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var formattingRules = this.GetFormattingRules(document, caretPosition);
 
             // first, find the token user just typed.
@@ -228,6 +228,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             }
 
             // don't attempt to format on close brace if autoformat on close brace feature is off, instead just smart indent
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             var autoFormattingCloseBraceOff =
                 !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) ||
                 !options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping);
