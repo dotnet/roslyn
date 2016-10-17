@@ -891,7 +891,8 @@ End Namespace",
 "Imports System.Collections.Generic
 Namespace N1
     Class Test
-        Private a As [|System.Collections.Generic.List(Of System.String()(,)(,,,))|]
+        Private a As [|System.Collections.Generic.List(Of System.String()(,)(,,,))
+|]
     End Class
 End Namespace",
 "Imports System.Collections.Generic
