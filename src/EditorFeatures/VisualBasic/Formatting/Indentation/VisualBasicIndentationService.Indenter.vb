@@ -305,17 +305,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Private Function HasLinesBetween(lineNumber1 As Integer, lineNumber2 As Integer) As Boolean
                 Return lineNumber1 + 1 < lineNumber2
             End Function
-
-            Private Function GetCurrentPositionNotBelongToEndOfFileToken(position As Integer) As Integer
-                If Not Tree.HasCompilationUnitRoot Then
-                    Return position
-                End If
-
-                Dim compilationUnit = DirectCast(Tree.GetRoot(CancellationToken), CompilationUnitSyntax)
-                Debug.Assert(compilationUnit IsNot Nothing)
-
-                Return Math.Min(compilationUnit.EndOfFileToken.FullSpan.Start, position)
-            End Function
         End Class
     End Class
 End Namespace

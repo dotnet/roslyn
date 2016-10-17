@@ -210,6 +210,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             }
 
             protected abstract bool HasPreprocessorCharacter(TextLine currentLine);
+
+            protected int GetCurrentPositionNotBelongToEndOfFileToken(int position)
+            {
+                var compilationUnit = Tree.GetRoot(CancellationToken) as ICompilationUnitSyntax;
+                if (compilationUnit == null)
+                {
+                    return position;
+                }
+
+                return Math.Min(compilationUnit.EndOfFileToken.FullSpan.Start, position);
+            }
         }
     }
 }

@@ -466,17 +466,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 Contract.Assert(SyntaxFacts.GetText(SyntaxKind.HashToken).Length == 1);
                 return trimmedText[0] == SyntaxFacts.GetText(SyntaxKind.HashToken)[0];
             }
-
-            private int GetCurrentPositionNotBelongToEndOfFileToken(int position)
-            {
-                var compilationUnit = Tree.GetRoot(CancellationToken) as CompilationUnitSyntax;
-                if (compilationUnit == null)
-                {
-                    return position;
-                }
-
-                return Math.Min(compilationUnit.EndOfFileToken.FullSpan.Start, position);
-            }
         }
     }
 }
