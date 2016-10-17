@@ -291,6 +291,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var groupClause = (GroupClauseSyntax)node;
                     return TryCreateSpanForNode(groupClause.GroupExpression, position);
 
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)node;
+                    return (localFunction.Body != null) ?
+                        TryCreateSpanForNode(localFunction.Body, position) :
+                        TryCreateSpanForNode(localFunction.ExpressionBody.Expression, position);
+
                 default:
                     var expression = node as ExpressionSyntax;
                     if (expression != null)

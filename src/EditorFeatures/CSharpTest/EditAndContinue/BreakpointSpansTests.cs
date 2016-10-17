@@ -4573,5 +4573,92 @@ $$    public ~C() => [|x = 1|];
     public ~C() => [|x = 1|];$$
 }");
         }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_1()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+$$        int Local(object[] a)
+        [|{|]
+            return a.Length;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_2()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+        int Local(object[] a)$$
+        [|{|]
+            return a.Length;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_3()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+        int Local(object[] a)
+$$        [|{|]
+            return a.Length;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_4()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+$$        int Local(object[] a) => [|a.Length|];
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_5()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+        int Local(object$$[] a) => [|a.Length|];
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_6()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+        int Local(object[] a) => [|a.Length|];$$
+    }
+}");
+        }
     }
 }
