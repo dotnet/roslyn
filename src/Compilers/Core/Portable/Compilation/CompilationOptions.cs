@@ -339,6 +339,11 @@ namespace Microsoft.CodeAnalysis
                 && object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
         }
 
+        /// <summary>
+        /// Gets the source language ("C#" or "Visual Basic").
+        /// </summary>
+        public abstract string Language { get; }
+
         internal bool EnableEditAndContinue
         {
             get

@@ -190,49 +190,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        private string GetLanguageName(object value)
-        {
-            // for given object, we need to figure out which language the object belong to. 
-            // we can't blindly get language service since that will bring in language specific dlls.
-            foreach (var languageName in _workspaceServices.SupportedLanguages)
-            {
-                IOptionsSerializationService service;
-                if (_lazyLanguageSerializationService.TryGetValue(languageName, out service))
-                {
-                    if (service.CanSerialize(value))
-                    {
-                        return languageName;
-                    }
-
-                    continue;
-                }
-
-                // this should be only reached once per language value actually belong to
-                var mefWorkspaceServices = _workspaceServices as MefWorkspaceServices;
-                if (mefWorkspaceServices != null)
-                {
-                    MefLanguageServices languageServices;
-                    if (!mefWorkspaceServices.TryGetLanguageServices(languageName, out languageServices))
-                    {
-                        // this is a bit fragile since it depends on implementation detail but there is no other way
-                        // to figure out which language a type belong to without loading other languages
-                        //
-                        // if a language's language services is not created yet, then it means that language is not loaded
-                        continue;
-                    }
-                }
-
-                service = GetOptionsSerializationService(languageName);
-                if (service.CanSerialize(value))
-                {
-                    return languageName;
-                }
-            }
-
-            // shouldn't reach here
-            throw ExceptionUtilities.UnexpectedValue(value);
-        }
-
         private IOptionsSerializationService GetOptionsSerializationService(string languageName)
         {
             return _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<IOptionsSerializationService>());
