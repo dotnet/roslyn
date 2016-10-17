@@ -73,7 +73,10 @@
     <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
+    <Compile Include="InlineTypeCheck\CSharpInlineTypeCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.InlineDeclarationFixAllProvider.cs" />
+    <Compile Include="InlineTypeCheck\CSharpInlineTypeCheckAnalyzer.cs" />
+    <Compile Include="InlineTypeCheck\CSharpInlineTypeCheckCodeFixProvider.cs" />
     <Compile Include="Structure\Providers\BlockSyntaxStructureProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />

@@ -489,6 +489,9 @@
   <data name="Prefer_conditional_delegate_call" xml:space="preserve">
     <value>Prefer conditional delegate call</value>
   </data>
+  <data name="Prefer_inlined_type_check" xml:space="preserve">
+    <value>Prefer inlined type check</value>
+  </data>
   <data name="Prefer_block_body" xml:space="preserve">
     <value>Prefer block body</value>
   </data>

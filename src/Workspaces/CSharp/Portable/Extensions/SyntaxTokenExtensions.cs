@@ -141,8 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static SyntaxToken WithoutTrivia(
-            this SyntaxToken token,
-            params SyntaxTrivia[] trivia)
+            this SyntaxToken token)
         {
             if (!token.LeadingTrivia.Any() && !token.TrailingTrivia.Any())
             {
