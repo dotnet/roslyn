@@ -12,8 +12,8 @@ set MSBuildAdditionalCommandLineArgs=/nologo /m /nodeReuse:false /consoleloggerp
 
 REM Github pull request titles are unescaped, so we need to run another program to
 REM do the escaping and replace it.
-for /f "tokens=*" %%i in ('csi .\build\scripts\escape_pr_title.csx') do set "ghprbPullTitle=%%i"
-echo "PULL REQUEST TITLE: %ghprbPullTitle%"
+REM for /f "tokens=*" %%i in ('csi .\build\scripts\escape_pr_title.csx') do set "ghprbPullTitle=%%i"
+REM echo "PULL REQUEST TITLE: %ghprbPullTitle%"
 
 :ParseArguments
 if "%1" == "" goto :DoneParsing
