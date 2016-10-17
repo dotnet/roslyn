@@ -1560,7 +1560,7 @@ DoneWithDiagnostics:
 
         Private Function ReclassifyInterpolatedStringExpression(conversionSemantics As SyntaxKind, tree As SyntaxNode, convKind As ConversionKind, isExplicit As Boolean, node As BoundInterpolatedStringExpression, targetType As TypeSymbol, diagnostics As DiagnosticBag) As BoundExpression
 
-            If convKind = ConversionKind.InterpolatedString Then
+            If (convKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString Then
                 Debug.Assert(targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_IFormattable)) OrElse targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_FormattableString)))
                 Return New BoundConversion(tree, node, ConversionKind.InterpolatedString, False, isExplicit, targetType)
             End If
@@ -1579,7 +1579,7 @@ DoneWithDiagnostics:
 
             ' We have a successful tuple conversion rather than producing a separate conversion node 
             ' which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
-            Dim isNullableTupleConversion = (convKind = ConversionKind.WideningNullable) Or (convKind = ConversionKind.NarrowingNullable)
+            Dim isNullableTupleConversion = (convKind And ConversionKind.Nullable) <> 0
             Debug.Assert(Not isNullableTupleConversion OrElse destination.IsNullableType())
 
             Dim targetType = destination

@@ -126,13 +126,13 @@
   <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
   </data>
-  <data name="Automatically_format_block_on" xml:space="preserve">
+  <data name="Automatically_format_block_on_close_brace" xml:space="preserve">
     <value>Automatically format _block on }</value>
   </data>
   <data name="Automatically_format_on_paste" xml:space="preserve">
     <value>Automatically format on _paste</value>
   </data>
-  <data name="Automatically_format_statement_on" xml:space="preserve">
+  <data name="Automatically_format_statement_on_semicolon" xml:space="preserve">
     <value>Automatically format _statement on ;</value>
   </data>
   <data name="Place_members_in_anonymous_types_on_new_line" xml:space="preserve">
@@ -489,10 +489,22 @@
   <data name="Prefer_conditional_delegate_call" xml:space="preserve">
     <value>Prefer conditional delegate call</value>
   </data>
+  <data name="Prefer_pattern_matching_over_is_with_cast_check" xml:space="preserve">
+    <value>Prefer pattern matching over 'is' with 'cast' check</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_as_with_null_check" xml:space="preserve">
+    <value>Prefer pattern matching over 'as' with 'null' check</value>
+  </data>
   <data name="Prefer_block_body" xml:space="preserve">
     <value>Prefer block body</value>
   </data>
   <data name="Prefer_expression_body" xml:space="preserve">
     <value>Prefer expression body</value>
+  </data>
+  <data name="Automatically_format_on_return" xml:space="preserve">
+    <value>Automatically format on return</value>
+  </data>
+  <data name="Automatically_format_when_typing" xml:space="preserve">
+    <value>Automatically format when typing</value>
   </data>
 </root>

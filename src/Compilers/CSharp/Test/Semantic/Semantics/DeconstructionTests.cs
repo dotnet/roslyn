@@ -637,9 +637,6 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "M M 43", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-                //     static int i;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
                 );
         }
 
@@ -1877,10 +1874,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),
                 // (8,20): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int x = 0, y = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 20),
-                // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-                //     static int i;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 20)
                 );
         }
 
@@ -1999,9 +1993,6 @@ class C
 ";
             var comp = CompileAndVerify(source, expectedOutput: "42");
             comp.VerifyDiagnostics(
-                // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-                //     static int i;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
                 );
         }
 

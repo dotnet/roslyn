@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Optimize for most common case - no sizes and all dimensions are zero lower bound.
             If sizes.IsDefaultOrEmpty AndAlso lowerBounds.IsDefault Then
-                Return New MDArray(elementType,
+                Return New MDArrayNoSizesOrBounds(elementType,
                                customModifiers,
                                rank,
                                systemArray)
@@ -363,6 +363,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Hash.Combine(current, hashCode)
         End Function
 
+        Friend MustOverride Function WithElementType(elementType As TypeSymbol) As ArrayTypeSymbol
+
 #Region "Use-Site Diagnostics"
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
@@ -486,8 +488,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         newArray = New SZArray(newElementType.Type, newElementType.CustomModifiers, _systemArray, newInterfaces)
 
-                    ElseIf Me.HasDefaultSizesAndLowerBounds
-                        newArray = New MDArray(newElementType.Type, newElementType.CustomModifiers, Me.Rank, _systemArray)
+                    ElseIf Me.HasDefaultSizesAndLowerBounds Then
+                        newArray = New MDArrayNoSizesOrBounds(newElementType.Type, newElementType.CustomModifiers, Me.Rank, _systemArray)
 
                     Else
                         newArray = New MDArrayWithSizesAndBounds(newElementType.Type, newElementType.CustomModifiers, Me.Rank, Me.Sizes, Me.LowerBounds, _systemArray)
@@ -538,12 +540,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return True
                 End Get
             End Property
+
+            Friend Overrides Function WithElementType(newElementType As TypeSymbol) As ArrayTypeSymbol
+                Dim newInterfaces As ImmutableArray(Of NamedTypeSymbol) = _interfaces
+                If newInterfaces.Length > 0 Then
+                    newInterfaces = newInterfaces.SelectAsArray(Function(i) i.OriginalDefinition.Construct(newElementType))
+                End If
+
+                Return New SZArray(newElementType, CustomModifiers, BaseTypeNoUseSiteDiagnostics, newInterfaces)
+            End Function
         End Class
 
         ''' <summary>
         ''' Represents MDARRAY - multi-dimensional array (possibly of rank 1)
         ''' </summary>
-        Private Class MDArray
+        Private MustInherit Class MDArray
             Inherits SZOrMDArray
 
             Private ReadOnly _rank As Integer
@@ -573,11 +584,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+        End Class
+
+        Private NotInheritable Class MDArrayNoSizesOrBounds
+            Inherits MDArray
+
+            Public Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, systemArray As NamedTypeSymbol)
+                MyBase.New(elementType, customModifiers, rank, systemArray)
+            End Sub
+
+            Friend Overrides Function WithElementType(newElementType As TypeSymbol) As ArrayTypeSymbol
+                Return New MDArrayNoSizesOrBounds(newElementType, CustomModifiers, Rank, BaseTypeNoUseSiteDiagnostics)
+            End Function
+
             Friend Overrides ReadOnly Property HasDefaultSizesAndLowerBounds As Boolean
                 Get
                     Return True
                 End Get
             End Property
+
         End Class
 
         Private NotInheritable Class MDArrayWithSizesAndBounds
@@ -619,6 +644,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End Get
             End Property
+
+            Friend Overrides Function WithElementType(newElementType As TypeSymbol) As ArrayTypeSymbol
+                Return New MDArrayWithSizesAndBounds(newElementType, CustomModifiers, Rank, Sizes, LowerBounds, BaseTypeNoUseSiteDiagnostics)
+            End Function
         End Class
 
     End Class

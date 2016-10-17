@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseThrowExpressionDiagnosticId = "IDE0016";
         public const string UseObjectInitializerDiagnosticId = "IDE0017";
         public const string InlineDeclarationDiagnosticId = "IDE0018";
+        public const string InlineAsTypeCheckId = "IDE0019";
+        public const string InlineIsTypeCheckId = "IDE0020";
 
         public const string UseExpressionBodyForConstructorsDiagnosticId = "IDE0020";
         public const string UseExpressionBodyForMethodsDiagnosticId = "IDE0021";

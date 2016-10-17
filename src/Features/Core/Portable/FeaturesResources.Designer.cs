@@ -3075,6 +3075,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to use pattern matching.
+        /// </summary>
+        internal static string Use_pattern_matching {
+            get {
+                return ResourceManager.GetString("Use_pattern_matching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
         /// </summary>
         internal static string Use_throw_expression {

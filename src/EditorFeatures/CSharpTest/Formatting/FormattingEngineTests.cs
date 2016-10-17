@@ -1166,6 +1166,160 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AutoIndentCloseBraceWhenFormatOnTypingIsOff()
+        {
+            var code = @"namespace N
+{
+    class C
+    {
+             // improperly indented code
+             int x = 10;
+        }$$
+}
+";
+
+            var expected = @"namespace N
+{
+    class C
+    {
+             // improperly indented code
+             int x = 10;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task KeepTabsInCommentsWhenFormattingIsOff()
+        {
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // not remove these as we are explicitly testing tab behavior.
+            var code = 
+@"class Program
+{
+    static void Main()
+    {
+        return;		/* Comment preceded by tabs */		// This one too
+        }$$
+}";
+
+            var expected =
+@"class Program
+{
+    static void Main()
+    {
+        return;		/* Comment preceded by tabs */		// This one too
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task DoNotKeepTabsInCommentsWhenFormattingIsOn()
+        {
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // not remove these as we are explicitly testing tab behavior.
+            var code = @"class Program
+{
+    static void Main()
+    {
+        return;		/* Comment preceded by tabs */		// This one too
+        }$$
+}";
+
+            var expected =
+@"class Program
+{
+    static void Main()
+    {
+        return;     /* Comment preceded by tabs */        // This one too
+    }
+}";
+
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task DoNotFormatStatementIfSemicolonOptionIsOff()
+        {
+            var code = 
+                @"namespace N
+{
+    class C
+    {
+        int x   =   10     ;$$
+    }
+}
+";
+
+            var expected =
+@"namespace N
+{
+    class C
+    {
+        int x   =   10     ;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task DoNotFormatStatementIfTypingOptionIsOff()
+        {
+            var code =
+                @"namespace N
+{
+    class C
+    {
+        int x   =   10     ;$$
+    }
+}
+";
+
+            var expected =
+@"namespace N
+{
+    class C
+    {
+        int x   =   10     ;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
         [WpfFact, WorkItem(4435, "https://github.com/dotnet/roslyn/issues/4435")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task OpenCurlyNotFormattedIfNotAtStartOfLine()

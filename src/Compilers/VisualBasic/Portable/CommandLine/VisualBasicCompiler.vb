@@ -162,11 +162,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             consoleOutput.WriteLine()
         End Sub
 
-        Protected Overrides Sub PrintError(Diagnostic As DiagnosticInfo, consoleOutput As TextWriter)
-            consoleOutput.Write(VisualBasicCompiler.VbcCommandLinePrefix)
-            consoleOutput.WriteLine(Diagnostic.ToString(Culture))
-        End Sub
-
         Friend Overrides Function SuppressDefaultResponseFile(args As IEnumerable(Of String)) As Boolean
             For Each arg In args
                 Select Case arg.ToLowerInvariant

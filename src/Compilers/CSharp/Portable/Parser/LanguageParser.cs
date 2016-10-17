@@ -11182,7 +11182,8 @@ tryAgain:
                         nodes.Add(parameter);
 
                         // additional parameters
-                        while (true)
+                        int tokenProgress = -1;
+                        while(IsMakingProgress(ref tokenProgress))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                             {
@@ -11258,6 +11259,7 @@ tryAgain:
             var pk = this.PeekToken(1).Kind;
             if (isRefOrOutOrParams
                 || (pk != SyntaxKind.CommaToken && pk != SyntaxKind.CloseParenToken && (hasTypes || isFirst))
+                || (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && pk == SyntaxKind.CloseParenToken && (hasTypes || isFirst))
                 || IsPredefinedType(this.CurrentToken.Kind))
             {
                 if (isRefOrOutOrParams)

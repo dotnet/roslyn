@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim currentFrame = compilation.GetMethod(moduleVersionId, methodHandle)
             Debug.Assert(currentFrame IsNot Nothing)
-            Dim symbolProvider = New VisualBasicEESymbolProvider(compilation.SourceAssembly, DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
+            Dim symbolProvider = New VisualBasicEESymbolProvider(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
 
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle)

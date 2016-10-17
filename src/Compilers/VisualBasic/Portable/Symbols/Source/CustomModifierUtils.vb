@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 sourceMethod As MethodSymbol,
                                 destinationTypeParameters As ImmutableArray(Of TypeSymbol),
                                 <[In], Out> ByRef destinationReturnType As TypeSymbol,
-                                containingAssembly As AssemblySymbol,
                                 <[In], Out> ByRef parameters As ImmutableArray(Of ParameterSymbol))
 
             Debug.Assert(sourceMethod IsNot Nothing)
@@ -36,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' we want to retain the original (incorrect) return type to avoid hiding the return type
             ' given in source.
             If destinationReturnType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptionsForVB) Then
-                destinationReturnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, destinationReturnType, containingAssembly)
+                destinationReturnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, destinationReturnType)
             End If
 
         End Sub
@@ -44,14 +43,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' sourceType has the custom modifiers
         ''' </summary>
-        Friend Shared Function CopyTypeCustomModifiers(sourceType As TypeSymbol, destinationType As TypeSymbol, containingAssembly As AssemblySymbol) As TypeSymbol
+        Friend Shared Function CopyTypeCustomModifiers(sourceType As TypeSymbol, destinationType As TypeSymbol) As TypeSymbol
             Dim resultType As TypeSymbol
 
             Debug.Assert(sourceType.IsSameType(destinationType, TypeCompareKind.AllIgnoreOptionsForVB))
 
             If destinationType.ContainsTuple() AndAlso Not sourceType.IsSameType(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
                 Dim names As ImmutableArray(Of String) = VisualBasicCompilation.TupleNamesEncoder.Encode(destinationType)
-                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(sourceType, containingAssembly, names)
+                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(sourceType, names)
             Else
                 resultType = sourceType
             End If
@@ -110,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If thisParamType.ContainsTuple() AndAlso Not overriddenParam.Type.IsSameType(thisParamType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
                     Dim names As ImmutableArray(Of String) = VisualBasicCompilation.TupleNamesEncoder.Encode(thisParamType)
-                    overriddenParamType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(overriddenParamType, thisParamType.ContainingAssembly, names)
+                    overriddenParamType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(overriddenParamType, names)
                 End If
 
                 thisParam = DirectCast(thisParam, SourceParameterSymbolBase).WithTypeAndCustomModifiers(

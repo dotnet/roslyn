@@ -279,10 +279,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (x2, x3)));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2, x3))").WithLocation(11, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2, x3))").WithLocation(11, 19)
                 );
 
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
@@ -320,10 +317,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (8,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1)").WithLocation(8, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1)").WithLocation(8, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -361,10 +355,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, x2: x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2: x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2: x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -402,10 +393,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (ref x1, x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (ref x1, x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (ref x1, x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -443,10 +431,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (x2)));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2))").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2))").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -484,10 +469,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var ((x1), x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var ((x1), x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var ((x1), x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -570,9 +552,6 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
 
             CompileAndVerify(compilation, expectedOutput: "123");
@@ -612,10 +591,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(ref var (x1, x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -694,9 +670,6 @@ public class Cls
                                                             options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
 
             CompileAndVerify(compilation, expectedOutput: "123");
@@ -739,10 +712,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (a: x2, b: x3)));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (a: x2, b: x3))").WithLocation(11, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (a: x2, b: x3))").WithLocation(11, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }

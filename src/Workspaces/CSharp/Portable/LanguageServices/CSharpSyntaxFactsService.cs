@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -1862,6 +1863,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
         {
             return ((AwaitExpressionSyntax)node).Expression;
+        }
+
+        public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            return syntaxTree.IsPossibleTupleContext(token, position);
         }
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter

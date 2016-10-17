@@ -98,11 +98,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.RelaxationLambdaOpt IsNot Nothing Then
                 returnValue = RewriteLambdaRelaxationConversion(node)
 
-            ElseIf node.ConversionKind = ConversionKind.InterpolatedString Then
+            ElseIf (node.ConversionKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString Then
                 returnValue = RewriteInterpolatedStringConversion(node)
 
-            ElseIf node.ConversionKind = ConversionKind.WideningTuple OrElse
-                node.ConversionKind = ConversionKind.NarrowingTuple Then
+            ElseIf (node.ConversionKind And ConversionKind.Tuple) <> 0 Then
                 returnValue = RewriteTupleConversion(node)
 
             Else

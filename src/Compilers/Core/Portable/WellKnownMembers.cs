@@ -333,14 +333,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
-                // System_Guid__Parse
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.System_Guid,                                                                            // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Guid,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-
                 // System_Type__GetTypeFromCLSID
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Type,                                                                            // DeclaringTypeId
@@ -2361,7 +2353,7 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Threading_Tasks_Task,
-                    
+
                 // System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Create
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T,                               // DeclaringTypeId
@@ -2859,7 +2851,7 @@ namespace Microsoft.CodeAnalysis
                 // System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames
                 (byte)MemberFlags.Constructor,                                                                                   // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_TupleElementNamesAttribute // DeclaringTypeId
-                                                        - WellKnownType.ExtSentinel),                             
+                                                        - WellKnownType.ExtSentinel),
                 0,                                                                                                               // Arity
                     1,                                                                                                           // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
@@ -2930,7 +2922,6 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_CLSCompliantAttribute__ctor
                 ".ctor",                                    // System_FlagsAttribute__ctor
                 ".ctor",                                    // System_Guid__ctor
-                "Parse",                                    // System_Guid__Parse
                 "GetTypeFromCLSID",                         // System_Type__GetTypeFromCLSID
                 "GetTypeFromHandle",                        // System_Type__GetTypeFromHandle
                 "Missing",                                  // System_Type__Missing

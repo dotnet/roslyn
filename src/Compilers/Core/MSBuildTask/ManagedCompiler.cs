@@ -476,14 +476,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 ?.GetMethod.Invoke(buildTask, parameters: null);
 
             if (inGac != false)
+            {
                 return null;
+            }
 
             var codeBase = (string)typeof(Assembly)
                 .GetTypeInfo()
                 .GetDeclaredProperty("CodeBase")
                 ?.GetMethod.Invoke(buildTask, parameters: null);
 
-            if (codeBase == null) return null;
+            if (codeBase == null)
+            {
+                return null;
+            }
 
             var uri = new Uri(codeBase);
 
@@ -499,15 +504,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     .GetDeclaredMethod("GetCallingAssembly")
                     ?.Invoke(null, null);
 
-                var location = (string)typeof(Assembly)
-                    .GetTypeInfo()
-                    .GetDeclaredProperty("Location")
-                    ?.GetMethod.Invoke(callingAssembly, parameters: null);
-
-                if (location == null) return null;
+                var location = Utilities.GetLocation(callingAssembly);
+                if (location == null)
+                {
+                    return null;
+                }
 
                 assemblyPath = location;
             }
+
             return Path.GetDirectoryName(assemblyPath);
         }
 
