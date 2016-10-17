@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
@@ -209,8 +210,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 return null;
             }
 
-            protected abstract bool HasPreprocessorCharacter(TextLine currentLine);
-
             protected int GetCurrentPositionNotBelongToEndOfFileToken(int position)
             {
                 var compilationUnit = Tree.GetRoot(CancellationToken) as ICompilationUnitSyntax;
@@ -220,6 +219,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 }
 
                 return Math.Min(compilationUnit.EndOfFileToken.FullSpan.Start, position);
+            }
+
+            protected bool HasPreprocessorCharacter(TextLine currentLine)
+            {
+                var text = currentLine.ToString();
+                Contract.Requires(!string.IsNullOrWhiteSpace(text));
+
+                var trimmedText = text.Trim();
+
+                return trimmedText[0] == '#';
             }
         }
     }

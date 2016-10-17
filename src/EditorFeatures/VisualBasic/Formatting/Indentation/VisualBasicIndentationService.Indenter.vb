@@ -75,16 +75,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 Return token.GetPreviousToken()
             End Function
 
-            Protected Overrides Function HasPreprocessorCharacter(currentLine As TextLine) As Boolean
-                Dim text = currentLine.ToString()
-                Contract.Assert(String.IsNullOrWhiteSpace(text) = False)
-
-                Dim trimmedText = text.Trim()
-
-                Contract.Assert(SyntaxFacts.GetText(SyntaxKind.HashToken).Length = 1)
-                Return trimmedText(0) = SyntaxFacts.GetText(SyntaxKind.HashToken)(0)
-            End Function
-
             Private Function GetIndentationBasedOnToken(token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult?
                 Dim sourceText = LineToBeIndented.Text
 

@@ -455,17 +455,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 // okay, looks like containing node is written over multiple lines, in that case, give same indentation as given token
                 return GetIndentationOfLine(givenTokenLine);
             }
-
-            protected override bool HasPreprocessorCharacter(TextLine currentLine)
-            {
-                var text = currentLine.ToString();
-                Contract.Requires(!string.IsNullOrWhiteSpace(text));
-
-                var trimmedText = text.Trim();
-
-                Contract.Assert(SyntaxFacts.GetText(SyntaxKind.HashToken).Length == 1);
-                return trimmedText[0] == SyntaxFacts.GetText(SyntaxKind.HashToken)[0];
-            }
         }
     }
 }
