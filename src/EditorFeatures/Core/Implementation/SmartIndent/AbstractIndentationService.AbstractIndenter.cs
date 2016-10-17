@@ -57,7 +57,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                          lastToken: default(SyntaxToken));
             }
 
-            public abstract IndentationResult? GetDesiredIndentation();
+            public IndentationResult? GetDesiredIndentation(Document document)
+            {
+                var indentStyle = OptionSet.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
+                if (indentStyle == FormattingOptions.IndentStyle.None)
+                {
+                    return null;
+                }
+
+                // find previous line that is not blank
+                var previousLine = GetPreviousNonBlankOrPreprocessorLine();
+
+                // it is beginning of the file, there is no previous line exists. 
+                // in that case, indentation 0 is our base indentation.
+                if (previousLine == null)
+                {
+                    return IndentFromStartOfLine(0);
+                }
+
+                // okay, now see whether previous line has anything meaningful
+                var lastNonWhitespacePosition = previousLine.Value.GetLastNonWhitespacePosition();
+                if (lastNonWhitespacePosition == null)
+                {
+                    return null;
+                }
+
+                // there is known parameter list "," parse bug. if previous token is "," from parameter list,
+                // FindToken will not be able to find them.
+                var token = Tree.GetRoot(CancellationToken).FindToken(lastNonWhitespacePosition.Value);
+                if (token.RawKind == 0 || indentStyle == FormattingOptions.IndentStyle.Block)
+                {
+                    return GetIndentationOfLine(previousLine.Value);
+                }
+
+                return GetDesiredIndentationWorker(
+                    token, previousLine.Value, lastNonWhitespacePosition.Value);
+            }
+
+            protected abstract IndentationResult? GetDesiredIndentationWorker(
+                SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition);
 
             protected IndentationResult IndentFromStartOfLine(int addedSpaces)
             {

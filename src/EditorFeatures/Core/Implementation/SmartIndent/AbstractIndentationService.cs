@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             return formattingRules;
         }
 
-        public IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
+        public IndentationResult? GetDesiredIndentation(
+            Document document, int lineNumber, CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 root.SyntaxTree, lineToBeIndented, formattingRules,
                 documentOptions, cancellationToken);
 
-            return indenter.GetDesiredIndentation();
+            return indenter.GetDesiredIndentation(document);
         }
 
         protected abstract AbstractIndenter GetIndenter(
