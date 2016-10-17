@@ -23,7 +23,13 @@ namespace Roslyn.VisualStudio.Setup
             _redirectionAttribute = new ProvideBindingRedirectionAttribute
             {
                 AssemblyName = Path.GetFileNameWithoutExtension(fileName),
+<<<<<<< HEAD
                 OldVersionLowerBound = "0.0.0.0",
+=======
+                PublicKeyToken = "31BF3856AD364E35",
+                OldVersionLowerBound = "0.7.0.0",
+                OldVersionUpperBound = "2.0.0.0",
+>>>>>>> b0d067cb2f8b741088b927526f222f2956fcf09f
                 CodeBase = fileName,
             };
         }

@@ -76,8 +76,13 @@ End Class")
             Assert.Contains("Bar", DirectCast(firstSpan.Tag.ToolTipContent, String), StringComparison.Ordinal)
         End Sub
 
+<<<<<<< HEAD
         <WpfFact(), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub CustomizableTagsForUnnecessaryCode()
+=======
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        Public Async Sub SuggestionTagsForUnnecessaryCode()
+>>>>>>> b0d067cb2f8b741088b927526f222f2956fcf09f
 
             Dim content = "
 ' System.Diagnostics is used - rest are unused.
