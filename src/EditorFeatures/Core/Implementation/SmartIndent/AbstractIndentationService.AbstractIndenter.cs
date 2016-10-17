@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
@@ -63,60 +64,64 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 var indentStyle = OptionSet.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
                 if (indentStyle == FormattingOptions.IndentStyle.None)
                 {
+                    // If there is no indent style, then do nothing.
                     return null;
                 }
 
-                // find previous line that is not blank
-                var previousLine = GetPreviousNonBlankOrPreprocessorLine();
+                // find previous line that is not blank.  this will skip over things like preprocessor
+                // regions and inactive code.
+                var previousLineOpt = GetPreviousNonBlankOrPreprocessorLine();
 
                 // it is beginning of the file, there is no previous line exists. 
                 // in that case, indentation 0 is our base indentation.
-                if (previousLine == null)
+                if (previousLineOpt == null)
                 {
                     return IndentFromStartOfLine(0);
                 }
 
-                // okay, now see whether previous line has anything meaningful
-                var lastNonWhitespacePosition = previousLine.Value.GetLastNonWhitespacePosition();
-                if (lastNonWhitespacePosition == null)
+                var previousNonWhitespaceOrPreprocessorLine = previousLineOpt.Value;
+
+                // If the user wants block indentation, then we just return the indentation
+                // of the last piece of real code.  
+                //
+                // TODO(cyrusn): It's not clear to me that this is correct.  Block indentation
+                // should probably follow the indentation of hte last non-blank line *regardless
+                // if it is inactive/preprocessor region.  By skipping over thse, we are essentially
+                // being 'smart', and that seems to be overriding the user desire to have Block
+                // indentation.
+                if (indentStyle == FormattingOptions.IndentStyle.Block)
                 {
-                    return null;
+                    // If it's block indentation, then just base 
+                    return GetIndentationOfLine(previousNonWhitespaceOrPreprocessorLine);
                 }
 
-                // there is known parameter list "," parse bug. if previous token is "," from parameter list,
-                // FindToken will not be able to find them.
-                var token = Tree.GetRoot(CancellationToken).FindToken(lastNonWhitespacePosition.Value);
-                if (token.RawKind == 0 || indentStyle == FormattingOptions.IndentStyle.Block)
-                {
-                    return GetIndentationOfLine(previousLine.Value);
-                }
+                Debug.Assert(indentStyle == FormattingOptions.IndentStyle.Smart);
+
+                // Because we know that previousLine is not-whitespace, we know that we should be
+                // able to get the last non-whitespace position.
+                var lastNonWhitespacePosition = previousNonWhitespaceOrPreprocessorLine.GetLastNonWhitespacePosition().Value;
+
+                var token = Tree.GetRoot(CancellationToken).FindToken(lastNonWhitespacePosition);
+                Debug.Assert(token.RawKind != 0, "FindToken should always return a valid token");
 
                 return GetDesiredIndentationWorker(
-                    token, previousLine.Value, lastNonWhitespacePosition.Value);
+                    token, previousNonWhitespaceOrPreprocessorLine, lastNonWhitespacePosition);
             }
 
             protected abstract IndentationResult? GetDesiredIndentationWorker(
                 SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition);
 
             protected IndentationResult IndentFromStartOfLine(int addedSpaces)
-            {
-                return new IndentationResult(this.LineToBeIndented.Start, addedSpaces);
-            }
+                => new IndentationResult(this.LineToBeIndented.Start, addedSpaces);
 
             protected IndentationResult GetIndentationOfToken(SyntaxToken token)
-            {
-                return GetIndentationOfToken(token, addedSpaces: 0);
-            }
+                => GetIndentationOfToken(token, addedSpaces: 0);
 
             protected IndentationResult GetIndentationOfToken(SyntaxToken token, int addedSpaces)
-            {
-                return GetIndentationOfPosition(token.SpanStart, addedSpaces);
-            }
+                => GetIndentationOfPosition(token.SpanStart, addedSpaces);
 
             protected IndentationResult GetIndentationOfLine(TextLine lineToMatch)
-            {
-                return GetIndentationOfLine(lineToMatch, addedSpaces: 0);
-            }
+                => GetIndentationOfLine(lineToMatch, addedSpaces: 0);
 
             protected IndentationResult GetIndentationOfLine(TextLine lineToMatch, int addedSpaces)
             {
@@ -154,11 +159,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
             protected TextLine? GetPreviousNonBlankOrPreprocessorLine()
             {
-                if (Tree == null)
-                {
-                    throw new ArgumentNullException(nameof(Tree));
-                }
-
                 if (LineToBeIndented.LineNumber <= 0)
                 {
                     return null;
