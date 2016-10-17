@@ -10,8 +10,6 @@ using System.Text;
 using System.IO.Compression;
 using Roslyn.Test.Utilities;
 using System.Linq;
-using System.Collections.Immutable;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -192,6 +190,36 @@ class Program
             AssertEx.Equal(source.GetChecksum(), text.Checksum);
             AssertEx.Equal(BitConverter.GetBytes(Encoding.Unicode.GetPreamble().Length + LargeSource.Length * sizeof(char)), text.Blob.Take(4));
             AssertEx.Equal(Encoding.Unicode.GetPreamble().Concat(Encoding.Unicode.GetBytes(LargeSource)), Decompress(text.Blob.Skip(4)));
+        }
+
+        [Fact]
+        public void FromTextReader_Small()
+        {
+            var expected = SourceText.From(SmallSource, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+            var expectedEmbeded = EmbeddedText.FromSource("pathToSmall", expected);
+
+            var actual = SourceText.From(new StringReader(SmallSource), SmallSource.Length, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+            var actualEmbeded = EmbeddedText.FromSource(expectedEmbeded.FilePath, actual);
+
+            Assert.Equal(expectedEmbeded.FilePath, actualEmbeded.FilePath);
+            Assert.Equal(expectedEmbeded.ChecksumAlgorithm, actualEmbeded.ChecksumAlgorithm);
+            AssertEx.Equal(expectedEmbeded.Checksum, actualEmbeded.Checksum);
+            AssertEx.Equal(expectedEmbeded.Blob, actualEmbeded.Blob);
+        }
+
+        [Fact]
+        public void FromTextReader_Large()
+        {
+            var expected = SourceText.From(LargeSource, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+            var expectedEmbeded = EmbeddedText.FromSource("pathToSmall", expected);
+
+            var actual = SourceText.From(new StringReader(LargeSource), LargeSource.Length, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+            var actualEmbeded = EmbeddedText.FromSource(expectedEmbeded.FilePath, actual);
+
+            Assert.Equal(expectedEmbeded.FilePath, actualEmbeded.FilePath);
+            Assert.Equal(expectedEmbeded.ChecksumAlgorithm, actualEmbeded.ChecksumAlgorithm);
+            AssertEx.Equal(expectedEmbeded.Checksum, actualEmbeded.Checksum);
+            AssertEx.Equal(expectedEmbeded.Blob, actualEmbeded.Blob);
         }
 
         [Fact]

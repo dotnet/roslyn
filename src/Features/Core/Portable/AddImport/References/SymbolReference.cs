@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-        private abstract class SymbolReference : Reference
+        private abstract partial class SymbolReference : Reference
         {
             public readonly SymbolResult<INamespaceOrTypeSymbol> SymbolResult;
 
@@ -22,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.SymbolResult = symbolResult;
             }
 
-            protected abstract Solution UpdateSolution(Document newDocument);
             protected abstract Glyph? GetGlyph(Document document);
             protected abstract bool CheckForExistingImport(Project project);
 
@@ -44,15 +41,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
             }
 
-            private async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            private async Task<CodeActionOperation> GetOperationAsync(
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst,
+                CancellationToken cancellationToken)
             {
-                var newSolution = await UpdateSolutionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-                var operation = new ApplyChangesOperation(newSolution);
-                return ImmutableArray.Create<CodeActionOperation>(operation);
+                var newDocument = await UpdateDocumentAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                var updatedSolution = GetUpdatedSolution(newDocument);
+
+                var operation = new ApplyChangesOperation(updatedSolution);
+                return operation;
             }
 
-            private async Task<Solution> UpdateSolutionAsync(
+            protected virtual Solution GetUpdatedSolution(Document newDocument)
+                => newDocument.Project.Solution;
+
+            private async Task<Document> UpdateDocumentAsync(
                 Document document, SyntaxNode contextNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 ReplaceNameNode(ref contextNode, ref document, cancellationToken);
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     this.SymbolResult.Symbol, document,
                     placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                return this.UpdateSolution(newDocument);
+                return newDocument;
             }
 
             public override async Task<CodeAction> CreateCodeActionAsync(
@@ -82,8 +85,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     description = $"{this.SearchResult.DesiredName} - {description}";
                 }
 
-                return new OperationBasedCodeAction(description, GetGlyph(document), GetPriority(document),
-                    c => this.GetOperationsAsync(document, node, placeSystemNamespaceFirst, c),
+                var getOperation = new AsyncLazy<CodeActionOperation>(
+                    c => this.GetOperationAsync(document, node, placeSystemNamespaceFirst, c),
+                    cacheResult: true);
+
+                return new SymbolReferenceCodeAction(
+                    description, GetGlyph(document), GetPriority(document),
+                    getOperation,
                     this.GetIsApplicableCheck(document.Project));
             }
 

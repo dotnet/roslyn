@@ -31,21 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return uninstalled;
         }
 
-        private IOleUndoManager GetUndoManager(ITextBuffer subjectBuffer)
-        {
-            var adapter = _editorAdaptersFactoryService.GetBufferAdapter(subjectBuffer);
-            if (adapter != null)
-            {
-                IOleUndoManager manager = null;
-                if (ErrorHandler.Succeeded(adapter.GetUndoManager(out manager)))
-                {
-                    return manager;
-                }
-            }
-
-            return null;
-        }
-
         private abstract class BaseUndoUnit : IOleUndoUnit
         {
             protected readonly EnvDTE.DTE dte;

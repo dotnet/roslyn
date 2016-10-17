@@ -81,9 +81,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
-        internal static string Automatically_format_block_on {
+        internal static string Automatically_format_block_on_close_brace {
             get {
-                return ResourceManager.GetString("Automatically_format_block_on", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_block_on_close_brace", resourceCulture);
             }
         }
         
@@ -97,11 +97,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Automatically format on return.
+        /// </summary>
+        internal static string Automatically_format_on_return {
+            get {
+                return ResourceManager.GetString("Automatically_format_on_return", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Automatically format _statement on ;.
         /// </summary>
-        internal static string Automatically_format_statement_on {
+        internal static string Automatically_format_statement_on_semicolon {
             get {
-                return ResourceManager.GetString("Automatically_format_statement_on", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_statement_on_semicolon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Automatically format when typing.
+        /// </summary>
+        internal static string Automatically_format_when_typing {
+            get {
+                return ResourceManager.GetString("Automatically_format_when_typing", resourceCulture);
             }
         }
         
@@ -862,6 +880,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer block body.
+        /// </summary>
+        internal static string Prefer_block_body {
+            get {
+                return ResourceManager.GetString("Prefer_block_body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer conditional delegate call.
         /// </summary>
         internal static string Prefer_conditional_delegate_call {
@@ -876,6 +903,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Prefer_explicit_type {
             get {
                 return ResourceManager.GetString("Prefer_explicit_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer expression body.
+        /// </summary>
+        internal static string Prefer_expression_body {
+            get {
+                return ResourceManager.GetString("Prefer_expression_body", resourceCulture);
             }
         }
         

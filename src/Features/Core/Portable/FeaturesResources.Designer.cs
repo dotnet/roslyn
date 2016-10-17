@@ -1594,6 +1594,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Keywords.
+        /// </summary>
+        internal static string Keywords {
+            get {
+                return ResourceManager.GetString("Keywords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to label.
         /// </summary>
         internal static string label {
@@ -2158,6 +2167,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove reference to &apos;{0}&apos;..
+        /// </summary>
+        internal static string Remove_reference_to_0 {
+            get {
+                return ResourceManager.GetString("Remove_reference_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Suppression.
         /// </summary>
         internal static string Remove_Suppression {
@@ -2364,6 +2382,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_Names {
             get {
                 return ResourceManager.GetString("Simplify_Names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snippets.
+        /// </summary>
+        internal static string Snippets {
+            get {
+                return ResourceManager.GetString("Snippets", resourceCulture);
             }
         }
         
@@ -2908,6 +2935,114 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_auto_property {
             get {
                 return ResourceManager.GetString("Use_auto_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for accessors.
+        /// </summary>
+        internal static string Use_block_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for constructors.
+        /// </summary>
+        internal static string Use_block_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for indexers.
+        /// </summary>
+        internal static string Use_block_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for methods.
+        /// </summary>
+        internal static string Use_block_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for operators.
+        /// </summary>
+        internal static string Use_block_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for properties.
+        /// </summary>
+        internal static string Use_block_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for accessors.
+        /// </summary>
+        internal static string Use_expression_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for constructors.
+        /// </summary>
+        internal static string Use_expression_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for indexers.
+        /// </summary>
+        internal static string Use_expression_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for methods.
+        /// </summary>
+        internal static string Use_expression_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for operators.
+        /// </summary>
+        internal static string Use_expression_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for properties.
+        /// </summary>
+        internal static string Use_expression_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_properties", resourceCulture);
             }
         }
         

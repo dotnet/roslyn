@@ -8,14 +8,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CodeStyle;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
@@ -639,7 +642,20 @@ class C
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public async Task AddIndexer()
+            public async Task AddIndexer1()
+            {
+                var input = "class [|C|] { }";
+                var expected = "class C { public string this[int i] => String.Empty; }";
+                await TestAddPropertyAsync(input, expected,
+                    type: typeof(string),
+                    parameters: Parameters(Parameter(typeof(int), "i")),
+                    getStatements: "return String.Empty;",
+                    isIndexer: true,
+                    codeGenerationOptions: new CodeGenerationOptions(parseOptions: CSharpParseOptions.Default));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddIndexer2()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public string this[int i] { get { $$ } } }";
@@ -647,7 +663,11 @@ class C
                     type: typeof(string),
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
-                    isIndexer: true);
+                    isIndexer: true,
+                    options: new Dictionary<OptionKey, object> {
+                        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement },
+                        { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.FalseWithNoneEnforcement },
+                    });
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

@@ -839,9 +839,10 @@ End Structure")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestAliasedType() As Task
             Dim source =
-        NewLines("Class Program \n Sub Foo() \n Dim x As New [|Global.Program|] \n End Sub \n End Class")
-            Await TestAsync(source,
-        NewLines("Class Program \n Sub Foo() \n Dim x As New Program \n End Sub \n End Class"), Nothing, 0)
+                NewLines("Class Program \n Sub Foo() \n Dim x As New [|Global.Program|] \n End Sub \n End Class")
+            Await TestAsync(
+                source,
+                NewLines("Class Program \n Sub Foo() \n Dim x As New Program \n End Sub \n End Class"), parseOptions:=Nothing, index:=0)
 
             Await TestMissingAsync(source, GetScriptOptions())
         End Function
@@ -1735,7 +1736,7 @@ NewLines("Class C \n Dim x = 7 \n Sub M() \n x = Nothing \n End Sub \n End Class
         Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
             Await TestDiagnosticSeverityAndCountAsync(
                 "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
-                options:=OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
+                options:=OptionsSet(Tuple.Create(DirectCast(CodeStyleOptions.QualifyPropertyAccess, IOption), False, NotificationOption.Error)),
                 diagnosticCount:=1,
                 diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)

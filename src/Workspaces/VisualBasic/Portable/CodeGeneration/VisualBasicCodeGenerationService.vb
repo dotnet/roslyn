@@ -15,7 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Inherits AbstractCodeGenerationService
 
         Public Sub New(provider As HostLanguageServices)
-            MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
+            MyBase.New(provider.GetService(Of ISymbolDeclarationService)(),
+                       provider.WorkspaceServices.Workspace)
         End Sub
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination
