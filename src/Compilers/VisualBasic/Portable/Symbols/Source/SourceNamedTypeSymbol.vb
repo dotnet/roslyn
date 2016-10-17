@@ -1226,11 +1226,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each baseClassSyntax In types
                     Dim typeSymbol = binder.BindTypeSyntax(baseClassSyntax, diagBag, suppressUseSiteError:=True)
 
-                    If interfacesInThisPartial.Contains(typeSymbol) Then
+                    If Not interfacesInThisPartial.Add(typeSymbol) Then
                         Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InterfaceImplementedTwice1, typeSymbol)
                     Else
-                        interfacesInThisPartial.Add(typeSymbol)
-
                         ' Check to make sure the base interfaces are valid.
                         Select Case typeSymbol.TypeKind
                             Case TypeKind.TypeParameter

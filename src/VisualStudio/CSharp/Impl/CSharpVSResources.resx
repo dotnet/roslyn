@@ -492,4 +492,10 @@
   <data name="Prefer_inlined_type_check" xml:space="preserve">
     <value>Prefer inlined type check</value>
   </data>
+  <data name="Prefer_block_body" xml:space="preserve">
+    <value>Prefer block body</value>
+  </data>
+  <data name="Prefer_expression_body" xml:space="preserve">
+    <value>Prefer expression body</value>
+  </data>
 </root>

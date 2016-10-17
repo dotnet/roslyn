@@ -6,7 +6,7 @@ set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 
 REM Because override the C#/VB toolset to build against our LKG package, it is important
-REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
+REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
 REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
 set MSBuildAdditionalCommandLineArgs=/nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal
 
@@ -53,7 +53,7 @@ REM Output the commit that we're building, for reference in Jenkins logs
 echo Building this commit:
 git show --no-patch --pretty=raw HEAD
 
-REM Restore the NuGet packages 
+REM Restore the NuGet packages
 call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
@@ -94,8 +94,8 @@ if defined TestPerfRun (
             set "EXTRA_PERF_RUNNER_ARGS=--report-benchview --branch "%GIT_BRANCH%""
 
             REM Check if we are in a PR or this is a rolling submission
-            if defined ghprbPullTitle (
-                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name "[%ghprbPullAuthorLogin%] PR %ghprbPullId%: %ghprbPullTitle%" --benchview-submission-type private"
+            if defined ghprbPullId (
+                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name ^"[%ghprbPullAuthorLogin%] PR %ghprbPullId%^" --benchview-submission-type private"
             ) else (
                 set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-type rolling"
             )

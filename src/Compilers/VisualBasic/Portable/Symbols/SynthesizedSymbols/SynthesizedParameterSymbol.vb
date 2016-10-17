@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If overriddenMethod IsNot Nothing Then
                 Dim overriddenParameter = overriddenMethod.Parameters(propertySymbol.ParameterCount)
 
-                If overriddenParameter.Type.IsSameTypeIgnoringCustomModifiers(valueParameterType) Then
+                If overriddenParameter.Type.IsSameTypeIgnoringAll(valueParameterType) Then
                     valueParameterType = overriddenParameter.Type
                     valueParameterCustomModifiers = overriddenParameter.CustomModifiers
                 End If

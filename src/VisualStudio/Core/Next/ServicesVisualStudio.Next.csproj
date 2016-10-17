@@ -73,12 +73,6 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\CodeLens\CodeLensArguments.cs">
       <Link>CodeLens\CodeLensArguments.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticArguments.cs">
-      <Link>Diagnostics\DiagnosticArguments.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
-      <Link>Diagnostics\DiagnosticResultSerializer.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>
     </Compile>
@@ -89,7 +83,6 @@
       <Link>Shared\ServerDirectStream.cs</Link>
     </Compile>
     <Compile Include="CodeLens\RemoteCodeLensReferencesService.cs" />
-    <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
@@ -121,7 +114,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>

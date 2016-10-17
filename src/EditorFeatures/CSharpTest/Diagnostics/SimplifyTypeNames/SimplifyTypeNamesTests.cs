@@ -2051,7 +2051,7 @@ class Program
     {
         Program a = null; 
     }
-}", null, 0);
+}", parseOptions: null, index: 0);
 
             await TestMissingAsync(source, GetScriptOptions());
         }
@@ -2077,7 +2077,7 @@ class Program
     {
         int x = Console.Read() + System.Console.Read();
     }
-}", 0);
+}", index: 0);
         }
 
         [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
@@ -2163,7 +2163,7 @@ class M
 	{
 		int k = Preserve.X.Y;
 	}
-}", null, 0);
+}", index: 0);
         }
 
         [WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
@@ -3293,7 +3293,7 @@ class Program
         {
             await TestDiagnosticSeverityAndCountAsync(
                 @"class C { int SomeProperty { get; set; } void M() { [|this|].SomeProperty = 1; } }",
-                options: OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning)),
+                options: Option(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning),
                 diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);

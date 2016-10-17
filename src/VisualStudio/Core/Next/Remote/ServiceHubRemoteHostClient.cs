@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
         private readonly HubClient _hubClient;
-        private readonly Stream _stream;
         private readonly JsonRpc _rpc;
 
         public static async Task<RemoteHostClient> CreateAsync(
@@ -66,7 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             base(workspace)
         {
             _hubClient = hubClient;
-            _stream = stream;
 
             _rpc = JsonRpc.Attach(stream, target: this);
 
@@ -74,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host
@@ -84,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _hubClient.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcSession(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken);
+            return await JsonRpcSession.CreateAsync(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken).ConfigureAwait(false);
         }
 
         protected override void OnConnected()
@@ -94,7 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected override void OnDisconnected()
         {
             _rpc.Dispose();
-            _stream.Dispose();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

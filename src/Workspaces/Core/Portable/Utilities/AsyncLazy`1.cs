@@ -101,7 +101,6 @@ namespace Roslyn.Utilities
         public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, Func<CancellationToken, T> synchronousComputeFunction, bool cacheResult)
         {
             Contract.ThrowIfNull(asynchronousComputeFunction);
-
             _asynchronousComputeFunction = asynchronousComputeFunction;
             _synchronousComputeFunction = synchronousComputeFunction;
             _cacheResult = cacheResult;
@@ -262,10 +261,7 @@ namespace Roslyn.Utilities
                 catch (Exception ex)
                 {
                     // We faulted for some unknown reason. We should simply fault everything.
-                    TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
-                    tcs.SetException(ex);
-                    CompleteWithTask(tcs.Task, CancellationToken.None);
-
+                    CompleteWithTask(Task.FromException<T>(ex), CancellationToken.None);
                     throw;
                 }
 
@@ -379,11 +375,7 @@ namespace Roslyn.Utilities
                     //
                     // Note: we want to do this before we do the .ContinueWith below. That way, 
                     // when the async call to CompleteWithTask runs, it sees that we've already
-                    // completed and can bail immediately.  If we were to do this after we 
-                    // kicked off the async work, then we'd have the chance that both would
-                    // run concurrently and we'd have a higher change of hitting the race condition
-                    // of calling AsyncMethodBuilder.SetResult simultaneously (and thus having 
-                    // the InvalidOperationException that we have to ignore).
+                    // completed and can bail immediately. 
                     if (requestToCompleteSynchronously != null && task.IsCompleted)
                     {
                         using (TakeLock(CancellationToken.None))
@@ -475,6 +467,7 @@ namespace Roslyn.Utilities
                 {
                     // Hold onto the completed task. We can get rid of the computation functions for good
                     _cachedResult = task;
+
                     _asynchronousComputeFunction = null;
                     _synchronousComputeFunction = null;
                 }
@@ -532,25 +525,15 @@ namespace Roslyn.Utilities
             private CancellationToken _cancellationToken;
             private CancellationTokenRegistration _cancellationTokenRegistration;
 
-            // We use a AsyncTaskMethodBuilder so we have the ability to cancel the task with a given cancellation token
-            // TODO: remove this once we're on .NET 4.6 and can move back to using TaskCompletionSource.
             // WARNING: this is a mutable struct, and thus cannot be made readonly
-            private AsyncTaskMethodBuilder<T> _taskBuilder;
+            private TaskCompletionSource<T> _taskCompletionSource;
 
             public Request()
             {
-                // .Task on AsyncTaskMethodBuilder is lazily created in a non-synchronized way, so we must request it
-                // once before we start doing fancy stuff
-                var ignored = _taskBuilder.Task;
+                _taskCompletionSource = new TaskCompletionSource<T>();
             }
 
-            public Task<T> Task
-            {
-                get
-                {
-                    return _taskBuilder.Task;
-                }
-            }
+            public Task<T> Task => _taskCompletionSource.Task;
 
             public void RegisterForCancellation(Action<object> callback, CancellationToken cancellationToken)
             {
@@ -574,31 +557,24 @@ namespace Roslyn.Utilities
                 // is already completed. The belief is that the race is somewhere between rare to impossible, and
                 // so we'll do a quick check to see if the task is already completed or otherwise just give it a shot
                 // and catch it if it fails
-                if (_taskBuilder.Task.IsCompleted)
+                if (this.Task.IsCompleted)
                 {
                     return;
                 }
 
-                try
+                // As an optimization, we'll cancel the request even we did get a value for it.
+                // That way things abort sooner.
+                if (task.IsCanceled || _cancellationToken.IsCancellationRequested)
                 {
-                    // As an optimization, we'll cancel the request even we did get a value for it.
-                    // That way things abort sooner.
-                    if (task.IsCanceled || _cancellationToken.IsCancellationRequested)
-                    {
-                        CancelSynchronously();
-                    }
-                    else if (task.IsFaulted)
-                    {
-                        _taskBuilder.SetException(task.Exception);
-                    }
-                    else
-                    {
-                        _taskBuilder.SetResult(task.Result);
-                    }
+                    CancelSynchronously();
                 }
-                catch (InvalidOperationException)
+                else if (task.IsFaulted)
                 {
-                    // Something else beat us to setting the state, so bail
+                    _taskCompletionSource.TrySetException(task.Exception);
+                }
+                else
+                {
+                    _taskCompletionSource.TrySetResult(task.Result);
                 }
 
                 _cancellationTokenRegistration.Dispose();
@@ -608,28 +584,13 @@ namespace Roslyn.Utilities
             {
                 // Since there could be synchronous continuations on the TaskCancellationSource, we queue this to the threadpool
                 // to avoid inline running of other operations.
-                System.Threading.Tasks.Task.Factory.StartNew(CancelSynchronously, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+                System.Threading.Tasks.Task.Factory.StartNew(
+                    CancelSynchronously, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
             }
 
             private void CancelSynchronously()
             {
-                // AsyncTaskMethodBuilder doesn't give us Try* methods, and the Set methods may throw if the task
-                // is already completed. The belief is that the race is somewhere between rare to impossible, and
-                // so we'll do a quick check to see if the task is already completed or otherwise just give it a shot
-                // and catch it if it fails
-                if (_taskBuilder.Task.IsCompleted)
-                {
-                    return;
-                }
-
-                try
-                {
-                    _taskBuilder.SetException(new OperationCanceledException(_cancellationToken));
-                }
-                catch (InvalidOperationException)
-                {
-                    // Something else beat us to setting the state, so bail
-                }
+                _taskCompletionSource.TrySetCanceled(_cancellationToken);
             }
         }
     }

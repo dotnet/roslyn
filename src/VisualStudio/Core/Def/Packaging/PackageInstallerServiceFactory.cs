@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
@@ -153,11 +154,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     var description = string.Format(ServicesVSResources.Install_0, packageName);
 
-                    var document = workspace.CurrentSolution.GetDocument(documentId);
-                    var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                    var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
-                    var textBuffer = textSnapshot?.TextBuffer;
-                    var undoManager = GetUndoManager(textBuffer);
+                    var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
+                        workspace, documentId, cancellationToken);
 
                     return TryInstallAndAddUndoAction(source, packageName, versionOpt, dte, dteProject, undoManager);
                 }

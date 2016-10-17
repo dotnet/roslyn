@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -42,6 +43,9 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableDictionary<ProjectId, CompilationTracker> _projectIdToTrackerMap;
 
+        // Checksums for this solution state
+        private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
+
         private SolutionState(
             BranchId branchId,
             int workspaceVersion,
@@ -54,7 +58,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, ImmutableArray<DocumentId>> linkedFilesMap,
             ProjectDependencyGraph dependencyGraph,
             VersionStamp version,
-            Lazy<VersionStamp> lazyLatestProjectVersion)
+            Lazy<VersionStamp> lazyLatestProjectVersion,
+            ValueSource<SolutionStateChecksums> lazyChecksums)
         {
             _branchId = branchId;
             _workspaceVersion = workspaceVersion;
@@ -68,6 +73,10 @@ namespace Microsoft.CodeAnalysis
             _dependencyGraph = dependencyGraph;
             _version = version;
             _lazyLatestProjectVersion = lazyLatestProjectVersion;
+
+            // for now, let it re-calculate if anything changed.
+            // TODO: optimize this so that we only re-calcuate checksums that are actually changed
+            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
 
             CheckInvariants();
         }
@@ -87,8 +96,10 @@ namespace Microsoft.CodeAnalysis
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
                 linkedFilesMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty,
-                lazyLatestProjectVersion: null)
+                lazyLatestProjectVersion: null,
+                lazyChecksums: null)
         {
+            // this is for the very first solution state ever created
             _lazyLatestProjectVersion = new Lazy<VersionStamp>(() => ComputeLatestProjectVersion());
         }
 
@@ -176,7 +187,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, ImmutableArray<DocumentId>> linkedFilesMap = null,
             ProjectDependencyGraph dependencyGraph = null,
             VersionStamp? version = default(VersionStamp?),
-            Lazy<VersionStamp> lazyLatestProjectVersion = null)
+            Lazy<VersionStamp> lazyLatestProjectVersion = null,
+            ValueSource<SolutionStateChecksums> lazyChecksums = null)
         {
             var branchId = GetBranchId();
 
@@ -187,6 +199,7 @@ namespace Microsoft.CodeAnalysis
             dependencyGraph = dependencyGraph ?? _dependencyGraph;
             version = version.HasValue ? version.Value : _version;
             lazyLatestProjectVersion = lazyLatestProjectVersion ?? _lazyLatestProjectVersion;
+            lazyChecksums = lazyChecksums ?? _lazyChecksums;
 
             if (branchId == _branchId &&
                 projectIds == _projectIds &&
@@ -195,7 +208,8 @@ namespace Microsoft.CodeAnalysis
                 linkedFilesMap == _linkedFilesMap &&
                 dependencyGraph == _dependencyGraph &&
                 version == _version &&
-                lazyLatestProjectVersion == _lazyLatestProjectVersion)
+                lazyLatestProjectVersion == _lazyLatestProjectVersion &&
+                lazyChecksums == _lazyChecksums)
             {
                 return this;
             }
@@ -212,7 +226,8 @@ namespace Microsoft.CodeAnalysis
                 linkedFilesMap,
                 dependencyGraph,
                 version.Value,
-                lazyLatestProjectVersion);
+                lazyLatestProjectVersion,
+                lazyChecksums);
         }
 
         private SolutionState CreatePrimarySolution(
@@ -239,7 +254,8 @@ namespace Microsoft.CodeAnalysis
                 _linkedFilesMap,
                 _dependencyGraph,
                 _version,
-                _lazyLatestProjectVersion);
+                _lazyLatestProjectVersion,
+                _lazyChecksums);
         }
 
         private BranchId GetBranchId()

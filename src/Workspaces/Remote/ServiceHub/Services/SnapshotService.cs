@@ -13,12 +13,18 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class SnapshotService : ServiceHubServiceBase
     {
-        private readonly AssetSource _source;
+        private AssetSource _source;
 
         public SnapshotService(Stream stream, IServiceProvider serviceProvider) :
             base(stream, serviceProvider)
         {
-            _source = new JsonRpcAssetSource(Rpc, Logger, CancellationToken);
+        }
+
+        public override void Initialize(int sessionId, byte[] solutionChecksum)
+        {
+            base.Initialize(sessionId, solutionChecksum);
+
+            _source = new JsonRpcAssetSource(this, sessionId);
         }
 
         protected override void OnDisconnected(JsonRpcDisconnectedEventArgs e)

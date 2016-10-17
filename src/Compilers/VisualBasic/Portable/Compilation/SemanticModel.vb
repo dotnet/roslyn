@@ -974,7 +974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If highestExpr IsNot Nothing Then
                 If highestExpr.Type IsNot Nothing AndAlso highestExpr.Type.TypeKind <> TYPEKIND.Error Then
                     convertedType = highestExpr.Type
-                    If (type Is Nothing OrElse Not type.IsSameTypeIgnoringCustomModifiers(convertedType)) Then
+                    If (type Is Nothing OrElse Not type.IsSameTypeIgnoringAll(convertedType)) Then
                         ' If the upper expression is of a different type, we want to return
                         ' a conversion. Hopefully we have a conversion node. 
                         ' TODO: Understand cases where we don't have a conversion node better.

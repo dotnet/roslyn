@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim arrayLiteral = arrayLiteralType.ArrayLiteral
                         conversion = Conversions.ClassifyConversion(arrayLiteral, outer.ResultType, arrayLiteral.Binder, useSiteDiagnostics).Key
                         If Conversions.IsWideningConversion(conversion) AndAlso
-                            IsSameTypeIgnoringCustomModifiers(arrayLiteralType, outer.ResultType) Then
+                            IsSameTypeIgnoringAll(arrayLiteralType, outer.ResultType) Then
                             conversion = ConversionKind.Identity
                         End If
                     End If
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim inferredType As TypeSymbol = resultList(0).ResultType
 
                     For i As Integer = 1 To resultList.Count - 1
-                        If Not resultList(i).ResultType.IsSameTypeIgnoringCustomModifiers(inferredType) Then
+                        If Not resultList(i).ResultType.IsSameTypeIgnoringAll(inferredType) Then
                             inferredType = Nothing
                             Exit For
                         End If
@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 For Each candidate In resultList
                                     Dim candidateType = DirectCast(candidate.ResultType, ArrayLiteralTypeSymbol)
-                                    If candidateType.ElementType.IsSameTypeIgnoringCustomModifiers(inferredElementType) Then
+                                    If candidateType.ElementType.IsSameTypeIgnoringAll(inferredElementType) Then
                                         Dim candidateLiteral As BoundArrayLiteral = candidateType.ArrayLiteral
                                         If match Is Nothing OrElse
                                             (candidateLiteral.HasDominantType AndAlso
@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim arrayLiteral = arrayLiteralType.ArrayLiteral
                     conversion = Conversions.ClassifyConversion(arrayLiteral, candidate, arrayLiteral.Binder, useSiteDiagnostics).Key
                     If Conversions.IsWideningConversion(conversion) Then
-                        If IsSameTypeIgnoringCustomModifiers(arrayLiteralType, candidate) Then
+                        If IsSameTypeIgnoringAll(arrayLiteralType, candidate) Then
                             ' ClassifyConversion returns widening for identity.  For hint satisfaction it should be promoted to Identity
                             conversion = ConversionKind.Identity
                         ElseIf (conversion And ConversionKind.InvolvesNarrowingFromNumericConstant) <> 0 Then
@@ -504,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Conversions.IsNarrowingConversion(conversion) Then
                         conversion = Nothing
                     End If
-                ElseIf hint.IsSameTypeIgnoringCustomModifiers(candidate) Then
+                ElseIf hint.IsSameTypeIgnoringAll(candidate) Then
                     conversion = ConversionKind.Identity
                 Else
                     conversion = Nothing
@@ -520,7 +520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Conversions.IsNarrowingConversion(conversion) Then
                         conversion = Nothing
                     End If
-                ElseIf candidate.IsSameTypeIgnoringCustomModifiers(hint) Then
+                ElseIf candidate.IsSameTypeIgnoringAll(hint) Then
                     conversion = ConversionKind.Identity
                 Else
                     conversion = Nothing
@@ -577,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each competitor As DominantTypeData In Me.GetTypeDataList()
 
                     ' Do not merge array literals with other expressions
-                    If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringCustomModifiers(competitor.ResultType) Then
+                    If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringAll(competitor.ResultType) Then
 
                         competitor.InferenceRestrictions = Conversions.CombineConversionRequirements(
                                                             competitor.InferenceRestrictions,

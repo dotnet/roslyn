@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
         }
 
         public SolutionPreviewResult GetPreviews(
-            Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+            Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
-            if (operations == null)
+            if (operations.IsDefaultOrEmpty)
             {
                 return null;
             }
@@ -95,11 +98,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
         public async Task ApplyAsync(
             Workspace workspace, Document fromDocument,
-            IEnumerable<CodeActionOperation> operations,
+            ImmutableArray<CodeActionOperation> operations,
             string title, IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
+
+            if (operations.IsDefaultOrEmpty)
+            {
+                return;
+            }
 
             if (_renameService.ActiveSession != null)
             {
@@ -126,39 +134,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 #endif
 
             var oldSolution = workspace.CurrentSolution;
-            Solution updatedSolution = oldSolution;
 
-            var operationsList = operations.ToList();
-            if (operationsList.Count > 1)
+            // Determine if we're making a simple text edit to a single file or not.
+            // If we're not, then we need to make a linked global undo to wrap the 
+            // application of these operations.  This way we should be able to undo 
+            // them all with one user action.
+            //
+            // The reason we don't always create a gobal undo is that a global undo
+            // forces all files to save.  And that's rather a heavyweight and 
+            // unexpected experience for users (for the common case where a single 
+            // file got edited).
+            var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
+            if (singleChangedDocument != null)
             {
-                // Make a linked undo to wrap all these operations.  This way we should
-                // be able to undo them all with one user action.
-                //
-                // Note: we only wrap things with an undo action if:
-                // 
-                //  1. We have multiple operations (this code here).
-                //  2. We have a SolutionChangedAction and we're making changes to multiple 
-                //     documents. (Below in ProcessOperations).
-                //
-                // Or, in other words, if we know we're only editing a single file, then we
-                // don't wrap things with a global undo action.
-                //
-                // The reason for this is a global undo forces all files to save.  And that's
-                // rather a heavyweight and unexpected experience for users (for the common 
-                // case where a single file got edited).
-                //
-                // When we have multiple operations we assume that this is going to be 
-                // more heavyweight. (After all, a full Roslyn solution change can be represented
-                // with a single operation).  As such, we wrap with an undo so all the operations
-                // can be undone at once.
+                // ConfigureAwait(true) so we come back to the same thread as 
+                // we do all application on the UI thread.
+                var text = await singleChangedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
+
+                using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
+                {
+                    operations.Single().Apply(workspace, cancellationToken);
+                }
+            }
+            else
+            {
+                // More than just a single document changed.  Make a global undo to run 
+                // all the changes under.
                 using (var transaction = workspace.OpenGlobalUndoTransaction(title))
                 {
                     // ConfigureAwait(true) so we come back to the same thread as 
                     // we do all application on the UI thread.
-                    updatedSolution = await ProcessOperationsAsync(
-                        workspace, fromDocument, title, oldSolution,
-                        updatedSolution, operationsList, progressTracker,
-                        cancellationToken).ConfigureAwait(true);
+                    ProcessOperations(
+                        workspace, operations, progressTracker,
+                        cancellationToken);
 
                     // link current file in the global undo transaction
                     if (fromDocument != null)
@@ -168,14 +176,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                     transaction.Commit();
                 }
-            }
-            else
-            {
-                // ConfigureAwait(true) so we come back to the same thread as 
-                // we do all application on the UI thread.
-                updatedSolution = await ProcessOperationsAsync(
-                    workspace, fromDocument, title, oldSolution, updatedSolution, operationsList,
-                    progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
 #if DEBUG
@@ -191,84 +191,88 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
 #endif
 
+            var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;
             TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
         }
 
-        private static async Task<Solution> ProcessOperationsAsync(
-            Workspace workspace, Document fromDocument, string title, Solution oldSolution, Solution updatedSolution, List<CodeActionOperation> operationsList, 
+        private TextDocument TryGetSingleChangedText(
+            Solution oldSolution, ImmutableArray<CodeActionOperation> operationsList)
+        {
+            Debug.Assert(operationsList.Length > 0);
+            if (operationsList.Length > 1)
+            {
+                return null;
+            }
+
+            var applyOperation = operationsList.Single() as ApplyChangesOperation;
+            if (applyOperation == null)
+            {
+                return null;
+            }
+
+            var newSolution = applyOperation.ChangedSolution;
+            var changes = newSolution.GetChanges(oldSolution);
+
+            if (changes.GetAddedProjects().Any() ||
+                changes.GetRemovedProjects().Any())
+            {
+                return null;
+            }
+
+            var projectChanges = changes.GetProjectChanges().ToImmutableArray();
+            if (projectChanges.Length != 1)
+            {
+                return null;
+            }
+
+            var projectChange = projectChanges.Single();
+            if (projectChange.GetAddedAdditionalDocuments().Any() ||
+                projectChange.GetAddedAnalyzerReferences().Any() ||
+                projectChange.GetAddedDocuments().Any() ||
+                projectChange.GetAddedMetadataReferences().Any() ||
+                projectChange.GetAddedProjectReferences().Any() ||
+                projectChange.GetRemovedAdditionalDocuments().Any() ||
+                projectChange.GetRemovedAnalyzerReferences().Any() ||
+                projectChange.GetRemovedDocuments().Any() ||
+                projectChange.GetRemovedMetadataReferences().Any() ||
+                projectChange.GetRemovedProjectReferences().Any())
+            {
+                return null;
+            }
+
+            var changedAdditionalDocuments = projectChange.GetChangedAdditionalDocuments().ToImmutableArray();
+            var changedDocuments = projectChange.GetChangedDocuments().ToImmutableArray();
+
+            if (changedAdditionalDocuments.Length + changedDocuments.Length != 1)
+            {
+                return null;
+            }
+
+            return changedDocuments.Length == 1
+                ? oldSolution.GetDocument(changedDocuments[0])
+                : oldSolution.GetAdditionalDocument(changedAdditionalDocuments[0]);
+        }
+
+        private static void ProcessOperations(
+            Workspace workspace, ImmutableArray<CodeActionOperation> operations,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            foreach (var operation in operationsList)
+            var seenApplyChanges = false;
+            foreach (var operation in operations)
             {
-                var applyChanges = operation as ApplyChangesOperation;
-                if (applyChanges == null)
+                if (operation is ApplyChangesOperation)
                 {
-                    operation.Apply(workspace, cancellationToken);
-                    continue;
-                }
-
-                // there must be only one ApplyChangesOperation, we will ignore all other ones.
-                if (updatedSolution == oldSolution)
-                {
-                    updatedSolution = applyChanges.ChangedSolution;
-                    var projectChanges = updatedSolution.GetChanges(oldSolution).GetProjectChanges();
-                    var changedDocuments = projectChanges.SelectMany(pd => pd.GetChangedDocuments());
-                    var changedAdditionalDocuments = projectChanges.SelectMany(pd => pd.GetChangedAdditionalDocuments());
-                    var changedFiles = changedDocuments.Concat(changedAdditionalDocuments).ToList();
-
-                    // 0 file changes
-                    if (changedFiles.Count == 0)
+                    // there must be only one ApplyChangesOperation, we will ignore all other ones.
+                    if (seenApplyChanges)
                     {
-                        operation.Apply(workspace, cancellationToken);
                         continue;
                     }
 
-                    // 1 file change
-                    SourceText text = null;
-                    if (changedFiles.Count == 1)
-                    {
-                        if (changedDocuments.Any())
-                        {
-                            // ConfigureAwait(true) so we come back to the same thread as 
-                            // we do all application on the UI thread.
-                            text = await oldSolution.GetDocument(changedDocuments.Single()).GetTextAsync(cancellationToken).ConfigureAwait(true);
-                        }
-                        else if (changedAdditionalDocuments.Any())
-                        {
-                            // ConfigureAwait(true) so we come back to the same thread as 
-                            // we do all application on the UI thread.
-                            text = await oldSolution.GetAdditionalDocument(changedAdditionalDocuments.Single()).GetTextAsync(cancellationToken).ConfigureAwait(true);
-                        }
-                    }
-
-                    if (text != null)
-                    {
-                        using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
-                        {
-                            operation.Apply(workspace, cancellationToken);
-                            continue;
-                        }
-                    }
-
-                    // multiple file changes
-                    using (var undoTransaction = workspace.OpenGlobalUndoTransaction(title))
-                    {
-                        operation.Apply(workspace, progressTracker, cancellationToken);
-
-                        // link current file in the global undo transaction
-                        if (fromDocument != null)
-                        {
-                            undoTransaction.AddDocument(fromDocument.Id);
-                        }
-
-                        undoTransaction.Commit();
-                    }
-
-                    continue;
+                    seenApplyChanges = true;
                 }
-            }
 
-            return updatedSolution;
+                operation.TryApply(workspace, progressTracker, cancellationToken);
+            }
         }
 
         private void TryStartRenameSession(Workspace workspace, Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)

@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        _others.IsDefault ? ImmutableArray<DiagnosticData>.Empty : _others,
+                        _others.NullToEmpty(),
                         _documentIds,
                         fromBuild: false);
                 }

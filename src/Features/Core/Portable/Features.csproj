@@ -45,7 +45,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.Orchestrator" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
@@ -84,6 +84,7 @@
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.Test.Apex.VisualStudio" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.ReferencesProvider" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.TestsProvider" />
@@ -93,6 +94,14 @@
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="FeaturesResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FeaturesResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\PackageReference.InstallNugetPackageOperation.cs" />
+    <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
@@ -109,8 +118,10 @@
     <Compile Include="Navigation\NavigableItemFactory.cs" />
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
+    <Compile Include="AddImport\CodeActions\PackageReference.ParentCodeAction.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
+    <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
     <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.FixAllProvider.cs" />
@@ -136,19 +147,19 @@
     <Compile Include="ChangeSignature\IUnifiedArgumentSyntax.cs" />
     <Compile Include="ChangeSignature\ParameterConfiguration.cs" />
     <Compile Include="ChangeSignature\SignatureChange.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.MetadataSymbolReference.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.AssemblyReference.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.PackageReference.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.ProjectSymbolReference.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.Reference.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SearchScope.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReference.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReferenceFinder.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolResult.cs" />
+    <Compile Include="AddImport\References\MetadataSymbolReference.cs" />
+    <Compile Include="AddImport\References\AssemblyReference.cs" />
+    <Compile Include="AddImport\References\PackageReference.cs" />
+    <Compile Include="AddImport\References\ProjectSymbolReference.cs" />
+    <Compile Include="AddImport\References\Reference.cs" />
+    <Compile Include="AddImport\SearchScope.cs" />
+    <Compile Include="AddImport\References\SymbolReference.cs" />
+    <Compile Include="AddImport\SymbolReferenceFinder.cs" />
+    <Compile Include="AddImport\SymbolResult.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.cs" />
+    <Compile Include="AddImport\AbstractAddImportCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractChangeToAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAsyncCodeFix.cs" />
@@ -366,11 +377,6 @@
     <Compile Include="EditAndContinue\StateMachineKind.cs" />
     <Compile Include="EditAndContinue\TraceLog.cs" />
     <Compile Include="ExtractMethod\ExtractMethodOptionsProvider.cs" />
-    <Compile Include="FeaturesResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>FeaturesResources.resx</DependentUpon>
-    </Compile>
     <Compile Include="GenerateMember\GenerateConstructor\GenerateConstructorHelpers.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\AbstractGenerateConversionService.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\AbstractGenerateConversionService.State.cs" />

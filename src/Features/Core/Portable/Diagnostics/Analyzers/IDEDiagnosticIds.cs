@@ -24,6 +24,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string InlineDeclarationDiagnosticId = "IDE0018";
         public const string InlineTypeCheckId = "IDE0019";
 
+        public const string UseExpressionBodyForConstructorsDiagnosticId = "IDE0020";
+        public const string UseExpressionBodyForMethodsDiagnosticId = "IDE0021";
+        public const string UseExpressionBodyForConversionOperatorsDiagnosticId = "IDE0022";
+        public const string UseExpressionBodyForOperatorsDiagnosticId = "IDE0023";
+        public const string UseExpressionBodyForPropertiesDiagnosticId = "IDE0024";
+        public const string UseExpressionBodyForIndexersDiagnosticId = "IDE0025";
+        public const string UseExpressionBodyForAccessorsDiagnosticId = "IDE0026";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
