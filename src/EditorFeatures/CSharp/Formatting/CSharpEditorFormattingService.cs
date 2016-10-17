@@ -250,6 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             {
                 return changes;
             }
+
             return await FormatTokenAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
         }
 
