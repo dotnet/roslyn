@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
+namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpInlineTypeCheckCodeFixProvider : CodeFixProvider
+    internal partial class CSharpAsAndNullCheckCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.InlineTypeCheckId);
+            => ImmutableArray.Create(IDEDiagnosticIds.InlineAsTypeCheckId);
 
         public override FixAllProvider GetFixAllProvider() => new InlineTypeCheckFixAllProvider(this);
 

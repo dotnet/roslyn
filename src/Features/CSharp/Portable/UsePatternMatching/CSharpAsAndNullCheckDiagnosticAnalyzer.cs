@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
+namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     /// <summary>
     /// Looks for code of the form:
@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
     ///     if (o is Type x) ...
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpInlineTypeCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public CSharpInlineTypeCheckDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.InlineTypeCheckId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Inline_type_check), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+        public CSharpAsAndNullCheckDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.InlineAsTypeCheckId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
             var options = syntaxContext.Options.GetOptionSet();
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferInlinedTypeCheck);
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineTypeCheck
             // look for the form "if (a != null)" or "if (null != a)"
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
 
-            // "x is Type" is only available in C# 7.0 and above.  Don't offer this refactoring
+            // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
             // in projects targetting a lesser version.
             if (((CSharpParseOptions)ifStatement.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {

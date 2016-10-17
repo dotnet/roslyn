@@ -4,22 +4,21 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.InlineTypeCheck;
+using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
-    public partial class CSharpInlineTypeCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class CSharpIsAndCastCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpInlineTypeCheckDiagnosticAnalyzer(),
-                new CSharpInlineTypeCheckCodeFixProvider());
+                new CSharpIsAndCastCheckDiagnosticAnalyzer(),
+                new CSharpIsAndCastCheckCodeFixProvider());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -30,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        [|var|] x = o as string;
-        if (x != null)
+        if (x is string)
         {
+            [|var|] v = (string)x;
         } 
     }
 }",
@@ -40,32 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        if (o is string x)
-        {
-        } 
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task InlineTypeCheckInvertedCheck1()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
-    {
-        [|var|] x = o as string;
-        if (null != x)
-        {
-        } 
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (o is string x)
+        if (x is string v)
         {
         } 
     }
@@ -80,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        [|var|] x = o as string;
-        if (x != null)
+        if (x is string)
         {
+            [|var|] v = (string)x;
         } 
     }
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -96,9 +70,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        [|var|] y = o as string;
-        if (x != null)
+        if (x is string)
         {
+            [|var|] v = (string)y;
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingInWrongType()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if (x is string)
+        {
+            [|var|] v = (bool)x;
+        } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingOnMultiVar()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if (x is string)
+        {
+            var [|v|] = (string)x, v1 = "";
         } 
     }
 }");
@@ -112,25 +118,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        [|y|] = o as string;
-        if (x != null)
+        if (x is string)
         {
+            [|v|] = (string)x;
         } 
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task TestMissingOnIsExpression()
+        public async Task TestMissingOnAsExpression()
         {
             await TestMissingAsync(
 @"class C
 {
     void M()
     {
-        [|var|] x = o is string;
-        if (x != null)
+        if (x as string)
         {
+            [|var|] v = (string)x;
         } 
     }
 }");
@@ -144,9 +150,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        [|var|] x = (o ? z : w) as string;
-        if (x != null)
+        if ((x ? y : z) is string)
         {
+            [|var|] v = (string)(x ? y : z);
         } 
     }
 }",
@@ -154,23 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        if ((o ? z : w) is string x)
-        {
-        } 
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task TestMissingOnNullEquality()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
-    {
-        [|var|] x = o is string;
-        if (x == null)
+        if ((x ? y : z) is string v)
         {
         } 
     }
@@ -185,10 +175,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        [|var|] x = o as string;
-        if (null != x)
+        if (x is string)
         {
-        }
+            [|var|] v = (string)x;
+        } 
         else
         {
         }
@@ -198,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        if (o is string x)
+        if (x is string v)
         {
-        }
+        } 
         else
         {
         }
@@ -216,11 +206,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        // prefix comment
-        [|var|] x = o as string;
-        if (x != null)
+        if (x is string)
         {
-        }
+            // prefix comment
+            [|var|] v = (string)x;
+        } 
     }
 }",
 @"class C
@@ -228,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
     void M()
     {
         // prefix comment
-        if (o is string x)
+        if (x is string v)
         {
         }
     }
@@ -243,10 +233,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        [|var|] x = o as string; // suffix comment
-        if (x != null)
+        if (x is string)
         {
-        }
+            [|var|] v = (string)x; // suffix comment
+        } 
     }
 }",
 @"class C
@@ -254,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
     void M()
     {
         // suffix comment
-        if (o is string x)
+        if (x is string v)
         {
         }
     }
@@ -269,11 +259,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        // prefix comment
-        [|var|] x = o as string; // suffix comment
-        if (x != null)
+        if (x is string)
         {
-        }
+            // prefix comment
+            [|var|] v = (string)x; // suffix comment
+        } 
     }
 }",
 @"class C
@@ -282,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
     {
         // prefix comment
         // suffix comment
-        if (o is string x)
+        if (x is string v)
         {
         }
     }
@@ -290,16 +280,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task InlineTypeCheckComplexCondition1()
+        public async Task InlineTypeCheckParenthesized1()
         {
             await TestAsync(
 @"class C
 {
     void M()
     {
-        [|var|] x = o as string;
-        if (x != null ? 0 : 1)
+        if ((x) is string)
         {
+            [|var|] v = (string)x;
         } 
     }
 }",
@@ -307,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        if (o is string x ? 0 : 1)
+        if ((x) is string v)
         {
         } 
     }
@@ -315,16 +305,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task InlineTypeCheckComplexCondition2()
+        public async Task InlineTypeCheckParenthesized2()
         {
             await TestAsync(
 @"class C
 {
     void M()
     {
-        [|var|] x = o as string;
-        if ((x != null))
+        if (x is string)
         {
+            [|var|] v = (string)(x);
         } 
     }
 }",
@@ -332,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        if ((o is string x))
+        if (x is string v)
         {
         } 
     }
@@ -340,16 +330,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task InlineTypeCheckComplexCondition3()
+        public async Task InlineTypeCheckParenthesized3()
         {
             await TestAsync(
 @"class C
 {
     void M()
     {
-        [|var|] x = o as string;
-        if (x != null && x.Length > 0)
+        if (x is string)
         {
+            [|var|] v = ((string)x);
         } 
     }
 }",
@@ -357,9 +347,108 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineTypeCheck
 {
     void M()
     {
-        if (o is string x && x.Length > 0)
+        if (x is string v)
         {
         } 
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task InlineTypeCheckScopeConflict1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if (x is string)
+        {
+            [|var|] v = (string)x;
+        } 
+        else
+        {
+            var v = 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task InlineTypeCheckScopeConflict2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if (x is string)
+        {
+            [|var|] v = (string)x;
+        }
+ 
+        if (true)
+        {
+            var v = 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task InlineTypeCheckScopeConflict3()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if (x is string)
+        {
+            var v = (string)x;
+        }
+ 
+        if (x is bool)
+        {
+            [|var|] v = (bool)x;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task InlineTypeCheckScopeNonConflict1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        {
+            if (x is string)
+            {
+                [|var|] v = ((string)x);
+            }
+        } 
+
+        {
+            var v = 1;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            if (x is string v)
+            {
+            }
+        } 
+
+        {
+            var v = 1;
+        }
     }
 }");
         }

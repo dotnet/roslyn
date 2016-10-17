@@ -274,7 +274,7 @@ class C
 }
 ";
 
-        private static readonly string s_preferInlinedTypeCheck = @"
+        private static readonly string s_preferPatternMatchingOverAsWithNullCheck = @"
 class C
 {
     void M()
@@ -289,6 +289,27 @@ class C
         var s = o as string;
         if (s != null)
         {
+        }
+//]
+    }
+}
+";
+
+        private static readonly string s_preferPatternMatchingOverIsWithCastCheck = @"
+class C
+{
+    void M()
+    {
+//[
+        // Prefer:
+        if (o is int i)
+        {
+        }
+
+        // Over:
+        if (o is int)
+        {
+            var i = (int)o;
         }
 //]
     }
@@ -566,16 +587,17 @@ class List<T>
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ServicesVSResources.For_indexers, s_preferExpressionBodyForIndexers, s_preferBlockBodyForIndexers, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ServicesVSResources.For_accessors, s_preferExpressionBodyForAccessors, s_preferBlockBodyForAccessors, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
 
-            // Expressions
+            // Expression preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
 
-            // Variables
+            // Variable preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferInlinedVariableDeclaration, ServicesVSResources.Prefer_inlined_variable_declaration, s_preferInlinedVariableDeclaration, s_preferInlinedVariableDeclaration, this, optionSet, variablePreferencesGroupTitle));
 
-            // Null checking
+            // Null preferences.
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, s_preferThrowExpression, s_preferThrowExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingGroupTitle));
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferInlinedTypeCheck, CSharpVSResources.Prefer_inlined_type_check, s_preferInlinedTypeCheck, s_preferInlinedTypeCheck, this, optionSet, nullCheckingGroupTitle));
         }
     }
 }
