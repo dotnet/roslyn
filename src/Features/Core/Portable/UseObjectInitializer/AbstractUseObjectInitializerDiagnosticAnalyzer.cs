@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
         TVariableDeclarator>
-        : DiagnosticAnalyzer, IBuiltInAnalyzer
+        : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -27,34 +27,15 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TAssignmentStatementSyntax : TStatementSyntax
         where TVariableDeclarator : SyntaxNode
     {
-        private static readonly string Id = IDEDiagnosticIds.UseObjectInitializerDiagnosticId;
-
-        private static readonly DiagnosticDescriptor s_descriptor =
-            CreateDescriptor(Id, DiagnosticSeverity.Hidden);
-
-        private static readonly DiagnosticDescriptor s_unnecessaryWithSuggestionDescriptor =
-            CreateDescriptor(Id, DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
-
-        private static readonly DiagnosticDescriptor s_unnecessaryWithoutSuggestionDescriptor =
-            CreateDescriptor(Id + "WithoutSuggestion",
-                DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(s_descriptor, s_unnecessaryWithoutSuggestionDescriptor, s_unnecessaryWithSuggestionDescriptor);
-
         protected abstract bool FadeOutOperatorToken { get; }
 
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        private static DiagnosticDescriptor CreateDescriptor(string id, DiagnosticSeverity severity, params string[] customTags)
-            => new DiagnosticDescriptor(
-                id,
-                FeaturesResources.Object_initialization_can_be_simplified,
-                FeaturesResources.Object_initialization_can_be_simplified,
-                DiagnosticCategory.Style,
-                severity,
-                isEnabledByDefault: true,
-                customTags: customTags);
+        protected AbstractUseObjectInitializerDiagnosticAnalyzer() 
+            : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+        {
+        }
 
         public override void Initialize(AnalysisContext context)
         {
@@ -90,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var severity = option.Notification.Value;
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(Id, severity),
+                CreateDescriptor(DescriptorId, severity),
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 
@@ -124,12 +105,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     match.MemberAccessExpression.SpanStart, end));
 
                 context.ReportDiagnostic(Diagnostic.Create(
-                    s_unnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
+                    UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
 
                 if (match.Statement.Span.End > match.Initializer.FullSpan.End)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        s_unnecessaryWithoutSuggestionDescriptor,
+                        UnnecessaryWithoutSuggestionDescriptor,
                         Location.Create(syntaxTree, TextSpan.FromBounds(
                             match.Initializer.FullSpan.End,
                             match.Statement.Span.End)),

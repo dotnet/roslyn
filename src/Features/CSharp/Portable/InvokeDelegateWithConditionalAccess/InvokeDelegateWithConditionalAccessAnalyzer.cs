@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,28 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal class InvokeDelegateWithConditionalAccessAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly DiagnosticDescriptor s_descriptor = 
-            CreateDescriptor(DiagnosticSeverity.Hidden);
-
-        private static readonly DiagnosticDescriptor s_unnecessaryDescriptor = 
-            CreateDescriptor(DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(s_descriptor, s_unnecessaryDescriptor);
+        public InvokeDelegateWithConditionalAccessAnalyzer()
+            : base(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId, 
+                   new LocalizableResourceString(nameof(CSharpFeaturesResources.Delegate_invocation_can_be_simplified), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
+        {
+        }
 
         public bool OpenFileOnly(Workspace workspace) => false;
-
-        private static DiagnosticDescriptor CreateDescriptor(DiagnosticSeverity severity, params string[] customTags)
-            => new DiagnosticDescriptor(
-                IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
-                CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
-                CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
-                DiagnosticCategory.Style,
-                severity,
-                isEnabledByDefault: true,
-                customTags: customTags);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -162,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             return false;
         }
 
-        private static void ReportDiagnostics(
+        private void ReportDiagnostics(
             SyntaxNodeAnalysisContext syntaxContext,
             StatementSyntax firstStatement,
             IfStatementSyntax ifStatement,
@@ -180,19 +168,19 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var nextToken = expressionStatement.GetLastToken().GetNextToken();
 
             // Fade out the code up to the expression statement.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(this.UnnecessaryWithSuggestionDescriptor,
                 Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End)),
                 additionalLocations, properties));
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(CreateDescriptor(severity),
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(CreateDescriptor(this.DescriptorId, severity),
                 expressionStatement.GetLocation(),
                 additionalLocations, properties));
 
             // If the if-statement extends past the expression statement, then fade out the rest.
             if (nextToken.Span.Start < ifStatement.Span.End)
             {
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(s_unnecessaryDescriptor,
+                syntaxContext.ReportDiagnostic(Diagnostic.Create(this.UnnecessaryWithSuggestionDescriptor,
                     Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End)),
                     additionalLocations, properties));
             }

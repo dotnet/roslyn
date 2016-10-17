@@ -3362,15 +3362,18 @@ public class mine {
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (12,17): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-    //         try {B b(3);
-    Diagnostic(ErrorCode.ERR_BadVarDecl, "(3)"),
-    // (12,17): error CS1003: Syntax error, '[' expected
-    //         try {B b(3);
-    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-    // (12,20): error CS1003: Syntax error, ']' expected
-    //         try {B b(3);
-    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
+                // (12,18): error CS1026: ) expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "3").WithLocation(12, 18),
+                // (12,18): error CS1002: ; expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "3").WithLocation(12, 18),
+                // (12,19): error CS1002: ; expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(12, 19),
+                // (12,19): error CS1513: } expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(12, 19));
         }
 
         [Fact]
@@ -5133,30 +5136,19 @@ class Program
 
             SyntaxFactory.ParseSyntaxTree(source).GetDiagnostics().Verify(
                 // (7,14): error CS1514: { expected
+                //     delegate int F1(); 
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "int").WithLocation(7, 14),
                 // (7,14): error CS1002: ; expected
+                //     delegate int F1(); 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(7, 14),
-                // (7,20): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "()").WithLocation(7, 20),
-                // (7,20): error CS1003: Syntax error, '[' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(7, 20),
-                // (7,21): error CS1525: Invalid expression term ')'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 21),
-                // (7,22): error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(7, 22),
                 // (8,14): error CS1514: { expected
+                //     delegate int F2();
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "int").WithLocation(8, 14),
                 // (8,14): error CS1002: ; expected
+                //     delegate int F2();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(8, 14),
-                // (8,20): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "()").WithLocation(8, 20),
-                // (8,20): error CS1003: Syntax error, '[' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 20),
-                // (8,21): error CS1525: Invalid expression term ')'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 21),
-                // (8,22): error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(8, 22),
                 // (9,2): error CS1513: } expected
+                // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 2));
         }
 

@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If constantResult IsNot Nothing Then
                 Debug.Assert(Conversions.IsIdentityConversion(conv) OrElse
                                       conv = ConversionKind.WideningNothingLiteral OrElse
-                                      sourceType.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringCustomModifiers(targetType.GetEnumUnderlyingTypeOrSelf()))
+                                      sourceType.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringAll(targetType.GetEnumUnderlyingTypeOrSelf()))
                 Debug.Assert(Not integerOverflow)
                 Debug.Assert(Not constantResult.IsBad)
             Else
@@ -323,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If targetType.IsErrorType Then
                 argument = MakeRValueAndIgnoreDiagnostics(argument)
 
-                If Not isExplicit AndAlso argument.Type.IsSameTypeIgnoringCustomModifiers(targetType) Then
+                If Not isExplicit AndAlso argument.Type.IsSameTypeIgnoringAll(targetType) Then
                     Return argument
                 End If
 
@@ -428,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' don't need representation in the bound tree (they would be optimized away in emit, but are so common
             ' that this is an important way to save both time and memory).
             If (Not isExplicit OrElse explicitSemanticForConcatArgument) AndAlso Conversions.IsIdentityConversion(convKind.Key) Then
-                Debug.Assert(argument.Type.IsSameTypeIgnoringCustomModifiers(targetType))
+                Debug.Assert(argument.Type.IsSameTypeIgnoringAll(targetType))
                 Debug.Assert(tree Is argument.Syntax)
                 Return MakeRValue(argument, diagnostics)
             End If
@@ -798,7 +798,7 @@ DoneWithDiagnostics:
                     Dim sourceArg As TypeSymbol = sourceArguments(i)
                     Dim destinationArg As TypeSymbol = destinationArguments(i)
 
-                    If sourceArg.IsSameTypeIgnoringCustomModifiers(destinationArg) Then
+                    If sourceArg.IsSameTypeIgnoringAll(destinationArg) Then
                         Continue For
                     End If
 
@@ -1560,7 +1560,7 @@ DoneWithDiagnostics:
 
         Private Function ReclassifyInterpolatedStringExpression(conversionSemantics As SyntaxKind, tree As SyntaxNode, convKind As ConversionKind, isExplicit As Boolean, node As BoundInterpolatedStringExpression, targetType As TypeSymbol, diagnostics As DiagnosticBag) As BoundExpression
 
-            If convKind = ConversionKind.InterpolatedString Then
+            If (convKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString Then
                 Debug.Assert(targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_IFormattable)) OrElse targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_FormattableString)))
                 Return New BoundConversion(tree, node, ConversionKind.InterpolatedString, False, isExplicit, targetType)
             End If
@@ -1579,7 +1579,7 @@ DoneWithDiagnostics:
 
             ' We have a successful tuple conversion rather than producing a separate conversion node 
             ' which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
-            Dim isNullableTupleConversion = (convKind = ConversionKind.WideningNullable) Or (convKind = ConversionKind.NarrowingNullable)
+            Dim isNullableTupleConversion = (convKind And ConversionKind.Nullable) <> 0
             Debug.Assert(Not isNullableTupleConversion OrElse destination.IsNullableType())
 
             Dim targetType = destination

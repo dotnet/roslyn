@@ -23,6 +23,13 @@
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
+      <Project>{737ff62c-f068-4317-84d0-bfb210c17a4e}</Project>
+      <Name>CSharpVisualStudioRepl</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>
@@ -85,16 +92,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
-      <Project>{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}</Project>
-      <Name>VisualStudioInteractiveWindow</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <Private>False</Private>
-      <IncludeOutputGroupsInVSIX>
-      </IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>
-      </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
@@ -171,6 +168,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -191,7 +189,8 @@
     <Compile Include="AssemblyRedirects.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
+    <Content Include="CSharpInteractivePackageRegistration.pkgdef" />
+    <Content Include="VisualBasicInteractivePackageRegistration.pkgdef" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

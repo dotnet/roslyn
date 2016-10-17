@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         // default csi.rsp
         private static readonly string[] s_defaultArgs = new[]
         {
-            "/r:System;System.Core;Microsoft.CSharp",
+            "/r:System;System.Core;Microsoft.CSharp;System.ValueTuple.dll",
             "/u:System;System.IO;System.Collections.Generic;System.Diagnostics;System.Dynamic;System.Linq;System.Linq.Expressions;System.Text;System.Threading.Tasks",
         };
 
@@ -163,6 +163,22 @@ Type ""#help"" for more information.
 1
 > Print(2)
 2
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void Tuples()
+        {
+            var runner = CreateRunner(input: "(1,2)");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> (1,2)
+[(1, 2)]
 > ", runner.Console.Out.ToString());
         }
 

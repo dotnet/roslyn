@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -31,9 +32,10 @@ namespace Microsoft.CodeAnalysis
             TupleType = 'T',
             Module = 'U',
             Event = 'V',
+            AnonymousType = 'W',
             ReducedExtensionMethod = 'X',
             TypeParameter = 'Y',
-            AnonymousType = 'Z',
+            AnonymousFunctionOrDelegate = 'Z',
 
             // Not to be confused with ArrayType.  This indicates an array of elements in the stream.
             Array = '%',
@@ -49,8 +51,8 @@ namespace Microsoft.CodeAnalysis
 
             private readonly Action<ISymbol> _writeSymbolKey;
             private readonly Action<string> _writeString;
-            private readonly Action<bool> _writeBoolean;
             private readonly Action<Location> _writeLocation;
+            private readonly Action<bool> _writeBoolean;
             private readonly Action<IParameterSymbol> _writeParameterType;
             private readonly Action<IParameterSymbol> _writeRefKind;
 
@@ -68,8 +70,8 @@ namespace Microsoft.CodeAnalysis
             {
                 _writeSymbolKey = WriteSymbolKey;
                 _writeString = WriteString;
-                _writeBoolean = WriteBoolean;
                 _writeLocation = WriteLocation;
+                _writeBoolean = WriteBoolean;
                 _writeParameterType = p => WriteSymbolKey(p.Type);
                 _writeRefKind = p => WriteInteger((int)p.RefKind);
             }
@@ -388,6 +390,11 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.ReducedExtensionMethod);
                     ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
                 }
+                else if (methodSymbol.MethodKind == MethodKind.AnonymousFunction)
+                {
+                    WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
+                    AnonymousFunctionOrDelegateSymbolKey.Create(methodSymbol, this);
+                }
                 else
                 {
                     WriteType(SymbolKeyType.Method);
@@ -418,8 +425,16 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (namedTypeSymbol.IsAnonymousType)
                 {
-                    WriteType(SymbolKeyType.AnonymousType);
-                    AnonymousTypeSymbolKey.Create(namedTypeSymbol, this);
+                    if (namedTypeSymbol.IsAnonymousDelegateType())
+                    {
+                        WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
+                        AnonymousFunctionOrDelegateSymbolKey.Create(namedTypeSymbol, this);
+                    }
+                    else
+                    {
+                        WriteType(SymbolKeyType.AnonymousType);
+                        AnonymousTypeSymbolKey.Create(namedTypeSymbol, this);
+                    }
                 }
                 else
                 {

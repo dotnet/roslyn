@@ -7258,8 +7258,7 @@ public class C { }
             // Multiple duplicates
             commandLineArgs = new[] { "a.cs", "a.cs", "a.cs" };
             // warning CS2002: Source file 'a.cs' specified multiple times
-            // warning CS2002: Source file 'a.cs' specified multiple times
-            var warnings = new[] { aWrnString, aWrnString };
+            var warnings = new[] { aWrnString };
             TestCS2002(commandLineArgs, tempDir.Path, 0, warnings);
 
             // Case-insensitive

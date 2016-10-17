@@ -6,11 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Execution
+namespace Microsoft.CodeAnalysis.Serialization
 {
     /// <summary>
     /// serialize and deserialize objects to stream.
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal partial class Serializer
     {
-        public void SerializeSolutionChecksumObjectInfo(SolutionChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSerializedSolutionInfo(SerializedSolutionInfo info, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(info.FilePath);
         }
 
-        private SolutionChecksumObjectInfo DeserializeSolutionChecksumObjectInfo(ObjectReader reader, CancellationToken cancellationToken)
+        private SerializedSolutionInfo DeserializeSerializedSolutionInfo(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -38,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Execution
             // var version = VersionStamp.ReadFrom(reader);
             var filePath = reader.ReadString();
 
-            return new SolutionChecksumObjectInfo(solutionId, VersionStamp.Create(), filePath);
+            return new SerializedSolutionInfo(solutionId, VersionStamp.Create(), filePath);
         }
 
-        public void SerializeProjectChecksumObjectInfo(ProjectChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSerializedProjectInfo(SerializedProjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteBoolean(info.IsSubmission);
         }
 
-        private ProjectChecksumObjectInfo DeserializeProjectChecksumObjectInfo(ObjectReader reader, CancellationToken cancellationToken)
+        private SerializedProjectInfo DeserializeSerializedProjectInfo(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -72,11 +73,10 @@ namespace Microsoft.CodeAnalysis.Execution
             var outputFilePath = reader.ReadString();
             var isSubmission = reader.ReadBoolean();
 
-            return new ProjectChecksumObjectInfo(
-                projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, isSubmission);
+            return new SerializedProjectInfo(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, isSubmission);
         }
 
-        public void SerializeDocumentChecksumObjectInfo(DocumentChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSerializedDocumentInfo(SerializedDocumentInfo info, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteBoolean(info.IsGenerated);
         }
 
-        private DocumentChecksumObjectInfo DeserializeDocumentChecksumObjectInfo(ObjectReader reader, CancellationToken cancellationToken)
+        private SerializedDocumentInfo DeserializeSerializedDocumentInfo(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var filePath = reader.ReadString();
             var isGenerated = reader.ReadBoolean();
 
-            return new DocumentChecksumObjectInfo(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
+            return new SerializedDocumentInfo(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
         }
 
         public void SerializeSourceText(ITemporaryStorageWithName storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
@@ -155,11 +155,13 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public void SerializeCompilationOptions(string language, CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // TODO: language specific, should I put this ability in compilation layer?
+            var language = options.Language;
+
+            // TODO: once compiler team adds ability to serialize compilation options to ObjectWriter directly, we won't need this.
             writer.WriteString(language);
 
             var service = GetOptionsSerializationService(language);
@@ -176,11 +178,13 @@ namespace Microsoft.CodeAnalysis.Execution
             return service.ReadCompilationOptionsFrom(reader, cancellationToken);
         }
 
-        public void SerializeParseOptions(string language, ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeParseOptions(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // TODO: language specific, should I put this ability in compilation layer?
+            var language = options.Language;
+
+            // TODO: once compiler team adds ability to serialize parse options to ObjectWriter directly, we won't need this.
             writer.WriteString(language);
 
             var service = GetOptionsSerializationService(language);
@@ -220,25 +224,25 @@ namespace Microsoft.CodeAnalysis.Execution
         public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            HostSerializationService.WriteTo(reference, writer, cancellationToken);
+            _hostSerializationService.WriteTo(reference, writer, cancellationToken);
         }
 
         private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return HostSerializationService.ReadMetadataReferenceFrom(reader, cancellationToken);
+            return _hostSerializationService.ReadMetadataReferenceFrom(reader, cancellationToken);
         }
 
         public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            HostSerializationService.WriteTo(reference, writer, cancellationToken);
+            _hostSerializationService.WriteTo(reference, writer, cancellationToken);
         }
 
         private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return HostSerializationService.ReadAnalyzerReferenceFrom(reader, cancellationToken);
+            return _hostSerializationService.ReadAnalyzerReferenceFrom(reader, cancellationToken);
         }
 
         public void SerializeSolutionId(SolutionId solutionId, ObjectWriter writer, CancellationToken cancellationToken)

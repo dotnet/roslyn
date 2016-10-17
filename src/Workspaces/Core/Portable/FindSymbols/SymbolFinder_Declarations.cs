@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (referenceOpt != null)
                 {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                         solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     if (info != null)
                     {

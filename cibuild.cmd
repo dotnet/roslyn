@@ -6,7 +6,7 @@ set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 
 REM Because override the C#/VB toolset to build against our LKG package, it is important
-REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
+REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
 REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
 set MSBuildAdditionalCommandLineArgs=/nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal
 
@@ -53,7 +53,7 @@ REM Output the commit that we're building, for reference in Jenkins logs
 echo Building this commit:
 git show --no-patch --pretty=raw HEAD
 
-REM Restore the NuGet packages 
+REM Restore the NuGet packages
 call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
@@ -61,7 +61,7 @@ set bindir=%RoslynRoot%Binaries
 if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
 
 REM Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
-msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
@@ -94,8 +94,8 @@ if defined TestPerfRun (
             set "EXTRA_PERF_RUNNER_ARGS=--report-benchview --branch "%GIT_BRANCH%""
 
             REM Check if we are in a PR or this is a rolling submission
-            if defined ghprbPullTitle (
-                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name "[%ghprbPullAuthorLogin%] PR %ghprbPullId%: %ghprbPullTitle%" --benchview-submission-type private"
+            if defined ghprbPullId (
+                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name ^"[%ghprbPullAuthorLogin%] PR %ghprbPullId%^" --benchview-submission-type private"
             ) else (
                 set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-type rolling"
             )
@@ -109,7 +109,10 @@ if defined TestPerfRun (
     exit /b 0
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+REM Temporarily forcing MSBuild 14.0 here to work around a bug in 15.0
+REM MSBuild bug: https://github.com/Microsoft/msbuild/issues/1183
+REM Roslyn tracking bug: https://github.com/dotnet/roslyn/issues/14451
+"c:\Program Files (x86)\MSBuild\14.0\bin\MSBuild.exe" %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses

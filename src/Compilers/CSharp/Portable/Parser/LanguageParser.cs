@@ -8897,8 +8897,13 @@ tryAgain:
             // "did you mean to make this method be an async method?" (it's invalid either way, so the spec doesn't care)
             var resetPoint = this.GetResetPoint();
 
-            // if forceAccept is true, then the parse is okay to return a local function statement even if a body doesn't follow the declaration.
-            var forceAccept = false;
+            // Indicates this must be parsed as a local function, even if there's no body
+            bool forceLocalFunc = true;
+            if (type.Kind == SyntaxKind.IdentifierName)
+            {
+                var id = ((IdentifierNameSyntax)type).Identifier;
+                forceLocalFunc = id.ContextualKind != SyntaxKind.AwaitKeyword;
+            }
 
             bool parentScopeIsInAsync = IsInAsync;
             IsInAsync = false;
@@ -8909,10 +8914,10 @@ tryAgain:
                 {
                     case SyntaxKind.AsyncKeyword:
                         IsInAsync = true;
-                        forceAccept = true;
+                        forceLocalFunc = true;
                         break;
                     case SyntaxKind.UnsafeKeyword:
-                        forceAccept = true;
+                        forceLocalFunc = true;
                         break;
                     case SyntaxKind.StaticKeyword:
                     case SyntaxKind.ReadOnlyKeyword:
@@ -8938,14 +8943,14 @@ tryAgain:
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
             // "await x()" is ambiguous (see note at start of this method), but we assume "await x(await y)" is meant to be a function if it's in a non-async context.
-            if (!forceAccept)
+            if (!forceLocalFunc)
             {
                 var paramListSyntax = paramList.Parameters;
                 for (int i = 0; i < paramListSyntax.Count; i++)
                 {
                     // "await x(y)" still parses as a parameter list, so check to see if it's a valid parameter (like "x(t y)")
-                    forceAccept |= !paramListSyntax[i].ContainsDiagnostics;
-                    if (forceAccept)
+                    forceLocalFunc |= !paramListSyntax[i].ContainsDiagnostics;
+                    if (forceLocalFunc)
                         break;
                 }
             }
@@ -8955,7 +8960,7 @@ tryAgain:
             {
                 constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
                 this.ParseTypeParameterConstraintClauses(typeParameterListOpt != null, constraints);
-                forceAccept = true;
+                forceLocalFunc = true;
             }
 
             BlockSyntax blockBody;
@@ -8965,7 +8970,7 @@ tryAgain:
 
             IsInAsync = parentScopeIsInAsync;
 
-            if (!forceAccept && blockBody == null && expressionBody == null)
+            if (!forceLocalFunc && blockBody == null && expressionBody == null)
             {
                 this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
@@ -11177,7 +11182,8 @@ tryAgain:
                         nodes.Add(parameter);
 
                         // additional parameters
-                        while (true)
+                        int tokenProgress = -1;
+                        while(IsMakingProgress(ref tokenProgress))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                             {
@@ -11253,6 +11259,7 @@ tryAgain:
             var pk = this.PeekToken(1).Kind;
             if (isRefOrOutOrParams
                 || (pk != SyntaxKind.CommaToken && pk != SyntaxKind.CloseParenToken && (hasTypes || isFirst))
+                || (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && pk == SyntaxKind.CloseParenToken && (hasTypes || isFirst))
                 || IsPredefinedType(this.CurrentToken.Kind))
             {
                 if (isRefOrOutOrParams)

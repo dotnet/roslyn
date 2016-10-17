@@ -31,19 +31,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// Note: this analyzer can be udpated to run on VB once VB supports 'throw' 
     /// expressions as well.
     /// </summary>
-    internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-
-        private static DiagnosticDescriptor s_descriptor = 
-            CreateDescriptor(DiagnosticSeverity.Hidden);
-
-        private static DiagnosticDescriptor s_unnecessaryCodeDescriptor =
-            CreateDescriptor(DiagnosticSeverity.Hidden, customTags: DiagnosticCustomTags.Unnecessary);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(s_descriptor, s_unnecessaryCodeDescriptor);
+        protected AbstractUseThrowExpressionDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+        {
+        }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
@@ -57,16 +51,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
 
         protected abstract bool IsSupported(ParseOptions options);
-
-        private static DiagnosticDescriptor CreateDescriptor(DiagnosticSeverity severity, params string[] customTags)
-            => new DiagnosticDescriptor(
-                    IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
-                    s_localizableTitle,
-                    s_localizableMessage,
-                    DiagnosticCategory.Style,
-                    DiagnosticSeverity.Hidden,
-                    isEnabledByDefault: true,
-                    customTags: customTags);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -148,7 +132,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            var descriptor = CreateDescriptor(option.Notification.Value);
+            var descriptor = CreateDescriptor(DescriptorId, option.Notification.Value);
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));
@@ -158,7 +142,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             var tokenBeforeThrow = throwStatement.GetFirstToken().GetPreviousToken();
             var tokenAfterThrow = throwStatement.GetLastToken().GetNextToken();
             context.ReportDiagnostic(
-                Diagnostic.Create(s_unnecessaryCodeDescriptor,
+                Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
                     Location.Create(syntaxTree, TextSpan.FromBounds(
                         ifOperation.Syntax.SpanStart,
                         tokenBeforeThrow.Span.End)),
@@ -167,7 +151,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             if (ifOperation.Syntax.Span.End > tokenAfterThrow.Span.Start)
             {
                 context.ReportDiagnostic(
-                    Diagnostic.Create(s_unnecessaryCodeDescriptor,
+                    Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
                         Location.Create(syntaxTree, TextSpan.FromBounds(
                             tokenAfterThrow.Span.Start,
                             ifOperation.Syntax.Span.End)),

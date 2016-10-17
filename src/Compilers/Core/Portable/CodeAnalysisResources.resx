@@ -522,6 +522,21 @@
     <value>Exception occurred with following context:
 {0}</value>
   </data>
+  <data name="AnonymousTypeMemberAndNamesCountMismatch2" xml:space="preserve">
+    <value>{0} and {1} must have the same length.</value>
+  </data>
+  <data name="AnonymousTypeArgumentCountMismatch2" xml:space="preserve">
+    <value>{0} must either be 'default' or have the same length as {1}.</value>
+  </data>
+  <data name="InconsistentSyntaxTreeFeature" xml:space="preserve">
+    <value>Inconsistent syntax tree features</value>
+  </data>
+  <data name="ReferenceOfTypeIsInvalid1" xml:space="preserve">
+    <value>Reference of type '{0}' is not valid for this compilation.</value>
+  </data>
+  <data name="MetadataRefNotFoundToRemove1" xml:space="preserve">
+    <value>MetadataReference '{0}' not found to remove.</value>
+  </data>
   <data name="TupleElementNameCountMismatch" xml:space="preserve">
     <value>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</value>
   </data>

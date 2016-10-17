@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Conditional("DEBUG")>
         Private Shared Sub AssertPlaceholderReplacement(placeholder As BoundValuePlaceholderBase, value As BoundExpression)
-            Debug.Assert(value.Type.IsSameTypeIgnoringCustomModifiers(placeholder.Type))
+            Debug.Assert(value.Type.IsSameTypeIgnoringAll(placeholder.Type))
 
             If placeholder.IsLValue AndAlso value.Kind <> BoundKind.MeReference Then
                 Debug.Assert(value.IsLValue)
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Not DirectCast(DirectCast(node, BoundObjectCreationExpressionBase).InitializerOpt, BoundObjectInitializerExpression).CreateTemporaryLocalForInitialization Then
                     Debug.Assert(result.Type.IsVoidType())
                 Else
-                    Debug.Assert(result.Type.IsSameTypeIgnoringCustomModifiers(node.Type))
+                    Debug.Assert(result.Type.IsSameTypeIgnoringAll(node.Type))
                 End If
             End If
 #End If

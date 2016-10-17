@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -14,22 +16,27 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_instanceId;
 
+        private readonly int _instanceId;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         protected readonly JsonRpc Rpc;
-        protected readonly CancellationToken CancellationToken;
-        protected readonly int InstanceId;
         protected readonly TraceSource Logger;
-        protected readonly Stream Stream;
+        protected readonly AssetStorage AssetStorage;
+        protected readonly CancellationToken CancellationToken;
+
+        private int _sessionId;
+        private Checksum _solutionChecksumOpt;
+        private RoslynServices _lazyRoslynServices;
 
         protected ServiceHubServiceBase(Stream stream, IServiceProvider serviceProvider)
         {
-            InstanceId = Interlocked.Add(ref s_instanceId, 1);
+            _instanceId = Interlocked.Add(ref s_instanceId, 1);
+
+            // in unit test, service provider will return asset storage, otherwise, use the default one
+            AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
 
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
             Logger.TraceInformation($"{DebugInstanceString} Service instance created");
-
-            Stream = stream;
 
             _cancellationTokenSource = new CancellationTokenSource();
             CancellationToken = _cancellationTokenSource.Token;
@@ -38,7 +45,26 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
+        protected string DebugInstanceString => $"{GetType()} ({_instanceId})";
+
+        protected RoslynServices RoslynServices
+        {
+            get
+            {
+                if (_lazyRoslynServices == null)
+                {
+                    _lazyRoslynServices = new RoslynServices(_sessionId, AssetStorage);
+                }
+
+                return _lazyRoslynServices;
+            }
+        }
+
+        protected Task<Solution> GetSolutionAsync()
+        {
+            Contract.ThrowIfNull(_solutionChecksumOpt);
+            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, CancellationToken);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -50,11 +76,20 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger.TraceEvent(TraceEventType.Error, 0, $"{DebugInstanceString} : " + message);
         }
 
+        public virtual void Initialize(int sessionId, byte[] solutionChecksum)
+        {
+            // set session related information
+            _sessionId = sessionId;
+
+            if (solutionChecksum != null)
+            {
+                _solutionChecksumOpt = new Checksum(solutionChecksum);
+            }
+        }
+
         public void Dispose()
         {
             Rpc.Dispose();
-            Stream.Dispose();
-
             Dispose(false);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");

@@ -142,6 +142,21 @@ True
   IL_0038:  ret
 }
                 ]]>.Value)
+            verifier.VerifyIL(
+                ".cctor",
+            <![CDATA[
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  IL_0000:  ldtoken    Max Method Token Index
+  IL_0005:  newarr     "Boolean()"
+  IL_000a:  stsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+  IL_000f:  ldstr      ##MVID##
+  IL_0014:  newobj     "Sub System.Guid..ctor(String)"
+  IL_0019:  stsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+  IL_001e:  ret
+}
+                ]]>.Value)
             verifier.VerifyDiagnostics()
         End Sub
 
@@ -1622,7 +1637,7 @@ End Class
 
             Dim diagnostics As ImmutableArray(Of Diagnostic) = CreateCompilation(source).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
             For Each Diagnostic As Diagnostic In diagnostics
-                If Diagnostic.Code = ERRID.ERR_MissingRuntimeHelper AndAlso Diagnostic.Arguments(0).Equals("System.Guid.Parse") Then
+                If Diagnostic.Code = ERRID.ERR_MissingRuntimeHelper AndAlso Diagnostic.Arguments(0).Equals("System.Guid..ctor") Then
                     Return
                 End If
             Next

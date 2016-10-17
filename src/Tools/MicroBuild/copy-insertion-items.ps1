@@ -10,11 +10,9 @@ try
     $items = @(
         "ExpressionEvaluatorPackage.vsix",
         "Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Roslyn.VisualStudio.Setup.Interactive.vsix",
         "Roslyn.VisualStudio.Setup.Next.vsix",
         "Roslyn.VisualStudio.Setup.vsix",
         "Microsoft.CodeAnalysis.ExpressionEvaluator.json",
-        "Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
         "Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.json",

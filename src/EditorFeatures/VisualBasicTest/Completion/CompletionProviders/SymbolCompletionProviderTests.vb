@@ -7583,5 +7583,71 @@ End Namespace
             Await VerifyItemIsAbsentAsync(text, "Rest")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function WinformsInstanceMembers() As Task
+            ' Setting the the preprocessor symbol _MyType=WindowsForms will cause the
+            ' compiler to automatically generate the My Template. See
+            ' GroupClassTests.vb for the compiler layer equivalent of these tests.
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="_MyType=WindowsForms">
+
+                        <Document name="Form.vb">
+                            <![CDATA[
+Namespace Global.System.Windows.Forms
+    Public Class Form
+        Implements IDisposable
+
+        Public Sub InstanceMethod()
+        End Sub
+
+        Public Shared Sub SharedMethod()
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public ReadOnly Property IsDisposed As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+    End Class
+End Namespace
+    ]]></Document>
+                        <Document name="types.vb"><![CDATA[
+Imports System
+
+Namespace Global.WindowsApplication1
+    Public Class Form2
+        Inherits System.Windows.Forms.Form
+    End Class
+End Namespace
+
+Namespace Global.WindowsApplication1
+    Public Class Form1
+        Inherits System.Windows.Forms.Form
+
+ Private Sub Foo()
+        Form2.$$
+    End Sub
+    End Class
+End Namespace
+    ]]></Document>
+
+                    </Project>
+                </Workspace>
+
+            Using workspace = Await TestWorkspace.CreateAsync(input)
+                Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
+                Dim position = workspace.DocumentWithCursor.CursorPosition.Value
+                Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                                        glyph:=Nothing, matchPriority:=Nothing)
+                Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                                        glyph:=Nothing, matchPriority:=Nothing)
+            End Using
+
+        End Function
+
     End Class
 End Namespace

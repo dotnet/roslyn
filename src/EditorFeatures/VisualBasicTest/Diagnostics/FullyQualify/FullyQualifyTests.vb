@@ -1,6 +1,7 @@
+Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
@@ -14,18 +15,40 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQ
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New VisualBasicFullyQualifyCodeFixProvider())
         End Function
 
+        Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+            Return FlattenActions(actions)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestParameterType() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main(args As String(), f As [|FileMode|]) \n End Sub \n End Module"),
-NewLines("Module Program \n Sub Main(args As String(), f As System.IO.FileMode) \n End Sub \n End Module"))
+"Module Program
+    Sub Main(args As String(), f As [|FileMode|])
+    End Sub
+End Module",
+"Module Program
+    Sub Main(args As String(), f As System.IO.FileMode)
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestSimpleQualifyFromSameFile() As Task
             Await TestAsync(
-NewLines("Class Class1 \n Dim v As [|SomeClass1|] \n End Class \n Namespace SomeNamespace \n Public Class SomeClass1 \n End Class \n End Namespace"),
-NewLines("Class Class1 \n Dim v As SomeNamespace.SomeClass1 \n End Class \n Namespace SomeNamespace \n Public Class SomeClass1 \n End Class \n End Namespace"))
+"Class Class1
+    Dim v As [|SomeClass1|]
+End Class
+Namespace SomeNamespace
+    Public Class SomeClass1
+    End Class
+End Namespace",
+"Class Class1
+    Dim v As SomeNamespace.SomeClass1
+End Class
+Namespace SomeNamespace
+    Public Class SomeClass1
+    End Class
+End Namespace")
         End Function
 
         Public Async Function TestOrdering() As Task
@@ -60,263 +83,685 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestSimpleQualifyFromReference() As Task
             Await TestAsync(
-NewLines("Class Class1 \n Dim v As [|Thread|] \n End Class"),
-NewLines("Class Class1 \n Dim v As System.Threading.Thread \n End Class"))
+"Class Class1
+    Dim v As [|Thread|]
+End Class",
+"Class Class1
+    Dim v As System.Threading.Thread
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericClassDefinitionAsClause() As Task
             Await TestAsync(
-NewLines("Namespace SomeNamespace \n Class Base \n End Class \n End Namespace \n Class SomeClass(Of x As [|Base|]) \n End Class"),
-NewLines("Namespace SomeNamespace \n Class Base \n End Class \n End Namespace \n Class SomeClass(Of x As SomeNamespace.Base) \n End Class"))
+"Namespace SomeNamespace
+    Class Base
+    End Class
+End Namespace
+Class SomeClass(Of x As [|Base|])
+End Class",
+"Namespace SomeNamespace
+    Class Base
+    End Class
+End Namespace
+Class SomeClass(Of x As SomeNamespace.Base)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericClassInstantiationOfClause() As Task
             Await TestAsync(
-NewLines("Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace \n Class GenericClass(Of T) \n End Class \n Class Foo \n Sub Method1() \n Dim q As GenericClass(Of [|SomeClass|]) \n End Sub \n End Class"),
-NewLines("Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace \n Class GenericClass(Of T) \n End Class \n Class Foo \n Sub Method1() \n Dim q As GenericClass(Of SomeNamespace.SomeClass) \n End Sub \n End Class"))
+"Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace
+Class GenericClass(Of T)
+End Class
+Class Foo
+    Sub Method1()
+        Dim q As GenericClass(Of [|SomeClass|])
+    End Sub
+End Class",
+"Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace
+Class GenericClass(Of T)
+End Class
+Class Foo
+    Sub Method1()
+        Dim q As GenericClass(Of SomeNamespace.SomeClass)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericMethodDefinitionAsClause() As Task
             Await TestAsync(
-NewLines("Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace \n Class Foo \n Sub Method1(Of T As [|SomeClass|]) \n End Sub \n End Class"),
-NewLines("Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace \n Class Foo \n Sub Method1(Of T As SomeNamespace.SomeClass) \n End Sub \n End Class"))
+"Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace
+Class Foo
+    Sub Method1(Of T As [|SomeClass|])
+    End Sub
+End Class",
+"Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace
+Class Foo
+    Sub Method1(Of T As SomeNamespace.SomeClass)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericMethodInvocationOfClause() As Task
             Await TestAsync(
-NewLines("Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace \n Class Foo \n Sub Method1(Of T) \n End Sub \n Sub Method2() \n Method1(Of [|SomeClass|]) \n End Sub \n End Class"),
-NewLines("Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace \n Class Foo \n Sub Method1(Of T) \n End Sub \n Sub Method2() \n Method1(Of SomeNamespace.SomeClass) \n End Sub \n End Class"))
+"Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace
+Class Foo
+    Sub Method1(Of T)
+    End Sub
+    Sub Method2()
+        Method1(Of [|SomeClass|])
+    End Sub
+End Class",
+"Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace
+Class Foo
+    Sub Method1(Of T)
+    End Sub
+    Sub Method2()
+        Method1(Of SomeNamespace.SomeClass)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestAttributeApplication() As Task
             Await TestAsync(
-NewLines("<[|Something|]()> \n Class Foo \n End Class \n Namespace SomeNamespace \n Class SomethingAttribute \n Inherits System.Attribute \n End Class \n End Namespace"),
-NewLines("<SomeNamespace.Something()> \n Class Foo \n End Class \n Namespace SomeNamespace \n Class SomethingAttribute \n Inherits System.Attribute \n End Class \n End Namespace"))
+"<[|Something|]()>
+Class Foo
+End Class
+Namespace SomeNamespace
+    Class SomethingAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace",
+"<SomeNamespace.Something()>
+Class Foo
+End Class
+Namespace SomeNamespace
+    Class SomethingAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestMultipleAttributeApplicationBelow() As Task
             Await TestAsync(
-NewLines("Imports System \n <Existing()> \n <[|Something|]()> \n Class Foo \n End Class \n Class ExistingAttribute \n Inherits System.Attribute \n End Class \n Namespace SomeNamespace \n Class SomethingAttribute \n Inherits Attribute \n End Class \n End Namespace"),
-NewLines("Imports System \n <Existing()> \n <SomeNamespace.Something()> \n Class Foo \n End Class \n Class ExistingAttribute \n Inherits System.Attribute \n End Class \n Namespace SomeNamespace \n Class SomethingAttribute \n Inherits Attribute \n End Class \n End Namespace"))
+"Imports System
+<Existing()>
+<[|Something|]()>
+Class Foo
+End Class
+Class ExistingAttribute
+    Inherits System.Attribute
+End Class
+Namespace SomeNamespace
+    Class SomethingAttribute
+        Inherits Attribute
+    End Class
+End Namespace",
+"Imports System
+<Existing()>
+<SomeNamespace.Something()>
+Class Foo
+End Class
+Class ExistingAttribute
+    Inherits System.Attribute
+End Class
+Namespace SomeNamespace
+    Class SomethingAttribute
+        Inherits Attribute
+    End Class
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestMultipleAttributeApplicationAbove() As Task
             Await TestAsync(
-NewLines("<[|Something|]()> \n <Existing()> \n Class Foo \n End Class \n Class ExistingAttribute \n Inherits System.Attribute \n End Class \n Namespace SomeNamespace \n Class SomethingAttribute \n Inherits System.Attribute \n End Class \n End Namespace"),
-NewLines("<SomeNamespace.Something()> \n <Existing()> \n Class Foo \n End Class \n Class ExistingAttribute \n Inherits System.Attribute \n End Class \n Namespace SomeNamespace \n Class SomethingAttribute \n Inherits System.Attribute \n End Class \n End Namespace"))
+"<[|Something|]()>
+<Existing()>
+Class Foo
+End Class
+Class ExistingAttribute
+    Inherits System.Attribute
+End Class
+Namespace SomeNamespace
+    Class SomethingAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace",
+"<SomeNamespace.Something()>
+<Existing()>
+Class Foo
+End Class
+Class ExistingAttribute
+    Inherits System.Attribute
+End Class
+Namespace SomeNamespace
+    Class SomethingAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestQualifierIsEscapedWhenNamespaceMatchesKeyword() As Task
             Await TestAsync(
-NewLines("Class SomeClass \n Dim x As [|Something|] \n End Class \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace"),
-NewLines("Class SomeClass \n Dim x As [Namespace].Something \n End Class \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace"))
+"Class SomeClass
+    Dim x As [|Something|]
+End Class
+Namespace [Namespace]
+    Class Something
+    End Class
+End Namespace",
+"Class SomeClass
+    Dim x As [Namespace].Something
+End Class
+Namespace [Namespace]
+    Class Something
+    End Class
+End Namespace")
         End Function
 
         <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestQualifierIsNOTEscapedWhenNamespaceMatchesKeywordButIsNested() As Task
             Await TestAsync(
-NewLines("Class SomeClass \n Dim x As [|Something|] \n End Class \n Namespace Outer \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace \n End Namespace"),
-NewLines("Class SomeClass \n Dim x As Outer.Namespace.Something \n End Class \n Namespace Outer \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace \n End Namespace"))
+"Class SomeClass
+    Dim x As [|Something|]
+End Class
+Namespace Outer
+    Namespace [Namespace]
+        Class Something
+        End Class
+    End Namespace
+End Namespace",
+"Class SomeClass
+    Dim x As Outer.Namespace.Something
+End Class
+Namespace Outer
+    Namespace [Namespace]
+        Class Something
+        End Class
+    End Namespace
+End Namespace")
         End Function
 
         <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestFullyQualifyInImportsStatement() As Task
             Await TestAsync(
-NewLines("Imports [|InnerNamespace|] \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"),
-NewLines("Imports SomeNamespace.InnerNamespace \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"))
+"Imports [|InnerNamespace|]
+Namespace SomeNamespace
+    Namespace InnerNamespace
+        Class SomeClass
+        End Class
+    End Namespace
+End Namespace",
+"Imports SomeNamespace.InnerNamespace
+Namespace SomeNamespace
+    Namespace InnerNamespace
+        Class SomeClass
+        End Class
+    End Namespace
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersOfClause() As Task
             Await TestMissingAsync(
-NewLines("Class SomeClass \n Sub Foo(Of [|SomeClass|])(x As SomeClass) \n End Sub \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace"))
+"Class SomeClass
+    Sub Foo(Of [|SomeClass|])(x As SomeClass)
+    End Sub
+End Class
+Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersAsClause() As Task
             Await TestMissingAsync(
-NewLines("Class SomeClass \n Sub Foo(Of SomeClass)(x As [|SomeClass|]) \n End Sub \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace"))
+"Class SomeClass
+    Sub Foo(Of SomeClass)(x As [|SomeClass|])
+    End Sub
+End Class
+Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace")
         End Function
 
         <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivityForNestedNamespace() As Task
             Await TestAsync(
-NewLines("Class Foo \n Sub bar() \n Dim q As [|innernamespace|].someClass \n End Sub \n End Class \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"),
-NewLines("Class Foo \n Sub bar() \n Dim q As SomeNamespace.InnerNamespace.someClass \n End Sub \n End Class \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"))
+"Class Foo
+    Sub bar()
+        Dim q As [|innernamespace|].someClass
+    End Sub
+End Class
+Namespace SomeNamespace
+    Namespace InnerNamespace
+        Class SomeClass
+        End Class
+    End Namespace
+End Namespace",
+"Class Foo
+    Sub bar()
+        Dim q As SomeNamespace.InnerNamespace.someClass
+    End Sub
+End Class
+Namespace SomeNamespace
+    Namespace InnerNamespace
+        Class SomeClass
+        End Class
+    End Namespace
+End Namespace")
         End Function
 
         <WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivity1() As Task
             Await TestAsync(
-NewLines("Class Foo \n Dim x As [|someclass|] \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace"),
-NewLines("Class Foo \n Dim x As SomeNamespace.SomeClass \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace"))
+"Class Foo
+    Dim x As [|someclass|]
+End Class
+Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace",
+"Class Foo
+    Dim x As SomeNamespace.SomeClass
+End Class
+Namespace SomeNamespace
+    Class SomeClass
+    End Class
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestTypeFromMultipleNamespaces1() As Task
             Await TestAsync(
-NewLines("Class Foo \n Function F() As [|IDictionary|] \n End Function \n End Class"),
-NewLines("Class Foo \n Function F() As System.Collections.IDictionary \n End Function \n End Class"))
+"Class Foo
+    Function F() As [|IDictionary|]
+    End Function
+End Class",
+"Class Foo
+    Function F() As System.Collections.IDictionary
+    End Function
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestTypeFromMultipleNamespaces2() As Task
             Await TestAsync(
-NewLines("Class Foo \n Function F() As [|IDictionary|] \n End Function \n End Class"),
-NewLines("Class Foo \n Function F() As System.Collections.Generic.IDictionary \n End Function \n End Class"),
+"Class Foo
+    Function F() As [|IDictionary|]
+    End Function
+End Class",
+"Class Foo
+    Function F() As System.Collections.Generic.IDictionary
+    End Function
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericWithNoArgs() As Task
             Await TestAsync(
-NewLines("Class Foo \n Function F() As [|List|] \n End Function \n End Class"),
-NewLines("Class Foo \n Function F() As System.Collections.Generic.List \n End Function \n End Class"))
+"Class Foo
+    Function F() As [|List|]
+    End Function
+End Class",
+"Class Foo
+    Function F() As System.Collections.Generic.List
+    End Function
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericWithCorrectArgs() As Task
             Await TestAsync(
-NewLines("Class Foo \n Function F() As [|List(Of Integer)|] \n End Function \n End Class"),
-NewLines("Class Foo \n Function F() As System.Collections.Generic.List(Of Integer) \n End Function \n End Class"))
+"Class Foo
+    Function F() As [|List(Of Integer)|]
+    End Function
+End Class",
+"Class Foo
+    Function F() As System.Collections.Generic.List(Of Integer)
+    End Function
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericWithWrongArgs() As Task
             Await TestMissingAsync(
-NewLines("Class Foo \n Function F() As [|List(Of Integer, String)|] \n End Function \n End Class"))
+"Class Foo
+    Function F() As [|List(Of Integer, String)|]
+    End Function
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericInLocalDeclaration() As Task
             Await TestAsync(
-NewLines("Class Foo \n Sub Test() \n Dim x As New [|List(Of Integer)|] \n End Sub \n End Class"),
-NewLines("Class Foo \n Sub Test() \n Dim x As New System.Collections.Generic.List(Of Integer) \n End Sub \n End Class"))
+"Class Foo
+    Sub Test()
+        Dim x As New [|List(Of Integer)|]
+    End Sub
+End Class",
+"Class Foo
+    Sub Test()
+        Dim x As New System.Collections.Generic.List(Of Integer)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericItemType() As Task
             Await TestAsync(
-NewLines("Class Foo \n Sub Test() \n Dim x As New List(Of [|Int32|]) \n End Sub \n End Class"),
-NewLines("Class Foo \n Sub Test() \n Dim x As New List(Of System.Int32) \n End Sub \n End Class"))
+"Class Foo
+    Sub Test()
+        Dim x As New List(Of [|Int32|])
+    End Sub
+End Class",
+"Class Foo
+    Sub Test()
+        Dim x As New List(Of System.Int32)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenerateInNamespace() As Task
             Await TestAsync(
-NewLines("Imports System \n Namespace NS \n Class Foo \n Sub Test() \n Dim x As New [|List(Of Integer)|] \n End Sub \n End Class \n End Namespace"),
-NewLines("Imports System \n Namespace NS \n Class Foo \n Sub Test() \n Dim x As New Collections.Generic.List(Of Integer) \n End Sub \n End Class \n End Namespace"))
+"Imports System
+Namespace NS
+    Class Foo
+        Sub Test()
+            Dim x As New [|List(Of Integer)|]
+        End Sub
+    End Class
+End Namespace",
+"Imports System
+Namespace NS
+    Class Foo
+        Sub Test()
+            Dim x As New Collections.Generic.List(Of Integer)
+        End Sub
+    End Class
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestMinimalQualify() As Task
             Await TestAsync(
-NewLines("Imports System \n Module Program \n Dim q As [|List(Of Integer)|] \n End Module"),
-NewLines("Imports System \n Module Program \n Dim q As Collections.Generic.List(Of Integer) \n End Module"))
+"Imports System
+Module Program
+    Dim q As [|List(Of Integer)|]
+End Module",
+"Imports System
+Module Program
+    Dim q As Collections.Generic.List(Of Integer)
+End Module")
         End Function
 
         <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestEscaping1() As Task
             Await TestAsync(
-NewLines("Class SomeClass \n Dim x As [|Something|] \n End Class \n Namespace Outer \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace \n End Namespace"),
-NewLines("Class SomeClass \n Dim x As Outer.Namespace.Something \n End Class \n Namespace Outer \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace \n End Namespace"))
+"Class SomeClass
+    Dim x As [|Something|]
+End Class
+Namespace Outer
+    Namespace [Namespace]
+        Class Something
+        End Class
+    End Namespace
+End Namespace",
+"Class SomeClass
+    Dim x As Outer.Namespace.Something
+End Class
+Namespace Outer
+    Namespace [Namespace]
+        Class Something
+        End Class
+    End Namespace
+End Namespace")
         End Function
 
         <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestEscaping2() As Task
             Await TestAsync(
-NewLines("Class SomeClass \n Dim x As [|Something|] \n End Class \n Namespace [Namespace] \n Namespace Inner \n Class Something \n End Class \n End Namespace \n End Namespace"),
-NewLines("Class SomeClass \n Dim x As [Namespace].Inner.Something \n End Class \n Namespace [Namespace] \n Namespace Inner \n Class Something \n End Class \n End Namespace \n End Namespace"))
+"Class SomeClass
+    Dim x As [|Something|]
+End Class
+Namespace [Namespace]
+    Namespace Inner
+        Class Something
+        End Class
+    End Namespace
+End Namespace",
+"Class SomeClass
+    Dim x As [Namespace].Inner.Something
+End Class
+Namespace [Namespace]
+    Namespace Inner
+        Class Something
+        End Class
+    End Namespace
+End Namespace")
         End Function
 
         <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestEscaping3() As Task
             Await TestAsync(
-NewLines("Class SomeClass \n Dim x As [|[Namespace]|] \n End Class \n Namespace Outer \n Namespace Inner \n Class [Namespace] \n End Class \n End Namespace \n End Namespace"),
-NewLines("Class SomeClass \n Dim x As Outer.Inner.[Namespace] \n End Class \n Namespace Outer \n Namespace Inner \n Class [Namespace] \n End Class \n End Namespace \n End Namespace"))
+"Class SomeClass
+    Dim x As [|[Namespace]|]
+End Class
+Namespace Outer
+    Namespace Inner
+        Class [Namespace]
+        End Class
+    End Namespace
+End Namespace",
+"Class SomeClass
+    Dim x As Outer.Inner.[Namespace]
+End Class
+Namespace Outer
+    Namespace Inner
+        Class [Namespace]
+        End Class
+    End Namespace
+End Namespace")
         End Function
 
         <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestInImport() As Task
             Await TestAsync(
-NewLines("Imports [|InnerNamespace|] \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"),
-NewLines("Imports SomeNamespace.InnerNamespace \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"))
+"Imports [|InnerNamespace|]
+Namespace SomeNamespace
+    Namespace InnerNamespace
+        Class SomeClass
+        End Class
+    End Namespace
+End Namespace",
+"Imports SomeNamespace.InnerNamespace
+Namespace SomeNamespace
+    Namespace InnerNamespace
+        Class SomeClass
+        End Class
+    End Namespace
+End Namespace")
         End Function
 
         <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseInsensitivity() As Task
             Await TestAsync(
-NewLines("Class FOo \n Sub bar() \n Dim q As [|innernamespace|].someClass \n End Sub \n End Class \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"),
-NewLines("Class FOo \n Sub bar() \n Dim q As SomeNamespace.InnerNamespace.someClass \n End Sub \n End Class \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"))
+"Class FOo
+    Sub bar()
+        Dim q As [|innernamespace|].someClass
+    End Sub
+End Class
+Namespace SomeNamespace
+    Namespace InnerNamespace
+        Class SomeClass
+        End Class
+    End Namespace
+End Namespace",
+"Class FOo
+    Sub bar()
+        Dim q As SomeNamespace.InnerNamespace.someClass
+    End Sub
+End Class
+Namespace SomeNamespace
+    Namespace InnerNamespace
+        Class SomeClass
+        End Class
+    End Namespace
+End Namespace")
         End Function
 
         <WorkItem(540706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestStandaloneMethod() As Task
             Await TestAsync(
-NewLines("'Class [Class] \n Private Sub Method(i As Integer) \n [|[Enum]|] = 5 \n End Sub \n End Class"),
-NewLines("'Class [Class] \n Private Sub Method(i As Integer) \n System.[Enum] = 5 \n End Sub \n End Class"))
+"'Class [Class] 
+Private Sub Method(i As Integer)
+    [|[Enum]|] = 5
+End Sub
+End Class",
+"'Class [Class] 
+Private Sub Method(i As Integer)
+    System.[Enum] = 5
+End Sub
+End Class")
         End Function
 
         <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestMissingOnBoundFieldType() As Task
             Await TestMissingAsync(
-NewLines("Imports System.Collections.Generic \n Class A \n Private field As [|List(Of C)|] \n Sub Main() \n Dim local As List(Of C) \n End Sub \n End Class"))
+"Imports System.Collections.Generic
+Class A
+    Private field As [|List(Of C)|]
+    Sub Main()
+        Dim local As List(Of C)
+    End Sub
+End Class")
         End Function
 
         <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestMissingOnBoundLocalType() As Task
             Await TestMissingAsync(
-NewLines("Imports System.Collections.Generic \n Class A \n Private field As [|List(Of C)|] \n Sub Main() \n Dim local As List(Of C) \n End Sub \n End Class"))
+"Imports System.Collections.Generic
+Class A
+    Private field As [|List(Of C)|]
+    Sub Main()
+        Dim local As List(Of C)
+    End Sub
+End Class")
         End Function
 
         <WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivity2() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main(args As String()) \n Dim x As [|foo|] \n End Sub \n End Module \n Namespace OUTER \n Namespace INNER \n Friend Class FOO \n End Class \n End Namespace \n End Namespace"),
-NewLines("Module Program \n Sub Main(args As String()) \n Dim x As OUTER.INNER.FOO \n End Sub \n End Module \n Namespace OUTER \n Namespace INNER \n Friend Class FOO \n End Class \n End Namespace \n End Namespace"))
+"Module Program
+    Sub Main(args As String())
+        Dim x As [|foo|]
+    End Sub
+End Module
+Namespace OUTER
+    Namespace INNER
+        Friend Class FOO
+        End Class
+    End Namespace
+End Namespace",
+"Module Program
+    Sub Main(args As String())
+        Dim x As OUTER.INNER.FOO
+    End Sub
+End Module
+Namespace OUTER
+    Namespace INNER
+        Friend Class FOO
+        End Class
+    End Namespace
+End Namespace")
         End Function
 
         <WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivity3() As Task
             Await TestAsync(
-NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim x As [|stream|] \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim x As IO.Stream \n End Sub \n End Module"))
+"Imports System
+Module Program
+    Sub Main(args As String())
+        Dim x As [|stream|]
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main(args As String())
+        Dim x As IO.Stream
+    End Sub
+End Module")
         End Function
 
         <WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestNotOnNamedArgument() As Task
             Await TestMissingAsync(
-NewLines("Module Program \n <MethodImpl([|methodImplOptions|]:=MethodImplOptions.ForwardRef) \n Sub Main(args As String()) \n End Sub \n End Module"))
+"Module Program
+    <MethodImpl([|methodImplOptions|]:=MethodImplOptions.ForwardRef) 
+ Sub Main(args As String())
+    End Sub
+End Module")
         End Function
 
         <WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestDoNotQualifyNestedTypeOfGenericType() As Task
             Await TestMissingAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n  \n Class Program \n Shared Sub Main() \n CType(GetEnumerator(), IDisposable).Dispose() \n End Sub \n  \n Shared Function GetEnumerator() As [|Enumerator|] \n Return Nothing \n End Function \n End Class"))
+"Imports System
+Imports System.Collections.Generic
+
+Class Program
+    Shared Sub Main()
+        CType(GetEnumerator(), IDisposable).Dispose()
+    End Sub
+
+    Shared Function GetEnumerator() As [|Enumerator|]
+        Return Nothing
+    End Function
+End Class")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
@@ -415,8 +860,12 @@ compareTokens:=False)
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             Public Async Function TestUnknownIdentifierInAttributeSyntaxWithoutTarget() As Task
                 Await TestAsync(
-    NewLines("Module Program \n <[|Extension|]> \n End Module"),
-    NewLines("Module Program \n <System.Runtime.CompilerServices.Extension> \n End Module"))
+"Module Program
+    <[|Extension|]>
+End Module",
+"Module Program
+    <System.Runtime.CompilerServices.Extension>
+End Module")
             End Function
         End Class
     End Class

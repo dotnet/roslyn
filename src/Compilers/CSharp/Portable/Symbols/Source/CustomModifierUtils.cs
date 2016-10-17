@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we want to retain the original (incorrect) return type to avoid hiding the return type
             // given in source.
             TypeSymbol returnTypeWithCustomModifiers = constructedSourceMethod.ReturnType;
-            if (returnType.Equals(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
+            if (returnType.Equals(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptions))
             {
                 returnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnType, RefKind.None, destinationMethod.ContainingAssembly);
             }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // We also preserve tuple names, if present and different
                 ImmutableArray<string> names = CSharpCompilation.TupleNamesEncoder.Encode(destinationType);
-                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithDynamic, containingAssembly, names);
+                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithDynamic, names);
             }
             else
             {

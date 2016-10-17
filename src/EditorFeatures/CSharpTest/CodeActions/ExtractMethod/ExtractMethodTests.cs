@@ -3,6 +3,8 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,6 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 @"class Program { static void Main ( string [ ] args ) { bool b = true ; System . Console . WriteLine ( [|b != true|] ? b = true : b = false ) ; } } ",
 @"class Program { static void Main ( string [ ] args ) { bool b = true ; System . Console . WriteLine ( {|Rename:NewMethod|} ( b ) ? b = true : b = false ) ; } private static bool NewMethod ( bool b ) { return b != true ; } } ",
 index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestCodeStyle1()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { bool b = true ; System . Console . WriteLine ( [|b != true|] ? b = true : b = false ) ; } } ",
+@"class Program { static void Main ( string [ ] args ) { bool b = true ; System . Console . WriteLine ( {|Rename:NewMethod|} ( b ) ? b = true : b = false ) ; }
+private static bool NewMethod ( bool b ) => b != true ; } ",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [WorkItem(540796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]

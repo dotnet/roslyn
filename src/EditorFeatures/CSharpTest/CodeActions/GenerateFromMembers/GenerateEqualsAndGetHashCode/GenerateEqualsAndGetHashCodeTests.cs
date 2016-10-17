@@ -3,6 +3,8 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.GenerateEqualsAndGetHashCode;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -123,6 +125,17 @@ class Program<T>
 @"using System . Collections . Generic ; class Program { [|int i ;|] } ",
 @"using System . Collections . Generic ; class Program { int i ; public override int GetHashCode ( ) { return EqualityComparer < int > . Default . GetHashCode ( i ) ; } } ",
 index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeSingleField_CodeStyle1()
+        {
+            await TestAsync(
+@"using System . Collections . Generic ; class Program { [|int i ;|] } ",
+@"using System . Collections . Generic ; class Program { int i ; 
+public override int GetHashCode ( ) => EqualityComparer < int > . Default . GetHashCode ( i ) ; } ",
+index: 1,
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]

@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -626,10 +626,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
+                if (!requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
+                {
+                    // See if we should still show the light bulb, even if we weren't explicitly 
+                    // asked for refactorings.  We'll show the lightbulb if we're currently
+                    // flighting the "Refactoring" A/B test, or if a special option is set
+                    // enabling this internally.
+
+                    var workspace = document.Project.Solution.Workspace;
+                    var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                    if (!experimentationService.IsExperimentEnabled("Refactoring") &&
+                        !workspace.Options.GetOption(EditorComponentOnOffOptions.ShowCodeRefactoringsWhenQueriedForCodeFixes))
+                    {
+                        return false;
+                    }
+                }
+
                 if (document.Project.Solution.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     provider._codeRefactoringService != null &&
-                    supportsFeatureService.SupportsRefactorings(document) &&
-                    requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
+                    supportsFeatureService.SupportsRefactorings(document))
                 {
                     TextSpan? selection = null;
                     if (IsForeground())

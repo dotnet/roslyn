@@ -1784,7 +1784,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AmbigUDConv, syntax.Location, originalUserDefinedConversions[0], originalUserDefinedConversions[1], operand.Type, targetType);
+                    // Method groups always have null types
+                    var operandType = (operand.Kind == BoundKind.MethodGroup) ? (object)MessageID.IDS_SK_METHOD.Localize() : operand.Type;
+
+                    diagnostics.Add(ErrorCode.ERR_AmbigUDConv, syntax.Location, originalUserDefinedConversions[0], originalUserDefinedConversions[1], operandType, targetType);
                 }
                 else
                 {
@@ -2320,7 +2323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                if (!kind.IsIdentity)
+                if (!kind.IsIdentity || argument.Kind == BoundKind.TupleLiteral)
                 {
                     TypeSymbol type = GetCorrespondingParameterType(ref result, parameters, arg);
 

@@ -7,11 +7,19 @@
             "version": "14.3.25407",
             "suppressParent": "all"
         },
+        "RoslynDependencies.Microsoft.VisualStudio.Text.Internal" : {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
         "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": {
             "version": "14.3.25407",
             "suppressParent": "all"
         },
         "RoslynDependencies.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Language.StandardClassification": {
             "version": "14.3.25407",
             "suppressParent": "all"
         },

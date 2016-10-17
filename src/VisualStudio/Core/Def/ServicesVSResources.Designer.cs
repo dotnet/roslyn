@@ -362,6 +362,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code block preferences:.
+        /// </summary>
+        internal static string Code_block_preferences_colon {
+            get {
+                return ResourceManager.GetString("Code_block_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Computing remove suppressions fix....
         /// </summary>
         internal static string Computing_remove_suppressions_fix {
@@ -733,6 +742,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to For accessors.
+        /// </summary>
+        internal static string For_accessors {
+            get {
+                return ResourceManager.GetString("For_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For constructors.
+        /// </summary>
+        internal static string For_constructors {
+            get {
+                return ResourceManager.GetString("For_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For indexers.
+        /// </summary>
+        internal static string For_indexers {
+            get {
+                return ResourceManager.GetString("For_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to For locals, parameters and members.
         /// </summary>
         internal static string For_locals_parameters_and_members {
@@ -747,6 +783,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string For_member_access_expressions {
             get {
                 return ResourceManager.GetString("For_member_access_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For methods.
+        /// </summary>
+        internal static string For_methods {
+            get {
+                return ResourceManager.GetString("For_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For operators.
+        /// </summary>
+        internal static string For_operators {
+            get {
+                return ResourceManager.GetString("For_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For properties.
+        /// </summary>
+        internal static string For_properties {
+            get {
+                return ResourceManager.GetString("For_properties", resourceCulture);
             }
         }
         
@@ -1299,6 +1362,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_framework_type {
             get {
                 return ResourceManager.GetString("Prefer_framework_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer inlined variable declaration.
+        /// </summary>
+        internal static string Prefer_inlined_variable_declaration {
+            get {
+                return ResourceManager.GetString("Prefer_inlined_variable_declaration", resourceCulture);
             }
         }
         
@@ -1893,6 +1965,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Validating_breakpoint_location {
             get {
                 return ResourceManager.GetString("Validating_breakpoint_location", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable preferences:.
+        /// </summary>
+        internal static string Variable_preferences_colon {
+            get {
+                return ResourceManager.GetString("Variable_preferences_colon", resourceCulture);
             }
         }
         

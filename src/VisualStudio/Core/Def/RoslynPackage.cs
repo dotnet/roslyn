@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -64,6 +65,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
             _workspace = componentModel.GetService<VisualStudioWorkspace>();
+
+            // Ensure the options persisters are loaded since we have to fetch options from the shell
+            componentModel.GetExtensions<IOptionPersister>();
 
             var telemetrySetupExtensions = componentModel.GetExtensions<IRoslynTelemetrySetup>();
             foreach (var telemetrySetup in telemetrySetupExtensions)

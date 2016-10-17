@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 
         protected Task TestAsync(string initial, string expected, int index = 0, bool compareTokens = true)
         {
-            return TestAsync(initial, expected, Options.Script, index, compareTokens);
+            return TestAsync(initial, expected, Options.Script, null, index, compareTokens);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]

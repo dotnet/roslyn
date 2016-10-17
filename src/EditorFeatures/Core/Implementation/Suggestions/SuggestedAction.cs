@@ -111,15 +111,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             this.AssertIsForeground();
 
-            // Yield the UI thread so that the light bulb can be dismissed.  This is necessary
-            // as some code actions may be long running, and we don't want the light bulb to
-            // stay on screen.
-            await Task.Yield();
-
             // Always wrap whatever we're doing in a threaded wait dialog.
             using (var context = this.WaitIndicator.StartWait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true))
             using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, context.CancellationToken))
             {
+                // Yield the UI thread so that the light bulb can be dismissed.  This is necessary
+                // as some code actions may be long running, and we don't want the light bulb to
+                // stay on screen.
+                await Task.Yield();
+
                 this.AssertIsForeground();
 
                 // Then proceed and actually do the invoke.
@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // ConfigureAwait(true) so we come back to the same thread as 
                 // we do all application on the UI thread.
-                await EditHandler.ApplyAsync(Workspace, getFromDocument(), operations, CodeAction.Title, 
+                await EditHandler.ApplyAsync(Workspace, getFromDocument(), 
+                    operations.ToImmutableArray(), CodeAction.Title, 
                     progressTracker, cancellationToken).ConfigureAwait(true);
             }
         }

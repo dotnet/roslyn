@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -427,9 +428,7 @@ namespace Microsoft.Cci
             ImmutableArray<ICustomAttribute> attributes = default(ImmutableArray<ICustomAttribute>))
         {
             TypeRef = typeRef;
-            Attributes = attributes.IsDefault
-                ? ImmutableArray<ICustomAttribute>.Empty
-                : attributes;
+            Attributes = attributes.NullToEmpty();
         }
     }
 

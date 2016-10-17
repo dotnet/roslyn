@@ -362,6 +362,11 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
+                if (diag.Severity == DiagnosticSeverity.Error)
+                {
+                    hasErrors = true;
+                }
+
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
                 errorLoggerOpt?.LogDiagnostic(diag);
@@ -370,12 +375,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag));
-
-                if (diag.Severity == DiagnosticSeverity.Error)
-                {
-                    hasErrors = true;
-                }
+                PrintError(diag, consoleOutput);
 
                 _reportedDiagnostics.Add(diag);
             }
@@ -391,35 +391,12 @@ namespace Microsoft.CodeAnalysis
             return (diagnostic.Severity == DiagnosticSeverity.Error) && !diagnostic.IsSuppressed;
         }
 
-        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
+        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt) =>
+            ReportErrors(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt);
+
+        protected virtual void PrintError(Diagnostic diagnostic, TextWriter consoleOutput)
         {
-            bool hasErrors = false;
-            if (diagnostics != null)
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    if (diagnostic.Severity == DiagnosticSeverity.Hidden)
-                    {
-                        // Not reported from the command-line compiler.
-                        continue;
-                    }
-
-                    PrintError(diagnostic, consoleOutput);
-                    errorLoggerOpt?.LogDiagnostic(Diagnostic.Create(diagnostic));
-
-                    if (diagnostic.Severity == DiagnosticSeverity.Error)
-                    {
-                        hasErrors = true;
-                    }
-                }
-            }
-
-            return hasErrors;
-        }
-
-        protected virtual void PrintError(DiagnosticInfo diagnostic, TextWriter consoleOutput)
-        {
-            consoleOutput.WriteLine(diagnostic.ToString(Culture));
+            consoleOutput.WriteLine(DiagnosticFormatter.Format(diagnostic, Culture));
         }
 
         public StreamErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)

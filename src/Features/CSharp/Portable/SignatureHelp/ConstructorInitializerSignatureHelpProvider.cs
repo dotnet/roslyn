@@ -43,11 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         private bool IsTriggerToken(SyntaxToken token)
         {
-            return !token.IsKind(SyntaxKind.None) &&
-                token.ValueText.Length == 1 &&
-                IsTriggerCharacter(token.ValueText[0]) &&
-                token.Parent is ArgumentListSyntax &&
-                token.Parent.Parent is ConstructorInitializerSyntax;
+            return SignatureHelpUtilities.IsTriggerParenOrComma<ConstructorInitializerSyntax>(token, IsTriggerCharacter);
         }
 
         private static bool IsArgumentListToken(ConstructorInitializerSyntax expression, SyntaxToken token)

@@ -28,6 +28,7 @@ folder InstallDir:\MSBuild\15.0\Bin
     file source=$(OutputPath)\Microsoft.CodeAnalysis.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Collections.Immutable.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Reflection.Metadata.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.ValueTuple.dll vs.file.ngen=yes
 
     file source=$(OutputPath)\Microsoft.DiaSymReader.Native.amd64.dll
     file source=$(OutputPath)\Microsoft.DiaSymReader.Native.x86.dll
@@ -81,6 +82,7 @@ folder InstallDir:\MSBuild\15.0\Bin\amd64
     file source=$(OutputPath)\Microsoft.CodeAnalysis.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Collections.Immutable.dll vs.file.ngen=yes
     file source=$(OutputPath)\System.Reflection.Metadata.dll vs.file.ngen=yes
+    file source=$(OutputPath)\System.ValueTuple.dll vs.file.ngen=yes
 
     file source=$(OutputPath)\Microsoft.DiaSymReader.Native.amd64.dll
     file source=$(OutputPath)\Microsoft.DiaSymReader.Native.x86.dll

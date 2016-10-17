@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if ((object)set != treeFeatures && !set.SetEquals(treeFeatures))
                     {
-                        throw new ArgumentException("inconsistent syntax tree features", nameof(trees));
+                        throw new ArgumentException(CodeAnalysisResources.InconsistentSyntaxTreeFeature, nameof(trees));
                     }
                 }
             }
@@ -461,14 +461,15 @@ namespace Microsoft.CodeAnalysis
                 var reference = result[i];
                 if (reference == null)
                 {
-                    throw new ArgumentNullException("references[" + i + "]");
+                    throw new ArgumentNullException($"{nameof(references)}[{i}]");
                 }
 
                 var peReference = reference as PortableExecutableReference;
                 if (peReference == null && !(reference is T))
                 {
                     Debug.Assert(reference is UnresolvedMetadataReference || reference is CompilationReference);
-                    throw new ArgumentException(String.Format("Reference of type '{0}' is not valid for this compilation.", reference.GetType()), "references[" + i + "]");
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.ReferenceOfTypeIsInvalid1, reference.GetType()),
+                                    $"{nameof(references)}[{i}]");
                 }
             }
 
@@ -627,7 +628,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!refSet.Remove(r))
                 {
-                    throw new ArgumentException($"MetadataReference '{r}' not found to remove", nameof(references));
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.MetadataRefNotFoundToRemove1, r),
+                                nameof(references));
                 }
             }
 
@@ -957,17 +959,20 @@ namespace Microsoft.CodeAnalysis
 
             if (memberTypes.Length != memberNames.Length)
             {
-                throw new ArgumentException($"{nameof(memberTypes)} and {nameof(memberNames)} must have the same length.");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.AnonymousTypeMemberAndNamesCountMismatch2,
+                                                    nameof(memberTypes), nameof(memberNames)));
             }
 
             if (!memberLocations.IsDefault && memberLocations.Length != memberTypes.Length)
             {
-                throw new ArgumentException($"{nameof(memberLocations)} must either be 'default' or have the same length as {nameof(memberNames)}.");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.AnonymousTypeArgumentCountMismatch2,
+                                                    nameof(memberLocations), nameof(memberNames)));
             }
 
             if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Length != memberTypes.Length)
             {
-                throw new ArgumentException($"{nameof(memberIsReadOnly)} must either be 'default' or have the same length as {nameof(memberNames)}.");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.AnonymousTypeArgumentCountMismatch2,
+                                                    nameof(memberIsReadOnly), nameof(memberNames)));
             }
 
             for (int i = 0, n = memberTypes.Length; i < n; i++)

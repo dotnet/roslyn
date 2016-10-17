@@ -14,54 +14,126 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSingleField() As Task
             Await TestAsync(
-NewLines("Class Program \n [|Private i As Integer|] \n End Class"),
-NewLines("Class Program \n Private i As Integer \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
+"Class Program
+    [|Private i As Integer|]
+End Class",
+"Class Program
+    Private i As Integer
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
 index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMultipleFields() As Task
             Await TestAsync(
-NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n End Class"),
-NewLines("Class Program \n Private i As Integer \n Private b As String \n Public Sub New(i As Integer, b As String) \n Me.i = i \n Me.b = b \n End Sub \n End Class"),
+"Class Program
+    [|Private i As Integer
+    Private b As String|]
+End Class",
+"Class Program
+    Private i As Integer
+    Private b As String
+    Public Sub New(i As Integer, b As String)
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class",
 index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSecondField() As Task
             Await TestAsync(
-NewLines("Class Program \n Private i As Integer \n [|Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
-NewLines("Class Program \n Private i As Integer \n Private b As String \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(b As String) \n Me.b = b \n End Sub \n End Class"),
+"Class Program
+    Private i As Integer
+    [|Private b As String|]
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private b As String
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+    Public Sub New(b As String)
+        Me.b = b
+    End Sub
+End Class",
 index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestFieldAssigningConstructor() As Task
             Await TestAsync(
-NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
-NewLines("Class Program \n Private i As Integer \n Private b As String \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, b As String) \n Me.i = i \n Me.b = b \n End Sub \n End Class"),
+"Class Program
+    [|Private i As Integer
+    Private b As String|]
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private b As String
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+    Public Sub New(i As Integer, b As String)
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class",
 index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingWithExistingConstructor() As Task
             Await TestMissingAsync(
-NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, b As String) \n Me.i = i \n Me.b = b \n End Sub \n End Class"))
+"Class Program
+    [|Private i As Integer
+    Private b As String|]
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+    Public Sub New(i As Integer, b As String)
+        Me.i = i
+        Me.b = b
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestStruct() As Task
             Await TestAsync(
-NewLines("Structure S \n [|Private i As Integer|] \n End Structure"),
-NewLines("Structure S \n Private i As Integer \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Structure"),
+"Structure S
+    [|Private i As Integer|]
+End Structure",
+"Structure S
+    Private i As Integer
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Structure",
 index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGenericType() As Task
             Await TestAsync(
-NewLines("Class Program ( Of T ) \n [|Private i As Integer|] \n End Class"),
-NewLines("Class Program ( Of T ) \n Private i As Integer \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
+"Class Program(Of T)
+    [|Private i As Integer|]
+End Class",
+"Class Program(Of T)
+    Private i As Integer
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
 index:=0)
         End Function
 
@@ -69,8 +141,24 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSimpleDelegatingConstructor() As Task
             Await TestAsync(
-NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
-NewLines("Class Program \n Private i As Integer \n Private b As String \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, b As String) \n Me.New(i) \n Me.b = b \n End Sub \n End Class"),
+"Class Program
+    [|Private i As Integer
+    Private b As String|]
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private b As String
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+    Public Sub New(i As Integer, b As String)
+        Me.New(i)
+        Me.b = b
+    End Sub
+End Class",
 index:=1)
         End Function
 
@@ -78,8 +166,18 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGenerateFromNormalProperties() As Task
             Await TestAsync(
-NewLines("Class Z \n [|Public Property A As Integer \n Public Property B As String|] \n End Class"),
-NewLines("Class Z \n Public Sub New(a As Integer, b As String) \n Me.A = a \n Me.B = b \n End Sub \n Public Property A As Integer \n Public Property B As String \n End Class"),
+"Class Z
+    [|Public Property A As Integer
+    Public Property B As String|]
+End Class",
+"Class Z
+    Public Sub New(a As Integer, b As String)
+        Me.A = a
+        Me.B = b
+    End Sub
+    Public Property A As Integer
+    Public Property B As String
+End Class",
 index:=0)
         End Function
     End Class
