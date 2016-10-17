@@ -168,7 +168,7 @@ LocalFuncName();
 Console.Write(' ');
 CallerMemberName();
 ";
-            VerifyOutputInMain(source, "LocalFuncName Main", "System", "System.Runtime.CompilerServices");
+            VerifyOutputInMain(source, "Main Main", "System", "System.Runtime.CompilerServices");
         }
 
 
