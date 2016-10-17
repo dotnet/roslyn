@@ -28,11 +28,9 @@
         <dependency id="System.Linq.Expressions"                       version="$SystemLinqExpressionsVersion$"/>
         <dependency id="System.Reflection"                             version="$SystemReflectionVersion$"/>
         <dependency id="System.Reflection.Metadata"                    version="$SystemReflectionMetadataVersion$"/>
-        <dependency id="System.Reflection.Primitives"                  version="$SystemReflectionPrimitivesVersion$"/>
         <dependency id="System.Resources.ResourceManager"              version="$SystemResourcesResourceManagerVersion$"/>
         <dependency id="System.Runtime"                                version="$SystemRuntimeVersion$"/>
         <dependency id="System.Runtime.Extensions"                     version="$SystemRuntimeExtensionsVersion$"/>
-        <dependency id="System.Runtime.Handles"                        version="$SystemRuntimeHandlesVersion$"/>
         <dependency id="System.Runtime.InteropServices"                version="$SystemRuntimeInteropServicesVersion$"/>
         <dependency id="System.Runtime.Numerics"                       version="$SystemRuntimeNumericsVersion$"/>
         <dependency id="System.Security.Cryptography.Algorithms"       version="$SystemSecurityCryptographyAlgorithmsVersion$"/>
