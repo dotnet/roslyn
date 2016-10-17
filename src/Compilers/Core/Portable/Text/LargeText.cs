@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: Math.Min(length, 4096), leaveOpen: true))
             {
-                var chunks = ReadFromTextReader(reader, maxCharRemainingGuess, throwIfBinaryDetected);
+                var chunks = ReadChunksFromTextReader(reader, maxCharRemainingGuess, throwIfBinaryDetected);
 
                 // We must compute the checksum and embedded text blob now while we still have the original bytes in hand.
                 // We cannot re-encode to obtain checksum and blob as the encoding is not guaranteed to round-trip.
@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             // throwIfBinaryDetected == false since we are given text reader from the beginning
-            var chunks = ReadFromTextReader(reader, length, throwIfBinaryDetected: false);
+            var chunks = ReadChunksFromTextReader(reader, length, throwIfBinaryDetected: false);
 
             return new LargeText(chunks, encodingOpt, checksumAlgorithm);
         }
 
-        private static ImmutableArray<char[]> ReadFromTextReader(TextReader reader, int maxCharRemainingGuess, bool throwIfBinaryDetected)
+        private static ImmutableArray<char[]> ReadChunksFromTextReader(TextReader reader, int maxCharRemainingGuess, bool throwIfBinaryDetected)
         {
             var chunks = ArrayBuilder<char[]>.GetInstance(1 + maxCharRemainingGuess / ChunkSize);
 

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var temporaryStorageReader = reader as TemporaryStorageServiceFactory.TemporaryStorageTextReader;
+            var temporaryStorageReader = reader as TemporaryStorageServiceFactory.DirectMemoryAccessStreamReader;
             if (temporaryStorageReader != null)
             {
                 return SourceText.From(temporaryStorageReader, temporaryStorageReader.Length, encoding);
