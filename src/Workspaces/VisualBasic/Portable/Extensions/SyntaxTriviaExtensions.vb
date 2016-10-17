@@ -22,5 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return trivia.Kind = SyntaxKind.WhitespaceTrivia OrElse
                    trivia.Kind = SyntaxKind.EndOfLineTrivia
         End Function
+
+        <Extension>
+        Public Function IsRegularOrDocComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        End Function
     End Module
 End Namespace

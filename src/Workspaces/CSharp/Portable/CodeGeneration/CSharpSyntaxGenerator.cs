@@ -3452,6 +3452,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return root;
         }
+
+        internal override bool IsRegularOrDocComment(SyntaxTrivia trivia)
+            => trivia.IsRegularOrDocComment();
+
         #endregion
 
         #region Statements and Expressions
