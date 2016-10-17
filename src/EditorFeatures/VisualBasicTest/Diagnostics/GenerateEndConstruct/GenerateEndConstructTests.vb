@@ -427,7 +427,18 @@ End Module</File>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestNotOnLambda() As Task
             Await TestMissingAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n End Sub \n Function foo() \n Dim op = Sub[||](c) \n Dim kl = Sub(g) \n End Sub \n End Function \n End Module"))
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+    End Sub
+    Function foo()
+        Dim op = Sub[||](c)
+                     Dim kl = Sub(g)
+                              End Sub 
+ End Function
+End Module")
         End Function
 
         <WorkItem(578271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578271")>
