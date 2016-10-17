@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (tupleElementNames != null)
             {
-                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, sourceAssembly, tupleElementNames.AsImmutable());
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNames.AsImmutable());
             }
 
             var name = alias.FullName;

@@ -585,8 +585,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (IsDeferredSolutionLoadEnabled())
             {
                 var existingProject = GetProject(projectId);
-                Debug.Assert(existingProject is IWorkspaceProjectContext);
-                existingProject?.Disconnect();
+                if (existingProject != null)
+                {
+                    Debug.Assert(existingProject is IWorkspaceProjectContext);
+                    existingProject.Disconnect();
+                }
             }
         }
 

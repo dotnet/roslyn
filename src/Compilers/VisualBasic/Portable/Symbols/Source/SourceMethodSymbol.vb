@@ -2111,7 +2111,7 @@ lReportErrorOnTwoTokens:
                 Dim overridden = overriddenMembers.OverriddenMember
 
                 If overridden IsNot Nothing Then
-                    CustomModifierUtils.CopyMethodCustomModifiers(overridden, Me.TypeArguments, retType, Me.ContainingAssembly, params)
+                    CustomModifierUtils.CopyMethodCustomModifiers(overridden, Me.TypeArguments, retType, params)
                 End If
 
                 ' Unlike MethodSymbol, in SourceMethodSymbol we cache the result of MakeOverriddenOfHiddenMembers, because we use

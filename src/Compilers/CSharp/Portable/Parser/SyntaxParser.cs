@@ -1070,5 +1070,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             return this.Options.IsFeatureEnabled(feature);
         }
+
+        /// <summary>
+        /// Whenever parsing in a `while (true)` loop and a bug could prevent the loop from making progress,
+        /// this method can prevent the parsing from hanging.
+        /// Use as:
+        ///     int tokenProgress = -1;
+        ///     while (IsMakingProgress(ref tokenProgress))
+        /// It should be used as a guardrail, not as a crutch, so it asserts if no progress was made.
+        /// </summary>
+        protected bool IsMakingProgress(ref int lastTokenOffset)
+        {
+            if (_tokenOffset > lastTokenOffset)
+            {
+                lastTokenOffset = _tokenOffset;
+                return true;
+            }
+
+            Debug.Assert(false);
+            return false;
+        }
     }
 }
