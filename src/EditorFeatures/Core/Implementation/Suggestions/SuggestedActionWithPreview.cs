@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal class SuggestedActionWithPreview : SuggestedAction
+    internal abstract class SuggestedActionWithPreview : SuggestedAction
     {
         private ImmutableArray<SuggestedActionSet> _actionSets;
 

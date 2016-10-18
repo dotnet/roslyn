@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// The top-level item itself does nothing. It doesn't display a preview and can't be invoked / applied.
     /// The top-level item is simply a container for the fixes displayed as sub-menu items.
     /// </summary>
-    internal class SuppressionSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
+    internal sealed class SuppressionSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
     {
         private readonly CodeFix _fix;
         private readonly Func<CodeAction, SuggestedActionSet> _getFixAllSuggestedActionSet;

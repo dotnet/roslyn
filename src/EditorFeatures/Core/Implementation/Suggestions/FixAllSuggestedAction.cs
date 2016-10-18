@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Suggested action for fix all occurrences code fix.
     /// </summary>
-    internal class FixAllSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
+    internal sealed class FixAllSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
     {
         private readonly Diagnostic _fixedDiagnostic;
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _fixedDiagnostic = originalFixedDiagnostic;
         }
 
-        public virtual string GetDiagnosticID()
+        public string GetDiagnosticID()
         {
             // we log diagnostic id as it is if it is from us
             if (_fixedDiagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))

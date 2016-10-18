@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal class PreviewChangesSuggestedAction : SuggestedAction
+    internal sealed class PreviewChangesSuggestedAction : SuggestedAction
     {
         internal PreviewChangesSuggestedAction(
             Workspace workspace,
