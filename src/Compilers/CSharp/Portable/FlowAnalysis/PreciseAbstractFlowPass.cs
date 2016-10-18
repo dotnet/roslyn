@@ -940,19 +940,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual void VisitPattern(BoundExpression expression, BoundPattern pattern)
         {
             Split();
-            bool? knownMatch = CheckRefutations(expression, pattern);
-            switch (knownMatch)
+            if (expression != null)
             {
-                case true:
-                    SetState(StateWhenTrue);
-                    SetConditionalState(this.State, UnreachableState());
-                    break;
-                case false:
-                    SetState(StateWhenFalse);
-                    SetConditionalState(UnreachableState(), this.State);
-                    break;
-                case null:
-                    break;
+                bool? knownMatch = CheckRefutations(expression, pattern);
+                switch (knownMatch)
+                {
+                    case true:
+                        SetState(StateWhenTrue);
+                        SetConditionalState(this.State, UnreachableState());
+                        break;
+                    case false:
+                        SetState(StateWhenFalse);
+                        SetConditionalState(UnreachableState(), this.State);
+                        break;
+                    case null:
+                        break;
+                }
             }
         }
 
@@ -964,10 +967,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
-        /// Return true for known match, false for known fail, and null otherwise.
+        /// Return true for known match, false for known fail, and null otherwise. Used for the "is pattern" expression.
         /// </summary>
         private bool? CheckRefutations(BoundExpression expression, BoundPattern pattern)
         {
+            Debug.Assert(expression != null);
             switch (pattern.Kind)
             {
                 case BoundKind.DeclarationPattern:

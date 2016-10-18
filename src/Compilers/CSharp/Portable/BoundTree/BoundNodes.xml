@@ -825,6 +825,10 @@
     <!-- We store the pattern switch binder so we can perform some binding-like
          operations during control flow analysis. -->
     <Field Name="Binder" Type="PatternSwitchBinder"/>
+    <!-- A switch is considered complete if every value of the switch expression's
+         type is handled by some switch label that is either not guarded by a when
+         clause, or for which the when clause expression has the constant value true. -->
+    <Field Name="IsComplete" Type="bool"/>
   </Node>
 
   <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
@@ -836,6 +840,7 @@
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
     <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="IsReachable" Type="bool"/>
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
