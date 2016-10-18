@@ -74,6 +74,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return _actionSets;
         }
 
+        protected async Task<SuggestedActionSet> GetPreviewChangesSuggestedActionSetAsync(CancellationToken cancellationToken)
+        {
+            var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
+            if (previewResult == null)
+            {
+                return null;
+            }
+
+            var changeSummary = previewResult.ChangeSummary;
+            if (changeSummary == null)
+            {
+                return null;
+            }
+
+            var previewAction = new PreviewChangesCodeAction(Workspace, CodeAction, changeSummary);
+            var previewSuggestedAction = new PreviewChangesSuggestedAction(
+                Workspace, SubjectBuffer, EditHandler, WaitIndicator, previewAction, Provider, OperationListener);
+            return new SuggestedActionSet(ImmutableArray.Create(previewSuggestedAction));
+        }
+
         protected virtual SuggestedActionSet GetAdditionalActionSet() => null;
     }
 }
