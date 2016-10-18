@@ -217,9 +217,9 @@ class C
         Dim x = (1, 2)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef}, options:=TestOptions.DebugDll)
-            WithRuntimeInstance(comp,
-                Sub(runtime)
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp, references:={MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
+                validator:= Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim errorMessage As String = Nothing
                     Dim testData = New CompilationTestData()
@@ -238,7 +238,7 @@ End Class"
                     Assert.Null(GetTupleElementNamesAttributeIfAny(method))
                     methodData.VerifyIL(
 "{
-  // Code size       43 (0x2b)
+  // Code size       48 (0x30)
   .maxstack  4
   .locals init (System.ValueTuple(Of Integer, Integer) V_0, //x
                 System.Guid V_1)
@@ -253,8 +253,9 @@ End Class"
   IL_001e:  ldstr      ""y""
   IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
   IL_0028:  ldloc.0
-  IL_0029:  stind.ref
-  IL_002a:  ret
+  IL_0029:  box        ""System.ValueTuple(Of Integer, Integer)""
+  IL_002e:  stind.ref
+  IL_002f:  ret
 }")
                 End Sub)
         End Sub

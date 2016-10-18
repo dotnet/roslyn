@@ -185,5 +185,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 }
             }
         }
+
+        internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
+        {
+            return _languageServicesMap.TryGetValue(languageName, out languageServices);
+        }
     }
 }

@@ -475,6 +475,7 @@ namespace Roslyn.Utilities
                 {
                     // Hold onto the completed task. We can get rid of the computation functions for good
                     _cachedResult = task;
+
                     _asynchronousComputeFunction = null;
                     _synchronousComputeFunction = null;
                 }

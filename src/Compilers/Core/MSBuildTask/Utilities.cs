@@ -7,6 +7,7 @@ using System.Security;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -146,6 +147,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                                                                 params object[] args)
         {
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
+        }
+
+        internal static string GetLocation(Assembly assembly)
+        {
+            var method = typeof(Assembly).GetTypeInfo().GetDeclaredProperty("Location")?.GetMethod;
+            if (method == null)
+            {
+                return null;
+            }
+
+            return (string)method.Invoke(assembly, parameters: null);
         }
     }
 }

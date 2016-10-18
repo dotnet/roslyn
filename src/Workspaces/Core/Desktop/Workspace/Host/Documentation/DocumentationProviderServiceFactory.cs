@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
                 DocumentationProvider provider;
                 if (!_assemblyPathToDocumentationProviderMap.TryGetValue(assemblyPath, out provider))
                 {
-                    provider = _assemblyPathToDocumentationProviderMap.GetOrAdd(assemblyPath, _path => new FileBasedXmlDocumentationProvider(_path));
+                    provider = _assemblyPathToDocumentationProviderMap.GetOrAdd(assemblyPath, _path => XmlDocumentationProvider.CreateFromFile(_path));
                 }
 
                 return provider;

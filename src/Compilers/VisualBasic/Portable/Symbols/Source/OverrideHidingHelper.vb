@@ -90,14 +90,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared Function SignaturesMatch(sym1 As Symbol, sym2 As Symbol, <Out()> ByRef exactMatch As Boolean, <Out()> ByRef exactMatchIgnoringCustomModifiers As Boolean) As Boolean
             ' NOTE: we should NOT ignore extra required parameters as for overloading
             Const mismatchesForOverriding As SymbolComparisonResults =
-                (SymbolComparisonResults.AllMismatches And (Not SymbolComparisonResults.MismatchesForConflictingMethods)) Or SymbolComparisonResults.CustomModifierMismatch
+                (SymbolComparisonResults.AllMismatches And (Not SymbolComparisonResults.MismatchesForConflictingMethods)) Or
+                SymbolComparisonResults.CustomModifierMismatch
 
             ' 'Exact match' means that the number of parameters and 
-            ' parameter 'optionality' match on two symbol candidates
+            ' parameter 'optionality' match on two symbol candidates.
             Const exactMatchIgnoringCustomModifiersMask As SymbolComparisonResults =
                 SymbolComparisonResults.TotalParameterCountMismatch Or SymbolComparisonResults.OptionalParameterTypeMismatch
 
-            Const exactMatchMask As SymbolComparisonResults = exactMatchIgnoringCustomModifiersMask Or SymbolComparisonResults.CustomModifierMismatch
+            ' Note that exact match doesn't care about tuple element names.
+            Const exactMatchMask As SymbolComparisonResults =
+                exactMatchIgnoringCustomModifiersMask Or SymbolComparisonResults.CustomModifierMismatch
 
             Dim results As SymbolComparisonResults = DetailedSignatureCompare(sym1, sym2, mismatchesForOverriding)
 
@@ -897,6 +900,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_OverrideWithConstraintMismatch2, member, overriddenMember, diagnostics)
                 ElseIf Not ConsistentAccessibility(member, overriddenMember, errorId) Then
                     ReportBadOverriding(errorId, member, overriddenMember, diagnostics)
+                ElseIf (comparisonResults And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                    ReportBadOverriding(ERRID.WRN_InvalidOverrideDueToTupleNames2, member, overriddenMember, diagnostics)
                 Else
                     For Each inaccessibleMember In overriddenMembersResult.InaccessibleMembers
                         If inaccessibleMember.DeclaredAccessibility = Accessibility.Friend AndAlso

@@ -898,7 +898,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // but if it does happen we should make it a failure.
             // NOTE: declaredBase could be null for interfaces
             var declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
-            if (declaredBase?.SpecialType != SpecialType.System_ValueType && declaredBase?.IsErrorType() != true)
+            if (declaredBase == null ||
+                (declaredBase.SpecialType != SpecialType.System_ValueType && !declaredBase.IsErrorType()))
             {
                 // Try to decrease noise by not complaining about the same type over and over again.
                 if (_reportedErrorTypesMap.Add(namedTypeSymbol))

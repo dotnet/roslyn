@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.Completion
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class KeywordCompletionProvider
@@ -24,6 +25,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             ' We show 'Of' after dim x as new list(
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
+        End Function
+
+        Private Shared ReadOnly s_tupleRules As CompletionItemRules = CompletionItemRules.Default.
+            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
+
+        Protected Overrides Function CreateItem(keyword As RecommendedKeyword, context As VisualBasicSyntaxContext) As CompletionItem
+            Dim rules = If(context.IsPossibleTupleContext, s_tupleRules, CompletionItemRules.Default)
+
+            Return CommonCompletionItem.Create(
+                displayText:=keyword.Keyword,
+                description:=keyword.DescriptionFactory(CancellationToken.None),
+                glyph:=Glyph.Keyword,
+                tags:=s_Tags,
+                matchPriority:=keyword.MatchPriority,
+                rules:=rules)
         End Function
 
         Private Shared Function GetKeywordRecommenders() As ImmutableArray(Of IKeywordRecommender(Of VisualBasicSyntaxContext))

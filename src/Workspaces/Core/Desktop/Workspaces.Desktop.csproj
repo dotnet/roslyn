@@ -73,7 +73,6 @@
     <Compile Include="SymbolSearch\IRemoteControlService.cs" />
     <Compile Include="SymbolSearch\Patching\Delta.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.Update.cs" />
-    <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
     <Compile Include="Utilities\ReferencePathUtilities_Desktop.cs" />
     <Compile Include="WorkspaceDesktopResources.Designer.cs">
       <AutoGen>True</AutoGen>

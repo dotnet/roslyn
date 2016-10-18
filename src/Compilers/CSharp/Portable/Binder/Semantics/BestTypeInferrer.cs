@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
-                    return MethodTypeInferrer.MergeTupleNames(type1, type2, MethodTypeInferrer.MergeDynamic(type1, type2, type1, _conversions.CorLibrary), _conversions.CorLibrary);
+                    return MethodTypeInferrer.MergeTupleNames(MethodTypeInferrer.MergeDynamic(type1, type2, _conversions.CorLibrary), type2);
                 }
 
                 return null;

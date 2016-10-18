@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: if testExpressionType is a nullable and the resultType of the 'Coalesce'
             '       is its underlying type, runtime will perform conversion itself
 
-            If convTestExpr Is Nothing OrElse resultType.IsSameTypeIgnoringCustomModifiers(testExpressionType) OrElse
-                    (testExpressionType.IsNullableType AndAlso resultType.IsSameTypeIgnoringCustomModifiers(testExpressionType.GetNullableUnderlyingType)) Then
+            If convTestExpr Is Nothing OrElse resultType.IsSameTypeIgnoringAll(testExpressionType) OrElse
+                    (testExpressionType.IsNullableType AndAlso resultType.IsSameTypeIgnoringAll(testExpressionType.GetNullableUnderlyingType)) Then
                 Return ConvertRuntimeHelperToExpressionTree("Coalesce", rewrittenTestExpression, rewrittenElseExpression)
             End If
 
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim convKind As ConversionKind = Conversions.ClassifyPredefinedConversion(parameterType, conversion.Operand.Type, useSiteDiagnostics)
                 Diagnostics.Add(conversion, useSiteDiagnostics)
 
-                If convKind = ConversionKind.NarrowingNullable AndAlso Not toType.IsNullableType Then
+                If (convKind And ConversionKind.NarrowingNullable) = ConversionKind.NarrowingNullable AndAlso Not toType.IsNullableType Then
                     ' Convert to non-nullable type first to mimic Dev11
                     Return Me._factory.Convert(toType, CreateUserDefinedNullableToUnderlyingConversion(parameter, parameterType, isChecked), isChecked)
                 Else
@@ -185,8 +185,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim outConv As BoundConversion = userDefinedConv.OutConversionOpt
 
             Debug.Assert(outConv IsNot Nothing AndAlso
-                         toType.IsSameTypeIgnoringCustomModifiers(outConv.Type) OrElse
-                         toType.IsSameTypeIgnoringCustomModifiers([call].Type))
+                         toType.IsSameTypeIgnoringAll(outConv.Type) OrElse
+                         toType.IsSameTypeIgnoringAll([call].Type))
             Debug.Assert(method.ReturnType = callType)
             Debug.Assert(toType = conversion.Type)
 
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim innerConversionApplied As Boolean = Not Conversions.IsIdentityConversion(innerConversion)
             If innerConversionApplied Then
-                Debug.Assert(innerConversion = ConversionKind.NarrowingNullable)
+                Debug.Assert((innerConversion And ConversionKind.NarrowingNullable) = ConversionKind.NarrowingNullable)
 
                 'If outConv Is Nothing OrElse outConv.ConversionKind = ConversionKind.WideningNullable Then
                 ' NOTE: in simple cases where inner conversion is (T? -> T) and outer conversion is (S -> S?),

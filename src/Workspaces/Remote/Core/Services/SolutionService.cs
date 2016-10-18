@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -68,21 +69,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObject>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            var solutionChecksumObject = await RoslynServices.AssetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // TODO: Make these to do work concurrently
             var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
-            var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SolutionChecksumObjectInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
+            var solutionInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedSolutionInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
             foreach (var projectChecksum in solutionChecksumObject.Projects)
             {
-                var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObject>(
-                    projectChecksum, cancellationToken).ConfigureAwait(false);
-
-                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<ProjectChecksumObjectInfo>(
-                    projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
-
+                var projectSnapshot = await RoslynServices.AssetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
+                var projectInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedProjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
                 if (!workspace.Services.IsSupported(projectInfo.Language))
                 {
                     // only add project our workspace supports. 
@@ -93,11 +90,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var documents = new List<DocumentInfo>();
                 foreach (var documentChecksum in projectSnapshot.Documents)
                 {
-                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(
-                        documentChecksum, cancellationToken).ConfigureAwait(false);
-
-                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(
-                        documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     documents.Add(
@@ -143,9 +137,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObject>(documentChecksum, cancellationToken).ConfigureAwait(false);
-
-                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<DocumentChecksumObjectInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentSnapshot = await RoslynServices.AssetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await RoslynServices.AssetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     // TODO: do we need version?
                     additionals.Add(

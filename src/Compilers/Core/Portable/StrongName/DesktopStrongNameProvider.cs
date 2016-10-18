@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
                     var fileContent = ImmutableArray.Create(ReadAllBytes(resolvedKeyFile));
                     return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
                 }
-                catch (IOException ex)
+                catch (Exception ex)
                 {
                     return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
                 }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis
                     return new StrongNameKeys(StrongNameKeys.GetContainerError(messageProvider, keyContainerName,
                         new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported))));
                 }
-                catch (IOException ex)
+                catch (Exception ex)
                 {
                     return new StrongNameKeys(StrongNameKeys.GetContainerError(messageProvider, keyContainerName, ex.Message));
                 }
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis
             return new StrongNameKeys(keyPair, publicKey, container, keyFilePath);
         }
 
-        private void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
+        internal virtual void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
         {
             try
             {

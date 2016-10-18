@@ -2252,6 +2252,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Else
                         typeName = ParseTypeName()
 
+                        If typeName.Kind = SyntaxKind.TupleType Then
+                            typeName = ReportSyntaxError(typeName, ERRID.ERR_NewWithTupleTypeSyntax)
+                        End If
+
                         If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                             ' New <Type> ( <Arguments> )
                             newArguments = ParseParenthesizedArguments()
@@ -6182,12 +6186,17 @@ checkNullable:
             Return required <= languageVersion
         End Function
 
-        Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)
+        ''' <summary>
+        ''' Returns false and reports an error if the feature is un-available
+        ''' </summary>
+        Friend Shared Function CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
             If Not CheckFeatureAvailability(languageVersion, feature) Then
                 Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
                 diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName)
+                Return False
             End If
-        End Sub
+            Return True
+        End Function
 
     End Class
 

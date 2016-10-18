@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.ConvertedTestExpression Is Nothing Then
                 whenTrue = NullableValueOrDefault(capturedleft)
             Else
-                If capturedleft.Type.IsSameTypeIgnoringCustomModifiers(node.ConvertedTestExpression.Type) Then
+                If capturedleft.Type.IsSameTypeIgnoringAll(node.ConvertedTestExpression.Type) Then
                     ' Optimization
                     whenTrue = capturedleft
                 Else
@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If convertedTestExpression Is Nothing Then
                 Return NullableValueOrDefault(rewrittenLeft)
             Else
-                If rewrittenLeft.Type.IsSameTypeIgnoringCustomModifiers(convertedTestExpression.Type) Then
+                If rewrittenLeft.Type.IsSameTypeIgnoringAll(convertedTestExpression.Type) Then
                     ' Optimization
                     Return rewrittenLeft
                 End If

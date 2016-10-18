@@ -189,7 +189,7 @@ End Class
             Dim withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments)
             Assert.True(withModifiers.HasTypeArgumentsCustomModifiers)
             Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers)
-            Assert.True(withoutModifiers.IsSameTypeIgnoringCustomModifiers(withModifiers))
+            Assert.True(withoutModifiers.IsSameTypeIgnoringAll(withModifiers))
             Assert.NotEqual(withoutModifiers, withModifiers)
 
             CompileAndVerify(compilation, expectedOutput:="Overriden")
@@ -801,11 +801,11 @@ End Class
 
             Assert.True(base1.HasTypeArgumentsCustomModifiers)
             Assert.True(base2.HasTypeArgumentsCustomModifiers)
-            Assert.True(base1.IsSameTypeIgnoringCustomModifiers(base2))
+            Assert.True(base1.IsSameTypeIgnoringAll(base2))
             Assert.NotEqual(base1, base2)
 
             Assert.True(base3.HasTypeArgumentsCustomModifiers)
-            Assert.True(base1.IsSameTypeIgnoringCustomModifiers(base3))
+            Assert.True(base1.IsSameTypeIgnoringAll(base3))
             Assert.Equal(base1, base3)
             Assert.NotSame(base1, base3)
         End Sub
@@ -1644,8 +1644,436 @@ Implemented B")
             Assert.False(t1.Equals(t2))
             Assert.False(t2.Equals(t1))
 
-            Assert.True(t1.IsSameTypeIgnoringCustomModifiers(t2))
-            Assert.True(t2.IsSameTypeIgnoringCustomModifiers(t1))
+            Assert.True(t1.IsSameTypeIgnoringAll(t2))
+            Assert.True(t2.IsSameTypeIgnoringAll(t1))
+        End Sub
+
+        <Fact>
+        Public Sub TupleWithCustomModifiersInInterfaceMethod()
+
+            Dim il = <![CDATA[
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly extern System.Core {}
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly '<<GeneratedFileName>>' { }
+
+.class interface public abstract auto ansi I
+{
+  .method public hidebysig newslot abstract virtual
+          instance class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong), object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+          M(class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong), object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> x) cil managed
+  {
+    .param [0]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[2]('a' 'b')}
+    .param [1]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[2]('c' 'd')}
+  } // end of method I::M
+
+} // end of class I
+]]>.Value
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C
+    Implements I
+
+    Public Function M(x As (c As Object, d As Object)) As (a As Object, b As Object) Implements I.M
+        Return x
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(source1, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp1.AssertTheseDiagnostics()
+
+            Dim interfaceMethod1 = comp1.GlobalNamespace.GetMember(Of MethodSymbol)("I.M")
+
+            Assert.Equal("Function I.M(x As (c As System.Object, d As System.Object)) As (a As System.Object, b As System.Object)",
+                         interfaceMethod1.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         interfaceMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         interfaceMethod1.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
+
+            ' Note: no copying of custom modifiers when implementing interface in VB
+            Dim classMethod1 = comp1.GlobalNamespace.GetMember(Of MethodSymbol)("C.M")
+
+            Assert.Equal("Function C.M(x As (c As System.Object, d As System.Object)) As (a As System.Object, b As System.Object)",
+                         classMethod1.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)", ' modopts not copied
+                         classMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)", ' modopts not copied
+                         classMethod1.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
+
+            Dim source2 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C
+    Implements I
+
+    Public Function M(x As (Object, Object)) As (a As Object, b As Object) Implements I.M
+        Return x
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim comp2 = CreateCompilationWithCustomILSource(source2, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp2.AssertTheseDiagnostics(
+<errors>
+BC30402: 'M' cannot implement function 'M' on interface 'I' because the tuple element names in 'Public Function M(x As (Object, Object)) As (a As Object, b As Object)' do not match those in 'Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)'.
+    Public Function M(x As (Object, Object)) As (a As Object, b As Object) Implements I.M
+                                                                                      ~~~
+</errors>)
+
+            Dim classMethod2 = comp2.GlobalNamespace.GetMember(Of MethodSymbol)("C.M")
+
+            Assert.Equal("Function C.M(x As (System.Object, System.Object)) As (a As System.Object, b As System.Object)",
+                         classMethod2.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)", ' modopts not copied
+                         classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)", ' modopts not copied
+                         classMethod2.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
+
+            Dim source3 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C
+    Implements I
+
+    Public Function M(x As (c As Object, d As Object)) As (Object, Object) Implements I.M
+        Return x
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim comp3 = CreateCompilationWithCustomILSource(source3, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp3.AssertTheseDiagnostics(
+<errors>
+BC30402: 'M' cannot implement function 'M' on interface 'I' because the tuple element names in 'Public Function M(x As (c As Object, d As Object)) As (Object, Object)' do not match those in 'Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)'.
+    Public Function M(x As (c As Object, d As Object)) As (Object, Object) Implements I.M
+                                                                                      ~~~
+</errors>)
+
+            Dim classMethod3 = comp3.GlobalNamespace.GetMember(Of MethodSymbol)("C.M")
+
+            Assert.Equal("Function C.M(x As (c As System.Object, d As System.Object)) As (System.Object, System.Object)",
+                         classMethod3.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)", ' modopts not copied
+                         classMethod3.ReturnType.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)", ' modopts not copied
+                         classMethod3.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleWithCustomModifiersInInterfaceProperty()
+
+            Dim il = <![CDATA[
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly extern System.Core {}
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly '<<GeneratedFileName>>' { }
+
+.class interface public abstract auto ansi I
+{
+  .method public hidebysig newslot specialname abstract virtual
+          instance class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong), object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+          get_P() cil managed
+  {
+    .param [0]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[2]('a' 'b')}
+  } // end of method I::get_P
+
+  .method public hidebysig newslot specialname abstract virtual
+          instance void  set_P(class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong), object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> 'value') cil managed
+  {
+    .param [1]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[2]('a' 'b')}
+  } // end of method I::set_P
+
+  .property instance class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong), object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+          P()
+  {
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[2]('a' 'b')}
+    .get instance class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong),object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> I::get_P()
+    .set instance void I::set_P(class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong),object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>)
+  } // end of property I::P
+} // end of class I
+]]>.Value
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C
+    Implements I
+
+    Public Property P As (a As Object, b As Object) Implements I.P
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(source1, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp1.AssertTheseDiagnostics()
+
+            Dim interfaceProperty1 = comp1.GlobalNamespace.GetMember(Of PropertySymbol)("I.P")
+
+            Assert.Equal("Property I.P As (a As System.Object, b As System.Object)",
+                         interfaceProperty1.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         interfaceProperty1.Type.TupleUnderlyingType.ToTestDisplayString())
+
+            ' Note: no copying of custom modifiers when implementing interface in VB
+            Dim classProperty1 = comp1.GlobalNamespace.GetMember(Of PropertySymbol)("C.P")
+
+            Assert.Equal("Property C.P As (a As System.Object, b As System.Object)",
+                         classProperty1.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)", ' modopts not copied
+                         classProperty1.Type.TupleUnderlyingType.ToTestDisplayString())
+
+            Dim source2 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C
+    Implements I
+
+    Public Property P As (Object, Object) Implements I.P
+End Class
+]]></file>
+</compilation>
+
+            Dim comp2 = CreateCompilationWithCustomILSource(source2, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp2.AssertTheseDiagnostics(
+<errors>
+BC30402: 'P' cannot implement property 'P' on interface 'I' because the tuple element names in 'Public Property P As (Object, Object)' do not match those in 'Property P As (a As Object, b As Object)'.
+    Public Property P As (Object, Object) Implements I.P
+                                                     ~~~
+</errors>)
+
+            Dim classProperty2 = comp2.GlobalNamespace.GetMember(Of PropertySymbol)("C.P")
+
+            Assert.Equal("Property C.P As (System.Object, System.Object)",
+                         classProperty2.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)", ' modopts not copied
+                         classProperty2.Type.TupleUnderlyingType.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleWithCustomModifiersInOverride()
+            ' // This IL is based on this code, but with modopts added
+            ' //public class Base
+            ' //{
+            ' //    public virtual (object a, object b) P { get; set; }
+            ' //    public virtual (object a, object b) M((object c, object d) x) { return x; }
+            ' //}
+
+            Dim il = <![CDATA[
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly extern System.Core {}
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly '<<GeneratedFileName>>' { }
+
+.class public auto ansi beforefieldinit Base
+       extends [mscorlib]System.Object
+{
+  .field private class [System.ValueTuple]System.ValueTuple`2<object,object> '<P>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+  .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[2]('a' 'b')}
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 )
+  .method public hidebysig newslot specialname virtual
+          instance class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong),object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+          get_P() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+    .param [0]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])  = {string[2]('a' 'b')}
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      class [System.ValueTuple]System.ValueTuple`2<object,object> Base::'<P>k__BackingField'
+    IL_0006:  ret
+  } // end of method Base::get_P
+
+  .method public hidebysig newslot specialname virtual
+          instance void  set_P(class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong),object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])  = {string[2]('a' 'b')}
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      class [System.ValueTuple]System.ValueTuple`2<object,object> Base::'<P>k__BackingField'
+    IL_0007:  ret
+  } // end of method Base::set_P
+
+  .method public hidebysig newslot virtual
+          instance class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong),object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+          M(class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong),object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> x) cil managed
+  {
+    .param [0]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])  = {string[2]('a' 'b')}
+    .param [1]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])  = {string[2]('c' 'd')}
+    // Code size       7 (0x7)
+    .maxstack  1
+    .locals init (class [System.ValueTuple]System.ValueTuple`2<object,object> V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method Base::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Base::.ctor
+
+  .property instance class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong),object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+          P()
+  {
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])  = {string[2]('a' 'b')}
+    .get instance class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong),object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> Base::get_P()
+    .set instance void Base::set_P(class [System.ValueTuple]System.ValueTuple`2<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong),object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>)
+  } // end of property Base::P
+} // end of class Base
+]]>.Value
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C
+    Inherits Base
+
+    Public Overrides Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)
+        Return x
+    End Function
+
+    Public Overrides Property P As (a As Object, b As Object)
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(source1, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp1.AssertTheseDiagnostics()
+
+            Dim baseMethod1 = comp1.GlobalNamespace.GetMember(Of MethodSymbol)("Base.M")
+
+            Assert.Equal("Function Base.M(x As (c As System.Object, d As System.Object)) As (a As System.Object, b As System.Object)",
+                         baseMethod1.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         baseMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         baseMethod1.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
+
+            Dim baseProperty1 = comp1.GlobalNamespace.GetMember(Of PropertySymbol)("Base.P")
+
+            Assert.Equal("Property Base.P As (a As System.Object, b As System.Object)", baseProperty1.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         baseProperty1.Type.TupleUnderlyingType.ToTestDisplayString())
+
+            Dim classMethod1 = comp1.GlobalNamespace.GetMember(Of MethodSymbol)("C.M")
+
+            Assert.Equal("Function C.M(x As (c As System.Object, d As System.Object)) As (a As System.Object, b As System.Object)",
+                         classMethod1.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         classMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         classMethod1.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
+
+            Dim classProperty1 = comp1.GlobalNamespace.GetMember(Of PropertySymbol)("C.P")
+
+            Assert.Equal("Property C.P As (a As System.Object, b As System.Object)", classProperty1.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         classProperty1.Type.TupleUnderlyingType.ToTestDisplayString())
+
+            Dim source2 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C
+    Inherits Base
+
+    Public Overrides Function M(x As (c As Object, d As Object)) As (Object, Object)
+        Return x
+    End Function
+
+    Public Overrides Property P As (Object, Object)
+End Class
+]]></file>
+</compilation>
+
+            Dim comp2 = CreateCompilationWithCustomILSource(source2, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp2.AssertTheseDiagnostics(
+<errors>
+BC40001: 'Public Overrides Function M(x As (c As Object, d As Object)) As (Object, Object)' cannot override 'Public Overridable Overloads Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)' because they differ by their tuple element names.
+    Public Overrides Function M(x As (c As Object, d As Object)) As (Object, Object)
+                              ~
+BC40001: 'Public Overrides Property P As (Object, Object)' cannot override 'Public Overridable Overloads Property P As (a As Object, b As Object)' because they differ by their tuple element names.
+    Public Overrides Property P As (Object, Object)
+                              ~
+</errors>)
+
+            Dim classProperty2 = comp2.GlobalNamespace.GetMember(Of PropertySymbol)("C.P")
+
+            Assert.Equal("Property C.P As (System.Object, System.Object)", classProperty2.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object, System.Object)",
+                         classProperty2.Type.TupleUnderlyingType.ToTestDisplayString())
+
+            Dim classMethod2 = comp2.GlobalNamespace.GetMember(Of MethodSymbol)("C.M")
+
+            Assert.Equal("Function C.M(x As (c As System.Object, d As System.Object)) As (System.Object, System.Object)",
+                         classMethod2.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         classMethod2.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
+
+            Dim source3 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C
+    Inherits Base
+
+    Public Overrides Function M(x As (Object, Object)) As (a As Object, b As Object)
+        Return x
+    End Function
+
+    Public Overrides Property P As (a As Object, b As Object)
+End Class
+]]></file>
+</compilation>
+
+            Dim comp3 = CreateCompilationWithCustomILSource(source3, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp3.AssertTheseDiagnostics(
+<errors>
+BC40001: 'Public Overrides Function M(x As (Object, Object)) As (a As Object, b As Object)' cannot override 'Public Overridable Overloads Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)' because they differ by their tuple element names.
+    Public Overrides Function M(x As (Object, Object)) As (a As Object, b As Object)
+                              ~
+</errors>)
+
+            Dim classMethod3 = comp3.GlobalNamespace.GetMember(Of MethodSymbol)("C.M")
+
+            Assert.Equal("Function C.M(x As (System.Object, System.Object)) As (a As System.Object, b As System.Object)",
+                         classMethod3.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         classMethod3.ReturnType.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
+                         classMethod3.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
+
         End Sub
 
     End Class

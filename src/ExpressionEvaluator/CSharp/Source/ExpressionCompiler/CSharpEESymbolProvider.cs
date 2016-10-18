@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             if (!tupleElementNamesOpt.IsDefault)
             {
-                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _sourceAssembly, tupleElementNamesOpt);
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNamesOpt);
             }
             return type;
         }

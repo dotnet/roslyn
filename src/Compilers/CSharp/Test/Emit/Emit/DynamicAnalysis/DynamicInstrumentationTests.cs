@@ -461,7 +461,7 @@ True
   IL_0007:  newarr     ""bool[]""
   IL_000c:  stsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
   IL_0011:  ldstr      ##MVID##
-  IL_0016:  call       ""System.Guid System.Guid.Parse(string)""
+  IL_0016:  newobj     ""System.Guid..ctor(string)""
   IL_001b:  stsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
   IL_0020:  ret
 }";
@@ -1944,7 +1944,7 @@ public class Program
             foreach (Diagnostic diagnostic in diagnostics)
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_MissingPredefinedMember &&
-                    diagnostic.Arguments[0].Equals("System.Guid") && diagnostic.Arguments[1].Equals("Parse"))
+                    diagnostic.Arguments[0].Equals("System.Guid") && diagnostic.Arguments[1].Equals(".ctor"))
                 {
                     return;
                 }
