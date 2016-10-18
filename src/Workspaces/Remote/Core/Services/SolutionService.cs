@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.Remote
             var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
-            var solutionInfo = await _assetService.GetAssetAsync<SerializedSolutionInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
+            var solutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
             foreach (var projectChecksum in solutionChecksumObject.Projects)
             {
                 var projectSnapshot = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
-                var projectInfo = await _assetService.GetAssetAsync<SerializedProjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                var projectInfo = await _assetService.GetAssetAsync<ProjectInfo.ProjectAttributes>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
                 if (!workspace.Services.IsSupported(projectInfo.Language))
                 {
                     // only add project our workspace supports. 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 foreach (var documentChecksum in projectSnapshot.Documents)
                 {
                     var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await _assetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     var textLoader = TextLoader.From(
                         TextAndVersion.Create(
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await _assetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     var textLoader = TextLoader.From(
                         TextAndVersion.Create(

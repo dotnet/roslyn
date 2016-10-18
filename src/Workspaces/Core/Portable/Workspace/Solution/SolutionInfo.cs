@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -10,36 +12,32 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public sealed class SolutionInfo
     {
+        internal SolutionAttributes Attributes { get; }
+
         /// <summary>
         /// The unique Id of the solution.
         /// </summary>
-        public SolutionId Id { get; }
+        public SolutionId Id => Attributes.Id;
 
         /// <summary>
         /// The version of the solution.
         /// </summary>
-        public VersionStamp Version { get; }
+        public VersionStamp Version => Attributes.Version;
 
         /// <summary>
         /// The path to the solution file, or null if there is no solution file.
         /// </summary>
-        public string FilePath { get; }
+        public string FilePath => Attributes.FilePath;
 
         /// <summary>
         /// A list of projects initially associated with the solution.
         /// </summary>
         public IReadOnlyList<ProjectInfo> Projects { get; }
 
-        private SolutionInfo(
-            SolutionId id,
-            VersionStamp version,
-            string filePath,
-            IEnumerable<ProjectInfo> projects)
+        private SolutionInfo(SolutionAttributes attributes, IEnumerable<ProjectInfo> projects)
         {
-            this.Id = id;
-            this.Version = version;
-            this.FilePath = filePath;
-            this.Projects = projects.ToImmutableReadOnlyListOrEmpty();
+            Attributes = attributes;
+            Projects = projects.ToImmutableReadOnlyListOrEmpty();
         }
 
         /// <summary>
@@ -51,7 +49,106 @@ namespace Microsoft.CodeAnalysis
             string filePath = null,
             IEnumerable<ProjectInfo> projects = null)
         {
-            return new SolutionInfo(id, version, filePath, projects);
+            return new SolutionInfo(new SolutionAttributes(id, version, filePath), projects);
+        }
+
+        private SolutionInfo With(
+            SolutionAttributes attributes = null,
+            IEnumerable<ProjectInfo> projects = null)
+        {
+            var newAttributes = attributes ?? Attributes;
+            var newProjects = projects ?? Projects;
+
+            if (newAttributes == Attributes &&
+                newProjects == Projects)
+            {
+                return this;
+            }
+
+            return new SolutionInfo(newAttributes, newProjects);
+        }
+
+        internal SolutionInfo WithVersion(VersionStamp version)
+        {
+            return With(attributes: new SolutionAttributes(Attributes.Id, version, Attributes.FilePath));
+        }
+
+        internal SolutionInfo WithFilePath(string filePath)
+        {
+            return With(attributes: new SolutionAttributes(Attributes.Id, Attributes.Version, filePath));
+        }
+
+        internal SolutionInfo WithProjects(IEnumerable<ProjectInfo> projects)
+        {
+            return With(projects: projects);
+        }
+
+        /// <summary>
+        /// type that contains information regarding this solution itself but
+        /// no tree information such as project info
+        /// </summary>
+        internal class SolutionAttributes : IChecksummedObject, IObjectWritable
+        {
+            /// <summary>
+            /// The unique Id of the solution.
+            /// </summary>
+            public SolutionId Id { get; }
+
+            /// <summary>
+            /// The version of the solution.
+            /// </summary>
+            public VersionStamp Version { get; }
+
+            /// <summary>
+            /// The path to the solution file, or null if there is no solution file.
+            /// </summary>
+            public string FilePath { get; }
+
+            public SolutionAttributes(SolutionId id, VersionStamp version, string filePath)
+            {
+                if (id == null)
+                {
+                    throw new ArgumentNullException(nameof(id));
+                }
+
+                Id = id;
+                Version = version;
+                FilePath = filePath;
+            }
+
+            public void WriteTo(ObjectWriter writer)
+            {
+                Id.WriteTo(writer);
+
+                // TODO: figure out a way to send version info over as well.
+                //       right now, version get updated automatically, so 2 can't be exactly match
+                // info.Version.WriteTo(writer);
+
+                writer.WriteString(FilePath);
+            }
+
+            public static SolutionAttributes ReadFrom(ObjectReader reader)
+            {
+                var solutionId = SolutionId.ReadFrom(reader);
+                // var version = VersionStamp.ReadFrom(reader);
+                var filePath = reader.ReadString();
+
+                return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath);
+            }
+
+            private Checksum _lazyChecksum;
+            Checksum IChecksummedObject.Checksum
+            {
+                get
+                {
+                    if (_lazyChecksum == null)
+                    {
+                        _lazyChecksum = Checksum.Create(this, nameof(SolutionAttributes));
+                    }
+
+                    return _lazyChecksum;
+                }
+            }
         }
     }
 }
