@@ -4,6 +4,8 @@
     "MicroBuild.Core": "0.2.0",
     "MicroBuild.Plugins.SwixBuild": "1.0.60",
     "Microsoft.NETCore.Platforms": "1.0.1",
+    "Microsoft.Build": "14.3.0-prerelease01",
+    "Microsoft.Build.Tasks.Core": "14.3.0-prerelease01",
     "Microsoft.DiaSymReader.Native": "1.5.0-beta1",
     "Microsoft.Net.Compilers": "1.3.2",
     "Microsoft.Net.RoslynDiagnostics": "1.2.0-beta2",
@@ -12,6 +14,7 @@
     "xunit.runner.console": "2.2.0-beta1-build3239",
     "Roslyn.Build.Util": "0.9.4-portable",
     "RoslynDependencies.OptimizationData": "2.0.0-beta5-60913-03",
+    "RoslynTools.Microsoft.ModifyVsixManifest": "0.2.0-beta",
     "RoslynTools.Microsoft.SignTool": "0.2.0-beta"
   },
   "frameworks": {

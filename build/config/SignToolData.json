@@ -93,7 +93,9 @@
                 "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
                 "Roslyn.VisualStudio.InteractiveComponents.vsix",
                 "Roslyn.VisualStudio.Setup.Next.vsix",
+                "Roslyn.VisualStudio.Setup.Next.Insertion.vsix",
                 "Roslyn.VisualStudio.Setup.vsix",
+                "Roslyn.VisualStudio.Setup.Insertion.vsix",
                 "RoslynDeployment.vsix",
                 "SDK\\Roslyn Templates\\Release\\Roslyn SDK.vsix"
             ]
