@@ -8904,6 +8904,23 @@ class C
             await VerifyItemExistsAsync(markup, "Item3");
         }
 
+        [WorkItem(14546, "https://github.com/dotnet/roslyn/issues/14546")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementsCompletionOffMethodGroup()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        new object().ToString.$$
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs;
+
+            // should not crash
+            await VerifyItemExistsAsync(markup, "ToString");            
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
