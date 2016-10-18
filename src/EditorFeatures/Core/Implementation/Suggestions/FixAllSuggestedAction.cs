@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Suggested action for fix all occurrences code fix.
     /// </summary>
-    internal sealed class FixAllSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
+    internal sealed partial class FixAllSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
     {
         private readonly Diagnostic _fixedDiagnostic;
 
@@ -27,11 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
-            FixAllCodeAction codeAction,
-            FixAllProvider provider,
+            FixAllState fixAllState,
             Diagnostic originalFixedDiagnostic,
             IAsynchronousOperationListener operationListener)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider, operationListener)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator,
+                  new FixAllCodeAction(fixAllState), fixAllState.FixAllProvider,
+                  operationListener)
         {
             _fixedDiagnostic = originalFixedDiagnostic;
         }

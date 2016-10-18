@@ -159,7 +159,6 @@
     <Compile Include="AddImport\SymbolResult.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
     <Compile Include="AddImport\AbstractAddImportCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractChangeToAsyncCodeFixProvider.cs" />
