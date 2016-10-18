@@ -64,17 +64,17 @@ namespace Microsoft.CodeAnalysis.Execution
 
             if (value is SolutionInfo.SolutionAttributes)
             {
-                return WellKnownSynchronizationKinds.SolutionInfo;
+                return WellKnownSynchronizationKinds.SolutionAttributes;
             }
 
             if (value is ProjectInfo.ProjectAttributes)
             {
-                return WellKnownSynchronizationKinds.ProjectInfo;
+                return WellKnownSynchronizationKinds.ProjectAttributes;
             }
 
             if (value is DocumentInfo.DocumentAttributes)
             {
-                return WellKnownSynchronizationKinds.DocumentInfo;
+                return WellKnownSynchronizationKinds.DocumentAttributes;
             }
 
             if (value is CompilationOptions)
