@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(NavigableHighlightTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
     internal class PreviewReferenceHighlightingTaggerProvider
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(NavigableHighlightTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
     internal class PreviewDefinitionHighlightingTaggerProvider
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>

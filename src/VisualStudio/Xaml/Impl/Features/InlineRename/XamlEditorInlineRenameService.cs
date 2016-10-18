@@ -66,8 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
             {
                 var references = new List<InlineRenameLocation>();
 
-                references.Add(new InlineRenameLocation(_document, _renameInfo.TriggerSpan));
-
                 IList<DocumentSpan> renameLocations = await _renameInfo.FindRenameLocationsAsync(
                     renameInStrings: optionSet.GetOption(RenameOptions.RenameInStrings),
                     renameInComments: optionSet.GetOption(RenameOptions.RenameInComments),
