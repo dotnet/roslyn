@@ -2292,12 +2292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocalFunction(nameToken);
         }
 
-        protected virtual ImmutableArray<MethodSymbol> MethodSymbolsWithYield =>
-            ImmutableArray<MethodSymbol>.Empty;
-
         internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
-            ValidateIteratorMethods(Compilation, MethodSymbolsWithYield, diagnostics);
             return BindBlock(node, diagnostics);
         }
 
@@ -2307,39 +2303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binder != null);
 
             return binder.BindBlockParts(node, diagnostics);
-        }
-
-        private static void ValidateIteratorMethods(
-            CSharpCompilation compilation,
-            ImmutableArray<MethodSymbol> iteratorMethods,
-            DiagnosticBag diagnostics)
-        {
-            foreach (var iterator in iteratorMethods)
-            {
-                foreach (var parameter in iterator.Parameters)
-                {
-                    if (parameter.RefKind != RefKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
-                    }
-                    else if (parameter.Type.IsUnsafe())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
-                    }
-                }
-
-                if (iterator.IsVararg)
-                {
-                    // error CS1636: __arglist is not allowed in the parameter list of iterators
-                    diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
-                }
-
-                if (((iterator as SourceMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
-                    && compilation.Options.AllowUnsafe) // Don't cascade
-                {
-                    diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
-                }
-            }
         }
 
         private BoundBlock BindBlockParts(BlockSyntax node, DiagnosticBag diagnostics)

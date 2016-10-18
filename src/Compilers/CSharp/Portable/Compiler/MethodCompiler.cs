@@ -1549,6 +1549,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var binder = new ExecutableCodeBinder(bodySyntax, sourceMethod, inMethodBinder);
                     importChain = binder.ImportChain;
 
+                    binder.ValidateIteratorMethods(diagnostics);
+
                     body = bodySyntax.Kind() == SyntaxKind.Block
                         ? binder.BindEmbeddedBlock((BlockSyntax)bodySyntax, diagnostics)
                         : binder.BindExpressionBodyAsBlock(
