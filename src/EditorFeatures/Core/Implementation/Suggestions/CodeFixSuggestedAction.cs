@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly CodeFix _fix;
         private readonly SuggestedActionSet _fixAllSuggestedActionSet;
 
-        private ImmutableArray<SuggestedActionSet> _actionSets;
-
         public CodeFixSuggestedAction(
             Workspace workspace,
             ITextBuffer subjectBuffer,
