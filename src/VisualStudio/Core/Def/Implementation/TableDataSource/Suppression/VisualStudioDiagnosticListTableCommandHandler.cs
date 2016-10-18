@@ -91,17 +91,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void OnAddSuppressionsInSource(object sender, EventArgs e)
         {
-            _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: true, projectHierarchyOpt: null);
+            _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: true);
         }
 
         private void OnAddSuppressionsInSuppressionFile(object sender, EventArgs e)
         {
-            _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: false, projectHierarchyOpt: null);
+            _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: false);
         }
 
         private void OnRemoveSuppressions(object sender, EventArgs e)
         {
-            _suppressionFixService.RemoveSuppressions(selectedErrorListEntriesOnly: true, projectHierarchyOpt: null);
+            _suppressionFixService.RemoveSuppressions(selectedErrorListEntriesOnly: true);
         }
     }
 }
