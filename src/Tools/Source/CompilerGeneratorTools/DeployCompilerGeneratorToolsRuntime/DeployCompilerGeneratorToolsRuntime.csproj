@@ -5,6 +5,7 @@
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Configuration)' == '' ">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
     <ProjectGuid>{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -20,8 +21,8 @@
     <NoStdLib>true</NoStdLib>
     <NonShipping>true</NonShipping>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' " />
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
