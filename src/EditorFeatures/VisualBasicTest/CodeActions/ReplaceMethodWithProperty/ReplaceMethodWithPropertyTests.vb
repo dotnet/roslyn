@@ -581,5 +581,31 @@ partial class C
 End class",
 index:=1)
         End Function
+
+        <WorkItem(14327, "https://github.com/dotnet/roslyn/issues/14327")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestUpdateChainedGet1() As Task
+            Await TestAsync(
+"
+public class Foo
+    public sub Foo()
+        dim v = GetValue().GetValue()
+    end sub
+
+    Public Function [||]GetValue() As Foo 
+    End Function
+end class",
+"
+public class Foo
+    public sub Foo()
+        dim v = Value.Value
+    end sub
+
+    Public ReadOnly Property Value As Foo
+        Get
+        End Get
+    End Property
+end class")
+        End Function
     End Class
 End Namespace
