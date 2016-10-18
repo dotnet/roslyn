@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
 
                 var serializer = new Serializer(_solutionServices.Workspace.Services);
 
-                var infoChecksum = serializer.CreateChecksum(new SerializedProjectInfo(Id, Version, Name, AssemblyName, Language, FilePath, OutputFilePath, IsSubmission), cancellationToken);
+                var infoChecksum = serializer.CreateChecksum(ProjectInfo.Attributes, cancellationToken);
 
                 var compilationOptionsChecksum = SupportsCompilation ? serializer.CreateChecksum(CompilationOptions, cancellationToken) : Checksum.Null;
                 var parseOptionsChecksum = SupportsCompilation ? serializer.CreateChecksum(ParseOptions, cancellationToken) : Checksum.Null;

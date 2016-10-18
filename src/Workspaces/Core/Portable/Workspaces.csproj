@@ -988,7 +988,6 @@
     <Compile Include="Workspace\Solution\IDocumentTextDifferencingService.cs" />
     <Compile Include="Workspace\Solution\MetadataReferenceManager.cs" />
     <Compile Include="Workspace\Solution\ProjectState_Checksum.cs" />
-    <Compile Include="Workspace\Solution\SerializedInfos.cs" />
     <Compile Include="Workspace\Solution\SolutionState.CompilationTranslationAction.cs" />
     <Compile Include="Workspace\Solution\SolutionState.CompilationTranslationAction.Actions.cs" />
     <Compile Include="Workspace\Solution\SolutionState.CompilationTracker.State.cs" />

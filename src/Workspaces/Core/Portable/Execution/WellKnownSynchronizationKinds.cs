@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Serialization
         public const string MetadataReferences = nameof(MetadataReferenceChecksumCollection);
         public const string AnalyzerReferences = nameof(AnalyzerReferenceChecksumCollection);
 
-        public const string SolutionInfo = nameof(SerializedSolutionInfo);
-        public const string ProjectInfo = nameof(SerializedProjectInfo);
-        public const string DocumentInfo = nameof(SerializedDocumentInfo);
+        public const string SolutionAttributes = nameof(SolutionInfo.SolutionAttributes);
+        public const string ProjectAttributes = nameof(ProjectInfo.ProjectAttributes);
+        public const string DocumentAttributes = nameof(DocumentInfo.DocumentAttributes);
 
         public const string CompilationOptions = nameof(CompilationOptions);
         public const string ParseOptions = nameof(ParseOptions);
