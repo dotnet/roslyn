@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Represents light bulb menu item for code fixes.
     /// </summary>
-    internal sealed class CodeFixSuggestedAction : SuggestedActionWithPreview, ISuggestedActionWithFlavors, ITelemetryDiagnosticID<string>
+    internal sealed class CodeFixSuggestedAction : SuggestedActionWithPreview, ITelemetryDiagnosticID<string>
     {
         private readonly CodeFix _fix;
         private readonly SuggestedActionSet _fixAllSuggestedActionSet;
