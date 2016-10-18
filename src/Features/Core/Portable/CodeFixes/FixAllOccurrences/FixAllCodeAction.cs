@@ -16,9 +16,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     internal partial class FixAllCodeAction : CodeAction
     {
+        private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
+
         private readonly FixAllState _fixAllState;
         private readonly bool _showPreviewChangesDialog;
-        private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
         internal FixAllCodeAction(
             FixAllState fixAllState, bool showPreviewChangesDialog)
@@ -46,8 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
-
-        public FixAllState FixAllState => _fixAllState;
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
