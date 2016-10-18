@@ -62,17 +62,17 @@ namespace Microsoft.CodeAnalysis.Execution
                 return WellKnownSynchronizationKinds.AnalyzerReferences;
             }
 
-            if (value is SerializedSolutionInfo)
+            if (value is SolutionInfo.SolutionAttributes)
             {
                 return WellKnownSynchronizationKinds.SolutionInfo;
             }
 
-            if (value is SerializedProjectInfo)
+            if (value is ProjectInfo.ProjectAttributes)
             {
                 return WellKnownSynchronizationKinds.ProjectInfo;
             }
 
-            if (value is SerializedDocumentInfo)
+            if (value is DocumentInfo.DocumentAttributes)
             {
                 return WellKnownSynchronizationKinds.DocumentInfo;
             }

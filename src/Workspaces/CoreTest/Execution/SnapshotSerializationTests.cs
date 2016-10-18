@@ -471,12 +471,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var workspace = new AdhocWorkspace();
 
             var solutionObject = await service.GetValueAsync<SolutionStateChecksums>(syncScope.SolutionChecksum);
-            var solutionInfo = await service.GetValueAsync<SerializedSolutionInfo>(solutionObject.Info).ConfigureAwait(false);
+            var solutionInfo = await service.GetValueAsync<SolutionInfo.SolutionAttributes>(solutionObject.Info).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
             foreach (var projectObject in solutionObject.Projects.ToProjectObjects(service))
             {
-                var projectInfo = await service.GetValueAsync<SerializedProjectInfo>(projectObject.Info).ConfigureAwait(false);
+                var projectInfo = await service.GetValueAsync<ProjectInfo.ProjectAttributes>(projectObject.Info).ConfigureAwait(false);
                 if (!workspace.Services.IsSupported(projectInfo.Language))
                 {
                     continue;
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var documents = new List<DocumentInfo>();
                 foreach (var documentObject in projectObject.Documents.ToDocumentObjects(service))
                 {
-                    var documentInfo = await service.GetValueAsync<SerializedDocumentInfo>(documentObject.Info).ConfigureAwait(false);
+                    var documentInfo = await service.GetValueAsync<DocumentInfo.DocumentAttributes>(documentObject.Info).ConfigureAwait(false);
                     var text = await service.GetValueAsync<SourceText>(documentObject.Text).ConfigureAwait(false);
 
                     // TODO: do we need version?
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var additionals = new List<DocumentInfo>();
                 foreach (var documentObject in projectObject.AdditionalDocuments.ToDocumentObjects(service))
                 {
-                    var documentInfo = await service.GetValueAsync<SerializedDocumentInfo>(documentObject.Info).ConfigureAwait(false);
+                    var documentInfo = await service.GetValueAsync<DocumentInfo.DocumentAttributes>(documentObject.Info).ConfigureAwait(false);
                     var text = await service.GetValueAsync<SourceText>(documentObject.Text).ConfigureAwait(false);
 
                     // TODO: do we need version?

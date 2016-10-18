@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal static async Task VerifyAssetAsync(ISolutionSynchronizationService service, SolutionStateChecksums solutionObject)
         {
-            await VerifyAssetSerializationAsync<SerializedSolutionInfo>(
+            await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
                 service, solutionObject.Info, WellKnownSynchronizationKinds.SolutionInfo,
                 (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal static async Task VerifyAssetAsync(ISolutionSynchronizationService service, ProjectStateChecksums projectObject)
         {
-            var info = await VerifyAssetSerializationAsync<SerializedProjectInfo>(
+            var info = await VerifyAssetSerializationAsync<ProjectInfo.ProjectAttributes>(
                 service, projectObject.Info, WellKnownSynchronizationKinds.ProjectInfo,
                 (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal static async Task VerifyAssetAsync(ISolutionSynchronizationService service, DocumentStateChecksums documentObject)
         {
-            var info = await VerifyAssetSerializationAsync<SerializedDocumentInfo>(
+            var info = await VerifyAssetSerializationAsync<DocumentInfo.DocumentAttributes>(
                 service, documentObject.Info, WellKnownSynchronizationKinds.DocumentInfo,
                 (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
 
