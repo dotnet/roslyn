@@ -602,7 +602,7 @@
     <Compile Include="Implementation\Suggestions\FixAllSuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\CodeFixSuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\CodeRefactoringSuggestedAction.cs" />
-    <Compile Include="Implementation\Suggestions\PreviewChangesCodeAction.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionWithPreview.PreviewChangesCodeAction.cs" />
     <Compile Include="Implementation\Suggestions\PreviewChangesSuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedAction.CaretPositionRestorer.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedAction.cs" />
