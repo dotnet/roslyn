@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -54,5 +55,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly Option<CodeStyleOption<bool>> PreferExpressionBodiedAccessors = new Option<CodeStyleOption<bool>>(
             nameof(CodeStyleOptions), nameof(PreferExpressionBodiedAccessors), defaultValue: CodeStyleOptions.TrueWithNoneEnforcement,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedAccessors)}"));
+
+        public static IEnumerable<Option<CodeStyleOption<bool>>> GetCodeStyleOptions()
+        {
+            yield return UseImplicitTypeForIntrinsicTypes;
+            yield return UseImplicitTypeWhereApparent;
+            yield return UseImplicitTypeWherePossible;
+            yield return PreferConditionalDelegateCall;
+            yield return PreferPatternMatchingOverAsWithNullCheck;
+            yield return PreferPatternMatchingOverIsWithCastCheck;
+            yield return PreferExpressionBodiedConstructors;
+            yield return PreferExpressionBodiedMethods;
+            yield return PreferExpressionBodiedOperators;
+            yield return PreferExpressionBodiedProperties;
+            yield return PreferExpressionBodiedIndexers;
+            yield return PreferExpressionBodiedAccessors;
+        }
     }
 }
