@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllState fixAllState,
             Diagnostic triggerDiagnostic,
             string title,
-            string computingFixWaitDialogMessage,
-            bool showPreviewChangesDialog)
-            : base(fixAllState, showPreviewChangesDialog)
+            string computingFixWaitDialogMessage)
+            : base(fixAllState, showPreviewChangesDialog: false)
         {
             _triggerDiagnostic = triggerDiagnostic;
             _title = title;
