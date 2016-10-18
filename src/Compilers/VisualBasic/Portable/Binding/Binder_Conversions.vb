@@ -995,7 +995,11 @@ DoneWithDiagnostics:
 
                     ' The conversion has the lambda stored internally to not clutter the bound tree with synthesized nodes 
                     ' in the first pass. Later the node get's rewritten into a delegate creation with the lambda if needed.
-                    Return New BoundConversion(tree, argument, convKind, False, isExplicit, boundLambdaOpt, relaxationReceiverPlaceholderOpt, targetType)
+                    Return New BoundConversion(tree, argument, convKind, False, isExplicit, Nothing,
+                                               If(boundLambdaOpt Is Nothing,
+                                                  Nothing,
+                                                  New BoundRelaxationLambda(tree, boundLambdaOpt, relaxationReceiverPlaceholderOpt).MakeCompilerGenerated()),
+                                               targetType)
                 Else
                     Debug.Assert(diagnostics.HasAnyErrors())
                 End If
@@ -1016,7 +1020,39 @@ DoneWithDiagnostics:
                 constantResult = Conversions.TryFoldNothingReferenceConversion(argument, convKind, targetType)
             End If
 
-            Return New BoundConversion(tree, argument, convKind, CheckOverflow, isExplicit, constantResult, targetType)
+            Dim tupleElements As BoundConvertedTupleElements = CreateConversionForTupleElements(tree, sourceType, targetType, convKind, isExplicit)
+
+            Return New BoundConversion(tree, argument, convKind, CheckOverflow, isExplicit, constantResult, tupleElements, targetType)
+        End Function
+
+        Private Function CreateConversionForTupleElements(
+            tree As SyntaxNode,
+            sourceType As TypeSymbol,
+            targetType As TypeSymbol,
+            convKind As ConversionKind,
+            isExplicit As Boolean
+        ) As BoundConvertedTupleElements
+
+            If (convKind And ConversionKind.Tuple) <> 0 Then
+                Dim ignore = DiagnosticBag.GetInstance()
+                Dim sourceElementTypes = sourceType.GetNullableUnderlyingTypeOrSelf().GetElementTypesOfTupleOrCompatible()
+                Dim targetElementTypes = targetType.GetNullableUnderlyingTypeOrSelf().GetElementTypesOfTupleOrCompatible()
+
+                Dim placeholders = ArrayBuilder(Of BoundRValuePlaceholder).GetInstance(sourceElementTypes.Length)
+                Dim converted = ArrayBuilder(Of BoundExpression).GetInstance(sourceElementTypes.Length)
+
+                For i As Integer = 0 To sourceElementTypes.Length - 1
+                    Dim placeholder = New BoundRValuePlaceholder(tree, sourceElementTypes(i)).MakeCompilerGenerated()
+                    placeholders.Add(placeholder)
+                    converted.Add(ApplyConversion(tree, targetElementTypes(i), placeholder, isExplicit, ignore))
+                Next
+
+                ignore.Free()
+
+                Return New BoundConvertedTupleElements(tree, placeholders.ToImmutableAndFree(), converted.ToImmutableAndFree()).MakeCompilerGenerated()
+            End If
+
+            Return Nothing
         End Function
 
         Private Function CreateUserDefinedConversion(
@@ -1434,7 +1470,11 @@ DoneWithDiagnostics:
             End If
 
             If conversionSemantics = SyntaxKind.CTypeKeyword Then
-                Return New BoundConversion(tree, boundLambda, convKind, False, isExplicit, relaxationLambdaOpt, targetType)
+                Return New BoundConversion(tree, boundLambda, convKind, False, isExplicit, Nothing,
+                                           If(relaxationLambdaOpt Is Nothing,
+                                              Nothing,
+                                              New BoundRelaxationLambda(tree, relaxationLambdaOpt, receiverPlaceholderOpt:=Nothing).MakeCompilerGenerated()),
+                                           targetType)
             ElseIf conversionSemantics = SyntaxKind.DirectCastKeyword Then
                 Return New BoundDirectCast(tree, boundLambda, convKind, relaxationLambdaOpt, targetType)
             ElseIf conversionSemantics = SyntaxKind.TryCastKeyword Then
