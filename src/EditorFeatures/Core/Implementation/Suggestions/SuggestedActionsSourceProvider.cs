@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixCount = fixes.Length;
 
                     Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = 
-                        codeAction => CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
+                        codeAction => GetFixAllSuggestedActionSet(
                             codeAction, fixCount, fixCollection.FixAllState, 
                             fixCollection.SupportedScopes, fixCollection.FirstDiagnostic, 
                             workspace, _subjectBuffer,  _owner._editHandler, 
@@ -432,6 +432,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 map[groupKey].Add(suggestedAction);
+            }
+
+            /// <summary>
+            /// If the provided fix all context is non-null and the context's code action Id matches the given code action's Id then,
+            /// returns the set of fix all occurrences actions associated with the code action.
+            /// </summary>
+            internal static SuggestedActionSet GetFixAllSuggestedActionSet(
+                CodeAction action,
+                int actionCount,
+                FixAllState fixAllState,
+                IEnumerable<FixAllScope> supportedScopes,
+                Diagnostic firstDiagnostic,
+                Workspace workspace,
+                ITextBuffer subjectBuffer,
+                ICodeActionEditHandlerService editHandler,
+                IWaitIndicator waitIndicator,
+                IAsynchronousOperationListener operationListener)
+            {
+                if (fixAllState == null)
+                {
+                    return null;
+                }
+
+                if (actionCount > 1 && action.EquivalenceKey == null)
+                {
+                    return null;
+                }
+
+                var fixAllSuggestedActions = ArrayBuilder<FixAllSuggestedAction>.GetInstance();
+                foreach (var scope in supportedScopes)
+                {
+                    var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
+                    var fixAllAction = new FixAllCodeAction(fixAllStateForScope, showPreviewChangesDialog: true);
+                    var fixAllSuggestedAction = new FixAllSuggestedAction(
+                        workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction,
+                        fixAllStateForScope.FixAllProvider, firstDiagnostic, operationListener);
+                    fixAllSuggestedActions.Add(fixAllSuggestedAction);
+                }
+
+                return new SuggestedActionSet(
+                    fixAllSuggestedActions.ToImmutableAndFree(),
+                    title: EditorFeaturesResources.Fix_all_occurrences_in);
             }
 
             /// <summary>
