@@ -279,7 +279,6 @@
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
     <Compile Include="Implementation\Preview\PreviewReferenceHighlightingTaggerProvider.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
-    <Compile Include="Implementation\Suggestions\FixMultipleSuggestedAction.cs" />
     <Compile Include="Implementation\GoToImplementation\GoToImplementationCommandHandler.cs" />
     <Compile Include="Implementation\TodoComment\ITodoListProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoItem.cs" />
