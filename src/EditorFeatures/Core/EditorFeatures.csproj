@@ -608,7 +608,6 @@
     <Compile Include="Implementation\Suggestions\SuggestedAction.CaretPositionRestorer.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionsSourceProvider.cs" />
-    <Compile Include="Implementation\Suggestions\SuggestedActionWithFlavors.cs" />
     <Compile Include="Implementation\Suggestions\SuppressionSuggestedAction.cs" />
     <Compile Include="Implementation\TextBufferAssociatedViewService.cs" />
     <Compile Include="Implementation\TextDiffing\EditorTextDifferencingService.cs" />
