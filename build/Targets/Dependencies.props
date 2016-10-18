@@ -31,20 +31,24 @@
     <SystemIOFileSystemVersion>4.0.1</SystemIOFileSystemVersion>
     <SystemIOFileSystemDriveInfoVersion>4.0.0</SystemIOFileSystemDriveInfoVersion>
     <SystemIOFileSystemPrimitivesVersion>4.0.1</SystemIOFileSystemPrimitivesVersion>
+    <SystemIOFileSystemWatcherVersion>4.0.0</SystemIOFileSystemWatcherVersion>
     <SystemIOPipesVersion>4.0.0</SystemIOPipesVersion>
     <SystemLinqVersion>4.1.0</SystemLinqVersion>
     <SystemLinqExpressionsVersion>4.1.0</SystemLinqExpressionsVersion>
     <SystemLinqParallelVersion>4.0.1</SystemLinqParallelVersion>
+    <SystemNetNameResolutionVersion>4.0.0</SystemNetNameResolutionVersion>
     <SystemNetSecurityVersion>4.0.0</SystemNetSecurityVersion>
     <SystemNetSocketsVersion>4.1.0</SystemNetSocketsVersion>
     <SystemObjectModelVersion>4.0.10</SystemObjectModelVersion>
     <SystemReflectionVersion>4.1.0</SystemReflectionVersion>
     <SystemReflectionExtensionsVersion>4.0.1</SystemReflectionExtensionsVersion>
     <SystemReflectionMetadataVersion>1.4.1-beta-24430-01</SystemReflectionMetadataVersion>
+    <SystemReflectionPrimitivesVersion>4.0.1</SystemReflectionPrimitivesVersion>
     <SystemReflectionTypeExtensionsVersion>4.1.0</SystemReflectionTypeExtensionsVersion>
     <SystemResourcesResourceManagerVersion>4.0.1</SystemResourcesResourceManagerVersion>
     <SystemRuntimeVersion>4.1.0</SystemRuntimeVersion>
     <SystemRuntimeExtensionsVersion>4.1.0</SystemRuntimeExtensionsVersion>
+    <SystemRuntimeHandlesVersion>4.0.1</SystemRuntimeHandlesVersion>
     <SystemRuntimeInteropServicesVersion>4.1.0</SystemRuntimeInteropServicesVersion>
     <SystemRuntimeInteropServicesRuntimeInformationVersion>4.0.0</SystemRuntimeInteropServicesRuntimeInformationVersion>
     <SystemRuntimeLoaderVersion>4.0.0</SystemRuntimeLoaderVersion>
