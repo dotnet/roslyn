@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
 
             var optionAsset = GetOptionsAsset(solution, project.Language, cancellationToken);
-            var hostChecksums = GetHostAnalyzerReferences(snapshotService, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
+            var hostChecksums = GetHostAnalyzerReferences(snapshotService, project.Language, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
 
             var argument = new DiagnosticArguments(
                 analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics,
@@ -158,12 +158,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
         }
 
-        private ImmutableArray<byte[]> GetHostAnalyzerReferences(ISolutionSynchronizationService snapshotService, IEnumerable<AnalyzerReference> references, CancellationToken cancellationToken)
+        private ImmutableArray<byte[]> GetHostAnalyzerReferences(
+            ISolutionSynchronizationService snapshotService, string language, IEnumerable<AnalyzerReference> references, CancellationToken cancellationToken)
         {
             // TODO: cache this to somewhere
             var builder = ImmutableArray.CreateBuilder<byte[]>();
             foreach (var reference in references)
             {
+                var analyzers = reference.GetAnalyzers(language);
+                if (analyzers.Length == 0)
+                {
+                    // skip reference that doesn't contain any analyzers for the given language
+                    // we do this so that we don't load analyzer dlls that MEF exported from vsix
+                    // not related to this solution
+                    continue;
+                }
+
                 var asset = snapshotService.GetGlobalAsset(reference, cancellationToken);
                 builder.Add(asset.Checksum.ToArray());
             }
