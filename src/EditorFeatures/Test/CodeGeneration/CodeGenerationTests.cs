@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -373,7 +374,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             IList<Func<SemanticModel, IParameterSymbol>> parameters = null,
             bool isIndexer = false,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool compareTokens = true,
+            IDictionary<OptionKey, object> options = null)
         {
             // This assumes that tests will not use place holders for get/set statements at the same time
             if (getStatements != null)
@@ -388,6 +390,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
+                if (options != null)
+                {
+                    foreach (var kvp in options)
+                    {
+                        context.Workspace.Options = context.Workspace.Options.WithChangedOption(kvp.Key, kvp.Value);
+                    }
+                }
+
                 var typeSymbol = GetTypeSymbol(type)(context.SemanticModel);
                 var getParameterSymbols = GetParameterSymbols(parameters, context);
                 var setParameterSymbols = getParameterSymbols == null ? null : new List<IParameterSymbol>(getParameterSymbols) { Parameter(type, "value")(context.SemanticModel) };
@@ -788,7 +798,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             public Document Result;
 
-            private readonly TestWorkspace _workspace;
+            public readonly TestWorkspace Workspace;
             private readonly string _language;
             private readonly bool _compareTokens;
             private readonly bool _ignoreResult;
@@ -807,8 +817,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 this.IsVisualBasic = _language == LanguageNames.VisualBasic;
                 _compareTokens = compareTokens;
                 _ignoreResult = ignoreResult;
-                _workspace = workspace;
-                this.Document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
+                Workspace = workspace;
+                this.Document = Workspace.CurrentSolution.Projects.Single().Documents.Single();
                 this.SemanticModel = semanticModel;
                 this.SyntaxTree = SemanticModel.SyntaxTree;
                 this.Service = Document.Project.LanguageServices.GetService<ICodeGenerationService>();
@@ -824,23 +834,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 return new TestContext(initial, expected, compareTokens, ignoreResult, language, workspace, semanticModel);
             }
 
-            public Solution Solution { get { return _workspace.CurrentSolution; } }
+            public Solution Solution { get { return Workspace.CurrentSolution; } }
 
             public SyntaxNode GetDestinationNode()
             {
-                var destSpan = _workspace.Documents.Single().SelectedSpans.Single();
+                var destSpan = Workspace.Documents.Single().SelectedSpans.Single();
                 return SemanticModel.SyntaxTree.GetRoot().FindNode(destSpan, getInnermostNodeForTie: true);
             }
 
             public INamespaceOrTypeSymbol GetDestination()
             {
-                var destSpan = _workspace.Documents.Single().SelectedSpans.Single();
+                var destSpan = Workspace.Documents.Single().SelectedSpans.Single();
                 return GetSelectedSymbol<INamespaceOrTypeSymbol>(destSpan, this.SemanticModel);
             }
 
             public IEnumerable<ISymbol> GetAnnotatedDeclaredSymbols(string key, SemanticModel semanticModel)
             {
-                var annotatedSpans = _workspace.Documents.Single().AnnotatedSpans[key];
+                var annotatedSpans = Workspace.Documents.Single().AnnotatedSpans[key];
                 foreach (var span in annotatedSpans)
                 {
                     yield return GetSelectedSymbol<ISymbol>(span, semanticModel);
@@ -861,7 +871,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             public T GetSelectedSyntax<T>(bool fullSpanCoverage = false) where T : SyntaxNode
             {
-                var destSpan = _workspace.Documents.Single().SelectedSpans.Single();
+                var destSpan = Workspace.Documents.Single().SelectedSpans.Single();
                 var token = SemanticModel.SyntaxTree.GetRoot().FindToken(destSpan.Start);
                 return token.Parent.AncestorsAndSelf().OfType<T>().FirstOrDefault(t => !fullSpanCoverage || t.Span.End >= destSpan.End);
             }
@@ -913,7 +923,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 }
                 finally
                 {
-                    _workspace.Dispose();
+                    Workspace.Dispose();
                 }
             }
 

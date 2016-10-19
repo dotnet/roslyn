@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService
     {
         public CSharpCodeGenerationService(HostLanguageServices languageServices)
-            : base(languageServices.GetService<ISymbolDeclarationService>())
+            : base(languageServices.GetService<ISymbolDeclarationService>(), 
+                   languageServices.WorkspaceServices.Workspace)
         {
         }
 
@@ -142,7 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 if (method.IsConstructor())
                 {
-                    return Cast<TDeclarationNode>(ConstructorGenerator.AddConstructorTo(typeDeclaration, method, options, availableIndices));
+                    return Cast<TDeclarationNode>(ConstructorGenerator.AddConstructorTo(
+                        typeDeclaration, method, Workspace, options, availableIndices));
                 }
 
                 if (method.IsDestructor())
@@ -152,15 +154,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 if (method.MethodKind == MethodKind.Conversion)
                 {
-                    return Cast<TDeclarationNode>(ConversionGenerator.AddConversionTo(typeDeclaration, method, options, availableIndices));
+                    return Cast<TDeclarationNode>(ConversionGenerator.AddConversionTo(
+                        typeDeclaration, method, Workspace, options, availableIndices));
                 }
 
                 if (method.MethodKind == MethodKind.UserDefinedOperator)
                 {
-                    return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(typeDeclaration, method, options, availableIndices));
+                    return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(
+                        typeDeclaration, method, Workspace, options, availableIndices));
                 }
 
-                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(typeDeclaration, method, options, availableIndices));
+                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
+                    typeDeclaration, method, Workspace, options, availableIndices));
             }
 
             if (method.IsConstructor() ||
@@ -172,11 +177,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var compilationUnit = destination as CompilationUnitSyntax;
             if (compilationUnit != null)
             {
-                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(compilationUnit, method, options, availableIndices));
+                return Cast<TDeclarationNode>(
+                    MethodGenerator.AddMethodTo(compilationUnit, method, Workspace, options, availableIndices));
             }
 
             var ns = Cast<NamespaceDeclarationSyntax>(destination);
-            return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(ns, method, options, availableIndices));
+            return Cast<TDeclarationNode>(
+                MethodGenerator.AddMethodTo(ns, method, Workspace, options, availableIndices));
         }
 
         protected override TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions options, IList<bool> availableIndices)
@@ -227,11 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (destination is TypeDeclarationSyntax)
             {
-                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(Cast<TypeDeclarationSyntax>(destination), property, options, availableIndices));
+                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
+                    Cast<TypeDeclarationSyntax>(destination), property, Workspace, options, availableIndices));
             }
             else
             {
-                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(Cast<CompilationUnitSyntax>(destination), property, options, availableIndices));
+                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
+                    Cast<CompilationUnitSyntax>(destination), property, Workspace, options, availableIndices));
             }
         }
 
@@ -610,7 +619,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (method.IsConstructor())
             {
-                return ConstructorGenerator.GenerateConstructorDeclaration(method, destination, options);
+                return ConstructorGenerator.GenerateConstructorDeclaration(
+                    method, destination, Workspace, options);
             }
             else if (method.IsDestructor())
             {
@@ -618,22 +628,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (method.IsUserDefinedOperator())
             {
-                return OperatorGenerator.GenerateOperatorDeclaration(method, destination, options);
+                return OperatorGenerator.GenerateOperatorDeclaration(method, destination, Workspace, options);
             }
             else if (method.IsConversion())
             {
-                return ConversionGenerator.GenerateConversionDeclaration(method, destination, options);
+                return ConversionGenerator.GenerateConversionDeclaration(method, destination, Workspace, options);
             }
             else
             {
-                return MethodGenerator.GenerateMethodDeclaration(method, destination, options);
+                return MethodGenerator.GenerateMethodDeclaration(method, destination, Workspace, options);
             }
         }
 
         public override SyntaxNode CreatePropertyDeclaration(
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            return PropertyGenerator.GeneratePropertyOrIndexer(property, destination, options);
+            return PropertyGenerator.GeneratePropertyOrIndexer(property, destination, Workspace, options);
         }
 
         public override SyntaxNode CreateNamedTypeDeclaration(

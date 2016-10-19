@@ -300,6 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
             var workspace = await WorkspaceFixture.GetWorkspaceAsync();
+            SetWorkspaceOptions(workspace);
             var textBuffer = workspace.Documents.Single().TextBuffer;
 
             var service = GetCompletionService(workspace);
@@ -317,6 +318,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 await VerifyCustomCommitWorkerAsync(service, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
+        }
+
+        protected virtual void SetWorkspaceOptions(TestWorkspace workspace)
+        {
         }
 
         internal async Task VerifyCustomCommitWorkerAsync(
