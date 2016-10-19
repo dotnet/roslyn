@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// </summary>
         public override bool HasActionSets => true;
 
+        protected virtual SuggestedActionSet GetAdditionalFlavors() => null;
+
         public async sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -56,13 +58,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
                     // We use ConfigureAwait(true) to stay on the UI thread.
-                    var previewChangesSuggestedActionSet = await GetPreviewChangesSuggestedActionSetAsync(cancellationToken).ConfigureAwait(true);
+                    var previewChangesSuggestedActionSet = await GetPreviewChangesFlavor(cancellationToken).ConfigureAwait(true);
                     if (previewChangesSuggestedActionSet != null)
                     {
                         builder.Add(previewChangesSuggestedActionSet);
                     }
 
-                    var additionalSet = this.GetAdditionalActionSet();
+                    var additionalSet = this.GetAdditionalFlavors();
                     if (additionalSet != null)
                     {
                         builder.Add(additionalSet);
@@ -77,26 +79,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return _actionSets;
         }
 
-        protected async Task<SuggestedActionSet> GetPreviewChangesSuggestedActionSetAsync(CancellationToken cancellationToken)
+        private async Task<SuggestedActionSet> GetPreviewChangesFlavor(CancellationToken cancellationToken)
         {
-            var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
-            if (previewResult == null)
+            var previewChangesAction = await PreviewChangesSuggestedAction.CreateAsync(
+                this, cancellationToken).ConfigureAwait(true);
+            if (previewChangesAction == null)
             {
                 return null;
             }
 
-            var changeSummary = previewResult.ChangeSummary;
-            if (changeSummary == null)
-            {
-                return null;
-            }
-
-            var previewAction = new PreviewChangesCodeAction(Workspace, CodeAction, changeSummary);
-            var previewSuggestedAction = new PreviewChangesSuggestedAction(
-                Workspace, SubjectBuffer, EditHandler, WaitIndicator, previewAction, Provider, OperationListener);
-            return new SuggestedActionSet(ImmutableArray.Create(previewSuggestedAction));
+            return new SuggestedActionSet(ImmutableArray.Create(previewChangesAction));
         }
-
-        protected virtual SuggestedActionSet GetAdditionalActionSet() => null;
     }
 }

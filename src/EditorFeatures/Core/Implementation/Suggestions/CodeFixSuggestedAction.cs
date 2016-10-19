@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _fixAllSuggestedActionSet = fixAllSuggestedActionSet;
         }
 
-        protected override SuggestedActionSet GetAdditionalActionSet() => _fixAllSuggestedActionSet;
+        protected override SuggestedActionSet GetAdditionalFlavors() => _fixAllSuggestedActionSet;
 
         public string GetDiagnosticID()
         {
