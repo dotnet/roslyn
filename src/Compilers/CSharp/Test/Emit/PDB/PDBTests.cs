@@ -5110,6 +5110,128 @@ class C
 </symbols>");
         }
 
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void ExpressionBodiedConstructor()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+using System;
+
+class C
+{
+    public int X;
+    public C(Int32 x) => X = x;
+}");
+            comp.VerifyDiagnostics();
+
+            comp.VerifyPdb(@"<symbols>
+  <methods>
+    <method containingType=""C"" name="".ctor"" parameterNames=""x"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""22"" />
+        <entry offset=""0x6"" startLine=""7"" startColumn=""26"" endLine=""7"" endColumn=""31"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xe"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void ExpressionBodiedDestructor()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    public int X;
+    ~C() => X = 0;
+}");
+            comp.VerifyDiagnostics();
+
+            comp.VerifyPdb(@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""Finalize"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""13"" endLine=""5"" endColumn=""18"" />
+        <entry offset=""0x9"" hidden=""true"" />
+        <entry offset=""0x10"" hidden=""true"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void ExpressionBodiedAccessor()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    public int x;
+    public int X
+    {
+        get => x;
+        set => x = value;
+    }
+    public event System.Action E
+    {
+        add => x = 1;
+        remove => x = 0;
+    }
+}");
+            comp.VerifyDiagnostics();
+
+            comp.VerifyPdb(@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""get_X"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""16"" endLine=""7"" endColumn=""17"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""set_X"" parameterNames=""value"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_X"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""16"" endLine=""8"" endColumn=""25"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""add_E"" parameterNames=""value"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_X"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""21"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""remove_E"" parameterNames=""value"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_X"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""13"" startColumn=""19"" endLine=""13"" endColumn=""24"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         #endregion
 
         #region Synthesized Methods
@@ -5511,6 +5633,74 @@ partial class C
         <entry offset=""0xbe"" hidden=""true"" />
         <entry offset=""0xc8"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
         <entry offset=""0xca"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        [Fact]
+        public void LocalFunctionSequencePoints()
+        {
+            string source =
+@"class Program
+{
+    static int Main(string[] args)
+    {                                                // 4
+        int Local1(string[] a)
+            =>
+            a.Length;                                // 7
+        int Local2(string[] a)
+        {                                            // 9
+            return a.Length;                         // 10
+        }                                            // 11
+        return Local1(args) + Local2(args);          // 12
+    }                                                // 13
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""Program"" name=""Main"" parameterNames=""args"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <lambda offset=""99"" />
+          <lambda offset=""202"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
+        <entry offset=""0x3"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""44"" />
+        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""Program"" name=""&lt;Main&gt;g__Local10_0"" parameterNames=""a"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""21"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""Program"" name=""&lt;Main&gt;g__Local20_1"" parameterNames=""a"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""202"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""29"" />
+        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
       </sequencePoints>
     </method>
   </methods>

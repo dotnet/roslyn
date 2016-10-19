@@ -122,5 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        internal override bool IsExpressionBodied
+        {
+            get
+            {
+                var syntax = GetSyntax();
+                var hasBody = syntax.Body != null;
+                var hasExpressionBody = syntax.ExpressionBody != null;
+                return !hasBody && hasExpressionBody;
+            }
+        }
     }
 }
