@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above this new type partial.  Also, remove any 
                 // attributes from the containing partial types.  We don't want to create
                 // duplicate attributes on things.
-                AddPartialModifiersToTypeChain(documentEditor, removeAttributes: true);
+                AddPartialModifiersToTypeChain(documentEditor, removeAttributesAndComments: true);
 
                 // remove things that are not being moved, from the forked document.
                 var membersToRemove = GetMembersToRemove(root);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above the type we're moving 'partial'.  
                 // However, keep all the attributes on these types as theses are the 
                 // original attributes and we don't want to mess with them. 
-                AddPartialModifiersToTypeChain(documentEditor, removeAttributes: false);
+                AddPartialModifiersToTypeChain(documentEditor, removeAttributesAndComments: false);
                 documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepNoTrivia);
 
                 var updatedDocument = documentEditor.GetChangedDocument();
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// if a nested type is being moved, this ensures its containing type is partial.
             /// </summary>
             private void AddPartialModifiersToTypeChain(
-                DocumentEditor documentEditor, bool removeAttributes)
+                DocumentEditor documentEditor, bool removeAttributesAndComments)
             {
                 var semanticFacts = State.SemanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var typeChain = State.TypeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
@@ -199,9 +199,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         documentEditor.SetModifiers(node, DeclarationModifiers.Partial);
                     }
 
-                    if (removeAttributes)
+                    if (removeAttributesAndComments)
                     {
                         documentEditor.RemoveAllAttributes(node);
+                        documentEditor.RemoveAllComments(node);
                     }
                 }
             }

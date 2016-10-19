@@ -1331,5 +1331,348 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(11, 18)
                 );
         }
+
+        [Fact, WorkItem(273713, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=273713")]
+        public void ExplicitTupleConversion_Crash()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+class Program
+{
+    public static void Main(string[] args)
+    {
+        object[] oa = new object[] {
+            (1, 2),
+            (3L, 4L)
+        };
+        foreach (var o in oa)
+        {
+            switch (o)
+            {
+                case System.ValueTuple<int, int> z1:
+                    System.Console.Write(z1.Item1);
+                    break;
+                case System.ValueTuple<long, long> z3:
+                    System.Console.Write(z3.Item1);
+                    break;
+            }
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "13");
+        }
+
+        [Fact, WorkItem(273713, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=273713")]
+        public void TupleInPattern()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+class Program
+{
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case (int, int):
+            case (int x, int y):
+            case (int, int) z:
+            case (int a, int b) c:
+            case (long, long) d:
+                break;
+        }
+        switch (o)
+        {
+            case (int, int) z:
+                break;
+            case (long, long) d:
+                break;
+        }
+        switch (o)
+        {
+            case (System.Int32, System.Int32) z:
+                break;
+            case (System.Int64, System.Int64) d:
+                break;
+        }
+        {
+            if (o is (int, int)) {}
+            if (o is (int x, int y)) {}
+            if (o is (int, int) z)) {}
+            if (o is (int a, int b) c) {}
+        }
+        {
+            if (o is (System.Int32, System.Int32)) {}
+            if (o is (System.Int32 x, System.Int32 y)) {}
+            if (o is (System.Int32, System.Int32) z)) {}
+            if (o is (System.Int32 a, System.Int32 b) c) {}
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (21,19): error CS1525: Invalid expression term 'int'
+                //             case (int, int):
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 19),
+                // (21,24): error CS1525: Invalid expression term 'int'
+                //             case (int, int):
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 24),
+                // (22,32): error CS1003: Syntax error, '=>' expected
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>", ":").WithLocation(22, 32),
+                // (22,32): error CS1525: Invalid expression term ':'
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(22, 32),
+                // (23,19): error CS1525: Invalid expression term 'int'
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 19),
+                // (23,24): error CS1525: Invalid expression term 'int'
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 24),
+                // (23,29): error CS1003: Syntax error, ':' expected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(":", "").WithLocation(23, 29),
+                // (23,31): error CS1525: Invalid expression term 'case'
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(23, 31),
+                // (23,31): error CS1002: ; expected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(23, 31),
+                // (24,33): error CS1003: Syntax error, '=>' expected
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments("=>", "").WithLocation(24, 33),
+                // (25,19): error CS1525: Invalid expression term 'long'
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 19),
+                // (25,25): error CS1525: Invalid expression term 'long'
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 25),
+                // (25,31): error CS1003: Syntax error, ':' expected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(":", "").WithLocation(25, 31),
+                // (30,19): error CS1525: Invalid expression term 'int'
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 19),
+                // (30,24): error CS1525: Invalid expression term 'int'
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 24),
+                // (30,29): error CS1003: Syntax error, ':' expected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(":", "").WithLocation(30, 29),
+                // (32,19): error CS1525: Invalid expression term 'long'
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 19),
+                // (32,25): error CS1525: Invalid expression term 'long'
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 25),
+                // (32,31): error CS1003: Syntax error, ':' expected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(":", "").WithLocation(32, 31),
+                // (37,47): error CS1003: Syntax error, ':' expected
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(":", "").WithLocation(37, 47),
+                // (39,47): error CS1003: Syntax error, ':' expected
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(":", "").WithLocation(39, 47),
+                // (43,23): error CS1525: Invalid expression term 'int'
+                //             if (o is (int, int)) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 23),
+                // (43,28): error CS1525: Invalid expression term 'int'
+                //             if (o is (int, int)) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 28),
+                // (44,36): error CS1003: Syntax error, '=>' expected
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(44, 36),
+                // (44,36): error CS1525: Invalid expression term ')'
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(44, 36),
+                // (45,23): error CS1525: Invalid expression term 'int'
+                //             if (o is (int, int) z)) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 23),
+                // (45,28): error CS1525: Invalid expression term 'int'
+                //             if (o is (int, int) z)) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 28),
+                // (45,33): error CS1026: ) expected
+                //             if (o is (int, int) z)) {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "z").WithLocation(45, 33),
+                // (45,34): error CS1002: ; expected
+                //             if (o is (int, int) z)) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(45, 34),
+                // (45,34): error CS1513: } expected
+                //             if (o is (int, int) z)) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 34),
+                // (46,37): error CS1003: Syntax error, '=>' expected
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments("=>", "").WithLocation(46, 37),
+                // (50,54): error CS1003: Syntax error, '=>' expected
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(50, 54),
+                // (50,54): error CS1525: Invalid expression term ')'
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(50, 54),
+                // (51,51): error CS1026: ) expected
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "z").WithLocation(51, 51),
+                // (51,52): error CS1002: ; expected
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(51, 52),
+                // (51,52): error CS1513: } expected
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 52),
+                // (52,55): error CS1003: Syntax error, '=>' expected
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments("=>", "").WithLocation(52, 55),
+                // (21,18): error CS0150: A constant value is expected
+                //             case (int, int):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(21, 18),
+                // (22,18): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int x, int y)").WithArguments("lambda expression", "object").WithLocation(22, 18),
+                // (23,18): error CS0150: A constant value is expected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(23, 18),
+                // (24,18): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int a, int b) c").WithArguments("lambda expression", "object").WithLocation(24, 18),
+                // (25,18): error CS0150: A constant value is expected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(long, long)").WithLocation(25, 18),
+                // (30,18): error CS0150: A constant value is expected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(30, 18),
+                // (32,18): error CS0150: A constant value is expected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(long, long)").WithLocation(32, 18),
+                // (37,19): error CS0119: 'int' is a type, which is not valid in the given context
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 19),
+                // (37,33): error CS0119: 'int' is a type, which is not valid in the given context
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 33),
+                // (39,19): error CS0119: 'long' is a type, which is not valid in the given context
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 19),
+                // (39,33): error CS0119: 'long' is a type, which is not valid in the given context
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 33),
+                // (43,22): error CS0150: A constant value is expected
+                //             if (o is (int, int)) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(43, 22),
+                // (44,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int x, int y)").WithArguments("lambda expression", "object").WithLocation(44, 22),
+                // (45,22): error CS0150: A constant value is expected
+                //             if (o is (int, int) z)) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(45, 22),
+                // (45,33): error CS0103: The name 'z' does not exist in the current context
+                //             if (o is (int, int) z)) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(45, 33),
+                // (46,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int a, int b) c").WithArguments("lambda expression", "object").WithLocation(46, 22),
+                // (49,23): error CS0119: 'int' is a type, which is not valid in the given context
+                //             if (o is (System.Int32, System.Int32)) {}
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 23),
+                // (49,37): error CS0119: 'int' is a type, which is not valid in the given context
+                //             if (o is (System.Int32, System.Int32)) {}
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 37),
+                // (50,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(System.Int32 x, System.Int32 y)").WithArguments("lambda expression", "object").WithLocation(50, 22),
+                // (51,23): error CS0119: 'int' is a type, which is not valid in the given context
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 23),
+                // (51,37): error CS0119: 'int' is a type, which is not valid in the given context
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 37),
+                // (51,51): error CS0103: The name 'z' does not exist in the current context
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(51, 51),
+                // (52,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(System.Int32 a, System.Int32 b) c").WithArguments("lambda expression", "object").WithLocation(52, 22),
+                // (23,13): error CS0163: Control cannot fall through from one case label ('case (int, int) ') to another
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int, int) ").WithArguments("case (int, int) ").WithLocation(23, 13),
+                // (23,29): warning CS0164: This label has not been referenced
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(23, 29),
+                // (25,31): warning CS0164: This label has not been referenced
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(25, 31),
+                // (30,29): warning CS0164: This label has not been referenced
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(30, 29),
+                // (32,31): warning CS0164: This label has not been referenced
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(32, 31),
+                // (37,47): warning CS0164: This label has not been referenced
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(37, 47),
+                // (39,47): warning CS0164: This label has not been referenced
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(39, 47)
+                );
+        }
+
+        [Fact, WorkItem(273713, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=273713")]
+        public void PointerConversion_Crash()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        System.IntPtr ip = (System.IntPtr)1;
+        int i = 2;
+        object[] oa = new object[] { ip, i };
+        foreach (object o in oa)
+        {
+            switch (o)
+            {
+                case System.IntPtr a:
+                    System.Console.Write((int)a);
+                    break;
+                case int b:
+                    System.Console.Write(b);
+                    break;
+            }
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "12");
+        }
     }
 }

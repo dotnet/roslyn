@@ -802,6 +802,14 @@ namespace Microsoft.CodeAnalysis.Editing
             return this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
         }
 
+        internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
+        {
+            return declaration.WithLeadingTrivia(declaration.GetLeadingTrivia().Where(t => !IsRegularOrDocComment(t)))
+                              .WithTrailingTrivia(declaration.GetTrailingTrivia().Where(t => !IsRegularOrDocComment(t)));
+        }
+
+        internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
+
         /// <summary>
         /// Gets the attributes of a declaration, not including the return attributes.
         /// </summary>

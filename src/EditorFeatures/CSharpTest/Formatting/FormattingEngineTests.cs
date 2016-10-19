@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
+using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -162,7 +163,7 @@ int y;
 
         [WorkItem(977133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task DoNotFormatRangeButFormatTokenOnOpenBrace()
+        public async Task DoNotFormatRangeOrFormatTokenOnOpenBraceOnSameLine()
         {
             var code = @"class C
 {
@@ -175,7 +176,30 @@ int y;
 {
     public void M()
     {
-        if (true) {
+        if (true)        {
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WorkItem(14491, "https://github.com/dotnet/roslyn/pull/14491")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task DoNotFormatRangeButFormatTokenOnOpenBraceOnNextLine()
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        if (true)
+            {$$
+    }
+}";
+            var expected = @"class C
+{
+    public void M()
+    {
+        if (true)
+        {
     }
 }";
             await AssertFormatAfterTypeCharAsync(code, expected);
@@ -1140,6 +1164,218 @@ class C : Attribute
             };
 
             await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AutoIndentCloseBraceWhenFormatOnTypingIsOff()
+        {
+            var code = @"namespace N
+{
+    class C
+    {
+             // improperly indented code
+             int x = 10;
+        }$$
+}
+";
+
+            var expected = @"namespace N
+{
+    class C
+    {
+             // improperly indented code
+             int x = 10;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task KeepTabsInCommentsWhenFormattingIsOff()
+        {
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // not remove these as we are explicitly testing tab behavior.
+            var code = 
+@"class Program
+{
+    static void Main()
+    {
+        return;		/* Comment preceded by tabs */		// This one too
+        }$$
+}";
+
+            var expected =
+@"class Program
+{
+    static void Main()
+    {
+        return;		/* Comment preceded by tabs */		// This one too
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task DoNotKeepTabsInCommentsWhenFormattingIsOn()
+        {
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // not remove these as we are explicitly testing tab behavior.
+            var code = @"class Program
+{
+    static void Main()
+    {
+        return;		/* Comment preceded by tabs */		// This one too
+        }$$
+}";
+
+            var expected =
+@"class Program
+{
+    static void Main()
+    {
+        return;     /* Comment preceded by tabs */        // This one too
+    }
+}";
+
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task DoNotFormatStatementIfSemicolonOptionIsOff()
+        {
+            var code = 
+                @"namespace N
+{
+    class C
+    {
+        int x   =   10     ;$$
+    }
+}
+";
+
+            var expected =
+@"namespace N
+{
+    class C
+    {
+        int x   =   10     ;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task DoNotFormatStatementIfTypingOptionIsOff()
+        {
+            var code =
+                @"namespace N
+{
+    class C
+    {
+        int x   =   10     ;$$
+    }
+}
+";
+
+            var expected =
+@"namespace N
+{
+    class C
+    {
+        int x   =   10     ;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+        }
+
+        [WpfFact, WorkItem(4435, "https://github.com/dotnet/roslyn/issues/4435")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task OpenCurlyNotFormattedIfNotAtStartOfLine()
+        {
+            var code = 
+@"
+class C
+{
+    public  int     P   {$$
+}
+";
+
+            var expected =
+@"
+class C
+{
+    public  int     P   {
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(BraceCompletionOptions.EnableBraceCompletion, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WpfFact, WorkItem(4435, "https://github.com/dotnet/roslyn/issues/4435")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task OpenCurlyFormattedIfAtStartOfLine()
+        {
+            var code =
+@"
+class C
+{
+    public  int     P
+        {$$
+}
+";
+
+            var expected =
+@"
+class C
+{
+    public  int     P
+    {
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { new OptionKey(BraceCompletionOptions.EnableBraceCompletion, LanguageNames.CSharp), false }
+            };
+
+            await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
