@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -35,21 +36,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         {
         }
 
-        public bool SupportsFormatDocument { get { return true; } }
-
-        public bool SupportsFormatOnPaste { get { return true; } }
-
-        public bool SupportsFormatSelection { get { return true; } }
-
-        public bool SupportsFormatOnReturn { get { return true; } }
+        public bool SupportsFormatDocument => true;
+        public bool SupportsFormatOnPaste => true;
+        public bool SupportsFormatSelection => true;
+        public bool SupportsFormatOnReturn => true;
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
             var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             var smartIndentOn = options.GetOption(FormattingOptions.SmartIndent) == FormattingOptions.IndentStyle.Smart;
 
-            if ((ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && !smartIndentOn) ||
-                (ch == ';' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnSemicolon)))
+            // We consider the proper placement of a close curly when it is typed at the start of the
+            // line to be a smart-indentation operation.  As such, even if "format on typing" is off,
+            // if "smart indent" is on, we'll still format this.  (However, we won't touch anything
+            // else in teh block this close curly belongs to.).
+            //
+            // TODO(cyrusn): Should we expose an option for this?  Personally, i don't think so.
+            // If a user doesn't want this behavior, they can turn off 'smart indent' and control
+            // everything themselves.  
+            if (ch == '}' && smartIndentOn)
+            {
+                return true;
+            }
+
+            // If format-on-typing is not on, then we don't support formatting on any other characters.
+            var autoFormattingOnTyping = options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping);
+            if (!autoFormattingOnTyping)
+            {
+                return false;
+            }
+            
+            if (ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace))
+            {
+                return false;
+            }
+
+            if (ch == ';' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnSemicolon))
             {
                 return false;
             }
@@ -68,9 +90,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var span = textSpan.HasValue ? textSpan.Value : new TextSpan(0, root.FullSpan.Length);
+            var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
-            return Formatter.GetFormattedTextChanges(root, new TextSpan[] { formattingSpan }, document.Project.Solution.Workspace, options, cancellationToken);
+            return Formatter.GetFormattedTextChanges(root, 
+                SpecializedCollections.SingletonEnumerable(formattingSpan),
+                document.Project.Solution.Workspace, options, cancellationToken);
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -100,6 +124,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            if (!options.GetOption(FeatureOnOffOptions.AutoFormattingOnReturn))
+            {
+                return null;
+            }
+
             var formattingRules = this.GetFormattingRules(document, caretPosition);
 
             // first, find the token user just typed.
@@ -172,24 +202,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
+            // don't attempt to format on close brace if autoformat on close brace feature is off, instead just smart indent
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            // don't attempt to format on close brace if autoformat on close brace feature is off, instead just smart indent
-            bool smartIndentOnly =
-                token.IsKind(SyntaxKind.CloseBraceToken) &&
-                !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace);
+            var autoFormattingCloseBraceOff =
+                !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) ||
+                !options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping);
 
-            if (!smartIndentOnly)
+            bool smartIndentOnly = token.IsKind(SyntaxKind.CloseBraceToken) && autoFormattingCloseBraceOff;
+
+            if (smartIndentOnly)
             {
-                // if formatting range fails, do format token one at least
-                var changes = await FormatRangeAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
-                if (changes.Count > 0)
-                {
-                    return changes;
-                }
+                // if we're only doing smart indent, then ignore all edits to this token that occur before
+                // the span of the token. They're irrelevant and may screw up other code the user doesn't 
+                // want touched.
+                var tokenEdits = await FormatTokenAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
+                var filteredEdits = tokenEdits.Where(t => t.Span.Start >= token.FullSpan.Start).ToList();
+                return filteredEdits;
             }
 
-            // if we can't, do normal smart indentation
+            // if formatting range fails, do format token one at least
+            var changes = await FormatRangeAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
+            if (changes.Count > 0)
+            {
+                return changes;
+            }
+
             return await FormatTokenAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
         }
 
