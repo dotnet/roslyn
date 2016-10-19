@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal partial class SuggestedActionWithPreview
+    internal partial class SuggestedActionWithFlavors
     {
         private sealed class PreviewChangesSuggestedAction : SuggestedAction
         {

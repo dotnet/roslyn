@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,91 +20,6 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class Serializer
     {
-        public void SerializeSerializedSolutionInfo(SerializedSolutionInfo info, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            SerializeSolutionId(info.Id, writer, cancellationToken);
-
-            // TODO: figure out a way to send version info over as well.
-            //       right now, version get updated automatically, so 2 can't be exactly match
-            // info.Version.WriteTo(writer);
-            writer.WriteString(info.FilePath);
-        }
-
-        private SerializedSolutionInfo DeserializeSerializedSolutionInfo(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var solutionId = DeserializeSolutionId(reader, cancellationToken);
-            // var version = VersionStamp.ReadFrom(reader);
-            var filePath = reader.ReadString();
-
-            return new SerializedSolutionInfo(solutionId, VersionStamp.Create(), filePath);
-        }
-
-        public void SerializeSerializedProjectInfo(SerializedProjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            SerializeProjectId(info.Id, writer, cancellationToken);
-
-            // TODO: figure out a way to send version info over as well
-            // info.Version.WriteTo(writer);
-
-            writer.WriteString(info.Name);
-            writer.WriteString(info.AssemblyName);
-            writer.WriteString(info.Language);
-            writer.WriteString(info.FilePath);
-            writer.WriteString(info.OutputFilePath);
-            writer.WriteBoolean(info.IsSubmission);
-        }
-
-        private SerializedProjectInfo DeserializeSerializedProjectInfo(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var projectId = DeserializeProjectId(reader, cancellationToken);
-
-            // var version = VersionStamp.ReadFrom(reader);
-            var name = reader.ReadString();
-            var assemblyName = reader.ReadString();
-            var language = reader.ReadString();
-            var filePath = reader.ReadString();
-            var outputFilePath = reader.ReadString();
-            var isSubmission = reader.ReadBoolean();
-
-            return new SerializedProjectInfo(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, isSubmission);
-        }
-
-        public void SerializeSerializedDocumentInfo(SerializedDocumentInfo info, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            SerializeDocumentId(info.Id, writer, cancellationToken);
-
-            writer.WriteString(info.Name);
-            writer.WriteValue(info.Folders.ToArray());
-            writer.WriteInt32((int)info.SourceCodeKind);
-            writer.WriteString(info.FilePath);
-            writer.WriteBoolean(info.IsGenerated);
-        }
-
-        private SerializedDocumentInfo DeserializeSerializedDocumentInfo(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var documentId = DeserializeDocumentId(reader, cancellationToken);
-
-            var name = reader.ReadString();
-            var folders = reader.ReadArray<string>();
-            var sourceCodeKind = reader.ReadInt32();
-            var filePath = reader.ReadString();
-            var isGenerated = reader.ReadBoolean();
-
-            return new SerializedDocumentInfo(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
-        }
-
         public void SerializeSourceText(ITemporaryStorageWithName storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -205,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            SerializeProjectId(reference.ProjectId, writer, cancellationToken);
+            reference.ProjectId.WriteTo(writer);
             writer.WriteValue(reference.Aliases.ToArray());
             writer.WriteBoolean(reference.EmbedInteropTypes);
         }
@@ -214,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var projectId = DeserializeProjectId(reader, cancellationToken);
+            var projectId = ProjectId.ReadFrom(reader);
             var aliases = reader.ReadArray<string>();
             var embedInteropTypes = reader.ReadBoolean();
 
@@ -243,52 +159,6 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
             return _hostSerializationService.ReadAnalyzerReferenceFrom(reader, cancellationToken);
-        }
-
-        public void SerializeSolutionId(SolutionId solutionId, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            writer.WriteValue(solutionId.Id.ToByteArray());
-            writer.WriteString(solutionId.DebugName);
-        }
-
-        private SolutionId DeserializeSolutionId(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            var guid = new Guid(reader.ReadArray<byte>());
-            var debugName = reader.ReadString();
-
-            return SolutionId.CreateFromSerialized(guid, debugName);
-        }
-
-        public static void SerializeProjectId(ProjectId projectId, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            writer.WriteValue(projectId.Id.ToByteArray());
-            writer.WriteString(projectId.DebugName);
-        }
-
-        public static ProjectId DeserializeProjectId(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            var guid = new Guid(reader.ReadArray<byte>());
-            var debugName = reader.ReadString();
-
-            return ProjectId.CreateFromSerialized(guid, debugName);
-        }
-
-        public static void SerializeDocumentId(DocumentId documentId, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            SerializeProjectId(documentId.ProjectId, writer, cancellationToken);
-
-            writer.WriteValue(documentId.Id.ToByteArray());
-            writer.WriteString(documentId.DebugName);
-        }
-
-        public static DocumentId DeserializeDocumentId(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            var projectId = DeserializeProjectId(reader, cancellationToken);
-
-            var guid = new Guid(reader.ReadArray<byte>());
-            var debugName = reader.ReadString();
-
-            return DocumentId.CreateFromSerialized(projectId, guid, debugName);
         }
     }
 }

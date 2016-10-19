@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to refer to the same <see cref="Project"/> across versions.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class ProjectId : IEquatable<ProjectId>
+    public sealed class ProjectId : IEquatable<ProjectId>, IObjectWritable
     {
         private readonly string _debugName;
 
@@ -81,6 +82,20 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return this.Id.GetHashCode();
+        }
+
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+        {
+            writer.WriteValue(Id.ToByteArray());
+            writer.WriteString(DebugName);
+        }
+
+        internal static ProjectId ReadFrom(ObjectReader reader)
+        {
+            var guid = new Guid((byte[])reader.ReadValue());
+            var debugName = reader.ReadString();
+
+            return CreateFromSerialized(guid, debugName);
         }
     }
 }

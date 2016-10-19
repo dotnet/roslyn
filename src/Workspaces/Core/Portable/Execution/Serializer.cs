@@ -6,7 +6,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -52,9 +51,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKinds.Null:
                         return Checksum.Null;
 
-                    case WellKnownSynchronizationKinds.SolutionInfo:
-                    case WellKnownSynchronizationKinds.ProjectInfo:
-                    case WellKnownSynchronizationKinds.DocumentInfo:
                     case WellKnownSynchronizationKinds.CompilationOptions:
                     case WellKnownSynchronizationKinds.ParseOptions:
                     case WellKnownSynchronizationKinds.ProjectReference:
@@ -97,16 +93,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                         // do nothing
                         return;
 
-                    case WellKnownSynchronizationKinds.SolutionInfo:
-                        SerializeSerializedSolutionInfo((SerializedSolutionInfo)value, writer, cancellationToken);
-                        return;
-
-                    case WellKnownSynchronizationKinds.ProjectInfo:
-                        SerializeSerializedProjectInfo((SerializedProjectInfo)value, writer, cancellationToken);
-                        return;
-
-                    case WellKnownSynchronizationKinds.DocumentInfo:
-                        SerializeSerializedDocumentInfo((SerializedDocumentInfo)value, writer, cancellationToken);
+                    case WellKnownSynchronizationKinds.SolutionAttributes:
+                    case WellKnownSynchronizationKinds.ProjectAttributes:
+                    case WellKnownSynchronizationKinds.DocumentAttributes:
+                        ((IObjectWritable)value).WriteTo(writer);
                         return;
 
                     case WellKnownSynchronizationKinds.CompilationOptions:
@@ -163,12 +153,12 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKinds.AnalyzerReferences:
                         return (T)(object)DeserializeChecksumWithChildren(reader, cancellationToken);
 
-                    case WellKnownSynchronizationKinds.SolutionInfo:
-                        return (T)(object)DeserializeSerializedSolutionInfo(reader, cancellationToken);
-                    case WellKnownSynchronizationKinds.ProjectInfo:
-                        return (T)(object)DeserializeSerializedProjectInfo(reader, cancellationToken);
-                    case WellKnownSynchronizationKinds.DocumentInfo:
-                        return (T)(object)DeserializeSerializedDocumentInfo(reader, cancellationToken);
+                    case WellKnownSynchronizationKinds.SolutionAttributes:
+                        return (T)(object)SolutionInfo.SolutionAttributes.ReadFrom(reader);
+                    case WellKnownSynchronizationKinds.ProjectAttributes:
+                        return (T)(object)ProjectInfo.ProjectAttributes.ReadFrom(reader);
+                    case WellKnownSynchronizationKinds.DocumentAttributes:
+                        return (T)(object)DocumentInfo.DocumentAttributes.ReadFrom(reader);
                     case WellKnownSynchronizationKinds.CompilationOptions:
                         return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
                     case WellKnownSynchronizationKinds.ParseOptions:

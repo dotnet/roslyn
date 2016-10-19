@@ -14,11 +14,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal abstract partial class SuggestedActionWithPreview : SuggestedAction
+    /// <summary>
+    /// Base type for all SuggestedActions that have 'flavors'.  'Flavors' are child actions that
+    /// are presented as simple links, not as menu-items, in the light-bulb.  Examples of 'flavors'
+    /// include 'preview changes' (for refactorings and fixes) and 'fix all in document, project, solution'
+    /// (for fixes).
+    /// 
+    /// Because all derivations support 'preview changes', we bake that logic into this base type.
+    /// </summary>
+    internal abstract partial class SuggestedActionWithFlavors : SuggestedAction, ISuggestedActionWithFlavors
     {
         private ImmutableArray<SuggestedActionSet> _actionSets;
 
-        public SuggestedActionWithPreview(
+        public SuggestedActionWithFlavors(
             Workspace workspace, ITextBuffer subjectBuffer, ICodeActionEditHandlerService editHandler, 
             IWaitIndicator waitIndicator, CodeAction codeAction, object provider, 
             IAsynchronousOperationListener operationListener) 
@@ -27,14 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
         }
 
-        // HasActionSets is called synchronously on the UI thread. In order to avoid blocking the UI thread,
-        // we need to provide a 'quick' answer here as opposed to the 'right' answer. Providing the 'right'
-        // answer is expensive (because we will need to call CodeAction.GetPreviewOperationsAsync() (to
-        // compute whether or not we should display the flavored action for 'Preview Changes') which in turn
-        // will involve computing the changed solution for the ApplyChangesOperation for the fix / refactoring
-        // So we always return 'true' here (so that platform will call GetActionSetsAsync() below). Platform
-        // guarantees that nothing bad will happen if we return 'true' here and later return 'null' / empty
-        // collection from within GetPreviewAsync().
+        /// <summary>
+        /// HasActionSets is always true because we always know we provide 'preview changes'.
+        /// </summary>
         public override bool HasActionSets => true;
 
         public async sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)

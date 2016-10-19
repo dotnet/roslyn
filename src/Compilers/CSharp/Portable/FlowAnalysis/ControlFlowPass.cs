@@ -330,10 +330,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
-            // The pattern switch statement has computed a state machine, and gathered diagnostics
-            // related to subsumption. We report those here.
-            Diagnostics.AddRange(node.DecisionTreeDiagnostics);
-
             return base.VisitPatternSwitchStatement(node);
         }
 

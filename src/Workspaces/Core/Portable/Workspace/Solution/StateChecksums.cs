@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Info))
             {
-                result[Info] = new SerializedSolutionInfo(state.Id, state.Version, state.FilePath);
+                result[Info] = state.SolutionInfo.Attributes;
             }
 
             if (searchingChecksumsLeft.Remove(Projects.Checksum))
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Info))
             {
-                result[Info] = new SerializedProjectInfo(state.Id, state.Version, state.Name, state.AssemblyName, state.Language, state.FilePath, state.OutputFilePath, state.IsSubmission);
+                result[Info] = state.ProjectInfo.Attributes;
             }
 
             if (searchingChecksumsLeft.Remove(CompilationOptions))
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Info))
             {
-                result[Info] = new SerializedDocumentInfo(state.Id, state.Name, state.Folders, state.GetSourceCodeKind(), state.FilePath, state.IsGenerated());
+                result[Info] = state.Info.Attributes;
             }
 
             if (searchingChecksumsLeft.Remove(Text))
