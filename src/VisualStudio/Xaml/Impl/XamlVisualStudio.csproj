@@ -52,8 +52,6 @@
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeFixes\AddMissingNamespace\IXamlAddMissingNamespaceService.cs" />
-    <Compile Include="CodeFixes\AddMissingNamespace\XamlAddMissingNamespacePrefixCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryUsings\XamlRemoveUnnecessaryUsingsCodeFixProvider.cs" />
     <Compile Include="Diagnostics\Analyzers\IXamlDocumentAnalyzerService.cs" />
     <Compile Include="Diagnostics\Analyzers\XamlDocumentDiagnosticAnalyzer.cs" />

@@ -12,8 +12,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// but with none enforcement, so that the user is not prompted about their usage.
         /// </remarks>
         internal static readonly CodeStyleOption<bool> TrueWithNoneEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.None);
-        internal static readonly CodeStyleOption<bool> TrueWithSuggestionEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Suggestion);
         internal static readonly CodeStyleOption<bool> FalseWithNoneEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.None);
+        internal static readonly CodeStyleOption<bool> TrueWithSuggestionEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Suggestion);
+        internal static readonly CodeStyleOption<bool> FalseWithSuggestionEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.Suggestion);
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.

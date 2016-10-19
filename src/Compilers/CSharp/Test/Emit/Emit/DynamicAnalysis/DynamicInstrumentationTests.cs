@@ -1374,6 +1374,7 @@ True
 Method 3
 File 1
 True
+True
 False
 True
 False
@@ -1403,6 +1404,166 @@ True
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Subject").WithArguments("Teacher.Subject", "null").WithLocation(37, 40));
+        }
+
+        [Fact]
+        public void DeconstructionStatementCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        TestMain2();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain2() // Method 2
+    {
+        var (x, y) = new C();
+    }
+
+    static void TestMain3() // Method 3
+    {
+        var (x, y) = new C();
+    }
+
+    public C() // Method 4
+    {
+    }
+
+    public void Deconstruct(out int x, out int y) // Method 5
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            string expectedOutput = @"Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+Method 4
+File 1
+True
+Method 5
+File 1
+True
+True
+True
+Method 7
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void DeconstructionForeachStatementCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        TestMain2(new C[] { new C() });
+        TestMain3(new C[] { });
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain2(C[] a) // Method 2
+    {
+        foreach (
+            var (x, y)
+            in a)
+            ;
+    }
+
+    static void TestMain3(C[] a) // Method 3
+    {
+        foreach (
+            var (x, y)
+            in a)
+            ;
+    }
+
+    public C() // Method 4
+    {
+    }
+
+    public void Deconstruct(out int x, out int y) // Method 5
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            string expectedOutput = @"Flushing
+Method 1
+File 1
+True
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+Method 3
+File 1
+True
+False
+False
+Method 4
+File 1
+True
+Method 5
+File 1
+True
+True
+True
+Method 7
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
         }
 
         [Fact]

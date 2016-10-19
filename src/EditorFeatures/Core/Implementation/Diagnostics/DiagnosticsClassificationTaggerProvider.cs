@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(ClassificationTag))]
     internal partial class DiagnosticsClassificationTaggerProvider : AbstractDiagnosticsTaggerProvider<ClassificationTag>
     {
