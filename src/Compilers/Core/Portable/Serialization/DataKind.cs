@@ -74,8 +74,6 @@ namespace Roslyn.Utilities
         ValueArray_3,
 
         BooleanType,    // boolean type marker
-        StringType,      // string type marker
-
-        End             // end of object serialization
+        StringType      // string type marker
     }
 }

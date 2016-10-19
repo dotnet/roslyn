@@ -22,10 +22,8 @@ namespace Roslyn.Utilities
         String,
         DateTime,
         Object,
-        ObjectHeader,
         BoxedEnum,
         Array,
-        ArrayHeader,
         Type
     }
 }

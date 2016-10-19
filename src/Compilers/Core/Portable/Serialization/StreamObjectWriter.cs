@@ -23,7 +23,7 @@ namespace Roslyn.Utilities
         private readonly RecordingObjectBinder _binder;
         private readonly CancellationToken _cancellationToken;
         private readonly Stack<Variant> _valueStack;
-        private readonly ListWriter _valueWriter;
+        private readonly VariantWriter _variantWriter;
 
         internal StreamObjectWriter(
             Stream stream,
@@ -40,7 +40,7 @@ namespace Roslyn.Utilities
             _binder = binder ?? new SimpleRecordingObjectBinder();
             _cancellationToken = cancellationToken;
             _valueStack = new Stack<Variant>();
-            _valueWriter = new ListWriter();
+            _variantWriter = new VariantWriter();
         }
 
         public ObjectBinder Binder
@@ -55,100 +55,78 @@ namespace Roslyn.Utilities
 
         public override void WriteBoolean(bool value)
         {
-            _valueStack.Push(Variant.FromBoolean(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteByte(byte value)
         {
-            _valueStack.Push(Variant.FromByte(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteChar(char ch)
         {
-            _valueStack.Push(Variant.FromChar(ch));
-            Emit();
+            // written as ushort because writer fails on chars that are unicode surrogates
+            _writer.Write((ushort)ch);
         }
 
         public override void WriteDecimal(decimal value)
         {
-            _valueStack.Push(Variant.FromDecimal(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteDouble(double value)
         {
-            _valueStack.Push(Variant.FromDouble(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteSingle(float value)
         {
-            _valueStack.Push(Variant.FromSingle(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteInt32(int value)
         {
-            _valueStack.Push(Variant.FromInt32(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteInt64(long value)
         {
-            _valueStack.Push(Variant.FromInt64(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteSByte(sbyte value)
         {
-            _valueStack.Push(Variant.FromSByte(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteInt16(short value)
         {
-            _valueStack.Push(Variant.FromInt16(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteUInt32(uint value)
         {
-            _valueStack.Push(Variant.FromUInt32(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteUInt64(ulong value)
         {
-            _valueStack.Push(Variant.FromUInt64(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteUInt16(ushort value)
         {
-            _valueStack.Push(Variant.FromUInt16(value));
-            Emit();
+            _writer.Write(value);
         }
 
         public override void WriteDateTime(DateTime value)
         {
-            _valueStack.Push(Variant.FromDateTime(value));
-            Emit();
+            _writer.Write(value.ToBinary());
         }
 
         public override void WriteString(string value)
         {
-            if (value == null)
-            {
-                _valueStack.Push(Variant.Null);
-            }
-            else
-            {
-                _valueStack.Push(Variant.FromString(value));
-            }
-
-            Emit();
+            EmitString(value);
         }
 
         public override void WriteValue(object value)
@@ -159,20 +137,16 @@ namespace Roslyn.Utilities
 
         private void Emit()
         {
-            // keep reducing to primitives value that can be written to stream
+            // emit all values on the stack
             while (_valueStack.Count > 0)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-
                 var value = _valueStack.Pop();
-                EmitOrReduce(value);
+                WriteVariant(value);
             }
-
-            // write end marker for end of object serialization
-            _writer.Write((byte)DataKind.End);
         }
 
-        private void EmitOrReduce(Variant value)
+        private void WriteVariant(Variant value)
         {
             switch (value.Kind)
             {
@@ -295,40 +269,33 @@ namespace Roslyn.Utilities
 
                 case VariantKind.BoxedEnum:
                     var e = value.AsBoxedEnum();
-                    EmitEnum(e, e.GetType());
+                    WriteBoxedEnum(e, e.GetType());
                     break;
 
                 case VariantKind.Type:
-                    EmitType(value.AsType());
+                    WriteType(value.AsType());
                     break;
 
                 case VariantKind.Array:
-                    EmitArray(value.AsArray());
-                    break;
-
-                case VariantKind.ArrayHeader:
-                    EmitArrayHeader(value.AsArrayHeader());
+                    WriteArray(value.AsArray());
                     break;
 
                 case VariantKind.Object:
-                    EmitOrReduceObject(value.AsObject());
-                    break;
-
-                case VariantKind.ObjectHeader:
-                    uint memberCount;
-                    EmitObjectHeader(value.AsObjectHeader(out memberCount), memberCount);
+                    WriteObject(value.AsObject());
                     break;
             }
         }
 
-        private class ListWriter : ObjectWriter
+        private class VariantWriter : ObjectWriter
         {
-            internal readonly List<Variant> _list;
+            private readonly List<Variant> _list;
 
-            public ListWriter()
+            public VariantWriter()
             {
                 _list = new List<Variant>();
             }
+
+            public List<Variant> List => _list;
 
             public override void WriteBoolean(bool value)
             {
@@ -516,10 +483,10 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void EmitEnum(object value, Type enumType)
+        private void WriteBoxedEnum(object value, Type enumType)
         {
             _writer.Write((byte)DataKind.Enum);
-            this.EmitType(enumType);
+            this.WriteType(enumType);
 
             var type = Enum.GetUnderlyingType(enumType);
 
@@ -561,7 +528,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void EmitArray(Array array)
+        private void WriteArray(Array array)
         {
             var elementType = array.GetType().GetElementType();
 
@@ -590,31 +557,31 @@ namespace Roslyn.Utilities
                         break;
                 }
 
-                this.EmitPrimitiveType(elementType, elementKind);
-                this.EmitPrimitiveTypeArrayElements(elementType, elementKind, array);
+                this.WritePrimitiveType(elementType, elementKind);
+                this.WritePrimitiveTypeArrayElements(elementType, elementKind, array);
             }
             else
             {
-                var list = _valueWriter._list;
-                list.Clear();
+                // gather list elements
+                _variantWriter.List.Clear();
 
                 foreach (var element in array)
                 {
-                    _valueWriter.WriteValue(element);
+                    _variantWriter.WriteValue(element);
                 }
 
-                // push header first so we write it to stream last
-                _valueStack.Push(Variant.FromArrayHeader(array));
+                // emit header up front
+                this.WriteArrayHeader(array);
 
-                // push elements in reverse order so we process first element first
-                for (int i = list.Count - 1; i >= 0; i--)
+                // push elements in reverse order so we later emit first element first
+                for (int i = _variantWriter.List.Count - 1; i >= 0; i--)
                 {
-                    _valueStack.Push(list[i]);
+                    _valueStack.Push(_variantWriter.List[i]);
                 }
             }
         }
 
-        private void EmitArrayHeader(Array array)
+        private void WriteArrayHeader(Array array)
         {
             int length = array.GetLength(0);
 
@@ -639,10 +606,10 @@ namespace Roslyn.Utilities
             }
 
             var elementType = array.GetType().GetElementType();
-            this.EmitType(elementType);
+            this.WriteType(elementType);
         }
 
-        private void EmitPrimitiveTypeArrayElements(Type type, DataKind kind, Array instance)
+        private void WritePrimitiveTypeArrayElements(Type type, DataKind kind, Array instance)
         {
             Debug.Assert(s_typeMap[type] == kind);
 
@@ -659,12 +626,12 @@ namespace Roslyn.Utilities
             {
                 // optimization for string which object writer has
                 // its own optimization to reduce repeated string
-                EmitPrimitiveTypeArrayElements((string[])instance, EmitString);
+                WritePrimitiveTypeArrayElements((string[])instance, EmitString);
             }
             else if (type == typeof(bool))
             {
                 // optimization for bool array
-                EmitBooleanArray((bool[])instance);
+                WriteBooleanArray((bool[])instance);
             }
             else
             {
@@ -672,34 +639,34 @@ namespace Roslyn.Utilities
                 switch (kind)
                 {
                     case DataKind.Int8:
-                        EmitPrimitiveTypeArrayElements((sbyte[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((sbyte[])instance, _writer.Write);
                         return;
                     case DataKind.Int16:
-                        EmitPrimitiveTypeArrayElements((short[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((short[])instance, _writer.Write);
                         return;
                     case DataKind.Int32:
-                        EmitPrimitiveTypeArrayElements((int[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((int[])instance, _writer.Write);
                         return;
                     case DataKind.Int64:
-                        EmitPrimitiveTypeArrayElements((long[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((long[])instance, _writer.Write);
                         return;
                     case DataKind.UInt16:
-                        EmitPrimitiveTypeArrayElements((ushort[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((ushort[])instance, _writer.Write);
                         return;
                     case DataKind.UInt32:
-                        EmitPrimitiveTypeArrayElements((uint[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((uint[])instance, _writer.Write);
                         return;
                     case DataKind.UInt64:
-                        EmitPrimitiveTypeArrayElements((ulong[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((ulong[])instance, _writer.Write);
                         return;
                     case DataKind.Float4:
-                        EmitPrimitiveTypeArrayElements((float[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((float[])instance, _writer.Write);
                         return;
                     case DataKind.Float8:
-                        EmitPrimitiveTypeArrayElements((double[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((double[])instance, _writer.Write);
                         return;
                     case DataKind.Decimal:
-                        EmitPrimitiveTypeArrayElements((decimal[])instance, _writer.Write);
+                        WritePrimitiveTypeArrayElements((decimal[])instance, _writer.Write);
                         return;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);
@@ -707,7 +674,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void EmitBooleanArray(bool[] array)
+        private void WriteBooleanArray(bool[] array)
         {
             // convert bool array to bit array
             var bits = BitVector.Create(array.Length);
@@ -723,7 +690,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static void EmitPrimitiveTypeArrayElements<T>(T[] array, Action<T> write)
+        private static void WritePrimitiveTypeArrayElements<T>(T[] array, Action<T> write)
         {
             for (var i = 0; i < array.Length; i++)
             {
@@ -731,13 +698,13 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void EmitPrimitiveType(Type type, DataKind kind)
+        private void WritePrimitiveType(Type type, DataKind kind)
         {
             Debug.Assert(s_typeMap[type] == kind);
             _writer.Write((byte)kind);
         }
 
-        private void EmitType(Type type)
+        private void WriteType(Type type)
         {
             int id;
             if (_dataMap.TryGetId(type, out id))
@@ -778,7 +745,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void EmitOrReduceObject(object instance)
+        private void WriteObject(object instance)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -808,7 +775,7 @@ namespace Roslyn.Utilities
                 var iwriteable = instance as IObjectWritable;
                 if (iwriteable != null)
                 {
-                    this.ReduceWritableObject(iwriteable);
+                    this.WriteWritableObject(iwriteable);
                     return;
                 }
 
@@ -816,31 +783,33 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void ReduceWritableObject(IObjectWritable instance)
+        private void WriteWritableObject(IObjectWritable instance)
         {
-            var list = _valueWriter._list;
-            list.Clear();
+            // gather instance members by writing them into a list of variants
+            _variantWriter.List.Clear();
+            instance.WriteTo(_variantWriter);
 
-            instance.WriteTo(_valueWriter);
+            // emit object header up front
+            this.WriteObjectHeader(instance, (uint)_variantWriter.List.Count);
 
-            // push first so we write header after all members
-            _valueStack.Push(Variant.FromObjectHeader(instance, (uint)list.Count));
+            // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
+            // TODO: consider optimizing for objects that only contain primitive members.
 
-            // push all members in reverse order so we process the first member written first
-            for (int i = list.Count - 1; i >= 0; i--)
+            // push all members in reverse order so we later emit the first member written first
+            for (int i = _variantWriter.List.Count - 1; i >= 0; i--)
             {
-                _valueStack.Push(list[i]);
+                _valueStack.Push(_variantWriter.List[i]);
             }
         }
 
-        private void EmitObjectHeader(object instance, uint memberCount)
+        private void WriteObjectHeader(object instance, uint memberCount)
         {
             _dataMap.Add(instance);
 
             _writer.Write((byte)DataKind.Object_W);
 
             Type type = instance.GetType();
-            this.EmitType(type);
+            this.WriteType(type);
             this.EmitCompressedUInt(memberCount);
 
             _binder?.Record(instance);

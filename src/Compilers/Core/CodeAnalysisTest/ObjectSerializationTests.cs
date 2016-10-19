@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.Collections;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -843,13 +841,51 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestRoundTripGraph()
+        public void TestObjectGraph()
         {
             var oneNode = new Node("one");
             TestRoundTripValue(oneNode);
-
             TestRoundTripValue(new Node("a", new Node("b"), new Node("c")));
             TestRoundTripValue(new Node("x", oneNode, oneNode, oneNode, oneNode));
+        }
+
+        [Fact]
+        public void TestWideObjectGraph()
+        {
+            int id = 0;
+            var graph = ConstructGraph(ref id, 5, 3);
+            TestRoundTripValue(graph);
+        }
+
+        [Fact]
+        public void TestDeepObjectGraph()
+        {
+            int id = 0;
+            var graph = ConstructGraph(ref id, 1, 1000);
+            TestRoundTripValue(graph);
+        }
+
+        private Node ConstructGraph(ref int id, int width, int depth)
+        {
+            var name = "node" + (id++);
+
+            Node[] children;
+
+            if (depth > 0)
+            {
+                children = new Node[width];
+
+                for (int i = 0; i < width; i++)
+                {
+                    children[i] = ConstructGraph(ref id, width, depth - 1);
+                }
+            }
+            else
+            {
+                children = Array.Empty<Node>();
+            }
+
+            return new Node(name, children);
         }
 
         private class Node : IObjectWritable, IObjectReadable, IEquatable<Node>

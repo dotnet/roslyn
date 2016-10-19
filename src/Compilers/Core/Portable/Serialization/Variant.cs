@@ -20,6 +20,7 @@ namespace Roslyn.Utilities
             _instance = instance;
         }
 
+        public static readonly Variant None = new Variant(VariantKind.None, image: 0, instance: null);
         public static readonly Variant Null = new Variant(VariantKind.Null, image: 0, instance: null);
 
         public static Variant FromBoolean(bool value)
@@ -112,19 +113,9 @@ namespace Roslyn.Utilities
             return new Variant(VariantKind.Array, image: 0, instance: array);
         }
 
-        public static Variant FromArrayHeader(Array array)
-        {
-            return new Variant(VariantKind.ArrayHeader, image: 0, instance: array);
-        }
-
         public static Variant FromObject(object value)
         {
             return new Variant(VariantKind.Object, image: 0, instance: value);
-        }
-
-        public static Variant FromObjectHeader(object value, uint memberCount)
-        {
-            return new Variant(VariantKind.ObjectHeader, image: memberCount, instance: value);
         }
 
         public bool AsBoolean()
@@ -223,19 +214,6 @@ namespace Roslyn.Utilities
             return _instance;
         }
 
-        public object AsObjectHeader()
-        {
-            uint memberCount;
-            return AsObjectHeader(out memberCount);
-        }
-
-        public object AsObjectHeader(out uint memberCount)
-        {
-            Debug.Assert(Kind == VariantKind.ObjectHeader);
-            memberCount = (uint)_image;
-            return _instance;
-        }
-
         public object AsBoxedEnum()
         {
             Debug.Assert(Kind == VariantKind.BoxedEnum);
@@ -251,12 +229,6 @@ namespace Roslyn.Utilities
         public Array AsArray()
         {
             Debug.Assert(Kind == VariantKind.Array);
-            return (Array)_instance;
-        }
-
-        public Array AsArrayHeader()
-        {
-            Debug.Assert(Kind == VariantKind.ArrayHeader);
             return (Array)_instance;
         }
 
@@ -367,8 +339,8 @@ namespace Roslyn.Utilities
             {
                 case VariantKind.Array:
                     return this.AsArray();
-                case VariantKind.ArrayHeader:
-                    return this.AsArrayHeader();
+//                case VariantKind.ArrayHeader:
+//                    return this.AsArrayHeader();
                 case VariantKind.Boolean:
                     return this.AsBoolean();
                 case VariantKind.BoxedEnum:
@@ -395,8 +367,8 @@ namespace Roslyn.Utilities
                     return null;
                 case VariantKind.Object:
                     return this.AsObject();
-                case VariantKind.ObjectHeader:
-                    return this.AsObjectHeader();
+//                case VariantKind.ObjectHeader:
+//                    return this.AsObjectHeader();
                 case VariantKind.SByte:
                     return this.AsSByte();
                 case VariantKind.String:
