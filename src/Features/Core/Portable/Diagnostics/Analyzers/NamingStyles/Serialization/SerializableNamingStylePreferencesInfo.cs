@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Simplification;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public List<SymbolSpecification> SymbolSpecifications;
         public List<NamingStyle> NamingStyles;
         public List<SerializableNamingRule> NamingRules;
-        private readonly static int _serializationVersion = 1;
+        private readonly static int _serializationVersion = 3;
 
         internal SerializableNamingStylePreferencesInfo()
         {
@@ -91,6 +92,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         internal static SerializableNamingStylePreferencesInfo FromXElement(XElement namingPreferencesInfoElement)
         {
             var namingPreferencesInfo = new SerializableNamingStylePreferencesInfo();
+
+            var serializationVersion = int.Parse(namingPreferencesInfoElement.Attribute("SerializationVersion").Value);
+            if (serializationVersion != _serializationVersion)
+            {
+                namingPreferencesInfoElement = XElement.Parse(SimplificationOptions.NamingPreferences.DefaultValue);
+            }
 
             namingPreferencesInfo.SetSymbolSpecificationListFromXElement(namingPreferencesInfoElement.Element(nameof(SymbolSpecifications)));
             namingPreferencesInfo.SetNamingStyleListFromXElement(namingPreferencesInfoElement.Element(nameof(NamingStyles)));
