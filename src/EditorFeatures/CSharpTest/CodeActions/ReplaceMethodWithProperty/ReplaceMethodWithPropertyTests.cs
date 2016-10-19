@@ -600,5 +600,32 @@ compareTokens: false);
     }
 }");
         }
+
+        [WorkItem(14327, "https://github.com/dotnet/roslyn/issues/14327")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUpdateChainedGet1()
+        {
+            await TestAsync(
+@"
+public class Foo
+{
+    public Foo()
+    {
+        Foo value = GetValue().GetValue();
+    }
+
+    public Foo [||]GetValue() { return this; }
+}",
+@"
+public class Foo
+{
+    public Foo()
+    {
+        Foo value = Value.Value;
+    }
+
+    public Foo Value { get { return this; } }
+}");
+        }
     }
 }

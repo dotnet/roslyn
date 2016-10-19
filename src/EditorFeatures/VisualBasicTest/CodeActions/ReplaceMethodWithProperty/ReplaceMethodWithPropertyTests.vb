@@ -270,5 +270,31 @@ NewLines("partial class C \n function [||]GetFoo() as integer \n End function \n
 NewLines("partial class C \n Property Foo as integer \n Get \n End Get \n Set(i as integer) \n End Set \n End Property \n End class \n partial class C \n End class"),
 index:=1)
         End Function
+
+        <WorkItem(14327, "https://github.com/dotnet/roslyn/issues/14327")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestUpdateChainedGet1() As Task
+            Await TestAsync(
+"
+public class Foo
+    public sub Foo()
+        dim v = GetValue().GetValue()
+    end sub
+
+    Public Function [||]GetValue() As Foo 
+    End Function
+end class",
+"
+public class Foo
+    public sub Foo()
+        dim v = Value.Value
+    end sub
+
+    Public ReadOnly Property Value As Foo
+        Get
+        End Get
+    End Property
+end class")
+        End Function
     End Class
 End Namespace

@@ -70,34 +70,53 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                                             .Take(MaxResults);
 
                 var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
+                var codeActions = CreateActions(context, document, diagnostic, node, semanticModel, proposedContainers, displayService).ToImmutableArray();
 
-                foreach (var container in proposedContainers)
+                if (codeActions.Length > 1)
                 {
-                    var containerName = displayService.ToMinimalDisplayString(semanticModel, node.SpanStart, container);
-
-                    var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                    string name;
-                    int arity;
-                    syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
-
-                    // Actual member name might differ by case.
-                    string memberName;
-                    if (this.IgnoreCase)
-                    {
-                        var member = container.GetMembers(name).FirstOrDefault();
-                        memberName = member != null ? member.Name : name;
-                    }
-                    else
-                    {
-                        memberName = name;
-                    }
-
-                    var codeAction = new MyCodeAction(
-                        $"{containerName}.{memberName}",
-                        c => ProcessNode(document, node, containerName, c));
-
-                    context.RegisterCodeFix(codeAction, diagnostic);
+                    // Wrap the spell checking actions into a single top level suggestion
+                    // so as to not clutter the list.
+                    context.RegisterCodeFix(new GroupingCodeAction(codeActions), context.Diagnostics);
                 }
+                else
+                {
+                    context.RegisterFixes(codeActions, context.Diagnostics);
+                }
+            }
+        }
+
+        private IEnumerable<CodeAction> CreateActions(
+            CodeFixContext context, Document document, Diagnostic diagnostic, 
+            SyntaxNode node, SemanticModel semanticModel, 
+            IEnumerable<INamespaceOrTypeSymbol> proposedContainers, 
+            ISymbolDisplayService displayService)
+        {
+            foreach (var container in proposedContainers)
+            {
+                var containerName = displayService.ToMinimalDisplayString(semanticModel, node.SpanStart, container);
+
+                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                string name;
+                int arity;
+                syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+
+                // Actual member name might differ by case.
+                string memberName;
+                if (this.IgnoreCase)
+                {
+                    var member = container.GetMembers(name).FirstOrDefault();
+                    memberName = member != null ? member.Name : name;
+                }
+                else
+                {
+                    memberName = name;
+                }
+
+                var codeAction = new MyCodeAction(
+                    $"{containerName}.{memberName}",
+                    c => ProcessNode(document, node, containerName, c));
+
+                yield return codeAction;
             }
         }
 
@@ -252,6 +271,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
                 base(title, createChangedDocument)
+            {
+            }
+        }
+
+        private class GroupingCodeAction : CodeAction.SimpleCodeAction
+        {
+            public GroupingCodeAction(ImmutableArray<CodeAction> nestedActions)
+                : base(FeaturesResources.Fully_qualify_name, nestedActions)
             {
             }
         }

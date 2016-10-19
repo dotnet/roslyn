@@ -3878,6 +3878,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(expression, ExpressionSyntax))
 
         End Function
+
+        Friend Overrides Function IsRegularOrDocComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.IsRegularOrDocComment()
+        End Function
+
 #End Region
 
     End Class
