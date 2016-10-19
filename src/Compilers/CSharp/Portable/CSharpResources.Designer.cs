@@ -10638,15 +10638,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The stream cannot be read from..
-        /// </summary>
-        internal static string TheStreamCannotBeReadFrom {
-            get {
-                return ResourceManager.GetString("TheStreamCannotBeReadFrom", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to This method can only be used to create tokens - {0} is not a token kind..
         /// </summary>
         internal static string ThisMethodCanOnlyBeUsedToCreateTokens {
