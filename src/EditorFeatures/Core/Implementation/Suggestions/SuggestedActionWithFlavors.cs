@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -53,34 +54,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
 
-                _actionSets = await extensionManager.PerformFunctionAsync(Provider, async () =>
-                {
-                    var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
-
-                    // We use ConfigureAwait(true) to stay on the UI thread.
-                    var previewChangesSuggestedActionSet = await GetPreviewChangesFlavor(cancellationToken).ConfigureAwait(true);
-                    if (previewChangesSuggestedActionSet != null)
-                    {
-                        builder.Add(previewChangesSuggestedActionSet);
-                    }
-
-                    var additionalSet = this.GetAdditionalFlavors();
-                    if (additionalSet != null)
-                    {
-                        builder.Add(additionalSet);
-                    }
-
-                    return builder.ToImmutableAndFree();
-                    // We use ConfigureAwait(true) to stay on the UI thread.
-                }, defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
+                // We use ConfigureAwait(true) to stay on the UI thread.
+                _actionSets = await extensionManager.PerformFunctionAsync(
+                    Provider, () => CreateFlavors(cancellationToken),
+                    defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
             }
 
             Contract.ThrowIfTrue(_actionSets.IsDefault);
             return _actionSets;
         }
 
+        private async Task<ImmutableArray<SuggestedActionSet>> CreateFlavors(CancellationToken cancellationToken)
+        {
+            var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
+
+            // We use ConfigureAwait(true) to stay on the UI thread.
+            var previewChangesSuggestedActionSet = await GetPreviewChangesFlavor(cancellationToken).ConfigureAwait(true);
+            if (previewChangesSuggestedActionSet != null)
+            {
+                builder.Add(previewChangesSuggestedActionSet);
+            }
+
+            var additionalSet = this.GetAdditionalFlavors();
+            if (additionalSet != null)
+            {
+                builder.Add(additionalSet);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         private async Task<SuggestedActionSet> GetPreviewChangesFlavor(CancellationToken cancellationToken)
         {
+            // We use ConfigureAwait(true) to stay on the UI thread.
             var previewChangesAction = await PreviewChangesSuggestedAction.CreateAsync(
                 this, cancellationToken).ConfigureAwait(true);
             if (previewChangesAction == null)
