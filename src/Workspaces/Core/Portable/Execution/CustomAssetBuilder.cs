@@ -23,16 +23,14 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            return new SimpleCustomAsset(WellKnownSynchronizationKinds.OptionSet, 
-                (writer, cancellationTokenOnStreamWriting) => 
+            return new SimpleCustomAsset(WellKnownSynchronizationKinds.OptionSet,
+                (writer, cancellationTokenOnStreamWriting) =>
                     _serializer.SerializeOptionSet(options, language, writer, cancellationTokenOnStreamWriting));
         }
 
         public CustomAsset Build(AnalyzerReference reference, CancellationToken cancellationToken)
         {
-            return new SimpleCustomAsset(WellKnownSynchronizationKinds.AnalyzerReference, 
-                (writer, cancellationTokenOnStreamWriting) => 
-                    _serializer.SerializeAnalyzerReference(reference, writer, cancellationTokenOnStreamWriting));
+            return new WorkspaceAnalyzerReferenceAsset(reference, _serializer);
         }
     }
 }

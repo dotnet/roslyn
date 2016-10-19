@@ -163,7 +163,7 @@ int y;
 
         [WorkItem(977133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task DoNotFormatRangeButFormatTokenOnOpenBrace()
+        public async Task DoNotFormatRangeOrFormatTokenOnOpenBraceOnSameLine()
         {
             var code = @"class C
 {
@@ -176,7 +176,30 @@ int y;
 {
     public void M()
     {
-        if (true) {
+        if (true)        {
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WorkItem(14491, "https://github.com/dotnet/roslyn/pull/14491")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task DoNotFormatRangeButFormatTokenOnOpenBraceOnNextLine()
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        if (true)
+            {$$
+    }
+}";
+            var expected = @"class C
+{
+    public void M()
+    {
+        if (true)
+        {
     }
 }";
             await AssertFormatAfterTypeCharAsync(code, expected);

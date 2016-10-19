@@ -1045,11 +1045,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix spelling.
+        /// </summary>
+        internal static string Fix_spelling {
+            get {
+                return ResourceManager.GetString("Fix_spelling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to from {0}.
         /// </summary>
         internal static string from_0 {
             get {
                 return ResourceManager.GetString("from_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fully qualify &apos;{0}&apos;.
+        /// </summary>
+        internal static string Fully_qualify_0 {
+            get {
+                return ResourceManager.GetString("Fully_qualify_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fully qualify name.
+        /// </summary>
+        internal static string Fully_qualify_name {
+            get {
+                return ResourceManager.GetString("Fully_qualify_name", resourceCulture);
             }
         }
         
@@ -1414,6 +1441,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inline variable declaration.
+        /// </summary>
+        internal static string Inline_variable_declaration {
+            get {
+                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install &apos;{0} {1}&apos;.
         /// </summary>
         internal static string Install_0_1 {
@@ -1572,6 +1608,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string is_ {
             get {
                 return ResourceManager.GetString("is_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keywords.
+        /// </summary>
+        internal static string Keywords {
+            get {
+                return ResourceManager.GetString("Keywords", resourceCulture);
             }
         }
         
@@ -2140,6 +2185,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove reference to &apos;{0}&apos;..
+        /// </summary>
+        internal static string Remove_reference_to_0 {
+            get {
+                return ResourceManager.GetString("Remove_reference_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Suppression.
         /// </summary>
         internal static string Remove_Suppression {
@@ -2350,6 +2404,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Snippets.
+        /// </summary>
+        internal static string Snippets {
+            get {
+                return ResourceManager.GetString("Snippets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solution.
         /// </summary>
         internal static string Solution {
@@ -2373,6 +2436,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spell check &apos;{0}&apos;.
+        /// </summary>
+        internal static string Spell_check_0 {
+            get {
+                return ResourceManager.GetString("Spell_check_0", resourceCulture);
             }
         }
         
@@ -2885,6 +2957,114 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use block body for accessors.
+        /// </summary>
+        internal static string Use_block_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for constructors.
+        /// </summary>
+        internal static string Use_block_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for indexers.
+        /// </summary>
+        internal static string Use_block_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for methods.
+        /// </summary>
+        internal static string Use_block_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for operators.
+        /// </summary>
+        internal static string Use_block_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for properties.
+        /// </summary>
+        internal static string Use_block_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for accessors.
+        /// </summary>
+        internal static string Use_expression_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for constructors.
+        /// </summary>
+        internal static string Use_expression_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for indexers.
+        /// </summary>
+        internal static string Use_expression_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for methods.
+        /// </summary>
+        internal static string Use_expression_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for operators.
+        /// </summary>
+        internal static string Use_expression_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for properties.
+        /// </summary>
+        internal static string Use_expression_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use framework type.
         /// </summary>
         internal static string Use_framework_type {
@@ -2956,16 +3136,5 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("You_can_use_the_navigation_bar_to_switch_context", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to You can use the navigation bar to switch context..
-        /// </summary>
-        internal static string Inline_variable_declaration
-        {
-            get
-            {
-                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
-            }
-        }
     }
-} 
+}
