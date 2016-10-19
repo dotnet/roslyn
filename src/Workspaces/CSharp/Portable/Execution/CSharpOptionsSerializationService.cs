@@ -44,9 +44,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
         {
             WriteOptionSetTo(options, LanguageNames.CSharp, writer, cancellationToken);
 
-            WriteOptionTo(options, CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.UseImplicitTypeWherePossible, writer, cancellationToken);
+            foreach (var option in CSharpCodeStyleOptions.GetCodeStyleOptions())
+            {
+                WriteOptionTo(options, option, writer, cancellationToken);
+            }
+        }
+
+        public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
+        {
+            OptionSet options = new SerializedPartialOptionSet();
+
+            options = ReadOptionSetFrom(options, LanguageNames.CSharp, reader, cancellationToken);
+
+            foreach (var option in CSharpCodeStyleOptions.GetCodeStyleOptions())
+            {
+                options = ReadOptionFrom(options, option, reader, cancellationToken);
+            }
+
+            return options;
         }
 
         public override CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -104,19 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
 
             var options = new CSharpParseOptions(languageVersion, documentationMode, kind, preprocessorSymbolNames);
             return options.WithFeatures(features);
-        }
-
-        public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            OptionSet options = new SerializedPartialOptionSet();
-
-            options = ReadOptionSetFrom(options, LanguageNames.CSharp, reader, cancellationToken);
-
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.UseImplicitTypeWherePossible, reader, cancellationToken);
-
-            return options;
         }
     }
 }
