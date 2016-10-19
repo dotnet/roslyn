@@ -46,6 +46,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="Serialization\DataKind.cs" />
+    <Compile Include="Serialization\StreamObjectReader.cs" />
+    <Compile Include="Serialization\StreamObjectWriter.cs" />
+    <Compile Include="Serialization\VariantKind.cs" />
+    <Compile Include="Serialization\Variant.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />
@@ -556,7 +561,6 @@
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectReader.cs" />
     <Compile Include="Serialization\ObjectReaderData.cs" />
-    <Compile Include="Serialization\ObjectReaderWriterBase.cs" />
     <Compile Include="Serialization\ObjectWriter.cs" />
     <Compile Include="Serialization\ObjectWriterData.cs" />
     <Compile Include="Serialization\RecordingObjectBinder.cs" />

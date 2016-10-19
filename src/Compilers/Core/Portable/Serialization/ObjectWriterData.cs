@@ -45,11 +45,12 @@ namespace Roslyn.Utilities
             if (_valueToIdMap.Count > 1024)
             {
                 DictionaryPool.ForgetTrackedObject(_valueToIdMap);
-                return;
             }
-
-            _valueToIdMap.Clear();
-            DictionaryPool.Free(_valueToIdMap);
+            else
+            {
+                _valueToIdMap.Clear();
+                DictionaryPool.Free(_valueToIdMap);
+            }
         }
 
         public bool TryGetId(object value, out int id)

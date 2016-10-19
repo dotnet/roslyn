@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new InvalidOperationException(CSharpResources.TheStreamCannotBeReadFrom);
             }
 
-            using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
+            using (var reader = new StreamObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
             {
                 var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
                 return root.CreateRed();

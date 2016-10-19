@@ -179,6 +179,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\WeakReferenceExtensions.cs">
       <Link>InternalUtilities\WeakReferenceExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\DataKind.cs">
+      <Link>Serialization\DataKind.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\FixedObjectBinder.cs">
       <Link>Serialization\FixedObjectBinder.cs</Link>
     </Compile>
@@ -196,9 +199,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReaderData.cs">
       <Link>Serialization\ObjectReaderData.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReaderWriterBase.cs">
-      <Link>Serialization\ObjectReaderWriterBase.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
       <Link>Serialization\ObjectWriter.cs</Link>
@@ -290,6 +290,18 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
+      <Link>Serialization\StreamObjectReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
+      <Link>Serialization\StreamObjectWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\Variant.cs">
+      <Link>Serialization\Variant.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\VariantKind.cs">
+      <Link>Serialization\VariantKind.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
       <Link>Shared\UnicodeCharacterUtilities.cs</Link>
     </Compile>
