@@ -2244,5 +2244,26 @@ class Program
                 Await state.AssertSelectedCompletionItem("DateTime")
             End Using
         End Function
+
+        <WorkItem(14465, "https://github.com/dotnet/roslyn/issues/14465")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingNumberShouldNotDismiss1() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void Moo1()
+    {
+        new C()$$
+    }
+}
+            ]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("1")
+                Await state.AssertSelectedCompletionItem("Moo1")
+            End Using
+        End Function
     End Class
 End Namespace

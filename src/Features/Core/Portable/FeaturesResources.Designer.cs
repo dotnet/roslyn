@@ -1594,6 +1594,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Keywords.
+        /// </summary>
+        internal static string Keywords {
+            get {
+                return ResourceManager.GetString("Keywords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to label.
         /// </summary>
         internal static string label {
@@ -2373,6 +2382,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_Names {
             get {
                 return ResourceManager.GetString("Simplify_Names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snippets.
+        /// </summary>
+        internal static string Snippets {
+            get {
+                return ResourceManager.GetString("Snippets", resourceCulture);
             }
         }
         

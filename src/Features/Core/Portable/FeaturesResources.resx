@@ -1127,4 +1127,10 @@ This version used in: {2}</value>
   <data name="Remove_reference_to_0" xml:space="preserve">
     <value>Remove reference to '{0}'.</value>
   </data>
+  <data name="Keywords" xml:space="preserve">
+    <value>Keywords</value>
+  </data>
+  <data name="Snippets" xml:space="preserve">
+    <value>Snippets</value>
+  </data>
 </root>
