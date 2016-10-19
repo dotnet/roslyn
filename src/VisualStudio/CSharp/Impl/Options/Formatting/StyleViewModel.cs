@@ -274,6 +274,27 @@ class C
 }
 ";
 
+        private static readonly string s_preferInlinedTypeCheck = @"
+class C
+{
+    void M()
+    {
+//[
+        // Prefer:
+        if (o is string s)
+        {
+        }
+
+        // Over:
+        var s = o as string;
+        if (s != null)
+        {
+        }
+//]
+    }
+}
+";
+
         private static readonly string s_preferObjectInitializer = @"
 using System;
 
@@ -370,6 +391,7 @@ class Customer
 
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, s_preferThrowExpression, s_preferThrowExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferInlinedTypeCheck, CSharpVSResources.Prefer_inlined_type_check, s_preferInlinedTypeCheck, s_preferInlinedTypeCheck, this, optionSet, nullCheckingGroupTitle));
         }
     }
 }

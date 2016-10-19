@@ -1423,6 +1423,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inline type check.
+        /// </summary>
+        internal static string Inline_type_check {
+            get {
+                return ResourceManager.GetString("Inline_type_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inline variable declaration.
         /// </summary>
         internal static string Inline_variable_declaration {
