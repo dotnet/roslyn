@@ -2290,5 +2290,70 @@ public static class C
             var comp = CreateCompilationWithMscorlib(source);
             CompileAndVerify(comp);
         }
+
+        [Fact, WorkItem(278481, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481")]
+        public void LambdaReturningNull()
+        {
+            var src = @"
+public static class ExtensionMethods
+{
+    public static System.Linq.IQueryable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Linq.IQueryable<TOuter> outerValues,
+        System.Linq.IQueryable<TInner> innerValues,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TKey>> outerKeySelector,
+        System.Linq.Expressions.Expression<System.Func<TInner, TKey>> innerKeySelector,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TInner, TResult>> fullResultSelector,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TResult>> partialResultSelector,
+        System.Collections.Generic.IEqualityComparer<TKey> comparer)
+    { return null; }
+
+    public static System.Linq.IQueryable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Linq.IQueryable<TOuter> outerValues, 
+        System.Linq.IQueryable<TInner> innerValues, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TKey>> outerKeySelector, 
+        System.Linq.Expressions.Expression<System.Func<TInner, TKey>> innerKeySelector, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TInner, TResult>> fullResultSelector, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TResult>> partialResultSelector)
+    {
+        System.Console.WriteLine(""1""); 
+        return null; 
+    }
+
+    public static System.Collections.Generic.IEnumerable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Collections.Generic.IEnumerable<TOuter> outerQueryable,
+        System.Collections.Generic.IEnumerable<TInner> innerQueryable,
+        System.Func<TOuter, TKey> outerKeySelector,
+        System.Func<TInner, TKey> innerKeySelector,
+        System.Func<TOuter, TInner, TResult> resultSelector)
+    { return null; }
+}
+
+partial class C
+{
+    public static void Main()
+    {
+        System.Linq.IQueryable<A> outerValue = null;
+        System.Linq.IQueryable<B> innerValues = null;
+
+        outerValue.LeftOuterJoin(innerValues,
+                    co => co.id,
+                    coa => coa.id,
+                    (co, coa) => null,
+                    co => co);
+    }
+}
+
+class A
+{
+    public int id=2;
+}
+
+class B
+{
+    public int id = 2;
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
     }
 }
