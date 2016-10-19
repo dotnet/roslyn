@@ -41,6 +41,7 @@ try
     switch ($branchName)
     {
         "dev15-rc" { } 
+        "dev15-rc-ri" { } 
         default
         {
             if (-not $test)
