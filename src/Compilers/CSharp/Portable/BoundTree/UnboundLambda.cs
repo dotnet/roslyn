@@ -451,6 +451,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType);
             lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
+
+            ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, parameters);
 
         haveLambdaBodyAndBinders:
