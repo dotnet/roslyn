@@ -1045,6 +1045,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix spelling.
+        /// </summary>
+        internal static string Fix_spelling {
+            get {
+                return ResourceManager.GetString("Fix_spelling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to from {0}.
         /// </summary>
         internal static string from_0 {
@@ -1059,6 +1068,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Fully_qualify_0 {
             get {
                 return ResourceManager.GetString("Fully_qualify_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fully qualify name.
+        /// </summary>
+        internal static string Fully_qualify_name {
+            get {
+                return ResourceManager.GetString("Fully_qualify_name", resourceCulture);
             }
         }
         
