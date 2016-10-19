@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
                 var codeActions = CreateActions(context, document, diagnostic, node, semanticModel, proposedContainers, displayService).ToImmutableArray();
 
-                if (codeActions.Length > 1) { 
+                if (codeActions.Length > 1)
+                {
                     // Wrap the spell checking actions into a single top level suggestion
                     // so as to not clutter the list.
                     context.RegisterCodeFix(new GroupingCodeAction(
@@ -87,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private IEnumerable<CodeAction> CreateActions(
-            CodeFixContext context, Document document, Diagnostic diagnostic, 
-            SyntaxNode node, SemanticModel semanticModel, 
-            IEnumerable<INamespaceOrTypeSymbol> proposedContainers, 
+            CodeFixContext context, Document document, Diagnostic diagnostic,
+            SyntaxNode node, SemanticModel semanticModel,
+            IEnumerable<INamespaceOrTypeSymbol> proposedContainers,
             ISymbolDisplayService displayService)
         {
             foreach (var container in proposedContainers)
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             {
                 return false;
             }
-            
+
             return BindsWithoutErrors(ns, rightName + "Attribute", isAttributeName: false);
         }
 
