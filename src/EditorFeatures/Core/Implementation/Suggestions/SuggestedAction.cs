@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             this.EditHandler = editHandler;
             this.WaitIndicator = waitIndicator;
             this.Provider = provider;
-            OperationListener = operationListener;
+            this.OperationListener = operationListener;
             _actionSets = actionSets.AsImmutableOrEmpty();
         }
 
