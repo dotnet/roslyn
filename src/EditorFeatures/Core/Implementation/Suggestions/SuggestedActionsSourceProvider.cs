@@ -359,8 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         codeAction => GetFixAllSuggestedActionSet(
                             codeAction, fixCount, fixCollection.FixAllState, 
                             fixCollection.SupportedScopes, fixCollection.FirstDiagnostic, 
-                            workspace, _subjectBuffer,  _owner._editHandler, 
-                            _owner._waitIndicator, _owner._listener);
+                            workspace);
 
                     foreach (var fix in fixes)
                     {
@@ -445,18 +444,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// If the provided fix all context is non-null and the context's code action Id matches the given code action's Id then,
             /// returns the set of fix all occurrences actions associated with the code action.
             /// </summary>
-            internal static SuggestedActionSet GetFixAllSuggestedActionSet(
+            internal SuggestedActionSet GetFixAllSuggestedActionSet(
                 CodeAction action,
                 int actionCount,
                 FixAllState fixAllState,
                 IEnumerable<FixAllScope> supportedScopes,
                 Diagnostic firstDiagnostic,
-                Workspace workspace,
-                ITextBuffer subjectBuffer,
-                ICodeActionEditHandlerService editHandler,
-                IWaitIndicator waitIndicator,
-                IAsynchronousOperationListener operationListener)
+                Workspace workspace)
             {
+
                 if (fixAllState == null)
                 {
                     return null;
@@ -473,8 +469,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
 
                     var fixAllSuggestedAction = new FixAllSuggestedAction(
-                        workspace, subjectBuffer, editHandler, waitIndicator, 
-                        fixAllStateForScope, firstDiagnostic, operationListener);
+                        workspace, _subjectBuffer, _owner._editHandler,
+                        _owner._waitIndicator, fixAllStateForScope, firstDiagnostic,
+                        _owner._listener);
 
                     fixAllSuggestedActions.Add(fixAllSuggestedAction);
                 }
