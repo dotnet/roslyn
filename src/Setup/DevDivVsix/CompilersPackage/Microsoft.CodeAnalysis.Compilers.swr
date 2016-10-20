@@ -5,7 +5,7 @@ package name=Microsoft.CodeAnalysis.Compilers
 
 vs.dependencies
   vs.dependency id=Microsoft.Net.4.6.1.FullRedist 
-  vs.dependency id=Microsoft.Net.4.6.1.FullRedist.Resource 
+  vs.dependency id=Microsoft.Net.4.6.1.FullRedist.Resources
 
 folder InstallDir:\MSBuild\15.0\Bin
     file source=$(OutputPath)\VBCSCompiler.exe vs.file.ngen=yes
