@@ -424,11 +424,119 @@ class Student : Person { public double GPA; }
 
             VerifySpans(reader, reader.Methods[1], sourceLines,
                 new SpanResult(13, 4, 26, 5, "static string Operate(Person p)"),
+                new SpanResult(17, 32, 17, 43, "s.GPA > 3.5"),
                 new SpanResult(18, 16, 18, 56, "return $\"Student {s.Name} ({s.GPA:N1})\""),
                 new SpanResult(20, 16, 20, 56, "return $\"Student {s.Name} ({s.GPA:N1})\""),
                 new SpanResult(22, 16, 22, 58, "return $\"Teacher {t.Name} of {t.Subject}\""),
                 new SpanResult(24, 16, 24, 42, "return $\"Person {p.Name}\""),
                 new SpanResult(15, 16, 15, 17, "p"));
+        }
+
+        [Fact]
+        public void TestDeconstructionSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        var (x, y) = new C();
+    }
+
+    public void Deconstruct(out int x, out int y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 8, 5, "public static void Main()"),
+                new SpanResult(7, 8, 7, 29, "var (x, y) = new C()"));
+        }
+
+        [Fact]
+        public void TestForeachSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        C[] a = null;
+        foreach
+            (var x
+            in a)
+            ;
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 12, 5, "public static void Main()"),
+                new SpanResult(7, 8, 7, 21, "C[] a = null"),
+                new SpanResult(11, 12, 11, 13, ";"),
+                new SpanResult(10, 15, 10, 16, "a")
+                );
+        }
+
+        [Fact]
+        public void TestForeachDeconstructionSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        C[] a = null;
+        foreach
+            (var (x, y)
+            in a)
+            ;
+    }
+
+    public void Deconstruct(out int x, out int y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 12, 5, "public static void Main()"),
+                new SpanResult(7, 8, 7, 21, "C[] a = null"),
+                new SpanResult(11, 12, 11, 13, ";"),
+                new SpanResult(10, 15, 10, 16, "a")
+                );
         }
 
         [Fact]

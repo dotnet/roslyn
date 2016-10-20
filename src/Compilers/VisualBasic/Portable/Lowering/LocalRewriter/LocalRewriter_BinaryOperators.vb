@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim cast = DirectCast(operand, BoundConversion)
                     Return cast.Update(ReplaceMyGroupCollectionPropertyGetWithUnderlyingField(cast.Operand),
                                        cast.ConversionKind, cast.Checked, cast.ExplicitCastInCode, cast.ConstantValueOpt,
-                                       cast.ConstructorOpt, cast.RelaxationLambdaOpt, cast.RelaxationReceiverPlaceholderOpt,
+                                       cast.ExtendedInfoOpt,
                                        cast.Type)
 
                 Case BoundKind.Call

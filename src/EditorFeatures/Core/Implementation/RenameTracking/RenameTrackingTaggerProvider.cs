@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [TagType(typeof(RenameTrackingTag))]
     [TagType(typeof(IErrorTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed partial class RenameTrackingTaggerProvider : ITaggerProvider
     {

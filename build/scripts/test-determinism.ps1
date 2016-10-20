@@ -27,6 +27,11 @@ function Run-Build()
     $debugDir = join-path $rootDir "Binaries\Debug"
     $objDir = join-path $rootDir "Binaries\Obj"
 
+    # Temporarily forcing MSBuild 14.0 here to work around a bug in 15.0
+    # MSBuild bug: https://github.com/Microsoft/msbuild/issues/1183
+    # Roslyn tracking bug: https://github.com/dotnet/roslyn/issues/14451
+    $msbuild = "c:\Program Files (x86)\MSBuild\14.0\bin\MSBuild.exe" 
+
     # Create directories that may or may not exist to make the script execution below 
     # clean in either case.
     mkdir $debugDir -errorAction SilentlyContinue | out-null
@@ -38,10 +43,10 @@ function Run-Build()
     write-host "Cleaning the Binaries"
     rm -re -fo $debugDir
     rm -re -fo $objDir
-    & msbuild /nologo /v:m /nodeReuse:false /t:clean $sln
+    & $msbuild /nologo /v:m /nodeReuse:false /t:clean $sln
 
     write-host "Building the Solution"
-    & msbuild /nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:buildDir '/p:Features="debug-determinism;pdb-path-determinism"' /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln
+    & $msbuild /nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:buildDir '/p:Features="debug-determinism;pdb-path-determinism"' /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln
 
     popd
 }

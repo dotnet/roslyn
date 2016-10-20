@@ -290,6 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
 
+        internal bool IsExpressionBodied => _syntax.Body == null && _syntax.ExpressionBody != null;
+
         public override DllImportData GetDllImportData() => null;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
