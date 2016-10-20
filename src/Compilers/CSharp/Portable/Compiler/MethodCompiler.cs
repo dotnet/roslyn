@@ -1541,52 +1541,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var compilation = method.DeclaringCompilation;
                 var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
 
-                var blockSyntax = sourceMethod.BodySyntax as BlockSyntax;
+                var bodySyntax = sourceMethod.BodySyntax;
 
-                if (blockSyntax != null)
+                if (bodySyntax != null)
                 {
-                    var inMethodBinder = factory.GetBinder(blockSyntax);
-
-                    var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
-                    body = (BoundBlock)binder.BindEmbeddedBlock(blockSyntax, diagnostics);
+                    var inMethodBinder = factory.GetBinder(bodySyntax);
+                    var binder = new ExecutableCodeBinder(bodySyntax, sourceMethod, inMethodBinder);
                     importChain = binder.ImportChain;
 
-                    foreach (var iterator in binder.MethodSymbolsWithYield)
-                    {
-                        foreach (var parameter in iterator.Parameters)
-                        {
-                            if (parameter.RefKind != RefKind.None)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
-                            }
-                            else if (parameter.Type.IsUnsafe())
-                            {
-                                diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
-                            }
-                        }
+                    binder.ValidateIteratorMethods(diagnostics);
 
-                        if (iterator.IsVararg)
-                        {
-                            // error CS1636: __arglist is not allowed in the parameter list of iterators
-                            diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
-                        }
-
-                        if (((iterator as SourceMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true) && compilation.Options.AllowUnsafe) // Don't cascade
-                        {
-                            diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
-                        }
-                    }
-                }
-                else if (sourceMethod.IsExpressionBodied)
-                {
-                    var methodSyntax = sourceMethod.SyntaxNode;
-                    var arrowExpression = methodSyntax.GetExpressionBodySyntax();
-
-                    Binder binder = factory.GetBinder(arrowExpression);
-                    binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
-                    importChain = binder.ImportChain;
-                    // Add locals
-                    body = binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                    body = bodySyntax.Kind() == SyntaxKind.Block
+                        ? binder.BindEmbeddedBlock((BlockSyntax)bodySyntax, diagnostics)
+                        : binder.BindExpressionBodyAsBlock(
+                            (ArrowExpressionClauseSyntax)bodySyntax, diagnostics);
                 }
                 else
                 {

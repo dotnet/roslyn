@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableArray<MethodSymbol> MethodSymbolsWithYield
+        private ImmutableArray<MethodSymbol> MethodSymbolsWithYield
         {
             get
             {
@@ -131,6 +131,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return _methodSymbolsWithYield;
+            }
+        }
+
+        public void ValidateIteratorMethods(DiagnosticBag diagnostics)
+        {
+            foreach (var iterator in MethodSymbolsWithYield)
+            {
+                foreach (var parameter in iterator.Parameters)
+                {
+                    if (parameter.RefKind != RefKind.None)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
+                    }
+                    else if (parameter.Type.IsUnsafe())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
+                    }
+                }
+
+                if (iterator.IsVararg)
+                {
+                    // error CS1636: __arglist is not allowed in the parameter list of iterators
+                    diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
+                }
+
+                if (((iterator as SourceMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
+                    && Compilation.Options.AllowUnsafe) // Don't cascade
+                {
+                    diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
+                }
             }
         }
     }

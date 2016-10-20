@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
     internal partial class SymbolSpecificationDialog : DialogWindow
     {
@@ -16,7 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public string SymbolSpecificationTitleLabelText => ServicesVSResources.Symbol_Specification_Title_colon;
         public string SymbolKindsLabelText => ServicesVSResources.Symbol_Kinds_can_match_any;
         public string AccessibilitiesLabelText => ServicesVSResources.Accessibilities_can_match_any;
-        public string CustomTagsLabelText => ServicesVSResources.Custom_Tags_must_match_all;
         public string ModifiersLabelText => ServicesVSResources.Modifiers_must_match_all;
         public string SelectAllButtonText => ServicesVSResources.Select_All;
         public string DeselectAllButtonText => ServicesVSResources.Deselect_All;
@@ -106,22 +105,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void DeselectAllModifiers(object sender, RoutedEventArgs e)
         {
             foreach (var item in Modifiers.Items.OfType<SymbolSpecificationViewModel.ModifierViewModel>())
-            {
-                item.IsChecked = false;
-            }
-        }
-
-        private void SelectAllCustomTags(object sender, RoutedEventArgs e)
-        {
-            foreach (var item in CustomTags.Items.OfType<SymbolSpecificationViewModel.CustomTagViewModel>())
-            {
-                item.IsChecked = true;
-            }
-        }
-
-        private void DeselectAllCustomTags(object sender, RoutedEventArgs e)
-        {
-            foreach (var item in CustomTags.Items.OfType<SymbolSpecificationViewModel.CustomTagViewModel>())
             {
                 item.IsChecked = false;
             }
