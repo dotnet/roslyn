@@ -68,7 +68,9 @@
     <Compile Include="Services\AssetSource.cs" />
     <Compile Include="Services\AssetService.cs" />
     <Compile Include="Services\AssetStorage.cs" />
+    <Compile Include="Services\ChecksumSourceText.cs" />
     <Compile Include="Services\CompilationService.cs" />
+    <Compile Include="Services\ProjectCacheHostServiceFactory.cs" />
     <Compile Include="Services\RoslynServices.cs" />
     <Compile Include="Services\SolutionService.cs" />
     <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
