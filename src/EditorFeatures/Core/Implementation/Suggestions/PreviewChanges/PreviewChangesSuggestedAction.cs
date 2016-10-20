@@ -30,19 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
             }
 
-            // Since PreviewChangesSuggestedAction will always be presented as a
-            // 'flavored' action, it will never have a preview itself.
-            public override bool HasPreview => false;
-
-            public override Task<object> GetPreviewAsync(CancellationToken cancellationToken)
-            {
-                // Since PreviewChangesSuggestedAction will always be presented as a
-                // 'flavored' action, code in the VS editor / lightbulb layer should
-                // never call GetPreview() on it. We override and return null here
-                // regardless so that nothing blows up if this ends up getting called.
-                return SpecializedTasks.Default<object>();
-            }
-
             public static async Task<SuggestedAction> CreateAsync(
                 SuggestedActionWithFlavors suggestedAction, CancellationToken cancellationToken)
             {

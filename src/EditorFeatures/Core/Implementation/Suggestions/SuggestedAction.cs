@@ -228,14 +228,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public virtual bool HasActionSets => _actionSets.Length > 0;
 
         public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IEnumerable<SuggestedActionSet>>(GetActionSets());
-        }
+            => Task.FromResult<IEnumerable<SuggestedActionSet>>(GetActionSets());
 
-        internal ImmutableArray<SuggestedActionSet> GetActionSets()
-        {
-            return _actionSets;
-        }
+        internal ImmutableArray<SuggestedActionSet> GetActionSets() 
+            => _actionSets;
 
         #region not supported
 
@@ -261,28 +257,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        string ISuggestedAction.InputGestureText
-        {
-            get
-            {
-                // no shortcut support
-                return null;
-            }
-        }
+        // no shortcut support
+        string ISuggestedAction.InputGestureText => null;
 
         #endregion
 
         #region IEquatable<ISuggestedAction>
 
         public bool Equals(ISuggestedAction other)
-        {
-            return Equals(other as SuggestedAction);
-        }
+            => Equals(other as SuggestedAction);
 
         public override bool Equals(object obj)
-        {
-            return Equals(obj as SuggestedAction);
-        }
+            => Equals(obj as SuggestedAction);
 
         internal bool Equals(SuggestedAction otherSuggestedAction)
         {
@@ -291,12 +277,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return false;
             }
 
-            if (ReferenceEquals(this, otherSuggestedAction))
+            if (this == otherSuggestedAction)
             {
                 return true;
             }
 
-            if (!ReferenceEquals(Provider, otherSuggestedAction.Provider))
+            if (Provider != otherSuggestedAction.Provider)
             {
                 return false;
             }
