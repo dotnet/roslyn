@@ -352,68 +352,76 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 foreach (var fixCollection in fixCollections)
                 {
-                    var fixes = fixCollection.Fixes;
-                    var fixCount = fixes.Length;
+                    ProcessFixCollection(
+                        workspace, map, order, includeSuppressionFixes, fixCollection);
+                }
+            }
 
-                    Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = 
-                        codeAction => GetFixAllSuggestedActionSet(
-                            codeAction, fixCount, fixCollection.FixAllState, 
-                            fixCollection.SupportedScopes, fixCollection.FirstDiagnostic, 
-                            workspace);
+            private void ProcessFixCollection(Workspace workspace, IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, ArrayBuilder<CodeFixGroupKey> order, bool includeSuppressionFixes, CodeFixCollection fixCollection)
+            {
+                var fixes = fixCollection.Fixes;
+                var fixCount = fixes.Length;
 
-                    // Suppression fixes are handled below.
-                    foreach (var fix in fixes.Where(f => !(f.Action is SuppressionCodeAction)))
+                Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet =
+                    codeAction => GetFixAllSuggestedActionSet(
+                        codeAction, fixCount, fixCollection.FixAllState,
+                        fixCollection.SupportedScopes, fixCollection.FirstDiagnostic,
+                        workspace);
+
+                // Suppression fixes are handled below.
+                foreach (var fix in fixes.Where(f => !(f.Action is SuppressionCodeAction)))
+                {
+                    SuggestedAction suggestedAction;
+                    if (fix.Action.HasCodeActions)
                     {
-                        SuggestedAction suggestedAction;
-                        if (fix.Action.HasCodeActions)
+                        var nestedActions = new List<SuggestedAction>();
+                        foreach (var nestedAction in fix.Action.GetCodeActions())
                         {
-                            var nestedActions = new List<SuggestedAction>();
-                            foreach (var nestedAction in fix.Action.GetCodeActions())
-                            {
-                                nestedActions.Add(new CodeFixSuggestedAction(workspace, _subjectBuffer,
-                                    _owner._editHandler, _owner._waitIndicator, fix,
-                                    nestedAction, fixCollection.Provider, getFixAllSuggestedActionSet(nestedAction), _owner._listener));
-                            }
-
-                            var diag = fix.PrimaryDiagnostic;
-                            var set = new SuggestedActionSet(nestedActions, SuggestedActionSetPriority.Medium, diag.Location.SourceSpan.ToSpan());
-
-                            suggestedAction = new SuggestedAction(workspace, _subjectBuffer,
-                                _owner._editHandler, _owner._waitIndicator, fix.Action,
-                                fixCollection.Provider, _owner._listener, new[] { set });
-                        }
-                        else
-                        {
-                            suggestedAction = new CodeFixSuggestedAction(
-                                workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator, fix,
-                                fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action), _owner._listener);
+                            nestedActions.Add(new CodeFixSuggestedAction(workspace, _subjectBuffer,
+                                _owner._editHandler, _owner._waitIndicator, fix,
+                                nestedAction, fixCollection.Provider, getFixAllSuggestedActionSet(nestedAction), _owner._listener));
                         }
 
-                        AddFix(fix, suggestedAction, map, order);
+                        var diag = fix.PrimaryDiagnostic;
+                        var set = new SuggestedActionSet(nestedActions, SuggestedActionSetPriority.Medium, diag.Location.SourceSpan.ToSpan());
+
+                        suggestedAction = new SuggestedAction(workspace, _subjectBuffer,
+                            _owner._editHandler, _owner._waitIndicator, fix.Action,
+                            fixCollection.Provider, _owner._listener, new[] { set });
+                    }
+                    else
+                    {
+                        suggestedAction = new CodeFixSuggestedAction(
+                            workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator, fix,
+                            fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action), _owner._listener);
                     }
 
-                    if (includeSuppressionFixes)
-                    {
-                        // Add suppression fixes to the end of a given SuggestedActionSet so that they always show up last in a group.
-                        foreach (var fix in fixes.Where(f => f.Action is SuppressionCodeAction))
-                        {
-                            SuggestedAction suggestedAction;
-                            if (fix.Action.HasCodeActions)
-                            {
-                                suggestedAction = new SuppressionSuggestedAction(
-                                    workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
-                                    fix, fixCollection.Provider, getFixAllSuggestedActionSet, _owner._listener);
-                            }
-                            else
-                            {
-                                suggestedAction = new CodeFixSuggestedAction(
-                                    workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator, fix,
-                                    fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action), _owner._listener);
-                            }
+                    AddFix(fix, suggestedAction, map, order);
+                }
 
-                            AddFix(fix, suggestedAction, map, order);
-                        }
+                if (!includeSuppressionFixes)
+                {
+                    return;
+                }
+
+                // Add suppression fixes to the end of a given SuggestedActionSet so that they always show up last in a group.
+                foreach (var fix in fixes.Where(f => f.Action is SuppressionCodeAction))
+                {
+                    SuggestedAction suggestedAction;
+                    if (fix.Action.HasCodeActions)
+                    {
+                        suggestedAction = new SuppressionSuggestedAction(
+                            workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
+                            fix, fixCollection.Provider, getFixAllSuggestedActionSet, _owner._listener);
                     }
+                    else
+                    {
+                        suggestedAction = new CodeFixSuggestedAction(
+                            workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator, fix,
+                            fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action), _owner._listener);
+                    }
+
+                    AddFix(fix, suggestedAction, map, order);
                 }
             }
 
