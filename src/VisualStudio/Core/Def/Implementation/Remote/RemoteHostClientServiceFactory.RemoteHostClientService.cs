@@ -54,6 +54,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
+                    // TODO: remove this once service hub supports running 1 service hub process per vs
+                    if (!Environment.Is64BitOperatingSystem)
+                    {
+                        // we don't support 32 bit OS from using service hub since it shares same service hub process
+                        // between multiple VS processes.
+                        return;
+                    }
+
                     // We enable the remote host if either RemoteHostTest or RemoteHost are on.
                     if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest) &&
                         !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
