@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     SuggestedAction suggestedAction;
                     if (fix.Action.HasCodeActions)
                     {
-                        var nestedActions = new List<SuggestedAction>();
+                        var nestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
                         foreach (var nestedAction in fix.Action.GetCodeActions())
                         {
                             nestedActions.Add(new CodeFixSuggestedAction(workspace, _subjectBuffer,
@@ -382,8 +382,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 nestedAction, fixCollection.Provider, getFixAllSuggestedActionSet(nestedAction), _owner._listener));
                         }
 
-                        var diag = fix.PrimaryDiagnostic;
-                        var set = new SuggestedActionSet(nestedActions, SuggestedActionSetPriority.Medium, diag.Location.SourceSpan.ToSpan());
+                        var set = new SuggestedActionSet(
+                            nestedActions.ToImmutableAndFree(), SuggestedActionSetPriority.Medium, 
+                            fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
                         suggestedAction = new SuggestedAction(workspace, _subjectBuffer,
                             _owner._editHandler, _owner._waitIndicator, fix.Action,
