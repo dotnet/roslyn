@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Extensions;
@@ -154,5 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContents);
         }
+
+        protected virtual DiagnosticData GetDiagnostic() => null;
     }
 }

@@ -225,8 +225,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public virtual Task<object> GetPreviewAsync(CancellationToken cancellationToken)
             => SpecializedTasks.Default<object>();
 
-        protected virtual DiagnosticData GetDiagnostic() => null;
-
         public virtual bool HasActionSets => _actionSets.Length > 0;
 
         public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
