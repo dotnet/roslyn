@@ -16,7 +16,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     /// <summary>
-    /// Suggested action for fix all occurrences code fix.
+    /// Suggested action for fix all occurrences code fix.  Note: this is only used
+    /// as a 'flavor' inside CodeFixSuggestionAction.
     /// </summary>
     internal sealed partial class FixAllSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
     {
@@ -47,25 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // if it is from third party, we use hashcode
             return _fixedDiagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
-        }
-
-        public override bool HasPreview
-        {
-            get
-            {
-                // Since FixAllSuggestedAction will always be presented as a
-                // 'flavored' action, it will never have a preview.
-                return false;
-            }
-        }
-
-        public override Task<object> GetPreviewAsync(CancellationToken cancellationToken)
-        {
-            // Since FixAllSuggestedAction will always be presented as a
-            // 'flavored' action, code in the VS editor / lightbulb layer should
-            // never call GetPreview() on it. We override and return null here
-            // regardless so that nothing blows up if this ends up getting called.
-            return SpecializedTasks.Default<object>();
         }
 
         protected override async Task InvokeAsync(

@@ -100,23 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 nameof(GetActionSetsAsync)));
         }
 
-        public override bool HasPreview
-        {
-            get
-            {
-                // The top-level action won't show any preview.
-                // However, the nested sub-actions returned above will show preview.
-                return false;
-            }
-        }
-
-        public override Task<object> GetPreviewAsync(CancellationToken cancellationToken)
-        {
-            // The top-level action won't show any preview.
-            // However, the nested sub-actions returned above will show preview.
-            return SpecializedTasks.Default<object>();
-        }
-
         public string GetDiagnosticID()
         {
             var diagnostic = _fix.PrimaryDiagnostic;

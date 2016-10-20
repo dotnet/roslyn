@@ -12,6 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionWithFlavors
     {
+        /// <summary>
+        /// Suggested action for showing the preview-changes dialog.  Note: this is only used
+        /// as a 'flavor' inside CodeFixSuggestionAction and CodeRefactoringSuggestedAction.
+        /// </summary>
         private sealed partial class PreviewChangesSuggestedAction : SuggestedAction
         {
             private PreviewChangesSuggestedAction(

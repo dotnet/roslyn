@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -95,6 +96,63 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             return new SuggestedActionSet(ImmutableArray.Create(previewChangesAction));
+        }
+
+        // HasPreview is called synchronously on the UI thread. In order to avoid blocking the UI thread,
+        // we need to provide a 'quick' answer here as opposed to the 'right' answer. Providing the 'right'
+        // answer is expensive (because we will need to call CodeAction.GetPreviewOperationsAsync() for this
+        // and this will involve computing the changed solution for the ApplyChangesOperation for the fix /
+        // refactoring). So we always return 'true' here (so that platform will call GetActionSetsAsync()
+        // below). Platform guarantees that nothing bad will happen if we return 'true' here and later return
+        // 'null' / empty collection from within GetPreviewAsync().
+        public override bool HasPreview => true;
+
+        public override async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Light bulb will always invoke this function on the UI thread.
+            AssertIsForeground();
+
+            var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
+            if (previewPaneService == null)
+            {
+                return null;
+            }
+
+            // after this point, this method should only return at GetPreviewPane. otherwise, DifferenceViewer will leak
+            // since there is no one to close the viewer
+            var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
+            var preferredProjectId = preferredDocumentId?.ProjectId;
+
+            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+            var previewContents = await extensionManager.PerformFunctionAsync(Provider, async () =>
+            {
+                // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
+                // below can execute on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
+                var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
+                if (previewResult == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    // TakeNextPreviewAsync() needs to run on UI thread.
+                    AssertIsForeground();
+                    return await previewResult.GetPreviewsAsync(preferredDocumentId, preferredProjectId, cancellationToken).ConfigureAwait(true);
+                }
+
+                // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
+            }, defaultValue: null).ConfigureAwait(true);
+
+            // GetPreviewPane() needs to run on the UI thread.
+            AssertIsForeground();
+
+            string language;
+            string projectType;
+            Workspace.GetLanguageAndProjectType(preferredProjectId, out language, out projectType);
+
+            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContents);
         }
     }
 }
