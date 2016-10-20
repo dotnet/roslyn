@@ -31,11 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private ImmutableArray<SuggestedActionSet> _allFlavors;
 
         public SuggestedActionWithFlavors(
-            Workspace workspace, ITextBuffer subjectBuffer, ICodeActionEditHandlerService editHandler, 
-            IWaitIndicator waitIndicator, object provider, IAsynchronousOperationListener operationListener, 
-            CodeAction codeAction, SuggestedActionSet additionalFlavors = null) 
-            : base(workspace, subjectBuffer, editHandler, waitIndicator,
-                   provider, operationListener, codeAction, actionSets: null)
+            SuggestedActionsSourceProvider sourceProvider,
+            Workspace workspace, ITextBuffer subjectBuffer,
+            object provider, CodeAction codeAction, 
+            SuggestedActionSet additionalFlavors = null) 
+            : base(sourceProvider, workspace, subjectBuffer, 
+                   provider, codeAction, actionSets: null)
         {
             _additionalFlavors = additionalFlavors;
         }

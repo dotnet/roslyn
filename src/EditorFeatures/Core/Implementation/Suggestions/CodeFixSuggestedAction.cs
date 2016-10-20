@@ -20,17 +20,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly CodeFix _fix;
 
         public CodeFixSuggestedAction(
+            SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
             CodeFix fix,
             object provider,
             SuggestedActionSet fixAllFlavors,
-            IAsynchronousOperationListener operationListener,
             CodeAction action)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, 
-                   provider, operationListener, action, fixAllFlavors)
+            : base(sourceProvider, workspace, subjectBuffer, 
+                   provider, action, fixAllFlavors)
         {
             _fix = fix;
         }

@@ -26,35 +26,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// </summary>
     internal partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
     {
-        protected readonly IAsynchronousOperationListener OperationListener;
+        protected readonly SuggestedActionsSourceProvider SourceProvider;
+
         protected readonly Workspace Workspace;
         protected readonly ITextBuffer SubjectBuffer;
-        protected readonly ICodeActionEditHandlerService EditHandler;
 
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
         private readonly ImmutableArray<SuggestedActionSet> _actionSets;
-        protected readonly IWaitIndicator WaitIndicator;
+
+        protected ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
+        protected IAsynchronousOperationListener OperationListener => SourceProvider.OperationListener;
+        protected IWaitIndicator WaitIndicator => SourceProvider.WaitIndicator;
 
         internal SuggestedAction(
+            SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
             object provider,
-            IAsynchronousOperationListener operationListener,
             CodeAction codeAction,
             IEnumerable<SuggestedActionSet> actionSets = null)
         {
             Contract.ThrowIfTrue(provider == null);
 
+            this.SourceProvider = sourceProvider;
             this.Workspace = workspace;
             this.SubjectBuffer = subjectBuffer;
-            this.CodeAction = codeAction;
-            this.EditHandler = editHandler;
-            this.WaitIndicator = waitIndicator;
             this.Provider = provider;
-            this.OperationListener = operationListener;
+            this.CodeAction = codeAction;
             _actionSets = actionSets.AsImmutableOrEmpty();
         }
 

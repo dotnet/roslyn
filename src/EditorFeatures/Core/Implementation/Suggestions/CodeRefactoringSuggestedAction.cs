@@ -2,8 +2,6 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -14,15 +12,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal sealed class CodeRefactoringSuggestedAction : SuggestedActionWithFlavors
     {
         public CodeRefactoringSuggestedAction(
+            SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
             CodeRefactoringProvider provider,
-            IAsynchronousOperationListener operationListener,
             CodeAction codeAction)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, 
-                   provider, operationListener, codeAction)
+            : base(sourceProvider, workspace, subjectBuffer, provider, codeAction)
         {
         }
     }

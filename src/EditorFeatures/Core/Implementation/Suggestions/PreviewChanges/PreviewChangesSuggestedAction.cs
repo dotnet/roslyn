@@ -19,15 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private sealed partial class PreviewChangesSuggestedAction : SuggestedAction
         {
             private PreviewChangesSuggestedAction(
+                SuggestedActionsSourceProvider sourceProvider,
                 Workspace workspace,
                 ITextBuffer subjectBuffer,
-                ICodeActionEditHandlerService editHandler,
-                IWaitIndicator waitIndicator,
                 object provider,
-                IAsynchronousOperationListener operationListener,
                 PreviewChangesCodeAction codeAction)
-                : base(workspace, subjectBuffer, editHandler, waitIndicator, 
-                      provider, operationListener, codeAction)
+                : base(sourceProvider, workspace, subjectBuffer, provider, codeAction)
             {
             }
 
@@ -47,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 return new PreviewChangesSuggestedAction(
-                    suggestedAction.Workspace, suggestedAction.SubjectBuffer, suggestedAction.EditHandler,
-                    suggestedAction.WaitIndicator, suggestedAction.Provider, suggestedAction.OperationListener,
+                    suggestedAction.SourceProvider, suggestedAction.Workspace,
+                    suggestedAction.SubjectBuffer, suggestedAction.Provider,
                     new PreviewChangesCodeAction(
                         suggestedAction.Workspace, suggestedAction.CodeAction, changeSummary));
             }

@@ -29,16 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly Func<CodeAction, SuggestedActionSet> _getFixAllSuggestedActionSet;
 
         public SuppressionSuggestedAction(
+            SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
             CodeFix fix,
             object provider,
-            Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet,
-            IAsynchronousOperationListener operationListener)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, 
-                   provider, operationListener, fix.Action)
+            Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet)
+            : base(sourceProvider, workspace, subjectBuffer, provider, fix.Action)
         {
             _fix = fix;
             _getFixAllSuggestedActionSet = getFixAllSuggestedActionSet;
@@ -76,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(action);
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
-                        this.Workspace, this.SubjectBuffer, this.EditHandler, this.WaitIndicator, 
+                        this.SourceProvider, this.Workspace, this.SubjectBuffer,
                         new CodeFix(_fix.Project, action, _fix.Diagnostics),
-                        this.Provider, fixAllSuggestedActionSet, this.OperationListener, action));
+                        this.Provider, fixAllSuggestedActionSet, action));
                 }
 
                 _actionSets = ImmutableArray.Create(

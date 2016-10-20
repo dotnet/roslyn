@@ -48,9 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly ICodeRefactoringService _codeRefactoringService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeFixService _codeFixService;
-        private readonly ICodeActionEditHandlerService _editHandler;
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly IWaitIndicator _waitIndicator;
+
+        public readonly ICodeActionEditHandlerService EditHandler;
+        public readonly IAsynchronousOperationListener OperationListener;
+        public readonly IWaitIndicator WaitIndicator;
 
         [ImportingConstructor]
         public SuggestedActionsSourceProvider(
@@ -64,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _codeRefactoringService = codeRefactoringService;
             _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
-            _editHandler = editHandler;
-            _waitIndicator = waitIndicator;
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
+            EditHandler = editHandler;
+            WaitIndicator = waitIndicator;
+            OperationListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
         }
 
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
@@ -377,26 +378,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var nestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
                         foreach (var nestedAction in fix.Action.GetCodeActions())
                         {
-                            nestedActions.Add(new CodeFixSuggestedAction(workspace, _subjectBuffer,
-                                _owner._editHandler, _owner._waitIndicator, fix,
-                                fixCollection.Provider, getFixAllSuggestedActionSet(nestedAction), 
-                                _owner._listener, nestedAction));
+                            nestedActions.Add(new CodeFixSuggestedAction(
+                                _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
+                                getFixAllSuggestedActionSet(nestedAction), nestedAction));
                         }
 
                         var set = new SuggestedActionSet(
                             nestedActions.ToImmutableAndFree(), SuggestedActionSetPriority.Medium, 
                             fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
-                        suggestedAction = new SuggestedAction(workspace, _subjectBuffer,
-                            _owner._editHandler, _owner._waitIndicator,
-                            fixCollection.Provider, _owner._listener, fix.Action, new[] { set });
+                        suggestedAction = new SuggestedAction(_owner, workspace, _subjectBuffer,
+                            fixCollection.Provider, fix.Action, new[] { set });
                     }
                     else
                     {
                         suggestedAction = new CodeFixSuggestedAction(
-                            workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator, 
-                            fix, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action), 
-                            _owner._listener, fix.Action);
+                            _owner, workspace, _subjectBuffer,  fix, fixCollection.Provider, 
+                            getFixAllSuggestedActionSet(fix.Action), fix.Action);
                     }
 
                     AddFix(fix, suggestedAction, map, order);
@@ -414,15 +412,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (fix.Action.HasCodeActions)
                     {
                         suggestedAction = new SuppressionSuggestedAction(
-                            workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
-                            fix, fixCollection.Provider, getFixAllSuggestedActionSet, _owner._listener);
+                            _owner, workspace, _subjectBuffer, fix, fixCollection.Provider, 
+                            getFixAllSuggestedActionSet);
                     }
                     else
                     {
                         suggestedAction = new CodeFixSuggestedAction(
-                            workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
-                            fix, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action), 
-                            _owner._listener, fix.Action);
+                            _owner, workspace, _subjectBuffer, fix, fixCollection.Provider, 
+                            getFixAllSuggestedActionSet(fix.Action), fix.Action);
                     }
 
                     AddFix(fix, suggestedAction, map, order);
@@ -475,9 +472,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
 
                     var fixAllSuggestedAction = new FixAllSuggestedAction(
-                        workspace, _subjectBuffer, _owner._editHandler,
-                        _owner._waitIndicator, fixAllStateForScope, firstDiagnostic,
-                        _owner._listener);
+                        _owner, workspace, _subjectBuffer, fixAllStateForScope, firstDiagnostic);
 
                     fixAllSuggestedActions.Add(fixAllSuggestedAction);
                 }
@@ -588,8 +583,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 foreach (var action in refactoring.Actions)
                 {
                     refactoringSuggestedActions.Add(new CodeRefactoringSuggestedAction(
-                        workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
-                        refactoring.Provider, _owner._listener, action));
+                        _owner, workspace, _subjectBuffer, refactoring.Provider, action));
                 }
 
                 return new SuggestedActionSet(
@@ -610,7 +604,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return false;
                 }
 
-                using (var asyncToken = provider._listener.BeginAsyncOperation("HasSuggestedActionsAsync"))
+                using (var asyncToken = provider.OperationListener.BeginAsyncOperation("HasSuggestedActionsAsync"))
                 {
                     var documentAndSnapshot = await GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
                     if (!documentAndSnapshot.HasValue)

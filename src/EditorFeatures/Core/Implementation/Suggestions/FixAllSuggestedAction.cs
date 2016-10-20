@@ -24,16 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly Diagnostic _fixedDiagnostic;
 
         internal FixAllSuggestedAction(
+            SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
             FixAllState fixAllState,
-            Diagnostic originalFixedDiagnostic,
-            IAsynchronousOperationListener operationListener)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator,
-                  fixAllState.FixAllProvider, operationListener,
-                  new FixAllCodeAction(fixAllState))
+            Diagnostic originalFixedDiagnostic)
+            : base(sourceProvider, workspace, subjectBuffer,
+                   fixAllState.FixAllProvider, new FixAllCodeAction(fixAllState))
         {
             _fixedDiagnostic = originalFixedDiagnostic;
         }
