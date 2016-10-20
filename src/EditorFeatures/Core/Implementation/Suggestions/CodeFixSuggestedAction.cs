@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal sealed class CodeFixSuggestedAction : SuggestedActionWithFlavors, ITelemetryDiagnosticID<string>
     {
         private readonly CodeFix _fix;
-        private readonly SuggestedActionSet _fixAllSuggestedActionSet;
 
         public CodeFixSuggestedAction(
             Workspace workspace,
@@ -28,15 +27,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeFix fix,
             CodeAction action,
             object provider,
-            SuggestedActionSet fixAllSuggestedActionSet,
+            SuggestedActionSet fixAllFlavors,
             IAsynchronousOperationListener operationListener)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, action, provider, operationListener)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, 
+                   action, provider, operationListener, fixAllFlavors)
         {
             _fix = fix;
-            _fixAllSuggestedActionSet = fixAllSuggestedActionSet;
         }
-
-        protected override SuggestedActionSet GetAdditionalFlavors() => _fixAllSuggestedActionSet;
 
         public string GetDiagnosticID()
         {

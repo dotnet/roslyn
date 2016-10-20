@@ -25,23 +25,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// </summary>
     internal abstract partial class SuggestedActionWithFlavors : SuggestedAction, ISuggestedActionWithFlavors
     {
-        private ImmutableArray<SuggestedActionSet> _actionSets;
+        private readonly SuggestedActionSet _additionalFlavors;
+        private ImmutableArray<SuggestedActionSet> _allFlavors;
 
         public SuggestedActionWithFlavors(
             Workspace workspace, ITextBuffer subjectBuffer, ICodeActionEditHandlerService editHandler, 
             IWaitIndicator waitIndicator, CodeAction codeAction, object provider, 
-            IAsynchronousOperationListener operationListener) 
+            IAsynchronousOperationListener operationListener,
+            SuggestedActionSet additionalFlavors = null) 
             : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction,
                   provider, operationListener, actionSets: null)
         {
+            _additionalFlavors = additionalFlavors;
         }
 
         /// <summary>
         /// HasActionSets is always true because we always know we provide 'preview changes'.
         /// </summary>
         public override bool HasActionSets => true;
-
-        protected virtual SuggestedActionSet GetAdditionalFlavors() => null;
 
         public async sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
@@ -50,21 +51,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Light bulb will always invoke this property on the UI thread.
             AssertIsForeground();
 
-            if (_actionSets.IsDefault)
+            if (_allFlavors.IsDefault)
             {
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
 
                 // We use ConfigureAwait(true) to stay on the UI thread.
-                _actionSets = await extensionManager.PerformFunctionAsync(
-                    Provider, () => CreateFlavors(cancellationToken),
+                _allFlavors = await extensionManager.PerformFunctionAsync(
+                    Provider, () => CreateAllFlavors(cancellationToken),
                     defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
             }
 
-            Contract.ThrowIfTrue(_actionSets.IsDefault);
-            return _actionSets;
+            Contract.ThrowIfTrue(_allFlavors.IsDefault);
+            return _allFlavors;
         }
 
-        private async Task<ImmutableArray<SuggestedActionSet>> CreateFlavors(CancellationToken cancellationToken)
+        private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavors(CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
@@ -75,10 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 builder.Add(previewChangesSuggestedActionSet);
             }
 
-            var additionalSet = this.GetAdditionalFlavors();
-            if (additionalSet != null)
+            if (_additionalFlavors != null)
             {
-                builder.Add(additionalSet);
+                builder.Add(_additionalFlavors);
             }
 
             return builder.ToImmutableAndFree();
