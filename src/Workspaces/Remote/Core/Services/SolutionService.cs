@@ -102,7 +102,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var textLoader = TextLoader.From(
                         TextAndVersion.Create(
-                            await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false),
+                            new ChecksumSourceText(
+                                documentSnapshot.Text,
+                                await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)),
                             VersionStamp.Create(),
                             documentInfo.FilePath));
 
@@ -155,7 +157,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var textLoader = TextLoader.From(
                         TextAndVersion.Create(
-                            await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false),
+                            new ChecksumSourceText(
+                                documentSnapshot.Text,
+                            await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)),
                             VersionStamp.Create(),
                             documentInfo.FilePath));
 
