@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,6 +28,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M() { new [|C|](1); } }",
 @"class C { private int v; public C(int v) { this.v = v; } void M() { new C(1); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithSimpleArgument_UseExpressionBody1()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|](1); } }",
+@"class C { private int v; public C(int v) => this.v = v; void M() { new C(1); } }",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]

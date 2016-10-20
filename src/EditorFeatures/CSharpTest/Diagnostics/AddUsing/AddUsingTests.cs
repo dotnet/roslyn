@@ -765,8 +765,8 @@ compareTokens: false);
 using System.Linq.Expressions;
 
 Expression",
-parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
+GetScriptOptions(),
+TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
 compareTokens: false);
         }
 

@@ -49,6 +49,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +97,8 @@
     <Compile Include="CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
     <Compile Include="Execution\CSharpOptionsSerializationService.cs" />
+    <Compile Include="Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
+    <Compile Include="Extensions\BlockSyntaxExtensions.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="LanguageServices\CSharpCommandLineParserService.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
