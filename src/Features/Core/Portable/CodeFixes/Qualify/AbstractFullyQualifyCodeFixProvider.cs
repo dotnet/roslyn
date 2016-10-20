@@ -76,7 +76,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 {
                     // Wrap the spell checking actions into a single top level suggestion
                     // so as to not clutter the list.
-                    context.RegisterCodeFix(new GroupingCodeAction(codeActions), context.Diagnostics);
+                    context.RegisterCodeFix(new GroupingCodeAction(
+                        string.Format(FeaturesResources.Fully_qualify_0, GetNodeName(document, node)),
+                        codeActions), context.Diagnostics);
                 }
                 else
                 {
@@ -86,19 +88,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private IEnumerable<CodeAction> CreateActions(
-            CodeFixContext context, Document document, Diagnostic diagnostic, 
-            SyntaxNode node, SemanticModel semanticModel, 
-            IEnumerable<INamespaceOrTypeSymbol> proposedContainers, 
+            CodeFixContext context, Document document, Diagnostic diagnostic,
+            SyntaxNode node, SemanticModel semanticModel,
+            IEnumerable<INamespaceOrTypeSymbol> proposedContainers,
             ISymbolDisplayService displayService)
         {
             foreach (var container in proposedContainers)
             {
                 var containerName = displayService.ToMinimalDisplayString(semanticModel, node.SpanStart, container);
 
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                string name;
-                int arity;
-                syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+                var name = GetNodeName(document, node);
 
                 // Actual member name might differ by case.
                 string memberName;
@@ -118,6 +117,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
                 yield return codeAction;
             }
+        }
+
+        private static string GetNodeName(Document document, SyntaxNode node)
+        {
+            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            string name;
+            int arity;
+            syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+            return name;
         }
 
         private async Task<Document> ProcessNode(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
@@ -231,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             {
                 return false;
             }
-            
+
             return BindsWithoutErrors(ns, rightName + "Attribute", isAttributeName: false);
         }
 
@@ -270,15 +278,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+                base(title, createChangedDocument, equivalenceKey: title)
             {
             }
         }
 
         private class GroupingCodeAction : CodeAction.SimpleCodeAction
         {
-            public GroupingCodeAction(ImmutableArray<CodeAction> nestedActions)
-                : base(FeaturesResources.Fully_qualify_name, nestedActions)
+            public GroupingCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
+                : base(title, nestedActions)
             {
             }
         }
