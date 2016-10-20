@@ -13,19 +13,19 @@ namespace Roslyn.Utilities
     /// <summary>
     /// A class that deserializes objects from a stream.
     /// </summary>
-    internal sealed class StreamObjectReader : ObjectReader, IDisposable
+    internal sealed partial class StreamObjectReader : ObjectReader, IDisposable
     {
         private readonly BinaryReader _reader;
-        private readonly ObjectReaderData _dataMap;
+        private readonly ReaderData _dataMap;
         private readonly ObjectBinder _binder;
         private readonly CancellationToken _cancellationToken;
         private readonly Stack<Variant> _valueStack;
         private readonly Stack<Consumer> _consumerStack;
         private readonly VariantReader _variantReader;
 
-        internal StreamObjectReader(
+        public StreamObjectReader(
             Stream stream,
-            ObjectReaderData defaultData = null,
+            ObjectData data = null,
             ObjectBinder binder = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
-            _dataMap = new ObjectReaderData(defaultData);
+            _dataMap = ReaderData.Create(data);
             _binder = binder;
             _cancellationToken = cancellationToken;
             _valueStack = new Stack<Variant>();

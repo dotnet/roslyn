@@ -1248,13 +1248,13 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
-            using (var writer = new StreamObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            using (var writer = new StreamObjectWriter(stream, GetSerializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
             {
                 writer.WriteValue(this.Green);
             }
         }
 
-        internal abstract ObjectWriterData GetDefaultObjectWriterData();
+        internal abstract ObjectData GetSerializationObjectData();
 
         #region Core Methods
 

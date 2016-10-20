@@ -47,6 +47,7 @@
       <Visible>false</Visible>
     </Content>
     <Compile Include="Serialization\DataKind.cs" />
+    <Compile Include="Serialization\ObjectData.cs" />
     <Compile Include="Serialization\StreamObjectReader.cs" />
     <Compile Include="Serialization\StreamObjectWriter.cs" />
     <Compile Include="Serialization\TypeKey.cs" />
@@ -560,9 +561,9 @@
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectReader.cs" />
-    <Compile Include="Serialization\ObjectReaderData.cs" />
+    <Compile Include="Serialization\StreamObjectReader.ReaderData.cs" />
     <Compile Include="Serialization\ObjectWriter.cs" />
-    <Compile Include="Serialization\ObjectWriterData.cs" />
+    <Compile Include="Serialization\StreamObjectWriter.WriterData.cs" />
     <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />

@@ -16,18 +16,18 @@ namespace Roslyn.Utilities
     /// <summary>
     /// A class that serializes objects to a stream.
     /// </summary>
-    internal sealed class StreamObjectWriter : ObjectWriter, IDisposable
+    internal sealed partial class StreamObjectWriter : ObjectWriter, IDisposable
     {
         private readonly BinaryWriter _writer;
-        private readonly ObjectWriterData _dataMap;
+        private readonly WriterData _dataMap;
         private readonly ObjectBinder _binder;
         private readonly CancellationToken _cancellationToken;
         private readonly Stack<Variant> _valueStack;
         private readonly VariantWriter _variantWriter;
 
-        internal StreamObjectWriter(
+        public StreamObjectWriter(
             Stream stream,
-            ObjectWriterData defaultData = null,
+            ObjectData data = null,
             ObjectBinder binder = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -36,7 +36,7 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
-            _dataMap = new ObjectWriterData(defaultData);
+            _dataMap = WriterData.Create(data);
             _binder = binder ?? new SimpleRecordingObjectBinder();
             _cancellationToken = cancellationToken;
             _valueStack = new Stack<Variant>();
