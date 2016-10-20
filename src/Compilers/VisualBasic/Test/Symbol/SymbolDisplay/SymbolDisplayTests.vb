@@ -6,7 +6,6 @@ Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -3092,7 +3091,6 @@ End Class
                 findSymbol,
                 format,
                 "M(ByRef s As Int16, i As Int32, ParamArray args As String())",
-                {
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
@@ -3120,7 +3118,59 @@ End Class
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Punctuation})
+                SymbolDisplayPartKind.Punctuation)
+
+            ' Without SymbolDisplayParameterOptions.IncludeParamsRefOut.
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format.WithParameterOptions(SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName),
+                "M(s As Int16, i As Int32, args As String())",
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation)
+
+            ' Without SymbolDisplayParameterOptions.IncludeType.
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format.WithParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut Or SymbolDisplayParameterOptions.IncludeName),
+                "M(ByRef s, i, ParamArray args)",
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation)
         End Sub
 
         ' "Public" and "MustOverride" should not be included for interface members.
@@ -4603,6 +4653,140 @@ class Outer
             Assert.Equal(Nothing, SymbolDisplay.FormatPrimitive(New Object(), quoteStrings:=False, useHexadecimalNumbers:=False))
         End Sub
 
+        ' SymbolDisplayMemberOptions.IncludeRef is ignored in VB.
+        <WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")>
+        <Fact()>
+        Public Sub RefReturn()
+            Dim sourceA =
+"public delegate ref int D();
+public class C
+{
+    public ref int F(ref int i) => ref i;
+    int _p;
+    public ref int P => ref _p;
+    public ref int this[int i] => ref _p;
+}"
+            Dim compA = CreateCSharpCompilation(GetUniqueName(), sourceA)
+            compA.VerifyDiagnostics()
+            Dim refA = compA.EmitToImageReference()
+            ' From C# symbols.
+            RefReturnInternal(compA)
+
+            Dim sourceB =
+        <compilation>
+            <file name="b.vb">
+            </file>
+        </compilation>
+            Dim compB = CompilationUtils.CreateCompilationWithMscorlib(sourceB, references:={refA})
+            compB.VerifyDiagnostics()
+            ' From VB symbols.
+            RefReturnInternal(compB)
+        End Sub
+
+        Private Shared Sub RefReturnInternal(comp As Compilation)
+            Dim formatWithRef = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeRef,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                propertyStyle:=SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndSignature,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim [global] = comp.GlobalNamespace
+            Dim type = [global].GetTypeMembers("C").Single()
+            Dim method = type.GetMembers("F").Single()
+            Dim [property] = type.GetMembers("P").Single()
+            Dim indexer = type.GetMembers().Where(Function(m) m.Kind = SymbolKind.Property AndAlso DirectCast(m, IPropertySymbol).IsIndexer).Single()
+            Dim [delegate] = [global].GetTypeMembers("D").Single()
+
+            ' Method with IncludeRef.
+            ' https://github.com/dotnet/roslyn/issues/14683: missing ByRef for C# parameters.
+            If comp.Language = "C#" Then
+                Verify(
+                    SymbolDisplay.ToDisplayParts(method, formatWithRef),
+                    "F(Integer) As Integer",
+                    SymbolDisplayPartKind.MethodName,
+                    SymbolDisplayPartKind.Punctuation,
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Punctuation,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.Keyword)
+            Else
+                Verify(
+                    SymbolDisplay.ToDisplayParts(method, formatWithRef),
+                    "F(ByRef Integer) As Integer",
+                    SymbolDisplayPartKind.MethodName,
+                    SymbolDisplayPartKind.Punctuation,
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Punctuation,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.Keyword)
+            End If
+
+            ' Property with IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts([property], formatWithRef),
+                "ReadOnly P As Integer",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+
+            ' Indexer with IncludeRef.
+            ' https://github.com/dotnet/roslyn/issues/14684: "this[]" for C# indexer.
+            If comp.Language = "C#" Then
+                Verify(
+                    SymbolDisplay.ToDisplayParts(indexer, formatWithRef),
+                    "ReadOnly this[](Integer) As Integer",
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.PropertyName,
+                    SymbolDisplayPartKind.Punctuation,
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Punctuation,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.Keyword)
+            Else
+                Verify(
+                    SymbolDisplay.ToDisplayParts(indexer, formatWithRef),
+                    "ReadOnly Item(Integer) As Integer",
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.PropertyName,
+                    SymbolDisplayPartKind.Punctuation,
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Punctuation,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
+                    SymbolDisplayPartKind.Keyword)
+            End If
+
+            ' Delegate with IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts([delegate], formatWithRef),
+                "Function D() As Integer",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+        End Sub
+
         <Fact>
         Public Sub AliasInSpeculativeSemanticModel()
             Dim text =
@@ -4641,7 +4825,7 @@ End Class")
 
 #Region "Helpers"
 
-        Private Sub TestSymbolDescription(
+        Private Shared Sub TestSymbolDescription(
             text As XElement,
             findSymbol As Func(Of NamespaceSymbol, Symbol),
             format As SymbolDisplayFormat,
@@ -4685,7 +4869,7 @@ End Class")
             Verify(description, expectedText, kinds)
         End Sub
 
-        Private Sub TestSymbolDescription(
+        Private Shared Sub TestSymbolDescription(
             text As XElement,
             findSymbol As Func(Of NamespaceSymbol, Symbol),
             format As SymbolDisplayFormat,
@@ -4712,7 +4896,7 @@ End Class")
             Assert.Equal(expectedText, parts.ToDisplayString())
 
             If (kinds.Length > 0) Then
-                AssertEx.Equal(kinds, parts.Select(Function(d) d.Kind))
+                AssertEx.Equal(kinds, parts.Select(Function(p) p.Kind), itemInspector:=Function(p) $"SymbolDisplayPartKind.{p}")
             End If
 
             Return parts
