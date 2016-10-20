@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
 
-                    return OrganizeFixes(workspace, filteredFixes, hasSuppressionFixes: includeSuppressionFixes);
+                    return OrganizeFixes(workspace, filteredFixes, includeSuppressionFixes: includeSuppressionFixes);
                 }
 
                 return null;
@@ -326,13 +326,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// <summary>
             /// Arrange fixes into groups based on the issue (diagnostic being fixed) and prioritize these groups.
             /// </summary>
-            private IEnumerable<SuggestedActionSet> OrganizeFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, bool hasSuppressionFixes)
+            private IEnumerable<SuggestedActionSet> OrganizeFixes(
+                Workspace workspace, IEnumerable<CodeFixCollection> fixCollections,
+                bool includeSuppressionFixes)
             {
                 var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<SuggestedAction>>();
                 var order = ArrayBuilder<CodeFixGroupKey>.GetInstance();
 
                 // First group fixes by diagnostic and priority.
-                GroupFixes(workspace, fixCollections, map, order, hasSuppressionFixes);
+                GroupFixes(workspace, fixCollections, map, order, includeSuppressionFixes);
 
                 // Then prioritize between the groups.
                 return PrioritizeFixGroups(map.ToImmutable(), order.ToImmutableAndFree());
@@ -346,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 IEnumerable<CodeFixCollection> fixCollections,
                 IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
                 ArrayBuilder<CodeFixGroupKey> order,
-                bool hasSuppressionFixes)
+                bool includeSuppressionFixes)
             {
                 foreach (var fixCollection in fixCollections)
                 {
@@ -394,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
                     }
 
-                    if (hasSuppressionFixes)
+                    if (includeSuppressionFixes)
                     {
                         // Add suppression fixes to the end of a given SuggestedActionSet so that they always show up last in a group.
                         foreach (var fix in fixes)
