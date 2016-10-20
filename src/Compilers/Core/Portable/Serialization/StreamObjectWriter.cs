@@ -20,7 +20,7 @@ namespace Roslyn.Utilities
     {
         private readonly BinaryWriter _writer;
         private readonly ObjectWriterData _dataMap;
-        private readonly RecordingObjectBinder _binder;
+        private readonly ObjectBinder _binder;
         private readonly CancellationToken _cancellationToken;
         private readonly Stack<Variant> _valueStack;
         private readonly VariantWriter _variantWriter;
@@ -28,7 +28,7 @@ namespace Roslyn.Utilities
         internal StreamObjectWriter(
             Stream stream,
             ObjectWriterData defaultData = null,
-            RecordingObjectBinder binder = null,
+            ObjectBinder binder = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             // String serialization assumes both reader and writer to be of the same endianness.
@@ -385,7 +385,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void EmitCompressedUInt(uint value)
+        private void WriteCompressedUInt(uint value)
         {
             if (value <= (byte.MaxValue >> 2))
             {
@@ -393,8 +393,8 @@ namespace Roslyn.Utilities
             }
             else if (value <= (ushort.MaxValue >> 2))
             {
-                byte byte0 = (byte)(((value >> 8) & 0xFF) | Byte2Marker);
-                byte byte1 = (byte)(value & 0xFF);
+                byte byte0 = (byte)(((value >> 8) & 0xFFu) | Byte2Marker);
+                byte byte1 = (byte)(value & 0xFFu);
 
                 // high-bytes to low-bytes
                 _writer.Write(byte0);
@@ -402,13 +402,12 @@ namespace Roslyn.Utilities
             }
             else if (value <= (uint.MaxValue >> 2))
             {
-                // high-bytes to low-bytes
-                byte byte0 = (byte)(((value >> 24) & 0xFF) | Byte4Marker);
-                byte byte1 = (byte)((value >> 16) & 0xFF);
-                byte byte2 = (byte)((value >> 8) & 0xFF);
-                byte byte3 = (byte)(value & 0xFF);
+                byte byte0 = (byte)(((value >> 24) & 0xFFu) | Byte4Marker);
+                byte byte1 = (byte)((value >> 16) & 0xFFu);
+                byte byte2 = (byte)((value >> 8) & 0xFFu);
+                byte byte3 = (byte)(value & 0xFFu);
 
-                // hit-bits with 4-byte marker
+                // high-bytes to low-bytes
                 _writer.Write(byte0);
                 _writer.Write(byte1);
                 _writer.Write(byte2);
@@ -476,7 +475,7 @@ namespace Roslyn.Utilities
                             Marshal.Copy((IntPtr)valuePtr, bytes, 0, bytes.Length);
                         }
 
-                        EmitCompressedUInt((uint)value.Length);
+                        WriteCompressedUInt((uint)value.Length);
                         _writer.Write(bytes);
                     }
                 }
@@ -553,7 +552,7 @@ namespace Roslyn.Utilities
                         break;
                     default:
                         _writer.Write((byte)DataKind.Array);
-                        this.EmitCompressedUInt((uint)length);
+                        this.WriteCompressedUInt((uint)length);
                         break;
                 }
 
@@ -601,7 +600,7 @@ namespace Roslyn.Utilities
                     break;
                 default:
                     _writer.Write((byte)DataKind.ValueArray);
-                    this.EmitCompressedUInt((uint)length);
+                    this.WriteCompressedUInt((uint)length);
                     break;
             }
 
@@ -626,12 +625,12 @@ namespace Roslyn.Utilities
             {
                 // optimization for string which object writer has
                 // its own optimization to reduce repeated string
-                WritePrimitiveTypeArrayElements((string[])instance, EmitString);
+                WriteStringArrayElements((string[])instance);
             }
             else if (type == typeof(bool))
             {
                 // optimization for bool array
-                WriteBooleanArray((bool[])instance);
+                WriteBooleanArrayElements((bool[])instance);
             }
             else
             {
@@ -639,34 +638,34 @@ namespace Roslyn.Utilities
                 switch (kind)
                 {
                     case DataKind.Int8:
-                        WritePrimitiveTypeArrayElements((sbyte[])instance, _writer.Write);
+                        WriteInt8ArrayElements((sbyte[])instance);
                         return;
                     case DataKind.Int16:
-                        WritePrimitiveTypeArrayElements((short[])instance, _writer.Write);
+                        WriteInt16ArrayElements((short[])instance);
                         return;
                     case DataKind.Int32:
-                        WritePrimitiveTypeArrayElements((int[])instance, _writer.Write);
+                        WriteInt32ArrayElements((int[])instance);
                         return;
                     case DataKind.Int64:
-                        WritePrimitiveTypeArrayElements((long[])instance, _writer.Write);
+                        WriteInt64ArrayElements((long[])instance);
                         return;
                     case DataKind.UInt16:
-                        WritePrimitiveTypeArrayElements((ushort[])instance, _writer.Write);
+                        WriteUInt16ArrayElements((ushort[])instance);
                         return;
                     case DataKind.UInt32:
-                        WritePrimitiveTypeArrayElements((uint[])instance, _writer.Write);
+                        WriteUInt32ArrayElements((uint[])instance);
                         return;
                     case DataKind.UInt64:
-                        WritePrimitiveTypeArrayElements((ulong[])instance, _writer.Write);
+                        WriteUInt64ArrayElements((ulong[])instance);
                         return;
                     case DataKind.Float4:
-                        WritePrimitiveTypeArrayElements((float[])instance, _writer.Write);
+                        WriteFloat4ArrayElements((float[])instance);
                         return;
                     case DataKind.Float8:
-                        WritePrimitiveTypeArrayElements((double[])instance, _writer.Write);
+                        WriteFloat8ArrayElements((double[])instance);
                         return;
                     case DataKind.Decimal:
-                        WritePrimitiveTypeArrayElements((decimal[])instance, _writer.Write);
+                        WriteDecimalArrayElements((decimal[])instance);
                         return;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);
@@ -674,7 +673,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteBooleanArray(bool[] array)
+        private void WriteBooleanArrayElements(bool[] array)
         {
             // convert bool array to bit array
             var bits = BitVector.Create(array.Length);
@@ -690,11 +689,91 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static void WritePrimitiveTypeArrayElements<T>(T[] array, Action<T> write)
+        private void WriteStringArrayElements(string[] array)
         {
             for (var i = 0; i < array.Length; i++)
             {
-                write(array[i]);
+                EmitString(array[i]);
+            }
+        }
+
+        private void WriteInt8ArrayElements(sbyte[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
+            }
+        }
+
+        private void WriteInt16ArrayElements(short[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
+            }
+        }
+
+        private void WriteInt32ArrayElements(int[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
+            }
+        }
+
+        private void WriteInt64ArrayElements(long[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
+            }
+        }
+
+        private void WriteUInt16ArrayElements(ushort[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
+            }
+        }
+
+        private void WriteUInt32ArrayElements(uint[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
+            }
+        }
+
+        private void WriteUInt64ArrayElements(ulong[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
+            }
+        }
+
+        private void WriteDecimalArrayElements(decimal[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
+            }
+        }
+
+        private void WriteFloat4ArrayElements(float[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
+            }
+        }
+
+        private void WriteFloat8ArrayElements(double[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                _writer.Write(array[i]);
             }
         }
 
@@ -730,18 +809,12 @@ namespace Roslyn.Utilities
             {
                 _dataMap.Add(type);
 
-                _binder?.Record(type);
-
                 _writer.Write((byte)DataKind.Type);
 
-                string assemblyName = type.GetTypeInfo().Assembly.FullName;
-                string typeName = type.FullName;
+                var typeKey = _binder.GetTypeKey(type);
 
-                // assembly name
-                this.EmitString(assemblyName);
-
-                // type name
-                this.EmitString(typeName);
+                this.EmitString(typeKey.AssemblyName);
+                this.EmitString(typeKey.TypeName);
             }
         }
 
@@ -772,33 +845,27 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var iwriteable = instance as IObjectWritable;
-                if (iwriteable != null)
+                var typeWriter = _binder.GetWriter(instance);
+                if (typeWriter == null)
                 {
-                    this.WriteWritableObject(iwriteable);
-                    return;
+                    throw NotWritableException(instance.GetType().FullName);
                 }
 
-                throw NotWritableException(instance.GetType().FullName);
-            }
-        }
+                // gather instance members by writing them into a list of variants
+                _variantWriter.List.Clear();
+                typeWriter(_variantWriter, instance);
 
-        private void WriteWritableObject(IObjectWritable instance)
-        {
-            // gather instance members by writing them into a list of variants
-            _variantWriter.List.Clear();
-            instance.WriteTo(_variantWriter);
+                // emit object header up front
+                this.WriteObjectHeader(instance, (uint)_variantWriter.List.Count);
 
-            // emit object header up front
-            this.WriteObjectHeader(instance, (uint)_variantWriter.List.Count);
+                // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
+                // TODO: consider optimizing for objects that only contain primitive members.
 
-            // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
-            // TODO: consider optimizing for objects that only contain primitive members.
-
-            // push all members in reverse order so we later emit the first member written first
-            for (int i = _variantWriter.List.Count - 1; i >= 0; i--)
-            {
-                _valueStack.Push(_variantWriter.List[i]);
+                // push all members in reverse order so we later emit the first member written first
+                for (int i = _variantWriter.List.Count - 1; i >= 0; i--)
+                {
+                    _valueStack.Push(_variantWriter.List[i]);
+                }
             }
         }
 
@@ -810,9 +877,7 @@ namespace Roslyn.Utilities
 
             Type type = instance.GetType();
             this.WriteType(type);
-            this.EmitCompressedUInt(memberCount);
-
-            _binder?.Record(instance);
+            this.WriteCompressedUInt(memberCount);
         }
 
         private static Exception NotWritableException(string typeName)

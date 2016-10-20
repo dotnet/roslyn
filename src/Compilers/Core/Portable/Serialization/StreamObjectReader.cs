@@ -120,8 +120,7 @@ namespace Roslyn.Utilities
 
         public override string ReadString()
         {
-            var kind = (DataKind)_reader.ReadByte();
-            return kind == DataKind.Null ? null : ReadString(kind);
+            return ReadStringValue();
         }
 
         public override object ReadValue()
@@ -264,7 +263,7 @@ namespace Roslyn.Utilities
                 case DataKind.StringRef:
                 case DataKind.StringRef_B:
                 case DataKind.StringRef_S:
-                    return Variant.FromString(ReadString(kind));
+                    return Variant.FromString(ReadStringValue(kind));
                 case DataKind.Object_W:
                     return ReadReadableObject();
                 case DataKind.ObjectRef:
@@ -439,7 +438,13 @@ namespace Roslyn.Utilities
             throw ExceptionUtilities.UnexpectedValue(marker);
         }
 
-        private string ReadString(DataKind kind)
+        private string ReadStringValue()
+        {
+            var kind = (DataKind)_reader.ReadByte();
+            return kind == DataKind.Null ? null : ReadStringValue(kind);
+        }
+
+        private string ReadStringValue(DataKind kind)
         {
             switch (kind)
             {
@@ -566,52 +571,45 @@ namespace Roslyn.Utilities
             // reduce duplicated strings
             if (type == typeof(string))
             {
-                return ReadPrimitiveTypeArrayElements(length, ReadString);
+                return ReadStringArrayElements(CreateArray<string>(length));
             }
 
             if (type == typeof(bool))
             {
-                return ReadBooleanArray(length);
+                return ReadBooleanArrayElements(CreateArray<bool>(length));
             }
 
             // otherwise, read elements directly from underlying binary writer
             switch (kind)
             {
                 case DataKind.Int8:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadSByte);
+                    return ReadInt8ArrayElements(CreateArray<sbyte>(length));
                 case DataKind.Int16:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadInt16);
+                    return ReadInt16ArrayElements(CreateArray<short>(length));
                 case DataKind.Int32:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadInt32);
+                    return ReadInt32ArrayElements(CreateArray<int>(length));
                 case DataKind.Int64:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadInt64);
+                    return ReadInt64ArrayElements(CreateArray<long>(length));
                 case DataKind.UInt16:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadUInt16);
+                    return ReadUInt16ArrayElements(CreateArray<ushort>(length));
                 case DataKind.UInt32:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadUInt32);
+                    return ReadUInt32ArrayElements(CreateArray<uint>(length));
                 case DataKind.UInt64:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadUInt64);
+                    return ReadUInt64ArrayElements(CreateArray<ulong>(length));
                 case DataKind.Float4:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadSingle);
+                    return ReadFloat4ArrayElements(CreateArray<float>(length));
                 case DataKind.Float8:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadDouble);
+                    return ReadFloat8ArrayElements(CreateArray<double>(length));
                 case DataKind.Decimal:
-                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadDecimal);
+                    return ReadDecimalArrayElements(CreateArray<decimal>(length));
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
-        private bool[] ReadBooleanArray(int length)
+        private bool[] ReadBooleanArrayElements(bool[] array)
         {
-            if (length == 0)
-            {
-                //  simple check
-                return Array.Empty<bool>();
-            }
-
-            var array = new bool[length];
-            var wordLength = BitVector.WordsRequired(length);
+            var wordLength = BitVector.WordsRequired(array.Length);
 
             var count = 0;
             for (var i = 0; i < wordLength; i++)
@@ -620,7 +618,7 @@ namespace Roslyn.Utilities
 
                 for (var p = 0; p < BitVector.BitsPerWord; p++)
                 {
-                    if (count >= length)
+                    if (count >= array.Length)
                     {
                         return array;
                     }
@@ -632,18 +630,124 @@ namespace Roslyn.Utilities
             return array;
         }
 
-        private static T[] ReadPrimitiveTypeArrayElements<T>(int length, Func<T> read)
+        private static T[] CreateArray<T>(int length)
         {
             if (length == 0)
             {
                 // quick check
                 return Array.Empty<T>();
             }
+            else
+            {
+                return new T[length];
+            }
+        }
 
-            var array = new T[length];
+        private string[] ReadStringArrayElements(string[] array)
+        {
             for (var i = 0; i < array.Length; i++)
             {
-                array[i] = read();
+                array[i] = this.ReadStringValue();
+            }
+
+            return array;
+        }
+
+        private sbyte[] ReadInt8ArrayElements(sbyte[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadSByte();
+            }
+
+            return array;
+        }
+
+        private short[] ReadInt16ArrayElements(short[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadInt16();
+            }
+
+            return array;
+        }
+
+        private int[] ReadInt32ArrayElements(int[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadInt32();
+            }
+
+            return array;
+        }
+
+        private long[] ReadInt64ArrayElements(long[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadInt64();
+            }
+
+            return array;
+        }
+
+        private ushort[] ReadUInt16ArrayElements(ushort[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadUInt16();
+            }
+
+            return array;
+        }
+
+        private uint[] ReadUInt32ArrayElements(uint[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadUInt32();
+            }
+
+            return array;
+        }
+
+        private ulong[] ReadUInt64ArrayElements(ulong[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadUInt64();
+            }
+
+            return array;
+        }
+
+        private decimal[] ReadDecimalArrayElements(decimal[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadDecimal();
+            }
+
+            return array;
+        }
+
+        private float[] ReadFloat4ArrayElements(float[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadSingle();
+            }
+
+            return array;
+        }
+
+        private double[] ReadFloat8ArrayElements(double[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadDouble();
             }
 
             return array;
@@ -670,15 +774,15 @@ namespace Roslyn.Utilities
 
                 case DataKind.Type:
                     int id = _dataMap.GetNextId();
-                    var assemblyName = this.ReadString();
-                    var typeName = this.ReadString();
+                    var assemblyName = this.ReadStringValue();
+                    var typeName = this.ReadStringValue();
 
                     if (_binder == null)
                     {
                         throw NoBinderException(typeName);
                     }
 
-                    var type = _binder.GetType(assemblyName, typeName);
+                    var type = _binder.GetType(new TypeKey(assemblyName, typeName));
                     _dataMap.AddValue(id, type);
                     return type;
 

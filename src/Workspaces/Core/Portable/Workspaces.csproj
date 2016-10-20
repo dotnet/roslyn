@@ -182,9 +182,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\DataKind.cs">
       <Link>Serialization\DataKind.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\FixedObjectBinder.cs">
-      <Link>Serialization\FixedObjectBinder.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectReadable.cs">
       <Link>Serialization\IObjectReadable.cs</Link>
     </Compile>
@@ -205,9 +202,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriterData.cs">
       <Link>Serialization\ObjectWriterData.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\RecordingObjectBinder.cs">
-      <Link>Serialization\RecordingObjectBinder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\SimpleRecordingObjectBinder.cs">
       <Link>Serialization\SimpleRecordingObjectBinder.cs</Link>
@@ -295,6 +289,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
       <Link>Serialization\StreamObjectWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\TypeKey.cs">
+      <Link>Serialization\TypeKey.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\Variant.cs">
       <Link>Serialization\Variant.cs</Link>

@@ -10,7 +10,7 @@ namespace Roslyn.Utilities
     /// <summary>
     /// A binder that gathers type/reader mappings during object writing
     /// </summary>
-    internal sealed class ConcurrentRecordingObjectBinder : RecordingObjectBinder
+    internal sealed class ConcurrentRecordingObjectBinder : ObjectBinder
     {
         private readonly ConcurrentDictionary<TypeKey, Type> _typeMap =
             new ConcurrentDictionary<TypeKey, Type>();
@@ -18,12 +18,12 @@ namespace Roslyn.Utilities
         private readonly ConcurrentDictionary<Type, Func<ObjectReader, object>> _readerMap =
             new ConcurrentDictionary<Type, Func<ObjectReader, object>>();
 
-        public override Type GetType(string assemblyName, string typeName)
+        public override Type GetType(TypeKey key)
         {
             Type type;
-            if (!_typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type))
+            if (!_typeMap.TryGetValue(key, out type))
             {
-                Debug.Assert(false, assemblyName + "/" + typeName + " don't exist");
+                Debug.Assert(false, key.AssemblyName + "/" + key.TypeName + " don't exist");
             }
 
             return type;
@@ -45,33 +45,45 @@ namespace Roslyn.Utilities
             return _readerMap.ContainsKey(type);
         }
 
-        public override void Record(Type type)
+        public override TypeKey GetTypeKey(Type type)
+        {
+            var key = base.GetTypeKey(type);
+            RecordType(type, key);
+            return key;
+        }
+
+        public override Action<ObjectWriter, Object> GetWriter(Object instance)
+        {
+            RecordReader(instance);
+            return base.GetWriter(instance);
+        }
+
+        private void RecordType(Type type, TypeKey key)
         {
             if (type != null)
             {
-                var key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
                 _typeMap.TryAdd(key, type);
             }
         }
 
-        public override void Record(object instance)
+        private void RecordReader(object instance)
         {
             if (instance != null)
             {
                 var type = instance.GetType();
+                var key = GetTypeKey(type); // side-effect records type too
 
                 var readable = instance as IObjectReadable;
                 if (readable != null)
                 {
                     if (HasConstructor(type))
                     {
+                        Debug.Assert(_typeMap.ContainsKey(key));
                         return;
                     }
 
                     _readerMap.TryAdd(type, readable.GetReader());
                 }
-
-                Record(type);
             }
         }
     }

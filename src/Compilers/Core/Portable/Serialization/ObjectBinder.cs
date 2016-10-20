@@ -1,39 +1,33 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Reflection;
 
 namespace Roslyn.Utilities
 {
+    /// <summary>
+    /// A type that controls how types are found and objects are serialized.
+    /// </summary>
     internal abstract class ObjectBinder
     {
-        public abstract Type GetType(string assemblyName, string typeName);
+        public abstract Type GetType(TypeKey key);
+
+        public virtual TypeKey GetTypeKey(Type type)
+        {
+            return new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
+        }
+
         public abstract Func<ObjectReader, object> GetReader(Type type);
 
-        internal struct TypeKey : IEquatable<TypeKey>
-        {
-            internal readonly string AssemblyName;
-            internal readonly string TypeName;
-
-            public TypeKey(string assemblyName, string typeName)
+        public virtual Action<ObjectWriter, object> GetWriter(object instance)
+        {          
+            if (instance is IObjectWritable)
             {
-                this.AssemblyName = assemblyName;
-                this.TypeName = typeName;
+                return (w, i) => ((IObjectWritable)i).WriteTo(w); // static delegate should be cached
             }
-
-            public bool Equals(TypeKey other)
+            else
             {
-                return this.AssemblyName == other.AssemblyName
-                    && this.TypeName == other.TypeName;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is TypeKey && this.Equals((TypeKey)obj);
-            }
-
-            public override int GetHashCode()
-            {
-                return Hash.Combine(this.AssemblyName.GetHashCode(), this.TypeName.GetHashCode());
+                return null;
             }
         }
     }
