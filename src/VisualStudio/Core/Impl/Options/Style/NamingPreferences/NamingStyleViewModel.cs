@@ -9,12 +9,11 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    internal class NamingStyleViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
+    internal class NamingStyleViewModel : AbstractNotifyPropertyChanged
     {
         private NamingStyle _style;
-        private readonly INotificationService _notificationService;
 
-        public NamingStyleViewModel(NamingStyle style, bool canBeDeleted, INotificationService notificationService)
+        public NamingStyleViewModel(NamingStyle style, INotificationService notificationService)
         {
             _notificationService = notificationService;
             _style = style;
@@ -22,8 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             this.RequiredPrefix = style.Prefix;
             this.RequiredSuffix = style.Suffix;
             this.WordSeparator = style.WordSeparator;
-            this.ItemName = style.Name;
-            this.CanBeDeleted = canBeDeleted;
+            this.FirstWordGroupCapitalization = (int)style.CapitalizationScheme;
+            this.NamingConventionName = style.Name;
 
             CapitalizationSchemes = new List<CapitalizationDisplay>
                 {
@@ -58,11 +57,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         public Guid ID { get; internal set; }
 
-        private string _itemName;
-        public string ItemName
+        private string _namingConventionName;
+        public string NamingConventionName
         {
-            get { return _itemName; }
-            set { SetProperty(ref _itemName, value); }
+            get { return _namingConventionName; }
+            set { SetProperty(ref _namingConventionName, value); }
         }
 
         public string CurrentConfiguration
@@ -128,12 +127,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 }
             }
         }
-        
-        public bool CanBeDeleted { get; set; }
+
+        private int _firstWordGroupCapitalization;
+        internal readonly INotificationService _notificationService;
+
+        public int FirstWordGroupCapitalization
+        {
+            get
+            {
+                return _firstWordGroupCapitalization;
+            }
+            set
+            {
+                _style.CapitalizationScheme = (Capitalization)value;
+                if (SetProperty(ref _firstWordGroupCapitalization, value))
+                {
+                    NotifyPropertyChanged(nameof(CurrentConfiguration));
+                }
+            }
+        }
 
         internal bool TrySubmit()
         {
-            if (string.IsNullOrWhiteSpace(ItemName))
+            if (string.IsNullOrWhiteSpace(NamingConventionName))
             {
                 _notificationService.SendNotification(ServicesVSResources.Enter_a_title_for_this_Naming_Style);
                 return false;
@@ -144,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         internal NamingStyle GetNamingStyle()
         {
-            _style.Name = ItemName;
+            _style.Name = NamingConventionName;
             _style.ID = ID;
             return _style;
         }

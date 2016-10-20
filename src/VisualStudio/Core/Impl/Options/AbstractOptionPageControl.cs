@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -20,20 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public AbstractOptionPageControl(IServiceProvider serviceProvider)
         {
-            InitializeStyles();
-
-            if (DesignerProperties.GetIsInDesignMode(this))
-            {
-                return;
-            }
-
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             this.OptionService = workspace.Services.GetService<IOptionService>();
-        }
 
-        private void InitializeStyles()
-        {
             var groupBoxStyle = new System.Windows.Style(typeof(GroupBox));
             groupBoxStyle.Setters.Add(new Setter(GroupBox.PaddingProperty, new Thickness() { Left = 7, Right = 7, Top = 7 }));
             groupBoxStyle.Setters.Add(new Setter(GroupBox.MarginProperty, new Thickness() { Bottom = 3 }));

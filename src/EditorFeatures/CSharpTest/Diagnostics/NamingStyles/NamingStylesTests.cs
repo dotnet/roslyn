@@ -80,19 +80,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 }",
                 options: MethodNamesArePascalCase);
         }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        public async Task TestPascalCaseMethod_IndexerNameIsIgnored()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    public int [|this|][int index]
-    {
-        get { return 1; }
-    }
-}",
-                options: MethodNamesArePascalCase);
-        }
     }
 }

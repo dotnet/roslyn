@@ -27,14 +27,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             return options;
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         private string ClassNamesArePascalCaseOptionString()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
+                Guid.NewGuid(), 
+                "Name", 
                 SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)).ToList(),
                 SpecializedCollections.EmptyList<SymbolSpecification.AccessibilityKind>(),
-                SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
+                SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>(),
+                SpecializedCollections.EmptyList<string>());
 
             var namingStyle = new NamingStyle();
             namingStyle.CapitalizationScheme = Capitalization.PascalCase;
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             namingRule.SymbolSpecificationID = symbolSpecification.ID;
             namingRule.NamingStyleID = namingStyle.ID;
             namingRule.EnforcementLevel = DiagnosticSeverity.Error;
+            namingRule.Title = "Title";
 
             var info = new SerializableNamingStylePreferencesInfo();
             info.SymbolSpecifications.Add(symbolSpecification);
@@ -57,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             return info.CreateXElement().ToString();
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         private string MethodNamesArePascalCaseOptionString()
         {
             var symbolSpecification = new SymbolSpecification(
@@ -64,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 "Name",
                 SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Method)).ToList(),
                 SpecializedCollections.EmptyList<SymbolSpecification.AccessibilityKind>(),
-                SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
+                SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>(),
+                SpecializedCollections.EmptyList<string>());
 
             var namingStyle = new NamingStyle();
             namingStyle.CapitalizationScheme = Capitalization.PascalCase;
@@ -78,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             namingRule.SymbolSpecificationID = symbolSpecification.ID;
             namingRule.NamingStyleID = namingStyle.ID;
             namingRule.EnforcementLevel = DiagnosticSeverity.Error;
+            namingRule.Title = "Title";
 
             var info = new SerializableNamingStylePreferencesInfo();
             info.SymbolSpecifications.Add(symbolSpecification);
