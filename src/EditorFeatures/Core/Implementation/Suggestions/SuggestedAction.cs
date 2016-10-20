@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
-            CodeAction codeAction,
             object provider,
             IAsynchronousOperationListener operationListener,
+            CodeAction codeAction,
             IEnumerable<SuggestedActionSet> actionSets = null)
         {
             Contract.ThrowIfTrue(provider == null);

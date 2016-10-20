@@ -18,10 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
-            CodeAction codeAction,
             CodeRefactoringProvider provider,
-            IAsynchronousOperationListener operationListener)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider, operationListener)
+            IAsynchronousOperationListener operationListener,
+            CodeAction codeAction)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, 
+                   provider, operationListener, codeAction)
         {
         }
     }

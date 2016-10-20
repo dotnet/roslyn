@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             object provider,
             Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet,
             IAsynchronousOperationListener operationListener)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, fix.Action, provider, operationListener)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, 
+                   provider, operationListener, fix.Action)
         {
             _fix = fix;
             _getFixAllSuggestedActionSet = getFixAllSuggestedActionSet;
@@ -69,14 +70,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var nestedSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
                 var fixCount = this.CodeAction.GetCodeActions().Length;
 
-                foreach (var c in this.CodeAction.GetCodeActions())
+                foreach (var action in this.CodeAction.GetCodeActions())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(c);
+                    var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(action);
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
-                        this.Workspace, this.SubjectBuffer, this.EditHandler, this.WaitIndicator, new CodeFix(_fix.Project, c, _fix.Diagnostics),
-                        c, this.Provider, fixAllSuggestedActionSet, this.OperationListener));
+                        this.Workspace, this.SubjectBuffer, this.EditHandler, this.WaitIndicator, 
+                        new CodeFix(_fix.Project, action, _fix.Diagnostics),
+                        this.Provider, fixAllSuggestedActionSet, this.OperationListener, action));
                 }
 
                 _actionSets = ImmutableArray.Create(

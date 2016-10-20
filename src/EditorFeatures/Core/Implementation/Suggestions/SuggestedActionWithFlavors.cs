@@ -32,11 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public SuggestedActionWithFlavors(
             Workspace workspace, ITextBuffer subjectBuffer, ICodeActionEditHandlerService editHandler, 
-            IWaitIndicator waitIndicator, CodeAction codeAction, object provider, 
-            IAsynchronousOperationListener operationListener,
-            SuggestedActionSet additionalFlavors = null) 
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction,
-                  provider, operationListener, actionSets: null)
+            IWaitIndicator waitIndicator, object provider, IAsynchronousOperationListener operationListener, 
+            CodeAction codeAction, SuggestedActionSet additionalFlavors = null) 
+            : base(workspace, subjectBuffer, editHandler, waitIndicator,
+                   provider, operationListener, codeAction, actionSets: null)
         {
             _additionalFlavors = additionalFlavors;
         }

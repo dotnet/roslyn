@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Diagnostic originalFixedDiagnostic,
             IAsynchronousOperationListener operationListener)
             : base(workspace, subjectBuffer, editHandler, waitIndicator,
-                  new FixAllCodeAction(fixAllState), fixAllState.FixAllProvider,
-                  operationListener)
+                  fixAllState.FixAllProvider, operationListener,
+                  new FixAllCodeAction(fixAllState))
         {
             _fixedDiagnostic = originalFixedDiagnostic;
         }

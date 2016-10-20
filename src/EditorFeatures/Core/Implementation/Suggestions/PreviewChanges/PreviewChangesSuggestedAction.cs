@@ -23,10 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ITextBuffer subjectBuffer,
                 ICodeActionEditHandlerService editHandler,
                 IWaitIndicator waitIndicator,
-                PreviewChangesCodeAction codeAction,
                 object provider,
-                IAsynchronousOperationListener operationListener)
-                : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider, operationListener)
+                IAsynchronousOperationListener operationListener,
+                PreviewChangesCodeAction codeAction)
+                : base(workspace, subjectBuffer, editHandler, waitIndicator, 
+                      provider, operationListener, codeAction)
             {
             }
 
@@ -45,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                var previewAction = new PreviewChangesCodeAction(
-                    suggestedAction.Workspace, suggestedAction.CodeAction, changeSummary);
                 return new PreviewChangesSuggestedAction(
                     suggestedAction.Workspace, suggestedAction.SubjectBuffer, suggestedAction.EditHandler,
-                    suggestedAction.WaitIndicator, previewAction, suggestedAction.Provider, suggestedAction.OperationListener);
+                    suggestedAction.WaitIndicator, suggestedAction.Provider, suggestedAction.OperationListener,
+                    new PreviewChangesCodeAction(
+                        suggestedAction.Workspace, suggestedAction.CodeAction, changeSummary));
             }
         }
     }

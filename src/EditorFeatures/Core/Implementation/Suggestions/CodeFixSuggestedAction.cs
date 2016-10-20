@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
             CodeFix fix,
-            CodeAction action,
             object provider,
             SuggestedActionSet fixAllFlavors,
-            IAsynchronousOperationListener operationListener)
+            IAsynchronousOperationListener operationListener,
+            CodeAction action)
             : base(workspace, subjectBuffer, editHandler, waitIndicator, 
-                   action, provider, operationListener, fixAllFlavors)
+                   provider, operationListener, action, fixAllFlavors)
         {
             _fix = fix;
         }
