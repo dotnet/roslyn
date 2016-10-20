@@ -288,6 +288,7 @@
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngineTests.vb" />
+    <Compile Include="Options\Style\NamingPreferences\NamingRuleDialogViewModelTests.vb" />
     <Compile Include="Telemetry\VSTelemetryLoggerTest.vb" />
     <Compile Include="Utilities\VsNavInfoHelpers.vb" />
     <Compile Include="VsNavInfo\VsNavInfoTests.vb" />

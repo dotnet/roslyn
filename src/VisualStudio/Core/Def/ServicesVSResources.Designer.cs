@@ -452,6 +452,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Custom Tags (must match all).
+        /// </summary>
+        internal static string Custom_Tags_must_match_all {
+            get {
+                return ResourceManager.GetString("Custom_Tags_must_match_all", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Debugger.
         /// </summary>
         internal static string Debugger {
@@ -969,24 +978,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Manage specifications.
-        /// </summary>
-        internal static string Manage_specifications {
-            get {
-                return ResourceManager.GetString("Manage_specifications", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Manage styles.
-        /// </summary>
-        internal static string Manage_styles {
-            get {
-                return ResourceManager.GetString("Manage_styles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Maximum number of documents are open..
         /// </summary>
         internal static string Maximum_number_of_documents_are_open {
@@ -1498,15 +1489,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reorder.
-        /// </summary>
-        internal static string Reorder {
-            get {
-                return ResourceManager.GetString("Reorder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Required Prefix:.
         /// </summary>
         internal static string Required_Prefix_colon {
@@ -1588,15 +1570,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Severity.
-        /// </summary>
-        internal static string Severity {
-            get {
-                return ResourceManager.GetString("Severity", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Severity:.
         /// </summary>
         internal static string Severity_colon {
@@ -1656,33 +1629,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Show_outlining_for_declaration_level_constructs {
             get {
                 return ResourceManager.GetString("Show_outlining_for_declaration_level_constructs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Some naming rules are incomplete. Please complete or remove them..
-        /// </summary>
-        internal static string Some_naming_rules_are_incomplete_Please_complete_or_remove_them {
-            get {
-                return ResourceManager.GetString("Some_naming_rules_are_incomplete_Please_complete_or_remove_them", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Specification.
-        /// </summary>
-        internal static string Specification {
-            get {
-                return ResourceManager.GetString("Specification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Style.
-        /// </summary>
-        internal static string Style {
-            get {
-                return ResourceManager.GetString("Style", resourceCulture);
             }
         }
         
@@ -1820,15 +1766,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace {
             get {
                 return ResourceManager.GetString("The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This item cannot be deleted because it is used by an existing Naming Rule..
-        /// </summary>
-        internal static string This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule {
-            get {
-                return ResourceManager.GetString("This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule", resourceCulture);
             }
         }
         

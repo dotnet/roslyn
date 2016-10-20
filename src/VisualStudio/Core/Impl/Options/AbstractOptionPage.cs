@@ -10,14 +10,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         protected abstract AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider);
 
-        protected AbstractOptionPageControl pageControl;
+        private AbstractOptionPageControl _pageControl;
         private bool _needsLoadOnNextActivate = true;
 
         private void EnsureOptionPageCreated()
         {
-            if (pageControl == null)
+            if (_pageControl == null)
             {
-                pageControl = CreateOptionPage(this.Site);
+                _pageControl = CreateOptionPage(this.Site);
             }
         }
 
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             get
             {
                 EnsureOptionPageCreated();
-                return pageControl;
+                return _pageControl;
             }
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (_needsLoadOnNextActivate)
             {
                 EnsureOptionPageCreated();
-                pageControl.LoadSettings();
+                _pageControl.LoadSettings();
 
                 _needsLoadOnNextActivate = false;
             }
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public override void SaveSettingsToStorage()
         {
             EnsureOptionPageCreated();
-            pageControl.SaveSettings();
+            _pageControl.SaveSettings();
 
             // Make sure we load the next time the page is activated, in case if options changed
             // programmatically between now and the next time the page is activated
@@ -72,9 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             base.OnClosed(e);
 
-            if (pageControl != null)
+            if (_pageControl != null)
             {
-                pageControl.Close();
+                _pageControl.Close();
             }
         }
     }

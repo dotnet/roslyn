@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.SymbolCategorization;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -46,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private void CompilationStartAction(CompilationStartAnalysisContext context)
         {
             var workspace = (context.Options as WorkspaceAnalyzerOptions)?.Workspace;
+            var categorizationService = workspace.Services.GetService<ISymbolCategorizationService>();
+
             var optionSet = (context.Options as WorkspaceAnalyzerOptions)?.Workspace.Options;
             var currentValue = optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
 
@@ -59,15 +62,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 var viewModel = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(currentValue));
                 var preferencesInfo = viewModel.GetPreferencesInfo();
                 context.RegisterSymbolAction(
-                    symbolContext => SymbolAction(symbolContext, preferencesInfo),
+                    symbolContext => SymbolAction(symbolContext, preferencesInfo, categorizationService),
                     _symbolKinds);
             }
         }
 
-        private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences)
+        private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences, ISymbolCategorizationService categorizationService)
         {
             NamingRule applicableRule;
-            if (preferences.TryGetApplicableRule(context.Symbol, out applicableRule))
+            if (preferences.TryGetApplicableRule(context.Symbol, categorizationService, out applicableRule))
             {
                 string failureReason;
                 if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 {
                     var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
                          s_localizableTitleNamingStyle,
-                         string.Format(FeaturesResources.Naming_rule_violation_0, failureReason),
+                         string.Format(FeaturesResources._0_naming_violation_1, applicableRule.Title, failureReason),
                          DiagnosticCategory.Style,
                          applicableRule.EnforcementLevel,
                          isEnabledByDefault: true);
