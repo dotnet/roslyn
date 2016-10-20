@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         }
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
-        {
-            return FlattenActions(codeActions);
-        }
+            => FlattenActions(codeActions);
 
         #region Generate Class
 

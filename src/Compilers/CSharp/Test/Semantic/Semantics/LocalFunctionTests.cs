@@ -30,6 +30,147 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
         [Fact]
+        public void RefArgsInIteratorLocalFuncs()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    public void M1()
+    {
+        IEnumerable<int> Local(ref int a) { yield break; }
+        int x = 0;
+        Local(ref x);
+    }
+
+    public void M2()
+    {
+        Action a = () =>
+        {
+            IEnumerable<int> Local(ref int x) { yield break; }
+            int y = 0;
+            Local(ref y);
+            return;
+        };
+        a();
+    }
+
+    public Func<int> M3() => (() =>
+    {
+        IEnumerable<int> Local(ref int a) { yield break; }
+        int x = 0;
+        Local(ref x);
+        return 0;
+    });
+
+    public IEnumerable<int> M4(ref int a)
+    {
+        yield return new Func<int>(() =>
+            {
+                IEnumerable<int> Local(ref int b) { yield break; }
+                int x = 0;
+                Local(ref x);
+                return 0;
+            })();
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,40): error CS1623: Iterators cannot have ref or out parameters
+                //         IEnumerable<int> Local(ref int a) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(8, 40),
+                // (17,44): error CS1623: Iterators cannot have ref or out parameters
+                //             IEnumerable<int> Local(ref int x) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(17, 44),
+                // (27,40): error CS1623: Iterators cannot have ref or out parameters
+                //         IEnumerable<int> Local(ref int a) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(27, 40),
+                // (33,40): error CS1623: Iterators cannot have ref or out parameters
+                //     public IEnumerable<int> M4(ref int a)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(33, 40),
+                // (37,48): error CS1623: Iterators cannot have ref or out parameters
+                //                 IEnumerable<int> Local(ref int b) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "b").WithLocation(37, 48));
+        }
+
+        [Fact]
+        public void UnsafeArgsInIteratorLocalFuncs()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    public unsafe void M1()
+    {
+        IEnumerable<int> Local(int* a) { yield break; }
+        int x = 0;
+        Local(&x);
+    }
+
+    public unsafe void M2()
+    {
+        Action a = () =>
+        {
+            IEnumerable<int> Local(int* x) { yield break; }
+            int y = 0;
+            Local(&y);
+            return;
+        };
+        a();
+    }
+
+    public unsafe Func<int> M3() => (() =>
+    {
+        IEnumerable<int> Local(int* a) { yield break; }
+        int x = 0;
+        Local(&x);
+        return 0;
+    });
+
+    public unsafe IEnumerable<int> M4(int* a)
+    {
+        yield return new Func<int>(() =>
+            {
+                IEnumerable<int> Local(int* b) { yield break; }
+                int x = 0;
+                Local(&x);
+                return 0;
+            })();
+    }
+}";
+            CreateCompilationWithMscorlib(src, options: TestOptions.UnsafeDebugDll)
+                .VerifyDiagnostics(
+                // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
+                // (17,41): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //             IEnumerable<int> Local(int* x) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
+                // (27,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (33,44): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
+                // (33,36): error CS1629: Unsafe code may not appear in iterators
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "M4").WithLocation(33, 36),
+                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
+                // (37,40): error CS1629: Unsafe code may not appear in iterators
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int*").WithLocation(37, 40),
+                // (39,23): error CS1629: Unsafe code may not appear in iterators
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&x").WithLocation(39, 23),
+                // (39,17): error CS1629: Unsafe code may not appear in iterators
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17));
+        }
+
+        [Fact]
         [WorkItem(13193, "https://github.com/dotnet/roslyn/issues/13193")]
         public void LocalFunctionConflictingName()
         {

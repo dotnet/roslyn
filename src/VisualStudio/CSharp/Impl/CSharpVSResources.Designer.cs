@@ -81,9 +81,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
-        internal static string Automatically_format_block_on {
+        internal static string Automatically_format_block_on_close_brace {
             get {
-                return ResourceManager.GetString("Automatically_format_block_on", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_block_on_close_brace", resourceCulture);
             }
         }
         
@@ -108,9 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Automatically format _statement on ;.
         /// </summary>
-        internal static string Automatically_format_statement_on {
+        internal static string Automatically_format_statement_on_semicolon {
             get {
-                return ResourceManager.GetString("Automatically_format_statement_on", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_statement_on_semicolon", resourceCulture);
             }
         }
         
