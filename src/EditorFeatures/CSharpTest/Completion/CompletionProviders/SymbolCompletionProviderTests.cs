@@ -9016,7 +9016,7 @@ class C
             await VerifyItemExistsAsync(@"
 class C
 {
-    void M(($$)
+    void M()
     {
         var x = nameof((C, $$
     }

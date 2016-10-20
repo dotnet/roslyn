@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsDefaultExpressionContext(position, context.LeftToken, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
                 context.IsDelegateReturnTypeContext ||
-                context.IsPossibleTupleContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsPossibleTupleContext ||
                 context.IsMemberDeclarationContext(
