@@ -105,6 +105,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        public void ClearAnalyzerDiagnostics(ProjectId projectId)
+        {
+            foreach (var analyzer in _analyzerHostDiagnosticsMap.Keys)
+            {
+                ClearAnalyzerDiagnostics(analyzer, projectId);
+            }
+        }
+
         private void ClearAnalyzerDiagnostics(DiagnosticAnalyzer analyzer, ProjectId projectId)
         {
             ImmutableHashSet<DiagnosticData> existing;
