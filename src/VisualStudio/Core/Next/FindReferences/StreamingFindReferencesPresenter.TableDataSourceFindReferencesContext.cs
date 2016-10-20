@@ -3,23 +3,22 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Completion;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
