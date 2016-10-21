@@ -247,6 +247,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim leftHandTypeInfo = context.SemanticModel.GetTypeInfo(leftExpression, cancellationToken)
             Dim leftHandSymbolInfo = context.SemanticModel.GetSymbolInfo(leftExpression, cancellationToken)
 
+            ' https://github.com/dotnet/roslyn/issues/9087: Try to speculatively bind a type as an expression for My namespace
+            ' We'll get a type contained in the My Namespace if this is successful
+            If leftHandTypeInfo.Type IsNot Nothing AndAlso leftHandTypeInfo.Type.Equals(leftHandSymbolInfo.Symbol) Then
+                Dim leftHandSpeculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(context.Position, leftExpression, SpeculativeBindingOption.BindAsExpression)
+                If leftHandSpeculativeBinding.Symbol IsNot Nothing AndAlso
+                    leftHandSpeculativeBinding.Symbol.ContainingNamespace?.IsMyNamespace(context.SemanticModel.Compilation) Then
+                    leftHandSymbolInfo = leftHandSpeculativeBinding
+                End If
+            End If
+
             Dim excludeInstance = False
             Dim excludeShared = True ' do not show shared members by default
             Dim useBaseReferenceAccessibility = False
