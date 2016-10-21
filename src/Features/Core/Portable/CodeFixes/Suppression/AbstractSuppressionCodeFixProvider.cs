@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     if (nestedActions.Count > 0)
                     {
-                        var codeAction = new SuppressionCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
+                        var codeAction = new TopLevelSuppressionCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
                         result.Add(new CodeFix(project, codeAction, diagnostic));
                     }
                 }

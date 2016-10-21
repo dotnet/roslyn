@@ -693,7 +693,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeFixes\Suppression\SuppressionCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\TopLevelSuppressionCodeAction.cs" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

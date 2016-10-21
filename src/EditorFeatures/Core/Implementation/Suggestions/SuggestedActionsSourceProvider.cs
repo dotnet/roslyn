@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         fixCollection.SupportedScopes, fixCollection.FirstDiagnostic,
                         workspace);
 
-                var nonSupressionCodeFixes = fixes.Where(f => !(f.Action is SuppressionCodeAction));
-                var supressionCodeFixes = fixes.Where(f => f.Action is SuppressionCodeAction);
+                var nonSupressionCodeFixes = fixes.Where(f => !(f.Action is TopLevelSuppressionCodeAction));
+                var supressionCodeFixes = fixes.Where(f => f.Action is TopLevelSuppressionCodeAction);
 
                 AddCodeActions(workspace, map, order, fixCollection, 
                     getFixAllSuggestedActionSet, nonSupressionCodeFixes);

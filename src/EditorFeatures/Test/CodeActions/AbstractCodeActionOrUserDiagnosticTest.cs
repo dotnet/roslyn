@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Assert.NotNull(actions);
             if (actions.Count == 1)
             {
-                var suppressionAction = actions.Single() as SuppressionCodeAction;
+                var suppressionAction = actions.Single() as TopLevelSuppressionCodeAction;
                 if (suppressionAction != null)
                 {
                     actions = suppressionAction.NestedCodeActions.ToList();

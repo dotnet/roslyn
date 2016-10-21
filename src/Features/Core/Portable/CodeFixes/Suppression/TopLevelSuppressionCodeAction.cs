@@ -6,9 +6,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal sealed class SuppressionCodeAction : CodeAction.CodeActionWithNestedActions
+    internal sealed class TopLevelSuppressionCodeAction : CodeAction.CodeActionWithNestedActions
     {
-        public SuppressionCodeAction(Diagnostic diagnostic, ImmutableArray<CodeAction> nestedActions)
+        public TopLevelSuppressionCodeAction(Diagnostic diagnostic, ImmutableArray<CodeAction> nestedActions)
             : base(string.Format(FeaturesResources.Suppress_0, diagnostic.Id),
                    nestedActions, isInlinable: false)
         {
