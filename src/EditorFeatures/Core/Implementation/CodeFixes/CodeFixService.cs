@@ -261,13 +261,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return;
             }
 
-            Func<Diagnostic, bool> hasFix = (d) => lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(d);
-            Func<ImmutableArray<Diagnostic>, Task<ImmutableArray<CodeFix>>> getFixes = 
-                dxs => lazySuppressionProvider.Value.GetSuppressionsAsync(
-                    document, span, dxs, cancellationToken);
             await AppendFixesOrSuppressionsAsync(
                 document, span, diagnostics, result, lazySuppressionProvider.Value, 
-                hasFix, getFixes, cancellationToken).ConfigureAwait(false);
+                hasFix: d => lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(d),
+                getFixes: dxs => lazySuppressionProvider.Value.GetSuppressionsAsync(
+                    document, span, dxs, cancellationToken), 
+                cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private async Task AppendFixesOrSuppressionsAsync(
