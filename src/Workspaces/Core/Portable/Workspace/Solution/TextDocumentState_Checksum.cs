@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
                 var serializer = new Serializer(solutionServices.Workspace.Services);
 
-                var infoChecksum = serializer.CreateChecksum(new SerializedDocumentInfo(Id, Name, Folders, this.GetSourceCodeKind(), FilePath, this.IsGenerated()), cancellationToken);
+                var infoChecksum = serializer.CreateChecksum(Info.Attributes, cancellationToken);
                 var textChecksum = serializer.CreateChecksum(await textTask.ConfigureAwait(false), cancellationToken);
 
                 return new DocumentStateChecksums(infoChecksum, textChecksum);

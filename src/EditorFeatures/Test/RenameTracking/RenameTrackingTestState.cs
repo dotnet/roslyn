@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 var operations = (await actions[0].GetOperationsAsync(CancellationToken.None)).ToArray();
                 Assert.Equal(1, operations.Length);
 
-                operations[0].Apply(this.Workspace, new ProgressTracker(), CancellationToken.None);
+                operations[0].TryApply(this.Workspace, new ProgressTracker(), CancellationToken.None);
             }
         }
 

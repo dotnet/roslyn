@@ -35,11 +35,11 @@ End Class
             <sequencePoints>
                 <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="19"/>
                 <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="163"/>
-                <entry offset="0x1b" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x1c" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x1c">
+            <scope startOffset="0x0" endOffset="0x1d">
                 <currentnamespace name=""/>
-                <local name="t" il_index="0" il_start="0x0" il_end="0x1c" attributes="0"/>
+                <local name="t" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
             </scope>
         </method>
     </methods>

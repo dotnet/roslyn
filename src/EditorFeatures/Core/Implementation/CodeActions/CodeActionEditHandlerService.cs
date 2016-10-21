@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     seenApplyChanges = true;
                 }
 
-                operation.Apply(workspace, cancellationToken);
+                operation.TryApply(workspace, progressTracker, cancellationToken);
             }
         }
 

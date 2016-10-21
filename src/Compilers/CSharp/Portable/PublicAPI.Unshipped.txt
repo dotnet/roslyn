@@ -1,12 +1,12 @@
-*REMOVED*override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToString() -> string
-*REMOVED*override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToFullString() -> string
-*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
-*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
-*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
-*REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AccessorDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax body = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
+*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
+*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
+*REMOVED*override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToFullString() -> string
+*REMOVED*override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToString() -> string
+*REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AccessorDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax body = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.Default, Microsoft.CodeAnalysis.DocumentationMode documentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, Microsoft.CodeAnalysis.SourceCodeKind kind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, System.Collections.Generic.IEnumerable<string> preprocessorSymbols = null) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.SpecifiedLanguageVersion.get -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Conversion.IsThrow.get -> bool
@@ -214,6 +214,8 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.ForEa
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.InKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.OpenParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.Statement.get -> Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax
+override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.Language.get -> string
+override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Language.get -> string
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitCasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitConstantPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ConstantPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeclarationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode

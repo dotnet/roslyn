@@ -279,7 +279,6 @@
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
     <Compile Include="Implementation\Preview\PreviewReferenceHighlightingTaggerProvider.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
-    <Compile Include="Implementation\Suggestions\FixMultipleSuggestedAction.cs" />
     <Compile Include="Implementation\GoToImplementation\GoToImplementationCommandHandler.cs" />
     <Compile Include="Implementation\TodoComment\ITodoListProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoItem.cs" />
@@ -608,7 +607,6 @@
     <Compile Include="Implementation\Suggestions\SuggestedAction.CaretPositionRestorer.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionsSourceProvider.cs" />
-    <Compile Include="Implementation\Suggestions\SuggestedActionWithFlavors.cs" />
     <Compile Include="Implementation\Suggestions\SuppressionSuggestedAction.cs" />
     <Compile Include="Implementation\TextBufferAssociatedViewService.cs" />
     <Compile Include="Implementation\TextDiffing\EditorTextDifferencingService.cs" />
@@ -625,8 +623,6 @@
     <Compile Include="Implementation\Workspaces\EditorErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\EditorTextFactoryService.cs" />
-    <Compile Include="Implementation\Workspaces\ProjectCacheService.cs" />
-    <Compile Include="Implementation\Workspaces\ProjectCacheService.SimpleMRUCache.cs" />
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
@@ -635,6 +631,7 @@
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.EditorFormatMapChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
     <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionWithPreview.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />

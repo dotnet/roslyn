@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="document">The document changed by the <see cref="CodeAction"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A document with the post processing changes applied.</returns>
-        protected virtual async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+        protected async virtual Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
         {
             if (document.SupportsSyntaxTree)
             {

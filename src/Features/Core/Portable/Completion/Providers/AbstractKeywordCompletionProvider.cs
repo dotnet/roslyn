@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return keywords?.Select(k => CreateItem(k, syntaxContext));
         }
 
-        private static ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.Intrinsic);
+        protected static ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.Intrinsic);
 
         protected virtual CompletionItem CreateItem(RecommendedKeyword keyword, TContext context)
         {

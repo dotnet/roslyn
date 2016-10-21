@@ -279,10 +279,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (x2, x3)));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2, x3))").WithLocation(11, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2, x3))").WithLocation(11, 19)
                 );
 
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
@@ -320,10 +317,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (8,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1)").WithLocation(8, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1)").WithLocation(8, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -361,10 +355,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, x2: x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2: x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2: x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -402,10 +393,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (ref x1, x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (ref x1, x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (ref x1, x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -443,10 +431,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (x2)));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2))").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2))").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -484,10 +469,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var ((x1), x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var ((x1), x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var ((x1), x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -570,9 +552,6 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
 
             CompileAndVerify(compilation, expectedOutput: "123");
@@ -612,10 +591,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(ref var (x1, x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -694,9 +670,6 @@ public class Cls
                                                             options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
 
             CompileAndVerify(compilation, expectedOutput: "123");
@@ -739,10 +712,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (a: x2, b: x3)));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (a: x2, b: x3))").WithLocation(11, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (a: x2, b: x3))").WithLocation(11, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -27089,6 +27059,118 @@ class H
                     }
                 }
             }
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        TakeOutParam(out int a);
+        TakeOutParam(out long b);
+    }
+
+    static void TakeOutParam<T>(out T x) 
+    {
+        x = default(T);
+        System.Console.WriteLine(typeof(T));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"System.Int32
+System.Int64");
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        TakeOutParam(out var a);
+    }
+
+    static void TakeOutParam<T>(out T x) 
+    {
+        x = default(T);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         TakeOutParam(out var a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("X.TakeOutParam<T>(out T)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        long a = 0;
+        TakeOutParam(out int b, a);
+        int c;
+        TakeOutParam(out c, a);
+    }
+
+    static void TakeOutParam<T>(out T x, T y) 
+    {
+        x = default(T);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         TakeOutParam(out int b, a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("X.TakeOutParam<T>(out T, T)").WithLocation(7, 9),
+                // (9,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         TakeOutParam(out c, a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("X.TakeOutParam<T>(out T, T)").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        byte a = 0;
+        int b = 0;
+        TakeOutParam(out int c, a);
+        TakeOutParam(out b, a);
+    }
+
+    static void TakeOutParam<T>(out T x, T y) 
+    {
+        x = default(T);
+        System.Console.WriteLine(typeof(T));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"System.Int32
+System.Int32");
         }
     }
 }

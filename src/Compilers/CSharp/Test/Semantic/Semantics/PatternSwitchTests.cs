@@ -1331,5 +1331,84 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(11, 18)
                 );
         }
+
+        [Fact, WorkItem(14296, "https://github.com/dotnet/roslyn/issues/14296")]
+        public void PatternSwitchInLocalFunctionInGenericMethod()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(Is<string>(string.Empty));
+        Console.WriteLine(Is<int>(string.Empty));
+        Console.WriteLine(Is<int>(1));
+        Console.WriteLine(Is<string>(1));
+    }
+    public static bool Is<T>(object o1)
+    {
+        bool Local(object o2)
+        {
+            switch (o2)
+            {
+                case T t: return true;
+                default: return false;
+            }
+        };
+        return Local(o1);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True
+False
+True
+False";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void CopySwitchExpression()
+        {
+            // This test ensures that we switch on a *copy* of the switch expression,
+            // so that it is not affected by subsequent assignment to a variable appearing
+            // in the swich expression.
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        int i = 1;
+        switch (i)
+        {
+            case 1 when BP(false, i = 2): break;
+            case int j when BP(false, i = 3): break;
+            case 1 when BP(true, i = 4):
+                Console.WriteLine(""Correct"");
+                Console.WriteLine(i);
+                break;
+        }
+    }
+    static bool BP(bool b, int print)
+    {
+        Console.WriteLine(print);
+        return b;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"2
+3
+4
+Correct
+4";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

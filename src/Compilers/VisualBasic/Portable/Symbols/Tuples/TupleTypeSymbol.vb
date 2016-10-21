@@ -68,18 +68,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsReferenceType As Boolean
-            Get
-                Return Not Me._underlyingType.IsErrorType() AndAlso Me._underlyingType.IsReferenceType
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property IsValueType As Boolean
-            Get
-                Return Me._underlyingType.IsErrorType() OrElse Me._underlyingType.IsValueType
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return False
@@ -122,7 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return If(Me._underlyingType.TypeKind = TypeKind.Class, TypeKind.Class, TypeKind.Struct)
+                ' From the language perspective tuple is a value type
+                ' composed of its underlying elements
+                Return TypeKind.Struct
             End Get
         End Property
 

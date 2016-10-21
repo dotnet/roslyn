@@ -631,16 +631,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var root = newDocument.Root;
                     var methodDefinition = root.GetAnnotatedNodes<MethodDeclarationSyntax>(this.MethodDefinitionAnnotation).First();
 
-                    var newMethodDefinition =
-                        methodDefinition.ReplaceToken(
-                            methodDefinition.Body.OpenBraceToken,
-                            methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(
-                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                    var newMethodDefinition = TweakNewLinesInMethod(methodDefinition);
 
-                    newDocument = await newDocument.WithSyntaxRootAsync(root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
+                    newDocument = await newDocument.WithSyntaxRootAsync(
+                        root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
                 }
 
                 return await base.CreateGeneratedCodeAsync(status, newDocument, cancellationToken).ConfigureAwait(false);
+            }
+
+            private static MethodDeclarationSyntax TweakNewLinesInMethod(MethodDeclarationSyntax methodDefinition)
+            {
+                if (methodDefinition.Body != null)
+                {
+                    return methodDefinition.ReplaceToken(
+                            methodDefinition.Body.OpenBraceToken,
+                            methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                }
+                else if (methodDefinition.ExpressionBody != null)
+                {
+                    return methodDefinition.ReplaceToken(
+                            methodDefinition.ExpressionBody.ArrowToken,
+                            methodDefinition.ExpressionBody.ArrowToken.WithPrependedLeadingTrivia(
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                }
+                else
+                {
+                    return methodDefinition;
+                }
             }
 
             protected StatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()

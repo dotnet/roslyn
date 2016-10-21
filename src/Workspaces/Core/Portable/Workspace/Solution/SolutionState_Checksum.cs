@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
                 var projectChecksumTasks = ProjectIds.Select(id => ProjectStates[id].GetChecksumAsync(cancellationToken));
 
                 var serializer = new Serializer(_solutionServices.Workspace.Services);
-                var infoChecksum = serializer.CreateChecksum(new SerializedSolutionInfo(Id, Version, FilePath), cancellationToken);
+                var infoChecksum = serializer.CreateChecksum(SolutionInfo.Attributes, cancellationToken);
 
                 var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
                 return new SolutionStateChecksums(infoChecksum, new ProjectChecksumCollection(projectChecksums));

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ' TODO: Need to estimate amount of elements for this map and pass that value to the constructor.
         Protected ReadOnly m_AssemblyOrModuleSymbolToModuleRefMap As New ConcurrentDictionary(Of Symbol, Microsoft.Cci.IModuleReference)()
         Private ReadOnly _genericInstanceMap As New ConcurrentDictionary(Of Symbol, Object)()
-        Private ReadOnly _reportedErrorTypesMap As New ConcurrentSet(Of ErrorTypeSymbol)()
+        Private ReadOnly _reportedErrorTypesMap As New ConcurrentSet(Of TypeSymbol)()
 
         Private ReadOnly _embeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
         Public Overrides ReadOnly Property EmbeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
@@ -119,6 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ElseIf namedTypeSymbol.IsTupleType Then
                 Debug.Assert(Not needDeclaration)
                 namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType
+
+                CheckTupleUnderlying(namedTypeSymbol, syntaxNodeOpt, diagnostics)
             End If
 
             ' Substitute error types with a special singleton object.
@@ -200,6 +202,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Return namedTypeSymbol
         End Function
+
+        Private Sub CheckTupleUnderlying(namedTypeSymbol As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
+            ' check that underlying type of a ValueTuple is indeed a value type (or error)
+            ' this should never happen, in theory,
+            ' but if it does happen we should make it a failure.
+            ' NOTE: declaredBase could be null for interfaces
+            Dim declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics
+            If declaredBase Is Nothing OrElse
+                    (declaredBase.SpecialType <> SpecialType.System_ValueType AndAlso Not declaredBase.IsErrorType()) Then
+                ' Try to decrease noise by not complaining about the same type over and over again.
+                If (_reportedErrorTypesMap.Add(namedTypeSymbol)) Then
+                    diagnostics.Add(New VBDiagnostic(
+                                    ErrorFactory.ErrorInfo(ERRID.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName),
+                                    If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())))
+
+                End If
+            End If
+        End Sub
 
         Friend Overloads Function Translate([param] As TypeParameterSymbol) As Microsoft.Cci.IGenericParameterReference
             Debug.Assert(param Is param.OriginalDefinition)

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -15,36 +15,72 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Replac
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithGetName() As Task
             Await TestAsync(
-NewLines("class C \n function [||]GetFoo() as integer \n End function \n End class"),
-NewLines("class C \n ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n End class"))
+"class C
+    function [||]GetFoo() as integer
+    End function
+End class",
+"class C
+    ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithoutGetName() As Task
             Await TestAsync(
-NewLines("class C \n function [||]Foo() as integer \n End function \n End class"),
-NewLines("class C \n ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n End class"))
+"class C
+    function [||]Foo() as integer
+    End function
+End class",
+"class C
+    ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithoutBody() As Task
             Await TestAsync(
-NewLines("mustinherit class C \n MustOverride function [||]GetFoo() as integer \n End class"),
-NewLines("mustinherit class C \n MustOverride ReadOnly Property Foo as integer \n End class"))
+"mustinherit class C
+    MustOverride function [||]GetFoo() as integer
+End class",
+"mustinherit class C
+    MustOverride ReadOnly Property Foo as integer
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithModifiers() As Task
             Await TestAsync(
-NewLines("class C \n public shared function [||]GetFoo() as integer \n End function \n End class"),
-NewLines("class C \n public shared ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n End class"))
+"class C
+    public shared function [||]GetFoo() as integer
+    End function
+End class",
+"class C
+    public shared ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithAttributes() As Task
             Await TestAsync(
-NewLines("class C \n <A>function [||]GetFoo() as integer \n End function \n End class"),
-NewLines("class C \n <A>ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n End class"))
+"class C
+    <A> function [||]GetFoo() as integer
+    End function
+End class",
+"class C
+    <A> ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
@@ -112,163 +148,464 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestExplicitInterfaceMethod_2() As Task
             Await TestAsync(
-NewLines("interface I \n function GetFoo() as integer \n End interface \n class C \n implements I \n function [||]GetFoo() as integer implements I.GetFoo \n End function \n End class"),
-NewLines("interface I \n ReadOnly Property Foo as integer \n End interface \n class C \n implements I \n ReadOnly Property Foo as integer implements I.Foo \n Get \n End Get \n End Property \n End class"))
+"interface I
+    function GetFoo() as integer
+End interface
+class C
+    implements I
+    function [||]GetFoo() as integer implements I.GetFoo
+    End function
+End class",
+"interface I
+    ReadOnly Property Foo as integer
+End interface
+class C
+    implements I
+    ReadOnly Property Foo as integer implements I.Foo
+        Get
+        End Get
+    End Property
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestExplicitInterfaceMethod_3() As Task
             Await TestAsync(
-NewLines("interface I \n function [||]GetFoo() as integer \n End interface \n class C \n implements I \n function GetFoo() as integer implements I.GetFoo \n End function \n End class"),
-NewLines("interface I \n ReadOnly Property Foo as integer \n End interface \n class C \n implements I \n ReadOnly Property Foo as integer implements I.Foo \n Get \n End Get \n End Property \n End class"))
+"interface I
+    function [||]GetFoo() as integer
+End interface
+class C
+    implements I
+    function GetFoo() as integer implements I.GetFoo
+    End function
+End class",
+"interface I
+    ReadOnly Property Foo as integer
+End interface
+class C
+    implements I
+    ReadOnly Property Foo as integer implements I.Foo
+        Get
+        End Get
+    End Property
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestInAttribute() As Task
             Await TestMissingAsync(
-NewLines("class C \n <At[||]tr>function GetFoo() as integer \n End function \n End class"))
+"class C
+    <At[||]tr> function GetFoo() as integer
+    End function
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestInMethod() As Task
             Await TestMissingAsync(
-NewLines("class C \n function GetFoo() as integer \n [||] \n End function \n End class"))
+"class C
+    function GetFoo() as integer
+
+[||]    End function
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestSubMethod() As Task
             Await TestMissingAsync(
-NewLines("class C \n sub [||]GetFoo() \n End sub \n End class"))
+"class C
+    sub [||]GetFoo()
+    End sub
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestAsyncMethod() As Task
             Await TestMissingAsync(
-NewLines("class C \n async function [||]GetFoo() as Task \n End function \n End class"))
+"class C
+    async function [||]GetFoo() as Task
+    End function
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestGenericMethod() As Task
             Await TestMissingAsync(
-NewLines("class C \n function [||]GetFoo(of T)() as integer \n End function \n End class"))
+"class C
+    function [||]GetFoo(of T)() as integer
+    End function
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestExtensionMethod() As Task
             Await TestMissingAsync(
-NewLines("module C \n <System.Runtime.CompilerServices.Extension>function [||]GetFoo(i as integer) as integer \n End function \n End module"))
+"module C
+    <System.Runtime.CompilerServices.Extension> function [||]GetFoo(i as integer) as integer
+    End function
+End module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithParameters_1() As Task
             Await TestMissingAsync(
-NewLines("class C \n function [||]GetFoo(i as integer) as integer \n End function \n End class"))
+"class C
+    function [||]GetFoo(i as integer) as integer
+    End function
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReferenceNotInMethod() As Task
             Await TestAsync(
-NewLines("class C \n function [||]GetFoo() as integer \n End function \n sub Bar() \n dim x = GetFoo() \n End sub \n End class"),
-NewLines("class C \n ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n sub Bar() \n dim x = Foo \n End sub \n End class"))
+"class C
+    function [||]GetFoo() as integer
+    End function
+    sub Bar()
+        dim x = GetFoo()
+    End sub
+End class",
+"class C
+    ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+    sub Bar()
+        dim x = Foo
+    End sub
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReferenceMemberAccessInvocation() As Task
             Await TestAsync(
-NewLines("class C \n function [||]GetFoo() as integer \n End function \n sub Bar() \n dim x = me.GetFoo() \n End sub \n End class"),
-NewLines("class C \n ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n sub Bar() \n dim x = me.Foo \n End sub \n End class"))
+"class C
+    function [||]GetFoo() as integer
+    End function
+    sub Bar()
+        dim x = me.GetFoo()
+    End sub
+End class",
+"class C
+    ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+    sub Bar()
+        dim x = me.Foo
+    End sub
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReferenceBindingMemberInvocation() As Task
             Await TestAsync(
-NewLines("class C \n function [||]GetFoo() as integer \n End function \n sub Bar() \n dim x as C \n dim v = x?.GetFoo() \n End sub \n End class"),
-NewLines("class C \n ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n sub Bar() \n dim x as C \n dim v = x?.Foo \n End sub \n End class"))
+"class C
+    function [||]GetFoo() as integer
+    End function
+    sub Bar()
+        dim x as C
+        dim v = x?.GetFoo()
+    End sub
+End class",
+"class C
+    ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+    sub Bar()
+        dim x as C
+        dim v = x?.Foo
+    End sub
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReferenceInMethod() As Task
             Await TestAsync(
-NewLines("class C \n function [||]GetFoo() as integer \n return GetFoo() \n End function \n End class"),
-NewLines("class C \n ReadOnly Property Foo as integer \n Get \n return Foo \n End Get \n End Property \n End class"))
+"class C
+    function [||]GetFoo() as integer
+        return GetFoo()
+    End function
+End class",
+"class C
+    ReadOnly Property Foo as integer
+        Get
+            return Foo
+        End Get
+    End Property
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestOverride() As Task
             Await TestAsync(
-NewLines("class C \n public overridable function [||]GetFoo() as integer \n End function \n End class \n class D \n inherits C \n public overrides function GetFoo() as integer \n End function \n End class"),
-NewLines("class C \n public overridable ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n End class \n class D \n inherits C \n public overrides ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n End class"))
+"class C
+    public overridable function [||]GetFoo() as integer
+    End function
+End class
+class D
+    inherits C
+    public overrides function GetFoo() as integer
+    End function
+End class",
+"class C
+    public overridable ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class
+class D
+    inherits C
+    public overrides ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReference_NonInvoked() As Task
             Await TestAsync(
-NewLines("class C \n function [||]GetFoo() as integer \n End function \n sub Bar() \n dim i = GetFoo \n End sub \n End class"),
-NewLines("class C \n ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n sub Bar() \n dim i = Foo \n End sub \n End class"))
+"class C
+    function [||]GetFoo() as integer
+    End function
+    sub Bar()
+        dim i = GetFoo
+    End sub
+End class",
+"class C
+    ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+    sub Bar()
+        dim i = Foo
+    End sub
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSet() As Task
             Await TestAsync(
-NewLines("class C \n function [||]GetFoo() as integer \n End function \n sub SetFoo(i as integer) \n End sub \n End class"),
-NewLines("class C \n Property Foo as integer \n Get \n End Get \n Set(i as integer) \n End Set \n End Property \n End class"),
+"class C
+    function [||]GetFoo() as integer
+    End function
+    sub SetFoo(i as integer)
+    End sub
+End class",
+"class C
+    Property Foo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+End class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSetReference_NonInvoked() As Task
             Await TestAsync(
-NewLines("Imports System \n class C \n function [||]GetFoo() as integer \n End function \n sub SetFoo(i as integer) \n End sub \n sub Bar() \n dim i as Action(of integer) = addressof SetFoo \n End sub \n End class"),
-NewLines("Imports System \n class C \n Property Foo as integer \n Get \n End Get \n Set(i as integer) \n End Set \n End Property \n sub Bar() \n dim i as Action(of integer) = addressof {|Conflict:Foo|} \n End sub \n End class"),
+"Imports System
+class C
+    function [||]GetFoo() as integer
+    End function
+    sub SetFoo(i as integer)
+    End sub
+    sub Bar()
+        dim i as Action(of integer) = addressof SetFoo
+    End sub
+End class",
+"Imports System
+class C
+    Property Foo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+    sub Bar()
+        dim i as Action(of integer) = addressof {|Conflict:Foo|}
+    End sub
+End class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSet_SetterAccessibility() As Task
             Await TestAsync(
-NewLines("class C \n public function [||]GetFoo() as integer \n End function \n private sub SetFoo(i as integer) \n End sub \n End class"),
-NewLines("class C \n public Property Foo as integer \n Get End Get \n Private Set(i as integer) \n End Set \n End Property \n End class"),
+"class C
+    public function [||]GetFoo() as integer
+    End function
+    private sub SetFoo(i as integer)
+    End sub
+End class",
+"class C
+    public Property Foo as integer
+        Get End Get 
+ Private Set(i as integer) 
+ End Set
+ End Property
+End class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSet_GetInSetReference() As Task
             Await TestAsync(
-NewLines("class C \n function [||]GetFoo() as integer \n End function \n sub SetFoo(i as integer) \n End sub \n sub Bar() \n SetFoo(GetFoo() + 1) \n End sub \n End class"),
-NewLines("class C \n Property Foo as integer \n Get \n End Get \n Set(i as integer) \n End Set \n End Property \n sub Bar() \n Foo = Foo + 1 \n End sub \n End class"),
+"class C
+    function [||]GetFoo() as integer
+    End function
+    sub SetFoo(i as integer)
+    End sub
+    sub Bar()
+        SetFoo(GetFoo() + 1)
+    End sub
+End class",
+"class C
+    Property Foo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+    sub Bar()
+        Foo = Foo + 1
+    End sub
+End class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSet_SetReferenceInSetter() As Task
             Await TestAsync(
-NewLines("class C \n function [||]GetFoo() as integer \n End function \n sub SetFoo(i as integer) \n SetFoo(i - 1) \n End sub \n End class"),
-NewLines("class C \n Property Foo as integer \n Get \n End Get \n Set(i as integer) \n Foo = i - 1 \n End Set \n End Property \n End class"),
+"class C
+    function [||]GetFoo() as integer
+    End function
+    sub SetFoo(i as integer)
+        SetFoo(i - 1)
+    End sub
+End class",
+"class C
+    Property Foo as integer
+        Get
+        End Get
+        Set(i as integer)
+            Foo = i - 1
+        End Set
+    End Property
+End class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestVirtualGetWithOverride_1() As Task
             Await TestAsync(
-NewLines("class C \n protected overridable function [||]GetFoo() as integer \n End function \n End class \n class D \n inherits C \n protected overrides function GetFoo() as integer \n End function \n End class"),
-NewLines("class C \n protected overridable ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n End class \n class D \n inherits C \n protected overrides ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n End class"),
+"class C
+    protected overridable function [||]GetFoo() as integer
+    End function
+End class
+class D
+    inherits C
+    protected overrides function GetFoo() as integer
+    End function
+End class",
+"class C
+    protected overridable ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class
+class D
+    inherits C
+    protected overrides ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class",
 index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestVirtualGetWithOverride_2() As Task
             Await TestAsync(
-NewLines("class C \n protected overridable function [||]GetFoo() as integer \n End function \n End class \n class D \n inherits C \n protected overrides function GetFoo() as integer \n return mybase.GetFoo() \n End function \n End class"),
-NewLines("class C \n protected overridable ReadOnly Property Foo as integer \n Get \n End Get \n End Property \n End class \n class D \n inherits C \n protected overrides ReadOnly Property Foo as integer \n Get \n return mybase.Foo \n End Get \n End Property \n End class"),
+"class C
+    protected overridable function [||]GetFoo() as integer
+    End function
+End class
+class D
+    inherits C
+    protected overrides function GetFoo() as integer
+        return mybase.GetFoo()
+    End function
+End class",
+"class C
+    protected overridable ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class
+class D
+    inherits C
+    protected overrides ReadOnly Property Foo as integer
+        Get
+            return mybase.Foo
+        End Get
+    End Property
+End class",
 index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestWithPartialClasses() As Task
             Await TestAsync(
-NewLines("partial class C \n function [||]GetFoo() as integer \n End function \n End class \n partial class C \n sub SetFoo(i as integer) \n End sub \n End class"),
-NewLines("partial class C \n Property Foo as integer \n Get \n End Get \n Set(i as integer) \n End Set \n End Property \n End class \n partial class C \n End class"),
+"partial class C
+    function [||]GetFoo() as integer
+    End function
+End class
+partial class C
+    sub SetFoo(i as integer)
+    End sub
+End class",
+"partial class C
+    Property Foo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+End class
+partial class C
+End class",
 index:=1)
+        End Function
+
+        <WorkItem(14327, "https://github.com/dotnet/roslyn/issues/14327")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestUpdateChainedGet1() As Task
+            Await TestAsync(
+"
+public class Foo
+    public sub Foo()
+        dim v = GetValue().GetValue()
+    end sub
+
+    Public Function [||]GetValue() As Foo 
+    End Function
+end class",
+"
+public class Foo
+    public sub Foo()
+        dim v = Value.Value
+    end sub
+
+    Public ReadOnly Property Value As Foo
+        Get
+        End Get
+    End Property
+end class")
         End Function
     End Class
 End Namespace

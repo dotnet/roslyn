@@ -394,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CheckEventTypeCompliance(symbol As EventSymbol)
             Dim type = symbol.Type
-            If type.TypeKind = TypeKind.Delegate AndAlso type.IsImplicitlyDeclared Then
+            If type.TypeKind = TypeKind.Delegate AndAlso type.IsImplicitlyDeclared AndAlso TryCast(type, NamedTypeSymbol)?.AssociatedSymbol Is symbol Then
                 Debug.Assert(symbol.DelegateReturnType.SpecialType = SpecialType.System_Void)
                 CheckParameterCompliance(symbol.DelegateParameters, symbol.ContainingType)
             ElseIf ShouldReportNonCompliantType(type, symbol.ContainingType, symbol) Then

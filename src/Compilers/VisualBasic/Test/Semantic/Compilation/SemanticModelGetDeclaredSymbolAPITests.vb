@@ -1324,7 +1324,8 @@ BC30001: Statement is not valid in a namespace.
             Assert.NotNull(paramSymbol1)
             Assert.Equal("Percent", paramSymbol1.Name)
             Assert.Equal("System.Single", paramSymbol1.Type.ToTestDisplayString())
-            Assert.Equal("Event N1.Test.Percent(Percent As System.Single)", paramSymbol1.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Event N1.Test.Percent(Percent As System.Single)", paramSymbol1.ContainingType.AssociatedSymbol.ToTestDisplayString())
+            Assert.Equal("Sub N1.Test.PercentEventHandler.Invoke(Percent As System.Single)", paramSymbol1.ContainingSymbol.ToTestDisplayString())
 
         End Sub
 

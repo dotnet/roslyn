@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(
             INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
         {
-            if (!container.IsType)
+            if (container?.IsType != true)
             {
                 return symbols;
             }

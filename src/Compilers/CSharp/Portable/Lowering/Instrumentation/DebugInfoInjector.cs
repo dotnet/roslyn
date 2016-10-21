@@ -194,16 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement collectionVarDecl)
         {
-            // NOTE: This is slightly different from Dev10.  In Dev10, when you stop the debugger
-            // on the collection expression, you can see the (uninitialized) iteration variable.
-            // In Roslyn, you cannot because the iteration variable is re-declared in each iteration
-            // of the loop and is, therefore, not yet in scope.
-            if (original.Syntax is ForEachComponentStatementSyntax)
-            {
-                return InstrumentForEachStatementDeconstructionVariablesDeclaration(original, collectionVarDecl);
-            }
-
-            var forEachSyntax = (ForEachStatementSyntax)original.Syntax;
+            var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
             return new BoundSequencePoint(forEachSyntax.Expression,
                                           base.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl));
         }

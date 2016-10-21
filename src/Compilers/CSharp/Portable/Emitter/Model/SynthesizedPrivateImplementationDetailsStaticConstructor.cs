@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //
             //     payloadRoot = new T[MaximumMethodDefIndex + 1][];
             //
-            // where T is the type of the payload at each instrumentation point, and MaximumMethodDefIndex is the 
+            // where T is the type of the payload at each instrumentation point, and MaximumMethodDefIndex is the
             // index portion of the greatest method definition token in the compilation. This guarantees that any
             // method can use the index portion of its own method definition token as an index into the payload array.
 
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Initialize the module version ID (MVID) field. Dynamic instrumentation requires the MVID of the executing module, and this field makes that accessible.
-                // MVID = Guid.Parse(ModuleVersionIdString);
+                // MVID = new Guid(ModuleVersionIdString);
                 body.Add(
                     factory.Assignment(
                        factory.ModuleVersionId(),
-                       factory.StaticCall(
-                           WellKnownMember.System_Guid__Parse,
+                       factory.New(
+                           factory.WellKnownMethod(WellKnownMember.System_Guid__ctor),
                            factory.ModuleVersionIdString())));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember missing)

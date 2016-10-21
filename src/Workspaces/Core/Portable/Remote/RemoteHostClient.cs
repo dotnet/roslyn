@@ -87,11 +87,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public abstract Task InvokeAsync(string targetName, params object[] arguments);
-
             public abstract Task<T> InvokeAsync<T>(string targetName, params object[] arguments);
-
             public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
-
             public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
 
             public void AddAdditionalAssets(CustomAsset asset)

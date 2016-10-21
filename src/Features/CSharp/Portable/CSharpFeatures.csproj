@@ -58,9 +58,28 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Indexers\UseExpressionBodyForIndexersCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Indexers\UseExpressionBodyForIndexersDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Properties\UseExpressionBodyForPropertiesCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Properties\UseExpressionBodyForPropertiesDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForConversionOperatorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForConversionOperatorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Constructors\UseExpressionBodyForConstructorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForOperatorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Constructors\UseExpressionBodyForConstructorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForOperatorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.InlineDeclarationFixAllProvider.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
     <Compile Include="Structure\Providers\BlockSyntaxStructureProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />
@@ -362,7 +381,12 @@
     <Compile Include="Structure\Providers\SwitchStatementStructureProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Methods\UseExpressionBodyForMethodsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Methods\UseExpressionBodyForMethodsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\AbstractUseExpressionBodyDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
+    <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProvider.cs" />
     <Compile Include="UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="Structure\CSharpBlockStructureProvider.cs" />
     <Compile Include="Structure\CSharpStructureHelpers.cs" />

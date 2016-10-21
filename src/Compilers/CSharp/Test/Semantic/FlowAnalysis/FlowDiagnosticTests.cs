@@ -931,9 +931,9 @@ public struct A
     // (7,11): warning CS0219: The variable 'a' is assigned but its value is never used
     //         A a = new A();
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(7, 11),
-    // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+    // (4,7): warning CS0169: The field 'A.a' is never used
     //     A a = new A(); // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7)
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7)
     );
         }
 
