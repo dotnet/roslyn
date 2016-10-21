@@ -9,9 +9,9 @@ try
 {
     $items = @(
         "ExpressionEvaluatorPackage.vsix",
-        "Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Roslyn.VisualStudio.Setup.Next.vsix",
-        "Roslyn.VisualStudio.Setup.vsix",
+        "VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
+        "VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix",
+        "VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "Microsoft.CodeAnalysis.ExpressionEvaluator.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
@@ -30,7 +30,7 @@ try
     foreach ($item in $items) 
     {
         $sourcePath = join-path $binariesPath $item
-        $destPath = join-path $baseDestPath $item
+        $destPath = join-path $baseDestPath (split-path -leaf $item)
 
         # Many of these files are only produced in the Official MicroBuild runs.  On test runs, which run locally,
         # we need to guard agains this.

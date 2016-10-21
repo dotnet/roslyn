@@ -12,8 +12,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
-    <OutDir>$(OutDir)Dev15Tests\</OutDir>
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+    <RoslynProjectType>UnitTestNext</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">

@@ -16,6 +16,7 @@
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />

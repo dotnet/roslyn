@@ -12,6 +12,7 @@
     <AssemblyName>Roslyn.Services.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <GenerateMSBuildBindingRedirects>true</GenerateMSBuildBindingRedirects>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

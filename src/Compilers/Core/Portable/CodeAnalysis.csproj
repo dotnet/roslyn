@@ -19,6 +19,7 @@
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <NoStdLib>true</NoStdLib>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

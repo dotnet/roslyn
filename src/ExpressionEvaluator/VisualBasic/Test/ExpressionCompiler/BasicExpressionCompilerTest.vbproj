@@ -8,8 +8,8 @@
     <ProjectGuid>{AC5E3515-482C-4C6A-92D9-D0CEA687DFC2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests</AssemblyName>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Xml.Linq" />

@@ -24,6 +24,9 @@
 
     <MSBuild Projects="$(ProjectDir)Roslyn.sln" BuildInParallel="true" />
     <MSBuild Projects="$(ProjectDir)src\Dependencies\Dependencies.sln" BuildInParallel="true" />
+
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\create-perftests.ps1 &quot;$(BinariesPath)&quot;" />
+
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" />
 
     <MSBuild Projects="$(MSBuildThisFileDirectory)RunSignTool.proj" Properties="SignRoslynArgs=$(SignRoslynArgs)" />

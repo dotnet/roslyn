@@ -20,8 +20,8 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.CSharp.dll" target="lib\netstandard1.3" />
-    <file src="Microsoft.CodeAnalysis.CSharp.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

@@ -11,7 +11,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>DeployCompilerGeneratorToolsRuntime</RootNamespace>
     <AssemblyName>DeployCompilerGeneratorToolsRuntime_DoNotUse</AssemblyName>
-    <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
     <DefaultLanguage>en-US</DefaultLanguage>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
@@ -20,6 +19,7 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <NoStdLib>true</NoStdLib>
     <NonShipping>true</NonShipping>
+    <RoslynProjectType>DeploymentCompilergeneratorTools</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' " />

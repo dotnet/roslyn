@@ -19,8 +19,8 @@
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.Features.dll" target="lib\netstandard1.3" />
-    <file src="Microsoft.CodeAnalysis.Features.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\Features\Microsoft.CodeAnalysis.Features.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Features\Microsoft.CodeAnalysis.Features.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

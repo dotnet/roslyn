@@ -18,6 +18,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -140,6 +141,7 @@
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" />
+
     <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
     <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
