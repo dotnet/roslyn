@@ -286,6 +286,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             private CompletionItem GetBestCompletionItemBasedOnMRU(
                 ImmutableArray<CompletionItem> chosenItems, ImmutableArray<string> recentItems)
             {
+                if (chosenItems.Length == 0)
+                {
+                    return null;
+                }
+
                 var bestItem = chosenItems.FirstOrDefault();
                 for (int i = 1, n = chosenItems.Length; i < n; i++)
                 {
@@ -294,6 +299,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
 
                     if (mruIndex2 < mruIndex1)
+                    {
+                        bestItem = chosenItem;
+                    }
+                }
+
+                if (GetRecentItemIndex(recentItems, bestItem) < 1)
+                {
+                    return bestItem;
+                }
+
+                for (int i = 1, n = chosenItems.Length; i < n; i++)
+                {
+                    var chosenItem = chosenItems[i];
+                    var mruIndex1 = bestItem.Rules.MatchPriority;
+                    var mruIndex2 = chosenItem.Rules.MatchPriority;
+
+                    if (mruIndex2 > mruIndex1)
                     {
                         bestItem = chosenItem;
                     }
@@ -444,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return true;
                     }
 
-                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0)
+                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 1)
                     {
                         return true;
                     }

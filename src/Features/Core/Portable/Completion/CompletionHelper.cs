@@ -184,10 +184,15 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // If they both seemed just as good, but they differ on preselection, then
             // item1 is better if it is preselected, otherwise it is worse.
-            var diff = item1.Rules.MatchPriority - item2.Rules.MatchPriority;
-            if (diff != 0)
+            if (item1.Rules.MatchPriority == MatchPriority.Preselect && 
+                item2.Rules.MatchPriority != MatchPriority.Preselect)
             {
-                return -diff;
+                return -1;
+            }
+            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
+                item2.Rules.MatchPriority == MatchPriority.Preselect)
+            {
+                return 1;
             }
 
             // Prefer things with a keyword tag, if the filter texts are the same.
@@ -229,15 +234,17 @@ namespace Microsoft.CodeAnalysis.Completion
                 return diff;
             }
 
-            // Now, after comparing matches, check if an item wants to be preselected.  If so,
-            // we prefer that.  i.e. say the user has typed 'f' and we have the items 'foo' 
-            // and 'False' (with the latter being 'Preselected').  Both will be a prefix match.
-            // And because we are ignoring case, neither will be seen as better.  Now, because
-            // 'False' is preselected we pick it even though 'foo' matches 'f' case sensitively.
-            diff = item2.Rules.MatchPriority - item1.Rules.MatchPriority;
-            if (diff != 0)
+            // If they both seemed just as good, but they differ on preselection, then
+            // item1 is better if it is preselected, otherwise it is worse.
+            if (item1.Rules.MatchPriority == MatchPriority.Preselect &&
+                item2.Rules.MatchPriority != MatchPriority.Preselect)
             {
-                return diff;
+                return -1;
+            }
+            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
+                item2.Rules.MatchPriority == MatchPriority.Preselect)
+            {
+                return 1;
             }
 
             // At this point we have two items which we're matching in a rather similar fasion.
