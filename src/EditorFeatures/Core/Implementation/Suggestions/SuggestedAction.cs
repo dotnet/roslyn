@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal readonly CodeAction CodeAction;
 
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
-        private IAsynchronousOperationListener OperationListener => SourceProvider.OperationListener;
         private IWaitIndicator WaitIndicator => SourceProvider.WaitIndicator;
 
         internal SuggestedAction(
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Create a task to do the actual async invocation of this action.
             // For testing purposes mark that we still have an outstanding async 
             // operation so that we don't try to validate things too soon.
-            var asyncToken = OperationListener.BeginAsyncOperation(GetType().Name + "." + nameof(Invoke));
+            var asyncToken = SourceProvider.OperationListener.BeginAsyncOperation(GetType().Name + "." + nameof(Invoke));
             var task = YieldThenInvokeAsync(cancellationToken);
             task.CompletesAsyncOperation(asyncToken);
         }
