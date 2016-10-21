@@ -1025,6 +1025,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // don't emit if the resulting method would contain initializers with errors
                     if (!hasErrors && (hasBody || includeInitializersInBody))
                     {
+                        Debug.Assert(!methodSymbol.IsImplicitInstanceConstructor || !methodSymbol.ContainingType.IsStructType());
+
                         // Fields must be initialized before constructor initializer (which is the first statement of the analyzed body, if specified),
                         // so that the initialization occurs before any method overridden by the declaring class can be invoked from the base constructor
                         // and access the fields.
@@ -1088,37 +1090,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        // generated struct constructors should ensure that all fields are assigned (even those that do not have initializers)
-                        var container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
-                        if (container != null &&
-                            container.IsStructType() &&
-                            methodSymbol.IsImplicitInstanceConstructor)
-                        {
-                            StateMachineTypeSymbol ctorStateMachineTypeOpt;
-                            const bool instrumentChainedConstructorsForDynamicAnalysis = false;
-
-                            var chain = ChainImplicitStructConstructor(methodSymbol, container);
-                            chain = LowerBodyOrInitializer(
-                                methodSymbol,
-                                methodOrdinal,
-                                chain,
-                                previousSubmissionFields,
-                                compilationState,
-                                instrumentChainedConstructorsForDynamicAnalysis,
-                                _debugDocumentProvider,
-                                ref dynamicAnalysisSpans,
-                                diagsForCurrentMethod,
-                                ref lazyVariableSlotAllocator,
-                                lambdaDebugInfoBuilder,
-                                closureDebugInfoBuilder,
-                                out ctorStateMachineTypeOpt);
-
-                            // constructor can't produce state machine
-                            Debug.Assert((object)ctorStateMachineTypeOpt == null);
-
-                            boundStatements = boundStatements.Insert(0, chain);
-                        }
-
                         CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 
                         var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
@@ -1154,28 +1125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagsForCurrentMethod.Free();
                 compilationState.CurrentImportChain = oldImportChain;
             }
-        }
-
-        /// <summary>
-        /// Synthesized parameterless constructors in structs chain to the "default" constructor
-        /// </summary>
-        private static BoundStatement ChainImplicitStructConstructor(MethodSymbol methodSymbol, SourceMemberContainerTypeSymbol containingType)
-        {
-            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
-
-            // TODO: can we skip this if we have as many initializers as instance fields?
-            //       there could be an observable difference if initializer crashes 
-            //       and constructor is invoked in-place and the partially initialized 
-            //       instance escapes. (impossible in C#, I believe)
-            //
-            // add "this = default(T)" at the beginning of implicit struct ctor
-            return new BoundExpressionStatement(syntax,
-                    new BoundAssignmentOperator(
-                    syntax,
-                    new BoundThisReference(syntax, containingType),
-                    new BoundDefaultOperator(syntax, containingType),
-                    RefKind.None,
-                    containingType));
         }
 
         // internal for testing
