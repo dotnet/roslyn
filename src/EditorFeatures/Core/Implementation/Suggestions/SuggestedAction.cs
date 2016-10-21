@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
 
-        protected ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
-        protected IAsynchronousOperationListener OperationListener => SourceProvider.OperationListener;
-        protected IWaitIndicator WaitIndicator => SourceProvider.WaitIndicator;
+        private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
+        private IAsynchronousOperationListener OperationListener => SourceProvider.OperationListener;
+        private IWaitIndicator WaitIndicator => SourceProvider.WaitIndicator;
 
         internal SuggestedAction(
             SuggestedActionsSourceProvider sourceProvider,
