@@ -9,9 +9,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal sealed class SuppressionCodeAction : CodeAction.CodeActionWithNestedActions
     {
         public SuppressionCodeAction(Diagnostic diagnostic, ImmutableArray<CodeAction> nestedActions)
-            : base(string.Format(FeaturesResources.Suppress_0, diagnostic.Id), 
+            : base(string.Format(FeaturesResources.Suppress_0, diagnostic.Id),
                    nestedActions, isInlinable: false)
         {
         }
+
+        // Put suppressions at the end of everything.
+        internal override CodeActionPriority Priority => CodeActionPriority.None;
     }
 }

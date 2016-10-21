@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             _title = title;
         }
+        
+        // Put suppressions at the end of everything.
+        internal override CodeActionPriority Priority => CodeActionPriority.None;
 
         public sealed override string Title => _title;
 

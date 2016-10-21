@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
                         suggestedAction = new SuggestedActionWithNestedActions(
-                            _owner, workspace, _subjectBuffer,
+                            _owner, workspace, _subjectBuffer, 
                             fixCollection.Provider, fix.Action, set);
                     }
                     else

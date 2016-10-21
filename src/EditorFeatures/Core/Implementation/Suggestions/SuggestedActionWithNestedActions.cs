@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             NestedActionSet = nestedActionSet;
         }
 
-        public sealed override bool HasActionSets => true;
-
         public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
             => Task.FromResult<IEnumerable<SuggestedActionSet>>(ImmutableArray.Create(NestedActionSet));
     }
