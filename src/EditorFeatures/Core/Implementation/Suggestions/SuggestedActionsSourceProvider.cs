@@ -490,7 +490,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// the priority of such <see cref="SuggestedActionSet"/>s is set to <see cref="SuggestedActionSetPriority.None"/> so that suppression fixes
             /// always show up last after all other fixes (and refactorings) for the selected line of code.
             /// </remarks>
-            private static IEnumerable<SuggestedActionSet> PrioritizeFixGroups(IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, IList<CodeFixGroupKey> order)
+            private static ImmutableArray<SuggestedActionSet> PrioritizeFixGroups(
+                IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, IList<CodeFixGroupKey> order)
             {
                 var sets = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
