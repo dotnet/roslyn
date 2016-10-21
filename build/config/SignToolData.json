@@ -51,14 +51,14 @@
                 "Exes\\vbc\\vbc.exe",
                 "Exes\\vbccore\\vbc.exe",
                 "Exes\\vbi\\vbi.exe",
-                "Exes\\vbicore\\vbi.exe"
+                "Exes\\vbicore\\vbi.exe",
                 "Tools\\Pdb2Xml\\Microsoft.DiaSymReader.PortablePdb.dll",
                 "Tools\\Pdb2Xml\\Pdb2Xml.exe",
                 "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.dll",
                 "Vsix\\Templates\\Roslyn.Templates.dll",
                 "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
                 "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll",
-                "Vsix\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll",
+                "Vsix\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll"
             ]
         },
         {
