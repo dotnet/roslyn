@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal readonly CodeAction CodeAction;
 
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
-        private IWaitIndicator WaitIndicator => SourceProvider.WaitIndicator;
 
         internal SuggestedAction(
             SuggestedActionsSourceProvider sourceProvider,
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             this.AssertIsForeground();
 
             // Always wrap whatever we're doing in a threaded wait dialog.
-            using (var context = this.WaitIndicator.StartWait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true))
+            using (var context = this.SourceProvider.WaitIndicator.StartWait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true))
             using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, context.CancellationToken))
             {
                 // Yield the UI thread so that the light bulb can be dismissed.  This is necessary
