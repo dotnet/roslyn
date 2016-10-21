@@ -341,7 +341,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private void ProcessFixCollection(Workspace workspace, IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, ArrayBuilder<CodeFixGroupKey> order, bool includeSuppressionFixes, CodeFixCollection fixCollection)
+            private void ProcessFixCollection(
+                Workspace workspace, 
+                IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, 
+                ArrayBuilder<CodeFixGroupKey> order, 
+                bool includeSuppressionFixes, 
+                CodeFixCollection fixCollection)
             {
                 var fixes = fixCollection.Fixes;
                 var fixCount = fixes.Length;

@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             object provider,
             CodeAction codeAction)
         {
-            Contract.ThrowIfTrue(provider == null);
+            Contract.ThrowIfNull(provider);
+            Contract.ThrowIfNull(codeAction);
 
             this.SourceProvider = sourceProvider;
             this.Workspace = workspace;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             this.CodeAction = codeAction;
         }
 
-        internal virtual CodeActionPriority Priority => CodeAction?.Priority ?? CodeActionPriority.Medium;
+        internal virtual CodeActionPriority Priority => CodeAction.Priority;
 
         public bool TryGetTelemetryId(out Guid telemetryId)
         {
