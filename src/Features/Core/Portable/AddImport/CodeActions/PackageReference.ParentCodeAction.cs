@@ -27,9 +27,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 public override string Title => _title;
 
-                internal override bool HasCodeActions => true;
+                /// <summary>
+                /// Even though we have child actions, we mark ourselves as explicitly non-inlinable.
+                /// We want to the experience of having the top level item the user has to see and
+                /// navigate through, and we don't want our child items confusingly being added to the
+                /// top level light-bulb where it's not clear what effect they would have if invoked.
+                /// </summary>
+                internal override bool IsInlinable => false;
 
-                internal override ImmutableArray<CodeAction> GetCodeActions() => _childCodeActions;
+                internal override ImmutableArray<CodeAction> GetNestedCodeActions() => _childCodeActions;
 
                 internal override int? Glyph => (int)CodeAnalysis.Glyph.NuGet;
 

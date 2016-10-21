@@ -25,18 +25,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// 
     /// Because all derivations support 'preview changes', we bake that logic into this base type.
     /// </summary>
-    internal abstract partial class SuggestedActionWithFlavors : SuggestedAction, ISuggestedActionWithFlavors
+    internal abstract partial class SuggestedActionWithNestedFlavors : SuggestedAction, ISuggestedActionWithFlavors
     {
         private readonly SuggestedActionSet _additionalFlavors;
-        private ImmutableArray<SuggestedActionSet> _allFlavors;
+        private ImmutableArray<SuggestedActionSet> _nestedFlavors;
 
-        public SuggestedActionWithFlavors(
+        public SuggestedActionWithNestedFlavors(
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace, ITextBuffer subjectBuffer,
             object provider, CodeAction codeAction, 
             SuggestedActionSet additionalFlavors = null) 
             : base(sourceProvider, workspace, subjectBuffer, 
-                   provider, codeAction, actionSets: null)
+                   provider, codeAction)
         {
             _additionalFlavors = additionalFlavors;
         }
@@ -53,18 +53,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Light bulb will always invoke this property on the UI thread.
             AssertIsForeground();
 
-            if (_allFlavors.IsDefault)
+            if (_nestedFlavors.IsDefault)
             {
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
 
                 // We use ConfigureAwait(true) to stay on the UI thread.
-                _allFlavors = await extensionManager.PerformFunctionAsync(
+                _nestedFlavors = await extensionManager.PerformFunctionAsync(
                     Provider, () => CreateAllFlavors(cancellationToken),
                     defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
             }
 
-            Contract.ThrowIfTrue(_allFlavors.IsDefault);
-            return _allFlavors;
+            Contract.ThrowIfTrue(_nestedFlavors.IsDefault);
+            return _nestedFlavors;
         }
 
         private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavors(CancellationToken cancellationToken)

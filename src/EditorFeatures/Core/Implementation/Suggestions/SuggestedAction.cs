@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
+    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
     {
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
@@ -33,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
-        private readonly ImmutableArray<SuggestedActionSet> _actionSets;
 
         protected ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
         protected IAsynchronousOperationListener OperationListener => SourceProvider.OperationListener;
@@ -44,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             ITextBuffer subjectBuffer,
             object provider,
-            CodeAction codeAction,
-            IEnumerable<SuggestedActionSet> actionSets = null)
+            CodeAction codeAction)
         {
             Contract.ThrowIfTrue(provider == null);
 
@@ -54,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             this.SubjectBuffer = subjectBuffer;
             this.Provider = provider;
             this.CodeAction = codeAction;
-            _actionSets = actionSets.AsImmutableOrEmpty();
         }
 
         internal virtual CodeActionPriority Priority => CodeAction?.Priority ?? CodeActionPriority.Medium;
@@ -224,13 +220,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public virtual Task<object> GetPreviewAsync(CancellationToken cancellationToken)
             => SpecializedTasks.Default<object>();
 
-        public virtual bool HasActionSets => _actionSets.Length > 0;
+        public virtual bool HasActionSets => false;
 
         public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-            => Task.FromResult<IEnumerable<SuggestedActionSet>>(GetActionSets());
-
-        internal ImmutableArray<SuggestedActionSet> GetActionSets() 
-            => _actionSets;
+            => SpecializedTasks.EmptyEnumerable<SuggestedActionSet>();
 
         #region not supported
 

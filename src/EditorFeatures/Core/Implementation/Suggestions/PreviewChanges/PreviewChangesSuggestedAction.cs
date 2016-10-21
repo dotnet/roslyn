@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal partial class SuggestedActionWithFlavors
+    internal partial class SuggestedActionWithNestedFlavors
     {
         /// <summary>
         /// Suggested action for showing the preview-changes dialog.  Note: this is only used
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             public static async Task<SuggestedAction> CreateAsync(
-                SuggestedActionWithFlavors suggestedAction, CancellationToken cancellationToken)
+                SuggestedActionWithNestedFlavors suggestedAction, CancellationToken cancellationToken)
             {
                 var previewResult = await suggestedAction.GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
                 if (previewResult == null)

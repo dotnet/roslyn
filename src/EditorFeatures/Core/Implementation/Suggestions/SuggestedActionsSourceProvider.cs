@@ -201,41 +201,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return allActionSets.Select(InlineActions).ToList();
             }
 
-            private bool IsInlineable(ISuggestedAction action)
-            {
-                var suggestedAction = action as SuggestedAction;
-                return suggestedAction != null &&
-                         !suggestedAction.CodeAction.IsInvokable &&
-                         suggestedAction.CodeAction.HasCodeActions;
-            }
-
             private SuggestedActionSet InlineActions(SuggestedActionSet actionSet)
             {
-                if (!actionSet.Actions.Any(IsInlineable))
-                {
-                    return actionSet;
-                }
-
-                var newActions = new List<ISuggestedAction>();
+                var newActions = ArrayBuilder<ISuggestedAction>.GetInstance();
                 foreach (var action in actionSet.Actions)
                 {
-                    if (IsInlineable(action))
+                    var actionWithNestedActions = action as SuggestedActionWithNestedActions;
+
+                    // Only inline if the underlying code action allows it.
+                    if (actionWithNestedActions?.CodeAction.IsInlinable == true)
                     {
-                        // Looks like something we can inline.
-                        var childActionSets = ((SuggestedAction)action).GetActionSets();
-                        if (childActionSets.Length != 1)
-                        {
-                            return actionSet;
-                        }
-
-                        newActions.AddRange(childActionSets[0].Actions);
-                        continue;
+                        newActions.AddRange(actionWithNestedActions.NestedActionSet.Actions);
                     }
-
-                    newActions.Add(action);
+                    else
+                    {
+                        newActions.Add(action);
+                    }
                 }
 
-                return new SuggestedActionSet(newActions, actionSet.Title, actionSet.Priority, actionSet.ApplicableToSpan);
+                return new SuggestedActionSet(
+                    newActions.ToImmutableAndFree(), actionSet.Title, actionSet.Priority, actionSet.ApplicableToSpan);
             }
 
             private IEnumerable<SuggestedActionSet> GetCodeFixes(
@@ -373,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     SuggestedAction suggestedAction;
                     if (fix.Action.HasCodeActions)
                     {
-                        var nestedActions = fix.Action.GetCodeActions().SelectAsArray(
+                        var nestedActions = fix.Action.GetNestedCodeActions().SelectAsArray(
                             nestedAction => new CodeFixSuggestedAction(
                                 _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
                                 getFixAllSuggestedActionSet(nestedAction), nestedAction));
@@ -382,8 +367,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             nestedActions, SuggestedActionSetPriority.Medium, 
                             fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
-                        suggestedAction = new SuggestedAction(_owner, workspace, _subjectBuffer,
-                            fixCollection.Provider, fix.Action, new[] { set });
+                        suggestedAction = new SuggestedActionWithNestedActions(
+                            _owner, workspace, _subjectBuffer,
+                            fixCollection.Provider, fix.Action, set);
                     }
                     else
                     {

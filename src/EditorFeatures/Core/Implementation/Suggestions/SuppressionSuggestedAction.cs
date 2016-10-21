@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                return this.CodeAction.GetCodeActions().Any();
+                return this.CodeAction.GetNestedCodeActions().Any();
             }
         }
 
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return Task.FromResult(_actionSets);
             }
 
-            if (this.CodeAction.GetCodeActions().Any())
+            if (this.CodeAction.GetNestedCodeActions().Any())
             {
                 var nestedSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
-                var fixCount = this.CodeAction.GetCodeActions().Length;
+                var fixCount = this.CodeAction.GetNestedCodeActions().Length;
 
-                foreach (var action in this.CodeAction.GetCodeActions())
+                foreach (var action in this.CodeAction.GetNestedCodeActions())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

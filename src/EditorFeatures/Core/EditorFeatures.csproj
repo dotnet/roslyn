@@ -632,7 +632,8 @@
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.EditorFormatMapChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
     <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
-    <Compile Include="Implementation\Suggestions\SuggestedActionWithFlavors.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionWithNestedFlavors.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionWithNestedActions.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />

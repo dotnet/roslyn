@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         internal async Task<IEnumerable<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return codeFixes.SelectMany(fix => fix.Action.GetCodeActions()).OfType<PragmaWarningCodeAction>();
+            return codeFixes.SelectMany(fix => fix.Action.GetNestedCodeActions()).OfType<PragmaWarningCodeAction>();
         }
 
         private async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             {
                 if (!diagnostic.IsSuppressed)
                 {
-                    var nestedActions = new List<NestedSuppressionCodeAction>();
+                    var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
 
                     if (diagnostic.Location.IsInSource && documentOpt != null)
                     {
@@ -143,7 +144,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));
                     }
 
-                    result.Add(new CodeFix(project, new SuppressionCodeAction(diagnostic, nestedActions), diagnostic));
+                    var codeAction = new SuppressionCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
+                    result.Add(new CodeFix(project, codeAction, diagnostic));
                 }
                 else if (!skipUnsuppress)
                 {

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal partial class SuggestedActionWithFlavors
+    internal partial class SuggestedActionWithNestedFlavors
     {
         private partial class PreviewChangesSuggestedAction
         {
