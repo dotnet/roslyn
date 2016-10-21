@@ -55,8 +55,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // not the special 'FixAllCodeAction'.  that is the .CodeAction this
             // SuggestedAction is pointing at.
             var prefix = GetTelemetryPrefix(_originalCodeAction);
-            telemetryId = new Guid(prefix, (byte)_fixAllState.Scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            var scope = GetTelemetryScope();
+            telemetryId = new Guid(prefix, scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             return true;
+        }
+
+        private byte GetTelemetryScope()
+        {
+            switch (_fixAllState.Scope)
+            {
+                case FixAllScope.Document: return 1;
+                case FixAllScope.Project: return 2;
+                case FixAllScope.Solution: return 3;
+                default: return 4;
+            }
         }
 
         public string GetDiagnosticID()
