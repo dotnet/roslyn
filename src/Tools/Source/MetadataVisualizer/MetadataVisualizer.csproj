@@ -10,7 +10,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>MetadataVisualizer</RootNamespace>
     <AssemblyName>mdv</AssemblyName>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

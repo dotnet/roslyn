@@ -8,7 +8,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>InteractiveHost</RootNamespace>
     <AssemblyName>InteractiveHost</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RoslynProjectType>ExeDesktop</RoslynProjectType>

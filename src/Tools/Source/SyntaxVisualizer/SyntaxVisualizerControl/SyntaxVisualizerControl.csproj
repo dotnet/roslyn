@@ -12,7 +12,6 @@
     <AssemblyName>Roslyn.SyntaxVisualizer.Control</AssemblyName>
     <DocumentationFile />
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>

@@ -32,22 +32,23 @@ namespace BuildBoss
             var allGood = true;
             if (ProjectType == ProjectType.CSharp || ProjectType == ProjectType.Basic)
             {
-                allGood &= CheckRestorePackages(textWriter);
+                allGood &= CheckForProperty(textWriter, "RestorePackages");
+                allGood &= CheckForProperty(textWriter, "SolutionDir");
             }
 
             return allGood;
         }
 
-        private bool CheckRestorePackages(TextWriter textWriter)
+        private bool CheckForProperty(TextWriter textWriter, string propertyName)
         {
             var groups = _projectData.XPathSelectElements("//mb:PropertyGroup", _manager);
             foreach(var group in groups)
             {
                 foreach (var element in group.Elements())
                 {
-                    if (element.Name.LocalName == "RestorePackages")
+                    if (element.Name.LocalName == propertyName)
                     {
-                        textWriter.WriteLine($"\tDo not use RestorePackages");
+                        textWriter.WriteLine($"\tDo not use {propertyName}");
                         return false;
                     }
                 }

@@ -10,7 +10,6 @@
     <RootNamespace>ImplementNotifyPropertyChangedVB.UnitTests</RootNamespace>
     <AssemblyName>ImplementNotifyPropertyChangedVB.UnitTests</AssemblyName>
     <VBRuntime>Default</VBRuntime>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
