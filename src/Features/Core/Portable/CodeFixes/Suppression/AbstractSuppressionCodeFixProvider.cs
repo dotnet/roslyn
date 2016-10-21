@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             {
                 if (!diagnostic.IsSuppressed)
                 {
-                    var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+                    var nestedActions = ArrayBuilder<NestedSuppressionCodeAction>.GetInstance();
                     if (diagnostic.Location.IsInSource && documentOpt != null)
                     {
                         // pragma warning disable.
@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     if (nestedActions.Count > 0)
                     {
-                        var codeAction = new TopLevelSuppressionCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
+                        var codeAction = new TopLevelSuppressionCodeAction(
+                            diagnostic, nestedActions.ToImmutableAndFree());
                         result.Add(new CodeFix(project, codeAction, diagnostic));
                     }
                 }
