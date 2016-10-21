@@ -13,7 +13,6 @@
     </RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider</AssemblyName>
     <VBSyntaxGeneratorToolPath>$(OutDir)..\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
-    <RestorePackages>true</RestorePackages>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
