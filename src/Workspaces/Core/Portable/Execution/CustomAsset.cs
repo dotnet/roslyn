@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private static Checksum CreateChecksum(AnalyzerReference reference)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var objectWriter = new ObjectWriter(stream))
+            using (var objectWriter = new StreamObjectWriter(stream))
             {
                 objectWriter.WriteString(WellKnownSynchronizationKinds.AnalyzerReference);
                 objectWriter.WriteString(reference.FullPath);

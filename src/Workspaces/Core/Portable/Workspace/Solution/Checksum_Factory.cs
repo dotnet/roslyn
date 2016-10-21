@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         public static Checksum Create(IObjectWritable @object, string kind)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var objectWriter = new ObjectWriter(stream))
+            using (var objectWriter = new StreamObjectWriter(stream))
             {
                 objectWriter.WriteString(kind);
                 @object.WriteTo(objectWriter);
