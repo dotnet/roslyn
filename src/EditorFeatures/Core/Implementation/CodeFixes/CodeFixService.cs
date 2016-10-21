@@ -220,32 +220,35 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                Func<Diagnostic, bool> hasFix = (d) => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id);
-                Func<ImmutableArray<Diagnostic>, Task<ImmutableArray<CodeFix>>> getFixes =
-                    async (dxs) =>
-                    {
-                        var fixes = ArrayBuilder<CodeFix>.GetInstance();
-                        var context = new CodeFixContext(document, span, dxs,
-                            // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
-                            (action, applicableDiagnostics) =>
-                            {
-                                // Serialize access for thread safety - we don't know what thread the fix provider will call this delegate from.
-                                lock (fixes)
-                                {
-                                    fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
-                                }
-                            },
-                            verifyArguments: false,
-                            cancellationToken: cancellationToken);
-
-                        var task = fixer.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
-                        await task.ConfigureAwait(false);
-                        return fixes.ToImmutableAndFree();
-                    };
-
-                await AppendFixesOrSuppressionsAsync(document, span, diagnostics, result, fixer,
-                    hasFix, getFixes, cancellationToken).ConfigureAwait(false);
+                await AppendFixesOrSuppressionsAsync(
+                    document, span, diagnostics, result, fixer,
+                    hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
+                    getFixes: dxs => GetCodeFixesAsync(document, span, fixer, dxs, cancellationToken),
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
+            Document document, TextSpan span, CodeFixProvider fixer,
+            ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        {
+            var fixes = ArrayBuilder<CodeFix>.GetInstance();
+            var context = new CodeFixContext(document, span, diagnostics,
+                // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
+                (action, applicableDiagnostics) =>
+                {
+                    // Serialize access for thread safety - we don't know what thread the fix provider will call this delegate from.
+                    lock (fixes)
+                    {
+                        fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
+                    }
+                },
+                verifyArguments: false,
+                cancellationToken: cancellationToken);
+
+            var task = fixer.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
+            await task.ConfigureAwait(false);
+            return fixes.ToImmutableAndFree();
         }
 
         private async Task AppendSuppressionsAsync(
