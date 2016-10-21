@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var nestedActions = fix.Action.NestedCodeActions.SelectAsArray(
                             nestedAction => new CodeFixSuggestedAction(
                                 _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
-                                getFixAllSuggestedActionSet(nestedAction), nestedAction));
+                                nestedAction, getFixAllSuggestedActionSet(nestedAction)));
 
                         var set = new SuggestedActionSet(
                             nestedActions, SuggestedActionSetPriority.Medium,
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         suggestedAction = new CodeFixSuggestedAction(
                             _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
-                            getFixAllSuggestedActionSet(fix.Action), fix.Action);
+                            fix.Action, getFixAllSuggestedActionSet(fix.Action));
                     }
 
                     AddFix(fix, suggestedAction, map, order);

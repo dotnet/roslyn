@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBuffer,
             CodeFix fix,
             object provider,
-            SuggestedActionSet fixAllFlavors,
-            CodeAction action)
+            CodeAction action,
+            SuggestedActionSet fixAllFlavors)
             : base(sourceProvider, workspace, subjectBuffer, 
                    provider, action, fixAllFlavors)
         {
