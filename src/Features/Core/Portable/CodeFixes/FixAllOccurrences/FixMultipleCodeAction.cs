@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Fix multiple occurrences code action.
     /// </summary>
-    internal partial class FixMultipleCodeAction : FixAllCodeAction
+    internal partial class FixMultipleCodeAction : FixSomeCodeAction
     {
         private readonly Diagnostic _triggerDiagnostic;
         private readonly string _title;

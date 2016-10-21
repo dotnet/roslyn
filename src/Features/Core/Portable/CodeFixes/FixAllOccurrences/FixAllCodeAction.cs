@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Fix all occurrences code action.
     /// </summary>
-    internal partial class FixAllCodeAction : CodeAction
+    internal partial class FixSomeCodeAction : CodeAction
     {
         private readonly FixAllState _fixAllState;
         private readonly bool _showPreviewChangesDialog;
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
-        internal FixAllCodeAction(
+        internal FixSomeCodeAction(
             FixAllState fixAllState, bool showPreviewChangesDialog)
         {
             _fixAllState = fixAllState;

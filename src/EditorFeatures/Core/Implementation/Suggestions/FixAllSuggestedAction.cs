@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
-            FixAllCodeAction codeAction,
+            FixSomeCodeAction codeAction,
             FixAllProvider provider,
             Diagnostic originalFixedDiagnostic,
             IAsynchronousOperationListener operationListener)
