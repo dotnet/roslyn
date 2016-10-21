@@ -257,12 +257,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var includeSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
 
                     var fixes = Task.Run(
-                        async () =>
-                        {
-                            var stream = await _owner._codeFixService.GetFixesAsync(
-                                document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken).ConfigureAwait(false);
-                            return stream.ToList();
-                        },
+                        () => _owner._codeFixService.GetFixesAsync(
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
@@ -273,7 +269,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
-            private List<CodeFixCollection> FilterOnUIThread(List<CodeFixCollection> collections, Workspace workspace)
+            private List<CodeFixCollection> FilterOnUIThread(
+                ImmutableArray<CodeFixCollection> collections, Workspace workspace)
             {
                 this.AssertIsForeground();
 
