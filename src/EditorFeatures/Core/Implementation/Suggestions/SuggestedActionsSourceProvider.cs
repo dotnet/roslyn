@@ -373,16 +373,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     SuggestedAction suggestedAction;
                     if (fix.Action.HasCodeActions)
                     {
-                        var nestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
-                        foreach (var nestedAction in fix.Action.GetCodeActions())
-                        {
-                            nestedActions.Add(new CodeFixSuggestedAction(
+                        var nestedActions = fix.Action.GetCodeActions().SelectAsArray(
+                            nestedAction => new CodeFixSuggestedAction(
                                 _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
                                 getFixAllSuggestedActionSet(nestedAction), nestedAction));
-                        }
 
                         var set = new SuggestedActionSet(
-                            nestedActions.ToImmutableAndFree(), SuggestedActionSetPriority.Medium, 
+                            nestedActions, SuggestedActionSetPriority.Medium, 
                             fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
                         suggestedAction = new SuggestedAction(_owner, workspace, _subjectBuffer,
