@@ -2958,6 +2958,42 @@ namespace HelloWorld
             // no stack overflow
         }
 
+        [WorkItem(9795, "https://github.com/dotnet/roslyn/issues/9795")]
+        [Fact]
+        public void NoStackOverflowOnFluentChain()
+        {
+            StringBuilder code = new StringBuilder();
+            code.Append(@"class Foo {
+    private IEnumerable<Property> _properties;
+    public IReadOnlyCollection<Property> Properties => new ReadOnlyCollection<Property>((_properties ?? Enumerable.Empty<Property>()).ToList());
+
+    public Foo AddProperty(Property p) {
+        return new Foo {_properties = (_properties ?? Enumerable.Empty<Property>()).Concat(new []{p})};
+    }
+}
+
+internal class Property {}
+
+class Program {
+    static void Main() {
+        var someclass = new Foo();
+        var s2 = someclass");
+
+            for (var i = 0; i < 3000; i++)
+            {
+                code.Append(".AddProperty(new Property())");
+            }
+
+            code.Append(@";
+Console.WriteLine(s2.Properties.Count());
+}
+}");
+            var tree = SyntaxFactory.ParseSyntaxTree(code.ToString());
+            var position = 4000;
+            var trivia = tree.GetCompilationUnitRoot().FindTrivia(position);
+            // no stack overflow
+        }
+
         [Fact, WorkItem(8625, "https://github.com/dotnet/roslyn/issues/8625")]
         public void SyntaxNodeContains()
         {

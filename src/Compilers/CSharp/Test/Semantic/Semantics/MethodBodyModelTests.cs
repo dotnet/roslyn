@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -993,6 +994,50 @@ class Program
                 //          D d = (D) Main;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(D) Main").WithArguments("D.explicit operator D(Foo)", "D.implicit operator D(System.Action)", "method group", "D").WithLocation(23, 15)
                 );
+        }
+
+
+        [WorkItem(9795, "https://github.com/dotnet/roslyn/issues/9795")]
+        [Fact]
+        public void NoStackOverflowOnFluentChain()
+        {
+            StringBuilder code = new StringBuilder();
+            code.Append(@"
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+
+class Foo {
+    private IEnumerable<Property> _properties;
+    public IReadOnlyCollection<Property> Properties => new ReadOnlyCollection<Property>((_properties ?? Enumerable.Empty<Property>()).ToList());
+
+    public Foo AddProperty(Property p) {
+        return new Foo {_properties = (_properties ?? Enumerable.Empty<Property>()).Concat(new []{p})};
+    }
+}
+
+internal class Property {}
+
+class Program {
+    static void Main() {
+        var someclass = new Foo();
+        var s2 = someclass");
+
+            for (var i = 0; i < 3000; i++)
+            {
+                code.Append(".AddProperty(new Property())");
+            }
+
+            code.Append(@";
+Console.WriteLine(s2.Properties.Count());
+}
+}");
+            var tree = Parse(code.ToString());
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(code.ToString());
+            comp.VerifyDiagnostics(
+                // (18,24): error CS8078: An expression is too long or complex to compile
+                //     static void Main() {
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "{").WithLocation(18, 24));
         }
     }
 }
