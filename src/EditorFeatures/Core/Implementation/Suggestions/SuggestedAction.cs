@@ -54,17 +54,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
 
-        public bool TryGetTelemetryId(out Guid telemetryId)
+        protected static int GetTelemetryPrefix(CodeAction codeAction)
         {
-            // TODO: this is temporary. Diagnostic team needs to figure out how to provide unique id per a fix.
-            // for now, we will use type of CodeAction, but there are some predefined code actions that are used by multiple fixes
-            // and this will not distinguish those
-
             // AssemblyQualifiedName will change across version numbers, FullName won't
-            var type = CodeAction.GetType();
+            var type = codeAction.GetType();
             type = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
+            return type.FullName.GetHashCode();
+        }
 
-            telemetryId = new Guid(type.FullName.GetHashCode(), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        public virtual bool TryGetTelemetryId(out Guid telemetryId)
+        {
+            telemetryId = new Guid(GetTelemetryPrefix(this.CodeAction), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             return true;
         }
 

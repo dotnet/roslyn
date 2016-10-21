@@ -452,7 +452,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
                     var fixAllSuggestedAction = new FixAllSuggestedAction(
-                        _owner, workspace, _subjectBuffer, fixAllStateForScope, firstDiagnostic);
+                        _owner, workspace, _subjectBuffer, fixAllStateForScope, 
+                        firstDiagnostic, action);
 
                     fixAllSuggestedActions.Add(fixAllSuggestedAction);
                 }
