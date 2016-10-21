@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
 
-                    return OrganizeFixes(workspace, filteredFixes, includeSuppressionFixes: includeSuppressionFixes);
+                    return OrganizeFixes(workspace, filteredFixes, includeSuppressionFixes);
                 }
 
                 return null;
