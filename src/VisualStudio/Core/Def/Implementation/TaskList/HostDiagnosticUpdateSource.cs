@@ -98,6 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     RaiseDiagnosticsRemovedForProject(projectId, key);
                 }
             }
+
+            ClearAnalyzerDiagnostics(projectId);
         }
 
         public void ClearDiagnosticsForProject(ProjectId projectId, object key)

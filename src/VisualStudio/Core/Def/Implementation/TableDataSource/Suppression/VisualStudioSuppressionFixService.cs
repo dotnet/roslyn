@@ -67,24 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             _tableControl = errorList?.TableControl;
         }
 
-        public bool AddSuppressions(IVsHierarchy projectHierarchyOpt)
-        {
-            if (_tableControl == null)
-            {
-                return false;
-            }
-
-            // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
-            // in source only for compiler diagnostics.
-            var diagnosticsToFix = GetDiagnosticsToFix(selectedEntriesOnly: false, isAddSuppression: true);
-            if (!ApplySuppressionFix(diagnosticsToFix, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: false))
-            {
-                return false;
-            }
-
-            return ApplySuppressionFix(diagnosticsToFix, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: true, onlyCompilerDiagnostics: true, showPreviewChangesDialog: false);
-        }
-
         public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource)
         {
             if (_tableControl == null)
