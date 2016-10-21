@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </remarks>
         public virtual string EquivalenceKey => null;
 
-        internal bool HasCodeActions => GetNestedCodeActions().Length > 0;
         internal virtual bool IsInlinable => false;
 
         internal virtual CodeActionPriority Priority => CodeActionPriority.Medium;
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         internal virtual int? Glyph => null;
 
-        internal virtual ImmutableArray<CodeAction> GetNestedCodeActions()
+        internal virtual ImmutableArray<CodeAction> NestedCodeActions
             => ImmutableArray<CodeAction>.Empty;
 
         /// <summary>
@@ -257,7 +256,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="document">The document changed by the <see cref="CodeAction"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A document with the post processing changes applied.</returns>
-        protected async virtual Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+        protected virtual Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+            => CleanupDocumentAsync(document, cancellationToken);
+
+        internal static async Task<Document> CleanupDocumentAsync(
+            Document document, CancellationToken cancellationToken)
         {
             if (document.SupportsSyntaxTree)
             {
@@ -336,17 +339,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal abstract class SimpleCodeAction : CodeAction
         {
-            private readonly string _title;
-            private readonly string _equivalenceKey;
-
             public SimpleCodeAction(string title, string equivalenceKey)
             {
-                _title = title;
-                _equivalenceKey = equivalenceKey;
+                Title = title;
+                EquivalenceKey = equivalenceKey;
             }
 
-            public sealed override string Title => _title;
-            public sealed override string EquivalenceKey => _equivalenceKey;
+            public sealed override string Title { get; }
+            public sealed override string EquivalenceKey { get; }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -356,21 +356,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal class CodeActionWithNestedActions : SimpleCodeAction
         {
-            private readonly ImmutableArray<CodeAction> _nestedActions;
-            private readonly bool _isInlinable;
-
             public CodeActionWithNestedActions(
                 string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
                 : base(title, ComputeEquivalenceKey(nestedActions))
             {
-                Debug.Assert(nestedActions.Length >= 1);
-                _nestedActions = nestedActions;
-                _isInlinable = isInlinable;
+                Debug.Assert(nestedActions.Length > 0);
+                NestedCodeActions = nestedActions;
+                IsInlinable = isInlinable;
             }
 
-            internal override bool IsInlinable => _isInlinable;
+            internal sealed override bool IsInlinable { get; }
 
-            internal override ImmutableArray<CodeAction> GetNestedCodeActions() => _nestedActions;
+            internal sealed override ImmutableArray<CodeAction> NestedCodeActions { get; }
 
             private static string ComputeEquivalenceKey(ImmutableArray<CodeAction> nestedActions)
             {

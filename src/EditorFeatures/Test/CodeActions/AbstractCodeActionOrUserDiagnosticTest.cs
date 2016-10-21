@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected static IList<CodeAction> FlattenActions(IEnumerable<CodeAction> codeActions)
         {
-            return codeActions?.SelectMany(a => a.HasCodeActions ? a.GetNestedCodeActions().ToArray() : new[] { a }).ToList();
+            return codeActions?.SelectMany(a => a.HasNestedCodeActions ? a.GetNestedCodeActions().ToArray() : new[] { a }).ToList();
         }
 
         protected IDictionary<OptionKey, object> Option(IOption option, CodeStyleOption<bool> notification)

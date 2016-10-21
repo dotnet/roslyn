@@ -352,19 +352,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         fixCollection.SupportedScopes, fixCollection.FirstDiagnostic,
                         workspace);
 
-                // Suppression fixes are handled below.
-                foreach (var fix in fixes.Where(f => !(f.Action is SuppressionCodeAction)))
+                var nonSupressionCodeFixes = fixes.Where(f => !(f.Action is SuppressionCodeAction));
+                var supressionCodeFixes = fixes.Where(f => f.Action is SuppressionCodeAction);
+
+                AddCodeActions(workspace, map, order, fixCollection, 
+                    getFixAllSuggestedActionSet, nonSupressionCodeFixes);
+
+                // Add suppression fixes to the end of a given SuggestedActionSet so that they
+                // always show up last in a group.
+                if (includeSuppressionFixes)
+                {
+                    AddCodeActions(workspace, map, order, fixCollection,
+                        getFixAllSuggestedActionSet, supressionCodeFixes);
+                }
+            }
+
+            private void AddCodeActions(
+                Workspace workspace, IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, 
+                ArrayBuilder<CodeFixGroupKey> order, CodeFixCollection fixCollection, 
+                Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet, 
+                IEnumerable<CodeFix> codeFixes)
+            {
+                foreach (var fix in codeFixes)
                 {
                     SuggestedAction suggestedAction;
-                    if (fix.Action.HasCodeActions)
+                    if (fix.Action.NestedCodeActions.Length > 0)
                     {
-                        var nestedActions = fix.Action.GetNestedCodeActions().SelectAsArray(
+                        var nestedActions = fix.Action.NestedCodeActions.SelectAsArray(
                             nestedAction => new CodeFixSuggestedAction(
                                 _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
                                 getFixAllSuggestedActionSet(nestedAction), nestedAction));
 
                         var set = new SuggestedActionSet(
-                            nestedActions, SuggestedActionSetPriority.Medium, 
+                            nestedActions, SuggestedActionSetPriority.Medium,
                             fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
                         suggestedAction = new SuggestedActionWithNestedActions(
@@ -374,32 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     else
                     {
                         suggestedAction = new CodeFixSuggestedAction(
-                            _owner, workspace, _subjectBuffer,  fix, fixCollection.Provider, 
-                            getFixAllSuggestedActionSet(fix.Action), fix.Action);
-                    }
-
-                    AddFix(fix, suggestedAction, map, order);
-                }
-
-                if (!includeSuppressionFixes)
-                {
-                    return;
-                }
-
-                // Add suppression fixes to the end of a given SuggestedActionSet so that they always show up last in a group.
-                foreach (var fix in fixes.Where(f => f.Action is SuppressionCodeAction))
-                {
-                    SuggestedAction suggestedAction;
-                    if (fix.Action.HasCodeActions)
-                    {
-                        suggestedAction = new SuppressionSuggestedAction(
-                            _owner, workspace, _subjectBuffer, fix, fixCollection.Provider, 
-                            getFixAllSuggestedActionSet);
-                    }
-                    else
-                    {
-                        suggestedAction = new CodeFixSuggestedAction(
-                            _owner, workspace, _subjectBuffer, fix, fixCollection.Provider, 
+                            _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
                             getFixAllSuggestedActionSet(fix.Action), fix.Action);
                     }
 

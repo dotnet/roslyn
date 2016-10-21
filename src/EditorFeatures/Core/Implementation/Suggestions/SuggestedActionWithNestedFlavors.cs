@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// <summary>
         /// HasActionSets is always true because we always know we provide 'preview changes'.
         /// </summary>
-        public override bool HasActionSets => true;
+        public sealed override bool HasActionSets => true;
 
         public async sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {

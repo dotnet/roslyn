@@ -19,13 +19,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             /// the lightbulb.  It will have children to 'Install Latest', 
             /// 'Install Version 'X' ..., and 'Install with package manager'.
             /// </summary>
-            private class ParentCodeAction : CodeAction
+            private class ParentCodeAction : CodeAction.CodeActionWithNestedActions
             {
                 private readonly PackageReference _reference;
-                private readonly string _title;
-                private readonly ImmutableArray<CodeAction> _childCodeActions;
 
-                public override string Title => _title;
+                internal override int? Glyph => (int)CodeAnalysis.Glyph.NuGet;
+
+                // Adding a nuget reference is lower priority than other fixes..
+                internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
                 /// <summary>
                 /// Even though we have child actions, we mark ourselves as explicitly non-inlinable.
@@ -33,50 +34,47 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 /// navigate through, and we don't want our child items confusingly being added to the
                 /// top level light-bulb where it's not clear what effect they would have if invoked.
                 /// </summary>
-                internal override bool IsInlinable => false;
-
-                internal override ImmutableArray<CodeAction> GetNestedCodeActions() => _childCodeActions;
-
-                internal override int? Glyph => (int)CodeAnalysis.Glyph.NuGet;
-
-                // Adding a nuget reference is lower priority than other fixes..
-                internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
                 public ParentCodeAction(
                     PackageReference reference,
                     Document document,
                     SyntaxNode node,
                     bool placeSystemNamespaceFirst)
+                    : base(string.Format(FeaturesResources.Install_package_0, reference._packageName), 
+                           CreateNestedActions(reference, document, node, placeSystemNamespaceFirst),
+                           isInlinable: false)
                 {
                     _reference = reference;
+                }
 
-                    _title = string.Format(FeaturesResources.Install_package_0, reference._packageName);
-
+                private static ImmutableArray<CodeAction> CreateNestedActions(
+                    PackageReference reference, Document document, 
+                    SyntaxNode node, bool placeSystemNamespaceFirst)
+                {
                     // Determine what versions of this package are already installed in some project
                     // in this solution.  We'll offer to add those specific versions to this project,
                     // followed by an option to "Find and install latest version."
                     var installedVersions = reference._installerService.GetInstalledVersions(reference._packageName);
-                    var codeActions = new List<CodeAction>();
+                    var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
                     // First add the actions to install a specific version.
                     codeActions.AddRange(installedVersions.Select(
-                        v => CreateCodeAction(document, node, placeSystemNamespaceFirst, versionOpt: v, isLocal: true)));
+                        v => CreateCodeAction(reference, document, node, placeSystemNamespaceFirst, versionOpt: v, isLocal: true)));
 
                     // Now add the action to install the specific version.
-                    var preferredVersion = _reference._versionOpt;
+                    var preferredVersion = reference._versionOpt;
                     if (preferredVersion == null || !installedVersions.Contains(preferredVersion))
                     {
-                        codeActions.Add(CreateCodeAction(document, node, placeSystemNamespaceFirst,
-                            versionOpt: _reference._versionOpt, isLocal: false));
+                        codeActions.Add(CreateCodeAction(reference, document, node, placeSystemNamespaceFirst,
+                            versionOpt: reference._versionOpt, isLocal: false));
                     }
 
                     // And finally the action to show the package manager dialog.
                     codeActions.Add(new InstallWithPackageManagerCodeAction(reference));
-
-                    _childCodeActions = codeActions.ToImmutableArray();
+                    return codeActions.ToImmutableAndFree();
                 }
 
-                private CodeAction CreateCodeAction(
+                private static CodeAction CreateCodeAction(
+                    PackageReference reference,
                     Document document,
                     SyntaxNode node,
                     bool placeSystemNamespaceFirst,
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
                     var installData = new AsyncLazy<InstallPackageAndAddImportData>(
-                        c => GetInstallDataAsync(versionOpt, isLocal, document, node, placeSystemNamespaceFirst, c),
+                        c => GetInstallDataAsync(reference, versionOpt, isLocal, document, node, placeSystemNamespaceFirst, c),
                         cacheResult: true);
 
                     // Nuget hits should always come after other results.
@@ -98,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         title, CodeActionPriority.Low, installData);
                 }
 
-                private async Task<InstallPackageAndAddImportData> GetInstallDataAsync(
+                private static async Task<InstallPackageAndAddImportData> GetInstallDataAsync(
+                    PackageReference reference,
                     string versionOpt, 
                     bool isLocal,
                     Document document, 
@@ -107,20 +106,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     CancellationToken cancellationToken)
                 {
                     var oldDocument = document;
-                    _reference.ReplaceNameNode(ref node, ref document, cancellationToken);
+                    reference.ReplaceNameNode(ref node, ref document, cancellationToken);
 
-                    var newDocument = await _reference.provider.AddImportAsync(
-                        node, _reference.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    var newDocument = await reference.provider.AddImportAsync(
+                        node, reference.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
                     // We're going to be manually applying this new document to the workspace
                     // (so we can roll it back ourselves if installing the nuget package fails).
                     // As such, we need to do the postprocessing ourselves of tihs document to 
                     // ensure things like formatting/simplification happen to it.
-                    newDocument = await this.PostProcessChangesAsync(
+                    newDocument = await CleanupDocumentAsync(
                         newDocument, cancellationToken).ConfigureAwait(false);
 
                     var installOperation = new InstallNugetPackageOperation(
-                        _reference._installerService, document, _reference._source, _reference._packageName, versionOpt, isLocal);
+                        reference._installerService, document, reference._source, reference._packageName, versionOpt, isLocal);
 
                     return new InstallPackageAndAddImportData(
                         oldDocument, newDocument, installOperation);

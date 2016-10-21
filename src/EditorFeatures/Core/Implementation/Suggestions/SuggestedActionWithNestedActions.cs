@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// Lightbulb item that has child items that should be displayed as 'menu items'
     /// (as opposed to 'flavor items').
     /// </summary>
-    internal class SuggestedActionWithNestedActions : SuggestedAction
+    internal sealed class SuggestedActionWithNestedActions : SuggestedAction
     {
         public readonly SuggestedActionSet NestedActionSet;
 
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             NestedActionSet = nestedActionSet;
         }
 
-        public override bool HasActionSets => true;
+        public sealed override bool HasActionSets => true;
 
-        public override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
             => Task.FromResult<IEnumerable<SuggestedActionSet>>(ImmutableArray.Create(NestedActionSet));
     }
 }

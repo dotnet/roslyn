@@ -221,12 +221,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Func<Diagnostic, bool> hasFix = (d) => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id);
-                Func<ImmutableArray<Diagnostic>, Task<IEnumerable<CodeFix>>> getFixes =
+                Func<ImmutableArray<Diagnostic>, Task<ImmutableArray<CodeFix>>> getFixes =
                     async (dxs) =>
                     {
-                        var fixes = new List<CodeFix>();
+                        var fixes = ArrayBuilder<CodeFix>.GetInstance();
                         var context = new CodeFixContext(document, span, dxs,
-
                             // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
                             (action, applicableDiagnostics) =>
                             {
@@ -241,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                         var task = fixer.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
                         await task.ConfigureAwait(false);
-                        return fixes;
+                        return fixes.ToImmutableAndFree();
                     };
 
                 await AppendFixesOrSuppressionsAsync(document, span, diagnostics, result, fixer,
@@ -260,7 +259,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             Func<Diagnostic, bool> hasFix = (d) => lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(d);
-            Func<ImmutableArray<Diagnostic>, Task<IEnumerable<CodeFix>>> getFixes = (dxs) => lazySuppressionProvider.Value.GetSuppressionsAsync(document, span, dxs, cancellationToken);
+            Func<ImmutableArray<Diagnostic>, Task<ImmutableArray<CodeFix>>> getFixes = 
+                dxs => lazySuppressionProvider.Value.GetSuppressionsAsync(
+                    document, span, dxs, cancellationToken);
             await AppendFixesOrSuppressionsAsync(
                 document, span, diagnostics, result, lazySuppressionProvider.Value, 
                 hasFix, getFixes, cancellationToken).ConfigureAwait(false);
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ArrayBuilder<CodeFixCollection> result,
             object fixer,
             Func<Diagnostic, bool> hasFix,
-            Func<ImmutableArray<Diagnostic>, Task<IEnumerable<CodeFix>>> getFixes,
+            Func<ImmutableArray<Diagnostic>, Task<ImmutableArray<CodeFix>>> getFixes,
             CancellationToken cancellationToken)
         {
             var diagnostics = (await diagnosticsWithSameSpan.OrderByDescending(d => d.Severity).ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false)).Where(d => hasFix(d)).ToImmutableArray();
@@ -284,7 +285,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
-            var fixes = await extensionManager.PerformFunctionAsync(fixer, () => getFixes(diagnostics), defaultValue: SpecializedCollections.EmptyEnumerable<CodeFix>()).ConfigureAwait(false);
+            var fixes = await extensionManager.PerformFunctionAsync(fixer,
+                () => getFixes(diagnostics),
+                defaultValue: ImmutableArray<CodeFix>.Empty).ConfigureAwait(false);
 
             if (fixes != null && fixes.Any())
             {
