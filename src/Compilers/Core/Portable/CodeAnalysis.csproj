@@ -46,13 +46,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
-    <Compile Include="Serialization\DataKind.cs" />
+    <Compile Include="Serialization\StreamObjectWriter.DataKind.cs" />
     <Compile Include="Serialization\ObjectData.cs" />
     <Compile Include="Serialization\StreamObjectReader.cs" />
     <Compile Include="Serialization\StreamObjectWriter.cs" />
     <Compile Include="Serialization\TypeKey.cs" />
-    <Compile Include="Serialization\VariantKind.cs" />
-    <Compile Include="Serialization\Variant.cs" />
+    <Compile Include="Serialization\StreamObjectWriter.VariantKind.cs" />
+    <Compile Include="Serialization\StreamObjectWriter.Variant.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />

@@ -10,6 +10,10 @@ using System.Threading;
 
 namespace Roslyn.Utilities
 {
+    using DataKind = StreamObjectWriter.DataKind;
+    using Variant = StreamObjectWriter.Variant;
+    using VariantKind = StreamObjectWriter.VariantKind;
+
     /// <summary>
     /// A class that deserializes objects from a stream.
     /// </summary>
