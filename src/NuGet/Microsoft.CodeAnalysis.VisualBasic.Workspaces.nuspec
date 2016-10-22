@@ -21,8 +21,8 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\netstandard1.3" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\BasicWorkspace\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\BasicWorkspace\Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

@@ -15,6 +15,7 @@
     <TargetFrameworkProfile />
     <RestorePackages>true</RestorePackages>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
