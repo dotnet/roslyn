@@ -21,8 +21,13 @@ namespace BuildBoss
 
             foreach (var projectPath in Directory.EnumerateFiles(Path.Combine(sourceDir, "src"), "*proj", SearchOption.AllDirectories))
             {
-                var doc = XDocument.Load(projectPath);
                 var relativePath = GetRelativePath(sourceDir, projectPath);
+                if (Exclude(config, relativePath))
+                {
+                    continue;
+                }
+
+                var doc = XDocument.Load(projectPath);
                 var projectType = GetProjectType(projectPath);
                 var util = new ProjectUtil(projectType, projectPath, doc);
                 var textWriter = new StringWriter();
@@ -64,6 +69,19 @@ namespace BuildBoss
             }
 
             return fullPath.Substring(basePath.Length + 1);
+        }
+
+        private static bool Exclude(BuildBossConfig config, string projectRelativePath)
+        {
+            foreach (var exclude in config.Exclude)
+            {
+                if (projectRelativePath.StartsWith(exclude, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

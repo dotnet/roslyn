@@ -10,7 +10,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>VisualBasicProject</RootNamespace>
     <AssemblyName>VisualBasicProject</AssemblyName>
-    <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>

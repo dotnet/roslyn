@@ -13,7 +13,6 @@
     <RootNamespace>
     </RootNamespace>
     <AssemblyName>ConsoleClassifier</AssemblyName>
-    <FileAlignment>512</FileAlignment>
     <MyType>Console</MyType>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ScrubbedSamplePath>VisualBasic\ConsoleClassifier</ScrubbedSamplePath>

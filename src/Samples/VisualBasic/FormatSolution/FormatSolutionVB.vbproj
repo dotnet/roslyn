@@ -10,7 +10,6 @@
     <RootNamespace>
     </RootNamespace>
     <AssemblyName>FormatSolution</AssemblyName>
-    <FileAlignment>512</FileAlignment>
     <MyType>Console</MyType>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ScrubbedSamplePath>VisualBasic\FormatSolution</ScrubbedSamplePath>

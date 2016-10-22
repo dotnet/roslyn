@@ -34,6 +34,7 @@ namespace BuildBoss
             {
                 allGood &= CheckForProperty(textWriter, "RestorePackages");
                 allGood &= CheckForProperty(textWriter, "SolutionDir");
+                allGood &= CheckForProperty(textWriter, "FileAlignment");
             }
 
             return allGood;
