@@ -37,6 +37,7 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "FileAlignment");
                 allGood &= CheckForProperty(textWriter, "FileUpgradeFlags");
                 allGood &= CheckForProperty(textWriter, "UpgradeBackupLocation");
+                allGood &= CheckForProperty(textWriter, "OldToolsVersion");
             }
 
             return allGood;
