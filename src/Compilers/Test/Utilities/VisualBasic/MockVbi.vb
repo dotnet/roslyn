@@ -12,7 +12,7 @@ Friend Class MockVbi
         MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, CreateBuildPaths(workingDirectory), Nothing, New DesktopAnalyzerAssemblyLoader())
     End Sub
 
-    Public Shared Function CreateBuildPaths(workingDirectory As String) As BuildPaths
+    Private Shared Function CreateBuildPaths(workingDirectory As String) As BuildPaths
         Return New BuildPaths(
             clientDir:=Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location),
             workingDir:=workingDirectory,

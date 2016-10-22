@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _analyzers = analyzers;
         }
 
-        public static BuildPaths CreateBuildPaths(string workingDirectory)
+        private static BuildPaths CreateBuildPaths(string workingDirectory)
         {
             return new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location),

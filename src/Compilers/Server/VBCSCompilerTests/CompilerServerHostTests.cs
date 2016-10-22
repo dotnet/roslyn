@@ -1,4 +1,5 @@
-﻿using Roslyn.Test.Utilities;
+﻿using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,10 +39,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public void RejectEmptyTempPath()
         {
-            var host = new TestableCompilerServerHost();
-            var request = new RunRequest(LanguageNames.CSharp, currentDirectory: @"c:\current", tempDirectory: null, libDirectory: null, arguments: Array.Empty<string>());
-            var response = host.RunCompilation(request, CancellationToken.None);
-            Assert.Equal(ResponseType.Rejected, response.Type);
+            using (var temp = new TempRoot())
+            {
+                var host = new TestableCompilerServerHost();
+                var request = new RunRequest(LanguageNames.CSharp, currentDirectory: temp.CreateDirectory().Path, tempDirectory: null, libDirectory: null, arguments: Array.Empty<string>());
+                var response = host.RunCompilation(request, CancellationToken.None);
+                Assert.Equal(ResponseType.Rejected, response.Type);
+            }
         }
     }
 }

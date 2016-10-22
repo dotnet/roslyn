@@ -25,7 +25,7 @@ Friend Class MockVisualBasicCompiler
         _analyzers = analyzers
     End Sub
 
-    Public Shared Function CreateBuildPaths(workingDirectory As String, tempDirectory As String) As BuildPaths
+    Private Shared Function CreateBuildPaths(workingDirectory As String, tempDirectory As String) As BuildPaths
         Return New BuildPaths(
             clientDir:=Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location),
             workingDir:=workingDirectory,

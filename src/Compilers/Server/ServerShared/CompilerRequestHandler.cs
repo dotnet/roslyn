@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 Log($"Argument[{i}] = '{request.Arguments[i]}'");
             }
 
-            // Compiler server must be provided wiht a valid temporary directory in order to correctly
+            // Compiler server must be provided with a valid temporary directory in order to correctly
             // isolate signing between compilations.
             if (string.IsNullOrEmpty(request.TempDirectory))
             {

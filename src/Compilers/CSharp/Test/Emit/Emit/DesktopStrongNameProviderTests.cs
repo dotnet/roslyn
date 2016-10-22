@@ -17,18 +17,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RespectCustomTempPath()
         {
             var tempDir = Temp.CreateDirectory();
-            Directory.CreateDirectory(tempDir.Path);
             var provider = new DesktopStrongNameProvider(tempPath: tempDir.Path);
-            var stream = (DesktopStrongNameProvider.TempFileStream)provider.CreateInputStream();
-            Assert.Equal(tempDir.Path, Path.GetDirectoryName(stream.Path));
+            using (var stream = (DesktopStrongNameProvider.TempFileStream)provider.CreateInputStream())
+            {
+                Assert.Equal(tempDir.Path, Path.GetDirectoryName(stream.Path));
+            }
         }
 
         [Fact]
         public void RespectDefaultTempPath()
         {
             var provider = new DesktopStrongNameProvider(tempPath: null);
-            var stream = (DesktopStrongNameProvider.TempFileStream)provider.CreateInputStream();
-            Assert.Equal(Path.GetTempPath(), Path.GetDirectoryName(stream.Path) + @"\");
+            using (var stream = (DesktopStrongNameProvider.TempFileStream)provider.CreateInputStream())
+            {
+                Assert.Equal(Path.GetTempPath(), Path.GetDirectoryName(stream.Path) + @"\");
+            }
         }
 
         [Fact]
@@ -40,14 +43,13 @@ class C
     public static void Main(string[] args) { }
 }";
             var tempDir = Temp.CreateDirectory();
-            Directory.CreateDirectory(tempDir.Path);
             var provider = new VirtualizedStrongNameProvider(tempPath: tempDir.Path);
             var options = TestOptions
                 .DebugExe
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
             var comp = CreateCompilationWithMscorlib(src, options: options);
-            comp.Emit(new MemoryStream()).Diagnostics.Verify();
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -64,7 +66,7 @@ class C
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
             var comp = CreateCompilationWithMscorlib(src, options: options);
-            comp.Emit(new MemoryStream()).Diagnostics.Verify();
+            comp.VerifyEmitDiagnostics();
         }
     }
 }
