@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(!instrumentForDynamicAnalysis);
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
-                                processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
+                                var lowered = LowerBodyOrInitializer(
                                     methodSymbol,
                                     methodOrdinal,
                                     analyzedInitializers,
@@ -1065,10 +1065,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 // initializers can't produce state machines
                                 Debug.Assert((object)initializerStateMachineTypeOpt == null);
-
-                                Debug.Assert(processedInitializers.LoweredInitializers.Kind == BoundKind.StatementList);
                                 Debug.Assert(!hasErrors);
-                                hasErrors = processedInitializers.LoweredInitializers.HasAnyErrors || diagsForCurrentMethod.HasAnyErrors();
+                                hasErrors = lowered.HasAnyErrors || diagsForCurrentMethod.HasAnyErrors();
                                 SetGlobalErrorIfTrue(hasErrors);
 
                                 if (hasErrors)
@@ -1076,6 +1074,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     _diagnostics.AddRange(diagsForCurrentMethod);
                                     return;
                                 }
+
+                                // "lowered" could be a BadBoundStatement, so do the cast only if there weren't 
+                                // any errors.
+                                Debug.Assert(lowered.Kind == BoundKind.StatementList);
+                                processedInitializers.LoweredInitializers = (BoundStatementList)lowered;
                             }
 
                             // initializers for global code have already been included in the body
