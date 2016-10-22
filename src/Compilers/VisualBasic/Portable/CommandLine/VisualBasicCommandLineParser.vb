@@ -1210,6 +1210,9 @@ lVbRuntimePlus:
 
             ' Locate default 'mscorlib.dll' or 'System.Runtime.dll', if any.
             Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(sdkPaths, baseDirectory)
+            If (defaultCoreLibraryReference.HasValue) Then
+                metadataReferences.Add(defaultCoreLibraryReference.Value)
+            End If
 
             ' If /nostdlib is not specified, load System.dll
             ' Dev12 does it through combination of CompilerHost::InitStandardLibraryList and CompilerProject::AddStandardLibraries.
@@ -1405,7 +1408,6 @@ lVbRuntimePlus:
                 .OutputLevel = outputLevel,
                 .EmitPdb = emitPdb,
                 .SourceLink = sourceLink,
-                .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
                 .EmbeddedFiles = embeddedFiles.AsImmutable()
@@ -1427,7 +1429,7 @@ lVbRuntimePlus:
 
             If systemRuntimePath IsNot Nothing Then
                 If msCorLibPath Is Nothing Then
-                    Return New CommandLineReference(systemRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly))
+                    Return New CommandLineReference(systemRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly), isDefaultCoreLibReference:=True)
                 End If
 
                 ' Load System.Runtime.dll and see if it has any references
@@ -1436,7 +1438,7 @@ lVbRuntimePlus:
                         ' Prefer 'System.Runtime.dll' if it does not have any references
                         If metadata.GetModules()(0).Module.IsLinkedModule AndAlso
                            metadata.GetAssembly().AssemblyReferences.Length = 0 Then
-                            Return New CommandLineReference(systemRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly))
+                            Return New CommandLineReference(systemRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly), isDefaultCoreLibReference:=True)
                         End If
                     End Using
                 Catch
@@ -1444,7 +1446,7 @@ lVbRuntimePlus:
                 End Try
 
                 ' Otherwise prefer 'mscorlib.dll'
-                Return New CommandLineReference(msCorLibPath, New MetadataReferenceProperties(MetadataImageKind.Assembly))
+                Return New CommandLineReference(msCorLibPath, New MetadataReferenceProperties(MetadataImageKind.Assembly), isDefaultCoreLibReference:=True)
             End If
 
             If msCorLibPath IsNot Nothing Then

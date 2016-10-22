@@ -212,11 +212,6 @@ End Class
                                                   <Out> ByRef expectedWrites As List(Of String))
             expectedReads = cmd.Arguments.MetadataReferences.Select(Function(r) r.Reference).ToList()
 
-            Dim coreLibrary = cmd.Arguments.DefaultCoreLibraryReference
-            If coreLibrary.HasValue Then
-                expectedReads.Add(coreLibrary.GetValueOrDefault().Reference)
-            End If
-
             For Each file In cmd.Arguments.SourceFiles
                 expectedReads.Add(file.Path)
             Next

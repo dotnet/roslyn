@@ -3855,7 +3855,10 @@ End Class
         Public Sub AddModule()
             Dim parsedArgs = DefaultParse({"/nostdlib", "/vbruntime-", "/addMODULE:c:\,d:\x\y\z,abc,,", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(3, parsedArgs.MetadataReferences.Length)
+            Assert.Equal(4, parsedArgs.MetadataReferences.Length)
+            Dim explicitMetadataReferences = parsedArgs.MetadataReferences.Where(Function(m) Not m.IsDefaultCoreLibReference).ToImmutableArray
+            Assert.Equal(3, explicitMetadataReferences.Length)
+
             Assert.Equal("c:\", parsedArgs.MetadataReferences(0).Reference)
             Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences(0).Properties.Kind)
             Assert.Equal("d:\x\y\z", parsedArgs.MetadataReferences(1).Reference)
@@ -3865,8 +3868,10 @@ End Class
             Assert.False(parsedArgs.MetadataReferences(0).Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
             Assert.False(parsedArgs.MetadataReferences(1).Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
             Assert.False(parsedArgs.MetadataReferences(2).Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
-            Assert.True(parsedArgs.DefaultCoreLibraryReference.Value.Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
-            Assert.Equal(MetadataImageKind.Assembly, parsedArgs.DefaultCoreLibraryReference.Value.Properties.Kind)
+
+            Dim defaultCoreLibReference = parsedArgs.MetadataReferences.Single(Function(m) m.IsDefaultCoreLibReference)
+            Assert.True(defaultCoreLibReference.Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
+            Assert.Equal(MetadataImageKind.Assembly, defaultCoreLibReference.Properties.Kind)
 
             parsedArgs = DefaultParse({"/ADDMODULE", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("addmodule", ":<file_list>"))

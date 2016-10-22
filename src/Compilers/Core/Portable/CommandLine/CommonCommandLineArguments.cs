@@ -306,9 +306,14 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual bool ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, List<MetadataReference> resolved)
         {
+            return ResolveMetadataReferences(this.MetadataReferences, metadataResolver, diagnosticsOpt, messageProviderOpt, resolved);
+        }
+
+        internal static bool ResolveMetadataReferences(IEnumerable<CommandLineReference> metadataReferences, MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, List<MetadataReference> resolved)
+        {
             bool result = true;
 
-            foreach (CommandLineReference cmdReference in MetadataReferences)
+            foreach (CommandLineReference cmdReference in metadataReferences)
             {
                 var references = ResolveMetadataReference(cmdReference, metadataResolver, diagnosticsOpt, messageProviderOpt);
                 if (!references.IsDefaultOrEmpty)
