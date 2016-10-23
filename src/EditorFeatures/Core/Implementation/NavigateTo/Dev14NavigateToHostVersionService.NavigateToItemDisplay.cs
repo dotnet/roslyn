@@ -11,9 +11,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal partial class NavigateToItemProvider
+    internal partial class Dev14NavigateToHostVersionService
     {
-        private class NavigateToItemDisplay : INavigateToItemDisplay2
+        private class Dev14NavigateToItemDisplay : INavigateToItemDisplay2
         {
             private readonly INavigateToSearchResult _searchResult;
             private readonly NavigateToIconFactory _iconFactory;
@@ -21,27 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private Icon _glyph;
             private ReadOnlyCollection<DescriptionItem> _descriptionItems;
 
-            public NavigateToItemDisplay(INavigateToSearchResult searchResult, NavigateToIconFactory iconFactory)
+            public Dev14NavigateToItemDisplay(INavigateToSearchResult searchResult, NavigateToIconFactory iconFactory)
             {
                 _searchResult = searchResult;
                 _iconFactory = iconFactory;
             }
 
-            public string AdditionalInformation
-            {
-                get
-                {
-                    return _searchResult.AdditionalInformation;
-                }
-            }
+            public string AdditionalInformation => _searchResult.AdditionalInformation;
 
-            public string Description
-            {
-                get
-                {
-                    return null;
-                }
-            }
+            public string Description => null;
 
             public ReadOnlyCollection<DescriptionItem> DescriptionItems
             {

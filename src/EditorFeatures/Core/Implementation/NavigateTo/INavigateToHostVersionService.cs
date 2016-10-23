@@ -4,17 +4,13 @@ using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal interface INavigateToOptionsService
+    /// <summary>
+    /// Contains navigate-to specific operations that depend on the version of the
+    /// host they're running under.
+    /// </summary>
+    internal interface INavigateToHostVersionService
     {
         bool GetSearchCurrentDocument(INavigateToOptions options);
-    }
-
-    [ExportVersionSpecific(typeof(INavigateToOptionsService), VisualStudioVersion.Dev14)]
-    internal class Dev14NavigateToOptionsService : INavigateToOptionsService
-    {
-        public bool GetSearchCurrentDocument(INavigateToOptions options)
-        {
-            return false;
-        }
+        INavigateToItemDisplayFactory CreateDisplayFactory();
     }
 }

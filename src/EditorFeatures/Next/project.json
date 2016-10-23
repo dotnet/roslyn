@@ -1,6 +1,6 @@
 ﻿{
     "dependencies": {
-        "Dev15BinariesForRoslyn": "4.0.0.0",
+        "Dev15BinariesForRoslyn": "5.0.0.0",
         "System.Collections.Immutable": "1.2.0",
         "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
             "version": "14.3.25407",
