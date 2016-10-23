@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             var matches = new PatternMatcher(pattern).GetMatches(candidate, includeMatchSpans: true);
 
-            if (matches == null)
+            if (matches.IsDefaultOrEmpty)
             {
                 Assert.True(expectedSpans == null || expectedSpans.Count == 0);
             }

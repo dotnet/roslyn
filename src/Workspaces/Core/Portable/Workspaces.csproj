@@ -363,6 +363,12 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="PatternMatching\PatternMatch.cs" />
+    <Compile Include="PatternMatching\PatternMatcher.cs" />
+    <Compile Include="PatternMatching\PatternMatcher.Segment.cs" />
+    <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
+    <Compile Include="PatternMatching\PatternMatches.cs" />
+    <Compile Include="PatternMatching\PatternMatchKind.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />

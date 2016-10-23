@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                             declaredSymbolInfo.FullyQualifiedContainerName,
                             includeMatchSpans: false);
 
-                        if (patternMatches != null)
+                        if (!patternMatches.IsEmpty)
                         {
                             result.Add(ConvertResult(containsDots, declaredSymbolInfo, document, patternMatches));
                         }
@@ -78,7 +79,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static INavigateToSearchResult ConvertResult(
-            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, Document document, IEnumerable<PatternMatch> matches)
+            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, 
+            Document document, PatternMatches matches)
         {
             var matchKind = GetNavigateToMatchKind(containsDots, matches);
 
@@ -126,7 +128,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static NavigateToMatchKind GetNavigateToMatchKind(bool containsDots, IEnumerable<PatternMatch> matchResult)
+        private static NavigateToMatchKind GetNavigateToMatchKind(
+            bool containsDots, PatternMatches matchResult)
         {
             // NOTE(cyrusn): Unfortunately, the editor owns how sorting of NavigateToItems works,
             // and they only provide four buckets for sorting items before they sort by the name
@@ -146,7 +149,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // what type of editor MatchKind to map to.
             if (containsDots)
             {
-                var lastResult = matchResult.LastOrNullable();
+                var lastResult = matchResult.CandidateMatches.LastOrNullable();
                 if (lastResult.HasValue)
                 {
                     switch (lastResult.Value.Kind)
