@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // candidate.  If not, then there's no point in proceeding and doing the more
             // expensive work.
             var candidateMatch = MatchSegment(candidate, includeMatchSpans, _dotSeparatedSegments.Last(), fuzzyMatch);
-            if (candidateMatch == null)
+            if (candidateMatch.IsDefaultOrEmpty)
             {
                 return PatternMatches.Empty;
             }
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     var segment = _dotSeparatedSegments[i];
                     var containerName = containerParts[j];
                     var containerMatch = MatchSegment(containerName, includeMatchSpans, segment, fuzzyMatch);
-                    if (containerMatch == null)
+                    if (containerMatch.IsDefaultOrEmpty)
                     {
                         // This container didn't match the pattern piece.  So there's no match at all.
                         return PatternMatches.Empty;
