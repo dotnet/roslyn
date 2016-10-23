@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
             else
             {
-                Assert.Equal(match.Value.MatchedSpans, spans);
+                Assert.Equal<TextSpan>(match.Value.MatchedSpans, spans);
             }
 
             return match;
