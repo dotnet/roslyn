@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -8,7 +7,7 @@ using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     [ExportVersionSpecific(typeof(INavigateToHostVersionService), VisualStudioVersion.Dev14)]
-    internal partial class Dev14NavigateToHostVersionService : INavigateToHostVersionService
+    internal sealed partial class Dev14NavigateToHostVersionService : INavigateToHostVersionService
     {
         private readonly IGlyphService _glyphService;
 
@@ -19,14 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             _glyphService = glyphService;
         }
 
-        public virtual bool GetSearchCurrentDocument(INavigateToOptions options)
-        {
-            return false;
-        }
+        public bool GetSearchCurrentDocument(INavigateToOptions options) 
+            => false;
 
-        public virtual INavigateToItemDisplayFactory CreateDisplayFactory()
-        {
-            return new Dev14ItemDisplayFactory(new NavigateToIconFactory(_glyphService));
-        }
+        public INavigateToItemDisplayFactory CreateDisplayFactory()
+            => new Dev14ItemDisplayFactory(new NavigateToIconFactory(_glyphService));
     }
 }
