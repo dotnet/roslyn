@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.PatternMatching
 {
     internal struct PatternMatch : IComparable<PatternMatch>
     {

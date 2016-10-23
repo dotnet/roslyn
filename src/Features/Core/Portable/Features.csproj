@@ -120,7 +120,6 @@
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.ParentCodeAction.cs" />
-    <Compile Include="Shared\Utilities\PatternMatches.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
@@ -302,8 +301,6 @@
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
-    <Compile Include="Shared\Utilities\PatternMatcher.Segment.cs" />
-    <Compile Include="Shared\Utilities\PatternMatcher.TextChunk.cs" />
     <Compile Include="SolutionCrawler\GlobalOperationAwareIdleProcessor.cs" />
     <Compile Include="Structure\Syntax\AbstractSyntaxNodeStructureProvider.cs" />
     <Compile Include="Structure\Syntax\AbstractSyntaxStructureProvider.cs" />
@@ -622,9 +619,6 @@
     <Compile Include="Shared\TestHooks\IAsynchronousOperationWaiter.cs" />
     <Compile Include="Shared\TestHooks\IAsyncToken.cs" />
     <Compile Include="Shared\TestHooks\TaskExtensions.cs" />
-    <Compile Include="Shared\Utilities\PatternMatch.cs" />
-    <Compile Include="Shared\Utilities\PatternMatcher.cs" />
-    <Compile Include="Shared\Utilities\PatternMatchKind.cs" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.SymbolKeySignatureHelpItem.cs" />
     <Compile Include="SignatureHelp\CommonSignatureHelpUtilities.cs" />
