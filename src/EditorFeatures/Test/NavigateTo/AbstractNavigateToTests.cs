@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         protected static ExportProvider s_exportProvider =
             MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic().WithPart(
-                typeof(Dev14NavigateToOptionsService)));
+                typeof(Dev14NavigateToHostVersionService)));
 
         protected readonly Mock<IGlyphService> _glyphServiceMock = new Mock<IGlyphService>(MockBehavior.Strict);
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
                 workspace,
                 _glyphServiceMock.Object,
                 aggregateListener,
-                workspace.ExportProvider.GetExportedValues<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>>());
+                workspace.ExportProvider.GetExportedValues<Lazy<INavigateToHostVersionService, VisualStudioVersionMetadata>>());
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
