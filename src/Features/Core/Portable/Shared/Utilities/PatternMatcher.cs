@@ -12,13 +12,29 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal struct PatternMatches
     {
+        public static readonly PatternMatches Empty = new PatternMatches(
+            ImmutableArray<PatternMatch>.Empty, ImmutableArray<PatternMatch>.Empty);
+
         public readonly ImmutableArray<PatternMatch> CandidateMatches;
         public readonly ImmutableArray<PatternMatch> ContainerMatches;
 
-        public PatternMatches(ImmutableArray<PatternMatch> candidateMatches, ImmutableArray<PatternMatch> containerMatches)
+        public PatternMatches(ImmutableArray<PatternMatch> candidateMatches,
+                              ImmutableArray<PatternMatch> containerMatches = default(ImmutableArray<PatternMatch>))
         {
-            CandidateMatches = candidateMatches;
-            ContainerMatches = containerMatches;
+            CandidateMatches = candidateMatches.NullToEmpty();
+            ContainerMatches = containerMatches.NullToEmpty();
+        }
+
+        public bool IsEmpty => CandidateMatches.IsEmpty && ContainerMatches.IsEmpty;
+
+        internal bool All(Func<PatternMatch, bool> predicate)
+        {
+            return CandidateMatches.All(predicate) && ContainerMatches.All(predicate);
+        }
+
+        internal bool Any(Func<PatternMatch, bool> predicate)
+        {
+            return CandidateMatches.Any(predicate) || ContainerMatches.Any(predicate);
         }
     }
 
@@ -154,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return MatchSegment(candidate, includeMatchSpans: false, segment: _dotSeparatedSegments.Last(), fuzzyMatch: true);
         }
 
-        public ImmutableArray<PatternMatch> GetMatches(string candidate, string dottedContainer)
+        public PatternMatches GetMatches(string candidate, string dottedContainer)
         {
             return GetMatches(candidate, dottedContainer, includeMatchSpans: false);
         }
@@ -171,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// dotted container of "System.Console", then "WL" will be tested against "WriteLine".
         /// With a match found there, "Con" will then be tested against "Console".
         /// </summary>
-        public ImmutableArray<PatternMatch> GetMatches(
+        public PatternMatches GetMatches(
             string candidate, string dottedContainer, bool includeMatchSpans)
         {
             var result = GetMatches(candidate, dottedContainer, includeMatchSpans, fuzzyMatch: false);
@@ -183,17 +199,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return GetMatches(candidate, dottedContainer, includeMatchSpans, fuzzyMatch: true);
         }
 
-        private ImmutableArray<PatternMatch> GetMatches(
+        private PatternMatches GetMatches(
             string candidate, string dottedContainer, bool includeMatchSpans, bool fuzzyMatch)
         {
             if (fuzzyMatch && !_allowFuzzyMatching)
             {
-                return ImmutableArray<PatternMatch>.Empty;
+                return PatternMatches.Empty;
             }
 
             if (SkipMatch(candidate))
             {
-                return ImmutableArray<PatternMatch>.Empty;
+                return PatternMatches.Empty;
             }
 
             // First, check that the last part of the dot separated pattern matches the name of the
@@ -202,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var candidateMatch = MatchSegment(candidate, includeMatchSpans, _dotSeparatedSegments.Last(), fuzzyMatch);
             if (candidateMatch == null)
             {
-                return ImmutableArray<PatternMatch>.Empty;
+                return PatternMatches.Empty;
             }
 
             dottedContainer = dottedContainer ?? string.Empty;
@@ -215,12 +231,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 // There weren't enough container parts to match against the pattern parts.
                 // So this definitely doesn't match.
-                return ImmutableArray<PatternMatch>.Empty;
+                return PatternMatches.Empty;
             }
 
             // So far so good.  Now break up the container for the candidate and check if all
             // the dotted parts match up correctly.
-            var totalMatch = ArrayBuilder<PatternMatch>.GetInstance();
+            var containerMatches = ArrayBuilder<PatternMatch>.GetInstance();
 
             try
             {
@@ -235,21 +251,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     if (containerMatch == null)
                     {
                         // This container didn't match the pattern piece.  So there's no match at all.
-                        return ImmutableArray<PatternMatch>.Empty;
+                        return PatternMatches.Empty;
                     }
 
-                    totalMatch.AddRange(containerMatch);
+                    containerMatches.AddRange(containerMatch);
                 }
-
-                totalMatch.AddRange(candidateMatch);
 
                 // Success, this symbol's full name matched against the dotted name the user was asking
                 // about.
-                return totalMatch.ToImmutable();
+                return new PatternMatches(candidateMatch, containerMatches.ToImmutable());
             }
             finally
             {
-                totalMatch.Free();
+                containerMatches.Free();
             }
         }
 
