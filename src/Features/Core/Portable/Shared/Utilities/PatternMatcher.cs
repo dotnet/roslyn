@@ -10,33 +10,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    internal struct PatternMatches
-    {
-        public static readonly PatternMatches Empty = new PatternMatches(
-            ImmutableArray<PatternMatch>.Empty, ImmutableArray<PatternMatch>.Empty);
-
-        public readonly ImmutableArray<PatternMatch> CandidateMatches;
-        public readonly ImmutableArray<PatternMatch> ContainerMatches;
-
-        public PatternMatches(ImmutableArray<PatternMatch> candidateMatches,
-                              ImmutableArray<PatternMatch> containerMatches = default(ImmutableArray<PatternMatch>))
-        {
-            CandidateMatches = candidateMatches.NullToEmpty();
-            ContainerMatches = containerMatches.NullToEmpty();
-        }
-
-        public bool IsEmpty => CandidateMatches.IsEmpty && ContainerMatches.IsEmpty;
-
-        internal bool All(Func<PatternMatch, bool> predicate)
-        {
-            return CandidateMatches.All(predicate) && ContainerMatches.All(predicate);
-        }
-
-        internal bool Any(Func<PatternMatch, bool> predicate)
-        {
-            return CandidateMatches.Any(predicate) || ContainerMatches.Any(predicate);
-        }
-    }
 
     /// <summary>
     /// The pattern matcher is thread-safe.  However, it maintains an internal cache of

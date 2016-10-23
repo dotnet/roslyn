@@ -120,6 +120,7 @@
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.ParentCodeAction.cs" />
+    <Compile Include="Shared\Utilities\PatternMatches.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
