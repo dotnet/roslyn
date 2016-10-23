@@ -768,14 +768,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             if (matches.IsDefaultOrEmpty)
             {
                 Assert.True(expectedSpans == null || expectedSpans.Count == 0);
+                return null;
             }
             else
             {
                 var actualSpans = matches.SelectMany(m => m.MatchedSpans).OrderBy(s => s.Start).ToList();
                 Assert.Equal(expectedSpans, actualSpans);
+                return matches;
             }
-
-            return matches;
         }
     }
 }
