@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -105,10 +106,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return memberNode;
         }
 
-        internal async Task<IEnumerable<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>> FindNavigableSourceSymbolsAsync(
+        internal async Task<ImmutableArray<ValueTuple<ISymbol, ImmutableArray<PatternMatch>>>> FindNavigableSourceSymbolsAsync(
             Project project, CancellationToken cancellationToken)
         {
-            var results = new List<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>();
+            var results = ArrayBuilder<ValueTuple<ISymbol, ImmutableArray<PatternMatch>>>.GetInstance();
 
             // The compiler API only supports a predicate which is given a symbol's name.  Because
             // we only have the name, and nothing else, we need to check it against the last segment
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             // we'll check if the full name matches the full pattern.
             var patternMatcher = new PatternMatcher(_searchPattern);
             var symbols = await SymbolFinder.FindSourceDeclarationsAsync(
-                project, k => patternMatcher.GetMatchesForLastSegmentOfPattern(k) != null, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
+                project, k => !patternMatcher.GetMatchesForLastSegmentOfPattern(k).IsDefaultOrEmpty, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
 
             symbols = symbols.Where(s =>
                 !s.IsConstructor()
@@ -137,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     ? patternMatcher.GetMatches(GetSearchName(symbol))
                     : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
 
-                if (matches == null)
+                if (matches.IsDefaultOrEmpty)
                 {
                     continue;
                 }
@@ -166,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return results;
+            return results.ToImmutableAndFree();
         }
 
         public static readonly SymbolDisplayFormat DottedNameFormat =

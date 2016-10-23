@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.Completion
             return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
         }
 
-        public IReadOnlyList<TextSpan> GetHighlightedSpans(
+        public ImmutableArray<TextSpan> GetHighlightedSpans(
             CompletionItem completionItem, string filterText, CultureInfo culture)
         {
             var match = GetMatch(completionItem, filterText, includeMatchSpans: true, culture: culture);
-            return match?.MatchedSpans;
+            return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
         }
 
         /// <summary>

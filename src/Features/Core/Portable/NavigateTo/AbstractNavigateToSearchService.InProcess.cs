@@ -15,36 +15,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        public static async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
+        public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
             Project project, string searchPattern, CancellationToken cancellationToken)
         {
-            var results = await FindNavigableDeclaredSymbolInfos(
-                project, searchDocument: null, pattern: searchPattern, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return ProcessResult(searchPattern, results);
+            return FindNavigableDeclaredSymbolInfos(
+                project, searchDocument: null, pattern: searchPattern, cancellationToken: cancellationToken);
         }
 
-        public static async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
+        public static Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
             Document document, string searchPattern, CancellationToken cancellationToken)
         {
-            var results = await FindNavigableDeclaredSymbolInfos(
-                document.Project, document, searchPattern, cancellationToken).ConfigureAwait(false);
-            return ProcessResult(searchPattern, results);
+            return FindNavigableDeclaredSymbolInfos(
+                document.Project, document, searchPattern, cancellationToken);
         }
 
-        private static ImmutableArray<INavigateToSearchResult> ProcessResult(
-            string searchPattern,
-            ImmutableArray<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>> results)
-        {
-            var containsDots = searchPattern.IndexOf('.') >= 0;
-            return results.SelectAsArray(r => ConvertResult(containsDots, r));
-        }
-
-        private static async Task<ImmutableArray<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(
+        private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfos(
             Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
+            var containsDots = pattern.IndexOf('.') >= 0;
             using (var patternMatcher = new PatternMatcher(pattern, allowFuzzyMatching: true))
             {
-                var result = ArrayBuilder<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>.GetInstance();
+                var result = ArrayBuilder<INavigateToSearchResult>.GetInstance();
                 foreach (var document in project.Documents)
                 {
                     if (searchDocument != null && document != searchDocument)
@@ -65,7 +56,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                         if (patternMatches != null)
                         {
-                            result.Add(ValueTuple.Create(declaredSymbolInfo, document, patternMatches));
+                            result.Add(ConvertResult(containsDots, declaredSymbolInfo, document, patternMatches));
                         }
                     }
                 }
@@ -87,11 +78,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static INavigateToSearchResult ConvertResult(
-            bool containsDots, ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
+            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, Document document, ImmutableArray<PatternMatch> matches)
         {
-            var declaredSymbolInfo = result.Item1;
-            var document = result.Item2;
-            var matches = result.Item3;
             var matchKind = GetNavigateToMatchKind(containsDots, matches);
 
             // A match is considered to be case sensitive if all its constituent pattern matches are
