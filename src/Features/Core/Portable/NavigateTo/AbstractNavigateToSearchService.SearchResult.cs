@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -21,6 +23,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             public INavigableItem NavigableItem { get; }
             public string SecondarySort { get; }
             public bool IsCaseSensitive { get; }
+            public ImmutableArray<TextSpan> NameMatchSpans { get; }
 
             private readonly Document _document;
             private readonly DeclaredSymbolInfo _declaredSymbolInfo;
@@ -29,7 +32,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             public SearchResult(
                 Document document, DeclaredSymbolInfo declaredSymbolInfo, string kind,
-                NavigateToMatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem)
+                NavigateToMatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem,
+                ImmutableArray<TextSpan> nameMatchSpans)
             {
                 _document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
@@ -37,6 +41,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 MatchKind = matchKind;
                 IsCaseSensitive = isCaseSensitive;
                 NavigableItem = navigableItem;
+                NameMatchSpans = nameMatchSpans;
                 SecondarySort = ConstructSecondarySortString(declaredSymbolInfo);
 
                 var declaredNavigableItem = navigableItem as NavigableItemFactory.DeclaredSymbolNavigableItem;

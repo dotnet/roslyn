@@ -6,6 +6,7 @@ using System.Drawing;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigateTo
                 => SpecializedCollections.EmptyReadOnlyList<Span>();
 
             public IReadOnlyList<Span> GetNameMatchRuns(string searchValue)
-                => SpecializedCollections.EmptyReadOnlyList<Span>();
+                => SearchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
         }
     }
 }
