@@ -6,6 +6,11 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
+    /// <summary>
+    /// Pattern matching results returned when calling <see cref="PatternMatcher.GetMatches(string, string)"/>
+    /// Specifically, this type individually provides the matches produced when matching against the
+    /// 'candidate' text and the 'container' text.
+    /// </summary>
     internal struct PatternMatches
     {
         public static readonly PatternMatches Empty = new PatternMatches(

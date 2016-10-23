@@ -12,7 +12,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
-
     /// <summary>
     /// The pattern matcher is thread-safe.  However, it maintains an internal cache of
     /// information as it is used.  Therefore, you should not keep it around forever and should get
