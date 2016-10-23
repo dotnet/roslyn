@@ -13,21 +13,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal partial class Dev14NavigateToHostVersionService
     {
-        private class Dev14NavigateToItemDisplay : INavigateToItemDisplay2
+        protected abstract class AbstractNavigateToItemDisplay: INavigateToItemDisplay2
         {
-            private readonly INavigateToSearchResult _searchResult;
-            private readonly NavigateToIconFactory _iconFactory;
-
-            private Icon _glyph;
+            protected readonly INavigateToSearchResult SearchResult;
             private ReadOnlyCollection<DescriptionItem> _descriptionItems;
 
-            public Dev14NavigateToItemDisplay(INavigateToSearchResult searchResult, NavigateToIconFactory iconFactory)
+            protected AbstractNavigateToItemDisplay(INavigateToSearchResult searchResult)
             {
-                _searchResult = searchResult;
-                _iconFactory = iconFactory;
+                SearchResult = searchResult;
             }
 
-            public string AdditionalInformation => _searchResult.AdditionalInformation;
+            public string AdditionalInformation => SearchResult.AdditionalInformation;
 
             public string Description => null;
 
@@ -46,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private ReadOnlyCollection<DescriptionItem> CreateDescriptionItems()
             {
-                var document = _searchResult.NavigableItem.Document;
+                var document = SearchResult.NavigableItem.Document;
                 if (document == null)
                 {
                     return new List<DescriptionItem>().AsReadOnly();
@@ -70,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                             new ReadOnlyCollection<DescriptionRun>(
                                 new[] { new DescriptionRun("Line:", bold: true) }),
                             new ReadOnlyCollection<DescriptionRun>(
-                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(_searchResult.NavigableItem.SourceSpan.Start) + 1).ToString()) }))
+                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(SearchResult.NavigableItem.SourceSpan.Start) + 1).ToString()) }))
                     };
 
-                var summary = _searchResult.Summary;
+                var summary = SearchResult.Summary;
                 if (!string.IsNullOrWhiteSpace(summary))
                 {
                     items.Add(
@@ -87,24 +83,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return items.AsReadOnly();
             }
 
-            public Icon Glyph
-            {
-                get
-                {
-                    if (_glyph == null)
-                    {
-                        _glyph = _iconFactory.GetIcon(_searchResult.NavigableItem.Glyph);
-                    }
+            public abstract Icon Glyph { get; }
 
-                    return _glyph;
-                }
-            }
-
-            public string Name => _searchResult.NavigableItem.DisplayTaggedParts.JoinText();
+            public string Name => SearchResult.NavigableItem.DisplayTaggedParts.JoinText();
 
             public void NavigateTo()
             {
-                var document = _searchResult.NavigableItem.Document;
+                var document = SearchResult.NavigableItem.Document;
                 if (document == null)
                 {
                     return;
@@ -116,12 +101,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 // Document tabs opened by NavigateTo are carefully created as preview or regular
                 // tabs by them; trying to specifically open them in a particular kind of tab here
                 // has no effect.
-                navigationService.TryNavigateToSpan(workspace, document.Id, _searchResult.NavigableItem.SourceSpan);
+                navigationService.TryNavigateToSpan(workspace, document.Id, SearchResult.NavigableItem.SourceSpan);
             }
 
             public int GetProvisionalViewingStatus()
             {
-                var document = _searchResult.NavigableItem.Document;
+                var document = SearchResult.NavigableItem.Document;
                 if (document == null)
                 {
                     return 0;
@@ -135,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             public void PreviewItem()
             {
-                var document = _searchResult.NavigableItem.Document;
+                var document = SearchResult.NavigableItem.Document;
                 if (document == null)
                 {
                     return;
@@ -145,6 +130,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 var previewService = workspace.Services.GetService<INavigateToPreviewService>();
 
                 previewService.PreviewItem(this);
+            }
+
+        }
+
+        private class Dev14NavigateToItemDisplay : AbstractNavigateToItemDisplay
+        {
+            private readonly NavigateToIconFactory _iconFactory;
+
+            private Icon _glyph;
+
+            public Dev14NavigateToItemDisplay(INavigateToSearchResult searchResult, NavigateToIconFactory iconFactory)
+                : base(searchResult)
+            {
+                _iconFactory = iconFactory;
+            }
+
+            public override Icon Glyph
+            {
+                get
+                {
+                    if (_glyph == null)
+                    {
+                        _glyph = _iconFactory.GetIcon(SearchResult.NavigableItem.Glyph);
+                    }
+
+                    return _glyph;
+                }
             }
         }
     }

@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 namespace Microsoft.CodeAnalysis.Editor.NavigateTo
 {
     [ExportVersionSpecific(typeof(INavigateToHostVersionService), VisualStudioVersion.Dev15)]
-    internal class Dev15NavigateToHostVersionService : Dev14NavigateToHostVersionService, INavigateToHostVersionService
+    internal partial class Dev15NavigateToHostVersionService : Dev14NavigateToHostVersionService, INavigateToHostVersionService
     {
         [ImportingConstructor]
         public Dev15NavigateToHostVersionService(IGlyphService glyphService)
@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.NavigateTo
         {
             var options2 = options as INavigateToOptions2;
             return options2?.SearchCurrentDocument ?? false;
+        }
+
+        public override INavigateToItemDisplayFactory CreateDisplayFactory()
+        {
+            return new Dev15ItemDisplayFactory();
         }
     }
 }
