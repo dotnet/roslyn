@@ -291,8 +291,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return null;
                 }
 
+                // Try to find the chosen item has been most
+                // recently used.
                 var bestItem = chosenItems.FirstOrDefault();
-                for (int i = 1, n = chosenItems.Length; i < n; i++)
+                for (int i = 0, n = chosenItems.Length; i < n; i++)
                 {
                     var chosenItem = chosenItems[i];
                     var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
@@ -304,18 +306,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
 
-                if (GetRecentItemIndex(recentItems, bestItem) < 1)
+                // If our best item appeared in the MRU list, use it
+                if (GetRecentItemIndex(recentItems, bestItem) <= 0)
                 {
                     return bestItem;
                 }
 
+                // Otherwise use the chosen item that has the highest
+                // matchPriority.
                 for (int i = 1, n = chosenItems.Length; i < n; i++)
                 {
                     var chosenItem = chosenItems[i];
-                    var mruIndex1 = bestItem.Rules.MatchPriority;
-                    var mruIndex2 = chosenItem.Rules.MatchPriority;
+                    var bestItemPriority = bestItem.Rules.MatchPriority;
+                    var currentItemPriority = chosenItem.Rules.MatchPriority;
 
-                    if (mruIndex2 > mruIndex1)
+                    if (currentItemPriority > bestItemPriority)
                     {
                         bestItem = chosenItem;
                     }

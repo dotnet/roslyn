@@ -182,19 +182,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 return 1;
             }
 
-            // If they both seemed just as good, but they differ on preselection, then
-            // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.Rules.MatchPriority == MatchPriority.Preselect && 
-                item2.Rules.MatchPriority != MatchPriority.Preselect)
-            {
-                return -1;
-            }
-            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
-                item2.Rules.MatchPriority == MatchPriority.Preselect)
-            {
-                return 1;
-            }
-
             // Prefer things with a keyword tag, if the filter texts are the same.
             if (!TagsEqual(item1, item2) && item1.FilterText == item2.FilterText)
             {
