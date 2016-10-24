@@ -217,7 +217,7 @@ class C
         }
 
         [Fact]
-        public void LongTuple()
+        public void LongTuple_NoNames()
         {
             var source =
 @"class C
@@ -247,25 +247,55 @@ class C
                         "o._17",
                         DkmEvaluationResultFlags.Expandable));
                 children = GetChildren(children[0], inspectionContext);
-                Assert.Equal(18, children.Length);
-                var child = children[children.Length - 1];
-                Verify(child,
+                Verify(children,
+                    EvalResult("Item1", "0x0001", "short", "o._17.Item1"),
+                    EvalResult("Item2", "0x0002", "short", "o._17.Item2"),
+                    EvalResult("Item3", "0x0003", "short", "o._17.Item3"),
+                    EvalResult("Item4", "0x0004", "short", "o._17.Item4"),
+                    EvalResult("Item5", "0x0005", "short", "o._17.Item5"),
+                    EvalResult("Item6", "0x0006", "short", "o._17.Item6"),
+                    EvalResult("Item7", "0x0007", "short", "o._17.Item7"),
+                    EvalResult("Item8", "0x0008", "short", "o._17.Rest.Item1"),
+                    EvalResult("Item9", "0x0009", "short", "o._17.Rest.Item2"),
+                    EvalResult("Item10", "0x000a", "short", "o._17.Rest.Item3"),
+                    EvalResult("Item11", "0x000b", "short", "o._17.Rest.Item4"),
+                    EvalResult("Item12", "0x000c", "short", "o._17.Rest.Item5"),
+                    EvalResult("Item13", "0x000d", "short", "o._17.Rest.Item6"),
+                    EvalResult("Item14", "0x000e", "short", "o._17.Rest.Item7"),
+                    EvalResult("Item15", "0x000f", "short", "o._17.Rest.Rest.Item1"),
+                    EvalResult("Item16", "0x0010", "short", "o._17.Rest.Rest.Item2"),
+                    EvalResult("Item17", "0x0011", "short", "o._17.Rest.Rest.Item3"),
                     EvalResult(
-                        "Rest",
-                        "(0x0008, 0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x000e, 0x000f, 0x0010, 0x0011)",
-                        "(short, short, short, short, short, short, short, short, short, short)",
-                        "o._17.Rest",
-                        DkmEvaluationResultFlags.Expandable));
-                children = GetChildren(child, inspectionContext);
-                Assert.Equal(11, children.Length);
-                child = children[children.Length - 1];
-                Verify(child,
-                    EvalResult(
-                        "Rest",
-                        "(0x000f, 0x0010, 0x0011)",
-                        "(short, short, short)",
-                        "o._17.Rest.Rest",
-                        DkmEvaluationResultFlags.Expandable));
+                        "Raw View",
+                        "(0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x000e, 0x000f, 0x0010, 0x0011)",
+                        "(short, short, short, short, short, short, short, short, short, short, short, short, short, short, short, short, short)",
+                        "o._17, raw",
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                children = GetChildren(children[children.Length - 1], inspectionContext);
+                Verify(children,
+                    EvalResult("Item1", "0x0001", "short", "o._17.Item1"),
+                    EvalResult("Item2", "0x0002", "short", "o._17.Item2"),
+                    EvalResult("Item3", "0x0003", "short", "o._17.Item3"),
+                    EvalResult("Item4", "0x0004", "short", "o._17.Item4"),
+                    EvalResult("Item5", "0x0005", "short", "o._17.Item5"),
+                    EvalResult("Item6", "0x0006", "short", "o._17.Item6"),
+                    EvalResult("Item7", "0x0007", "short", "o._17.Item7"),
+                    EvalResult("Rest", "(0x0008, 0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x000e, 0x000f, 0x0010, 0x0011)", "(short, short, short, short, short, short, short, short, short, short)", "o._17.Rest, raw", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[children.Length - 1], inspectionContext);
+                Verify(children,
+                    EvalResult("Item1", "0x0008", "short", "o._17.Rest.Item1"),
+                    EvalResult("Item2", "0x0009", "short", "o._17.Rest.Item2"),
+                    EvalResult("Item3", "0x000a", "short", "o._17.Rest.Item3"),
+                    EvalResult("Item4", "0x000b", "short", "o._17.Rest.Item4"),
+                    EvalResult("Item5", "0x000c", "short", "o._17.Rest.Item5"),
+                    EvalResult("Item6", "0x000d", "short", "o._17.Rest.Item6"),
+                    EvalResult("Item7", "0x000e", "short", "o._17.Rest.Item7"),
+                    EvalResult("Rest", "(0x000f, 0x0010, 0x0011)", "(short, short, short)", "o._17.Rest.Rest, raw", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[children.Length - 1], inspectionContext);
+                Verify(children,
+                    EvalResult("Item1", "0x000f", "short", "o._17.Rest.Rest.Item1"),
+                    EvalResult("Item2", "0x0010", "short", "o._17.Rest.Rest.Item2"),
+                    EvalResult("Item3", "0x0011", "short", "o._17.Rest.Rest.Item3"));
             }
         }
 
@@ -349,21 +379,19 @@ class C
                 var moreChildren = GetChildren(children[0]);
                 Verify(moreChildren,
                     EvalResult("A", "1", "int", "o.F.Item1"),
-                    EvalResult("Item1", "1", "int", "o.F.Item1"));
+                    EvalResult("Raw View", "{(int, int)}", "(int A, int B)", "o.F, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
                 moreChildren = GetChildren(children[1]);
                 Verify(moreChildren);
                 moreChildren = GetChildren(children[2]);
                 Verify(moreChildren,
                     EvalResult("Item1", "1", "int", "o.H.Item1"),
                     EvalResult("B", "2", "int", "o.H.Item2"),
-                    EvalResult("Item2", "2", "int", "o.H.Item2"),
                     EvalResult("Item3", "3", "int", "o.H.Item3"),
                     EvalResult("D", "4", "int", "o.H.Item4"),
-                    EvalResult("Item4", "4", "int", "o.H.Item4"),
                     EvalResult("Item5", "5", "int", "o.H.Item5"),
                     EvalResult("F", "6", "int", "o.H.Item6"),
-                    EvalResult("Item6", "6", "int", "o.H.Item6"),
-                    EvalResult("Item7", "7", "int", "o.H.Item7"));
+                    EvalResult("Item7", "7", "int", "o.H.Item7"),
+                    EvalResult("Raw View", "{(int, int, int, int, int, int, int, int, int)}", "(int, int B, int, int D, int, int F, int, int H, int)", "o.H, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             }
         }
 
@@ -677,15 +705,13 @@ class C
                 moreChildren = GetChildren(moreChildren[0]);
                 Verify(moreChildren,
                     EvalResult("X", "null", "dynamic {object}", "o.G.F.Item1"),
-                    EvalResult("Item1", "null", "dynamic {object}", "o.G.F.Item1"),
                     EvalResult("Y", "(null, {B<(object, object)>.S})", "(object E, B<(object F, dynamic G)>.S H) {(object, B<(object, object)>.S)}", "o.G.F.Item2", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("Item2", "(null, {B<(object, object)>.S})", "(object E, B<(object F, dynamic G)>.S H) {(object, B<(object, object)>.S)}", "o.G.F.Item2", DkmEvaluationResultFlags.Expandable));
-                moreChildren = GetChildren(moreChildren[3]);
+                    EvalResult("Raw View", "(null, (null, {B<(object, object)>.S}))", "(dynamic X, (object E, B<(object F, dynamic G)>.S H) Y) {(object, (object, B<(object, object)>.S))}", "o.G.F, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                moreChildren = GetChildren(moreChildren[1]);
                 Verify(moreChildren,
                     EvalResult("E", "null", "object", "o.G.F.Item2.Item1"),
-                    EvalResult("Item1", "null", "object", "o.G.F.Item2.Item1"),
                     EvalResult("H", "{B<(object, object)>.S}", "B<(object F, dynamic G)>.S {B<(object, object)>.S}", "o.G.F.Item2.Item2"),
-                    EvalResult("Item2", "{B<(object, object)>.S}", "B<(object F, dynamic G)>.S {B<(object, object)>.S}", "o.G.F.Item2.Item2"));
+                    EvalResult("Raw View", "(null, {B<(object, object)>.S})", "(object E, B<(object F, dynamic G)>.S H) {(object, B<(object, object)>.S)}", "o.G.F.Item2, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             }
         }
 
@@ -821,14 +847,17 @@ class B
                 children = GetChildren(children[0]);
                 Verify(children,
                     EvalResult("Item2", "null", "object", "o.F.Item1"),
-                    EvalResult("Item1", "null", "object", "o.F.Item1"),
                     EvalResult("struct { }", "null", "object", "o.F.Item2"),
+                    EvalResult("Raw View", "(null, null)", "(object Item2, object struct { })", "o.F, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                children = GetChildren(children[children.Length - 1]);
+                Verify(children,
+                    EvalResult("Item1", "null", "object", "o.F.Item1"),
                     EvalResult("Item2", "null", "object", "o.F.Item2"));
             }
         }
 
         [Fact]
-        public void LongTuple_Expansion()
+        public void LongTuple_ElementNames()
         {
             // Define in IL to include tuple element names
             // for the Rest elements.
@@ -862,47 +891,93 @@ class B
                 children = GetChildren(children[0]);
                 Verify(children,
                     EvalResult("One", "0", "int", "o.F.Item1"),
-                    EvalResult("Item1", "0", "int", "o.F.Item1"),
                     EvalResult("Two", "0", "int", "o.F.Item2"),
-                    EvalResult("Item2", "0", "int", "o.F.Item2"),
                     EvalResult("Item3", "0", "int", "o.F.Item3"),
                     EvalResult("Item4", "0", "int", "o.F.Item4"),
                     EvalResult("Five", "0", "int", "o.F.Item5"),
-                    EvalResult("Item5", "0", "int", "o.F.Item5"),
                     EvalResult("Six", "0", "int", "o.F.Item6"),
-                    EvalResult("Item6", "0", "int", "o.F.Item6"),
                     EvalResult("Item7", "0", "int", "o.F.Item7"),
                     EvalResult("Item8", "0", "int", "o.F.Rest.Item1"),
                     EvalResult("Nine", "0", "int", "o.F.Rest.Item2"),
-                    EvalResult("Item9", "0", "int", "o.F.Rest.Item2"),
                     EvalResult("Ten", "0", "int", "o.F.Rest.Item3"),
-                    EvalResult("Item10", "0", "int", "o.F.Rest.Item3"),
                     EvalResult("Item11", "0", "int", "o.F.Rest.Item4"),
                     EvalResult("Item12", "0", "int", "o.F.Rest.Item5"),
                     EvalResult("Thirteen", "0", "int", "o.F.Rest.Item6"),
-                    EvalResult("Item13", "0", "int", "o.F.Rest.Item6"),
                     EvalResult("Fourteen", "0", "int", "o.F.Rest.Item7"),
-                    EvalResult("Item14", "0", "int", "o.F.Rest.Item7"),
                     EvalResult("Item15", "0", "int", "o.F.Rest.Rest.Item1"),
-                    EvalResult("Rest", "(0, 0, 0, 0, 0, 0, 0, 0)", "(int, int Seventeen, int Eighteen, int, int, int TwentyOne, int TwentyTwo, int)", "o.F.Rest", DkmEvaluationResultFlags.Expandable));
+                    EvalResult(
+                        "Raw View",
+                        "(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)", "(int One, int Two, int, int, int Five, int Six, int, int, int Nine, int Ten, int, int, int Thirteen, int Fourteen, int)",
+                        "o.F, raw",
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                children = GetChildren(children[children.Length - 1]);
+                Verify(children,
+                    EvalResult("Item1", "0", "int", "o.F.Item1"),
+                    EvalResult("Item2", "0", "int", "o.F.Item2"),
+                    EvalResult("Item3", "0", "int", "o.F.Item3"),
+                    EvalResult("Item4", "0", "int", "o.F.Item4"),
+                    EvalResult("Item5", "0", "int", "o.F.Item5"),
+                    EvalResult("Item6", "0", "int", "o.F.Item6"),
+                    EvalResult("Item7", "0", "int", "o.F.Item7"),
+                    EvalResult("Rest", "(0, 0, 0, 0, 0, 0, 0, 0)", "(int, int Seventeen, int Eighteen, int, int, int TwentyOne, int TwentyTwo, int)", "o.F.Rest, raw", DkmEvaluationResultFlags.Expandable));
                 children = GetChildren(children[children.Length - 1]);
                 Verify(children,
                     EvalResult("Item1", "0", "int", "o.F.Rest.Item1"),
-                    EvalResult("Seventeen", "0", "int", "o.F.Rest.Item2"),
                     EvalResult("Item2", "0", "int", "o.F.Rest.Item2"),
-                    EvalResult("Eighteen", "0", "int", "o.F.Rest.Item3"),
                     EvalResult("Item3", "0", "int", "o.F.Rest.Item3"),
                     EvalResult("Item4", "0", "int", "o.F.Rest.Item4"),
                     EvalResult("Item5", "0", "int", "o.F.Rest.Item5"),
-                    EvalResult("TwentyOne", "0", "int", "o.F.Rest.Item6"),
                     EvalResult("Item6", "0", "int", "o.F.Rest.Item6"),
-                    EvalResult("TwentyTwo", "0", "int", "o.F.Rest.Item7"),
                     EvalResult("Item7", "0", "int", "o.F.Rest.Item7"),
-                    EvalResult("Item8", "0", "int", "o.F.Rest.Rest.Item1"),
-                    EvalResult("Rest", "{System.ValueTuple<int>}", "System.ValueTuple<int>", "o.F.Rest.Rest", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("Rest", "{System.ValueTuple<int>}", "System.ValueTuple<int>", "o.F.Rest.Rest, raw", DkmEvaluationResultFlags.Expandable));
                 children = GetChildren(children[children.Length - 1]);
                 Verify(children,
                     EvalResult("Item1", "0", "int", "o.F.Rest.Rest.Item1"));
+            }
+        }
+
+        [Fact]
+        public void RawView()
+        {
+            var source =
+@"class C
+{
+    (int A, int, (int C, int D) E, int, int, int H, int, int J) T = (1, 2, (3, 4), 5, 6, 7, 8, 9);
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib(source, references: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.ShowValueRaw);
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
+                Verify(evalResult,
+                    EvalResult("o", "{C}", "C", "o, raw", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult, inspectionContext);
+                Verify(children,
+                    EvalResult(
+                        "T",
+                        "(1, 2, (3, 4), 5, 6, 7, 8, 9)",
+                        "(int A, int, (int C, int D) E, int, int, int H, int, int J)",
+                        "o.T, raw",
+                        DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[0], inspectionContext);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", "o.T.Item1, raw"),
+                    EvalResult("Item2", "2", "int", "o.T.Item2, raw"),
+                    EvalResult("Item3", "(3, 4)", "(int C, int D)", "o.T.Item3, raw", DkmEvaluationResultFlags.Expandable),
+                    EvalResult("Item4", "5", "int", "o.T.Item4, raw"),
+                    EvalResult("Item5", "6", "int", "o.T.Item5, raw"),
+                    EvalResult("Item6", "7", "int", "o.T.Item6, raw"),
+                    EvalResult("Item7", "8", "int", "o.T.Item7, raw"),
+                    EvalResult("Rest", "{System.ValueTuple<int>}", "System.ValueTuple<int>", "o.T.Rest, raw", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[7], inspectionContext);
+                Verify(children,
+                    EvalResult("Item1", "9", "int", "o.T.Rest.Item1, raw"));
             }
         }
 
@@ -1075,10 +1150,10 @@ class B
                 children = GetChildren(children[0]);
                 Verify(children,
                     EvalResult("A", "1", "object {int}", "o.F.Item1"),
-                    EvalResult("Item1", "1", "object {int}", "o.F.Item1"),
                     EvalResult("Item2", "'o.F.Item2' threw an exception of type 'System.InvalidOperationException'", "int {System.InvalidOperationException}", "o.F.Item2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ExceptionThrown),
-                    EvalResult("Item3", "3", "int", "o.F.Item3"));
-                children = GetChildren(children[2]);
+                    EvalResult("Item3", "3", "int", "o.F.Item3"),
+                    EvalResult("Raw View", "(1, {System.InvalidOperationException: Unable to evaluate}, 3)", "(object A, int, int)", "o.F, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                children = GetChildren(children[1]);
                 Assert.True(children.Length > 0);
                 Assert.Null(children[0].FullName); // FullName null for members of thrown Exception.
             }
@@ -1119,6 +1194,10 @@ class E : System.Exception
                 Verify(children,
                     EvalResult("Item1", "1", "int", null),
                     EvalResult("B", "2", "int", null),
+                    EvalResult("Raw View", "(1, 2)", "(int, int B)", null, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                children = GetChildren(children[children.Length - 1]);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", null),
                     EvalResult("Item2", "2", "int", null));
             }
         }
