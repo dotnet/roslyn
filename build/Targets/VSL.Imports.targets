@@ -43,7 +43,7 @@
         <OutDir>$(OutDir)Exes\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'DeploymentCompilergeneratorTools'">
+    <When Condition="'$(RoslynProjectType)' == 'DeploymentCompilerGeneratorTools'">
       <PropertyGroup>
         <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
       </PropertyGroup>

@@ -40,25 +40,69 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "OldToolsVersion");
             }
 
+            allGood &= CheckRoslynProjectType(textWriter);
+
             return allGood;
         }
 
         private bool CheckForProperty(TextWriter textWriter, string propertyName)
         {
-            var groups = _projectData.XPathSelectElements("//mb:PropertyGroup", _manager);
-            foreach(var group in groups)
+            foreach (var element in GetAllPropertyGroupElements())
             {
-                foreach (var element in group.Elements())
+                if (element.Name.LocalName == propertyName)
                 {
-                    if (element.Name.LocalName == propertyName)
-                    {
-                        textWriter.WriteLine($"\tDo not use {propertyName}");
-                        return false;
-                    }
+                    textWriter.WriteLine($"\tDo not use {propertyName}");
+                    return false;
                 }
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Validate the content of RoslynProjectType is one of the supported values.
+        /// </summary>
+        private bool CheckRoslynProjectType(TextWriter textWriter)
+        {
+            var element = GetAllPropertyGroupElements().FirstOrDefault(x => x.Name.LocalName == "RoslynProjectType");
+            if (element == null)
+            {
+                return true;
+            }
+
+            var value = element.Value.Trim();
+            switch (value)
+            {
+                case "Dll":
+                case "ExeDesktop":
+                case "ToolDesktop":
+                case "ExeCoreClr":
+                case "UnitTest":
+                case "UnitTestNext":
+                case "CompilerGeneratorTool":
+                case "DeploymentCompilerGeneratorTools":
+                case "Deployment":
+                case "Vsix":
+                case "Ignore":
+                case "Dependency":
+                case "Custom":
+                    return true;
+                default:
+                    textWriter.WriteLine($@"Value ""{value}"" is illegal for RoslynProjectType");
+                    return false;
+            }
+        }
+
+        private IEnumerable<XElement> GetAllPropertyGroupElements()
+        {
+            var groups = _projectData.XPathSelectElements("//mb:PropertyGroup", _manager);
+            foreach (var group in groups)
+            {
+                foreach (var element in group.Elements())
+                {
+                    yield return element;
+                }
+            }
         }
     }
 }
