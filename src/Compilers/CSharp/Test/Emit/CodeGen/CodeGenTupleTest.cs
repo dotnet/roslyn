@@ -19386,6 +19386,101 @@ public class B1
         }
 
         [Fact]
+        public void Regress001()
+        {
+            string lib = @"
+
+namespace ClassLibrary1
+{
+    public class C1
+    {
+        public virtual ref (int, dynamic) Foo(int  arg)
+        {
+            return ref new (int, dynamic)[]{(1, arg)}[0];
+        }
+    }
+}
+";
+            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, additionalRefs: s_valueTupleRefs, options: TestOptions.DebugDll);
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+namespace ConsoleApplication5
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ref var x = ref new C2().Foo(42);
+            System.Console.Write(x.Item2);
+            x.Item2 = ""qq"";
+            System.Console.WriteLine(x.Item2);
+        }
+    }
+
+    class C2: ClassLibrary1.C1
+    {
+        public override ref (int, object) Foo(int arg)
+        {
+            return ref base.Foo(arg);
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libComp.ToMetadataReference() }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
+        }
+
+        [Fact]
+        public void Regress002()
+        {
+            string lib = @"
+
+namespace ClassLibrary1
+{
+    public class C1
+    {
+        public virtual ref (int, dynamic) Foo(int  arg)
+        {
+            return ref new (int, dynamic)[]{(1, arg)}[0];
+        }
+    }
+}
+";
+            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, additionalRefs: s_valueTupleRefs, options: TestOptions.DebugDll);
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+namespace ConsoleApplication5
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ref var x = ref new C2().Foo(42);
+            System.Console.Write(x.Item2);
+            x.Item2 = ""qq"";
+            System.Console.WriteLine(x.Item2);
+        }
+    }
+
+    class C2: ClassLibrary1.C1
+    {
+        public override ref (int, object) Foo(int arg)
+        {
+            return ref base.Foo(arg);
+        }
+    }
+}
+";
+
+            var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
+
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify:false);
+        }
+
+
+        [Fact]
         [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
         public void UserDefinedConversionsAndNameMismatch_01()
         {
