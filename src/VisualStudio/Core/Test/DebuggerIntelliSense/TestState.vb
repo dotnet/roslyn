@@ -219,7 +219,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End If
 
             For Each displayText In displayTexts
-                If Not CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.DisplayText = displayText) Then
+                If Not CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText) Then
                     Assert.False(True, "Didn't find '" & displayText & "' in completion.")
                 End If
             Next
@@ -233,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End If
 
             For Each displayText In displayTexts
-                If CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.DisplayText = displayText) Then
+                If CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText) Then
                     Assert.False(True, "Found '" & displayText & "' in completion.")
                 End If
             Next
