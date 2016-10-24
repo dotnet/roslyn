@@ -321,6 +321,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => TestWritingPrimitiveArrays(w), r => TestReadingPrimitiveArrays(r));
         }
 
+
+        private void TestRoundTripCompressedUint(uint value)
+        {
+            TestRoundTrip(value, (w, v) => ((StreamObjectWriter)w).WriteCompressedUInt(v), r => ((StreamObjectReader)r).ReadCompressedUInt());
+        }
+
+        [Fact]
+        public void TestCompressedUInt()
+        {
+            TestRoundTripCompressedUint(0);
+            TestRoundTripCompressedUint(0x01u);
+            TestRoundTripCompressedUint(0x0123u);     // unique bytes tests order
+            TestRoundTripCompressedUint(0x012345u);   // unique bytes tests order
+            TestRoundTripCompressedUint(0x01234567u); // unique bytes tests order
+            TestRoundTripCompressedUint(0x3Fu);       // largest value packed in one byte
+            TestRoundTripCompressedUint(0x3FFFu);     // largest value packed into two bytes
+            TestRoundTripCompressedUint(0x3FFFFFu);   // no three byte option yet, but test anyway
+            TestRoundTripCompressedUint(0x3FFFFFFFu); // largest unit allowed in four bytes
+
+            Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(uint.MaxValue)); // max uint not allowed
+            Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(0x80000000u)); // highest bit set not allowed
+            Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(0x40000000u)); // second highest bit set not allowed
+            Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(0xC0000000u)); // both high bits set not allowed
+        }
+
         [Fact]
         public void TestPrimitiveArrayMembers()
         {

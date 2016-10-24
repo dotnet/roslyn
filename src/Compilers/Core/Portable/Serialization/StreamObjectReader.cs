@@ -413,7 +413,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private uint ReadCompressedUInt()
+        internal uint ReadCompressedUInt()
         {
             var info = _reader.ReadByte();
             byte marker = (byte)(info & StreamObjectWriter.ByteMarkerMask);

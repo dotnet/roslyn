@@ -385,7 +385,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteCompressedUInt(uint value)
+        internal void WriteCompressedUInt(uint value)
         {
             if (value <= (byte.MaxValue >> 2))
             {
