@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return true;
                     }
 
-                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 1)
+                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) <= 0)
                     {
                         return true;
                     }
