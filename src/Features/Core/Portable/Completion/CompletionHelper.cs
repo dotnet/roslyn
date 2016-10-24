@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return -1;
             }
             else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
-                item2.Rules.MatchPriority == MatchPriority.Preselect)
+                     item2.Rules.MatchPriority == MatchPriority.Preselect)
             {
                 return 1;
             }
