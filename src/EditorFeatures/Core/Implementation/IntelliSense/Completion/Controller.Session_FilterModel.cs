@@ -253,11 +253,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If we don't have a best completion item yet, then pick the first item from the list.
                 var bestOrFirstCompletionItem = bestCompletionItem ?? filterResults.First().CompletionItem;
-                var bestOrFirstPresentationItem = filterResults.Where(
-                    r => r.CompletionItem == bestOrFirstCompletionItem).First().CompletionItem;
 
                 var hardSelection = IsHardSelection(
-                    model, bestOrFirstPresentationItem, textSnapshot, helper, filterReason);
+                    model, bestOrFirstCompletionItem, textSnapshot, helper, filterReason);
 
                 // Determine if we should consider this item 'unique' or not.  A unique item
                 // will be automatically committed if the user hits the 'invoke completion' 
@@ -272,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     filterText.Length > 0;
 
                 var result = model.WithFilteredItems(filterResults.Select(r => r.CompletionItem).AsImmutable())
-                                  .WithSelectedItem(bestOrFirstPresentationItem)
+                                  .WithSelectedItem(bestOrFirstCompletionItem)
                                   .WithHardSelection(hardSelection)
                                   .WithIsUnique(isUnique);
 
@@ -374,9 +372,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 public readonly bool MatchedFilterText;
                 public readonly string FilterText;
 
-                public FilterResult(CompletionItem presentationItem, string filterText, bool matchedFilterText)
+                public FilterResult(CompletionItem completionItem, string filterText, bool matchedFilterText)
                 {
-                    CompletionItem = presentationItem;
+                    CompletionItem = completionItem;
                     MatchedFilterText = matchedFilterText;
                     FilterText = filterText;
                 }

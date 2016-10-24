@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Sub PresentItems(triggerSpan As ITrackingSpan,
-                                presentationItems As IList(Of CompletionItem),
+                                completionItems As IList(Of CompletionItem),
                                 selectedItem As CompletionItem,
                                 suggestionModeItem As CompletionItem,
                                 suggestionMode As Boolean,
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 filterText As String) Implements ICompletionPresenterSession.PresentItems
             _testState.CurrentCompletionPresenterSession = Me
             Me.TriggerSpan = triggerSpan
-            Me.CompletionItems = presentationItems
+            Me.CompletionItems = completionItems
             Me.SelectedItem = selectedItem
             Me.IsSoftSelected = isSoftSelected
             Me.SuggestionModeItem = suggestionModeItem

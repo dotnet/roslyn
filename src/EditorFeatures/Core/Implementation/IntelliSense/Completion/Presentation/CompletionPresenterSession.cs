@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.Dismissed?.Invoke(this, new EventArgs());
         }
 
-        internal void OnCompletionItemCommitted(CompletionItem presentationItem)
+        internal void OnCompletionItemCommitted(CompletionItem completionItem)
         {
             AssertIsForeground();
-            this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(presentationItem));
+            this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(completionItem));
         }
 
         private void OnCompletionSetSelectionStatusChanged(
