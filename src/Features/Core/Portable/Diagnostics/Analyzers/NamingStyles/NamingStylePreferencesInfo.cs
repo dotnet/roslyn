@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.SymbolCategorization;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             NamingRules = namingRules;
         }
 
-        internal bool TryGetApplicableRule(ISymbol symbol, ISymbolCategorizationService categorizationService, out NamingRule applicableRule)
+        internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
         {
             if (NamingRules == null)
             {
@@ -29,24 +27,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 applicableRule = null;
                 return false;
             }
-
-            var matchingRule = NamingRules.FirstOrDefault(r => r.AppliesTo(symbol, categorizationService));
-            if (matchingRule == null)
+            
+            foreach (var namingRule in NamingRules)
             {
-                applicableRule = null;
-                return false;
+                if (namingRule.AppliesTo(symbol))
+                {
+                    applicableRule = namingRule;
+                    return true;
+                }
             }
 
-            applicableRule = matchingRule.GetBestMatchingRule(symbol, categorizationService);
-            return true;
+            applicableRule = null;
+            return false;
         }
 
         private bool IsSymbolNameAnalyzable(ISymbol symbol)
         {
-            var methodSymbol = symbol as IMethodSymbol;
-            if (methodSymbol != null && methodSymbol.MethodKind != MethodKind.Ordinary)
+            if (symbol.Kind == SymbolKind.Method)
             {
-                return false;
+                var methodSymbol = symbol as IMethodSymbol;
+                if (methodSymbol != null && methodSymbol.MethodKind != MethodKind.Ordinary)
+                {
+                    return false;
+                }
+            }
+
+            if (symbol.Kind == SymbolKind.Property)
+            {
+                var propertySymbol = symbol as IPropertySymbol;
+                if (propertySymbol != null && propertySymbol.IsIndexer)
+                {
+                    return false;
+                }
             }
 
             return true;

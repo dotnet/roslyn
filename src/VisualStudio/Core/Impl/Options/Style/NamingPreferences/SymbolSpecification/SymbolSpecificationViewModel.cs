@@ -2,46 +2,42 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    internal class SymbolSpecificationViewModel : AbstractNotifyPropertyChanged
+    internal class SymbolSpecificationViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
     {
         public Guid ID { get; set; }
         public List<SymbolKindViewModel> SymbolKindList { get; set; }
         public List<AccessibilityViewModel> AccessibilityList { get; set; }
         public List<ModifierViewModel> ModifierList { get; set; }
-        public List<CustomTagViewModel> CustomTagList { get; set; }
 
         private string _symbolSpecName;
-        public string SymbolSpecName
-        {
-            get { return _symbolSpecName; }
-            set { SetProperty(ref _symbolSpecName, value); }
-        }
+
+        public bool CanBeDeleted { get; set; }
+
+        
 
         private readonly INotificationService _notificationService;
 
-        public SymbolSpecificationViewModel(string languageName, ImmutableArray<string> categories, INotificationService notificationService) : this(languageName, categories, new SymbolSpecification(), notificationService) { }
+        public SymbolSpecificationViewModel(
+            string languageName,
+            bool canBeDeleted,
+            INotificationService notificationService) : this(languageName, new SymbolSpecification(), canBeDeleted, notificationService) { }
 
-        public SymbolSpecificationViewModel(string languageName, ImmutableArray<string> categories, SymbolSpecification specification, INotificationService notificationService)
+        public SymbolSpecificationViewModel(string languageName, SymbolSpecification specification, bool canBeDeleted, INotificationService notificationService)
         {
+            CanBeDeleted = canBeDeleted;
             _notificationService = notificationService;
-            SymbolSpecName = specification.Name;
+            ItemName = specification.Name;
             ID = specification.ID;
-
-            CustomTagList = new List<CustomTagViewModel>();
-            foreach (var category in categories)
-            {
-                CustomTagList.Add(new CustomTagViewModel(category, specification));
-            }
 
             // The list of supported SymbolKinds is limited due to https://github.com/dotnet/roslyn/issues/8753.
             if (languageName == LanguageNames.CSharp)
@@ -56,9 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     new SymbolKindViewModel(SymbolKind.Method, "method", specification),
                     new SymbolKindViewModel(SymbolKind.Field, "field", specification),
                     new SymbolKindViewModel(SymbolKind.Event, "event", specification),
-                    new SymbolKindViewModel(SymbolKind.Namespace, "namespace", specification),
                     new SymbolKindViewModel(TypeKind.Delegate, "delegate", specification),
-                    new SymbolKindViewModel(TypeKind.TypeParameter, "type parameter", specification),
                 };
 
                 AccessibilityList = new List<AccessibilityViewModel>
@@ -92,9 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     new SymbolKindViewModel(SymbolKind.Method, "Method", specification),
                     new SymbolKindViewModel(SymbolKind.Field, "Field", specification),
                     new SymbolKindViewModel(SymbolKind.Event, "Event", specification),
-                    new SymbolKindViewModel(SymbolKind.Namespace, "Namespace", specification),
                     new SymbolKindViewModel(TypeKind.Delegate, "Delegate", specification),
-                    new SymbolKindViewModel(TypeKind.TypeParameter, "Type Parameter", specification),
                 };
 
                 AccessibilityList = new List<AccessibilityViewModel>
@@ -121,15 +113,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
+        public string ItemName
+        {
+            get { return _symbolSpecName; }
+            set { SetProperty(ref _symbolSpecName, value); }
+        }
+
         internal SymbolSpecification GetSymbolSpecification()
         {
             return new SymbolSpecification(
                 ID,
-                SymbolSpecName,
+                ItemName,
                 SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToList(),
                 AccessibilityList.Where(a => a.IsChecked).Select(a => new SymbolSpecification.AccessibilityKind(a._accessibility)).ToList(),
-                ModifierList.Where(m => m.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToList(),
-                CustomTagList.Where(t => t.IsChecked).Select(t => t.Name).ToList());
+                ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToList());
+        }
+
+        internal bool TrySubmit()
+        {
+            if (string.IsNullOrWhiteSpace(ItemName))
+            {
+                _notificationService.SendNotification(ServicesVSResources.Enter_a_title_for_this_Naming_Style);
+                return false;
+            }
+
+            return true;
         }
 
         internal interface ISymbolSpecificationViewModelPart
@@ -165,20 +173,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 IsChecked = specification.ApplicableSymbolKindList.Any(k => k.TypeKind == typeKind);
             }
 
-            internal SymbolSpecification.SymbolKindOrTypeKind CreateSymbolKindOrTypeKind()
+            internal SymbolKindOrTypeKind CreateSymbolKindOrTypeKind()
             {
                 if (_symbolKind.HasValue)
                 {
-                    return new SymbolSpecification.SymbolKindOrTypeKind(_symbolKind.Value);
+                    return new SymbolKindOrTypeKind(_symbolKind.Value);
                 }
                 else
                 {
-                    return new SymbolSpecification.SymbolKindOrTypeKind(_typeKind.Value);
+                    return new SymbolKindOrTypeKind(_typeKind.Value);
                 }
             }
         }
 
-        public class AccessibilityViewModel: AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
+        public class AccessibilityViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
         {
             internal readonly Accessibility _accessibility;
 
@@ -200,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public class ModifierViewModel: AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
+        public class ModifierViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
         {
             public string Name { get; set; }
 
@@ -215,39 +223,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             public ModifierViewModel(DeclarationModifiers modifier, string name, SymbolSpecification specification)
             {
-                this._modifier = modifier;
+                _modifier = modifier;
                 Name = name;
+
                 IsChecked = specification.RequiredModifierList.Any(m => m.Modifier == modifier);
             }
-        }
-
-        public class CustomTagViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
-        {
-            public string Name { get; set; }
-
-            private bool _isChecked;
-            public bool IsChecked
-            {
-                get { return _isChecked; }
-                set { SetProperty(ref _isChecked, value); }
-            }
-
-            public CustomTagViewModel(string name, SymbolSpecification specification)
-            {
-                Name = name;
-                IsChecked = specification.RequiredCustomTagList.Contains(name);
-            }
-        }
-
-        internal bool TrySubmit()
-        {
-            if (string.IsNullOrWhiteSpace(SymbolSpecName))
-            {
-                _notificationService.SendNotification(ServicesVSResources.Enter_a_title_for_this_Symbol_Specification);
-                return false;
-            }
-
-            return true;
         }
     }
 }
