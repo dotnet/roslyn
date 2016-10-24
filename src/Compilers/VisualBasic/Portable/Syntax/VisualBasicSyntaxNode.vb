@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Deserialize a syntax node from a byte stream.
         ''' </summary>
         Public Shared Function DeserializeFrom(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
-            Using reader = New StreamObjectReader(stream, data:=GetDeserializationObjectData(), binder:=s_defaultBinder, cancellationToken:=cancellationToken)
+            Using reader = New StreamObjectReader(stream, knownObjects:=GetDeserializationObjectData(), binder:=s_defaultBinder, cancellationToken:=cancellationToken)
                 Return DirectCast(reader.ReadValue(), InternalSyntax.VisualBasicSyntaxNode).CreateRed(Nothing, 0)
             End Using
         End Function

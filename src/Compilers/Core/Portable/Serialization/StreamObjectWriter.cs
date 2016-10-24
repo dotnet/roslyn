@@ -27,9 +27,16 @@ namespace Roslyn.Utilities
         private readonly Stack<Variant> _valueStack;        // stack of member/element values from object/array contents pending emit
         private readonly VariantListWriter _memberWriter;   // used to get object member values
 
+        /// <summary>
+        /// Creates a new instance of a <see cref="StreamObjectWriter"/>.
+        /// </summary>
+        /// <param name="stream">The stream to write to.</param>
+        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="StreamObjectReader"/>.</param>
+        /// <param name="binder">A binder that provides object and type encoding.</param>
+        /// <param name="cancellationToken"></param>
         public StreamObjectWriter(
             Stream stream,
-            ObjectData data = null,
+            ObjectData knownObjects = null,
             ObjectBinder binder = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -38,7 +45,7 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
-            _referenceMap = ReferenceMap.Create(data);
+            _referenceMap = ReferenceMap.Create(knownObjects);
             _binder = binder ?? new SimpleRecordingObjectBinder();
             _cancellationToken = cancellationToken;
             _valueStack = new Stack<Variant>();

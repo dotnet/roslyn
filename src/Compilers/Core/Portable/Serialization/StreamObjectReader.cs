@@ -29,9 +29,16 @@ namespace Roslyn.Utilities
         private readonly Stack<Consumer> _consumerStack;    // stack of consumers (objects and arrays needing values before they can be constructed)
         private readonly VariantListReader _memberReader;   // used to provide member values when reading objects
 
+        /// <summary>
+        /// Creates a new instance of a <see cref="StreamObjectReader"/>.
+        /// </summary>
+        /// <param name="stream">The stream to read objects from.</param>
+        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="StreamObjectWriter"/>.</param>
+        /// <param name="binder">A binder that provides object and type decoding.</param>
+        /// <param name="cancellationToken"></param>
         public StreamObjectReader(
             Stream stream,
-            ObjectData data = null,
+            ObjectData knownObjects = null,
             ObjectBinder binder = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -40,7 +47,7 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
-            _referenceMap = ReferenceMap.Create(data);
+            _referenceMap = ReferenceMap.Create(knownObjects);
             _binder = binder;
             _cancellationToken = cancellationToken;
             _valueStack = new Stack<Variant>();
