@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 isSoftSelected, completionItemFilters, filterText);
         }
 
-        CompletionItem ICompletionSet.GetPresentationItem(VSCompletion completion)
+        CompletionItem ICompletionSet.GetCompletionItem(VSCompletion completion)
         {
-            return _roslynCompletionSet.GetPresentationItem(completion);
+            return _roslynCompletionSet.GetCompletionItem(completion);
         }
 
         #endregion

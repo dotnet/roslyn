@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         protected readonly ITextBuffer SubjectBuffer;
         protected readonly CompletionPresenterSession CompletionPresenterSession;
-        protected Dictionary<CompletionItem, VSCompletion> PresentationItemMap;
+
+        protected Dictionary<CompletionItem, VSCompletion> CompletionItemMap;
+        protected CompletionItem SuggestionModeItem;
 
         protected string FilterText;
 
@@ -70,8 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             VSCompletion selectedCompletionItem = null;
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
-            PresentationItemMap = PresentationItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
+            CompletionItemMap = CompletionItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
             FilterText = filterText;
+            SuggestionModeItem = suggestionModeItem;
 
             try
             {
@@ -144,20 +147,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private VSCompletion GetVSCompletion(CompletionItem item)
         {
             VSCompletion value;
-            if (!PresentationItemMap.TryGetValue(item, out value))
+            if (!CompletionItemMap.TryGetValue(item, out value))
             {
                 value = new CustomCommitCompletion(CompletionPresenterSession, item);
-                PresentationItemMap.Add(item, value);
+                CompletionItemMap.Add(item, value);
             }
 
             return value;
         }
 
-        public CompletionItem GetPresentationItem(VSCompletion completion)
+        public CompletionItem GetCompletionItem(VSCompletion completion)
         {
             // Linear search is ok since this is only called by the user manually selecting 
             // an item.  Creating a reverse mapping uses too much memory and affects GCs.
-            foreach (var kvp in PresentationItemMap)
+            foreach (var kvp in CompletionItemMap)
             {
                 if (kvp.Value == completion)
                 {

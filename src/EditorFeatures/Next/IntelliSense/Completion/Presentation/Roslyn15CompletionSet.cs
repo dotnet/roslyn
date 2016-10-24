@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 var completionHelper = this.GetCompletionHelper();
                 if (completionHelper != null)
                 {
-                    var presentationItem = this.PresentationItemMap.Keys.FirstOrDefault(k => k.Item.DisplayText == displayText);
+                    var presentationItem = this.CompletionItemMap.Keys.FirstOrDefault(k => k.DisplayText == displayText);
 
-                    if (presentationItem != null && !presentationItem.IsSuggestionModeItem)
+                    if (presentationItem != null && presentationItem != SuggestionModeItem)
                     {
                         var highlightedSpans = completionHelper.GetHighlightedSpans(
-                            presentationItem.Item, FilterText, CultureInfo.CurrentCulture);
+                            presentationItem, FilterText, CultureInfo.CurrentCulture);
                         if (highlightedSpans != null)
                         {
                             return highlightedSpans.Select(s => s.ToSpan()).ToArray();

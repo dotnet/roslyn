@@ -23,6 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
             string filterText);
-        CompletionItem GetPresentationItem(VSCompletion completion);
+        CompletionItem GetCompletionItem(VSCompletion completion);
     }
 }

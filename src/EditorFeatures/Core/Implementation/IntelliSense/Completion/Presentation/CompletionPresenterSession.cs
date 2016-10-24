@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
-            var item = _completionSet.GetPresentationItem(eventArgs.NewValue.Completion);
+            var item = _completionSet.GetCompletionItem(eventArgs.NewValue.Completion);
             if (item != null)
             {
                 this.ItemSelected?.Invoke(this, new CompletionItemEventArgs(item));
