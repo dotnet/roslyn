@@ -664,21 +664,13 @@ namespace Roslyn.Utilities
             }
             else
             {
-                // gather list elements
-                _memberWriter.List.Clear();
-
-                foreach (var element in array)
-                {
-                    _memberWriter.WriteValue(element);
-                }
-
                 // emit header up front
                 this.WriteArrayHeader(array);
 
                 // push elements in reverse order so we later emit first element first
-                for (int i = _memberWriter.List.Count - 1; i >= 0; i--)
+                for (int i = array.Length - 1; i >= 0; i--)
                 {
-                    _valueStack.Push(_memberWriter.List[i]);
+                    _valueStack.Push(Variant.FromBoxedObject(array.GetValue(i)));
                 }
             }
         }
