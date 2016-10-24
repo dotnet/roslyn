@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(!instrumentForDynamicAnalysis);
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
-                                processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
+                                var lowered = LowerBodyOrInitializer(
                                     methodSymbol,
                                     methodOrdinal,
                                     analyzedInitializers,
@@ -1065,10 +1065,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 // initializers can't produce state machines
                                 Debug.Assert((object)initializerStateMachineTypeOpt == null);
-
-                                Debug.Assert(processedInitializers.LoweredInitializers.Kind == BoundKind.StatementList);
                                 Debug.Assert(!hasErrors);
-                                hasErrors = processedInitializers.LoweredInitializers.HasAnyErrors || diagsForCurrentMethod.HasAnyErrors();
+                                hasErrors = lowered.HasAnyErrors || diagsForCurrentMethod.HasAnyErrors();
                                 SetGlobalErrorIfTrue(hasErrors);
 
                                 if (hasErrors)
@@ -1076,6 +1074,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     _diagnostics.AddRange(diagsForCurrentMethod);
                                     return;
                                 }
+
+                                // Only do the cast if we haven't returned with some error diagnostics.
+                                // Otherwise, `lowered` might have been a BoundBadStatement.
+                                processedInitializers.LoweredInitializers = (BoundStatementList)lowered;
                             }
 
                             // initializers for global code have already been included in the body
