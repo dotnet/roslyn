@@ -169,7 +169,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Dim parentExpression = If(nameNode.IsRightSideOfDot(), DirectCast(nameNode.Parent, ExpressionSyntax), nameNode)
             Dim root = If(parentExpression.IsParentKind(SyntaxKind.InvocationExpression), parentExpression.Parent, parentExpression)
 
-            editor.ReplaceNode(root, parentExpression.ReplaceNode(nameNode, newName))
+            editor.ReplaceNode(
+                root,
+                Function(c As SyntaxNode, g As SyntaxGenerator)
+                    Dim currentRoot = DirectCast(c, ExpressionSyntax)
+                    Dim expression = If(currentRoot.IsKind(SyntaxKind.InvocationExpression),
+                                        DirectCast(currentRoot, InvocationExpressionSyntax).Expression,
+                                        currentRoot)
+                    Dim rightName = expression.GetRightmostName()
+                    Return expression.ReplaceNode(rightName, newName.WithTrailingTrivia(currentRoot.GetTrailingTrivia()))
+                End Function)
         End Sub
 
         Public Sub ReplaceSetReference(editor As SyntaxEditor, nameToken As SyntaxToken, propertyName As String, nameChanged As Boolean) Implements IReplaceMethodWithPropertyService.ReplaceSetReference

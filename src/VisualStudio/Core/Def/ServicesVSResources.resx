@@ -567,9 +567,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Pascal_Case_Name" xml:space="preserve">
     <value>Pascal Case Name</value>
   </data>
-  <data name="Custom_Tags_must_match_all" xml:space="preserve">
-    <value>Custom Tags (must match all)</value>
-  </data>
   <data name="Severity_colon" xml:space="preserve">
     <value>Severity:</value>
   </data>
@@ -653,7 +650,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Project_loading_failed" xml:space="preserve">
     <value>Project loading failed.</value>
   </data>
-  <data name="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_2_Open_a_Visual_Studio_Developer_Command_Prompt_3_Set_environment_variable_TraceDesignTime_to_true_set_TraceDesignTime_true_4_Delete_vs_directory_suo_file_5_Restart_VS_from_the_command_prompt_you_set_the_environment_varaible_devenv_6_Open_the_solution_7_Check_0_and_look_for_the_failed_tasks_FAILED" xml:space="preserve">
+  <data name="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows" xml:space="preserve">
     <value>To see what caused the issue, please try below.
 
 1. Close Visual Studio
@@ -761,5 +758,29 @@ Additional information: {1}</value>
   </data>
   <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
     <value>Prefer inlined variable declaration</value>
+  </data>
+  <data name="Some_naming_rules_are_incomplete_Please_complete_or_remove_them" xml:space="preserve">
+    <value>Some naming rules are incomplete. Please complete or remove them.</value>
+  </data>
+  <data name="Manage_specifications" xml:space="preserve">
+    <value>Manage specifications</value>
+  </data>
+  <data name="Manage_styles" xml:space="preserve">
+    <value>Manage styles</value>
+  </data>
+  <data name="Reorder" xml:space="preserve">
+    <value>Reorder</value>
+  </data>
+  <data name="Severity" xml:space="preserve">
+    <value>Severity</value>
+  </data>
+  <data name="Specification" xml:space="preserve">
+    <value>Specification</value>
+  </data>
+  <data name="Style" xml:space="preserve">
+    <value>Style</value>
+  </data>
+  <data name="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule" xml:space="preserve">
+    <value>This item cannot be deleted because it is used by an existing Naming Rule.</value>
   </data>
 </root>

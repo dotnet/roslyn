@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public sealed class ServerTests : DesktopBuildClientTests
         {
             private readonly string _pipeName = Guid.NewGuid().ToString("N");
-            private readonly TempDirectory _tempDirectory;
             private readonly BuildPaths _buildPaths;
             private readonly List<ServerData> _serverDataList = new List<ServerData>();
             private bool _allowServer = true;
@@ -78,8 +77,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public ServerTests()
             {
-                _tempDirectory = Temp.CreateDirectory();
-                _buildPaths = ServerUtil.CreateBuildPaths(workingDir: _tempDirectory.Path);
+                _buildPaths = ServerUtil.CreateBuildPaths(
+                    workingDir: Temp.CreateDirectory().Path,
+                    tempDir: Temp.CreateDirectory().Path);
             }
 
             public override void Dispose()

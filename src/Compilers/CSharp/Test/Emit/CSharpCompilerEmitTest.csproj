@@ -74,6 +74,7 @@
     <Compile Include="Attributes\AttributeTests_Synthesized.cs" />
     <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
+    <Compile Include="Emit\DesktopStrongNameProviderTests.cs" />
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.cs" />
     <Compile Include="Attributes\WellKnownAttributesTestBase.cs" />
     <Compile Include="BreakingChanges.cs" />
@@ -124,6 +125,7 @@
     <Compile Include="CodeGen\IndexerTests.cs" />
     <Compile Include="CodeGen\CodeGenLockTests.cs" />
     <Compile Include="CodeGen\ObjectAndCollectionInitializerTests.cs" />
+    <Compile Include="CodeGen\PropertyTests.cs" />
     <Compile Include="CodeGen\SwitchTests.cs" />
     <Compile Include="CodeGen\UnsafeTests.cs" />
     <Compile Include="CodeGen\WinMdDelegateTests.cs" />

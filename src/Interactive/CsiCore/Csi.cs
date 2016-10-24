@@ -18,13 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             try
             {
                 var responseFile = Path.Combine(AppContext.BaseDirectory, InteractiveResponseFileName);
-
+                var buildPaths = new BuildPaths(
+                    clientDir: AppContext.BaseDirectory,
+                    workingDir: Directory.GetCurrentDirectory(),
+                    sdkDir: CorLightup.Desktop.TryGetRuntimeDirectory(),
+                    tempDir: Path.GetTempPath());
                 var compiler = new CSharpInteractiveCompiler(
                     responseFile: responseFile,
-                    baseDirectory: Directory.GetCurrentDirectory(),
-                    sdkDirectoryOpt: CorLightup.Desktop.TryGetRuntimeDirectory(),
+                    buildPaths: buildPaths,
                     args: args,
-                    clientDirectory: AppContext.BaseDirectory,
                     analyzerLoader: new NotImplementedAnalyzerLoader());
 
                 var runner = new CommandLineRunner(

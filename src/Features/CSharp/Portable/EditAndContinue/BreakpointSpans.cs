@@ -149,19 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (node.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
-                    var methodDeclaration = (MethodDeclarationSyntax)node;
-                    return (methodDeclaration.Body != null) ? CreateSpanForBlock(methodDeclaration.Body, position) : methodDeclaration.ExpressionBody?.Expression.Span;
-
                 case SyntaxKind.OperatorDeclaration:
-                    var operatorDeclaration = (OperatorDeclarationSyntax)node;
-                    return (operatorDeclaration.Body != null) ? CreateSpanForBlock(operatorDeclaration.Body, position) : operatorDeclaration.ExpressionBody?.Expression.Span;
-
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    var conversionDeclaration = (ConversionOperatorDeclarationSyntax)node;
-                    return (conversionDeclaration.Body != null) ? CreateSpanForBlock(conversionDeclaration.Body, position) : conversionDeclaration.ExpressionBody?.Expression.Span;
-
                 case SyntaxKind.DestructorDeclaration:
-                    return TryCreateSpanForNode(((DestructorDeclarationSyntax)node).Body, position);
+                    var methodDeclaration = (BaseMethodDeclarationSyntax)node;
+                    return (methodDeclaration.Body != null) ? CreateSpanForBlock(methodDeclaration.Body, position) : methodDeclaration.ExpressionBody?.Expression.Span;
 
                 case SyntaxKind.ConstructorDeclaration:
                     return CreateSpanForConstructorDeclaration((ConstructorDeclarationSyntax)node);
@@ -193,20 +185,33 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.DefaultSwitchLabel:
                     return TryCreateSpanForSwitchLabel((SwitchLabelSyntax)node, position);
 
+                case SyntaxKind.CasePatternSwitchLabel:
+                    var caseClause = (CasePatternSwitchLabelSyntax)node;
+                    return caseClause.WhenClause == null
+                        ? TryCreateSpanForSwitchLabel((SwitchLabelSyntax)node, position)
+                        : CreateSpan(caseClause.WhenClause);
+
+                case SyntaxKind.WhenClause:
+                    return CreateSpan(node);
+
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
-                    var body = ((AccessorDeclarationSyntax)node).Body;
-                    if (body == null)
-                    {
-                        return CreateSpan(node);
-                    }
-
-                    return TryCreateSpanForNode(body, position);
-
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.UnknownAccessorDeclaration:
-                    return TryCreateSpanForNode(((AccessorDeclarationSyntax)node).Body, position);
+                    var accessor = (AccessorDeclarationSyntax)node;
+                    if (accessor.ExpressionBody != null)
+                    {
+                        return CreateSpan(accessor.ExpressionBody.Expression);
+                    }
+                    else if (accessor.Body != null)
+                    {
+                        return TryCreateSpanForNode(accessor.Body, position);
+                    }
+                    else
+                    {
+                        return CreateSpan(node);
+                    }
 
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
@@ -241,8 +246,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CreateSpanForAccessors(indexer.AccessorList.Accessors, position);
 
                 case SyntaxKind.EventDeclaration:
-                    var evnt = (EventDeclarationSyntax)node;
-                    return evnt.AccessorList.Accessors.Select(a => TryCreateSpanForNode(a, position)).FirstOrDefault();
+                    // event Action P { add [|{|] ... } remove { ... } }
+                    // event Action P { [|add;|] [|remove;|] }
+                    var @event = (EventDeclarationSyntax)node;
+                    return CreateSpanForAccessors(@event.AccessorList.Accessors, position);
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
@@ -284,6 +291,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var groupClause = (GroupClauseSyntax)node;
                     return TryCreateSpanForNode(groupClause.GroupExpression, position);
 
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)node;
+                    return (localFunction.Body != null) ?
+                        TryCreateSpanForNode(localFunction.Body, position) :
+                        TryCreateSpanForNode(localFunction.ExpressionBody.Expression, position);
+
                 default:
                     var expression = node as ExpressionSyntax;
                     if (expression != null)
@@ -308,12 +321,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return CreateSpanForConstructorInitializer(constructorSyntax.Initializer);
             }
 
+            if (constructorSyntax.ExpressionBody != null)
+            {
+                return constructorSyntax.ExpressionBody.Expression.Span;
+            }
+
             // static ctor doesn't have a default initializer:
             if (constructorSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 return CreateSpan(constructorSyntax.Body.OpenBraceToken);
             }
 
+            // the declaration is the span of the implicit initializer
             return CreateSpan(constructorSyntax.Modifiers, constructorSyntax.Identifier, constructorSyntax.ParameterList.CloseParenToken);
         }
 
@@ -535,6 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.EmptyStatement:
+                case SyntaxKind.DeconstructionDeclarationStatement:
                 default:
                     // Fallback case.  If it was none of the above types of statements, then we make a span
                     // over the entire statement.  Note: this is not a very desirable thing to do (as

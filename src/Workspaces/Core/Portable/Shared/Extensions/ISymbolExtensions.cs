@@ -168,6 +168,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.Kind == SymbolKind.ArrayType;
         }
 
+        public static bool IsTupleType(this ISymbol symbol)
+        {
+            return (symbol as ITypeSymbol)?.IsTupleType ?? false;
+        }
+
         public static bool IsAnonymousFunction(this ISymbol symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction;
@@ -817,6 +822,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 (method.MethodKind == MethodKind.EventAdd ||
                  method.MethodKind == MethodKind.EventRaise ||
                  method.MethodKind == MethodKind.EventRemove);
+        }
+
+        public static bool IsFromSource(this ISymbol symbol)
+        {
+            return symbol.Locations.Any() && symbol.Locations.All(location => location.IsInSource);
         }
 
         public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)

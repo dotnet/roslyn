@@ -75,7 +75,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void VerifyAnalyzeSymbolCalledForAllSymbolKinds()
         {
-            var expectedSymbolKinds = new[] { SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Property };
+            var expectedSymbolKinds = new[] 
+            {
+                SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Parameter, SymbolKind.Property
+            };
+
             var actualSymbolKinds = _callLog.Where(a => FilterByAbstractName(a, "Symbol")).Where(e => e.SymbolKind.HasValue).Select(e => e.SymbolKind.Value).Distinct();
             AssertSequenceEqual(expectedSymbolKinds, actualSymbolKinds);
         }

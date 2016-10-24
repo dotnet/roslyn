@@ -3125,6 +3125,7 @@ Public Class C
         Dim x13 As (Byte, Byte, Byte) = (300, one, 1)
         Dim x14 As (Byte, Byte, Byte) = (300, 1, one)
         Dim x15 As (Byte, Byte) = (one, one)
+        Dim x16 As (Integer, (Byte, Integer)) = (1, (1, 1))
     End Sub
 End Class
     </file>
@@ -3186,6 +3187,9 @@ options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_val
             AssertConversions(model, nodes(15), ConversionKind.NarrowingTuple,
                               ConversionKind.NarrowingNumeric,
                               ConversionKind.NarrowingNumeric)
+            AssertConversions(model, nodes(16), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity,
+                              ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant)
         End Sub
 
         Private Shared Sub AssertConversions(model As SemanticModel, literal As TupleExpressionSyntax, aggregate As ConversionKind, ParamArray parts As ConversionKind())
@@ -3250,6 +3254,97 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte
 BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
         M5((x, x))
                ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub Narrowing_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x as integer = 1
+        Dim x1 = CType(x, Byte)
+        Dim x2 = CType(x, Byte?)
+        Dim x3 = CType((x, x), (Byte, Integer))
+        Dim x4 = CType((x, x), (Byte?, Integer?))
+        Dim x5 = CType((x, x), (Byte, Integer)?)
+        Dim x6 = CType((x, x), (Byte?, Integer?)?)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub Narrowing_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x as (Integer, Integer) = (1, 1)
+        Dim x3 = CType(x, (Byte, Integer))
+        Dim x4 = CType(x, (Byte?, Integer?))
+        Dim x5 = CType(x, (Byte, Integer)?)
+        Dim x6 = CType(x, (Byte?, Integer?)?)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub Narrowing_04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x as (Integer, Integer) = (1, 1)
+        Dim x3 as (Byte, Integer) = x
+        Dim x4 as (Byte?, Integer?) = x
+        Dim x5 as (Byte, Integer)? = x
+        Dim x6 as (Byte?, Integer?)?= x
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp,
+<expected>
+BC30512: Option Strict On disallows implicit conversions from '(Integer, Integer)' to '(Byte, Integer)'.
+        Dim x3 as (Byte, Integer) = x
+                                    ~
+BC30512: Option Strict On disallows implicit conversions from '(Integer, Integer)' to '(Byte?, Integer?)'.
+        Dim x4 as (Byte?, Integer?) = x
+                                      ~
+BC30512: Option Strict On disallows implicit conversions from '(Integer, Integer)' to '(Byte, Integer)?'.
+        Dim x5 as (Byte, Integer)? = x
+                                     ~
+BC30512: Option Strict On disallows implicit conversions from '(Integer, Integer)' to '(Byte?, Integer?)?'.
+        Dim x6 as (Byte?, Integer?)?= x
+                                      ~
 </expected>)
         End Sub
 
@@ -3319,6 +3414,71 @@ Short
 Short
 Short
 Short")
+        End Sub
+
+        <Fact>
+        Public Sub FailedDueToNumericOverflow_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x1 As Byte = 300
+        Dim x2 as (Integer, Byte) = (300, 300)
+        Dim x3 As Byte? = 300
+        Dim x4 as (Integer?, Byte?) = (300, 300)
+        Dim x5 as (Integer, Byte)? = (300, 300)
+        Dim x6 as (Integer?, Byte?)? = (300, 300)
+
+        System.Console.WriteLine(x1)
+        System.Console.WriteLine(x2)
+        System.Console.WriteLine(x3)
+        System.Console.WriteLine(x4)
+        System.Console.WriteLine(x5)
+        System.Console.WriteLine(x6)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"44
+(300, 44)
+44
+(300, 44)
+(300, 44)
+(300, 44)")
+
+            comp = comp.WithOptions(comp.Options.WithOverflowChecks(True))
+
+            AssertTheseDiagnostics(comp,
+<expected>
+BC30439: Constant expression not representable in type 'Byte'.
+        Dim x1 As Byte = 300
+                         ~~~
+BC30439: Constant expression not representable in type 'Byte'.
+        Dim x2 as (Integer, Byte) = (300, 300)
+                                          ~~~
+BC30439: Constant expression not representable in type 'Byte?'.
+        Dim x3 As Byte? = 300
+                          ~~~
+BC30439: Constant expression not representable in type 'Byte?'.
+        Dim x4 as (Integer?, Byte?) = (300, 300)
+                                            ~~~
+BC30439: Constant expression not representable in type 'Byte'.
+        Dim x5 as (Integer, Byte)? = (300, 300)
+                                           ~~~
+BC30439: Constant expression not representable in type 'Byte?'.
+        Dim x6 as (Integer?, Byte?)? = (300, 300)
+                                             ~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -7345,21 +7505,34 @@ Option Strict On
 Imports System
 Class C
     Shared Sub Main()
-        Test((Function() 7, Function() 8))
+        Test1((Function() 7, Function() 8))
+        Test2(Function() 7, Function() 8)
     End Sub
-    Shared Sub Test(Of T)(x As (T, T))
+    Shared Sub Test1(Of T)(x As (T, T))
         Console.WriteLine("first")
     End Sub
-    Shared Sub Test(x As (Object, Object))
+    Shared Sub Test1(x As (Object, Object))
         Console.WriteLine("second")
     End Sub
-    Shared Sub Test(Of T)(x As (Func(Of T), Func(Of T)))
+    Shared Sub Test1(Of T)(x As (Func(Of T), Func(Of T)))
         Console.WriteLine("third")
         Console.WriteLine(x.Item1().ToString())
     End Sub
+
+    Shared Sub Test2(Of T)(x As T, y as T)
+        Console.WriteLine("first")
+    End Sub
+    Shared Sub Test2(x As Object, y as Object)
+        Console.WriteLine("second")
+    End Sub
+    Shared Sub Test2(Of T)(x As Func(Of T), y as Func(Of T))
+        Console.WriteLine("third")
+    End Sub
 End Class
     </file>
-</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[second]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=
+"first
+first")
 
             verifier.VerifyDiagnostics()
 
@@ -7420,7 +7593,7 @@ End Class
     </file>
 </compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[second
 first
-second]]>)
+first]]>)
 
             verifier.VerifyDiagnostics()
 
@@ -10272,7 +10445,7 @@ End Module
             Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
             Assert.Equal("(e As System.Int32, f As System.String)", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim e = node.Arguments(0).Expression
             Assert.Equal("1", e.ToString())
@@ -10317,7 +10490,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -10356,7 +10529,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
@@ -10391,7 +10564,7 @@ End Module
             Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
             Assert.Equal("(System.Int32, System.String)", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             CompileAndVerify(comp)
 
@@ -10421,7 +10594,7 @@ End Module
             Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
             Assert.Equal("(e As System.Int32, f As System.String)", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim e = node.Arguments(0).Expression
             Assert.Equal("1", e.ToString())
@@ -10605,7 +10778,7 @@ End Module
             Assert.Equal("DirectCast((x), (c As Long, d As String))", node.ToString())
             Assert.Equal("(c As System.Int64, d As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Object, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of ParenthesizedExpressionSyntax)().Single()
             Assert.Equal("(x)", x.ToString())
@@ -10638,7 +10811,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int32, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int32, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -10668,7 +10841,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(node).Kind)
 
             Assert.Equal("DirectCast((e:=1, f:=""hello""), (c As Integer, d As String)?)", node.Parent.ToString())
             Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
@@ -11580,20 +11753,92 @@ third
     <file name="a.vb">
 Public Class C
     Shared Sub Main()
-        Test((Function() 7, Function() 8))
+        Test1((Function() 7, Function() 8))
+        Test2(Function() 7, Function() 8)
+        Test3((Function() 7, Function() 8))
     End Sub
 
-    Shared Sub Test(Of T)(x As (T, T))
+    Shared Sub Test1(Of T)(x As (T, T))
         System.Console.WriteLine("first")
     End Sub
 
-    Shared Sub Test(x As (Object, Object))
+    Shared Sub Test1(x As (Object, Object))
         System.Console.WriteLine("second")
     End Sub
 
-    Shared Sub Test(Of T)(x As (System.Func(Of T), System.Func(Of T)))
+    Shared Sub Test1(Of T)(x As (System.Func(Of T), System.Func(Of T)))
         System.Console.WriteLine("third")
-        System.Console.WriteLine(x.Item1().ToString())
+    End Sub
+
+    Shared Sub Test2(Of T)(x As T, y As T)
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test2(x As Object, y As Object)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test2(Of T)(x As System.Func(Of T), y As System.Func(Of T))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test3(Of T)(x As (T, T)?)
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test3(x As (Object, Object)?)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test3(Of T)(x As (System.Func(Of T), System.Func(Of T))?)
+        System.Console.WriteLine("third")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+first
+first
+first")
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test1((Function() 7, Function() 8))
+        Test2(Function() 7, Function() 8)
+        Test3((Function() 7, Function() 8))
+    End Sub
+
+    Shared Sub Test1(x As (System.Func(Of Integer), System.Func(Of Integer)))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test1(x As (System.Func(Of Integer, Integer), System.Func(Of Integer, Integer)))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test2(x As System.Func(Of Integer), y As System.Func(Of Integer))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test2(x As System.Func(Of Integer, Integer), y As System.Func(Of Integer, Integer))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test3(x As (System.Func(Of Integer), System.Func(Of Integer))?)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test3(x As (System.Func(Of Integer, Integer), System.Func(Of Integer, Integer))?)
+        System.Console.WriteLine("third")
     End Sub
 End Class
     </file>
@@ -11602,10 +11847,595 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 
             CompileAndVerify(comp, expectedOutput:="
 second
-")
-            ' Note the result is different than in Inference02_WithoutTuple below
-            ' This issue is tracked by https://github.com/dotnet/roslyn/issues/14255
+second
+second")
+        End Sub
 
+        <Fact>
+        Public Sub DelegateRelaxationLevel_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim a = Function(x as Integer) x
+        Test1(a, int)
+        Test2((a, int))
+        Test3((a, int))
+
+        Dim b = (a, int)
+        Test2(b)
+        Test3(b)
+    End Sub
+
+    Shared Sub Test1(x As System.Action(Of Integer), y As Integer)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test1(x As System.Func(Of Integer, Integer), y As Integer)
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test2(x As (System.Action(Of Integer), Integer))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test2(x As (System.Func(Of Integer, Integer), Integer))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test3(x As (System.Action(Of Integer), Integer)?)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test3(x As (System.Func(Of Integer, Integer), Integer)?)
+        System.Console.WriteLine("third")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+third
+third
+third
+third
+third")
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim x00 As (Integer, Func(Of Integer)) = (int, Function() int)
+        Dim x01 As (Integer, Func(Of Long)) = (int, Function() int)
+        Dim x02 As (Integer, Action) = (int, Function() int)
+        Dim x03 As (Integer, Object) = (int, Function() int)
+        Dim x04 As (Integer, Func(Of Short)) = (int, Function() int)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ToArray()
+
+            AssertConversions(model, nodes(0), ConversionKind.WideningTuple, ConversionKind.Identity, ConversionKind.Widening Or ConversionKind.Lambda)
+            AssertConversions(model, nodes(1), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening)
+            AssertConversions(model, nodes(2), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs)
+            AssertConversions(model, nodes(3), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda,
+                              ConversionKind.Identity,
+                              ConversionKind.WideningReference Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda)
+            AssertConversions(model, nodes(4), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim x00 As (Func(Of Integer), Integer) = (Function() int, int)
+        Dim x01 As (Func(Of Long), Integer) = (Function() int, int)
+        Dim x02 As (Action, Integer) = (Function() int, int)
+        Dim x03 As (Object, Integer) = (Function() int, int)
+        Dim x04 As (Func(Of Short), Integer) = (Function() int, int)
+        Dim x05 As (Func(Of Short), Func(Of Long)) = (Function() int, Function() int)
+        Dim x06 As (Func(Of Long), Func(Of Short)) = (Function() int, Function() int)
+        Dim x07 As (Short, (Func(Of Long), Func(Of Short))) = (int, (Function() int, Function() int))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ToArray()
+
+            AssertConversions(model, nodes(0), ConversionKind.WideningTuple, ConversionKind.Widening Or ConversionKind.Lambda, ConversionKind.Identity)
+            AssertConversions(model, nodes(1), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(2), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(3), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda,
+                              ConversionKind.WideningReference Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(4), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(5), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening)
+            AssertConversions(model, nodes(6), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing)
+            AssertConversions(model, nodes(7), ConversionKind.NarrowingTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_05()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim x00 As (Integer, Func(Of Integer))? = (int, Function() int)
+        Dim x01 As (Short, Func(Of Long))? = (int, Function() int)
+        Dim x02 As (Integer, Action)? = (int, Function() int)
+        Dim x03 As (Integer, Object)? = (int, Function() int)
+        Dim x04 As (Integer, Func(Of Short))? = (int, Function() int)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ToArray()
+
+            AssertConversions(model, nodes(0), ConversionKind.WideningNullableTuple, ConversionKind.Identity, ConversionKind.Widening Or ConversionKind.Lambda)
+            AssertConversions(model, nodes(1), ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening)
+            AssertConversions(model, nodes(2), ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs)
+            AssertConversions(model, nodes(3), ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda,
+                              ConversionKind.Identity,
+                              ConversionKind.WideningReference Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda)
+            AssertConversions(model, nodes(4), ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_06()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim t = (int, Function() int)
+        Dim x00 As (Integer, Func(Of Integer)) = t
+        Dim x01 As (Integer, Func(Of Long)) = t
+        Dim x02 As (Integer, Action) = t
+        Dim x03 As (Integer, Object) = t
+        Dim x04 As (Integer, Func(Of Short)) = t
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "t").ToArray()
+
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(nodes(0)).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWidening, model.GetConversion(nodes(1)).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs, model.GetConversion(nodes(2)).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, model.GetConversion(nodes(3)).Kind)
+            Assert.Equal(ConversionKind.NarrowingTuple Or ConversionKind.DelegateRelaxationLevelNarrowing, model.GetConversion(nodes(4)).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_07()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim t = (int, Function() int)
+        Dim x00 As (Integer, Func(Of Integer))? = t
+        Dim x01 As (Integer, Func(Of Long))? = t
+        Dim x02 As (Integer, Action)? = t
+        Dim x03 As (Integer, Object)? = t
+        Dim x04 As (Integer, Func(Of Short))? = t
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "t").ToArray()
+
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(nodes(0)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWidening, model.GetConversion(nodes(1)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs, model.GetConversion(nodes(2)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, model.GetConversion(nodes(3)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelNarrowing, model.GetConversion(nodes(4)).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_08()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim t? = (int, Function() int)
+        Dim x00 As (Integer, Func(Of Integer))? = t
+        Dim x01 As (Integer, Func(Of Long))? = t
+        Dim x02 As (Integer, Action)? = t
+        Dim x03 As (Integer, Object)? = t
+        Dim x04 As (Integer, Func(Of Short))? = t
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "t").ToArray()
+
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(nodes(0)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWidening, model.GetConversion(nodes(1)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs, model.GetConversion(nodes(2)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, model.GetConversion(nodes(3)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelNarrowing, model.GetConversion(nodes(4)).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_09()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim t? = (int, Function() int)
+        Dim x00 As (Integer, Func(Of Integer)) = t
+        Dim x01 As (Integer, Func(Of Long)) = t
+        Dim x02 As (Integer, Action) = t
+        Dim x03 As (Integer, Object) = t
+        Dim x04 As (Integer, Func(Of Short)) = t
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "t").ToArray()
+
+            Assert.Equal(ConversionKind.NarrowingNullableTuple, model.GetConversion(nodes(0)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelWidening, model.GetConversion(nodes(1)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs, model.GetConversion(nodes(2)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, model.GetConversion(nodes(3)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelNarrowing, model.GetConversion(nodes(4)).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub AnonymousDelegate_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim a = Function(x as Integer) x
+        Test1(a)
+        Test2((a, int))
+        Test3((a, int))
+
+        Dim b = (a, int)
+        Test2(b)
+        Test3(b)
+    End Sub
+
+    Shared Sub Test1(x As Object)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test2(x As (Object, Integer))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test3(x As (Object, Integer)?)
+        System.Console.WriteLine("second")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+second
+second
+second
+second
+second")
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14529")>
+        <WorkItem(14529, "https://github.com/dotnet/roslyn/issues/14529")>
+        <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
+        Public Sub AnonymousDelegate_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim a = Function(x as Integer) x
+        Test1(a)
+        Test2((a, int))
+        Test3((a, int)) 
+
+        Dim b = (a, int)
+        Test2(b)
+        Test3(b) 
+
+        Test4({a})
+    End Sub
+
+    Shared Sub Test1(Of T)(x As System.Func(Of T, T))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test2(Of T)(x As (System.Func(Of T, T), Integer))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test3(Of T)(x As (System.Func(Of T, T), Integer)?)
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test4(Of T)(x As System.Func(Of T, T)())
+        System.Console.WriteLine("third")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+third
+third
+third
+third
+third
+third")
+        End Sub
+
+        <Fact>
+        Public Sub UserDefinedConversions_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim tuple = (int, int)
+        Dim a as (A, Integer) = tuple
+        Dim b as (A, Integer) = (int, int)
+        Dim c as (A, Integer)? = tuple
+        Dim d as (A, Integer)? = (int, int)
+
+        System.Console.WriteLine(a)
+        System.Console.WriteLine(b)
+        System.Console.WriteLine(c)
+        System.Console.WriteLine(d)
+    End Sub
+End Class
+
+Class A
+    Public Shared Widening Operator CType(val As String) As A
+        System.Console.WriteLine(val)
+        Return New A()
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+1
+1
+1
+1
+(A, 1)
+(A, 1)
+(A, 1)
+(A, 1)")
+        End Sub
+
+        <Fact>
+        Public Sub UserDefinedConversions_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim val as new B()
+        Dim tuple = (val, int)
+        Dim a as (Integer, Integer) = tuple
+        Dim b as (Integer, Integer) = (val, int)
+        Dim c as (Integer, Integer)? = tuple
+        Dim d as (Integer, Integer)? = (val, int)
+
+        System.Console.WriteLine(a)
+        System.Console.WriteLine(b)
+        System.Console.WriteLine(c)
+        System.Console.WriteLine(d)
+    End Sub
+End Class
+
+Class B
+    Public Shared Widening Operator CType(val As B) As String
+        System.Console.WriteLine(val Is Nothing)
+        Return "2"
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+False
+False
+False
+False
+(2, 1)
+(2, 1)
+(2, 1)
+(2, 1)")
+        End Sub
+
+        <Fact>
+        <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
+        Public Sub UserDefinedConversions_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim ad = Function() 2
+        Dim tuple = (ad, int)
+        Dim a as (A, Integer) = tuple
+        Dim b as (A, Integer) = (ad, int)
+        Dim c as (A, Integer)? = tuple
+        Dim d as (A, Integer)? = (ad, int)
+
+        System.Console.WriteLine(a)
+        System.Console.WriteLine(b)
+        System.Console.WriteLine(c)
+        System.Console.WriteLine(d)
+    End Sub
+End Class
+
+Class A
+    Public Shared Widening Operator CType(val As System.Func(Of Integer, Integer)) As A
+        System.Console.WriteLine(val)
+        Return New A()
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+System.Func`2[System.Int32,System.Int32]
+System.Func`2[System.Int32,System.Int32]
+System.Func`2[System.Int32,System.Int32]
+System.Func`2[System.Int32,System.Int32]
+(A, 1)
+(A, 1)
+(A, 1)
+(A, 1)")
         End Sub
 
         <Fact>
@@ -11648,41 +12478,7 @@ third
         End Sub
 
         <Fact>
-        Public Sub Inference02_WithoutTuple()
-
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb">
-Public Class C
-    Shared Sub Main()
-        Test(Function() 7, Function() 8)
-    End Sub
-
-    Shared Sub Test(Of T)(x As T, y As T)
-        System.Console.WriteLine("first")
-    End Sub
-
-    Shared Sub Test(x As Object, y As Object)
-        System.Console.WriteLine("second")
-    End Sub
-
-    Shared Sub Test(Of T)(x As System.Func(Of T), y As System.Func(Of T))
-        System.Console.WriteLine("third")
-        System.Console.WriteLine(x().ToString())
-    End Sub
-End Class
-    </file>
-</compilation>,
-options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
-
-            CompileAndVerify(comp, expectedOutput:="
-first
-")
-
-        End Sub
-
-        <Fact>
-        Public Sub Inference03()
+        Public Sub Inference03_01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -11693,7 +12489,37 @@ Public Class C
     End Sub
 
     Shared Sub Test(Of T)(x As (T, T))
-        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test(x As (Object, Object))
+    End Sub
+
+    Shared Sub Test(Of T)(x As (System.Func(Of Integer, T), System.Func(Of T, T)))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC30521: Overload resolution failed because no accessible 'Test' is most specific for these arguments:
+    'Public Shared Sub Test(Of <generated method>)(x As (<generated method>, <generated method>))': Not most specific.
+    'Public Shared Sub Test(Of Integer)(x As (Func(Of Integer, Integer), Func(Of Integer, Integer)))': Not most specific.
+        Test((Function(x) x, Function(x) x))
+        ~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub Inference03_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((Function(x) x, Function(x) x))
     End Sub
 
     Shared Sub Test(x As (Object, Object))
@@ -11703,6 +12529,36 @@ Public Class C
     Shared Sub Test(Of T)(x As (System.Func(Of Integer, T), System.Func(Of T, T)))
         System.Console.WriteLine("third")
         System.Console.WriteLine(x.Item1(5).ToString())
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+third
+5
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference03_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((Function(x) x, Function(x) x))
+    End Sub
+
+    Shared Sub Test(Of T)(x As T, y As T)
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test(x As (Object, Object))
+        System.Console.WriteLine("second")
     End Sub
 End Class
     </file>

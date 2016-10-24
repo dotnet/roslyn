@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(SuggestionTag))]
     internal partial class DiagnosticsSuggestionTaggerProvider : 
         AbstractDiagnosticsAdornmentTaggerProvider<SuggestionTag>

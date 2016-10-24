@@ -956,6 +956,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression Type(TypeSymbol type)
         {
+            // This is an attempt to get a repro for https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481
+            if ((object)type == null)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
 
