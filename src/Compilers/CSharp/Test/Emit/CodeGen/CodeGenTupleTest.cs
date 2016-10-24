@@ -19832,7 +19832,7 @@ namespace ConsoleApplication5
 
             var b = m.OverriddenMethod;
             // not (int, dynamic),
-            // since dynamic flags were not aligned we ignored flags
+            // since dynamic flags were not aligned, we have ignored the flags
             Assert.Equal("ref (System.Int32, System.Object) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
 
         }

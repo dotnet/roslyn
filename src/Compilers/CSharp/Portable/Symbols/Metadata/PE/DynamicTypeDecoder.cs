@@ -274,12 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(tupleType.IsTupleType);
 
             var underlying = tupleType.TupleUnderlyingType;
-            Debug.Assert(underlying != null);
             var transformedUnderlying = TransformNamedType(underlying, isContaining);
             
             if (transformedUnderlying == null)
             {
-                // Bail, something is wrong with flags.
+                // Bail, something is wrong with the flags.
                 // the dynamic transformation should be ignored.
                 return null;
             }
