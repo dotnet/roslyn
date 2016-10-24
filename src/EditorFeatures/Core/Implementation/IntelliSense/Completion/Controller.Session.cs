@@ -76,20 +76,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return Controller.GetCaretPointInViewBuffer();
             }
 
-            private void OnPresenterSessionItemCommitted(object sender, PresentationItemEventArgs e)
+            private void OnPresenterSessionItemCommitted(object sender, CompletionItemEventArgs e)
             {
                 AssertIsForeground();
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
-                this.Controller.CommitItem(e.PresentationItem);
+                this.Controller.CommitItem(e.CompletionItem);
             }
 
-            private void OnPresenterSessionItemSelected(object sender, PresentationItemEventArgs e)
+            private void OnPresenterSessionItemSelected(object sender, CompletionItemEventArgs e)
             {
                 AssertIsForeground();
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
-                SetModelSelectedItem(m => e.PresentationItem.IsSuggestionModeItem ? m.DefaultSuggestionModeItem : e.PresentationItem);
+                SetModelSelectedItem(m => e.CompletionItem);
             }
 
             private void OnPresenterSessionCompletionItemFilterStateChanged(

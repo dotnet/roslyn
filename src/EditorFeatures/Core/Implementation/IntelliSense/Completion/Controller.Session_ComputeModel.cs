@@ -110,13 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             _documentOpt,
                             _disconnectedBufferGraph,
                             completionList,
-                            selectedItem: completionList.Items.First(),
-                            isHardSelection: false,
-                            isUnique: false,
                             useSuggestionMode: _useSuggestionMode,
-                            trigger: _trigger,
-                            completionService: _completionService,
-                            workspace: _documentOpt != null ? _documentOpt.Project.Solution.Workspace : null);
+                            trigger: _trigger);
                     }
                 }
 

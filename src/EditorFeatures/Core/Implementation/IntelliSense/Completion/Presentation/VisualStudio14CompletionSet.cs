@@ -51,12 +51,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _roslynCompletionSet.SetTrackingSpan(trackingSpan);
         }
 
-        void ICompletionSet.SetCompletionItems(IList<PresentationItem> completionItems, PresentationItem selectedItem, PresentationItem presetBuilder, bool suggestionMode, bool isSoftSelected, ImmutableArray<CompletionItemFilter> completionItemFilters, string filterText)
+        void ICompletionSet.SetCompletionItems(
+            IList<CompletionItem> completionItems, CompletionItem selectedItem, 
+            CompletionItem suggestionModeItem, bool suggestionMode, bool isSoftSelected, ImmutableArray<CompletionItemFilter> completionItemFilters, string filterText)
         {
-            _roslynCompletionSet.SetCompletionItems(completionItems, selectedItem, presetBuilder, suggestionMode, isSoftSelected, completionItemFilters, filterText);
+            _roslynCompletionSet.SetCompletionItems(
+                completionItems, selectedItem, suggestionModeItem, suggestionMode,
+                isSoftSelected, completionItemFilters, filterText);
         }
 
-        PresentationItem ICompletionSet.GetPresentationItem(VSCompletion completion)
+        CompletionItem ICompletionSet.GetPresentationItem(VSCompletion completion)
         {
             return _roslynCompletionSet.GetPresentationItem(completion);
         }

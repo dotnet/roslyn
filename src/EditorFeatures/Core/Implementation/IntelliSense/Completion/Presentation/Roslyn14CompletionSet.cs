@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         protected readonly ITextBuffer SubjectBuffer;
         protected readonly CompletionPresenterSession CompletionPresenterSession;
-        protected Dictionary<PresentationItem, VSCompletion> PresentationItemMap;
+        protected Dictionary<CompletionItem, VSCompletion> PresentationItemMap;
 
         protected string FilterText;
 
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         public void SetCompletionItems(
-            IList<PresentationItem> completionItems,
-            PresentationItem selectedItem,
-            PresentationItem presetBuilder,
+            IList<CompletionItem> completionItems,
+            CompletionItem selectedItem,
+            CompletionItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             VSCompletion selectedCompletionItem = null;
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
-            PresentationItemMap = PresentationItemMap ?? new Dictionary<PresentationItem, VSCompletion>(completionItems.Count + 1);
+            PresentationItemMap = PresentationItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
             FilterText = filterText;
 
             try
@@ -83,28 +83,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 var applicableToText = VsCompletionSet.ApplicableTo.GetText(
                     VsCompletionSet.ApplicableTo.TextBuffer.CurrentSnapshot);
 
-                SimplePresentationItem filteredSuggestionModeItem = null;
+                CompletionItem filteredSuggestionModeItem = null;
                 if (selectedItem != null)
                 {
                     var completionItem = CompletionItem.Create(displayText: applicableToText);
                     completionItem.Span = VsCompletionSet.ApplicableTo.GetSpan(
                         VsCompletionSet.ApplicableTo.TextBuffer.CurrentSnapshot).Span.ToTextSpan();
 
-                    filteredSuggestionModeItem = new SimplePresentationItem(
-                        completionItem,
-                        selectedItem.CompletionService,
-                        isSuggestionModeItem: true);
+                    filteredSuggestionModeItem = completionItem;
                 }
 
-                var showBuilder = suggestionMode || presetBuilder != null;
-                var bestSuggestionModeItem = applicableToText.Length > 0 ? filteredSuggestionModeItem : presetBuilder ?? filteredSuggestionModeItem;
+                var showBuilder = suggestionMode || suggestionModeItem != null;
+                var bestSuggestionModeItem = applicableToText.Length > 0 ? filteredSuggestionModeItem : suggestionModeItem ?? filteredSuggestionModeItem;
 
                 if (showBuilder && bestSuggestionModeItem != null)
                 {
                     var suggestionModeCompletion = GetVSCompletion(bestSuggestionModeItem);
                     VsCompletionSet.WritableCompletionBuilders.Add(suggestionModeCompletion);
 
-                    if (selectedItem != null && selectedItem.IsSuggestionModeItem)
+                    if (selectedItem != null && selectedItem == suggestionModeItem)
                     {
                         selectedCompletionItem = suggestionModeCompletion;
                     }
@@ -144,21 +141,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
         }
 
-        private VSCompletion GetVSCompletion(PresentationItem item)
+        private VSCompletion GetVSCompletion(CompletionItem item)
         {
             VSCompletion value;
             if (!PresentationItemMap.TryGetValue(item, out value))
             {
-                value = new CustomCommitCompletion(
-                    CompletionPresenterSession,
-                    item);
+                value = new CustomCommitCompletion(CompletionPresenterSession, item);
                 PresentationItemMap.Add(item, value);
             }
 
             return value;
         }
 
-        public PresentationItem GetPresentationItem(VSCompletion completion)
+        public CompletionItem GetPresentationItem(VSCompletion completion)
         {
             // Linear search is ok since this is only called by the user manually selecting 
             // an item.  Creating a reverse mapping uses too much memory and affects GCs.

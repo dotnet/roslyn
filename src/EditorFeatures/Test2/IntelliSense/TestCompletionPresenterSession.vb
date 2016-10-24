@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public SuggestionModeItem As PresentationItem
 
         Public Event Dismissed As EventHandler(Of EventArgs) Implements ICompletionPresenterSession.Dismissed
-        Public Event ItemSelected As EventHandler(Of PresentationItemEventArgs) Implements ICompletionPresenterSession.ItemSelected
-        Public Event ItemCommitted As EventHandler(Of PresentationItemEventArgs) Implements ICompletionPresenterSession.ItemCommitted
+        Public Event ItemSelected As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemSelected
+        Public Event ItemCommitted As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemCommitted
         Public Event CompletionFiltersChanged As EventHandler(Of CompletionItemFilterStateChangedEventArgs) Implements ICompletionPresenterSession.FilterStateChanged
 
         Public Sub New(testState As IIntelliSenseTestState)
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Sub SetSelectedItem(item As PresentationItem)
             Me.SelectedItem = item
-            RaiseEvent ItemSelected(Me, New PresentationItemEventArgs(item))
+            RaiseEvent ItemSelected(Me, New CompletionItemEventArgs(item))
         End Sub
 
         Private Function GetFilteredItemAt(index As Integer) As PresentationItem
