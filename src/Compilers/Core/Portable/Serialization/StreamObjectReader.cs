@@ -294,11 +294,6 @@ namespace Roslyn.Utilities
                 case EncodingKind.Array_1:
                 case EncodingKind.Array_2:
                 case EncodingKind.Array_3:
-                case EncodingKind.ValueArray:
-                case EncodingKind.ValueArray_0:
-                case EncodingKind.ValueArray_1:
-                case EncodingKind.ValueArray_2:
-                case EncodingKind.ValueArray_3:
                     return ReadArray(kind);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -595,19 +590,15 @@ namespace Roslyn.Utilities
             switch (kind)
             {
                 case EncodingKind.Array_0:
-                case EncodingKind.ValueArray_0:
                     length = 0;
                     break;
                 case EncodingKind.Array_1:
-                case EncodingKind.ValueArray_1:
                     length = 1;
                     break;
                 case EncodingKind.Array_2:
-                case EncodingKind.ValueArray_2:
                     length = 2;
                     break;
                 case EncodingKind.Array_3:
-                case EncodingKind.ValueArray_3:
                     length = 3;
                     break;
                 default:

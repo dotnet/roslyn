@@ -632,40 +632,40 @@ namespace Roslyn.Utilities
 
         private void WriteArray(Array array)
         {
+            int length = array.GetLength(0);
+
+            switch (length)
+            {
+                case 0:
+                    _writer.Write((byte)EncodingKind.Array_0);
+                    break;
+                case 1:
+                    _writer.Write((byte)EncodingKind.Array_1);
+                    break;
+                case 2:
+                    _writer.Write((byte)EncodingKind.Array_2);
+                    break;
+                case 3:
+                    _writer.Write((byte)EncodingKind.Array_3);
+                    break;
+                default:
+                    _writer.Write((byte)EncodingKind.Array);
+                    this.WriteCompressedUInt((uint)length);
+                    break;
+            }
+
             var elementType = array.GetType().GetElementType();
 
             EncodingKind elementKind;
             if (s_typeMap.TryGetValue(elementType, out elementKind))
             {
-                int length = array.GetLength(0);
-
-                switch (length)
-                {
-                    case 0:
-                        _writer.Write((byte)EncodingKind.Array_0);
-                        break;
-                    case 1:
-                        _writer.Write((byte)EncodingKind.Array_1);
-                        break;
-                    case 2:
-                        _writer.Write((byte)EncodingKind.Array_2);
-                        break;
-                    case 3:
-                        _writer.Write((byte)EncodingKind.Array_3);
-                        break;
-                    default:
-                        _writer.Write((byte)EncodingKind.Array);
-                        this.WriteCompressedUInt((uint)length);
-                        break;
-                }
-
                 this.WritePrimitiveType(elementType, elementKind);
                 this.WritePrimitiveTypeArrayElements(elementType, elementKind, array);
             }
             else
             {
                 // emit header up front
-                this.WriteArrayHeader(array);
+                this.WriteType(elementType);
 
                 // push elements in reverse order so we later emit first element first
                 for (int i = array.Length - 1; i >= 0; i--)
@@ -673,34 +673,6 @@ namespace Roslyn.Utilities
                     _valueStack.Push(Variant.FromBoxedObject(array.GetValue(i)));
                 }
             }
-        }
-
-        private void WriteArrayHeader(Array array)
-        {
-            int length = array.GetLength(0);
-
-            switch (length)
-            {
-                case 0:
-                    _writer.Write((byte)EncodingKind.ValueArray_0);
-                    break;
-                case 1:
-                    _writer.Write((byte)EncodingKind.ValueArray_1);
-                    break;
-                case 2:
-                    _writer.Write((byte)EncodingKind.ValueArray_2);
-                    break;
-                case 3:
-                    _writer.Write((byte)EncodingKind.ValueArray_3);
-                    break;
-                default:
-                    _writer.Write((byte)EncodingKind.ValueArray);
-                    this.WriteCompressedUInt((uint)length);
-                    break;
-            }
-
-            var elementType = array.GetType().GetElementType();
-            this.WriteType(elementType);
         }
 
         private void WritePrimitiveTypeArrayElements(Type type, EncodingKind kind, Array instance)
@@ -1073,19 +1045,11 @@ namespace Roslyn.Utilities
             Decimal,
             DateTime,
             Enum,
-
             Array,      // array with # elements encoded as compressed int
             Array_0,    // array with zero elements
             Array_1,    // array with one element
             Array_2,    // array with two elements
             Array_3,    // array with three elements
-
-            ValueArray,     // value array with # elements encoded as a compressed int
-            ValueArray_0,
-            ValueArray_1,
-            ValueArray_2,
-            ValueArray_3,
-
             BooleanType,    // boolean type marker
             StringType      // string type marker
         }
