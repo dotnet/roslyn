@@ -13,7 +13,6 @@
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <OutDir>$(OutDir)csccore\</OutDir>
     <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
@@ -24,6 +23,7 @@
     <RuntimeIndentifier>x64</RuntimeIndentifier>
     <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <NoStdLib>true</NoStdLib>
+    <RoslynProjectType>ExeCoreClr</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\CommonNetCoreReferences\CommonNetCoreReferences.csproj">

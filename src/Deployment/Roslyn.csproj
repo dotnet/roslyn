@@ -18,6 +18,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <CreateVsixContainer>True</CreateVsixContainer>
     <DeployExtension>False</DeployExtension>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

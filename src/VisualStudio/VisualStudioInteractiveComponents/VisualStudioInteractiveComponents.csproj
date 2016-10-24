@@ -21,6 +21,7 @@
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
@@ -190,7 +191,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="CSharpInteractivePackageRegistration.pkgdef" />
-    <Content Include="VisualBasicInteractivePackageRegistration.pkgdef" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

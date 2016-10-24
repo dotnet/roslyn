@@ -29,6 +29,7 @@
     <CopyReferencesByDefault>false</CopyReferencesByDefault>
     <NonShipping>true</NonShipping>
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
+    <RoslynProjectType>CompilerGeneratorTool</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>

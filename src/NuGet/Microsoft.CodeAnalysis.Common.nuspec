@@ -61,8 +61,8 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.dll" target="lib\netstandard1.3" />
-    <file src="Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

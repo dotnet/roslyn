@@ -22,8 +22,8 @@ Supported Platforms:
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Microsoft.VisualStudio.LanguageServices.dll" target="lib\net46" />
-    <file src="Microsoft.VisualStudio.LanguageServices.xml" target="lib\net46" />
+    <file src="Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.dll" target="lib\net46" />
+    <file src="Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>
