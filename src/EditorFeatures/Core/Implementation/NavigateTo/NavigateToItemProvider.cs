@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -34,7 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             _workspace = workspace;
             _asyncListener = asyncListener;
             _hostServices = hostServices.ToImmutableArray();
-            _displayFactory = VersionSelector.SelectHighest(hostServices).CreateDisplayFactory();
+
+            var hostService = hostServices.Any()
+                ? VersionSelector.SelectHighest(hostServices)
+                : new Dev14NavigateToHostVersionService(glyphService);
+            _displayFactory = hostService.CreateDisplayFactory();
         }
 
         public void StopSearch()
