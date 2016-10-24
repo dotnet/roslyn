@@ -13,29 +13,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     {
         public static readonly CodeMarkerLogger Instance = new CodeMarkerLogger();
 
-        private static readonly Dictionary<FunctionId, List<Tuple<CodeMarkerId, CodeMarkerId>>> s_blockMap
-            = new Dictionary<FunctionId, List<Tuple<CodeMarkerId, CodeMarkerId>>>()
+        private static readonly Dictionary<FunctionId, List<Tuple<CodeMarkerId, CodeMarkerId>>> s_blockMap =
+            new Dictionary<FunctionId, List<Tuple<CodeMarkerId, CodeMarkerId>>>()
             {
-                { FunctionId.NavigateTo_Search, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVSCSharpNavigateToStartSearch, CodeMarkerEvent.perfVSCSharpNavigateToEndSearch),
-                        Tuple.Create(CodeMarkerEvent.perfVBNavigateToStartSearch, CodeMarkerEvent.perfVBNavigateToEndSearch),
-                    }
+                { FunctionId.NavigateTo_Search, new List<Tuple<CodeMarkerId, CodeMarkerId>>
+                    { Tuple.Create(CodeMarkerEvent.perfVSCSharpNavigateToStartSearch, CodeMarkerEvent.perfVSCSharpNavigateToEndSearch), }
                 },
                 { FunctionId.Rename_InlineSession, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVSCSharpRenameStart, CodeMarkerEvent.perfVSCSharpRenameEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVSCSharpRenameStart, CodeMarkerEvent.perfVSCSharpRenameEnd) }
                 },
                 { FunctionId.Rename_FindLinkedSpans, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVSCSharpRenameFindDefinitionStart, CodeMarkerEvent.perfVSCSharpRenameFindDefinitionEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVSCSharpRenameFindDefinitionStart, CodeMarkerEvent.perfVSCSharpRenameFindDefinitionEnd) }
                 },
                 { FunctionId.WinformDesigner_GenerateXML, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVSCSharpGetXmlStart, CodeMarkerEvent.perfVSCSharpGetXmlEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVSCSharpGetXmlStart, CodeMarkerEvent.perfVSCSharpGetXmlEnd) }
                 },
                 { FunctionId.BackgroundCompiler_BuildCompilationsAsync, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
                     {
@@ -44,14 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                     }
                 },
                 { FunctionId.FindReference, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVSCSharpFindAllReferencesStart, CodeMarkerEvent.perfVSCSharpFindAllReferencesEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVSCSharpFindAllReferencesStart, CodeMarkerEvent.perfVSCSharpFindAllReferencesEnd) }
                 },
                 { FunctionId.SmartTags_SmartTagInitializeFixes, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVBSmartTagInitializeFixesBegin, CodeMarkerEvent.perfVBSmartTagInitializeFixesEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVBSmartTagInitializeFixesBegin, CodeMarkerEvent.perfVBSmartTagInitializeFixesEnd) }
                 },
                 { FunctionId.SmartTags_ApplyQuickFix, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
                     {
@@ -60,24 +47,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                     }
                 },
                 { FunctionId.LineCommit_CommitRegion, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVBCompilerPrettyListBegin, CodeMarkerEvent.perfVBCompilerPrettyListEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVBCompilerPrettyListBegin, CodeMarkerEvent.perfVBCompilerPrettyListEnd) }
                 },
                 { FunctionId.Tagger_Outlining_TagProducer_ProduceTags, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVBCompilerStartOutliningBegin, CodeMarkerEvent.perfVBCompilerStartOutliningEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVBCompilerStartOutliningBegin, CodeMarkerEvent.perfVBCompilerStartOutliningEnd) }
                 },
                 { FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVBCompilerUpdateLineSeparatorsBegin, CodeMarkerEvent.perfVBCompilerUpdateLineSeparatorsEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVBCompilerUpdateLineSeparatorsBegin, CodeMarkerEvent.perfVBCompilerUpdateLineSeparatorsEnd) }
                 },
                 { FunctionId.NavigationBar_ComputeModelAsync, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVBCompilerDropDownLoadBegin, CodeMarkerEvent.perfVBCompilerDropDownLoadEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVBCompilerDropDownLoadBegin, CodeMarkerEvent.perfVBCompilerDropDownLoadEnd) }
                 },
                 { FunctionId.Completion_ModelComputer_DoInBackground, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
                     {
@@ -86,19 +65,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                     }
                 },
                 { FunctionId.SignatureHelp_ModelComputation_UpdateModelInBackground, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVSCSharpParamHelpStart, CodeMarkerEvent.perfVSCSharpParamHelpEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVSCSharpParamHelpStart, CodeMarkerEvent.perfVSCSharpParamHelpEnd) }
                 },
                 { FunctionId.Formatting_Format, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVSCSharpFormatStart, CodeMarkerEvent.perfVSCSharpFormatEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVSCSharpFormatStart, CodeMarkerEvent.perfVSCSharpFormatEnd) }
                 },
                 { FunctionId.Formatting_ApplyResultToBuffer, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
-                    {
-                        Tuple.Create(CodeMarkerEvent.perfVSCSharpCommitStart, CodeMarkerEvent.perfVSCSharpCommitEnd)
-                    }
+                    { Tuple.Create(CodeMarkerEvent.perfVSCSharpCommitStart, CodeMarkerEvent.perfVSCSharpCommitEnd) }
                 },
                 { FunctionId.SmartTags_RefreshSession, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
                     {
