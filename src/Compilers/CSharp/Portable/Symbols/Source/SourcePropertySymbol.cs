@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
                     if (_lazyType.Equals(overriddenPropertyType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
-                        _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, RefKind.None, this.ContainingAssembly);
+                        _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, this.ContainingAssembly);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);

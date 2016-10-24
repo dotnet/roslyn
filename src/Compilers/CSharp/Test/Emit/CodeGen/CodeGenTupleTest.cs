@@ -19385,8 +19385,10 @@ public class B1
             comp1.VerifyDiagnostics();
         }
 
+        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
         [Fact]
-        public void Regress001()
+        public void RefTupleDynamicDecode001()
         {
             string lib = @"
 
@@ -19431,8 +19433,10 @@ namespace ConsoleApplication5
             var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libComp.ToMetadataReference() }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
         }
 
+        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
         [Fact]
-        public void Regress002()
+        public void RefTupleDynamicDecode002()
         {
             string lib = @"
 
@@ -19721,5 +19725,117 @@ implicit operator AA
 --
 --");
         }
+        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [Fact]
+        public void RefTupleDynamicDecode003()
+        {
+            string lib = @"
+
+// Metadata version: v4.0.30319
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly extern System.Core
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )                         // .{...-.Q
+  .ver 4:0:1:0
+}
+
+// =============== CLASS MEMBERS DECLARATION ===================
+
+.class public auto ansi beforefieldinit ClassLibrary1.C1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot virtual 
+          instance valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>& 
+          Foo(int32 arg) cil managed
+  {
+    .param [0]
+    // the dynamic flags array is too short - decoder expects a flag matching ""ref"", but it is missing here.
+    .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 00 01 00 00 ) 
+    // Code size       37 (0x25)
+    .maxstack  5
+    .locals init (valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>& V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  newarr     valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>
+    IL_0007:  dup
+    IL_0008:  ldc.i4.0
+    IL_0009:  ldc.i4.1
+    IL_000a:  ldarg.1
+    IL_000b:  box        [mscorlib]System.Int32
+    IL_0010:  newobj     instance void valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>::.ctor(!0,
+                                                                                                             !1)
+    IL_0015:  stelem     valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>
+    IL_001a:  ldc.i4.0
+    IL_001b:  ldelema    valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>
+    IL_0020:  stloc.0
+    IL_0021:  br.s       IL_0023
+
+    IL_0023:  ldloc.0
+    IL_0024:  ret
+  } // end of method C1::Foo
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+} // end of class ClassLibrary1.C1
+";
+            var libCompRef = CompileIL(lib);
+
+            var source = @"
+namespace ConsoleApplication5
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ref var x = ref new C2().Foo(42);
+            System.Console.Write(x.Item2);
+            x.Item2 = ""qq"";
+            System.Console.WriteLine(x.Item2);
+        }
+    }
+
+    class C2: ClassLibrary1.C1
+    {
+        public override ref (int, dynamic) Foo(int arg)
+        {
+            return ref base.Foo(arg);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: "42qq", verify: false);
+
+            var m = (MethodSymbol)(comp.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
+            Assert.Equal("ref (System.Int32, dynamic) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
+
+            var b = m.OverriddenMethod;
+            // not (int, dynamic),
+            // since dynamic flags were not aligned we ignored flags
+            Assert.Equal("ref (System.Int32, System.Object) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
+
+        }
+
     }
 }
