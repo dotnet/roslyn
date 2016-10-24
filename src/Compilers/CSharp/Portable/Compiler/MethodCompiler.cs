@@ -1075,9 +1075,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return;
                                 }
 
-                                // "lowered" could be a BadBoundStatement, so do the cast only if there weren't 
-                                // any errors.
-                                Debug.Assert(lowered.Kind == BoundKind.StatementList);
+                                // Only do the cast if we haven't returned with some error diagnostics.
+                                // Otherwise, `lowered` might have been a BoundBadStatement.
                                 processedInitializers.LoweredInitializers = (BoundStatementList)lowered;
                             }
 
