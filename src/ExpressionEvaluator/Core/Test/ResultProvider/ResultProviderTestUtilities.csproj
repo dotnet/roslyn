@@ -11,9 +11,9 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.CSharp" />

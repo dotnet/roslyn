@@ -12,6 +12,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">

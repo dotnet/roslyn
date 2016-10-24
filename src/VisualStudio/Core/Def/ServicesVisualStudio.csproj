@@ -20,6 +20,7 @@
     <DeployExtension>false</DeployExtension>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <!-- We need to mark our NuGet.VisualStudio package reference as EmbedInteropTypes.  However,
        as this package comes from project.json there is no way to do that in the json file.

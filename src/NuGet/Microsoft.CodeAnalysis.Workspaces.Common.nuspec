@@ -29,12 +29,12 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.dll" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.xml" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.Workspaces.dll" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.Workspaces.dll" target="lib\netstandard1.3" />
-    <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" target="lib\net46" />
+    <file src="Dlls\Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.xml" target="lib\net46" />
+    <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" target="lib\net46" />
+    <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.xml" target="lib\net46" />
+    <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

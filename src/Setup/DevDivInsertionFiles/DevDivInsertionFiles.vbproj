@@ -8,6 +8,7 @@
     <RootNamespace>Roslyn.BuildDevDivInsertionFiles</RootNamespace>
     <AssemblyName>Roslyn.BuildDevDivInsertionFiles</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>ToolDesktop</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>

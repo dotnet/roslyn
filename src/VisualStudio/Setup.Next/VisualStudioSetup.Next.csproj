@@ -19,6 +19,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <DeployExtension Condition="'$(VisualStudioVersion)' == '14.0'">false</DeployExtension>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">

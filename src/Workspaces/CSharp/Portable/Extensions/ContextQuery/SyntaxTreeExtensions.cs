@@ -684,6 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsUsingAliasContext(position, cancellationToken) ||
                 syntaxTree.IsUsingStaticContext(position, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+                syntaxTree.IsPossibleTupleContext(tokenOnLeftOfPosition, position) ||
                 syntaxTree.IsMemberDeclarationContext(
                     position,
                     contextOpt: null,
@@ -1141,11 +1142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (tokenOnLeftOfPosition.IsKind(SyntaxKind.OpenParenToken))
             {
                 return tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParenthesizedExpression,
-                    SyntaxKind.TupleExpression);
+                    SyntaxKind.TupleExpression, SyntaxKind.TupleType);
             }
 
             return tokenOnLeftOfPosition.IsKind(SyntaxKind.CommaToken) &&
-                tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.TupleExpression);
+                tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType);
         }
 
         public static bool HasNames(this TupleExpressionSyntax tuple)

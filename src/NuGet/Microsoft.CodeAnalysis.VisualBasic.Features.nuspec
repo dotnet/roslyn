@@ -20,8 +20,8 @@
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Features.dll" target="lib\netstandard1.3" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Features.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\BasicFeatures\Microsoft.CodeAnalysis.VisualBasic.Features.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\BasicFeatures\Microsoft.CodeAnalysis.VisualBasic.Features.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>
