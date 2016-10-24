@@ -3423,5 +3423,42 @@ B";
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "A is B < C").WithArguments(",").WithLocation(1, 1)
                 );
         }
+
+        [Fact, WorkItem(14636, "https://github.com/dotnet/roslyn/issues/14636")]
+        public void NameofPattern()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        M(""a"");
+        M(""b"");
+        M(null);
+        M(new nameof());
+    }
+    public static void M(object a)
+    {
+        Console.WriteLine(a is nameof(a));
+        Console.WriteLine(a is nameof);
+    }
+}
+class nameof { }
+";
+            var expectedOutput =
+@"True
+False
+False
+False
+False
+False
+False
+True";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

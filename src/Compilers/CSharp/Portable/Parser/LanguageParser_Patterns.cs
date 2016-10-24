@@ -29,9 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
             }
 
-            // If it is a nameof, skip the 'if' and parse as a constant pattern.
+            // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
             if (SyntaxFacts.IsPredefinedType(tk) ||
-                (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword))
+                (tk == SyntaxKind.IdentifierToken &&
+                  (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)))
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // But it still might be a pattern such as (operand is 3) or (operand is nameof(x))
                 node = _syntaxFactory.ConstantPattern(this.ParseExpressionCore());
             }
+
             return node;
         }
 
