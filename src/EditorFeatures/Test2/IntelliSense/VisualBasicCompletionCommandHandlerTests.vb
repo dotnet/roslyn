@@ -566,7 +566,7 @@ End Class
                 Await state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
                 Await state.WaitForAsynchronousOperationsAsync()
                 state.SendSelectCompletionItemThroughPresenterSession(state.CurrentCompletionPresenterSession.PresentationItems.First(
-                                                           Function(i) i.Item.DisplayText = "B"))
+                                                           Function(i) i.DisplayText = "B"))
                 state.SendTab()
                 Assert.Contains(".B", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -1012,10 +1012,10 @@ End Class
 
                 state.SendTypeChars("s")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "string:="))
+                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.DisplayText = "string:="))
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "string:="))
+                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.DisplayText = "string:="))
             End Using
         End Function
 
@@ -1040,7 +1040,7 @@ End Class
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 Assert.Equal(1, state.CurrentCompletionPresenterSession.PresentationItems.Count)
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "str:="))
+                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.DisplayText = "str:="))
             End Using
         End Function
 
@@ -1069,10 +1069,10 @@ End Class
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 Assert.Equal(3, state.CurrentCompletionPresenterSession.PresentationItems.Count)
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "b:="))
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "num:="))
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "str:="))
-                Assert.False(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "dbl:="))
+                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.DisplayText = "b:="))
+                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.DisplayText = "num:="))
+                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.DisplayText = "str:="))
+                Assert.False(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.DisplayText = "dbl:="))
             End Using
         End Function
 
@@ -1615,10 +1615,10 @@ End Class
             ]]></Document>)
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(c) c.Item.DisplayText = "AccessViolationException"))
+                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(c) c.DisplayText = "AccessViolationException"))
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(c) c.Item.DisplayText = "AccessViolationException"))
+                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(c) c.DisplayText = "AccessViolationException"))
             End Using
         End Function
 
@@ -2049,8 +2049,8 @@ End Class</Document>)
                 state.SendTypeChars("(")
                 Await state.AssertCompletionSession()
                 ' DayOfWeek.Monday should  immediately follow DayOfWeek.Friday
-                Dim friday = state.CurrentCompletionPresenterSession.PresentationItems.First(Function(i) i.Item.DisplayText = "DayOfWeek.Friday")
-                Dim monday = state.CurrentCompletionPresenterSession.PresentationItems.First(Function(i) i.Item.DisplayText = "DayOfWeek.Monday")
+                Dim friday = state.CurrentCompletionPresenterSession.PresentationItems.First(Function(i) i.DisplayText = "DayOfWeek.Friday")
+                Dim monday = state.CurrentCompletionPresenterSession.PresentationItems.First(Function(i) i.DisplayText = "DayOfWeek.Monday")
                 Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.IndexOf(friday) = state.CurrentCompletionPresenterSession.PresentationItems.IndexOf(monday) - 1)
             End Using
         End Function
@@ -2140,8 +2140,8 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 ' Should only have one item called 'Double' and it should have a keyword glyph
-                Dim doubleItem = state.CurrentCompletionPresenterSession.PresentationItems.Single(Function(c) c.Item.DisplayText = "Double")
-                Assert.True(doubleItem.Item.Tags.Contains(CompletionTags.Keyword))
+                Dim doubleItem = state.CurrentCompletionPresenterSession.PresentationItems.Single(Function(c) c.DisplayText = "Double")
+                Assert.True(doubleItem.Tags.Contains(CompletionTags.Keyword))
             End Using
         End Function
 
@@ -2160,10 +2160,10 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 ' We should have gotten the item corresponding to [Double] and the item for the Double keyword
-                Dim doubleItems = state.CurrentCompletionPresenterSession.PresentationItems.Where(Function(c) c.Item.DisplayText = "Double")
+                Dim doubleItems = state.CurrentCompletionPresenterSession.PresentationItems.Where(Function(c) c.DisplayText = "Double")
                 Assert.Equal(2, doubleItems.Count())
-                Assert.True(doubleItems.Any(Function(c) c.Item.Tags.Contains(CompletionTags.Keyword)))
-                Assert.True(doubleItems.Any(Function(c) c.Item.Tags.Contains(CompletionTags.Class) AndAlso c.Item.Tags.Contains(CompletionTags.Internal)))
+                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(CompletionTags.Keyword)))
+                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(CompletionTags.Class) AndAlso c.Tags.Contains(CompletionTags.Internal)))
             End Using
         End Function
 

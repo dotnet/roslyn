@@ -12,10 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private ReadOnly _testState As IIntelliSenseTestState
 
         Public TriggerSpan As ITrackingSpan
-        Public PresentationItems As IList(Of PresentationItem)
-        Public SelectedItem As PresentationItem
+        Public PresentationItems As IList(Of CompletionItem)
+        Public SelectedItem As CompletionItem
         Public IsSoftSelected As Boolean
-        Public SuggestionModeItem As PresentationItem
+        Public SuggestionModeItem As CompletionItem
 
         Public Event Dismissed As EventHandler(Of EventArgs) Implements ICompletionPresenterSession.Dismissed
         Public Event ItemSelected As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemSelected
@@ -27,9 +27,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Sub PresentItems(triggerSpan As ITrackingSpan,
-                                presentationItems As IList(Of PresentationItem),
-                                selectedItem As PresentationItem,
-                                suggestionModeItem As PresentationItem,
+                                presentationItems As IList(Of CompletionItem),
+                                selectedItem As CompletionItem,
+                                suggestionModeItem As CompletionItem,
                                 suggestionMode As Boolean,
                                 isSoftSelected As Boolean,
                                 completionItemFilters As ImmutableArray(Of CompletionItemFilter),
@@ -46,12 +46,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             _testState.CurrentCompletionPresenterSession = Nothing
         End Sub
 
-        Public Sub SetSelectedItem(item As PresentationItem)
+        Public Sub SetSelectedItem(item As CompletionItem)
             Me.SelectedItem = item
             RaiseEvent ItemSelected(Me, New CompletionItemEventArgs(item))
         End Sub
 
-        Private Function GetFilteredItemAt(index As Integer) As PresentationItem
+        Private Function GetFilteredItemAt(index As Integer) As CompletionItem
             index = Math.Max(0, Math.Min(PresentationItems.Count - 1, index))
             Return PresentationItems(index)
         End Function
