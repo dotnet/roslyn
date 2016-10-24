@@ -13,7 +13,8 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
-            var sourceDir = args[0].Trim('"');
+            var sourceDir = args[0];
+            Console.WriteLine(sourceDir);
             var configPath = Path.Combine(sourceDir, @"build\config\BuildBossData.json");
             var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configPath));
             var allGood = true;
@@ -68,7 +69,13 @@ namespace BuildBoss
                 throw new Exception($"{fullPath} doesn't begin with {basePath}");
             }
 
-            return fullPath.Substring(basePath.Length + 1);
+            var path = fullPath.Substring(basePath.Length);
+            if (path.Length > 0 && path[0] == '\\')
+            {
+                path = path.Substring(1);
+            }
+
+            return path;
         }
 
         private static bool Exclude(BuildBossConfig config, string projectRelativePath)
