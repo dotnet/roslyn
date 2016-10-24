@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal partial class Dev14NavigateToHostVersionService
     {
-        protected class Dev14ItemDisplayFactory : INavigateToItemDisplayFactory, IDisposable
+        private class Dev14ItemDisplayFactory : INavigateToItemDisplayFactory, IDisposable
         {
             private readonly NavigateToIconFactory _iconFactory;
 
