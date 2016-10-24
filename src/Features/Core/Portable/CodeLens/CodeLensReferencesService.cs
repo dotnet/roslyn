@@ -120,11 +120,13 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             var symbol = semanticModel.GetDeclaredSymbol(node);
             var glyph = symbol?.GetGlyph();
+            var startLinePosition = location.GetLineSpan().StartLinePosition;
 
             return new ReferenceLocationDescriptor(longName,
                 semanticModel.Language,
                 glyph,
-                location,
+                startLinePosition.Line,
+                startLinePosition.Character,
                 solution.GetDocument(location.SourceTree)?.Id,
                 line.TrimEnd(),
                 referenceSpan.Start,
