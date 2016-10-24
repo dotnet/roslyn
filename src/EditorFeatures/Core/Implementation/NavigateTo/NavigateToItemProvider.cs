@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             _asyncListener = asyncListener;
             _hostServices = hostServices.ToImmutableArray();
 
-            var hostService = hostServices.Any()
+            var hostService = _hostServices.Length > 0
                 ? VersionSelector.SelectHighest(hostServices)
                 : new Dev14NavigateToHostVersionService(glyphService);
             _displayFactory = hostService.CreateDisplayFactory();
