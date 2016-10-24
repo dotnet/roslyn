@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -18,12 +19,13 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed partial class StreamObjectWriter : ObjectWriter, IDisposable
     {
-        private readonly BinaryWriter _writer;
-        private readonly WriterData _dataMap;
-        private readonly ObjectBinder _binder;
+        private readonly BinaryWriter _writer;          // writes primitives to stream
+        private readonly ObjectBinder _binder;          // provides object and type encoding
         private readonly CancellationToken _cancellationToken;
-        private readonly Stack<Variant> _valueStack;
-        private readonly VariantWriter _variantWriter;
+
+        private readonly ReferenceMap _referenceMap;        // object instance to reference-id map
+        private readonly Stack<Variant> _valueStack;        // stack of member/element values from object/array contents pending emit
+        private readonly VariantListWriter _memberWriter;   // used to get object member values
 
         public StreamObjectWriter(
             Stream stream,
@@ -36,11 +38,11 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
-            _dataMap = WriterData.Create(data);
+            _referenceMap = ReferenceMap.Create(data);
             _binder = binder ?? new SimpleRecordingObjectBinder();
             _cancellationToken = cancellationToken;
             _valueStack = new Stack<Variant>();
-            _variantWriter = new VariantWriter();
+            _memberWriter = new VariantListWriter();
         }
 
         public ObjectBinder Binder
@@ -50,7 +52,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            _dataMap.Dispose();
+            _referenceMap.Dispose();
         }
 
         public override void WriteBoolean(bool value)
@@ -65,7 +67,7 @@ namespace Roslyn.Utilities
 
         public override void WriteChar(char ch)
         {
-            // written as ushort because writer fails on chars that are unicode surrogates
+            // written as ushort because BinaryWriter fails on chars that are unicode surrogates
             _writer.Write((ushort)ch);
         }
 
@@ -126,7 +128,7 @@ namespace Roslyn.Utilities
 
         public override void WriteString(string value)
         {
-            EmitString(value);
+            WriteStringValue(value);
         }
 
         public override void WriteValue(object value)
@@ -151,30 +153,30 @@ namespace Roslyn.Utilities
             switch (value.Kind)
             {
                 case VariantKind.Null:
-                    _writer.Write((byte)DataKind.Null);
+                    _writer.Write((byte)EncodingKind.Null);
                     break;
 
                 case VariantKind.Boolean:
-                    _writer.Write((byte)(value.AsBoolean() ? DataKind.Boolean_T : DataKind.Boolean_F));
+                    _writer.Write((byte)(value.AsBoolean() ? EncodingKind.Boolean_T : EncodingKind.Boolean_F));
                     break;
 
                 case VariantKind.Byte:
-                    _writer.Write((byte)DataKind.UInt8);
+                    _writer.Write((byte)EncodingKind.UInt8);
                     _writer.Write(value.AsByte());
                     break;
 
                 case VariantKind.SByte:
-                    _writer.Write((byte)DataKind.Int8);
+                    _writer.Write((byte)EncodingKind.Int8);
                     _writer.Write(value.AsSByte());
                     break;
 
                 case VariantKind.Int16:
-                    _writer.Write((byte)DataKind.Int16);
+                    _writer.Write((byte)EncodingKind.Int16);
                     _writer.Write(value.AsInt16());
                     break;
 
                 case VariantKind.UInt16:
-                    _writer.Write((byte)DataKind.UInt16);
+                    _writer.Write((byte)EncodingKind.UInt16);
                     _writer.Write(value.AsUInt16());
                     break;
 
@@ -183,21 +185,21 @@ namespace Roslyn.Utilities
                         var v = value.AsInt32();
                         if (v >= 0 && v <= 10)
                         {
-                            _writer.Write((byte)((int)DataKind.Int32_0 + v));
+                            _writer.Write((byte)((int)EncodingKind.Int32_0 + v));
                         }
                         else if (v >= 0 && v < byte.MaxValue)
                         {
-                            _writer.Write((byte)DataKind.Int32_B);
+                            _writer.Write((byte)EncodingKind.Int32_B);
                             _writer.Write((byte)v);
                         }
                         else if (v >= 0 && v < ushort.MaxValue)
                         {
-                            _writer.Write((byte)DataKind.Int32_S);
+                            _writer.Write((byte)EncodingKind.Int32_S);
                             _writer.Write((ushort)v);
                         }
                         else
                         {
-                            _writer.Write((byte)DataKind.Int32);
+                            _writer.Write((byte)EncodingKind.Int32);
                             _writer.Write(v);
                         }
                     }
@@ -208,63 +210,63 @@ namespace Roslyn.Utilities
                         var v = value.AsUInt32();
                         if (v >= 0 && v <= 10)
                         {
-                            _writer.Write((byte)((int)DataKind.UInt32_0 + v));
+                            _writer.Write((byte)((int)EncodingKind.UInt32_0 + v));
                         }
                         else if (v >= 0 && v < byte.MaxValue)
                         {
-                            _writer.Write((byte)DataKind.UInt32_B);
+                            _writer.Write((byte)EncodingKind.UInt32_B);
                             _writer.Write((byte)v);
                         }
                         else if (v >= 0 && v < ushort.MaxValue)
                         {
-                            _writer.Write((byte)DataKind.UInt32_S);
+                            _writer.Write((byte)EncodingKind.UInt32_S);
                             _writer.Write((ushort)v);
                         }
                         else
                         {
-                            _writer.Write((byte)DataKind.UInt32);
+                            _writer.Write((byte)EncodingKind.UInt32);
                             _writer.Write(v);
                         }
                     }
                     break;
 
                 case VariantKind.Int64:
-                    _writer.Write((byte)DataKind.Int64);
+                    _writer.Write((byte)EncodingKind.Int64);
                     _writer.Write(value.AsInt64());
                     break;
 
                 case VariantKind.UInt64:
-                    _writer.Write((byte)DataKind.UInt64);
+                    _writer.Write((byte)EncodingKind.UInt64);
                     _writer.Write(value.AsUInt64());
                     break;
 
                 case VariantKind.Decimal:
-                    _writer.Write((byte)DataKind.Decimal);
+                    _writer.Write((byte)EncodingKind.Decimal);
                     _writer.Write(value.AsDecimal());
                     break;
 
                 case VariantKind.Float4:
-                    _writer.Write((byte)DataKind.Float4);
+                    _writer.Write((byte)EncodingKind.Float4);
                     _writer.Write(value.AsSingle());
                     break;
 
                 case VariantKind.Float8:
-                    _writer.Write((byte)DataKind.Float8);
+                    _writer.Write((byte)EncodingKind.Float8);
                     _writer.Write(value.AsDouble());
                     break;
 
                 case VariantKind.DateTime:
-                    _writer.Write((byte)DataKind.DateTime);
+                    _writer.Write((byte)EncodingKind.DateTime);
                     _writer.Write(value.AsDateTime().ToBinary());
                     break;
 
                 case VariantKind.Char:
-                    _writer.Write((byte)DataKind.Char);
-                    _writer.Write((ushort)value.AsChar());  // write as ushort because write fails on chars that are unicode surrogates
+                    _writer.Write((byte)EncodingKind.Char);
+                    _writer.Write((ushort)value.AsChar());  // written as ushort because BinaryWriter fails on chars that are unicode surrogates
                     break;
 
                 case VariantKind.String:
-                    EmitString(value.AsString());
+                    WriteStringValue(value.AsString());
                     break;
 
                 case VariantKind.BoxedEnum:
@@ -286,11 +288,11 @@ namespace Roslyn.Utilities
             }
         }
 
-        private class VariantWriter : ObjectWriter
+        private class VariantListWriter : ObjectWriter
         {
             private readonly List<Variant> _list;
 
-            public VariantWriter()
+            public VariantListWriter()
             {
                 _list = new List<Variant>();
             }
@@ -385,6 +387,100 @@ namespace Roslyn.Utilities
             }
         }
 
+        private class ReferenceMap : IDisposable
+        {
+            internal static readonly ObjectPool<Dictionary<object, int>> DictionaryPool =
+                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128), 2);
+
+            private readonly ReferenceMap _baseData;
+            private readonly Dictionary<object, int> _valueToIdMap = DictionaryPool.Allocate();
+            private int _nextId;
+
+            private ReferenceMap(ObjectData data)
+            {
+                if (data != null)
+                {
+                    foreach (var value in data.Objects)
+                    {
+                        _valueToIdMap.Add(value, _valueToIdMap.Count);
+                    }
+                }
+
+                _nextId = _valueToIdMap.Count;
+            }
+
+            private ReferenceMap(ReferenceMap baseData)
+            {
+                _baseData = baseData;
+                _nextId = baseData?._nextId ?? 0;
+            }
+
+            public static ReferenceMap Create(ObjectData data = null)
+            {
+                if (data != null)
+                {
+                    return new ReferenceMap(GetBaseWriterData(data));
+                }
+                else
+                {
+                    return new ReferenceMap(data);
+                }
+            }
+
+            private static readonly ConditionalWeakTable<ObjectData, ReferenceMap> s_baseDataMap
+                = new ConditionalWeakTable<ObjectData, ReferenceMap>();
+
+            private static ReferenceMap GetBaseWriterData(ObjectData data)
+            {
+                ReferenceMap baseData;
+                if (!s_baseDataMap.TryGetValue(data, out baseData))
+                {
+                    baseData = s_baseDataMap.GetValue(data, _data => new ReferenceMap(_data));
+                }
+
+                return baseData;
+            }
+
+            public void Dispose()
+            {
+                // If the map grew too big, don't return it to the pool.
+                // When testing with the Roslyn solution, this dropped only 2.5% of requests.
+                if (_valueToIdMap.Count > 1024)
+                {
+                    DictionaryPool.ForgetTrackedObject(_valueToIdMap);
+                }
+                else
+                {
+                    _valueToIdMap.Clear();
+                    DictionaryPool.Free(_valueToIdMap);
+                }
+            }
+
+            public bool TryGetId(object value, out int id)
+            {
+                if (_baseData != null && _baseData.TryGetId(value, out id))
+                {
+                    return true;
+                }
+
+                return _valueToIdMap.TryGetValue(value, out id);
+            }
+
+            private int GetNextId()
+            {
+                var id = _nextId;
+                _nextId++;
+                return id;
+            }
+
+            public int Add(object value)
+            {
+                var id = this.GetNextId();
+                _valueToIdMap.Add(value, id);
+                return id;
+            }
+        }
+
         internal void WriteCompressedUInt(uint value)
         {
             if (value <= (byte.MaxValue >> 2))
@@ -423,49 +519,49 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe void EmitString(string value)
+        private unsafe void WriteStringValue(string value)
         {
             if (value == null)
             {
-                _writer.Write((byte)DataKind.Null);
+                _writer.Write((byte)EncodingKind.Null);
             }
             else
             {
                 int id;
-                if (_dataMap.TryGetId(value, out id))
+                if (_referenceMap.TryGetId(value, out id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
                     {
-                        _writer.Write((byte)DataKind.StringRef_B);
+                        _writer.Write((byte)EncodingKind.StringRef_B);
                         _writer.Write((byte)id);
                     }
                     else if (id <= ushort.MaxValue)
                     {
-                        _writer.Write((byte)DataKind.StringRef_S);
+                        _writer.Write((byte)EncodingKind.StringRef_S);
                         _writer.Write((ushort)id);
                     }
                     else
                     {
-                        _writer.Write((byte)DataKind.StringRef);
+                        _writer.Write((byte)EncodingKind.StringRef);
                         _writer.Write(id);
                     }
                 }
                 else
                 {
-                    _dataMap.Add(value);
+                    _referenceMap.Add(value);
 
                     if (value.IsValidUnicodeString())
                     {
                         // Usual case - the string can be encoded as UTF8:
                         // We can use the UTF8 encoding of the binary writer.
 
-                        _writer.Write((byte)DataKind.StringUtf8);
+                        _writer.Write((byte)EncodingKind.StringUtf8);
                         _writer.Write(value);
                     }
                     else
                     {
-                        _writer.Write((byte)DataKind.StringUtf16);
+                        _writer.Write((byte)EncodingKind.StringUtf16);
 
                         // This is rare, just allocate UTF16 bytes for simplicity.
 
@@ -484,7 +580,7 @@ namespace Roslyn.Utilities
 
         private void WriteBoxedEnum(object value, Type enumType)
         {
-            _writer.Write((byte)DataKind.Enum);
+            _writer.Write((byte)EncodingKind.Enum);
             this.WriteType(enumType);
 
             var type = Enum.GetUnderlyingType(enumType);
@@ -531,7 +627,7 @@ namespace Roslyn.Utilities
         {
             var elementType = array.GetType().GetElementType();
 
-            DataKind elementKind;
+            EncodingKind elementKind;
             if (s_typeMap.TryGetValue(elementType, out elementKind))
             {
                 int length = array.GetLength(0);
@@ -539,19 +635,19 @@ namespace Roslyn.Utilities
                 switch (length)
                 {
                     case 0:
-                        _writer.Write((byte)DataKind.Array_0);
+                        _writer.Write((byte)EncodingKind.Array_0);
                         break;
                     case 1:
-                        _writer.Write((byte)DataKind.Array_1);
+                        _writer.Write((byte)EncodingKind.Array_1);
                         break;
                     case 2:
-                        _writer.Write((byte)DataKind.Array_2);
+                        _writer.Write((byte)EncodingKind.Array_2);
                         break;
                     case 3:
-                        _writer.Write((byte)DataKind.Array_3);
+                        _writer.Write((byte)EncodingKind.Array_3);
                         break;
                     default:
-                        _writer.Write((byte)DataKind.Array);
+                        _writer.Write((byte)EncodingKind.Array);
                         this.WriteCompressedUInt((uint)length);
                         break;
                 }
@@ -562,20 +658,20 @@ namespace Roslyn.Utilities
             else
             {
                 // gather list elements
-                _variantWriter.List.Clear();
+                _memberWriter.List.Clear();
 
                 foreach (var element in array)
                 {
-                    _variantWriter.WriteValue(element);
+                    _memberWriter.WriteValue(element);
                 }
 
                 // emit header up front
                 this.WriteArrayHeader(array);
 
                 // push elements in reverse order so we later emit first element first
-                for (int i = _variantWriter.List.Count - 1; i >= 0; i--)
+                for (int i = _memberWriter.List.Count - 1; i >= 0; i--)
                 {
-                    _valueStack.Push(_variantWriter.List[i]);
+                    _valueStack.Push(_memberWriter.List[i]);
                 }
             }
         }
@@ -587,19 +683,19 @@ namespace Roslyn.Utilities
             switch (length)
             {
                 case 0:
-                    _writer.Write((byte)DataKind.ValueArray_0);
+                    _writer.Write((byte)EncodingKind.ValueArray_0);
                     break;
                 case 1:
-                    _writer.Write((byte)DataKind.ValueArray_1);
+                    _writer.Write((byte)EncodingKind.ValueArray_1);
                     break;
                 case 2:
-                    _writer.Write((byte)DataKind.ValueArray_2);
+                    _writer.Write((byte)EncodingKind.ValueArray_2);
                     break;
                 case 3:
-                    _writer.Write((byte)DataKind.ValueArray_3);
+                    _writer.Write((byte)EncodingKind.ValueArray_3);
                     break;
                 default:
-                    _writer.Write((byte)DataKind.ValueArray);
+                    _writer.Write((byte)EncodingKind.ValueArray);
                     this.WriteCompressedUInt((uint)length);
                     break;
             }
@@ -608,7 +704,7 @@ namespace Roslyn.Utilities
             this.WriteType(elementType);
         }
 
-        private void WritePrimitiveTypeArrayElements(Type type, DataKind kind, Array instance)
+        private void WritePrimitiveTypeArrayElements(Type type, EncodingKind kind, Array instance)
         {
             Debug.Assert(s_typeMap[type] == kind);
 
@@ -637,34 +733,34 @@ namespace Roslyn.Utilities
                 // otherwise, write elements directly to underlying binary writer
                 switch (kind)
                 {
-                    case DataKind.Int8:
+                    case EncodingKind.Int8:
                         WriteInt8ArrayElements((sbyte[])instance);
                         return;
-                    case DataKind.Int16:
+                    case EncodingKind.Int16:
                         WriteInt16ArrayElements((short[])instance);
                         return;
-                    case DataKind.Int32:
+                    case EncodingKind.Int32:
                         WriteInt32ArrayElements((int[])instance);
                         return;
-                    case DataKind.Int64:
+                    case EncodingKind.Int64:
                         WriteInt64ArrayElements((long[])instance);
                         return;
-                    case DataKind.UInt16:
+                    case EncodingKind.UInt16:
                         WriteUInt16ArrayElements((ushort[])instance);
                         return;
-                    case DataKind.UInt32:
+                    case EncodingKind.UInt32:
                         WriteUInt32ArrayElements((uint[])instance);
                         return;
-                    case DataKind.UInt64:
+                    case EncodingKind.UInt64:
                         WriteUInt64ArrayElements((ulong[])instance);
                         return;
-                    case DataKind.Float4:
+                    case EncodingKind.Float4:
                         WriteFloat4ArrayElements((float[])instance);
                         return;
-                    case DataKind.Float8:
+                    case EncodingKind.Float8:
                         WriteFloat8ArrayElements((double[])instance);
                         return;
-                    case DataKind.Decimal:
+                    case EncodingKind.Decimal:
                         WriteDecimalArrayElements((decimal[])instance);
                         return;
                     default:
@@ -693,7 +789,7 @@ namespace Roslyn.Utilities
         {
             for (var i = 0; i < array.Length; i++)
             {
-                EmitString(array[i]);
+                WriteStringValue(array[i]);
             }
         }
 
@@ -777,7 +873,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WritePrimitiveType(Type type, DataKind kind)
+        private void WritePrimitiveType(Type type, EncodingKind kind)
         {
             Debug.Assert(s_typeMap[type] == kind);
             _writer.Write((byte)kind);
@@ -786,35 +882,35 @@ namespace Roslyn.Utilities
         private void WriteType(Type type)
         {
             int id;
-            if (_dataMap.TryGetId(type, out id))
+            if (_referenceMap.TryGetId(type, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
                 {
-                    _writer.Write((byte)DataKind.TypeRef_B);
+                    _writer.Write((byte)EncodingKind.TypeRef_B);
                     _writer.Write((byte)id);
                 }
                 else if (id <= ushort.MaxValue)
                 {
-                    _writer.Write((byte)DataKind.TypeRef_S);
+                    _writer.Write((byte)EncodingKind.TypeRef_S);
                     _writer.Write((ushort)id);
                 }
                 else
                 {
-                    _writer.Write((byte)DataKind.TypeRef);
+                    _writer.Write((byte)EncodingKind.TypeRef);
                     _writer.Write(id);
                 }
             }
             else
             {
-                _dataMap.Add(type);
+                _referenceMap.Add(type);
 
-                _writer.Write((byte)DataKind.Type);
+                _writer.Write((byte)EncodingKind.Type);
 
                 var typeKey = _binder.GetTypeKey(type);
 
-                this.EmitString(typeKey.AssemblyName);
-                this.EmitString(typeKey.TypeName);
+                this.WriteStringValue(typeKey.AssemblyName);
+                this.WriteStringValue(typeKey.TypeName);
             }
         }
 
@@ -824,22 +920,22 @@ namespace Roslyn.Utilities
 
             // write object ref if we already know this instance
             int id;
-            if (_dataMap.TryGetId(instance, out id))
+            if (_referenceMap.TryGetId(instance, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
                 {
-                    _writer.Write((byte)DataKind.ObjectRef_B);
+                    _writer.Write((byte)EncodingKind.ObjectRef_B);
                     _writer.Write((byte)id);
                 }
                 else if (id <= ushort.MaxValue)
                 {
-                    _writer.Write((byte)DataKind.ObjectRef_S);
+                    _writer.Write((byte)EncodingKind.ObjectRef_S);
                     _writer.Write((ushort)id);
                 }
                 else
                 {
-                    _writer.Write((byte)DataKind.ObjectRef);
+                    _writer.Write((byte)EncodingKind.ObjectRef);
                     _writer.Write(id);
                 }
             }
@@ -852,28 +948,28 @@ namespace Roslyn.Utilities
                 }
 
                 // gather instance members by writing them into a list of variants
-                _variantWriter.List.Clear();
-                typeWriter(_variantWriter, instance);
+                _memberWriter.List.Clear();
+                typeWriter(_memberWriter, instance);
 
                 // emit object header up front
-                this.WriteObjectHeader(instance, (uint)_variantWriter.List.Count);
+                this.WriteObjectHeader(instance, (uint)_memberWriter.List.Count);
 
                 // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
                 // TODO: consider optimizing for objects that only contain primitive members.
 
                 // push all members in reverse order so we later emit the first member written first
-                for (int i = _variantWriter.List.Count - 1; i >= 0; i--)
+                for (int i = _memberWriter.List.Count - 1; i >= 0; i--)
                 {
-                    _valueStack.Push(_variantWriter.List[i]);
+                    _valueStack.Push(_memberWriter.List[i]);
                 }
             }
         }
 
         private void WriteObjectHeader(object instance, uint memberCount)
         {
-            _dataMap.Add(instance);
+            _referenceMap.Add(instance);
 
-            _writer.Write((byte)DataKind.Object_W);
+            _writer.Write((byte)EncodingKind.Object_W);
 
             Type type = instance.GetType();
             this.WriteType(type);
@@ -890,31 +986,511 @@ namespace Roslyn.Utilities
         }
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
-        internal static readonly ImmutableDictionary<Type, DataKind> s_typeMap = ImmutableDictionary.CreateRange<Type, DataKind>(
-            new KeyValuePair<Type, DataKind>[]
+        internal static readonly ImmutableDictionary<Type, EncodingKind> s_typeMap = ImmutableDictionary.CreateRange<Type, EncodingKind>(
+            new KeyValuePair<Type, EncodingKind>[]
             {
-                KeyValuePair.Create(typeof(bool), DataKind.BooleanType),
-                KeyValuePair.Create(typeof(char), DataKind.Char),
-                KeyValuePair.Create(typeof(string), DataKind.StringType),
-                KeyValuePair.Create(typeof(sbyte), DataKind.Int8),
-                KeyValuePair.Create(typeof(short), DataKind.Int16),
-                KeyValuePair.Create(typeof(int), DataKind.Int32),
-                KeyValuePair.Create(typeof(long), DataKind.Int64),
-                KeyValuePair.Create(typeof(byte), DataKind.UInt8),
-                KeyValuePair.Create(typeof(ushort), DataKind.UInt16),
-                KeyValuePair.Create(typeof(uint), DataKind.UInt32),
-                KeyValuePair.Create(typeof(ulong), DataKind.UInt64),
-                KeyValuePair.Create(typeof(float), DataKind.Float4),
-                KeyValuePair.Create(typeof(double), DataKind.Float8),
-                KeyValuePair.Create(typeof(decimal), DataKind.Decimal),
+                KeyValuePair.Create(typeof(bool), EncodingKind.BooleanType),
+                KeyValuePair.Create(typeof(char), EncodingKind.Char),
+                KeyValuePair.Create(typeof(string), EncodingKind.StringType),
+                KeyValuePair.Create(typeof(sbyte), EncodingKind.Int8),
+                KeyValuePair.Create(typeof(short), EncodingKind.Int16),
+                KeyValuePair.Create(typeof(int), EncodingKind.Int32),
+                KeyValuePair.Create(typeof(long), EncodingKind.Int64),
+                KeyValuePair.Create(typeof(byte), EncodingKind.UInt8),
+                KeyValuePair.Create(typeof(ushort), EncodingKind.UInt16),
+                KeyValuePair.Create(typeof(uint), EncodingKind.UInt32),
+                KeyValuePair.Create(typeof(ulong), EncodingKind.UInt64),
+                KeyValuePair.Create(typeof(float), EncodingKind.Float4),
+                KeyValuePair.Create(typeof(double), EncodingKind.Float8),
+                KeyValuePair.Create(typeof(decimal), EncodingKind.Decimal),
             });
 
-        internal static readonly ImmutableDictionary<DataKind, Type> s_reverseTypeMap = s_typeMap.ToImmutableDictionary(kv => kv.Value, kv => kv.Key);
+        internal static readonly ImmutableDictionary<EncodingKind, Type> s_reverseTypeMap = s_typeMap.ToImmutableDictionary(kv => kv.Value, kv => kv.Key);
 
         // byte marker for encoding compressed uint
         internal static readonly byte ByteMarkerMask = 3 << 6;
         internal static readonly byte Byte1Marker = 0;
         internal static readonly byte Byte2Marker = 1 << 6;
         internal static readonly byte Byte4Marker = 2 << 6;
+
+        /// <summary>
+        /// The encoding prefix byte used when encoding <see cref="Variant"/> values.
+        /// </summary>
+        internal enum EncodingKind : byte
+        {
+            Null,
+            Type,
+            TypeRef,      // type ref id as 4 bytes 
+            TypeRef_B,    // type ref id as 1 byte
+            TypeRef_S,    // type ref id as 2 bytes
+            Object_W,     // IObjectWritable
+            ObjectRef,    // object ref id as 4 bytes
+            ObjectRef_B,  // object ref id as 1 byte
+            ObjectRef_S,  // object ref id as 2 bytes
+            StringUtf8,   // string in UTF8 encoding
+            StringUtf16,  // string in UTF16 encoding
+            StringRef,    // string ref id as 4-bytes
+            StringRef_B,  // string ref id as 1-byte
+            StringRef_S,  // string ref id as 2-bytes
+            Boolean_T,    // boolean true
+            Boolean_F,    // boolean false
+            Char,
+            Int8,
+            Int16,
+            Int32,        // int encoded as 4 bytes
+            Int32_B,      // int encoded as 1 byte
+            Int32_S,      // int encoded as 2 bytes
+            Int32_0,      // int 0
+            Int32_1,      // int 1
+            Int32_2,      // int 2
+            Int32_3,      // int 3,
+            Int32_4,      // int 4,
+            Int32_5,      // int 5,
+            Int32_6,      // int 6,
+            Int32_7,      // int 7,
+            Int32_8,      // int 8,
+            Int32_9,      // int 9,
+            Int32_10,     // int 10,
+            Int64,
+            UInt8,
+            UInt16,
+            UInt32,       // uint encoded as 4 bytes
+            UInt32_B,     // uint encoded as 1 byte
+            UInt32_S,     // uint encoded as 2 bytes
+            UInt32_0,     // uint 0
+            UInt32_1,     // uint 1
+            UInt32_2,     // uint 2
+            UInt32_3,     // uint 3,
+            UInt32_4,     // uint 4,
+            UInt32_5,     // uint 5,
+            UInt32_6,     // uint 6,
+            UInt32_7,     // uint 7,
+            UInt32_8,     // uint 8,
+            UInt32_9,     // uint 9,
+            UInt32_10,    // uint 10,
+            UInt64,
+            Float4,
+            Float8,
+            Decimal,
+            DateTime,
+            Enum,
+
+            Array,      // array with # elements encoded as compressed int
+            Array_0,    // array with zero elements
+            Array_1,    // array with one element
+            Array_2,    // array with two elements
+            Array_3,    // array with three elements
+
+            ValueArray,     // value array with # elements encoded as a compressed int
+            ValueArray_0,
+            ValueArray_1,
+            ValueArray_2,
+            ValueArray_3,
+
+            BooleanType,    // boolean type marker
+            StringType      // string type marker
+        }
+
+        internal enum VariantKind
+        {
+            None = 0,
+            Null,
+            Boolean,
+            SByte,
+            Byte,
+            Int16,
+            UInt16,
+            Int32,
+            UInt32,
+            Int64,
+            UInt64,
+            Decimal,
+            Float4,
+            Float8,
+            Char,
+            String,
+            DateTime,
+            Object,
+            BoxedEnum,
+            Array,
+            Type
+        }
+
+        internal struct Variant
+        {
+            public readonly VariantKind Kind;
+            private readonly decimal _image;
+            private readonly object _instance;
+
+            private Variant(VariantKind kind, decimal image, object instance = null)
+            {
+                Kind = kind;
+                _image = image;
+                _instance = instance;
+            }
+
+            public static readonly Variant None = new Variant(VariantKind.None, image: 0, instance: null);
+            public static readonly Variant Null = new Variant(VariantKind.Null, image: 0, instance: null);
+
+            public static Variant FromBoolean(bool value)
+            {
+                return new Variant(VariantKind.Boolean, value ? 1 : 0);
+            }
+
+            public static Variant FromSByte(sbyte value)
+            {
+                return new Variant(VariantKind.SByte, value);
+            }
+
+            public static Variant FromByte(byte value)
+            {
+                return new Variant(VariantKind.Byte, value);
+            }
+
+            public static Variant FromInt16(short value)
+            {
+                return new Variant(VariantKind.Int16, value);
+            }
+
+            public static Variant FromUInt16(ushort value)
+            {
+                return new Variant(VariantKind.UInt16, value);
+            }
+
+            public static Variant FromInt32(int value)
+            {
+                return new Variant(VariantKind.Int32, value);
+            }
+
+            public static Variant FromInt64(long value)
+            {
+                return new Variant(VariantKind.Int64, value);
+            }
+
+            public static Variant FromUInt32(uint value)
+            {
+                return new Variant(VariantKind.UInt32, value);
+            }
+
+            public static Variant FromUInt64(ulong value)
+            {
+                return new Variant(VariantKind.UInt64, value);
+            }
+
+            public static Variant FromSingle(float value)
+            {
+                return new Variant(VariantKind.Float4, BitConverter.DoubleToInt64Bits(value));
+            }
+
+            public static Variant FromDouble(double value)
+            {
+                return new Variant(VariantKind.Float8, BitConverter.DoubleToInt64Bits(value));
+            }
+
+            public static Variant FromChar(char value)
+            {
+                return new Variant(VariantKind.Char, value);
+            }
+
+            public static Variant FromString(string value)
+            {
+                return new Variant(VariantKind.String, image: 0, instance: value);
+            }
+
+            public static Variant FromDateTime(DateTime value)
+            {
+                return new Variant(VariantKind.DateTime, value.ToBinary());
+            }
+
+            public static Variant FromDecimal(Decimal value)
+            {
+                return new Variant(VariantKind.Decimal, value);
+            }
+
+            public static Variant FromBoxedEnum(object value)
+            {
+                return new Variant(VariantKind.BoxedEnum, image: 0, instance: value);
+            }
+
+            public static Variant FromType(Type value)
+            {
+                return new Variant(VariantKind.Type, image: 0, instance: value);
+            }
+
+            public static Variant FromArray(Array array)
+            {
+                return new Variant(VariantKind.Array, image: 0, instance: array);
+            }
+
+            public static Variant FromObject(object value)
+            {
+                return new Variant(VariantKind.Object, image: 0, instance: value);
+            }
+
+            public bool AsBoolean()
+            {
+                Debug.Assert(Kind == VariantKind.Boolean);
+                return _image != 0;
+            }
+
+            public sbyte AsSByte()
+            {
+                Debug.Assert(Kind == VariantKind.SByte);
+                return (sbyte)_image;
+            }
+
+            public byte AsByte()
+            {
+                Debug.Assert(Kind == VariantKind.Byte);
+                return (byte)_image;
+            }
+
+            public short AsInt16()
+            {
+                Debug.Assert(Kind == VariantKind.Int16);
+                return (short)_image;
+            }
+
+            public ushort AsUInt16()
+            {
+                Debug.Assert(Kind == VariantKind.UInt16);
+                return (ushort)_image;
+            }
+
+            public int AsInt32()
+            {
+                Debug.Assert(Kind == VariantKind.Int32);
+                return (int)_image;
+            }
+
+            public uint AsUInt32()
+            {
+                Debug.Assert(Kind == VariantKind.UInt32);
+                return (uint)_image;
+            }
+
+            public long AsInt64()
+            {
+                Debug.Assert(Kind == VariantKind.Int64);
+                return (long)_image;
+            }
+
+            public ulong AsUInt64()
+            {
+                Debug.Assert(Kind == VariantKind.UInt64);
+                return (ulong)_image;
+            }
+
+            public decimal AsDecimal()
+            {
+                Debug.Assert(Kind == VariantKind.Decimal);
+                return _image;
+            }
+
+            public float AsSingle()
+            {
+                Debug.Assert(Kind == VariantKind.Float4);
+                return (float)BitConverter.Int64BitsToDouble((long)_image);
+            }
+
+            public double AsDouble()
+            {
+                Debug.Assert(Kind == VariantKind.Float8);
+                return BitConverter.Int64BitsToDouble((long)_image);
+            }
+
+            public char AsChar()
+            {
+                Debug.Assert(Kind == VariantKind.Char);
+                return (char)_image;
+            }
+
+            public string AsString()
+            {
+                Debug.Assert(Kind == VariantKind.String);
+                return (string)_instance;
+            }
+
+            public DateTime AsDateTime()
+            {
+                Debug.Assert(Kind == VariantKind.DateTime);
+                return DateTime.FromBinary((long)_image);
+            }
+
+            public object AsObject()
+            {
+                Debug.Assert(Kind == VariantKind.Object);
+                return _instance;
+            }
+
+            public object AsBoxedEnum()
+            {
+                Debug.Assert(Kind == VariantKind.BoxedEnum);
+                return _instance;
+            }
+
+            public Type AsType()
+            {
+                Debug.Assert(Kind == VariantKind.Type);
+                return (Type)_instance;
+            }
+
+            public Array AsArray()
+            {
+                Debug.Assert(Kind == VariantKind.Array);
+                return (Array)_instance;
+            }
+
+            public static Variant FromBoxedObject(object value)
+            {
+                if (value == null)
+                {
+                    return Variant.Null;
+                }
+                else
+                {
+                    var type = value.GetType();
+                    var typeInfo = type.GetTypeInfo();
+
+                    if (typeInfo.IsEnum)
+                    {
+                        return FromBoxedEnum(value);
+                    }
+                    else if (type == typeof(bool))
+                    {
+                        return FromBoolean((bool)value);
+                    }
+                    else if (type == typeof(int))
+                    {
+                        return FromInt32((int)value);
+                    }
+                    else if (type == typeof(string))
+                    {
+                        return FromString((string)value);
+                    }
+                    else if (type == typeof(short))
+                    {
+                        return FromInt16((short)value);
+                    }
+                    else if (type == typeof(long))
+                    {
+                        return FromInt64((long)value);
+                    }
+                    else if (type == typeof(char))
+                    {
+                        return FromChar((char)value);
+                    }
+                    else if (type == typeof(sbyte))
+                    {
+                        return FromSByte((sbyte)value);
+                    }
+                    else if (type == typeof(byte))
+                    {
+                        return FromByte((byte)value);
+                    }
+                    else if (type == typeof(ushort))
+                    {
+                        return FromUInt16((ushort)value);
+                    }
+                    else if (type == typeof(uint))
+                    {
+                        return FromUInt32((uint)value);
+                    }
+                    else if (type == typeof(ulong))
+                    {
+                        return FromUInt64((ulong)value);
+                    }
+                    else if (type == typeof(decimal))
+                    {
+                        return FromDecimal((decimal)value);
+                    }
+                    else if (type == typeof(float))
+                    {
+                        return FromSingle((float)value);
+                    }
+                    else if (type == typeof(double))
+                    {
+                        return FromDouble((double)value);
+                    }
+                    else if (type == typeof(DateTime))
+                    {
+                        return FromDateTime((DateTime)value);
+                    }
+                    else if (type.IsArray)
+                    {
+                        var instance = (Array)value;
+
+                        if (instance.Rank > 1)
+                        {
+#if COMPILERCORE
+                            throw new InvalidOperationException(CodeAnalysisResources.ArraysWithMoreThanOneDimensionCannotBeSerialized);
+#else
+                            throw new InvalidOperationException(WorkspacesResources.Arrays_with_more_than_one_dimension_cannot_be_serialized);
+#endif
+                        }
+
+                        return Variant.FromArray(instance);
+                    }
+                    else if (value is Type)
+                    {
+                        return Variant.FromType((Type)value);
+                    }
+                    else
+                    {
+                        return Variant.FromObject(value);
+                    }
+                }
+            }
+
+            public object ToBoxedObject()
+            {
+                switch (this.Kind)
+                {
+                    case VariantKind.Array:
+                        return this.AsArray();
+                    case VariantKind.Boolean:
+                        return this.AsBoolean();
+                    case VariantKind.BoxedEnum:
+                        return this.AsBoxedEnum();
+                    case VariantKind.Byte:
+                        return this.AsByte();
+                    case VariantKind.Char:
+                        return this.AsChar();
+                    case VariantKind.DateTime:
+                        return this.AsDateTime();
+                    case VariantKind.Decimal:
+                        return this.AsDecimal();
+                    case VariantKind.Float4:
+                        return this.AsSingle();
+                    case VariantKind.Float8:
+                        return this.AsDouble();
+                    case VariantKind.Int16:
+                        return this.AsInt16();
+                    case VariantKind.Int32:
+                        return this.AsInt32();
+                    case VariantKind.Int64:
+                        return this.AsInt64();
+                    case VariantKind.Null:
+                        return null;
+                    case VariantKind.Object:
+                        return this.AsObject();
+                    case VariantKind.SByte:
+                        return this.AsSByte();
+                    case VariantKind.String:
+                        return this.AsString();
+                    case VariantKind.Type:
+                        return this.AsType();
+                    case VariantKind.UInt16:
+                        return this.AsUInt16();
+                    case VariantKind.UInt32:
+                        return this.AsUInt32();
+                    case VariantKind.UInt64:
+                        return this.AsUInt64();
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(this.Kind);
+                }
+            }
+        }
+
     }
 }

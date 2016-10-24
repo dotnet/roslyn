@@ -6,19 +6,31 @@ using System.Reflection;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A type that controls how types are found and objects are serialized.
+    /// A type that provides object and type encoding/decoding
     /// </summary>
     internal abstract class ObjectBinder
     {
+        /// <summary>
+        /// Gets the <see cref="Type"/> corresponding to the specified <see cref="TypeKey"/>.
+        /// </summary>
         public abstract Type GetType(TypeKey key);
 
+        /// <summary>
+        /// Gets the <see cref="TypeKey"/> for the specified <see cref="Type"/>.
+        /// </summary>
         public virtual TypeKey GetTypeKey(Type type)
         {
             return new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
         }
 
+        /// <summary>
+        /// Gets a function that reads an object of the specified type from an <see cref="ObjectReader"/>.
+        /// </summary>
         public abstract Func<ObjectReader, object> GetReader(Type type);
 
+        /// <summary>
+        /// Gets a function that writes an objects members to a <see cref="ObjectWriter"/>.
+        /// </summary>
         public virtual Action<ObjectWriter, object> GetWriter(object instance)
         {          
             if (instance is IObjectWritable)

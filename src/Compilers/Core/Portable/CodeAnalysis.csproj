@@ -47,13 +47,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
-    <Compile Include="Serialization\StreamObjectWriter.DataKind.cs" />
     <Compile Include="Serialization\ObjectData.cs" />
     <Compile Include="Serialization\StreamObjectReader.cs" />
     <Compile Include="Serialization\StreamObjectWriter.cs" />
     <Compile Include="Serialization\TypeKey.cs" />
-    <Compile Include="Serialization\StreamObjectWriter.VariantKind.cs" />
-    <Compile Include="Serialization\StreamObjectWriter.Variant.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />
@@ -562,9 +559,7 @@
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectReader.cs" />
-    <Compile Include="Serialization\StreamObjectReader.ReaderData.cs" />
     <Compile Include="Serialization\ObjectWriter.cs" />
-    <Compile Include="Serialization\StreamObjectWriter.WriterData.cs" />
     <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />

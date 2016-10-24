@@ -282,23 +282,8 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
       <Link>Serialization\StreamObjectReader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.ReaderData.cs">
-      <Link>Serialization\StreamObjectReader.ReaderData.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
       <Link>Serialization\StreamObjectWriter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.DataKind.cs">
-      <Link>Serialization\StreamObjectWriter.DataKind.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.Variant.cs">
-      <Link>Serialization\StreamObjectWriter.Variant.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.VariantKind.cs">
-      <Link>Serialization\StreamObjectWriter.VariantKind.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.WriterData.cs">
-      <Link>Serialization\StreamObjectWriter.WriterData.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\TypeKey.cs">
       <Link>Serialization\TypeKey.cs</Link>

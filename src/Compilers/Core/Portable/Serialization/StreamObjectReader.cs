@@ -4,13 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
-using Microsoft.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
-    using DataKind = StreamObjectWriter.DataKind;
+    using EncodingKind = StreamObjectWriter.EncodingKind;
     using Variant = StreamObjectWriter.Variant;
     using VariantKind = StreamObjectWriter.VariantKind;
 
@@ -19,13 +20,14 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed partial class StreamObjectReader : ObjectReader, IDisposable
     {
-        private readonly BinaryReader _reader;
-        private readonly ReaderData _dataMap;
-        private readonly ObjectBinder _binder;
+        private readonly BinaryReader _reader;              // reads primitives from stream
+        private readonly ObjectBinder _binder;              // provides object and type decoding
         private readonly CancellationToken _cancellationToken;
-        private readonly Stack<Variant> _valueStack;
-        private readonly Stack<Consumer> _consumerStack;
-        private readonly VariantReader _variantReader;
+
+        private readonly ReferenceMap _referenceMap;        // reference-id to object instance map
+        private readonly Stack<Variant> _valueStack;        // member/element values used by consumers (objects and arrays)
+        private readonly Stack<Consumer> _consumerStack;    // stack of consumers (objects and arrays needing values before they can be constructed)
+        private readonly VariantListReader _memberReader;   // used to provide member values when reading objects
 
         public StreamObjectReader(
             Stream stream,
@@ -38,17 +40,17 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
-            _dataMap = ReaderData.Create(data);
+            _referenceMap = ReferenceMap.Create(data);
             _binder = binder;
             _cancellationToken = cancellationToken;
             _valueStack = new Stack<Variant>();
             _consumerStack = new Stack<Consumer>();
-            _variantReader = new VariantReader();
+            _memberReader = new VariantListReader();
         }
 
         public void Dispose()
         {
-            _dataMap.Dispose();
+            _referenceMap.Dispose();
         }
 
         public override bool ReadBoolean()
@@ -63,7 +65,7 @@ namespace Roslyn.Utilities
 
         public override char ReadChar()
         {
-            // read as ushort because writer fails on chars that are unicode surrogates
+            // read as ushort because BinaryWriter fails on chars that are unicode surrogates
             return (char)_reader.ReadUInt16();
         }
 
@@ -194,117 +196,114 @@ namespace Roslyn.Utilities
 
         private Variant ReadVariant()
         {
-            var kind = (DataKind)_reader.ReadByte();
+            var kind = (EncodingKind)_reader.ReadByte();
             switch (kind)
             {
-                case DataKind.Null:
+                case EncodingKind.Null:
                     return Variant.Null;
-                case DataKind.Boolean_T:
+                case EncodingKind.Boolean_T:
                     return Variant.FromBoolean(true);
-                case DataKind.Boolean_F:
+                case EncodingKind.Boolean_F:
                     return Variant.FromBoolean(false);
-                case DataKind.Int8:
+                case EncodingKind.Int8:
                     return Variant.FromSByte(_reader.ReadSByte());
-                case DataKind.UInt8:
+                case EncodingKind.UInt8:
                     return Variant.FromByte(_reader.ReadByte());
-                case DataKind.Int16:
+                case EncodingKind.Int16:
                     return Variant.FromInt16(_reader.ReadInt16());
-                case DataKind.UInt16:
+                case EncodingKind.UInt16:
                     return Variant.FromUInt16(_reader.ReadUInt16());
-                case DataKind.Int32:
+                case EncodingKind.Int32:
                     return Variant.FromInt32(_reader.ReadInt32());
-                case DataKind.Int32_B:
+                case EncodingKind.Int32_B:
                     return Variant.FromInt32((int)_reader.ReadByte());
-                case DataKind.Int32_S:
+                case EncodingKind.Int32_S:
                     return Variant.FromInt32((int)_reader.ReadUInt16());
-                case DataKind.Int32_0:
-                case DataKind.Int32_1:
-                case DataKind.Int32_2:
-                case DataKind.Int32_3:
-                case DataKind.Int32_4:
-                case DataKind.Int32_5:
-                case DataKind.Int32_6:
-                case DataKind.Int32_7:
-                case DataKind.Int32_8:
-                case DataKind.Int32_9:
-                case DataKind.Int32_10:
-                    return Variant.FromInt32((int)kind - (int)DataKind.Int32_0);
-                case DataKind.UInt32:
+                case EncodingKind.Int32_0:
+                case EncodingKind.Int32_1:
+                case EncodingKind.Int32_2:
+                case EncodingKind.Int32_3:
+                case EncodingKind.Int32_4:
+                case EncodingKind.Int32_5:
+                case EncodingKind.Int32_6:
+                case EncodingKind.Int32_7:
+                case EncodingKind.Int32_8:
+                case EncodingKind.Int32_9:
+                case EncodingKind.Int32_10:
+                    return Variant.FromInt32((int)kind - (int)EncodingKind.Int32_0);
+                case EncodingKind.UInt32:
                     return Variant.FromUInt32(_reader.ReadUInt32());
-                case DataKind.UInt32_B:
+                case EncodingKind.UInt32_B:
                     return Variant.FromUInt32((uint)_reader.ReadByte());
-                case DataKind.UInt32_S:
+                case EncodingKind.UInt32_S:
                     return Variant.FromUInt32((uint)_reader.ReadUInt16());
-                case DataKind.UInt32_0:
-                case DataKind.UInt32_1:
-                case DataKind.UInt32_2:
-                case DataKind.UInt32_3:
-                case DataKind.UInt32_4:
-                case DataKind.UInt32_5:
-                case DataKind.UInt32_6:
-                case DataKind.UInt32_7:
-                case DataKind.UInt32_8:
-                case DataKind.UInt32_9:
-                case DataKind.UInt32_10:
-                    return Variant.FromUInt32((uint)((int)kind - (int)DataKind.UInt32_0));
-                case DataKind.Int64:
+                case EncodingKind.UInt32_0:
+                case EncodingKind.UInt32_1:
+                case EncodingKind.UInt32_2:
+                case EncodingKind.UInt32_3:
+                case EncodingKind.UInt32_4:
+                case EncodingKind.UInt32_5:
+                case EncodingKind.UInt32_6:
+                case EncodingKind.UInt32_7:
+                case EncodingKind.UInt32_8:
+                case EncodingKind.UInt32_9:
+                case EncodingKind.UInt32_10:
+                    return Variant.FromUInt32((uint)((int)kind - (int)EncodingKind.UInt32_0));
+                case EncodingKind.Int64:
                     return Variant.FromInt64(_reader.ReadInt64());
-                case DataKind.UInt64:
+                case EncodingKind.UInt64:
                     return Variant.FromUInt64(_reader.ReadUInt64());
-                case DataKind.Float4:
+                case EncodingKind.Float4:
                     return Variant.FromSingle(_reader.ReadSingle());
-                case DataKind.Float8:
+                case EncodingKind.Float8:
                     return Variant.FromDouble(_reader.ReadDouble());
-                case DataKind.Decimal:
+                case EncodingKind.Decimal:
                     return Variant.FromDecimal(_reader.ReadDecimal());
-                case DataKind.DateTime:
+                case EncodingKind.DateTime:
                     return Variant.FromDateTime(DateTime.FromBinary(_reader.ReadInt64()));
-                case DataKind.Char:
-                    // read as ushort because writer fails on chars that are unicode surrogates
+                case EncodingKind.Char:
+                    // read as ushort because BinaryWriter fails on chars that are unicode surrogates
                     return Variant.FromChar((char)_reader.ReadUInt16());
-                case DataKind.StringUtf8:
-                case DataKind.StringUtf16:
-                case DataKind.StringRef:
-                case DataKind.StringRef_B:
-                case DataKind.StringRef_S:
+                case EncodingKind.StringUtf8:
+                case EncodingKind.StringUtf16:
+                case EncodingKind.StringRef:
+                case EncodingKind.StringRef_B:
+                case EncodingKind.StringRef_S:
                     return Variant.FromString(ReadStringValue(kind));
-                case DataKind.Object_W:
-                    return ReadReadableObject();
-                case DataKind.ObjectRef:
-                    return Variant.FromObject(_dataMap.GetValue(_reader.ReadInt32()));
-                case DataKind.ObjectRef_B:
-                    return Variant.FromObject(_dataMap.GetValue(_reader.ReadByte()));
-                case DataKind.ObjectRef_S:
-                    return Variant.FromObject(_dataMap.GetValue(_reader.ReadUInt16()));
-                case DataKind.Type:
-                case DataKind.TypeRef:
-                case DataKind.TypeRef_B:
-                case DataKind.TypeRef_S:
+                case EncodingKind.Object_W:
+                case EncodingKind.ObjectRef:
+                case EncodingKind.ObjectRef_B:
+                case EncodingKind.ObjectRef_S:
+                    return ReadObject(kind);
+                case EncodingKind.Type:
+                case EncodingKind.TypeRef:
+                case EncodingKind.TypeRef_B:
+                case EncodingKind.TypeRef_S:
                     return Variant.FromType(ReadType(kind));
-                case DataKind.Enum:
+                case EncodingKind.Enum:
                     return Variant.FromBoxedEnum(ReadBoxedEnum());
-                case DataKind.Array:
-                case DataKind.Array_0:
-                case DataKind.Array_1:
-                case DataKind.Array_2:
-                case DataKind.Array_3:
-                case DataKind.ValueArray:
-                case DataKind.ValueArray_0:
-                case DataKind.ValueArray_1:
-                case DataKind.ValueArray_2:
-                case DataKind.ValueArray_3:
+                case EncodingKind.Array:
+                case EncodingKind.Array_0:
+                case EncodingKind.Array_1:
+                case EncodingKind.Array_2:
+                case EncodingKind.Array_3:
+                case EncodingKind.ValueArray:
+                case EncodingKind.ValueArray_0:
+                case EncodingKind.ValueArray_1:
+                case EncodingKind.ValueArray_2:
+                case EncodingKind.ValueArray_3:
                     return ReadArray(kind);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
-        private class VariantReader : ObjectReader
+        private class VariantListReader : ObjectReader
         {
             private readonly List<Variant> _list;
             private int _index;
 
-            public VariantReader()
+            public VariantListReader()
             {
                 _list = new List<Variant>();
             }
@@ -413,6 +412,96 @@ namespace Roslyn.Utilities
             }
         }
 
+        private class ReferenceMap : IDisposable
+        {
+            internal static readonly ObjectPool<List<object>> ListPool =
+                new ObjectPool<List<object>>(() => new List<object>(128), 2);
+
+            private readonly ReferenceMap _baseData;
+            private readonly List<object> _values = ListPool.Allocate();
+            private readonly int _baseDataCount;
+
+            private ReferenceMap(ObjectData data)
+            {
+                if (data != null)
+                {
+                    foreach (var value in data.Objects)
+                    {
+                        _values.Add(value);
+                    }
+                }
+            }
+
+            private ReferenceMap(ReferenceMap baseData)
+            {
+                Debug.Assert(baseData?._baseData == null, "Should be <= 1 level deep");
+                _baseData = baseData;
+                _baseDataCount = baseData?._values.Count ?? 0;
+            }
+
+            public void Dispose()
+            {
+                _values.Clear();
+                ListPool.Free(_values);
+            }
+
+            public static ReferenceMap Create(ObjectData data = null)
+            {
+                if (data != null)
+                {
+                    return new ReferenceMap(GetBaseReaderData(data));
+                }
+                else
+                {
+                    return new ReferenceMap(data);
+                }
+            }
+
+            private static readonly ConditionalWeakTable<ObjectData, ReferenceMap> s_baseDataMap
+                = new ConditionalWeakTable<ObjectData, ReferenceMap>();
+
+            private static ReferenceMap GetBaseReaderData(ObjectData data)
+            {
+                ReferenceMap baseData;
+                if (!s_baseDataMap.TryGetValue(data, out baseData))
+                {
+                    baseData = s_baseDataMap.GetValue(data, _data => new ReferenceMap(_data));
+                }
+
+                return baseData;
+            }
+
+            public int GetNextReferenceId()
+            {
+                _values.Add(null);
+                return _baseDataCount + _values.Count - 1;
+            }
+
+            public void AddValue(int referenceId, object value)
+            {
+                _values[referenceId - _baseDataCount] = value;
+            }
+
+            public object GetValue(int referenceId)
+            {
+                if (_baseData != null)
+                {
+                    if (referenceId < _baseDataCount)
+                    {
+                        return _baseData.GetValue(referenceId);
+                    }
+                    else
+                    {
+                        return _values[referenceId - _baseDataCount];
+                    }
+                }
+                else
+                {
+                    return _values[referenceId];
+                }
+            }
+        }
+
         internal uint ReadCompressedUInt()
         {
             var info = _reader.ReadByte();
@@ -444,25 +533,25 @@ namespace Roslyn.Utilities
 
         private string ReadStringValue()
         {
-            var kind = (DataKind)_reader.ReadByte();
-            return kind == DataKind.Null ? null : ReadStringValue(kind);
+            var kind = (EncodingKind)_reader.ReadByte();
+            return kind == EncodingKind.Null ? null : ReadStringValue(kind);
         }
 
-        private string ReadStringValue(DataKind kind)
+        private string ReadStringValue(EncodingKind kind)
         {
             switch (kind)
             {
-                case DataKind.StringRef_B:
-                    return (string)_dataMap.GetValue(_reader.ReadByte());
+                case EncodingKind.StringRef_B:
+                    return (string)_referenceMap.GetValue(_reader.ReadByte());
 
-                case DataKind.StringRef_S:
-                    return (string)_dataMap.GetValue(_reader.ReadUInt16());
+                case EncodingKind.StringRef_S:
+                    return (string)_referenceMap.GetValue(_reader.ReadUInt16());
 
-                case DataKind.StringRef:
-                    return (string)_dataMap.GetValue(_reader.ReadInt32());
+                case EncodingKind.StringRef:
+                    return (string)_referenceMap.GetValue(_reader.ReadInt32());
 
-                case DataKind.StringUtf16:
-                case DataKind.StringUtf8:
+                case EncodingKind.StringUtf16:
+                case EncodingKind.StringUtf8:
                     return ReadStringLiteral(kind);
 
                 default:
@@ -470,11 +559,11 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe string ReadStringLiteral(DataKind kind)
+        private unsafe string ReadStringLiteral(EncodingKind kind)
         {
-            int id = _dataMap.GetNextId();
+            int id = _referenceMap.GetNextReferenceId();
             string value;
-            if (kind == DataKind.StringUtf8)
+            if (kind == EncodingKind.StringUtf8)
             {
                 value = _reader.ReadString();
             }
@@ -489,29 +578,29 @@ namespace Roslyn.Utilities
                 }
             }
 
-            _dataMap.AddValue(id, value);
+            _referenceMap.AddValue(id, value);
             return value;
         }
 
-        private Variant ReadArray(DataKind kind)
+        private Variant ReadArray(EncodingKind kind)
         {
             int length;
             switch (kind)
             {
-                case DataKind.Array_0:
-                case DataKind.ValueArray_0:
+                case EncodingKind.Array_0:
+                case EncodingKind.ValueArray_0:
                     length = 0;
                     break;
-                case DataKind.Array_1:
-                case DataKind.ValueArray_1:
+                case EncodingKind.Array_1:
+                case EncodingKind.ValueArray_1:
                     length = 1;
                     break;
-                case DataKind.Array_2:
-                case DataKind.ValueArray_2:
+                case EncodingKind.Array_2:
+                case EncodingKind.ValueArray_2:
                     length = 2;
                     break;
-                case DataKind.Array_3:
-                case DataKind.ValueArray_3:
+                case EncodingKind.Array_3:
+                case EncodingKind.ValueArray_3:
                     length = 3;
                     break;
                 default:
@@ -519,7 +608,7 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            var elementKind = (DataKind)_reader.ReadByte();
+            var elementKind = (EncodingKind)_reader.ReadByte();
 
             // optimization for primitive type array
             Type elementType;
@@ -556,7 +645,7 @@ namespace Roslyn.Utilities
             return Variant.FromArray(array);
         }
 
-        private Array ReadPrimitiveTypeArrayElements(Type type, DataKind kind, int length)
+        private Array ReadPrimitiveTypeArrayElements(Type type, EncodingKind kind, int length)
         {
             Debug.Assert(StreamObjectWriter.s_reverseTypeMap[kind] == type);
 
@@ -586,25 +675,25 @@ namespace Roslyn.Utilities
             // otherwise, read elements directly from underlying binary writer
             switch (kind)
             {
-                case DataKind.Int8:
+                case EncodingKind.Int8:
                     return ReadInt8ArrayElements(CreateArray<sbyte>(length));
-                case DataKind.Int16:
+                case EncodingKind.Int16:
                     return ReadInt16ArrayElements(CreateArray<short>(length));
-                case DataKind.Int32:
+                case EncodingKind.Int32:
                     return ReadInt32ArrayElements(CreateArray<int>(length));
-                case DataKind.Int64:
+                case EncodingKind.Int64:
                     return ReadInt64ArrayElements(CreateArray<long>(length));
-                case DataKind.UInt16:
+                case EncodingKind.UInt16:
                     return ReadUInt16ArrayElements(CreateArray<ushort>(length));
-                case DataKind.UInt32:
+                case EncodingKind.UInt32:
                     return ReadUInt32ArrayElements(CreateArray<uint>(length));
-                case DataKind.UInt64:
+                case EncodingKind.UInt64:
                     return ReadUInt64ArrayElements(CreateArray<ulong>(length));
-                case DataKind.Float4:
+                case EncodingKind.Float4:
                     return ReadFloat4ArrayElements(CreateArray<float>(length));
-                case DataKind.Float8:
+                case EncodingKind.Float8:
                     return ReadFloat8ArrayElements(CreateArray<double>(length));
-                case DataKind.Decimal:
+                case EncodingKind.Decimal:
                     return ReadDecimalArrayElements(CreateArray<decimal>(length));
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -759,25 +848,25 @@ namespace Roslyn.Utilities
 
         private Type ReadType()
         {
-            var kind = (DataKind)_reader.ReadByte();
+            var kind = (EncodingKind)_reader.ReadByte();
             return ReadType(kind);
         }
 
-        private Type ReadType(DataKind kind)
+        private Type ReadType(EncodingKind kind)
         {
             switch (kind)
             {
-                case DataKind.TypeRef_B:
-                    return (Type)_dataMap.GetValue(_reader.ReadByte());
+                case EncodingKind.TypeRef_B:
+                    return (Type)_referenceMap.GetValue(_reader.ReadByte());
 
-                case DataKind.TypeRef_S:
-                    return (Type)_dataMap.GetValue(_reader.ReadUInt16());
+                case EncodingKind.TypeRef_S:
+                    return (Type)_referenceMap.GetValue(_reader.ReadUInt16());
 
-                case DataKind.TypeRef:
-                    return (Type)_dataMap.GetValue(_reader.ReadInt32());
+                case EncodingKind.TypeRef:
+                    return (Type)_referenceMap.GetValue(_reader.ReadInt32());
 
-                case DataKind.Type:
-                    int id = _dataMap.GetNextId();
+                case EncodingKind.Type:
+                    int id = _referenceMap.GetNextReferenceId();
                     var assemblyName = this.ReadStringValue();
                     var typeName = this.ReadStringValue();
 
@@ -787,7 +876,7 @@ namespace Roslyn.Utilities
                     }
 
                     var type = _binder.GetType(new TypeKey(assemblyName, typeName));
-                    _dataMap.AddValue(id, type);
+                    _referenceMap.AddValue(id, type);
                     return type;
 
                 default:
@@ -843,57 +932,71 @@ namespace Roslyn.Utilities
             throw ExceptionUtilities.UnexpectedValue(enumType);
         }
 
-        private Variant ReadReadableObject()
+        private Variant ReadObject(EncodingKind kind)
         {
-            int id = _dataMap.GetNextId();
-
-            Type type = this.ReadType();
-            uint memberCount = this.ReadCompressedUInt();
-
-            if (_binder == null)
+            switch (kind)
             {
-                throw NoBinderException(type.FullName);
-            }
+                case EncodingKind.ObjectRef:
+                    return Variant.FromObject(_referenceMap.GetValue(_reader.ReadInt32()));
+                case EncodingKind.ObjectRef_B:
+                    return Variant.FromObject(_referenceMap.GetValue(_reader.ReadByte()));
+                case EncodingKind.ObjectRef_S:
+                    return Variant.FromObject(_referenceMap.GetValue(_reader.ReadUInt16()));
 
-            var reader = _binder.GetReader(type);
-            if (reader == null)
-            {
-                throw NoReaderException(type.FullName);
-            }
+                case EncodingKind.Object_W:
+                    int id = _referenceMap.GetNextReferenceId();
 
-            if (memberCount == 0)
-            {
-                return ConstructObject(type, (int)memberCount, reader, id);
-            }
-            else
-            {
-                _consumerStack.Push(new Consumer(type, (int)memberCount, _valueStack.Count, reader, id));
-                return Variant.None;
+                    Type type = this.ReadType();
+                    uint memberCount = this.ReadCompressedUInt();
+
+                    if (_binder == null)
+                    {
+                        throw NoBinderException(type.FullName);
+                    }
+
+                    var reader = _binder.GetReader(type);
+                    if (reader == null)
+                    {
+                        throw NoReaderException(type.FullName);
+                    }
+
+                    if (memberCount == 0)
+                    {
+                        return ConstructObject(type, (int)memberCount, reader, id);
+                    }
+                    else
+                    {
+                        _consumerStack.Push(new Consumer(type, (int)memberCount, _valueStack.Count, reader, id));
+                        return Variant.None;
+                    }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
         private Variant ConstructObject(Type type, int memberCount, Func<ObjectReader, object> reader, int id)
         {
-            _variantReader.Reset();
+            _memberReader.Reset();
 
             // take members from the stack
             for (int i = 0; i < memberCount; i++)
             {
-                _variantReader.List.Add(_valueStack.Pop());
+                _memberReader.List.Add(_valueStack.Pop());
             }
 
             // reverse list so that first member to be read is first
-            _variantReader.List.Reverse();
+            _memberReader.List.Reverse();
 
             // invoke the deserialization constructor to create instance and read & assign members           
-            var instance = reader(_variantReader);
+            var instance = reader(_memberReader);
 
-            if (_variantReader.Position != memberCount)
+            if (_memberReader.Position != memberCount)
             {
-                throw new InvalidOperationException($"Deserialization constructor for '{type.Name}' was expected to read {memberCount} values, but read {_variantReader.Position} values instead.");
+                throw new InvalidOperationException($"Deserialization constructor for '{type.Name}' was expected to read {memberCount} values, but read {_memberReader.Position} values instead.");
             }
 
-            _dataMap.AddValue(id, instance);
+            _referenceMap.AddValue(id, instance);
 
             return Variant.FromObject(instance);
         }
