@@ -13,7 +13,7 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
-            var sourceDir = args[0];
+            var sourceDir = args[0].Trim('"');
             var configPath = Path.Combine(sourceDir, @"build\config\BuildBossData.json");
             var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configPath));
             var allGood = true;
