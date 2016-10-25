@@ -555,7 +555,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitEnumeration:// a value of enum type does not match a pattern of integral type
                 case ConversionKind.ExplicitNumeric:    // a value of type long does not match a pattern of type int
                 case ConversionKind.ImplicitNumeric:    // a value of type short does not match a pattern of type int
-                case ConversionKind.ImplicitTuple:      // distinct tuple types don't match
                 case ConversionKind.NoConversion:
                     return false;
 
@@ -564,9 +563,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Unboxing:           // a value of type object might match a pattern of type int
                     return null;
 
-                default:
-                    // other conversions don't apply (e.g. conversions from expression, user-defined) and should not arise
-                    throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
+                default: // other conversions do not apply (e.g. conversions from expression, user-defined, pointer conversions, tuple)
+                    return false;
             }
         }
     }
