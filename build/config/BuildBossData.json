@@ -1,0 +1,7 @@
+{
+    "exclude": [
+        "src\\Workspaces\\CoreTest\\TestFiles",
+        "src\\Setup\\Templates"
+    ]
+}
+

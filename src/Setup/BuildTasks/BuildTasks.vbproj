@@ -10,8 +10,6 @@
     <AssemblyName>Roslyn.Setup.BuildTasks</AssemblyName>
     <SignAssembly>false</SignAssembly>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>

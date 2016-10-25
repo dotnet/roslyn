@@ -12,7 +12,6 @@
     <RootNamespace>CSharpAnalyzers.Test</RootNamespace>
     <AssemblyName>CSharpAnalyzers.Test</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
