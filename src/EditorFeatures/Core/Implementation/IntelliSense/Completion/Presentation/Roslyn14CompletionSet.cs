@@ -69,52 +69,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             this.AssertIsForeground();
 
-            VSCompletion selectedCompletionItem = null;
-
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
             CompletionItemMap = CompletionItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
             FilterText = filterText;
             SuggestionModeItem = suggestionModeItem;
 
+            this.SetupFilters(completionItemFilters);
+
+            CreateCompletionListBuilder(selectedItem, suggestionModeItem, suggestionMode);
+            CreateNormalCompletionListItems(completionItems);
+
+            var selectedCompletionItem = GetVSCompletion(selectedItem);
+            VsCompletionSet.SelectionStatus = new CompletionSelectionStatus(
+                selectedCompletionItem, 
+                isSelected: !isSoftSelected, isUnique: selectedCompletionItem != null);
+        }
+
+        private void CreateCompletionListBuilder(
+            CompletionItem selectedItem, 
+            CompletionItem suggestionModeItem, 
+            bool suggestionMode)
+        {
             try
             {
                 VsCompletionSet.WritableCompletionBuilders.BeginBulkOperation();
                 VsCompletionSet.WritableCompletionBuilders.Clear();
 
-                this.SetupFilters(completionItemFilters);
-
-                var applicableToText = VsCompletionSet.ApplicableTo.GetText(
-                    VsCompletionSet.ApplicableTo.TextBuffer.CurrentSnapshot);
-
-                CompletionItem filteredSuggestionModeItem = null;
-                if (selectedItem != null)
+                if (suggestionMode)
                 {
-                    var completionItem = CompletionItem.Create(displayText: applicableToText);
-                    completionItem.Span = VsCompletionSet.ApplicableTo.GetSpan(
-                        VsCompletionSet.ApplicableTo.TextBuffer.CurrentSnapshot).Span.ToTextSpan();
+                    var applicableToText = VsCompletionSet.ApplicableTo.GetText(
+                        VsCompletionSet.ApplicableTo.TextBuffer.CurrentSnapshot);
 
-                    filteredSuggestionModeItem = completionItem;
-                }
-
-                var showBuilder = suggestionMode || suggestionModeItem != null;
-                var bestSuggestionModeItem = applicableToText.Length > 0 ? filteredSuggestionModeItem : suggestionModeItem ?? filteredSuggestionModeItem;
-
-                if (showBuilder && bestSuggestionModeItem != null)
-                {
-                    var suggestionModeCompletion = GetVSCompletion(bestSuggestionModeItem);
-                    VsCompletionSet.WritableCompletionBuilders.Add(suggestionModeCompletion);
-
-                    if (selectedItem != null && selectedItem == suggestionModeItem)
-                    {
-                        selectedCompletionItem = suggestionModeCompletion;
-                    }
+                    var text = applicableToText.Length > 0 ? applicableToText : suggestionModeItem.DisplayText;
+                    var vsCompletion = GetVSCompletion(suggestionModeItem, text);
+                    
+                    VsCompletionSet.WritableCompletionBuilders.Add(vsCompletion);
                 }
             }
             finally
             {
                 VsCompletionSet.WritableCompletionBuilders.EndBulkOperation();
             }
+        }
 
+        private void CreateNormalCompletionListItems(IList<CompletionItem> completionItems)
+        {
             try
             {
                 VsCompletionSet.WritableCompletions.BeginBulkOperation();
@@ -124,32 +123,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 {
                     var completionItem = GetVSCompletion(item);
                     VsCompletionSet.WritableCompletions.Add(completionItem);
-
-                    if (item == selectedItem)
-                    {
-                        selectedCompletionItem = completionItem;
-                    }
                 }
             }
             finally
             {
                 VsCompletionSet.WritableCompletions.EndBulkOperation();
             }
-
-            VsCompletionSet.SelectionStatus = new CompletionSelectionStatus(
-                selectedCompletionItem, isSelected: !isSoftSelected, isUnique: selectedCompletionItem != null);
         }
 
         protected virtual void SetupFilters(ImmutableArray<CompletionItemFilter> completionItemFilters)
         {
         }
 
-        private VSCompletion GetVSCompletion(CompletionItem item)
+        private VSCompletion GetVSCompletion(CompletionItem item, string displayText = null)
         {
             VSCompletion value;
             if (!CompletionItemMap.TryGetValue(item, out value))
             {
-                value = new CustomCommitCompletion(CompletionPresenterSession, item);
+                value = new CustomCommitCompletion(CompletionPresenterSession, item, displayText);
                 CompletionItemMap.Add(item, value);
             }
 
