@@ -165,13 +165,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return model;
                     }
 
-                    if (ItemIsFilteredOut(currentItem.Item, filterState))
+                    if (ItemIsFilteredOut(currentItem, filterState))
                     {
                         continue;
                     }
 
                     // Check if the item matches the filter text typed so far.
-                    var matchesFilterText = MatchesFilterText(helper, currentItem.Item, filterText, model.Trigger, filterReason, recentItems);
+                    var matchesFilterText = MatchesFilterText(helper, currentItem, filterText, model.Trigger, filterReason, recentItems);
 
                     if (matchesFilterText)
                     {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 var matchingCompletionItems = filterResults.Where(r => r.MatchedFilterText)
-                                                           .Select(t => t.PresentationItem.Item)
+                                                           .Select(t => t.CompletionItem)
                                                            .AsImmutable();
                 var chosenItems = service.FilterItems(
                     document, matchingCompletionItems, filterText);
@@ -252,12 +252,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var bestCompletionItem = GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
 
                 // If we don't have a best completion item yet, then pick the first item from the list.
-                var bestOrFirstCompletionItem = bestCompletionItem ?? filterResults.First().PresentationItem.Item;
-                var bestOrFirstPresentationItem = filterResults.Where(
-                    r => r.PresentationItem.Item == bestOrFirstCompletionItem).First().PresentationItem;
+                var bestOrFirstCompletionItem = bestCompletionItem ?? filterResults.First().CompletionItem;
 
                 var hardSelection = IsHardSelection(
-                    model, bestOrFirstPresentationItem, textSnapshot, helper, filterReason);
+                    model, bestOrFirstCompletionItem, textSnapshot, helper, filterReason);
 
                 // Determine if we should consider this item 'unique' or not.  A unique item
                 // will be automatically committed if the user hits the 'invoke completion' 
@@ -271,8 +269,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     matchingItemCount == 1 &&
                     filterText.Length > 0;
 
-                var result = model.WithFilteredItems(filterResults.Select(r => r.PresentationItem).AsImmutable())
-                                  .WithSelectedItem(bestOrFirstPresentationItem)
+                var result = model.WithFilteredItems(filterResults.Select(r => r.CompletionItem).AsImmutable())
+                                  .WithSelectedItem(bestOrFirstCompletionItem)
                                   .WithHardSelection(hardSelection)
                                   .WithIsUnique(isUnique);
 
@@ -322,12 +320,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // (which can happen if the user deletes down to a single character and we
                 // include everything), then we just soft select the first item.
 
-                var filteredItems = filterResults.Select(r => r.PresentationItem).AsImmutable();
+                var filteredItems = filterResults.Select(r => r.CompletionItem).AsImmutable();
                 model = model.WithFilteredItems(filteredItems);
 
                 if (bestFilterResult != null)
                 {
-                    return model.WithSelectedItem(bestFilterResult.Value.PresentationItem)
+                    return model.WithSelectedItem(bestFilterResult.Value.CompletionItem)
                                 .WithHardSelection(true)
                                 .WithIsUnique(matchCount == 1);
                 }
@@ -340,8 +338,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
             {
-                var item1 = result1.PresentationItem.Item;
-                var item2 = result2.PresentationItem.Item;
+                var item1 = result1.CompletionItem;
+                var item2 = result2.CompletionItem;
 
                 var prefixLength1 = item1.FilterText.GetCaseInsensitivePrefixLength(result1.FilterText);
                 var prefixLength2 = item2.FilterText.GetCaseInsensitivePrefixLength(result2.FilterText);
@@ -370,13 +368,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private struct FilterResult
             {
-                public readonly PresentationItem PresentationItem;
+                public readonly CompletionItem CompletionItem;
                 public readonly bool MatchedFilterText;
                 public readonly string FilterText;
 
-                public FilterResult(PresentationItem presentationItem, string filterText, bool matchedFilterText)
+                public FilterResult(CompletionItem completionItem, string filterText, bool matchedFilterText)
                 {
-                    PresentationItem = presentationItem;
+                    CompletionItem = completionItem;
                     MatchedFilterText = matchedFilterText;
                     FilterText = filterText;
                 }
@@ -402,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // If the user has turned on some filtering states, and we filtered down to 
                     // nothing, then we do want the UI to show that to them.  That way the user
                     // can turn off filters they don't want and get the right set of items.
-                    return model.WithFilteredItems(ImmutableArray<PresentationItem>.Empty)
+                    return model.WithFilteredItems(ImmutableArray<CompletionItem>.Empty)
                                 .WithFilterText("")
                                 .WithHardSelection(false)
                                 .WithIsUnique(false);
@@ -503,16 +501,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private bool IsHardSelection(
                 Model model,
-                PresentationItem bestFilterMatch,
+                CompletionItem bestFilterMatch,
                 ITextSnapshot textSnapshot,
                 CompletionHelper completionHelper,
                 CompletionFilterReason reason)
             {
-                if (model.SuggestionModeItem != null)
-                {
-                    return bestFilterMatch != null && bestFilterMatch.Item.DisplayText == model.SuggestionModeItem.Item.DisplayText;
-                }
-
                 if (bestFilterMatch == null || model.UseSuggestionMode)
                 {
                     return false;
@@ -529,11 +522,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 //
                 // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
                 // not want 'space' to commit this.
-                var viewSpan = model.GetViewBufferSpan(bestFilterMatch.Item.Span);
+                var viewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
                 var fullFilterText = model.GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint: null);
 
                 var trigger = model.Trigger;
-                var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch.Item, fullFilterText, trigger);
+                var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch, fullFilterText, trigger);
                 if (shouldSoftSelect)
                 {
                     return false;
@@ -541,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!MatchesFilterText(completionHelper, bestFilterMatch.Item, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
+                if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
                 {
                     return false;
                 }

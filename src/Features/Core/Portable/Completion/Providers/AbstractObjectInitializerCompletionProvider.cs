@@ -70,10 +70,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
