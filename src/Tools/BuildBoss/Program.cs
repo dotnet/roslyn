@@ -14,13 +14,13 @@ namespace BuildBoss
         internal static int Main(string[] args)
         {
             string sourcePath;
-            if (!ParseArgs(args, out sourcePath))
+            string configPath;
+            if (!ParseArgs(args, out sourcePath, out configPath))
             {
                 Usage();
                 return 1;
             }
 
-            var configPath = Path.Combine(sourcePath, @"build\config\BuildBossData.json");
             var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configPath));
             var allGood = true;
             var list = new List<string>();
@@ -90,21 +90,50 @@ namespace BuildBoss
             return false;
         }
 
-        private static bool ParseArgs(string[] args, out string sourcePath)
+        private static bool ParseArgs(string[] args, out string sourcePath, out string configPath)
         {
+            configPath = null;
+            sourcePath = null;
+
             if (args.Length != 1)
             {
-                sourcePath = null;
                 return false;
             }
 
-            sourcePath = args[0];
+            var i = 0;
+            while (i < args.Length)
+            {
+                var current = args[i];
+                if (current == "-config")
+                {
+                    if (i + 1 >= args.Length)
+                    {
+                        Console.WriteLine("The -config option requires a parameter");
+                        return false;
+                    }
+
+                    configPath = args[i + 1];
+                    i += 2;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (i + 1 != args.Length)
+            {
+                return false;
+            }
+
+            sourcePath = args[i];
+            configPath = configPath ?? Path.Combine(sourcePath, @"build\config\BuildBossData.json");
             return true;
         }
 
         private static void Usage()
         {
-            Console.WriteLine($"BuildBoss <source path>");
+            Console.WriteLine($"BuildBoss [-config <config path>] <source path>");
         }
     }
 }
