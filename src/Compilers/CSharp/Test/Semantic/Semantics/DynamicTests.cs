@@ -1137,25 +1137,28 @@ public unsafe class C
 
     static void M()
     {
-        var x = s1 ? d1 : s2;  
-        var y = s1 ? d2 : M;  
-        var z = s1 ? M : d2;  
-        var v = s1 ? ptr : d2;  
-        var w = s1 ? d2 : ptr;  
+        var x = s1 ? d1 : s2; // ok
+        var y = s1 ? d2 : M;
+        var z = s1 ? M : d2;
+        var v = s1 ? ptr : d2;
+        var w = s1 ? d2 : ptr;
     }
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (11,17): error CS0172: Type of conditional expression cannot be determined because 'dynamic[]' and 'object[]' implicitly convert to one another
-                Diagnostic(ErrorCode.ERR_AmbigQM, "s1 ? d1 : s2").WithArguments("dynamic[]", "object[]"),
-                // (12,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group"),
-                // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'dynamic'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? M : d2").WithArguments("method group", "dynamic"),
-                // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'void*' and 'dynamic'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? ptr : d2").WithArguments("void*", "dynamic"),
+                // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
+                //         var y = s1 ? d2 : M;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group").WithLocation(13, 17),
+                // (14,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'dynamic'
+                //         var z = s1 ? M : d2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? M : d2").WithArguments("method group", "dynamic").WithLocation(14, 17),
+                // (15,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'void*' and 'dynamic'
+                //         var v = s1 ? ptr : d2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? ptr : d2").WithArguments("void*", "dynamic").WithLocation(15, 17),
                 // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'void*'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*"));
+                //         var w = s1 ? d2 : ptr;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*").WithLocation(16, 17)
+                );
         }
 
         #endregion

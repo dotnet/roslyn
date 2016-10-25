@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Public Partial Class VisualBasicCompilation
+    Partial Public Class VisualBasicCompilation
 
         Private ReadOnly _wellKnownMemberSignatureComparer As New WellKnownMembersSignatureComparer(Me)
 
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Synthesizes a custom attribute. 
-        ''' Returns null if the <paramref name="constructor"/> symbol is missing,
+        ''' Returns Nothing if the <paramref name="constructor"/> symbol is missing,
         ''' or any of the members in <paramref name="namedArguments" /> are missing.
         ''' The attribute is synthesized only if present.
         ''' </summary>
@@ -361,7 +361,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If result Is Nothing Then
                     Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding:=True)
-                    result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
+
+                    If type.IsValueTupleType() Then
+                        result = New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Assembly.Modules(0), emittedName,
+                                       Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleTypeRefResolutionError1, t))
+                    Else
+                        result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
+                    End If
                 End If
 
                 If (Interlocked.CompareExchange(_lazyWellKnownTypes(index), result, Nothing) IsNot Nothing) Then
@@ -645,6 +651,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return MyBase.MatchTypeToTypeId(type, typeId)
+            End Function
+        End Class
+
+        Friend Function SynthesizeTupleNamesAttribute(type As TypeSymbol) As SynthesizedAttributeData
+            Debug.Assert(type IsNot Nothing)
+            Debug.Assert(type.ContainsTuple())
+
+            Dim stringType = GetSpecialType(SpecialType.System_String)
+            Debug.Assert(stringType IsNot Nothing)
+            Dim names As ImmutableArray(Of TypedConstant) = TupleNamesEncoder.Encode(type, stringType)
+
+            Debug.Assert(Not names.IsDefault, "should not need the attribute when no tuple names")
+
+            Dim stringArray = ArrayTypeSymbol.CreateSZArray(stringType, ImmutableArray(Of CustomModifier).Empty, stringType.ContainingAssembly)
+            Dim args = ImmutableArray.Create(New TypedConstant(stringArray, names))
+            Return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args)
+        End Function
+
+        Friend Class TupleNamesEncoder
+            Public Shared Function Encode(type As TypeSymbol) As ImmutableArray(Of String)
+                Dim namesBuilder = ArrayBuilder(Of String).GetInstance()
+
+                If Not TryGetNames(type, namesBuilder) Then
+                    namesBuilder.Free()
+                    Return Nothing
+                End If
+
+                Return namesBuilder.ToImmutableAndFree()
+            End Function
+
+            Public Shared Function Encode(type As TypeSymbol, stringType As TypeSymbol) As ImmutableArray(Of TypedConstant)
+                Dim namesBuilder = ArrayBuilder(Of String).GetInstance()
+
+                If Not TryGetNames(type, namesBuilder) Then
+                    namesBuilder.Free()
+                    Return Nothing
+                End If
+
+                Dim names = namesBuilder.SelectAsArray(Function(name, constantType)
+                                                           Return New TypedConstant(constantType, TypedConstantKind.Primitive, name)
+                                                       End Function,
+                                                       stringType)
+
+                namesBuilder.Free()
+                Return names
+            End Function
+
+            Friend Shared Function TryGetNames(type As TypeSymbol, namesBuilder As ArrayBuilder(Of String)) As Boolean
+                type.VisitType(Function(t As TypeSymbol, builder As ArrayBuilder(Of String)) AddNames(t, builder), namesBuilder)
+                Return namesBuilder.Any(Function(name) name IsNot Nothing)
+            End Function
+
+            Private Shared Function AddNames(type As TypeSymbol, namesBuilder As ArrayBuilder(Of String)) As Boolean
+                If type.IsTupleType Then
+                    If type.TupleElementNames.IsDefaultOrEmpty Then
+                        ' If none of the tuple elements have names, put
+                        ' null placeholders in.
+                        namesBuilder.AddMany(Nothing, type.TupleElementTypes.Length)
+                    Else
+                        namesBuilder.AddRange(type.TupleElementNames)
+                    End If
+                End If
+                ' Always recur into nested types
+                Return False
             End Function
         End Class
     End Class

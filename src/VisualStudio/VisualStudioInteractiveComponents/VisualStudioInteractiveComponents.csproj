@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -23,8 +21,16 @@
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
+      <Project>{737ff62c-f068-4317-84d0-bfb210c17a4e}</Project>
+      <Name>CSharpVisualStudioRepl</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>
@@ -35,13 +41,6 @@
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
       <Name>CSharpCodeAnalysis</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -95,16 +94,6 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
-      <Project>{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}</Project>
-      <Name>VisualStudioInteractiveWindow</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <Private>False</Private>
-      <IncludeOutputGroupsInVSIX>
-      </IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>
-      </IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
     <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
@@ -142,9 +131,45 @@
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
     <!-- Other interactive host process dependencies -->
+    <NuGetPackageToIncludeInVsix Include="System.AppContext" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
+    <NuGetPackageToIncludeInVsix Include="System.Console" />
+    <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Process" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.StackTrace" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
+    <NuGetPackageToIncludeInVsix Include="System.IO" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.DriveInfo" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Pipes" />
+    <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
+    <NuGetPackageToIncludeInVsix Include="System.Linq.Parallel" />
+    <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
+    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.InteropServices.RuntimeInformation" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.AccessControl" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Algorithms" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Encoding" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Primitives" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.X509Certificates" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Principal.Windows" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Thread" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -165,9 +190,7 @@
     <Compile Include="AssemblyRedirects.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
+    <Content Include="CSharpInteractivePackageRegistration.pkgdef" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

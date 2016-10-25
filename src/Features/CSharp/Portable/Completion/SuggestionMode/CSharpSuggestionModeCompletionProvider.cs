@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.lambda_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_lambda_declaration);
                 }
-                else if (IsAnonymousObjectCreation(token) || IsPossibleTupleExpression(token))
+                else if (IsAnonymousObjectCreation(token))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.member_name, CSharpFeaturesResources.Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation);
                 }
@@ -106,20 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return false;
         }
 
-        private bool IsPossibleTupleExpression(SyntaxToken token)
-        {
-            // first element in an autocompleted tuple will look like a parenthesized expression (foo )
-            // so we need to conservatively treat parenthesized expression as apotential tuple
-            if (token.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.ParenthesizedExpression))
-            {
-                // We'll show the builder after an open paren or comma, because that's where the
-                // user can start declaring new named parts. 
-                return token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken;
-            }
-
-            return false;
-        }
-
         private bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
         {
             // Typing a generic type parameter, the tree might look like a binary expression around the < token.
@@ -137,6 +123,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return token.Parent.Parent != null && token.Parent.Parent is ParenthesizedLambdaExpressionSyntax;
                 }
+            }
+
+            // A lambda that is being typed may be parsed as a tuple without names
+            // For example, "(a, b" could be the start of either a tuple or lambda
+            // But "(a: b, c" cannot be a lambda
+            if (token.SyntaxTree.IsPossibleTupleContext(token, position) && token.Parent.IsKind(SyntaxKind.TupleExpression) &&
+               !((TupleExpressionSyntax)token.Parent).HasNames())
+            {
+                position = token.Parent.SpanStart;
             }
 
             // Walk up a single level to allow for typing the beginning of a lambda:
@@ -157,9 +152,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
             // If we're an argument to a function with multiple overloads, 
             // open the builder if any overload takes a delegate at our argument position
-            var inferredTypes = typeInferrer.InferTypes(semanticModel, position, cancellationToken: cancellationToken);
+            var inferredTypeInfo = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);
 
-            return inferredTypes.Any(type => type.GetDelegateType(semanticModel.Compilation).IsDelegateType());
+            return inferredTypeInfo.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType());
+        }
+
+        private ITypeSymbol GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
+        {
+            ITypeSymbol typeSymbol = typeInferenceInfo.InferredType;
+            if (typeInferenceInfo.IsParams && typeInferenceInfo.InferredType.IsArrayType())
+            {
+                typeSymbol = ((IArrayTypeSymbol)typeInferenceInfo.InferredType).ElementType;
+            }
+
+            return typeSymbol.GetDelegateType(compilation);
         }
     }
 }

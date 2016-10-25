@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -53,10 +51,6 @@
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
@@ -98,6 +92,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests</AssemblyName>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -162,9 +157,11 @@
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameType.cs" />
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.cs" />
     <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.cs" />
+    <Compile Include="CodeLens\CSharpCodeLensTests.cs" />
     <Compile Include="Completion\CompletionServiceTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateConversionTests.cs" />
+    <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
     <Compile Include="CodeActions\MoveDeclarationNearReference\MoveDeclarationNearReferenceTests.cs" />
     <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
@@ -172,6 +169,9 @@
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
@@ -200,17 +200,19 @@
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
     <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
     <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
+    <Compile Include="Diagnostics\NamingStyles\NamingStylesTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
+    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
+    <Compile Include="DocumentationComments\CodeFixes\AddDocCommentNodesCodeFixProviderTests.cs" />
     <Compile Include="DocumentationComments\CodeFixes\RemoveDocCommentNodeCodeFixProviderTests.cs" />
     <Compile Include="GoToAdjacentMember\CSharpGoToAdjacentMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_ExtensionMethods.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_Queries.cs" />
-    <Compile Include="Diagnostics\Async\AddAsyncTests.cs" />
+    <Compile Include="Diagnostics\MakeMethodAsynchronous\MakeMethodAsynchronousTests.cs" />
     <Compile Include="Diagnostics\Async\AddAwaitTests.cs" />
     <Compile Include="Diagnostics\Async\ChangeToAsyncTests.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.cs" />
@@ -277,6 +279,12 @@
     <Compile Include="Formatting\Indentation\SmartIndenterTests_Performance.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatRangeTests.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests_FixAllTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests_FixAllTests.cs" />
     <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
     <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
     <Compile Include="Interactive\NavigateTo\InteractiveNavigateToTests.cs" />
@@ -305,47 +313,35 @@
     <Compile Include="Organizing\OrganizeModifiersTests.cs" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.cs" />
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
-    <Compile Include="Outlining\AbstractCSharpSyntaxNodeOutlinerTests.cs" />
-    <Compile Include="Outlining\AbstractCSharpSyntaxTriviaOutlinerTests.cs" />
-    <Compile Include="Outlining\AccessorDeclarationTests.cs" />
-    <Compile Include="Outlining\AnonymousMethodExpressionTests.cs" />
-    <Compile Include="Outlining\CommentTests.cs" />
-    <Compile Include="Outlining\CompilationUnitOutlinerTests.cs" />
-    <Compile Include="Outlining\ConstructorDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\ConversionOperatorDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\DelegateDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\DestructorDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\DisabledTextOutlinerTests.cs" />
-    <Compile Include="Outlining\DocumentationCommentOutlinerTests.cs" />
-    <Compile Include="Outlining\EnumDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\EventDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\EventFieldDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\FieldDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\IndexerDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\ConstructorDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\ConversionOperatorDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\DelegateDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\DestructorDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\EnumDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\EnumMemberDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\EventDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\EventFieldDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\FieldDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\IndexerDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\InvalidIdentifierTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\MethodDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\OperatorDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\PropertyDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\RegionDirectiveOutlinerTests.cs" />
-    <Compile Include="Outlining\MetadataAsSource\TypeDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\MethodDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\NamespaceDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\OperatorDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\ParenthesizedLambdaOutlinerTests.cs" />
-    <Compile Include="Outlining\PropertyDeclarationOutlinerTests.cs" />
-    <Compile Include="Outlining\RegionDirectiveOutlinerTests.cs" />
-    <Compile Include="Outlining\SimpleLambdaExpressionOutlinerTests.cs" />
-    <Compile Include="Outlining\TypeDeclarationOutlinerTests.cs" />
+    <Compile Include="Structure\BlockSyntaxStructureTests.cs" />
+    <Compile Include="Structure\SwitchStatementStructureTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForIndexerTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForPropertiesTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForConstructorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForConversionOperatorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForAccessorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForOperatorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsTests.cs" />
+    <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProviderTests.cs" />
+    <Compile Include="UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
+    <Compile Include="UseThrowExpression\UseThrowExpressionTests.cs" />
+    <Compile Include="Structure\AbstractCSharpSyntaxNodeStructureTests.cs" />
+    <Compile Include="Structure\AbstractCSharpSyntaxTriviaStructureTests.cs" />
+    <Compile Include="Structure\AccessorDeclarationStructureTests.cs" />
+    <Compile Include="Structure\AnonymousMethodExpressionStructureTests.cs" />
+    <Compile Include="Structure\CommentStructureTests.cs" />
+    <Compile Include="Structure\CompilationUnitStructureTests.cs" />
+    <Compile Include="Structure\ConstructorDeclarationStructureTests.cs" />
+    <Compile Include="Structure\ConversionOperatorDeclarationStructureTests.cs" />
+    <Compile Include="Structure\DelegateDeclarationStructureTests.cs" />
+    <Compile Include="Structure\DestructorDeclarationStructureTests.cs" />
+    <Compile Include="Structure\DisabledTextStructureTests.cs" />
+    <Compile Include="Structure\DocumentationCommentStructureTests.cs" />
+    <Compile Include="Structure\EnumDeclarationStructureTests.cs" />
+    <Compile Include="Structure\EventDeclarationStructureTests.cs" />
+    <Compile Include="Structure\EventFieldDeclarationStructureTests.cs" />
+    <Compile Include="Structure\FieldDeclarationStructureTests.cs" />
+    <Compile Include="Structure\IndexerDeclarationStructureTests.cs" />
     <Compile Include="PopulateSwitch\PopulateSwitchTests.cs" />
     <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.cs" />
@@ -361,14 +357,38 @@
     <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProviderTests.cs" />
     <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandlerTests.cs" />
     <Compile Include="Squiggles\ErrorSquiggleProducerTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\ConstructorDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\ConversionOperatorDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\DelegateDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\DestructorDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\EnumDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\EnumMemberDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\EventDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\EventFieldDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\FieldDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\IndexerDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\InvalidIdentifierStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\MethodDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\OperatorDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\PropertyDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\RegionDirectiveStructureTests.cs" />
+    <Compile Include="Structure\MetadataAsSource\TypeDeclarationStructureTests.cs" />
+    <Compile Include="Structure\MethodDeclarationStructureTests.cs" />
+    <Compile Include="Structure\NamespaceDeclarationStructureTests.cs" />
+    <Compile Include="Structure\OperatorDeclarationStructureTests.cs" />
+    <Compile Include="Structure\ParenthesizedLambdaStructureTests.cs" />
+    <Compile Include="Structure\PropertyDeclarationStructureTests.cs" />
+    <Compile Include="Structure\RegionDirectiveStructureTests.cs" />
+    <Compile Include="Structure\SimpleLambdaExpressionStructureTests.cs" />
+    <Compile Include="Structure\TypeDeclarationStructureTests.cs" />
     <Compile Include="SymbolId\SymbolKeyCompilationsTests.cs" />
     <Compile Include="SymbolId\SymbolKeyMetadataVsSourceTests.cs" />
     <Compile Include="SymbolId\SymbolKeyTestBase.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.cs" />
     <Compile Include="TodoComment\TodoCommentTests.cs" />
+    <Compile Include="UseObjectInitializer\UseObjectInitializerTests.cs" />
     <Compile Include="Utilities\CodeSnippets.cs" />
     <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
-    <Compile Include="Utilities\OptionExtensions.cs" />
     <Compile Include="Utilities\Options.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />
@@ -524,8 +544,6 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -13,6 +11,7 @@
     <AssemblyName>Roslyn.Services.Test.Utilities</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -31,6 +30,14 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
+      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
       <Name>TestUtilities.Desktop</Name>
@@ -39,13 +46,33 @@
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
       <Name>Workspaces</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
+      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
+      <Name>RemoteWorkspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
+      <Name>ServiceHub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
+      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
+      <Name>BasicWorkspace</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Core\EditorFeatures.csproj">
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Text\TextEditorFeatures.csproj">
+      <Project>{18f5fbb8-7570-4412-8cc7-0a86ff13b7ba}</Project>
+      <Name>TextEditorFeatures</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +88,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcClient.cs">
+      <Link>Remote\JsonRpcClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcSession.cs">
+      <Link>Remote\JsonRpcSession.cs</Link>
+    </Compile>
     <Compile Include="Async\AsynchronousOperationBlocker.cs" />
     <Compile Include="Async\Checkpoint.cs" />
     <Compile Include="Async\WaitHelper.cs" />
@@ -68,6 +101,13 @@
     <Compile Include="DispatcherExtensions.cs" />
     <Compile Include="DirectoryExtensions.cs" />
     <Compile Include="ExceptionUtilities.cs" />
+    <Compile Include="MinimalTestExportProvider.cs" />
+    <Compile Include="ServiceTestExportProvider.cs" />
+    <Compile Include="TestExtensionErrorHandler.cs" />
+    <Compile Include="TestOptionsServiceFactory.cs" />
+    <Compile Include="TestWaitIndicator.cs" />
+    <Compile Include="Remote\InProcRemostHostClient.cs" />
+    <Compile Include="TestWorkspaceName.cs" />
     <Compile Include="Threading\ConditionalWpfFactAttribute.cs" />
     <Compile Include="Threading\StaTaskScheduler.cs" />
     <Compile Include="Threading\WpfFactAttribute.cs" />
@@ -75,8 +115,14 @@
     <Compile Include="Threading\WpfTestCase.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="VisualStudioSendKeys.cs" />
+    <Compile Include="Workspaces\NoCompilationConstants.cs" />
+    <Compile Include="Workspaces\NoCompilationContentTypeDefinitions.cs" />
+    <Compile Include="Workspaces\NoCompilationContentTypeLanguageService.cs" />
+    <Compile Include="Workspaces\NoCompilationDocumentDiagnosticAnalyzer.cs" />
+    <Compile Include="Workspaces\NoCompilationLanguageServiceFactory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
@@ -94,13 +140,14 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <ItemGroup />
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

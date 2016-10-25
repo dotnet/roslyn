@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -239,6 +240,23 @@ namespace Roslyn.Utilities
 
             return hashCode;
         }
+
+#if WORKSPACE
+
+        internal static int GetCaseInsensitiveFNVHashCode(string text, int start, int length)
+        {
+            int hashCode = Hash.FnvOffsetBias;
+            int end = start + length;
+
+            for (int i = start; i < end; i++)
+            {
+                hashCode = unchecked((hashCode ^ CaseInsensitiveComparison.ToLower(text[i])) * Hash.FnvPrime);
+            }
+
+            return hashCode;
+        }
+
+#endif
 
         /// <summary>
         /// Compute the hashcode of a sub-string using FNV-1a

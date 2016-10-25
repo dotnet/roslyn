@@ -270,7 +270,8 @@ End Module"
 
         For Each version In {LanguageVersion.VisualBasic9, LanguageVersion.VisualBasic10,
                              LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12,
-                             LanguageVersion.VisualBasic14, VisualBasicParseOptions.Default.LanguageVersion}
+                             LanguageVersion.VisualBasic14, LanguageVersion.VisualBasic15,
+                             LanguageVersion.Default, LanguageVersion.Latest}
             ParseAndVerify(source, version, False, Nothing)
         Next
     End Sub
@@ -294,7 +295,8 @@ End Namespace"
                 Diagnostic(ERRID.ERR_LanguageVersion, "Global").WithArguments($"{CInt(version)}.0", "declaring a Global namespace").WithLocation(4, 11))
         Next
 
-        For Each version In {LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12, LanguageVersion.VisualBasic14, VisualBasicParseOptions.Default.LanguageVersion}
+        For Each version In {LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12, LanguageVersion.VisualBasic14, LanguageVersion.VisualBasic15,
+                             LanguageVersion.Default, LanguageVersion.Latest}
             ParseAndVerify(source, version, False, Nothing)
         Next
     End Sub
@@ -317,5 +319,41 @@ End Module
             Diagnostic(ERRID.ERR_LanguageVersion, "$""hello {x1}""").WithArguments("12.0", "interpolated strings").WithLocation(5, 18))
     End Sub
 
+    <Fact>
+    Public Sub TupleExpression()
+        Dim x = Nothing
+        ParseAndVerify(
+        <![CDATA[
+Module Module1
+    Function M() As String
+        Dim x1 = (1, 2)
+        Dim x2 = (A:=1, B:=2)
 
+        Return nothing
+    End Function
+End Module
+        ]]>.Value,
+            LanguageVersion.VisualBasic14,
+            Diagnostic(ERRID.ERR_LanguageVersion, "(1, 2)").WithArguments("14.0", "tuples").WithLocation(4, 18),
+            Diagnostic(ERRID.ERR_LanguageVersion, "(A:=1, B:=2)").WithArguments("14.0", "tuples").WithLocation(5, 18))
+    End Sub
+
+    <Fact>
+    Public Sub TupleType()
+        Dim x = Nothing
+        ParseAndVerify(
+        <![CDATA[
+Module Module1
+    Function M() As String
+        Dim x1 As (Integer, Integer) = Nothing
+        Dim x1 As (A As Integer, B As Integer) = Nothing
+
+        Return Nothing
+    End Function
+End Module
+        ]]>.Value,
+            LanguageVersion.VisualBasic14,
+            Diagnostic(ERRID.ERR_LanguageVersion, "(Integer, Integer)").WithArguments("14.0", "tuples").WithLocation(4, 19),
+            Diagnostic(ERRID.ERR_LanguageVersion, "(A As Integer, B As Integer)").WithArguments("14.0", "tuples").WithLocation(5, 19))
+    End Sub
 End Class

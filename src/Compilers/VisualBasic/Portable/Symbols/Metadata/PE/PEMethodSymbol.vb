@@ -502,13 +502,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         End Select
                     End If
 
-                    If potentialMethodKind = MethodKind.Conversion AndAlso Not outputType.IsSameTypeIgnoringCustomModifiers(contender.ReturnType) Then
+                    If potentialMethodKind = MethodKind.Conversion AndAlso Not outputType.IsSameTypeIgnoringAll(contender.ReturnType) Then
                         Continue For
                     End If
 
                     Dim j As Integer
                     For j = 0 To inputParams.Length - 1
-                        If Not inputParams(j).Type.IsSameTypeIgnoringCustomModifiers(contender.Parameters(j).Type) Then
+                        If Not inputParams(j).Type.IsSameTypeIgnoringAll(contender.Parameters(j).Type) Then
                             Exit For
                         End If
                     Next
@@ -1070,7 +1070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, AccessUncommonFields()._lazyDocComment)
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return Nothing
             End Get

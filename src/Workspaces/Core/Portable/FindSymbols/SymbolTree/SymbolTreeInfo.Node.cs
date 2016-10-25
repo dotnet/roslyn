@@ -1,52 +1,73 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
+        private const int RootNodeParentIndex = -1;
+
         /// <summary>
-        /// A node represents a single unique name in a dotted-name tree.
-        /// Uniqueness is always case sensitive.
+        /// <see cref="BuilderNode"/>s are produced when initially creating our indices.
+        /// They store Names of symbols and the index of their parent symbol.  When we
+        /// produce the final <see cref="SymbolTreeInfo"/> though we will then convert
+        /// these to <see cref="Node"/>s.  Those nodes will not point to individual 
+        /// strings, but will instead point at <see cref="_concatenatedNames"/>.
         /// </summary>
+        [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+        private struct BuilderNode
+        {
+            public readonly string Name;
+            public readonly int ParentIndex;
+
+            public BuilderNode(string name, int parentIndex)
+            {
+                Name = name;
+                ParentIndex = parentIndex;
+            }
+
+            public bool IsRoot => ParentIndex == RootNodeParentIndex;
+
+            private string GetDebuggerDisplay()
+            {
+                return Name + ", " + ParentIndex;
+            }
+        }
+
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct Node
         {
-            private readonly string _name;
-            private readonly int _parentIndex;
+            /// <summary>
+            /// Span in <see cref="_concatenatedNames"/> of the Name of this Node.
+            /// </summary>
+            public readonly TextSpan NameSpan;
 
-            public const int RootNodeParentIndex = -1;
+            /// <summary>
+            /// Index in <see cref="_nodes"/> of the parent Node of this Node.
+            /// Value will be <see cref="RootNodeParentIndex"/> if this is the 
+            /// Node corresponding to the root symbol.
+            /// </summary>
+            public readonly int ParentIndex;
 
-            public Node(string name, int parentIndex)
+            public Node(TextSpan wordSpan, int parentIndex)
             {
-                _name = name;
-                _parentIndex = parentIndex;
+                NameSpan = wordSpan;
+                ParentIndex = parentIndex;
             }
 
-            public string Name
-            {
-                get { return _name; }
-            }
+            public bool IsRoot => ParentIndex == RootNodeParentIndex;
 
-            public int ParentIndex
+            public void AssertEquivalentTo(Node node)
             {
-                get { return _parentIndex; }
-            }
-
-            public bool IsRoot
-            {
-                get { return _parentIndex == RootNodeParentIndex; }
-            }
-
-            public bool IsEquivalent(Node node)
-            {
-                return (node.Name == this.Name) && (node.ParentIndex == this.ParentIndex);
+                Debug.Assert(node.NameSpan == this.NameSpan);
+                Debug.Assert(node.ParentIndex == this.ParentIndex);
             }
 
             private string GetDebuggerDisplay()
             {
-                return _name + ", " + _parentIndex;
+                return NameSpan + ", " + ParentIndex;
             }
         }
     }

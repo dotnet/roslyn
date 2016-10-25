@@ -487,9 +487,11 @@ class C
     static void h<T>(Func<Task<T>> lambda) { }
     static void h<T>(Func<MyTask<T>> lambda) { }
 }
-public class MyTask<T> {  public static MyTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+[AsyncMethodBuilder(typeof(MyTaskBuilder<>))]
+public class MyTask<T> { }
 public class MyTaskBuilder<T>
 {
+    public static MyTaskBuilder<T> Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult(T result) { }
@@ -498,6 +500,8 @@ public class MyTaskBuilder<T>
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
@@ -518,9 +522,11 @@ class C
     static void k<T>(Func<YourTask<T>> lambda) { }
     static void k<T>(Func<MyTask<T>> lambda) { }
 }
-public class MyTask<T> {  public static MyTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+[AsyncMethodBuilder(typeof(MyTaskBuilder<>))]
+public class MyTask<T> { }
 public class MyTaskBuilder<T>
 {
+    public static MyTaskBuilder<T> Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult(T result) { }
@@ -530,9 +536,11 @@ public class MyTaskBuilder<T>
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-public class YourTask<T> {  public static YourTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+[AsyncMethodBuilder(typeof(YourTask<>))]
+public class YourTask<T> { }
 public class YourTaskBuilder<T>
 {
+    public static YourTaskBuilder<T> Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult(T result) { }
@@ -541,6 +549,8 @@ public class YourTaskBuilder<T>
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
@@ -553,7 +563,9 @@ public class YourTaskBuilder<T>
         public void NormalizeTaskTypes()
         {
             string source =
-@"class A<T>
+@"
+using System.Runtime.CompilerServices;
+class A<T>
 {
     internal struct B<U> { }
 }
@@ -567,49 +579,322 @@ unsafe class C<T, U>
     static int* F4;
 #pragma warning restore CS0169
 }
-struct MyTask
-{
-    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
-}
-struct MyTask<T>
-{
-    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
-}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
 struct MyTaskMethodBuilder
 {
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
 }
 struct MyTaskMethodBuilder<T>
 {
-}";
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask", type.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task", normalized.ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<T>", type.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task<T>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<T>", normalized.ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F2").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<MyTask, MyTask[]>[,]", type.ToTestDisplayString());
-            Assert.Equal("C<System.Threading.Tasks.Task, System.Threading.Tasks.Task[]>[,]", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("C<System.Threading.Tasks.Task, System.Threading.Tasks.Task[]>[,]", normalized.ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F3").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("A<MyTask<MyTask>>.B<C<System.Int32, MyTask>>", type.ToTestDisplayString());
-            Assert.Equal("A<System.Threading.Tasks.Task<System.Threading.Tasks.Task>>.B<C<System.Int32, System.Threading.Tasks.Task>>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("A<System.Threading.Tasks.Task<System.Threading.Tasks.Task>>.B<C<System.Int32, System.Threading.Tasks.Task>>", normalized.ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F4").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("System.Int32*", type.ToTestDisplayString());
-            Assert.Equal("System.Int32*", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("System.Int32*", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Tuples()
+        {
+            string source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C<T, U>
+{
+#pragma warning disable CS0169
+    static MyTask<ValueTuple<MyTask, T>> F0;
+    static ((MyTask a, T b) c, MyTask<(U, MyTask<T>)[]> d) F1;
+    static Task<(Task, object)[]> F2;
+    static (MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>) F3;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+}
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+    }
+    struct ValueTuple<T1, T2, T3>
+    {
+    }
+    struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>
+    {
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] names) { }
+    }
+
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<(MyTask, T)>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<(System.Threading.Tasks.Task, T)>", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("((MyTask a, T b) c, MyTask<(U, MyTask<T>)[]> d)", type.ToTestDisplayString());
+            Assert.Equal("((System.Threading.Tasks.Task a, T b) c, System.Threading.Tasks.Task<(U, System.Threading.Tasks.Task<T>)[]> d)", normalized.ToTestDisplayString());
+
+            // No changes.
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("System.Threading.Tasks.Task<(System.Threading.Tasks.Task, System.Object)[]>", type.ToTestDisplayString());
+            Assert.Same(type, normalized);
+
+            // Nested System.ValueTuple<>.
+            type = compilation.GetMember<FieldSymbol>("C.F3").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("(MyTask, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, MyTask<T>)", type.ToTestDisplayString());
+            Assert.Equal("(System.Threading.Tasks.Task, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.Threading.Tasks.Task<T>)", normalized.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.UInt32, System.Int64, MyTask<T>>", GetUnderlyingTupleTypeRest(type).ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.UInt32, System.Int64, System.Threading.Tasks.Task<T>>", GetUnderlyingTupleTypeRest(normalized).ToTestDisplayString());
+        }
+
+        // Return the underlying type of the most-nested part of the TupleTypeSymbol.
+        private static NamedTypeSymbol GetUnderlyingTupleTypeRest(TypeSymbol type)
+        {
+            while (type.IsTupleType)
+            {
+                var underlyingType = type.TupleUnderlyingType;
+                var typeArgs = underlyingType.TypeArguments;
+                if (typeArgs.Length < 8)
+                {
+                    return underlyingType;
+                }
+                type = typeArgs[7];
+            }
+            return null;
+        }
+
+        // Preserve type argument custom modifiers.
+        [WorkItem(592, "https://github.com/dotnet/roslyn/issues/12615")]
+        [Fact]
+        public void NormalizeTaskTypes_TypeArgumentCustomModifiers()
+        {
+            var ilSource =
+@".class public C
+{
+  .field public static class MyTask`1<class MyTask modopt(class MyTask`1<object>)> F0
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask`1<T>
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder`1) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder`1<T>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncMethodBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
+}
+";
+            var source =
+@"";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<MyTask modopt(MyTask<System.Object>)>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<System.Threading.Tasks.Task modopt(MyTask<System.Object>)>", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Pointers()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+unsafe class C<T>
+{
+#pragma warning disable CS0169
+    static C<MyTask<int>>* F0;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            compilation.VerifyDiagnostics(
+                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
+                //     static C<MyTask<int>>* F0;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C<MyTask<int>>*").WithArguments("C<MyTask<int>>").WithLocation(6, 12));
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("C<MyTask<System.Int32>>*", type.ToTestDisplayString());
+            Assert.Equal("C<System.Threading.Tasks.Task<System.Int32>>*", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_PointersCustomModifiers()
+        {
+            var ilSource =
+@".class public C
+{
+  .field public static class MyTask modopt(class MyTask) *[] F0
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncMethodBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
+}
+";
+            var source =
+@"";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask modopt(MyTask) *[]", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task modopt(MyTask) *[]", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Errors()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+class C
+{
+#pragma warning disable CS0169
+    static A<int, MyTask> F0;
+    static MyTask<B> F1;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+}
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics(
+                // (5,19): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //     static MyTask<B> F1;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 19),
+                // (4,12): error CS0246: The type or namespace name 'A<,>' could not be found (are you missing a using directive or an assembly reference?)
+                //     static A<int, MyTask> F0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<int, MyTask>").WithArguments("A<,>").WithLocation(6, 12));
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            Assert.Equal(TypeKind.Error, type.TypeKind);
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("A<System.Int32, MyTask>", type.ToTestDisplayString());
+            Assert.Equal("A<System.Int32, System.Threading.Tasks.Task>", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            Assert.Equal(TypeKind.Error, ((NamedTypeSymbol)type).TypeArguments[0].TypeKind);
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<B>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<B>", normalized.ToTestDisplayString());
         }
 
         [Fact]
         public void NormalizeTaskTypes_Inner()
         {
             string source =
-@"class C<T, U>
+@"
+using System.Runtime.CompilerServices;
+class C<T, U>
 {
 #pragma warning disable CS0169
     static MyTask<U> F0;
@@ -619,74 +904,87 @@ struct MyTaskMethodBuilder<T>
     class Inner
     {
     }
-    class MyTask
-    {
-        public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => null;
-    }
-    class MyTask<V>
-    {
-        public static MyTaskMethodBuilder<V> CreateAsyncMethodBuilder() => null;
-    }
+    [AsyncMethodBuilder(typeof(C<,>.MyTaskMethodBuilder))]
+    class MyTask { }
+    [AsyncMethodBuilder(typeof(C<,>.MyTaskMethodBuilder<>))]
+    class MyTask<V> { }
     class MyTaskMethodBuilder
     {
+        public static MyTaskMethodBuilder Create() => null;
     }
     class MyTaskMethodBuilder<V>
     {
+        public static MyTaskMethodBuilder<V> Create() => null;
     }
-}";
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<T, U>.MyTask<U>", type.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task<U>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<U>", normalized.ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<U, C<T, U>.MyTask>.MyTask", type.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task", normalized.ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F2").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<T, C<T, U>.MyTask<U>>.Inner", type.ToTestDisplayString());
-            Assert.Equal("C<T, System.Threading.Tasks.Task<U>>.Inner", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("C<T, System.Threading.Tasks.Task<U>>.Inner", normalized.ToTestDisplayString());
         }
 
         [Fact]
         public void NormalizeTaskTypes_Outer()
         {
             string source =
-@"class C
+@"
+using System.Runtime.CompilerServices;
+class C
 {
 #pragma warning disable CS0169
     static MyTask<MyTask.A> F0;
     static MyTask<MyTask<object>>.B F1;
 #pragma warning restore CS0169
 }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
 class MyTask
 {
     internal class A { }
-    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => null;
 }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
 class MyTask<V>
 {
     internal class B { }
-    public static MyTaskMethodBuilder<V> CreateAsyncMethodBuilder() => null;
 }
 class MyTaskMethodBuilder
 {
+    public static MyTaskMethodBuilder Create() => null;
 }
 class MyTaskMethodBuilder<V>
 {
-}";
+    public static MyTaskMethodBuilder<V> Create() => null;
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask.A>", type.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task<MyTask.A>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<MyTask.A>", normalized.ToTestDisplayString());
 
             type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask<System.Object>>.B", type.ToTestDisplayString());
-            Assert.Equal("MyTask<System.Threading.Tasks.Task<System.Object>>.B", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("MyTask<System.Threading.Tasks.Task<System.Object>>.B", normalized.ToTestDisplayString());
         }
 
         /// <summary>
@@ -697,31 +995,35 @@ class MyTaskMethodBuilder<V>
         public void NormalizeTaskTypes_MissingWellKnownTypes()
         {
             string source =
-@"class C
+@"
+using System.Runtime.CompilerServices;
+class C
 {
 #pragma warning disable CS0169
     static MyTask<MyTask> F;
 #pragma warning restore CS0169
 }
-struct MyTask
-{
-    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
-}
-struct MyTask<T>
-{
-    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
-}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
 struct MyTaskMethodBuilder
 {
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
 }
 struct MyTaskMethodBuilder<T>
 {
-}";
+    public MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilation(source, references: new[] { MscorlibRef_v20 });
             compilation.VerifyDiagnostics();
             var type = compilation.GetMember<FieldSymbol>("C.F").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask>", type.ToTestDisplayString());
-            Assert.Equal("MyTask<MyTask>", type.NormalizeTaskTypes(compilation).ToTestDisplayString());
+            Assert.Equal("MyTask<MyTask>", normalized.ToTestDisplayString());
         }
 
         [Fact]
@@ -8734,6 +9036,37 @@ class Program
                 //         Method(() => null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(12, 9)
                 );
+        }
+
+        [Fact, WorkItem(13380, "https://github.com/dotnet/roslyn/issues/13380")]
+        public void ImplicitNullableOperatorInEquality()
+        {
+            string source =
+@"public class Class1
+{
+    public static void Main(string[] args)
+    {
+        var a = default(Registration<Something>);
+        var x = (a == Something.Bad); //this line fails in VS2015.3
+        System.Console.WriteLine(x);
+    }
+}
+
+public struct Registration<T> where T : struct
+{
+    public static implicit operator T? (Registration<T> registration)
+    {
+        return null;
+    }
+}
+
+public enum Something
+{
+    Good,
+    Bad
+}";
+            // should be NO errors.
+            CompileAndVerify(source, expectedOutput: @"False");
         }
     }
 }

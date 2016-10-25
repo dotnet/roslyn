@@ -17,7 +17,7 @@
       <_Parameter1>$(BuildVersion)</_Parameter1>
     </AssemblyVersionAttribute>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyInformationalVersionAttribute">
-      <_Parameter1>$(NuGetPerBuildPreReleaseVersion)</_Parameter1>
+      <_Parameter1>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(GitHeadSha)</_Parameter1>
     </AssemblyVersionAttribute>
   </ItemGroup>
 

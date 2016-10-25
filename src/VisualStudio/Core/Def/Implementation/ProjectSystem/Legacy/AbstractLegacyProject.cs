@@ -2,14 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -45,13 +43,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                   hostDiagnosticUpdateSourceOpt: hostDiagnosticUpdateSourceOpt,
                   commandLineParserServiceOpt: commandLineParserServiceOpt)
         {
-            ProjectType = GetProjectType(hierarchy);
-            ConnectHierarchyEvents();
-            this.IsWebSite = GetIsWebsiteProject(hierarchy);
+            if (Hierarchy != null)
+            {
+                ConnectHierarchyEvents();
+                this.IsWebSite = GetIsWebsiteProject(Hierarchy);
+            }
 
             // Initialize command line arguments.
-            base.SetArguments(commandlineForOptions: string.Empty);
+            base.SetArguments(commandLine: string.Empty);
         }
+
+        /// <summary>
+        /// string (Guid) of the Hierarchy project type
+        /// </summary>
+        public string ProjectType => GetProjectType(Hierarchy);
 
         public override void Disconnect()
         {
@@ -61,15 +66,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             DisconnectHierarchyEvents();
         }
 
-        protected void AddFile(string filename, SourceCodeKind sourceCodeKind, uint itemId)
+        protected void AddFile(string filename, SourceCodeKind sourceCodeKind)
         {
             Func<IVisualStudioHostDocument, bool> getIsCurrentContext = document => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
-            AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNames(itemId));
+            AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNamesFromHierarchy);
         }
 
-        protected sealed override bool TryGetOutputPathFromHierarchy(out string binOutputPath)
+        protected void SetOutputPathAndRelatedData(string objOutputPath)
         {
-            return TryGetOutputPathFromHierarchy(Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath);
+            // Update the objOutputPath and related data.
+            SetObjOutputPathAndRelatedData(objOutputPath);
+
+            // Also fetch and update the new binOutputPath.
+            string binOutputPath;
+            if (TryGetOutputPathFromHierarchy(this.Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath))
+            {
+                SetBinOutputPathAndRelatedData(binOutputPath);
+            }
         }
 
         private static bool TryGetOutputPathFromHierarchy(IVsHierarchy hierarchy, string containingDirectoryPathOpt, out string binOutputPath)
@@ -112,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             return hierarchy.TryGetName(out name) ? name : null;
         }
 
-        private static string GetProjectFilePath(IVsHierarchy hierarchy)
+        internal static string GetProjectFilePath(IVsHierarchy hierarchy)
         {
             string filePath;
             return ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out filePath)) ? filePath : null;
@@ -172,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         private void ValidateReferencesCore()
         {
             // can happen when project is unloaded and reloaded or in Venus (aspx) case
-            if (ProjectFilePath == null || TryGetBinOutputPath() == null || TryGetObjOutputPath() == null)
+            if (ProjectFilePath == null || BinOutputPath == null || ObjOutputPath == null)
             {
                 return;
             }
@@ -257,90 +270,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // when we are missing microsoft.visualbasic reference, make sure we have embedded vb core option on.
             Contract.Requires(Debug_VBEmbeddedCoreOptionOn);
 #endif
-        }
-
-        private readonly List<string> _tmpFolders = new List<string>();
-        private readonly Dictionary<uint, IReadOnlyList<string>> _folderNameMap = new Dictionary<uint, IReadOnlyList<string>>();
-
-        public IReadOnlyList<string> GetFolderNames(uint documentItemID)
-        {
-            object parentObj;
-            if (documentItemID != (uint)VSConstants.VSITEMID.Nil && Hierarchy.GetProperty(documentItemID, (int)VsHierarchyPropID.Parent, out parentObj) == VSConstants.S_OK)
-            {
-                var parentID = UnboxVSItemId(parentObj);
-                if (parentID != (uint)VSConstants.VSITEMID.Nil && parentID != (uint)VSConstants.VSITEMID.Root)
-                {
-                    return GetFolderNamesForFolder(parentID);
-                }
-            }
-
-            return SpecializedCollections.EmptyReadOnlyList<string>();
-        }
-
-        private IReadOnlyList<string> GetFolderNamesForFolder(uint folderItemID)
-        {
-            // note: use of tmpFolders is assuming this API is called on UI thread only.
-            _tmpFolders.Clear();
-
-            IReadOnlyList<string> names;
-            if (!_folderNameMap.TryGetValue(folderItemID, out names))
-            {
-                ComputeFolderNames(folderItemID, _tmpFolders, Hierarchy);
-                names = _tmpFolders.ToImmutableArray();
-                _folderNameMap.Add(folderItemID, names);
-            }
-            else
-            {
-                // verify names, and change map if we get a different set.
-                // this is necessary because we only get document adds/removes from the project system
-                // when a document name or folder name changes.
-                ComputeFolderNames(folderItemID, _tmpFolders, Hierarchy);
-                if (!Enumerable.SequenceEqual(names, _tmpFolders))
-                {
-                    names = _tmpFolders.ToImmutableArray();
-                    _folderNameMap[folderItemID] = names;
-                }
-            }
-
-            return names;
-        }
-
-        // Different hierarchies are inconsistent on whether they return ints or uints for VSItemIds.
-        // Technically it should be a uint.  However, there's no enforcement of this, and marshalling
-        // from native to managed can end up resulting in boxed ints instead.  Handle both here so 
-        // we're resilient to however the IVsHierarchy was actually implemented.
-        private static uint UnboxVSItemId(object id)
-        {
-            return id is uint ? (uint)id : unchecked((uint)(int)id);
-        }
-
-        private static void ComputeFolderNames(uint folderItemID, List<string> names, IVsHierarchy hierarchy)
-        {
-            object nameObj;
-            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Name, out nameObj) == VSConstants.S_OK)
-            {
-                // For 'Shared' projects, IVSHierarchy returns a hierarchy item with < character in its name (i.e. <SharedProjectName>)
-                // as a child of the root item. There is no such item in the 'visual' hierarchy in solution explorer and no such folder
-                // is present on disk either. Since this is not a real 'folder', we exclude it from the contents of Document.Folders.
-                // Note: The parent of the hierarchy item that contains < character in its name is VSITEMID.Root. So we don't need to
-                // worry about accidental propagation out of the Shared project to any containing 'Solution' folders - the check for
-                // VSITEMID.Root below already takes care of that.
-                var name = (string)nameObj;
-                if (!name.StartsWith("<", StringComparison.OrdinalIgnoreCase))
-                {
-                    names.Insert(0, name);
-                }
-            }
-
-            object parentObj;
-            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Parent, out parentObj) == VSConstants.S_OK)
-            {
-                var parentID = UnboxVSItemId(parentObj);
-                if (parentID != (uint)VSConstants.VSITEMID.Nil && parentID != (uint)VSConstants.VSITEMID.Root)
-                {
-                    ComputeFolderNames(parentID, names, hierarchy);
-                }
-            }
         }
     }
 }

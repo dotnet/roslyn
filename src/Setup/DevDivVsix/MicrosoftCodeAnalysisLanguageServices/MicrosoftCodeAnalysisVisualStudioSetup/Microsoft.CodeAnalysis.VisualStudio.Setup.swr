@@ -2,9 +2,9 @@ use vs
 
 package name=Microsoft.CodeAnalysis.VisualStudio.Setup
         version=$(Version)
-        vs.package.language=en-us
         vs.package.type=vsix
         vs.package.vsixId=0b5e8ddb-f12d-4131-a71d-77acc26a798f
+        vs.package.installSize=24387584
 
 vs.localizedResources
   vs.localizedResource language=en-us
@@ -12,4 +12,9 @@ vs.localizedResources
                        description="C# and VB.NET language services for Visual Studio"
 
 vs.payloads
-  vs.payload source=$(OutputPath)Roslyn.VisualStudio.Setup.vsix
+  vs.payload source=$(OutputPath)Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix
+
+vs.dependencies
+  vs.dependency id=Microsoft.Net.4.6.1.FullRedist 
+  vs.dependency id=Microsoft.Net.4.6.1.FullRedist.Resource 
+  vs.dependency id=Microsoft.VisualStudio.MinShell

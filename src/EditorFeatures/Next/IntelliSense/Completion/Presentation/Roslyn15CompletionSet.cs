@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             if (document != null)
             {
-                var options = document.Options;
-                _highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems);
-                _showFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters);
+                var options = document.Project.Solution.Options;
+                _highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language);
+                _showFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language);
             }
         }
 

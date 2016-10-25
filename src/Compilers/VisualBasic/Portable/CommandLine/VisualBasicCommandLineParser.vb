@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -84,6 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim displayLogo As Boolean = True
             Dim displayHelp As Boolean = False
+            Dim displayVersion As Boolean = False
             Dim outputLevel As OutputLevel = OutputLevel.Normal
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
@@ -100,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
-            Dim languageVersion As LanguageVersion = LanguageVersion.Latest.MapLatestToVersion()
+            Dim languageVersion As LanguageVersion = LanguageVersion.Default
             Dim mainTypeName As String = Nothing
             Dim win32ManifestFile As String = Nothing
             Dim win32ResourceFile As String = Nothing
@@ -110,6 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFiles = New List(Of CommandLineSourceFile)()
             Dim hasSourceFiles = False
             Dim additionalFiles = New List(Of CommandLineSourceFile)()
+            Dim embeddedFiles = New List(Of CommandLineSourceFile)()
+            Dim embedAllSourceFiles = False
             Dim codepage As Encoding = Nothing
             Dim checksumAlgorithm = SourceHashAlgorithm.Sha1
             Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
@@ -151,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim reportAnalyzer As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
-            Dim instrument As String = ""
+            Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
             Dim sourceLink As String = Nothing
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
@@ -190,6 +194,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         displayHelp = True
+                        Continue For
+
+                    Case "version"
+                        If value IsNot Nothing Then
+                            Exit Select
+                        End If
+
+                        displayVersion = True
                         Continue For
 
                     Case "r", "reference"
@@ -548,7 +560,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            instrument = value
+                            For Each instrumentationKind As InstrumentationKind In ParseInstrumentationKinds(value, diagnostics)
+                                If Not instrumentationKinds.Contains(instrumentationKind) Then
+                                    instrumentationKinds.Add(instrumentationKind)
+                                End If
+                            Next
+
                             Continue For
 
                         Case "recurse"
@@ -804,7 +821,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Case "15", "15.0"
                                         languageVersion = LanguageVersion.VisualBasic15
                                     Case "default"
-                                        languageVersion = LanguageVersion.Latest.MapLatestToVersion()
+                                        languageVersion = LanguageVersion.Default
+                                    Case "latest"
+                                        languageVersion = LanguageVersion.Latest
                                     Case Else
                                         AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End Select
@@ -1143,7 +1162,17 @@ lVbRuntimePlus:
                                 Continue For
                             End If
 
-                            additionalFiles.AddRange(ParseAdditionalFileArgument(value, baseDirectory, diagnostics))
+                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            Continue For
+
+                        Case "embed"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                embedAllSourceFiles = True
+                                Continue For
+                            End If
+
+                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
                             Continue For
                     End Select
                 End If
@@ -1231,6 +1260,18 @@ lVbRuntimePlus:
                 End If
             End If
 
+            If embedAllSourceFiles Then
+                embeddedFiles.AddRange(sourceFiles)
+            End If
+
+            If embeddedFiles.Count > 0 Then
+                ' Restricted to portable PDBs for now, but the IsPortable condition should be removed
+                ' And the error message adjusted accordingly when native PDB support Is added.
+                If Not emitPdb OrElse Not debugInformationFormat.IsPortable() Then
+                    AddDiagnostic(diagnostics, ERRID.ERR_CannotEmbedWithoutPdb)
+                End If
+            End If
+
             ' Validate root namespace if specified
             Debug.Assert(rootNamespace IsNot Nothing)
             ' NOTE: empty namespace is a valid option
@@ -1312,7 +1353,7 @@ lVbRuntimePlus:
                 highEntropyVirtualAddressSpace:=highEntropyVA,
                 subsystemVersion:=ssVersion,
                 runtimeMetadataVersion:=Nothing,
-                instrument:=instrument)
+                instrumentationKinds:=instrumentationKinds.ToImmutableAndFree())
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)
@@ -1354,6 +1395,7 @@ lVbRuntimePlus:
                 .NoWin32Manifest = noWin32Manifest,
                 .DisplayLogo = displayLogo,
                 .DisplayHelp = displayHelp,
+                .DisplayVersion = displayVersion,
                 .ManifestResources = managedResources.AsImmutable(),
                 .CompilationOptions = options,
                 .ParseOptions = If(IsScriptRunner, scriptParseOptions, parseOptions),
@@ -1365,7 +1407,8 @@ lVbRuntimePlus:
                 .SourceLink = sourceLink,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
-                .ReportAnalyzer = reportAnalyzer
+                .ReportAnalyzer = reportAnalyzer,
+                .EmbeddedFiles = embeddedFiles.AsImmutable()
             }
         End Function
 
@@ -1419,7 +1462,7 @@ lVbRuntimePlus:
                 Dim absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory)
                 If absolutePath IsNot Nothing Then
                     Dim filePath = PathUtilities.CombineAbsoluteAndRelativePaths(absolutePath, fileName)
-                    If PortableShim.File.Exists(filePath) Then
+                    If File.Exists(filePath) Then
                         Return filePath
                     End If
                 End If
@@ -1531,7 +1574,7 @@ lVbRuntimePlus:
                    Select(Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Assembly, embedInteropTypes:=embedInteropTypes)))
         End Function
 
-        Private Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
+        Private Shared Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
             If String.IsNullOrEmpty(value) Then
                 ' TODO: localize <file_list>?
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
@@ -1596,7 +1639,10 @@ lVbRuntimePlus:
             Dim dataProvider As Func(Of Stream) = Function()
                                                       ' Use FileShare.ReadWrite because the file could be opened by the current process.
                                                       ' For example, it Is an XML doc file produced by the build.
-                                                      Return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite)
+                                                      Return New FileStream(fullPath,
+                                                                            FileMode.Open,
+                                                                            FileAccess.Read,
+                                                                            FileShare.ReadWrite)
                                                   End Function
             Return New ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs:=False)
         End Function
@@ -1939,6 +1985,18 @@ lVbRuntimePlus:
                 p.GetNextToken()
                 Return DirectCast(p.ParseConditionalCompilationExpression().CreateRed(Nothing, 0), ExpressionSyntax)
             End Using
+        End Function
+
+        Private Shared Iterator Function ParseInstrumentationKinds(value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of InstrumentationKind)
+            Dim instrumentationKindStrs = value.Split({","c}, StringSplitOptions.RemoveEmptyEntries)
+            For Each instrumentationKindStr In instrumentationKindStrs
+                Select Case instrumentationKindStr.ToLower()
+                    Case "testcoverage"
+                        Yield InstrumentationKind.TestCoverage
+                    Case Else
+                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidInstrumentationKind, instrumentationKindStr)
+                End Select
+            Next
         End Function
 
         Private Shared Function IsSeparatorOrEndOfFile(token As SyntaxToken) As Boolean

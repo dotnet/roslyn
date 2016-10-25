@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -12,6 +10,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Emit.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
@@ -77,6 +76,7 @@
     <Compile Include="AssemblyAttributes.vb" />
     <Compile Include="Attributes\AssemblyAttributes.vb" />
     <Compile Include="Attributes\AttributeTests.vb" />
+    <Compile Include="Attributes\AttributeTests_Tuples.vb" />
     <Compile Include="Attributes\AttributeTests_Conditional.vb" />
     <Compile Include="Attributes\AttributeTests_MarshalAs.vb" />
     <Compile Include="Attributes\AttributeTests_ObsoleteAttribute.vb" />
@@ -90,6 +90,7 @@
     <Compile Include="CodeGen\CodeGenAsyncTests.vb" />
     <Compile Include="CodeGen\CodeGenClosureLambdaTests.vb" />
     <Compile Include="CodeGen\CodeGenCollectionInitializer.vb" />
+    <Compile Include="CodeGen\CodeGenTuples.vb" />
     <Compile Include="CodeGen\CodeGenConstLocal.vb" />
     <Compile Include="CodeGen\CodeGenDelegateCreation.vb" />
     <Compile Include="CodeGen\CodeGenEvents.vb" />
@@ -108,6 +109,7 @@
     <Compile Include="CodeGen\CodeGenNullable.vb" />
     <Compile Include="CodeGen\CodeGenObjectInitializer.vb" />
     <Compile Include="CodeGen\CodeGenOverridingAndHiding.vb" />
+    <Compile Include="CodeGen\CodeGenRefReturnTests.vb" />
     <Compile Include="CodeGen\CodeGenSelectCase.vb" />
     <Compile Include="CodeGen\CodeGenSingleLineIf.vb" />
     <Compile Include="CodeGen\CodeGenStaticLocals.vb" />
@@ -156,6 +158,7 @@
     <Compile Include="PDB\PDBConstLocalTests.vb" />
     <Compile Include="PDB\PDBExternalSourceDirectiveTests.vb" />
     <Compile Include="PDB\PDBLambdaTests.vb" />
+    <Compile Include="PDB\PDBTupleTests.vb" />
     <Compile Include="PDB\PDBVariableInitializerTests.vb" />
     <Compile Include="PDB\PDBIteratorTests.vb" />
     <Compile Include="PDB\PDBForEachTests.vb" />
@@ -258,8 +261,6 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

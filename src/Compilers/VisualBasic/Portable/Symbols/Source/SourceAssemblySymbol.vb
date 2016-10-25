@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <remarks></remarks>
     Friend NotInheritable Class SourceAssemblySymbol
         Inherits MetadataOrSourceAssemblySymbol
-        Implements ISourceAssemblySymbol, IAttributeTargetSymbol
+        Implements ISourceAssemblySymbolInternal, IAttributeTargetSymbol
 
         ''' <summary>
         ''' A Compilation the assembly is created for.
@@ -666,7 +666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This represents what the user claimed in source through the AssemblyFlagsAttribute.
         ''' It may be modified as emitted due to presence or absence of the public key.
         ''' </summary>
-        Friend ReadOnly Property Flags As AssemblyFlags
+        Public ReadOnly Property AssemblyFlags As AssemblyFlags Implements ISourceAssemblySymbolInternal.AssemblyFlags
             Get
                 Dim fieldValue As AssemblyFlags = Nothing
 
@@ -705,7 +705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend ReadOnly Property AssemblySignatureKeyAttributeSetting As String
+        Public ReadOnly Property SignatureKey As String Implements ISourceAssemblySymbolInternal.SignatureKey
             Get
                 Return GetWellKnownAttributeDataStringField(Function(data) data.AssemblySignatureKeyAttributeSetting)
             End Get
@@ -750,14 +750,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssemblyVersionPattern As Version
+        Public Overrides ReadOnly Property AssemblyVersionPattern As Version Implements ISourceAssemblySymbolInternal.AssemblyVersionPattern
             Get
                 Dim attributeValue = AssemblyVersionAttributeSetting
                 Return If(attributeValue Is Nothing OrElse (attributeValue.Build <> UShort.MaxValue AndAlso attributeValue.Revision <> UShort.MaxValue), Nothing, attributeValue)
             End Get
         End Property
 
-        Friend ReadOnly Property AssemblyHashAlgorithm As AssemblyHashAlgorithm
+        Public ReadOnly Property HashAlgorithm As AssemblyHashAlgorithm Implements ISourceAssemblySymbolInternal.HashAlgorithm
             Get
                 Return If(AssemblyAlgorithmIdAttributeSetting, AssemblyHashAlgorithm.Sha1)
             End Get

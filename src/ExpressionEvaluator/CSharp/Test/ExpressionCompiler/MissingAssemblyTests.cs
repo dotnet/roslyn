@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -762,7 +763,7 @@ class UseLinq
             {
             }
 
-            public override CustomTypeInfo GetCustomTypeInfo()
+            public override Guid GetCustomTypeInfo(out ReadOnlyCollection<byte> payload)
             {
                 throw new NotImplementedException();
             }

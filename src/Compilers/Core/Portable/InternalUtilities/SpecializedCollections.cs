@@ -6,14 +6,6 @@ namespace Roslyn.Utilities
 {
     internal static partial class SpecializedCollections
     {
-        public static readonly byte[] EmptyBytes = EmptyArray<byte>();
-        public static readonly object[] EmptyObjects = EmptyArray<object>();
-
-        public static T[] EmptyArray<T>()
-        {
-            return Empty.Array<T>.Instance;
-        }
-
         public static IEnumerator<T> EmptyEnumerator<T>()
         {
             return Empty.Enumerator<T>.Instance;
@@ -40,6 +32,11 @@ namespace Roslyn.Utilities
         }
 
         public static ISet<T> EmptySet<T>()
+        {
+            return Empty.Set<T>.Instance;
+        }
+
+        public static IReadOnlySet<T> EmptyReadOnlySet<T>()
         {
             return Empty.Set<T>.Instance;
         }
@@ -93,22 +90,11 @@ namespace Roslyn.Utilities
                 : new ReadOnly.Set<ISet<T>, T>(set);
         }
 
-        public static ISet<T> ReadOnlySet<T>(IEnumerable<T> values)
+        public static IReadOnlySet<T> StronglyTypedReadOnlySet<T>(ISet<T> set)
         {
-            var set = values as ISet<T>;
-            if (set != null)
-            {
-                return ReadOnlySet(set);
-            }
-
-            HashSet<T> result = null;
-            foreach (var item in values)
-            {
-                result = result ?? new HashSet<T>();
-                result.Add(item);
-            }
-
-            return ReadOnlySet(result);
+            return set == null || set.Count == 0
+                ? EmptyReadOnlySet<T>()
+                : new ReadOnly.Set<ISet<T>, T>(set);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             _ => new ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>();
 
         internal static MetadataReference GetOrBuildReference(
-            Solution solution,
+            SolutionState solution,
             ProjectReference projectReference,
             Compilation finalCompilation,
             VersionStamp version,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static bool TryGetReference(
-            Solution solution, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
+            SolutionState solution, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
         {
             // if we have one from snapshot cache, use it. it will make sure same compilation will get same metadata reference always.
             MetadataOnlyReferenceSet referenceSet;

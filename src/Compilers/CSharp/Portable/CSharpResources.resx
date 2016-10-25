@@ -120,6 +120,9 @@
   <data name="IDS_NULL" xml:space="preserve">
     <value>&lt;null&gt;</value>
   </data>
+  <data name="IDS_ThrowExpression" xml:space="preserve">
+    <value>&lt;throw expression&gt;</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -210,6 +213,15 @@
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
   </data>
+  <data name="IDS_FeatureExpressionBodiedAccessor" xml:space="preserve">
+    <value>expression body property accessor</value>
+  </data>
+  <data name="IDS_FeatureExpressionBodiedDeOrConstructor" xml:space="preserve">
+    <value>expression body constructor and destructor</value>
+  </data>
+  <data name="IDS_FeatureThrowExpression" xml:space="preserve">
+    <value>throw expression</value>
+  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>
@@ -239,9 +251,6 @@
   </data>
   <data name="IDS_FeaturePartialMethod" xml:space="preserve">
     <value>partial method</value>
-  </data>
-  <data name="IDS_FeatureReplace" xml:space="preserve">
-    <value>replaced members</value>
   </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
@@ -646,7 +655,7 @@
     <value>Since '{0}' returns void, a return keyword must not be followed by an object expression</value>
   </data>
   <data name="ERR_LocalDuplicate" xml:space="preserve">
-    <value>A local variable named '{0}' is already defined in this scope</value>
+    <value>A local variable or function named '{0}' is already defined in this scope</value>
   </data>
   <data name="ERR_AssgLvalueExpected" xml:space="preserve">
     <value>The left-hand side of an assignment must be a variable, property or indexer</value>
@@ -1177,7 +1186,7 @@
     <value>The type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
   </data>
   <data name="ERR_LocalSameNameAsTypeParam" xml:space="preserve">
-    <value>'{0}': a parameter or local variable cannot have the same name as a method type parameter</value>
+    <value>'{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter</value>
   </data>
   <data name="ERR_AsWithTypeVar" xml:space="preserve">
     <value>The type parameter '{0}' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint</value>
@@ -1442,6 +1451,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PredefinedTypeNotFound" xml:space="preserve">
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
+  <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
+    <value>Predefined type '{0}' is not defined or imported</value>
+  </data>
   <data name="ERR_StructWithBaseConstructorCall" xml:space="preserve">
     <value>'{0}': structs cannot call base class constructors</value>
   </data>
@@ -1648,6 +1660,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
     <value>The DllImport attribute must be specified on a method marked 'static' and 'extern'</value>
+  </data>
+  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_DllImportOnGenericMethod" xml:space="preserve">
     <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</value>
@@ -2499,6 +2514,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_CantReadResource" xml:space="preserve">
     <value>Error reading resource '{0}' -- '{1}'</value>
+  </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
   </data>
   <data name="WRN_XMLParseError" xml:space="preserve">
     <value>XML comment has badly formed XML -- '{0}'</value>
@@ -4152,9 +4170,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_Text" xml:space="preserve">
     <value>&lt;text&gt;</value>
   </data>
-  <data name="IDS_FeatureDeclarationExpression" xml:space="preserve">
-    <value>declaration expression</value>
-  </data>
   <data name="IDS_FeatureNullPropagatingOperator" xml:space="preserve">
     <value>null propagating operator</value>
   </data>
@@ -4215,9 +4230,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongNumberOfTypeArguments" xml:space="preserve">
     <value>Wrong number of type arguments</value>
   </data>
-  <data name="TheStreamCannotBeWritten" xml:space="preserve">
-    <value>The stream cannot be written to.</value>
-  </data>
   <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
     <value>The stream cannot be read from.</value>
   </data>
@@ -4241,12 +4253,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ThisMethodCanOnlyBeUsedToCreateTokens" xml:space="preserve">
     <value>This method can only be used to create tokens - {0} is not a token kind.</value>
-  </data>
-  <data name="SeparatorIsExpected" xml:space="preserve">
-    <value>separator is expected</value>
-  </data>
-  <data name="ElementIsExpected" xml:space="preserve">
-    <value>element is expected</value>
   </data>
   <data name="GenericParameterDefinition" xml:space="preserve">
     <value>Generic parameter is definition when expected to be reference {0}</value>
@@ -4407,6 +4413,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
                                generation but may be used by analyzers for producing
                                errors or warnings.
+ /embed                        Embed all source files in the PDB.
+ /embed:&lt;file list&gt;            Embed specfic files the PDB
 
                         - RESOURCES -
  /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -4428,8 +4436,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /optimize[+|-]                Enable optimizations (Short form: /o)
  /deterministic                Produce a deterministic assembly
                                (including module version GUID and timestamp)
- /instrument:options           Sets instrumentation options.
-                               If empty instrumentation is disabled.
+ /instrument:TestCoverage      Produce an assembly instrumented to collect
+                               coverage information
  /sourcelink:&lt;file&gt;            Source link info to embed into Portable PDB.
 
                         - ERRORS AND WARNINGS -
@@ -4450,7 +4458,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short 
                                form: /d)
  /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3, 
-                               4, 5, 6, or Default
+                               4, 5, 6, Default, or Latest
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public 
@@ -4466,7 +4474,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /help                         Display this usage message (Short form: /?)
  /nologo                       Suppress compiler copyright message
  /noconfig                     Do not auto include CSC.RSP file
- /parallel[+|-]                Concurrent build. 
+ /parallel[+|-]                Concurrent build.
+ /version                      Display the compiler version number and exit.
 
                         - ADVANCED -
  /baseaddress:&lt;address&gt;        Base address for the library to be built
@@ -4579,7 +4588,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Properties cannot combine accessor lists with expression bodies.</value>
   </data>
   <data name="ERR_BlockBodyAndExpressionBody" xml:space="preserve">
-    <value>Methods cannot combine block bodies with expression bodies.</value>
+    <value>Methods and accessors cannot combine block bodies with expression bodies.</value>
   </data>
   <data name="ERR_SwitchFallOut" xml:space="preserve">
     <value>Control cannot fall out of switch from final case label ('{0}')</value>
@@ -4804,12 +4813,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnStructThis" xml:space="preserve">
     <value>Struct members cannot return 'this' or other instance members by reference</value>
   </data>
-  <data name="ERR_MustBeRefAssignable" xml:space="preserve">
-    <value>'{0}' cannot be assigned a reference because it is not a by-reference local</value>
-  </data>
-  <data name="ERR_MustBeRefAssignableLocal" xml:space="preserve">
-    <value>Expected a by-reference local</value>
-  </data>
   <data name="ERR_InitializeByValueVariableWithReference" xml:space="preserve">
     <value>Cannot initialize a by-value variable with a reference</value>
   </data>
@@ -4850,22 +4853,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</value>
   </data>
   <data name="ERR_BadIsPatternExpression" xml:space="preserve">
-    <value>Invalid operand for pattern match.</value>
+    <value>Invalid operand for pattern match; value required, but found '{0}'.</value>
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}.</value>
   </data>
-  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
-    <value>Tuple member names must be unique.</value>
+  <data name="ERR_TupleDuplicateElementName" xml:space="preserve">
+    <value>Tuple element names must be unique.</value>
   </data>
-  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
-    <value>Tuple member names must all be provided, if any one is provided.</value>
+  <data name="ERR_TupleReservedElementName" xml:space="preserve">
+    <value>Tuple element name '{0}' is only allowed at position {1}.</value>
   </data>
-  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
-    <value>Tuple member name '{0}' is only allowed at position {1}.</value>
-  </data>
-  <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
-    <value>Tuple membername '{0}' is disallowed at any position.</value>
+  <data name="ERR_TupleReservedElementNameAnyPosition" xml:space="preserve">
+    <value>Tuple element name '{0}' is disallowed at any position.</value>
   </data>
   <data name="ERR_PredefinedTypeMemberNotFoundInAssembly" xml:space="preserve">
     <value>Member '{0}' was not found on type '{1}' from assembly '{2}'.</value>
@@ -4879,7 +4879,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
   </data>
-  <data name="ERR_PatternValueExpected" xml:space="preserve">
+  <data name="ERR_SwitchExpressionValueExpected" xml:space="preserve">
     <value>The switch expression must be a value; found {0}.</value>
   </data>
   <data name="ERR_PatternIsSubsumed" xml:space="preserve">
@@ -4907,7 +4907,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</value>
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
-    <value>Cannot infer the type of implicitly-typed out variable.</value>
+    <value>Cannot infer the type of implicitly-typed out variable '{0}'.</value>
+  </data>
+  <data name="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed deconstruction variable '{0}'.</value>
   </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
@@ -4921,19 +4924,58 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="TypeMustBeVar" xml:space="preserve">
     <value>The type must be 'var'.</value>
   </data>
+  <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
+  </data>
+  <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
+    <value>Predefined type '{0}' must be a struct.</value>
+  </data>
+  <data name="ERR_NewWithTupleTypeSyntax" xml:space="preserve">
+    <value>'new' cannot be used with tuple type. Use a tuple literal expression instead.</value>
+  </data>
   <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
-    <value>Deconstruction `var (...)` form disallows a specific type for 'var'.</value>
+    <value>Deconstruction 'var (...)' form disallows a specific type for 'var'.</value>
   </data>
   <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
     <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
   </data>
-  <data name="ERR_ExplicitTupleElementNames" xml:space="preserve">
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
     <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
   </data>
-  <data name="ERR_DeconstructCouldNotInferMergedType" xml:space="preserve">
-    <value>The type information on the left-hand-side '{0}' and right-hand-side '{1}' of the deconstruction was insufficient to infer a merged type.</value>
+  <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">
+    <value>An expression tree may not contain an out argument variable declaration.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsIsMatch" xml:space="preserve">
+    <value>An expression tree may not contain an 'is' pattern-matching operator.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsTupleLiteral" xml:space="preserve">
+    <value>An expression tree may not contain a tuple literal.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsTupleConversion" xml:space="preserve">
+    <value>An expression tree may not contain a tuple conversion.</value>
   </data>
   <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
     <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
+  </data>
+  <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
+    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+  </data>
+  <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
+  </data>
+  <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
+    <value>The syntax 'var (...)' as an lvalue is reserved.</value>
+  </data>
+  <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
+    <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
+  </data>
+  <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
+    <value>{ or ; or =&gt; expected</value>
+  </data>
+  <data name="ERR_ThrowMisplaced" xml:space="preserve">
+    <value>A throw expression is not allowed in this context.</value>
   </data>
 </root>

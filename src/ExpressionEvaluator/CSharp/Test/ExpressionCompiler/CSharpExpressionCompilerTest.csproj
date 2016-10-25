@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -11,8 +9,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests</AssemblyName>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -95,6 +93,7 @@
     <Compile Include="NoPIATests.cs" />
     <Compile Include="PseudoVariableTests.cs" />
     <Compile Include="MethodContextReuseConstraintsTests.cs" />
+    <Compile Include="TupleTests.cs" />
     <Compile Include="UsingDebugInfoTests.cs" />
     <Compile Include="WinMdTests.cs" />
   </ItemGroup>
@@ -106,8 +105,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

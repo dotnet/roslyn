@@ -721,7 +721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return specialType
         End Function
 
-        Public Shared Function ExtractTypeCharacter(node As VisualBasicSyntaxNode) As TypeCharacter
+        Public Shared Function ExtractTypeCharacter(node As SyntaxNode) As TypeCharacter
             Dim result As TypeCharacter = TypeCharacter.None
 
             If node IsNot Nothing Then
@@ -1422,7 +1422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' In ParameterDefaultValue we also allow conversion of T --> S?
                 If context = ConstantContext.ParameterDefaultValue AndAlso conversionType.IsNullableType Then
-                    If IsSameTypeIgnoringCustomModifiers(conversionType.GetNullableUnderlyingType, operandType) Then
+                    If IsSameTypeIgnoringAll(conversionType.GetNullableUnderlyingType, operandType) Then
                         ' A trivial case: T --> T?
                         Return nestedConstValue
                     Else
@@ -1451,7 +1451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' type by nested conversion(s) and now has type of the argument
 
             ' No actual conversion is done
-            If IsSameTypeIgnoringCustomModifiers(operandType, conversionType) Then
+            If IsSameTypeIgnoringAll(operandType, conversionType) Then
                 Return nestedConstValue
             End If
 

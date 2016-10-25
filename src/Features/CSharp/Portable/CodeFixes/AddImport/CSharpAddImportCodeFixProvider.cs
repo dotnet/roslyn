@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 return false;
             }
 
-            if (!syntaxFacts.IsMemberAccessExpressionName(node))
+            if (!syntaxFacts.IsNameOfMemberAccessExpression(node))
             {
                 return false;
             }
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return null;
         }
 
-        protected override ISet<INamespaceSymbol> GetNamespacesInScope(
+        protected override ISet<INamespaceSymbol> GetImportNamespacesInScope(
             SemanticModel semanticModel,
             SyntaxNode node,
             CancellationToken cancellationToken)

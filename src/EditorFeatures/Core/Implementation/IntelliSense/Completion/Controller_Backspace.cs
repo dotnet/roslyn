@@ -65,8 +65,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var trigger = CompletionTrigger.CreateDeletionTrigger(deletedChar.GetValueOrDefault());
                 var completionService = this.GetCompletionService();
 
-                this.StartNewModelComputation(
-                    completionService, trigger, filterItems: false, dismissIfEmptyAllowed: true);
+                if (completionService != null)
+                {
+                    this.StartNewModelComputation(
+                        completionService, trigger, filterItems: false, dismissIfEmptyAllowed: true);
+                }
 
                 return;
             }
@@ -98,24 +101,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     this.StopModelComputation();
                     return;
                 }
-                else if (model != null && model.Trigger.Kind != CompletionTriggerKind.Deletion)
+                else if (model != null)
                 {
-                    // Filter the model if it wasn't invoked on backspace.
-                    sessionOpt.FilterModel(
-                        CompletionFilterReason.BackspaceOrDelete,
-                        recheckCaretPosition: false,
+                    // If we were triggered on backspace/delete, and we're still deleting,
+                    // then we don't want to filter out items (i.e. we still want all items).
+                    // However, we do still want to run the code to figure out what the best 
+                    // item is to select from all those items.
+                    FilterToSomeOrAllItems(
+                        filterItems: model.Trigger.Kind != CompletionTriggerKind.Deletion,
                         dismissIfEmptyAllowed: true,
-                        filterState: null);
+                        filterReason: CompletionFilterReason.BackspaceOrDelete);
                 }
             }
         }
 
         private bool CaretHasLeftDefaultTrackingSpan(int caretPoint, Document document)
         {
+            var completionService = GetCompletionService();
+            if (completionService == null)
+            {
+                // SubjectBuffer no longer even has a workspace mapping
+                return true;
+            }
+
             // We haven't finished computing the model, but we may need to dismiss.
             // Get the context span and see if we're outside it.
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var contextSpan = GetCompletionService().GetDefaultCompletionListSpan(text, caretPoint);
+            var contextSpan = completionService.GetDefaultCompletionListSpan(text, caretPoint);
             var newCaretPoint = GetCaretPointInViewBuffer();
             return !contextSpan.IntersectsWith(new TextSpan(newCaretPoint, 0));
         }

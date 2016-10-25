@@ -467,6 +467,18 @@ End Class
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(12733, "https://github.com/dotnet/roslyn/issues/12733")>
+        Public Async Function NotAfterDot() As Task
+            Dim markup = <Text>Module Module1
+    Sub Main()
+            Do Until (System.Console.ReadKey.Key = System.ConsoleKey.$$
+        Loop
+    End Sub
+End Module</Text>.Value
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
         Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New EnumCompletionProvider()
         End Function

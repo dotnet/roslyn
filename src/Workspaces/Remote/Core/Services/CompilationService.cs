@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -15,11 +13,18 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class CompilationService
     {
+        private readonly SolutionService _solutionService;
+
+        public CompilationService(SolutionService solutionService)
+        {
+            _solutionService = solutionService;
+        }
+
         public async Task<Compilation> GetCompilationAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CompilationService_GetCompilationAsync, GetLogInfo, solutionChecksum, projectId, cancellationToken))
             {
-                var solution = await RoslynServices.SolutionService.GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                var solution = await _solutionService.GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 return await solution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             }

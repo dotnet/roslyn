@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     /// </summary>
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class SemanticClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
@@ -40,8 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
         protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
-
-        private IEditorClassificationService _classificationService;
 
         [ImportingConstructor]
         public SemanticClassificationViewTaggerProvider(
@@ -92,16 +89,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             Debug.Assert(context.SpansToTag.IsSingle());
 
             var spanToTag = context.SpansToTag.Single();
-            var document = spanToTag.Document;
 
-            if (document == null)
+            // Attempt to get a classification service which will actually produce the results.
+            // If we can't (because we have no Document, or because the language doesn't support
+            // this service), then bail out immediately.
+            var document = spanToTag.Document;
+            var classificationService = document?.Project.LanguageServices.GetService<IEditorClassificationService>();
+
+            if (classificationService == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<IEditorClassificationService>();
-
-            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, _classificationService, _typeMap);
+            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }
 }

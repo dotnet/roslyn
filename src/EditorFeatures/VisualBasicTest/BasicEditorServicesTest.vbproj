@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -14,6 +12,7 @@
     <VBRuntime>Default</VBRuntime>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -139,6 +138,7 @@
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.vb" />
     <Compile Include="CodeActions\Preview\PreviewTests.vb" />
     <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.vb" />
+    <Compile Include="CodeLens\VisualBasicCodeLensTests.vb" />
     <Compile Include="Completion\CompletionServiceTests.vb" />
     <Compile Include="Diagnostics\AddImport\AddImportTests_NuGet.vb" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
@@ -166,7 +166,7 @@
     <Compile Include="Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
     <Compile Include="Diagnostics\AddImport\AddImportTests.vb" />
     <Compile Include="Diagnostics\Async\AddAwaitTests.vb" />
-    <Compile Include="Diagnostics\Async\AddAsyncTests.vb" />
+    <Compile Include="Diagnostics\MakeMethodAsynchronous\MakeMethodAsynchronousTests.vb" />
     <Compile Include="Diagnostics\Async\ChangeToAsyncTests.vb" />
     <Compile Include="Diagnostics\CorrectNextControlVariable\CorrectNextControlVariableTests.vb" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.vb" />
@@ -189,6 +189,8 @@
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.vb" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.vb" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
@@ -257,7 +259,6 @@
     <Compile Include="Formatting\Indentation\SmartIndentProviderTests.vb" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatter_FormatTokenTests.vb" />
     <Compile Include="Formatting\XmlLiterals.Designer.vb" />
-    <Compile Include="Outlining\AbstractVisualBasicSyntaxTriviaOutlinerTests.vb" />
     <Compile Include="GoToAdjacentMember\VisualBasicGoToAdjacentMemberTests.vb" />
     <Compile Include="KeywordHighlighting\AbstractVisualBasicKeywordHighlighterTests.vb" />
     <Compile Include="KeywordHighlighting\AccessorDeclarationHighlighterTests.vb" />
@@ -300,39 +301,6 @@
     <Compile Include="Organizing\OrganizeImportsTests.vb" />
     <Compile Include="Organizing\OrganizeModifiersTests.vb" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.vb" />
-    <Compile Include="Outlining\AbstractVisualBasicSyntaxNodeOutlinerTests.vb" />
-    <Compile Include="Outlining\AccessorDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\CommentTests.vb" />
-    <Compile Include="Outlining\CompilationUnitOutlinerTests.vb" />
-    <Compile Include="Outlining\ConstructorDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\DelegateDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\DisabledCodeOutlinerTests.vb" />
-    <Compile Include="Outlining\DocumentationCommentOutlinerTests.vb" />
-    <Compile Include="Outlining\EnumDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\EventDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\ExternalMethodDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\FieldDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\ConstructorDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\DelegateDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\EnumDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\EnumMemberDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\EventDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\FieldDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\InvalidIdentifierTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\MethodDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\OperatorDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\PropertyDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\RegionDirectiveOutlinerTests.vb" />
-    <Compile Include="Outlining\MetadataAsSource\TypeDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MethodDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\MultilineLambdaOutlinerTests.vb" />
-    <Compile Include="Outlining\NamespaceDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\OperatorDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\OverallOutliningTests.vb" />
-    <Compile Include="Outlining\PropertyDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\RegionDirectiveOutlinerTests.vb" />
-    <Compile Include="Outlining\TypeDeclarationOutlinerTests.vb" />
-    <Compile Include="Outlining\XmlExpressionOutlinerTests.vb" />
     <Compile Include="PopulateSwitch\PopulateSwitchTests.vb" />
     <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.vb" />
@@ -487,12 +455,57 @@
     <Compile Include="SignatureHelp\PredefinedCastExpressionSignatureHelpProviderTests.vb" />
     <Compile Include="SignatureHelp\RaiseEventStatementSignatureHelpProviderTests.vb" />
     <Compile Include="Squiggles\ErrorSquiggleProducerTests.vb" />
+    <Compile Include="Structure\AbstractVisualBasicSyntaxNodeStructureTests.vb" />
+    <Compile Include="Structure\AbstractVisualBasicSyntaxTriviaStructureTests.vb" />
+    <Compile Include="Structure\AccessorDeclarationStructureTests.vb" />
+    <Compile Include="Structure\CommentStructureTests.vb" />
+    <Compile Include="Structure\CompilationUnitStructureTests.vb" />
+    <Compile Include="Structure\ConstructorDeclarationStructureTests.vb" />
+    <Compile Include="Structure\DelegateDeclarationStructureTests.vb" />
+    <Compile Include="Structure\DisabledCodeStructureTests.vb" />
+    <Compile Include="Structure\DocumentationCommentStructureTests.vb" />
+    <Compile Include="Structure\EnumDeclarationStructureTests.vb" />
+    <Compile Include="Structure\EventDeclarationStructureTests.vb" />
+    <Compile Include="Structure\ExternalMethodDeclarationStructureTests.vb" />
+    <Compile Include="Structure\FieldDeclarationStructureTests.vb" />
+    <Compile Include="Structure\ForBlockStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\ConstructorDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\DelegateDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\EnumDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\EnumMemberDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\EventDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\FieldDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\InvalidIdentifierStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\MethodDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\OperatorDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\PropertyDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\RegionDirectiveStructureTests.vb" />
+    <Compile Include="Structure\MetadataAsSource\TypeDeclarationStructureTests.vb" />
+    <Compile Include="Structure\DoLoopBlockStructureTests.vb" />
+    <Compile Include="Structure\SelectBlockStructureTests.vb" />
+    <Compile Include="Structure\MultiLineIfBlockStructureTests.vb" />
+    <Compile Include="Structure\ForEachBlockStructureTests.vb" />
+    <Compile Include="Structure\TryBlockStructureTests.vb" />
+    <Compile Include="Structure\SyncLockBlockStructureTests.vb" />
+    <Compile Include="Structure\WithBlockStructureTests.vb" />
+    <Compile Include="Structure\UsingBlockStructureTests.vb" />
+    <Compile Include="Structure\WhileBlockStructureTests.vb" />
+    <Compile Include="Structure\MethodDeclarationStructureTests.vb" />
+    <Compile Include="Structure\MultilineLambdaStructureTests.vb" />
+    <Compile Include="Structure\NamespaceDeclarationStructureTests.vb" />
+    <Compile Include="Structure\OperatorDeclarationStructureTests.vb" />
+    <Compile Include="Structure\OverallStructureTests.vb" />
+    <Compile Include="Structure\PropertyDeclarationStructureTests.vb" />
+    <Compile Include="Structure\RegionDirectiveStructureTests.vb" />
+    <Compile Include="Structure\TypeDeclarationStructureTests.vb" />
+    <Compile Include="Structure\XmlExpressionStructureTests.vb" />
     <Compile Include="SymbolId\SymbolKeyCompilationsTests.vb" />
     <Compile Include="SymbolId\SymbolKeyMetadataVsSourceTests.vb" />
     <Compile Include="SymbolId\SymbolKeyTestBase.vb" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.vb" />
     <Compile Include="TodoComment\TodoCommentTests.vb" />
     <Compile Include="TypeInferrer\TypeInferrerTests.vb" />
+    <Compile Include="UseObjectInitializer\UseObjectInitializerTests.vb" />
     <Compile Include="Utilities\CodeSnippets.vb" />
     <Compile Include="Utils.vb" />
     <EmbeddedResource Include="Formatting\XmlLiterals.resx" />
@@ -613,8 +626,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

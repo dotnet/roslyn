@@ -1,13 +1,15 @@
 ﻿{
   "supports": {},
   "dependencies": {
-    "System.Collections.Immutable": "1.2.0",
-    "System.Reflection.Metadata": "1.4.1-beta-24322-03",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
     "Microsoft.DiaSymReader.Native": "1.5.0-beta1",
     "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
-    "Microsoft.DiaSymReader.PortablePdb": "1.2.0-beta1-60723-01"
+    "Microsoft.DiaSymReader.PortablePdb": "1.2.0-beta1-60831-01",
+    "System.Collections.Immutable": "1.2.0",
+    "System.Reflection.Metadata": "1.4.1-beta-24430-01",
+    "System.Xml.ReaderWriter": "4.0.11"
   },
   "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
+    "netstandard1.3": {}
   }
 }

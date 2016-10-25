@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -14,6 +12,7 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -46,6 +45,9 @@
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>Resolvers\RelativePathResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs">
+      <Link>CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs">
       <Link>Resolvers\ClrGlobalAssemblyCache.cs</Link>
@@ -157,7 +159,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

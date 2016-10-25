@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return RewriteLocalDeclaration(node, node.Syntax, node.LocalSymbol, VisitExpression(node.InitializerOpt), node.HasErrors);
         }
 
-        private BoundStatement RewriteLocalDeclaration(BoundLocalDeclaration originalOpt, CSharpSyntaxNode syntax, LocalSymbol localSymbol, BoundExpression rewrittenInitializer, bool hasErrors = false)
+        private BoundStatement RewriteLocalDeclaration(BoundLocalDeclaration originalOpt, SyntaxNode syntax, LocalSymbol localSymbol, BoundExpression rewrittenInitializer, bool hasErrors = false)
         {
             // A declaration of a local variable without an initializer has no associated IL.
             // Simply remove the declaration from the bound tree. The local symbol will
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenLocalDeclaration;
         }
 
-        public override sealed BoundNode VisitOutVarLocalPendingInference(OutVarLocalPendingInference node)
+        public override sealed BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
         {
             throw ExceptionUtilities.Unreachable;
         }

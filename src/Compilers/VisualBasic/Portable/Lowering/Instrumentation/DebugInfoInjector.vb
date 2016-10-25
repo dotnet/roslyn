@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function InstrumentQueryLambdaBody(original As BoundQueryLambda, rewritten As BoundStatement) As BoundStatement
             rewritten = MyBase.InstrumentQueryLambdaBody(original, rewritten)
 
-            Dim createSequencePoint As VisualBasicSyntaxNode = Nothing
+            Dim createSequencePoint As SyntaxNode = Nothing
             Dim sequencePointSpan As TextSpan
 
             Select Case original.LambdaSymbol.SynthesizedKind
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not original.ResourceList.IsDefault AndAlso original.ResourceList.Length > 1 Then
                 ' Case "Using <variable declarations>"  
                 Dim localDeclaration = original.ResourceList(resourceIndex)
-                Dim syntaxForSequencePoint As VisualBasicSyntaxNode
+                Dim syntaxForSequencePoint As SyntaxNode
 
                 If localDeclaration.Kind = BoundKind.LocalDeclaration Then
                     syntaxForSequencePoint = localDeclaration.Syntax.Parent

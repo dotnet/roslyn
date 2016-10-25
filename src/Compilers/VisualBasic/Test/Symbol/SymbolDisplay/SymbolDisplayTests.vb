@@ -4603,6 +4603,42 @@ class Outer
             Assert.Equal(Nothing, SymbolDisplay.FormatPrimitive(New Object(), quoteStrings:=False, useHexadecimalNumbers:=False))
         End Sub
 
+        <Fact>
+        Public Sub AliasInSpeculativeSemanticModel()
+            Dim text =
+        <compilation>
+            <file name="a.vb">
+Imports A = N.M
+Namespace N.M
+    Class B
+    End Class
+End Namespace
+Class C
+    Shared Sub M()
+        Dim o = 1
+    End Sub
+End Class
+                </file>
+        </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().First()
+            Dim position = methodDecl.Statements(0).SpanStart
+            tree = VisualBasicSyntaxTree.ParseText("
+Class C
+    Shared Sub M()
+        Dim o = 1
+    End Sub
+End Class")
+            methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().First()
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(position, methodDecl, model))
+            Dim symbol = comp.GetMember(Of NamedTypeSymbol)("N.M.B")
+            position = methodDecl.Statements(0).SpanStart
+            Dim description = symbol.ToMinimalDisplayParts(model, position, SymbolDisplayFormat.MinimallyQualifiedFormat)
+            Verify(description, "A.B", SymbolDisplayPartKind.AliasName, SymbolDisplayPartKind.Operator, SymbolDisplayPartKind.ClassName)
+        End Sub
+
 #Region "Helpers"
 
         Private Sub TestSymbolDescription(

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Text;

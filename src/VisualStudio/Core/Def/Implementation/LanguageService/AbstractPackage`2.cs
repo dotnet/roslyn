@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
 
         private PackageInstallerService _packageInstallerService;
-        private SymbolSearchService _symbolSearchService;
+        private VisualStudioSymbolSearchService _symbolSearchService;
 
         public VisualStudioWorkspaceImpl Workspace { get; private set; }
 
@@ -90,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
             _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
-            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as SymbolSearchService;
+            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
@@ -126,9 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override void Dispose(bool disposing)
         {
-            _packageInstallerService?.Disconnect(this.RoslynLanguageName);
-            _symbolSearchService?.Disconnect(this.RoslynLanguageName);
-
             if (_miscellaneousFilesWorkspace != null)
             {
                 _miscellaneousFilesWorkspace.StopSolutionCrawler();

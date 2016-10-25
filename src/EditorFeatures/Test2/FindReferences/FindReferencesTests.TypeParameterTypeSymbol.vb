@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -86,7 +86,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -104,7 +104,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
@@ -126,7 +126,7 @@ class A : I
 ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
@@ -148,7 +148,7 @@ class A : I
 ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
@@ -170,7 +170,7 @@ class A : I
 ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

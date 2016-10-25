@@ -3,9 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -15,6 +13,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures.Next</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -45,11 +44,6 @@
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-      <Aliases>InteractiveWindow</Aliases>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -72,8 +66,10 @@
     <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
+    <Compile Include="NavigateTo\Dev15NavigateToOptionsService.cs" />
+    <Compile Include="Structure\BlockContextProvider.cs" />
+    <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <ItemGroup />
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

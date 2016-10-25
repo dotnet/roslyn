@@ -32,6 +32,26 @@ try
 {
     Write-Host "Starting PostTest script..."
 
+    # We need to remove 'refs/heads/' from the beginning of the string
+    $branchName = $branchName -Replace "^refs/heads/"
+    
+    # We also need to replace all instances of '/' with '_'
+    $branchName = $branchName.Replace("/", "_")
+
+    switch ($branchName)
+    {
+        "dev15-rc" { } 
+        "master" { } 
+        default
+        {
+            if (-not $test)
+            {
+                Write-Host "Branch $branchName is not supported for publishing"
+                exit 1
+            }
+        }
+    }
+
     # MAIN BODY
     Stop-Process -Name "vbcscompiler" -Force -ErrorAction SilentlyContinue
 
@@ -51,7 +71,7 @@ try
         if (-not $test) 
         {
             <# Do not overwrite existing packages. #>
-            robocopy /xo /xn /xc (Join-Path $packagesDropDir "Roslyn") $coreXTRoot "VS.ExternalAPIs.Roslyn.*.nupkg"
+            robocopy /xo /xn /xc (Join-Path $packagesDropDir "Roslyn") $coreXTRoot "*.nupkg"
 
             <# TODO: Once all dependencies are available on NuGet we can merge the following two commands. #>
             robocopy /xo /xn /xc (Join-Path $packagesDropDir "ManagedDependencies") $coreXTRoot "VS.ExternalAPIs.*.nupkg"
@@ -65,19 +85,13 @@ try
         $exitCode = 5
     }
 
-    # We need to remove 'refs/heads/' from the beginning of the string
-    $branchName = $branchName -Replace "^refs/heads/"
-    
-    # We also need to replace all instances of '/' with '_'
-    $branchName = $branchName.Replace("/", "_")
-
     Write-Host "Uploading NuGet packages..."
 
     $nugetPath = Join-Path $binariesPath "NuGet\PerBuildPreRelease"
 
     [xml]$packages = Get-Content "$nugetPath\myget_org-packages.config"
 
-    $sourceUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/api/v2/package" -f $branchName)
+    $sourceUrl = "https://dotnet.myget.org/F/roslyn/api/v2/package"
     
     pushd $nugetPath
     foreach ($package in $packages.packages.package)
@@ -111,7 +125,7 @@ try
     foreach ($extension in $extensions.extensions.extension)
     {
         $vsix = $extension.id + ".vsix"
-        $requestUrl = ("https://dotnet.myget.org/F/roslyn-{0}-nightly/vsix/upload" -f $branchName)
+        $requestUrl = "https://dotnet.myget.org/F/roslyn/vsix/upload"
         
         Write-Host "  Uploading '$vsix' to '$requestUrl'"
 

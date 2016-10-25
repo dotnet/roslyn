@@ -95,6 +95,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VBDiagnostic(ErrorFactory.ErrorInfo(CType(code, ERRID), args), location)
         End Function
 
+        Public Overrides Function CreateDiagnostic(info As DiagnosticInfo) As Diagnostic
+            Return New VBDiagnostic(info, Location.None)
+        End Function
+
         Public Overrides Function GetErrorDisplayString(symbol As ISymbol) As String
             ' show extra info for assembly if possible such as version, public key token etc.
             If symbol.Kind = SymbolKind.Assembly OrElse symbol.Kind = SymbolKind.Namespace Then
@@ -268,6 +272,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_InvalidInstrumentationKind As Integer
+            Get
+                Return ERRID.ERR_InvalidInstrumentationKind
+            End Get
+        End Property
 
         ' reference manager:
         Public Overrides ReadOnly Property ERR_MetadataFileNotAssembly As Integer
@@ -456,6 +465,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' PDB Writer
+        Public Overrides ReadOnly Property ERR_EncodinglessSyntaxTree As Integer
+            Get
+                Return ERRID.ERR_EncodinglessSyntaxTree
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property WRN_PdbUsingNameTooLong As Integer
             Get
                 Return ERRID.WRN_PdbUsingNameTooLong

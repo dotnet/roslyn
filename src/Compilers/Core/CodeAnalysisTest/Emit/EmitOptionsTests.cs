@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestProperty((old, value) => old.WithDebugInformationFormat(value), opt => opt.DebugInformationFormat, (DebugInformationFormat)2);
             TestProperty((old, value) => old.WithTolerateErrors(value), opt => opt.TolerateErrors, true);
             TestProperty((old, value) => old.WithIncludePrivateMembers(value), opt => opt.IncludePrivateMembers, true);
+            TestProperty((old, value) => old.WithInstrumentationKinds(value), opt => opt.InstrumentationKinds, ImmutableArray.Create(InstrumentationKind.TestCoverage));
         }
 
         /// <summary>
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(EmitOptions),
-                nameof(EmitOptions.EmitDynamicAnalysisData),
+                nameof(EmitOptions.EmitTestCoverageData),
                 nameof(EmitOptions.EmitMetadataOnly),
                 nameof(EmitOptions.SubsystemVersion),
                 nameof(EmitOptions.FileAlignment),
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 nameof(EmitOptions.RuntimeMetadataVersion),
                 nameof(EmitOptions.TolerateErrors),
                 nameof(EmitOptions.IncludePrivateMembers),
-                nameof(EmitOptions.Instrument));
+                nameof(EmitOptions.InstrumentationKinds));
         }
     }
 }

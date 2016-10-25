@@ -44,12 +44,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)FX\CultureHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\DirectoryHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EncodingUtilities.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FX\EnsureEnglishCulture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\EnsureInvariantCulture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EnsureEnglishUICulture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EventWaiter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\ImmutableArrayTestExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\MonoHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FX\ObjectReference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\PinnedBlob.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\PinnedMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\RegexExtensions.cs" />

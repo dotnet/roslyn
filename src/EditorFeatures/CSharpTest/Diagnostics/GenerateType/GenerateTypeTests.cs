@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         }
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
-        {
-            return FlattenActions(codeActions);
-        }
+            => FlattenActions(codeActions);
 
         #region Generate Class
 
@@ -889,7 +887,7 @@ internal class T
 }",
 index: 1,
 compareTokens: false,
-options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
+options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
         }
 
         #endregion

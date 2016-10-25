@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
     {
         /// <summary>
         /// Implementation of a <see cref="DefinitionItem"/> that sits on top of a 
-        /// <see cref="DocumentLocation"/>.
+        /// <see cref="DocumentSpan"/>.
         /// </summary>
         // internal for testing purposes.
         internal sealed class DocumentLocationDefinitionItem : DefinitionItem
@@ -19,16 +19,16 @@ namespace Microsoft.CodeAnalysis.FindReferences
             public DocumentLocationDefinitionItem(
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
-                ImmutableArray<DocumentLocation> sourceLocations,
+                ImmutableArray<DocumentSpan> sourceSpans,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, 
-                      ImmutableArray.Create(new TaggedText(TextTags.Text, sourceLocations[0].Document.Project.Name)),
-                      sourceLocations, displayIfNoReferences)
+                      ImmutableArray.Create(new TaggedText(TextTags.Text, sourceSpans[0].Document.Project.Name)),
+                      sourceSpans, displayIfNoReferences)
             {
             }
 
-            public override bool CanNavigateTo() => SourceLocations[0].CanNavigateTo();
-            public override bool TryNavigateTo() => SourceLocations[0].TryNavigateTo();
+            public override bool CanNavigateTo() => SourceSpans[0].CanNavigateTo();
+            public override bool TryNavigateTo() => SourceSpans[0].TryNavigateTo();
         }
     }
 }

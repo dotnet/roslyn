@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -11,12 +9,13 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
+    <SyntaxDefinition>$(MSBuildThisFileDirectory)Syntax\Syntax.xml</SyntaxDefinition>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
@@ -176,6 +175,7 @@
     <Compile Include="Binding\TypesOfImportedNamespacesMembersBinder.vb" />
     <Compile Include="Binding\UsingBlockBinder.vb" />
     <Compile Include="Binding\UsingInfo.vb" />
+    <Compile Include="BoundTree\BoundConvertedTupleElements.vb" />
     <Compile Include="BoundTree\BoundInterpolatedStringExpression.vb" />
     <Compile Include="BoundTree\BoundMyClassReference.vb" />
     <Compile Include="BoundTree\BoundMyBaseReference.vb" />
@@ -349,6 +349,7 @@
     <Compile Include="Emit\EditAndContinue\VisualBasicDefinitionMap.vb" />
     <Compile Include="Emit\EditAndContinue\EmitHelpers.vb" />
     <Compile Include="Emit\EditAndContinue\PEDeltaAssemblyBuilder.vb" />
+    <Compile Include="Emit\EditAndContinue\VisualBasicLambdaSyntaxFacts.vb" />
     <Compile Include="Emit\EditAndContinue\VisualBasicSymbolMatcher.vb" />
     <Compile Include="Emit\EventSymbolAdapter.vb" />
     <Compile Include="Emit\FieldSymbolAdapter.vb" />
@@ -455,6 +456,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DimStatement.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DoLoop.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Erase.vb" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_TupleLiteralExpression.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Exit.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ExpressionStatement.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_FieldAccess.vb" />
@@ -669,6 +671,7 @@
     <Compile Include="Symbols\Metadata\PE\PENestedNamespaceSymbol.vb" />
     <Compile Include="Symbols\Metadata\PE\PEParameterSymbol.vb" />
     <Compile Include="Symbols\Metadata\PE\PEPropertyOrEventHelpers.vb" />
+    <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.vb" />
     <Compile Include="Symbols\Metadata\PE\PEPropertySymbol.vb" />
     <Compile Include="Symbols\Metadata\PE\PETypeParameterSymbol.vb" />
     <Compile Include="Symbols\MetadataOrSourceAssemblySymbol.vb" />
@@ -818,8 +821,14 @@
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedRegularMethodBase.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedSimpleConstructorSymbol.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedSimpleMethodSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleErrorFieldSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleEventSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleFieldSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleMethodSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleParameterSymbol.vb" />
+    <Compile Include="Symbols\Tuples\TuplePropertySymbol.vb" />
+    <Compile Include="Symbols\Tuples\TupleTypeSymbol.vb" />
     <Compile Include="Symbols\TypedConstant.vb" />
-    <Compile Include="Symbols\TypeKind.vb" />
     <Compile Include="Symbols\TypeParameterConstraint.vb" />
     <Compile Include="Symbols\TypeParameterSymbol.vb" />
     <Compile Include="Symbols\TypeSubstitution.vb" />
@@ -829,6 +838,13 @@
     <Compile Include="Symbols\UnboundGenericType.vb" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.vb" />
     <Compile Include="Symbols\WellKnownMembers.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedEventSymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedFieldSymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedMethodSymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedNamedTypeSymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedParameterSymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedPropertySymbol.vb" />
+    <Compile Include="Symbols\Wrapped\WrappedTypeParameterSymbol.vb" />
     <Compile Include="Syntax\ArgumentSyntax.vb" />
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.vb" />
     <Compile Include="Syntax\BaseSyntaxExtensions.vb" />
@@ -842,20 +858,17 @@
     <Compile Include="Syntax\InternalSyntax\ComplexIdentifierSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\DocumentationCommentTriviaSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\IdentifierTokenSyntax.vb" />
-    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxList.vb" />
     <Compile Include="Syntax\InternalSyntax\SimpleIdentifierSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\StructuredTriviaSyntax.vb" />
-    <Compile Include="Syntax\InternalSyntax\Syntax.vb" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.vb" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList.vb" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxFactory.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxLiterals.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.vb" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.vb" />
+    <Compile Include="Syntax\InternalSyntax\VisualBasicSyntaxNodeCache.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeExtensions.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeFactories.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodePartials.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxReplacer.vb" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxRewriter.vb" />
+    <Compile Include="Syntax\InternalSyntax\VisualBasicSyntaxRewriter.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxSubKind.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxTrivia.vb" />
@@ -864,7 +877,6 @@
     <Compile Include="Syntax\MultiLineLambdaExpressionSyntax.vb" />
     <Compile Include="Syntax\NamespaceDeclarationSyntaxReference.vb" />
     <Compile Include="Syntax\NameSyntax.vb" />
-    <Compile Include="Syntax\SeparatedSyntaxListBuilder.vb" />
     <Compile Include="Syntax\SimpleSyntaxReference.vb" />
     <Compile Include="Syntax\SingleLineLambdaExpressionSyntax.vb" />
     <Compile Include="Syntax\SkippedTokensTriviaSyntax.vb" />
@@ -878,25 +890,12 @@
     <Compile Include="Syntax\SyntaxKindEqualityComparer.vb" />
     <Compile Include="Syntax\SyntaxKindExtensions.vb" />
     <Compile Include="Syntax\SyntaxKindFacts.vb" />
-    <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.vb" />
-    <Compile Include="Syntax\SyntaxList.WeakSeparatedWithManyChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.WeakWithManyChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.WithManyChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.WithThreeChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.WithTwoChildren.vb" />
-    <Compile Include="Syntax\SyntaxListBuilder.vb" />
-    <Compile Include="Syntax\SyntaxNavigator.vb" />
     <Compile Include="Syntax\SyntaxNodeExtensions.vb" />
     <Compile Include="Syntax\SyntaxNodeFactories.vb" />
-    <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.vb" />
     <Compile Include="Syntax\SyntaxNodePartials.vb" />
     <Compile Include="Syntax\SyntaxNodeRemover.vb" />
     <Compile Include="Syntax\SyntaxReplacer.vb" />
-    <Compile Include="Syntax\SyntaxTokenListBuilder.vb" />
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.vb" />
-    <Compile Include="Syntax\SyntaxTriviaFunctions.vb" />
-    <Compile Include="Syntax\SyntaxTriviaListBuilder.vb" />
     <Compile Include="Syntax\LambdaUtilities.vb" />
     <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
@@ -912,7 +911,6 @@
     <Compile Include="Syntax\VisualBasicSyntaxTree.vb" />
     <Compile Include="Syntax\VisualBasicSyntaxWalker.vb" />
     <Compile Include="Utilities\FunctionExtensions.vb" />
-    <Compile Include="Utilities\SyntaxListPool.vb" />
     <Compile Include="Utilities\TypeUnification.vb" />
     <Compile Include="Utilities\VarianceAmbiguity.vb" />
     <Compile Include="VBResources.Designer.vb">
@@ -939,20 +937,17 @@
     <BoundTreeDefinition Include="BoundTree\BoundNodes.xml">
       <SubType>Designer</SubType>
     </BoundTreeDefinition>
-    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Syntax.Generated.vb" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Main.Generated.vb" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Internal.Generated.vb" />
     <Compile Include="$(IntermediateOutputPath)ErrorFacts.Generated.vb" />
     <Compile Include="Symbols\SymbolVisitor.vb" />
     <Compile Include="Symbols\SymbolVisitor`1.vb" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
     <Compile Include="Compilation\ModuleCompilationState.vb" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
     <ErrorCode Include="Errors\Errors.vb" />
-    <SyntaxDefinition Include="Syntax\Syntax.xml">
-      <SubType>Designer</SubType>
-    </SyntaxDefinition>
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
@@ -998,7 +993,5 @@
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

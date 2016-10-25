@@ -858,8 +858,8 @@ Do you want to continue?</value>
   <data name="Method_referenced_implicitly" xml:space="preserve">
     <value>Method referenced implicitly</value>
   </data>
-  <data name="Generate_type" xml:space="preserve">
-    <value>Generate type</value>
+  <data name="Generate_type_0" xml:space="preserve">
+    <value>Generate type '{0}'</value>
   </data>
   <data name="Generate_0_1" xml:space="preserve">
     <value>Generate {0} '{1}'</value>
@@ -956,8 +956,8 @@ This version used in: {2}</value>
   <data name="Install_version_0" xml:space="preserve">
     <value>Install version '{0}'</value>
   </data>
-  <data name="Generate_variable" xml:space="preserve">
-    <value>Generate variable</value>
+  <data name="Generate_variable_0" xml:space="preserve">
+    <value>Generate variable '{0}'</value>
   </data>
   <data name="Classes" xml:space="preserve">
     <value>Classes</value>
@@ -1045,5 +1045,95 @@ This version used in: {2}</value>
   </data>
   <data name="Remove_tag" xml:space="preserve">
     <value>Remove tag</value>
+  </data>
+  <data name="Add_missing_param_nodes" xml:space="preserve">
+    <value>Add missing param nodes</value>
+  </data>
+  <data name="Make_containing_scope_async" xml:space="preserve">
+    <value>Make containing scope async</value>
+  </data>
+  <data name="Make_containing_scope_async_return_Task" xml:space="preserve">
+    <value>Make containing scope async (return Task)</value>
+  </data>
+  <data name="paren_Unknown_paren" xml:space="preserve">
+    <value>(Unknown)</value>
+  </data>
+  <data name="Implement_Abstract_Class" xml:space="preserve">
+    <value>Implement Abstract Class</value>
+  </data>
+  <data name="Use_framework_type" xml:space="preserve">
+    <value>Use framework type</value>
+  </data>
+  <data name="Install_package_0" xml:space="preserve">
+    <value>Install package '{0}'</value>
+  </data>
+  <data name="Object_initialization_can_be_simplified" xml:space="preserve">
+    <value>Object initialization can be simplified</value>
+  </data>
+  <data name="Use_throw_expression" xml:space="preserve">
+    <value>Use 'throw' expression</value>
+  </data>
+  <data name="project_space" xml:space="preserve">
+    <value>project </value>
+  </data>
+  <data name="type_space" xml:space="preserve">
+    <value>type </value>
+  </data>
+  <data name="Inline_variable_declaration" xml:space="preserve">
+    <value>Inline variable declaration</value>
+  </data>
+  <data name="Use_pattern_matching" xml:space="preserve">
+    <value>use pattern matching</value>
+  </data>
+  <data name="Use_expression_body_for_methods" xml:space="preserve">
+    <value>Use expression body for methods</value>
+  </data>
+  <data name="Use_block_body_for_methods" xml:space="preserve">
+    <value>Use block body for methods</value>
+  </data>
+  <data name="Use_block_body_for_accessors" xml:space="preserve">
+    <value>Use block body for accessors</value>
+  </data>
+  <data name="Use_block_body_for_constructors" xml:space="preserve">
+    <value>Use block body for constructors</value>
+  </data>
+  <data name="Use_block_body_for_indexers" xml:space="preserve">
+    <value>Use block body for indexers</value>
+  </data>
+  <data name="Use_block_body_for_operators" xml:space="preserve">
+    <value>Use block body for operators</value>
+  </data>
+  <data name="Use_block_body_for_properties" xml:space="preserve">
+    <value>Use block body for properties</value>
+  </data>
+  <data name="Use_expression_body_for_accessors" xml:space="preserve">
+    <value>Use expression body for accessors</value>
+  </data>
+  <data name="Use_expression_body_for_constructors" xml:space="preserve">
+    <value>Use expression body for constructors</value>
+  </data>
+  <data name="Use_expression_body_for_indexers" xml:space="preserve">
+    <value>Use expression body for indexers</value>
+  </data>
+  <data name="Use_expression_body_for_operators" xml:space="preserve">
+    <value>Use expression body for operators</value>
+  </data>
+  <data name="Use_expression_body_for_properties" xml:space="preserve">
+    <value>Use expression body for properties</value>
+  </data>
+  <data name="Spell_check_0" xml:space="preserve">
+    <value>Spell check '{0}'</value>
+  </data>
+  <data name="Fully_qualify_0" xml:space="preserve">
+    <value>Fully qualify '{0}'</value>
+  </data>
+  <data name="Remove_reference_to_0" xml:space="preserve">
+    <value>Remove reference to '{0}'.</value>
+  </data>
+  <data name="Keywords" xml:space="preserve">
+    <value>Keywords</value>
+  </data>
+  <data name="Snippets" xml:space="preserve">
+    <value>Snippets</value>
   </data>
 </root>

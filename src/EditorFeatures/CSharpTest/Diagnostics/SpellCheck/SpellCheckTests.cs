@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck;
-using Xunit;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
 {
@@ -16,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
         {
             return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpSpellCheckCodeFixProvider());
         }
+
+        protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
+            => FlattenActions(actions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestNoSpellcheckForIfOnly2Characters()
@@ -435,5 +440,75 @@ class C
 "[assembly: Microsoft.CodeAnalysis.[||]]");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(12990, "https://github.com/dotnet/roslyn/issues/12990")]
+        public async Task TestTrivia1()
+        {
+            var text = @"
+using System.Text;
+class C
+{
+  void M()
+  {
+    /*leading*/ [|stringbuilder|] /*trailing*/ sb = null;
+  }
+}";
+
+            var expected = @"
+using System.Text;
+class C
+{
+  void M()
+  {
+    /*leading*/ StringBuilder /*trailing*/ sb = null;
+  }
+}";
+
+            await TestAsync(text, expected, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
+        public async Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        // here 'for' is a keyword and snippet, so we should offer to spell check to it.
+        [|foo|];
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        // here 'for' is a keyword and snippet, so we should offer to spell check to it.
+        for;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
+        public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        // here 'for' is *only* a snippet, and we should not offer to spell check to it.
+        var v = [|foo|];
+    }
+}
+");
+        }
     }
 }

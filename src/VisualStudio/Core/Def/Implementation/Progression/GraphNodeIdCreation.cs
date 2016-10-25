@@ -407,7 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     var vsProject = workspace.ProjectTracker.GetProject(foundProject.Id);
                     if (vsProject != null)
                     {
-                        var output = vsProject.TryGetBinOutputPath();
+                        var output = vsProject.BinOutputPath;
                         if (!string.IsNullOrWhiteSpace(output))
                         {
                             return new Uri(output, UriKind.RelativeOrAbsolute);

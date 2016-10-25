@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <InsertionFilesDir>$(OutDir)DevDivInsertionFiles</InsertionFilesDir>
     <PackagesOutDir>$(OutDir)DevDivPackages\Roslyn</PackagesOutDir>
   </PropertyGroup>
   <ItemGroup>
     <NuSpec Include="$(InsertionFilesDir)\VS.ExternalAPIs.Roslyn.nuspec" >
+      <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
+      <!-- TFS build number isn't set on CI server -->
+      <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
+    </NuSpec>
+    <NuSpec Include="$(InsertionFilesDir)\VS.Tools.Roslyn.nuspec" >
       <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
       <!-- TFS build number isn't set on CI server -->
       <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>

@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -15,7 +13,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ImportVSSDKTargets>True</ImportVSSDKTargets>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <UseCodebase>true</UseCodebase>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
@@ -27,6 +24,7 @@
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -49,9 +47,45 @@
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.Native" />
-    <!-- Even though the VS process includes both of these, we need to also include them in the VSIX for the compiler processes -->
+    <NuGetPackageToIncludeInVsix Include="Microsoft.Win32.Primitives" />
+    <NuGetPackageToIncludeInVsix Include="System.AppContext" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
+    <NuGetPackageToIncludeInVsix Include="System.Console" />
+    <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Process" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
+    <NuGetPackageToIncludeInVsix Include="System.IO" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.DriveInfo" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Pipes" />
+    <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
+    <NuGetPackageToIncludeInVsix Include="System.Linq.Parallel" />
+    <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
+    <NuGetPackageToIncludeInVsix Include="System.Reflection" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.InteropServices.RuntimeInformation" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.AccessControl" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Algorithms" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Encoding" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Primitives" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.X509Certificates" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Principal.Windows" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Thread" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -65,12 +99,9 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <ProjectReference Include="..\Core\MSBuildTask\Desktop\MSBuildTask.Desktop.csproj">
-      <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
-      <Name>MSBuildTask.Desktop</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    <ProjectReference Include="..\Core\MSBuildTask\MSBuildTask.csproj">
+      <Project>{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}</Project>
+      <Name>MSBuildTask</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -115,10 +146,5 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

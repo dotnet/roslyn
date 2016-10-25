@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -22,17 +23,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
-        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
-        private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
-        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
+        private static readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private static readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private static readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private static readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
+        private static readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+        private static readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
+        private static readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
+        private static readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() =>
+        public static IDictionary<OptionKey, object> ImplicitTypeEverywhere() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
 
-        private IDictionary<OptionKey, object> ImplicitTypeButKeepIntrinsics() =>
+        public static IDictionary<OptionKey, object> ImplicitTypeButKeepIntrinsics() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo);
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone);
 
-        private IDictionary<OptionKey, object> Options(OptionKey option, object value)
+        private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
             var options = new Dictionary<OptionKey, object>();
             options.Add(option, value);

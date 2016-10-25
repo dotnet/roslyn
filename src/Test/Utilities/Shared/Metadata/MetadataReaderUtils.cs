@@ -11,6 +11,9 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Text;
+using System.IO;
+using System.IO.Compression;
 
 namespace Roslyn.Test.Utilities
 {
@@ -203,6 +206,68 @@ namespace Roslyn.Test.Utilities
                     let cdi = reader.GetCustomDebugInformation(handle)
                     where reader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.SourceLink
                     select reader.GetBlobContent(cdi.Value)).Single();
+        }
+
+        public static SourceText GetEmbeddedSource(this MetadataReader reader, DocumentHandle document)
+        {
+            byte[] bytes = (from handle in reader.GetCustomDebugInformation(document)
+                            let cdi = reader.GetCustomDebugInformation(handle)
+                            where reader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.EmbeddedSource
+                            select reader.GetBlobBytes(cdi.Value)).SingleOrDefault();
+
+            if (bytes == null)
+            {
+                return null;
+            }
+
+            int uncompressedSize = BitConverter.ToInt32(bytes, 0);
+            var stream = new MemoryStream(bytes, sizeof(int), bytes.Length - sizeof(int));
+
+            if (uncompressedSize != 0)
+            {
+                var decompressed = new MemoryStream(uncompressedSize);
+
+                using (var deflater = new DeflateStream(stream, CompressionMode.Decompress))
+                {
+                    deflater.CopyTo(decompressed);
+                }
+
+                if (decompressed.Length != uncompressedSize)
+                {
+                    throw new InvalidDataException();
+                }
+
+                stream = decompressed;
+            }
+
+            using (stream)
+            {
+                return EncodedStringText.Create(stream);
+            }
+        }
+
+        public static IEnumerable<string> DumpAssemblyReferences(this MetadataReader reader)
+        {
+            return reader.AssemblyReferences.Select(r => reader.GetAssemblyReference(r))
+                .Select(row => $"{reader.GetString(row.Name)} {row.Version.Major}.{row.Version.Minor}");
+        }
+
+        public static IEnumerable<string> DumpTypeReferences(this MetadataReader reader)
+        {
+            return reader.TypeReferences
+                .Select(t => reader.GetTypeReference(t))
+                .Select(t => $"{reader.GetString(t.Name)}, {reader.GetString(t.Namespace)}, {reader.Dump(t.ResolutionScope)}");
+        }
+
+        public static string Dump(this MetadataReader reader, EntityHandle handle)
+        {
+            switch (handle.Kind)
+            {
+                case HandleKind.AssemblyReference:
+                    return "AssemblyRef:" + reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)handle).Name);
+                default:
+                    return handle.Kind.ToString();
+            }
         }
     }
 }

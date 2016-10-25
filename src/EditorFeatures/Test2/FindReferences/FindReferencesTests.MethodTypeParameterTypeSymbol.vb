@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 #End Region
 
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(544436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544436"), WorkItem(544475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544475")>
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(544435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544435")>
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(544435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544435")>
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
 #End Region

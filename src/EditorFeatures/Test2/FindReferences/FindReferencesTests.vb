@@ -1,10 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Navigation
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindSymbols
@@ -22,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             _outputHelper = outputHelper
         End Sub
 
-        Private Async Function TestAsync(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestFullAsync(definition, searchSingleFileOnly, uiVisibleOnly)
-            Await TestStreamingAsync(definition, searchSingleFileOnly, uiVisibleOnly)
+        Private Async Function TestAPIAndFeature(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly)
+            Await TestStreamingFeature(definition, searchSingleFileOnly, uiVisibleOnly)
         End Function
 
-        Private Async Function TestStreamingAsync(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
+        Private Async Function TestStreamingFeature(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
             ' We don't support testing features htat only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
@@ -52,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                     Dim actualDefinitions = GetFileNamesAndSpans(
                         context.Definitions.Where(AddressOf context.ShouldShow).
-                                            SelectMany(Function(d) d.SourceLocations))
+                                            SelectMany(Function(d) d.SourceSpans))
 
                     Assert.Equal(expectedDefinitions, actualDefinitions)
 
@@ -63,21 +61,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                    d.Name, d.SelectedSpans.ToList())).ToList()
 
                     Dim actualReferences = GetFileNamesAndSpans(
-                        context.References.Select(Function(r) r.Location))
+                        context.References.Select(Function(r) r.SourceSpan))
 
                     Assert.Equal(expectedReferences, actualReferences)
                 Next
             End Using
         End Function
 
-        Private Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentLocation)) As List(Of FileNameAndSpans)
+        Private Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentSpan)) As List(Of FileNameAndSpans)
             Return items.Where(Function(i) i.Document IsNot Nothing).
                          GroupBy(Function(i) i.Document).
                          OrderBy(Function(g) g.Key.Name).
                          Select(Function(g) GetFileNameAndSpans(g)).ToList()
         End Function
 
-        Private Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentLocation)) As FileNameAndSpans
+        Private Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentSpan)) As FileNameAndSpans
             Return New FileNameAndSpans(
                 g.Key.Name,
                 g.Select(Function(i) i.SourceSpan).OrderBy(Function(s) s.Start).
@@ -126,20 +124,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Sub OnDefinitionFound(definition As DefinitionItem)
+            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem) As Task
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
-            End Sub
 
-            Public Overrides Sub OnReferenceFound(reference As SourceReferenceItem)
+                Return SpecializedTasks.EmptyTask
+            End Function
+
+            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As Task
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock
-            End Sub
+
+                Return SpecializedTasks.EmptyTask
+            End Function
         End Class
 
-        Private Async Function TestFullAsync(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+        Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             Using workspace = Await TestWorkspace.CreateAsync(definition)
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 

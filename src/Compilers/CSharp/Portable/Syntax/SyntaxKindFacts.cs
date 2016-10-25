@@ -414,6 +414,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool IsIncrementOrDecrementOperator(SyntaxKind token)
+        {
+            switch (token)
+            {
+                case SyntaxKind.PlusPlusToken:
+                case SyntaxKind.MinusMinusToken:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public static bool IsUnaryOperatorDeclarationToken(SyntaxKind token)
         {
             return IsPrefixUnaryExpressionOperatorToken(token) ||

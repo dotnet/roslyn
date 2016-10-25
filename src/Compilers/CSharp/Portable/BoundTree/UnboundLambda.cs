@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal interface IBoundLambdaOrFunction
     {
         MethodSymbol Symbol { get; }
-        CSharpSyntaxNode Syntax { get; }
+        SyntaxNode Syntax { get; }
         BoundBlock Body { get; }
         bool WasCompilerGenerated { get; }
     }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
-        CSharpSyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
+        SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
     }
 
     internal sealed partial class BoundLambda : IBoundLambdaOrFunction
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
-        CSharpSyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
+        SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
-        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol delegateType, bool inferReturnType)
+        public BoundLambda(SyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol delegateType, bool inferReturnType)
             : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, delegateType)
         {
             if (inferReturnType)
@@ -150,9 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnType as NamedTypeSymbol;
             if ((object)delegateReturnType != null)
             {
-                NamedTypeSymbol builderType;
-                MethodSymbol createBuilderMethod;
-                if (delegateReturnType.IsCustomTaskType(out builderType, out createBuilderMethod))
+                object builderType;
+                if (delegateReturnType.IsCustomTaskType(out builderType))
                 {
                     taskType = delegateReturnType;
                 }
@@ -890,9 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.IsExpressionLambda)
             {
-                var refKind = CodeAnalysis.RefKind.None;
-                var body = ((ExpressionSyntax)this.Body).SkipRef(out refKind);
-                return lambdaBodyBinder.BindLambdaExpressionAsBlock(refKind, body, diagnostics);
+                return lambdaBodyBinder.BindLambdaExpressionAsBlock((ExpressionSyntax)this.Body, diagnostics);
             }
             else
             {

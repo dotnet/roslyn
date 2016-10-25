@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static bool IsInTryBlock(BoundFixedStatement boundFixed)
         {
-            CSharpSyntaxNode node = boundFixed.Syntax.Parent;
+            SyntaxNode node = boundFixed.Syntax.Parent;
             while (node != null)
             {
                 switch (node.Kind())

@@ -226,6 +226,244 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDeconstructionDeclaration() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+       var ($$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("i")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDeconstructionDeclaration2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+       var (a, $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("i")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDeconstructionDeclaration3() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+       var ($$) = (1, 2);
+    }
+}]]></Document>)
+
+                state.SendTypeChars("i")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestSymbolInTupleLiteral() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        ($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("F")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(F:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestSymbolInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        (x, $$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("F")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(x, F:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestKeywordInTupleLiteral() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        ($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(i:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestTupleType() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        ($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("(int ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestDefaultKeyword() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        switch(true)
+        {
+            $$
+        }
+    }
+}]]></Document>)
+
+                state.SendTypeChars("def")
+                Await state.AssertSelectedCompletionItem(displayText:="default", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("default:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestParenthesizedExpression() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        ($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("F")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(".")
+                Assert.Contains("(Foo.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestInvocationExpression() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo(int Alice)
+    {
+        Foo($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("A")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Foo(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestInvocationExpressionAfterComma() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo(int Alice, int Bob)
+    {
+        Foo(1, $$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("B")
+                Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Foo(1, Bob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestCaseLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        switch (1)
+        {
+            case $$
+        }
+    }
+}]]></Document>)
+
+                state.SendTypeChars("F")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("case Foo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(543268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543268")>
         Public Async Function TestTypePreselection1() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -1904,6 +2142,127 @@ class Program
 
 Anonymous Types:
     'a is new { int x }")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRecursiveGenericSymbolKey() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.Collections.Generic;
+
+class Program
+{
+    static void ReplaceInList<T>(List<T> list, T oldItem, T newItem)
+    {
+        $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+
+                state.SendTypeChars("list")
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("Add")
+
+                Await state.AssertSelectedCompletionItem("Add", description:="void List<T>.Add(T item)")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitNamedParameterWithColon() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(int args)
+    {
+        Main(args$$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+
+                state.SendInvokeCompletionList()
+                state.SendTypeChars(":")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("args:", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(13481, "https://github.com/dotnet/roslyn/issues/13481")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackspaceSelection1() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        DateTimeOffset$$
+    }
+}
+            ]]></Document>)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                For Each c In "Offset"
+                    state.SendBackspace()
+                    Await state.WaitForAsynchronousOperationsAsync()
+                Next
+
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("DateTime")
+            End Using
+        End Function
+
+        <WorkItem(13481, "https://github.com/dotnet/roslyn/issues/13481")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackspaceSelection2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        DateTimeOffset.$$
+    }
+}
+            ]]></Document>)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                For Each c In "Offset."
+                    state.SendBackspace()
+                    Await state.WaitForAsynchronousOperationsAsync()
+                Next
+
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("DateTime")
+            End Using
+        End Function
+
+        <WorkItem(14465, "https://github.com/dotnet/roslyn/issues/14465")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingNumberShouldNotDismiss1() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void Moo1()
+    {
+        new C()$$
+    }
+}
+            ]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("1")
+                Await state.AssertSelectedCompletionItem("Moo1")
             End Using
         End Function
     End Class

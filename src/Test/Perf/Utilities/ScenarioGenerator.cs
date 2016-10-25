@@ -1,33 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System.Collections.Generic;
 using System.IO;
+using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 namespace Roslyn.Test.Performance.Utilities
 {
     public class ScenarioGenerator
     {
         private const string KernelProviderGuid = @"{9e814aad-3204-11d2-9a82-006008a86939}";
-        private string _fullPath = "scenarios.xml";
+        private string _fullPath;
         private List<string> _buffer;
 
-        public ScenarioGenerator(string scenarioFolderPath = "")
+        public ScenarioGenerator()
         {
-            if (!string.IsNullOrEmpty(scenarioFolderPath))
-            {
-                _fullPath = Path.Combine(scenarioFolderPath, _fullPath);
-            }
-
-            Initialize();
-        }
-
-        public void Initialize()
-        {
-            // Delete any existing file
-            if (File.Exists(_fullPath))
-            {
-                File.Delete(_fullPath);
-            }
-
+            _fullPath = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "scenarios.xml");
             _buffer = new List<string>();
         }
 
@@ -74,6 +60,13 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void WriteToDisk()
         {
+            if (File.Exists(_fullPath))
+            {
+                Log($"deleting {_fullPath}");
+                File.Delete(_fullPath);
+            }
+
+            Log($"Writing scenarios.xml to {_fullPath}");
             File.WriteAllLines(_fullPath, _buffer);
         }
 

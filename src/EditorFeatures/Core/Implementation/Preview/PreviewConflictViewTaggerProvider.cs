@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(ConflictTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
     internal class PreviewConflictTaggerProvider
         : AbstractPreviewTaggerProvider<ConflictTag>

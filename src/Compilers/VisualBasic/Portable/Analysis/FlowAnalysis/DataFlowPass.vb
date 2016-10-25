@@ -1,13 +1,34 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#If DEBUG Then
+' We use a struct rather than a class to represent the state for efficiency
+' for data flow analysis, with 32 bits of data inline. Merely copying the state
+' variable causes the first 32 bits to be cloned, as they are inline. This can
+' hide a plethora of errors that would only be exhibited in programs with more
+' than 32 variables to be tracked. However, few of our tests have that many
+' variables.
+'
+' To help diagnose these problems, we use the preprocessor symbol REFERENCE_STATE
+' to cause the data flow state be a class rather than a struct. When it is a class,
+' this category of problems would be exhibited in programs with a small number of
+' tracked variables. But it is slower, so we only do it in DEBUG mode.
+#Const REFERENCE_STATE = True
+#End If
+
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
+#If REFERENCE_STATE Then
+Imports OptionalState = Microsoft.CodeAnalysis.[Optional](Of Microsoft.CodeAnalysis.VisualBasic.DataFlowPass.LocalState)
+#Else
+Imports OptionalState = System.Nullable(Of Microsoft.CodeAnalysis.VisualBasic.DataFlowPass.LocalState)
+#End If
+
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Friend Partial Class DataFlowPass
+    Partial Friend Class DataFlowPass
         Inherits AbstractFlowPass(Of LocalState)
 
         Public Enum SlotKind
@@ -105,14 +126,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.InitForScan()
 
             For Each parameter In MethodParameters
-                MakeSlot(parameter)
+                GetOrCreateSlot(parameter)
             Next
 
             Me._alreadyReported = BitVector.Empty          ' no variables yet reported unassigned
             Me.EnterParameters(MethodParameters)         ' with parameters assigned
             Dim methodMeParameter = Me.MeParameter       ' and with 'Me' assigned as well
             If methodMeParameter IsNot Nothing Then
-                Me.MakeSlot(methodMeParameter)
+                Me.GetOrCreateSlot(methodMeParameter)
                 Me.EnterParameter(methodMeParameter)
             End If
 
@@ -134,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             If initiallyAssignedVariables IsNot Nothing Then
                 For Each local In initiallyAssignedVariables
-                    SetSlotAssigned(MakeSlot(local))
+                    SetSlotAssigned(GetOrCreateSlot(local))
                 Next
             End If
         End Sub
@@ -371,16 +392,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' in an earlier phase as "use before declaration". That allows us to avoid giving slots to local variables before
         ''' processing their declarations.
         ''' </summary>
-        Protected Function VariableSlot(local As Symbol, Optional containingSlot As Integer = 0) As Integer
+        Protected Function VariableSlot(symbol As Symbol, Optional containingSlot As Integer = 0) As Integer
 
-            If local Is Nothing Then
+            containingSlot = DescendThroughTupleRestFields(symbol, containingSlot, forceContainingSlotsToExist:=False)
+
+            If symbol Is Nothing Then
                 ' NOTE: This point may be hit in erroneous code, like 
                 '       referencing instance members from static methods
                 Return SlotKind.NotTracked
             End If
 
             Dim slot As Integer
-            Return If((_variableSlot.TryGetValue(New VariableIdentifier(local, containingSlot), slot)), slot, SlotKind.NotTracked)
+            Return If((_variableSlot.TryGetValue(New VariableIdentifier(symbol, containingSlot), slot)), slot, SlotKind.NotTracked)
 
         End Function
 
@@ -394,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.MeReference, BoundKind.MyBaseReference, BoundKind.MyClassReference
                     If MeParameter IsNot Nothing Then
-                        result.Append(MakeSlot(MeParameter))
+                        result.Append(GetOrCreateSlot(MeParameter))
                     End If
 
                 Case BoundKind.Local
@@ -403,20 +426,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If local.DeclarationKind = LocalDeclarationKind.AmbiguousLocals Then
                         ' multiple locals
                         For Each loc In DirectCast(local, AmbiguousLocalsPseudoSymbol).Locals
-                            result.Append(MakeSlot(loc))
+                            result.Append(GetOrCreateSlot(loc))
                         Next
 
                     Else
                         ' just one simple local
-                        result.Append(MakeSlot(local))
+                        result.Append(GetOrCreateSlot(local))
                     End If
 
 
                 Case BoundKind.RangeVariable
-                    result.Append(MakeSlot(DirectCast(node, BoundRangeVariable).RangeVariable))
+                    result.Append(GetOrCreateSlot(DirectCast(node, BoundRangeVariable).RangeVariable))
 
                 Case BoundKind.Parameter
-                    result.Append(MakeSlot(DirectCast(node, BoundParameter).ParameterSymbol))
+                    result.Append(GetOrCreateSlot(DirectCast(node, BoundParameter).ParameterSymbol))
 
                 Case BoundKind.FieldAccess
                     Dim fieldAccess = DirectCast(node, BoundFieldAccess)
@@ -437,7 +460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' update slots, reuse collection
                     ' NOTE: we don't filter out SlotKind.NotTracked values
                     For i = 0 To result.Count - 1
-                        result(i) = MakeSlot(fieldAccess.FieldSymbol, result(0))
+                        result(i) = GetOrCreateSlot(fieldAccess.FieldSymbol, result(0))
                     Next
 
                 Case BoundKind.WithLValueExpressionPlaceholder, BoundKind.WithRValueExpressionPlaceholder
@@ -454,24 +477,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Force a variable to have a slot.
         ''' </summary>
-        ''' <param name = "local"></param>
+        ''' <param name = "symbol"></param>
         ''' <returns></returns>
-        Protected Function MakeSlot(local As Symbol, Optional containingSlot As Integer = 0) As Integer
+        Protected Function GetOrCreateSlot(symbol As Symbol, Optional containingSlot As Integer = 0) As Integer
+            containingSlot = DescendThroughTupleRestFields(symbol, containingSlot, forceContainingSlotsToExist:=True)
+
+
             If containingSlot = SlotKind.NotTracked Then
                 Return SlotKind.NotTracked
             End If
 
             ' Check if the slot already exists
-            Dim varIdentifier As New VariableIdentifier(local, containingSlot)
+            Dim varIdentifier As New VariableIdentifier(symbol, containingSlot)
 
             Dim slot As Integer
             If Not _variableSlot.TryGetValue(varIdentifier, slot) Then
 
-                If local.Kind = SymbolKind.Local Then
-                    Me._unusedVariables.Add(DirectCast(local, LocalSymbol))
+                If symbol.Kind = SymbolKind.Local Then
+                    Me._unusedVariables.Add(DirectCast(symbol, LocalSymbol))
                 End If
 
-                Dim variableType As TypeSymbol = GetVariableType(local)
+                Dim variableType As TypeSymbol = GetVariableType(symbol)
 
                 If IsEmptyStructType(variableType) Then
                     Return SlotKind.NotTracked
@@ -490,6 +516,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.Normalize(Me.State)
             Return slot
         End Function
+
+        ''' <summary>
+        ''' Descends through Rest fields of a tuple if "symbol" is an extended field
+        ''' As a result the "symbol" will be adjusted to be the field of the innermost tuple
+        ''' and a corresponding containingSlot is returned.
+        ''' Return value -1 indicates a failure which could happen for the following reasons
+        ''' a) Rest field does not exist, which could happen in rare error scenarios involving broken ValueTuple types
+        ''' b) Rest is not tracked already and forceSlotsToExist is false (otherwise we create slots on demand)
+        ''' </summary>
+        Private Function DescendThroughTupleRestFields(ByRef symbol As Symbol, containingSlot As Integer, forceContainingSlotsToExist As Boolean) As Integer
+            Dim fieldSymbol = TryCast(symbol, TupleFieldSymbol)
+            If fieldSymbol IsNot Nothing Then
+                Dim containingType As TypeSymbol = DirectCast(symbol.ContainingType, TupleTypeSymbol).UnderlyingNamedType
+
+                ' for tuple fields the variable identifier represents the underlying field
+                symbol = fieldSymbol.TupleUnderlyingField
+
+                ' descend through Rest fields
+                ' force corresponding slots if do not exist
+                While containingType <> symbol.ContainingType
+                    Dim restField = TryCast(containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault(), FieldSymbol)
+                    If restField Is Nothing Then
+                        Return -1
+                    End If
+
+                    If forceContainingSlotsToExist Then
+                        containingSlot = GetOrCreateSlot(restField, containingSlot)
+                    Else
+                        If Not _variableSlot.TryGetValue(New VariableIdentifier(restField, containingSlot), containingSlot) Then
+                            Return -1
+                        End If
+                    End If
+
+                    containingType = restField.Type.GetTupleUnderlyingTypeOrSelf()
+                End While
+            End If
+
+            Return containingSlot
+        End Function
+
 
         ' In C#, we moved this cache to a separate cache held onto by the compilation, so we didn't
         ' recompute it each time.
@@ -608,7 +674,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Normalize(Me.State)
             End If
 
-            If Me._tryState IsNot Nothing Then
+            If Me._tryState.HasValue Then
                 Dim tryState = Me._tryState.Value
                 SetSlotUnassigned(slot, tryState)
                 Me._tryState = tryState
@@ -705,7 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     '  exit while if there is at least one child with a slot which is not assigned
                     For Each childSymbol In GetStructInstanceFields(parentStructType)
-                        Dim childSlot = MakeSlot(childSymbol, parentSlot)
+                        Dim childSlot = GetOrCreateSlot(childSymbol, parentSlot)
                         If childSlot <> SlotKind.NotTracked AndAlso Not state.IsAssigned(childSlot) Then
                             Exit While
                         End If
@@ -793,6 +859,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' only fields
                     If member.Kind = SymbolKind.Field Then
                         Dim field = DirectCast(member, FieldSymbol)
+
+                        ' Do not report virtual tuple fields.
+                        ' They are additional aliases to the fields of the underlying struct or nested extensions.
+                        ' and as such are already accounted for via the nonvirtual fields.
+                        If field.IsVirtualTupleField Then
+                            Continue For
+                        End If
+
                         ' only instance fields
                         If Not ShouldIgnoreStructField(field) Then
                             ' NOTE: DO NOT skip fields of intrinsic types if _trackStructsWithIntrinsicTypedFields is True
@@ -868,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Check that the given variable is definitely assigned.  If not, produce an error.
         ''' </summary>
-        Protected Sub CheckAssigned(symbol As Symbol, node As VisualBasicSyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
+        Protected Sub CheckAssigned(symbol As Symbol, node As SyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
             If symbol IsNot Nothing Then
                 Dim local = TryCast(symbol, LocalSymbol)
                 If local IsNot Nothing AndAlso local.IsCompilerGenerated AndAlso Not Me.ProcessCompilerGeneratedLocals Then
@@ -889,7 +963,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 
                 Else
-                    Dim slot As Integer = MakeSlot(symbol)
+                    Dim slot As Integer = GetOrCreateSlot(symbol)
                     If slot >= Me.State.Assigned.Capacity Then
                         Normalize(Me.State)
                     End If
@@ -904,7 +978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary> Version of CheckAssigned for bound field access </summary>
-        Private Sub CheckAssigned(fieldAccess As BoundFieldAccess, node As VisualBasicSyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
+        Private Sub CheckAssigned(fieldAccess As BoundFieldAccess, node As SyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
             Dim unassignedSlot As Integer
 
             If Me.State.Reachable AndAlso Not IsAssigned(fieldAccess, unassignedSlot) Then
@@ -971,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return True
                     End If
                     ' NOTE: unassignedSlot must have been set by previous call to IsAssigned(...)
-                    unassignedSlot = MakeSlot(fieldAccess.FieldSymbol, unassignedSlot)
+                    unassignedSlot = GetOrCreateSlot(fieldAccess.FieldSymbol, unassignedSlot)
 
                 Case BoundKind.WithLValueExpressionPlaceholder, BoundKind.WithRValueExpressionPlaceholder
                     Dim substitute As BoundExpression = Me.GetPlaceholderSubstitute(DirectCast(node, BoundValuePlaceholderBase))
@@ -1060,7 +1134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' reported, we suppress further reports of that variable.
         ''' </summary>
         Protected Overridable Sub ReportUnassigned(sym As Symbol,
-                                                   node As VisualBasicSyntaxNode,
+                                                   node As SyntaxNode,
                                                    rwContext As ReadWriteContext,
                                                    Optional slot As Integer = SlotKind.NotTracked,
                                                    Optional boundFieldAccess As BoundFieldAccess = Nothing)
@@ -1140,7 +1214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Private Sub CheckAssignedFunctionValue(local As LocalSymbol, node As VisualBasicSyntaxNode)
+        Private Sub CheckAssignedFunctionValue(local As LocalSymbol, node As SyntaxNode)
             If Not Me.State.FunctionAssignedValue AndAlso Not _seenOnErrorOrResume Then
                 Dim type As TypeSymbol = local.Type
                 ' NOTE: Dev11 does NOT report warning on user-defined empty value types
@@ -1154,7 +1228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub ReportUnassignedFunctionValue(local As LocalSymbol, node As VisualBasicSyntaxNode)
+        Private Sub ReportUnassignedFunctionValue(local As LocalSymbol, node As SyntaxNode)
             If Not _alreadyReported(SlotKind.FunctionValue) Then
 
                 Dim type As TypeSymbol = Nothing
@@ -1262,7 +1336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim local = DirectCast(node, BoundLocalDeclaration)
                     Debug.Assert(local.InitializerOpt Is value OrElse local.InitializedByAsNew)
                     Dim symbol = local.LocalSymbol
-                    Dim slot As Integer = MakeSlot(symbol)
+                    Dim slot As Integer = GetOrCreateSlot(symbol)
                     Dim written As Boolean = assigned OrElse Not Me.State.Reachable
                     SetSlotState(slot, written)
                     ' Note write if the local has an initializer or if it is part of an as-new.
@@ -1273,7 +1347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim forStatement = DirectCast(node, BoundForStatement)
                     Dim symbol = forStatement.DeclaredOrInferredLocalOpt
                     Debug.Assert(symbol IsNot Nothing)
-                    Dim slot As Integer = MakeSlot(symbol)
+                    Dim slot As Integer = GetOrCreateSlot(symbol)
                     Dim written As Boolean = assigned OrElse Not Me.State.Reachable
                     SetSlotState(slot, written)
 
@@ -1286,7 +1360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' Regular variable
-                    Dim slot As Integer = MakeSlot(symbol)
+                    Dim slot As Integer = GetOrCreateSlot(symbol)
                     SetSlotState(slot, assigned)
                     If symbol.IsFunctionValue Then
                         SetSlotState(SlotKind.FunctionValue, assigned)
@@ -1298,13 +1372,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.Parameter
                     Dim local = DirectCast(node, BoundParameter)
                     Dim symbol = local.ParameterSymbol
-                    Dim slot As Integer = MakeSlot(symbol)
+                    Dim slot As Integer = GetOrCreateSlot(symbol)
                     SetSlotState(slot, assigned)
                     If assigned Then NoteWrite(symbol, value)
 
                 Case BoundKind.MeReference
                     ' var local = node as BoundThisReference;
-                    Dim slot As Integer = MakeSlot(MeParameter)
+                    Dim slot As Integer = GetOrCreateSlot(MeParameter)
                     SetSlotState(slot, assigned)
                     If assigned Then NoteWrite(MeParameter, value)
 
@@ -1358,13 +1432,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '
         ' As a result, when dealing with exception handling flows we need to maintain a separate state
         ' that collects UN-assignments only and is not affected by subsequent assignments.
-        Private _tryState As LocalState?
+        Private _tryState As OptionalState
 
         Protected Overrides Sub VisitTryBlock(tryBlock As BoundStatement, node As BoundTryStatement, ByRef _tryState As LocalState)
             If Me.TrackUnassignments Then
 
                 ' store original try state
-                Dim oldTryState As LocalState? = Me._tryState
+                Dim oldTryState As OptionalState = Me._tryState
 
                 ' start with AllBitsSet (means there were no assignments)
                 Me._tryState = AllBitsSet()
@@ -1374,7 +1448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' merge resulting tryState into tryState that we were given.
                 Me.IntersectWith(_tryState, Me._tryState.Value)
                 ' restore and merge old state with new changes.
-                If oldTryState IsNot Nothing Then
+                If oldTryState.HasValue Then
                     Dim tryState = Me._tryState.Value
                     Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState
@@ -1389,13 +1463,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub VisitCatchBlock(catchBlock As BoundCatchBlock, ByRef finallyState As LocalState)
             If Me.TrackUnassignments Then
 
-                Dim oldTryState As LocalState? = Me._tryState
+                Dim oldTryState As OptionalState = Me._tryState
 
                 Me._tryState = AllBitsSet()
                 Me.VisitCatchBlockInternal(catchBlock, finallyState)
                 Me.IntersectWith(finallyState, Me._tryState.Value)
 
-                If oldTryState IsNot Nothing Then
+                If oldTryState.HasValue Then
                     Dim tryState = Me._tryState.Value
                     Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState
@@ -1410,7 +1484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub VisitCatchBlockInternal(catchBlock As BoundCatchBlock, ByRef finallyState As LocalState)
             Dim local = catchBlock.LocalOpt
             If local IsNot Nothing Then
-                MakeSlot(local)
+                GetOrCreateSlot(local)
             End If
 
             Dim exceptionSource = catchBlock.ExceptionSourceOpt
@@ -1423,13 +1497,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub VisitFinallyBlock(finallyBlock As BoundStatement, ByRef unsetInFinally As LocalState)
             If Me.TrackUnassignments Then
-                Dim oldTryState As LocalState? = Me._tryState
+                Dim oldTryState As OptionalState = Me._tryState
 
                 Me._tryState = AllBitsSet()
                 MyBase.VisitFinallyBlock(finallyBlock, unsetInFinally)
                 Me.IntersectWith(unsetInFinally, Me._tryState.Value)
 
-                If oldTryState IsNot Nothing Then
+                If oldTryState.HasValue Then
                     Dim tryState = Me._tryState.Value
                     Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState
@@ -1533,7 +1607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Create a slot for the declared variable to be able to track it.
-            Dim slot As Integer = MakeSlot(local)
+            Dim slot As Integer = GetOrCreateSlot(local)
 
             'If initializer is a lambda, we need to treat the local as assigned within the lambda.
             Assign(node, node.InitializerOpt,
@@ -1603,7 +1677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim localVariables = node.Locals
             For Each local In localVariables
                 If local.IsImplicitlyDeclared Then
-                    SetSlotState(MakeSlot(local), ConsiderLocalInitiallyAssigned(local))
+                    SetSlotState(GetOrCreateSlot(local), ConsiderLocalInitiallyAssigned(local))
                 End If
             Next
 
@@ -1773,7 +1847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' if the for each statement declared a variable explicitly or by using local type inference we'll
             ' need to create a new slot for the new variable that is initially unassigned.
             If node.DeclaredOrInferredLocalOpt IsNot Nothing Then
-                Dim slot As Integer = MakeSlot(node.DeclaredOrInferredLocalOpt) 'not initially assigned
+                Dim slot As Integer = GetOrCreateSlot(node.DeclaredOrInferredLocalOpt) 'not initially assigned
                 Assign(node, Nothing, ConsiderLocalInitiallyAssigned(node.DeclaredOrInferredLocalOpt))
             End If
         End Sub
@@ -1802,7 +1876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If variableDeclarations.Kind = BoundKind.AsNewLocalDeclarations Then
                     For Each variableDeclaration In DirectCast(variableDeclarations, BoundAsNewLocalDeclarations).LocalDeclarations
                         Dim local = variableDeclaration.LocalSymbol
-                        Dim slot = MakeSlot(local)
+                        Dim slot = GetOrCreateSlot(local)
                         If slot >= 0 Then
                             SetSlotAssigned(slot)
                             NoteWrite(local, Nothing)
@@ -1812,7 +1886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 Else
                     Dim local = DirectCast(variableDeclarations, BoundLocalDeclaration).LocalSymbol
-                    Dim slot = MakeSlot(local)
+                    Dim slot = GetOrCreateSlot(local)
                     If slot >= 0 Then
                         SetSlotAssigned(slot)
                         NoteWrite(local, Nothing)
@@ -1866,7 +1940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.WriteArgument(arg, isOut)
         End Sub
 
-        Protected Sub CheckAssignedFromArgumentWrite(expr As BoundExpression, node As VisualBasicSyntaxNode)
+        Protected Sub CheckAssignedFromArgumentWrite(expr As BoundExpression, node As SyntaxNode)
             If Not Me.State.Reachable Then
                 Return
             End If
@@ -1936,7 +2010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' is a value type. The reason is that in this case the initialization happens in place (not in a temporary) and 
         ''' the variable already got the object creation expression assigned.
         ''' </summary>
-        Private Function DeclaredVariableIsAlwaysAssignedBeforeInitializer(syntax As VisualBasicSyntaxNode, boundInitializer As BoundExpression,
+        Private Function DeclaredVariableIsAlwaysAssignedBeforeInitializer(syntax As SyntaxNode, boundInitializer As BoundExpression,
                                                                            <Out> ByRef placeholder As BoundValuePlaceholderBase) As Boolean
             placeholder = Nothing
             If boundInitializer IsNot Nothing AndAlso
@@ -1973,7 +2047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' An initializer might access the declared variables in the initializer and therefore need to create a slot to 
             ' track them
             For Each localDeclaration In declarations
-                MakeSlot(localDeclaration.LocalSymbol)
+                GetOrCreateSlot(localDeclaration.LocalSymbol)
             Next
 
             ' NOTE: in case 'variableIsUsedDirectlyAndIsAlwaysAssigned' is set it must be 

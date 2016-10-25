@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeUnaryOperator(
             UnaryOperatorKind kind,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol method,
             BoundExpression loweredOperand,
             TypeSymbol type)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeUnaryOperator(
             BoundUnaryOperator oldNode,
             UnaryOperatorKind kind,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol method,
             BoundExpression loweredOperand,
             TypeSymbol type)
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression LowerLiftedUnaryOperator(
             UnaryOperatorKind kind,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol method,
             BoundExpression loweredOperand,
             TypeSymbol type)
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression OptimizeLiftedUnaryOperator(
             UnaryOperatorKind operatorKind,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol method,
             BoundExpression loweredOperand,
             TypeSymbol type)
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundExpression GetLiftedUnaryOperatorConsequence(UnaryOperatorKind kind, CSharpSyntaxNode syntax, MethodSymbol method, TypeSymbol type, BoundExpression nonNullOperand)
+        private BoundExpression GetLiftedUnaryOperatorConsequence(UnaryOperatorKind kind, SyntaxNode syntax, MethodSymbol method, TypeSymbol type, BoundExpression nonNullOperand)
         {
             MethodSymbol ctor = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
 
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol> tempSymbols = ArrayBuilder<LocalSymbol>.GetInstance();
             ArrayBuilder<BoundExpression> tempInitializers = ArrayBuilder<BoundExpression>.GetInstance();
 
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isChecked,
             ArrayBuilder<LocalSymbol> tempSymbols,
             ArrayBuilder<BoundExpression> tempInitializers,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression transformedLHS,
             TypeSymbol operandType,
             BoundExpression boundTemp,
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isChecked,
             ArrayBuilder<LocalSymbol> tempSymbols,
             ArrayBuilder<BoundExpression> tempInitializers,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression operand,
             TypeSymbol operandType,
             BoundExpression boundTemp,
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool @checked = node.OperatorKind.IsChecked();
 
             BoundExpression rewrittenArgument = rewrittenValueToIncrement;
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             TypeSymbol type = node.MethodOpt.ParameterTypes[0];
             if (isLifted)
@@ -777,14 +777,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Build Decimal.op_Increment((Decimal)operand) or Decimal.op_Decrement((Decimal)operand)
-        private BoundExpression MakeDecimalIncDecOperator(CSharpSyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
+        private BoundExpression MakeDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
         {
             Debug.Assert(operand.Type.SpecialType == SpecialType.System_Decimal);
             MethodSymbol method = GetDecimalIncDecOperator(oper);
             return BoundCall.Synthesized(syntax, null, method, operand);
         }
 
-        private BoundExpression MakeLiftedDecimalIncDecOperator(CSharpSyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
+        private BoundExpression MakeLiftedDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
         {
             Debug.Assert(operand.Type.IsNullableType() && operand.Type.GetNullableUnderlyingType().SpecialType == SpecialType.System_Decimal);
 

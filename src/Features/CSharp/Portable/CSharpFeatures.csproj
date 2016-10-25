@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -12,11 +10,11 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Features</AssemblyName>
     <TargetExt>.dll</TargetExt>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -46,6 +44,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -53,20 +53,41 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Indexers\UseExpressionBodyForIndexersCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Indexers\UseExpressionBodyForIndexersDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Properties\UseExpressionBodyForPropertiesCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Properties\UseExpressionBodyForPropertiesDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForConversionOperatorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForConversionOperatorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Constructors\UseExpressionBodyForConstructorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForOperatorsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Constructors\UseExpressionBodyForConstructorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForOperatorsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.InlineDeclarationFixAllProvider.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
+    <Compile Include="Structure\Providers\BlockSyntaxStructureProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />
     <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.cs" />
     <Compile Include="CodeFixes\AddImport\CSharpAddImportCodeFixProvider.cs" />
     <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Async\CSharpAddAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
@@ -92,6 +113,7 @@
     <Compile Include="CodeFixes\Suppression\CSharpSuppressionCodeFixProvider.cs" />
     <Compile Include="CodeFixes\TypeStyle\UseExplicitTypeCodeFixProvider.cs" />
     <Compile Include="CodeFixes\TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
+    <Compile Include="CodeLens\CSharpCodeLensDisplayInfoService.cs" />
     <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
@@ -260,6 +282,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Diagnostics\Analyzers\CSharpPreferFrameworkTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.State.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpQualifyMemberAccessDiagnosticAnalyzer.cs" />
@@ -271,6 +294,7 @@
     <Compile Include="Diagnostics\Analyzers\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
+    <Compile Include="DocumentationComments\CodeFixes\CSharpAddDocCommentNodesCodeFixProvider.cs" />
     <Compile Include="DocumentationComments\CodeFixes\CSharpRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="DocumentationComments\CSharpDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.cs" />
@@ -323,14 +347,17 @@
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceLocal.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceQueryLocal.cs" />
     <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessAnalyzer.cs" />
+    <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.cs" />
     <Compile Include="LanguageServices\CSharpAnonymousTypeDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.SymbolDescriptionBuilder.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayServiceFactory.cs" />
+    <Compile Include="MakeMethodAsynchronous\CSharpMakeMethodAsynchronousCodeFixProvider.cs" />
     <Compile Include="MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceService.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceServiceFactory.cs" />
+    <Compile Include="NavigateTo\CSharpNavigateToSearchService.cs" />
     <Compile Include="OrganizeImports\CSharpOrganizeImportsService.cs" />
     <Compile Include="OrganizeImports\CSharpOrganizeImportsService.Rewriter.cs" />
     <Compile Include="Organizing\CSharpOrganizingService.cs" />
@@ -352,6 +379,57 @@
     <Compile Include="Organizing\Organizers\OperatorDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\PropertyDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\StructDeclarationOrganizer.cs" />
+    <Compile Include="Structure\Providers\SwitchStatementStructureProvider.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\Methods\UseExpressionBodyForMethodsCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\Methods\UseExpressionBodyForMethodsDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.cs" />
+    <Compile Include="UseExpressionBody\AbstractUseExpressionBodyDiagnosticAnalyzer.cs" />
+    <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
+    <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProvider.cs" />
+    <Compile Include="UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="Structure\CSharpBlockStructureProvider.cs" />
+    <Compile Include="Structure\CSharpStructureHelpers.cs" />
+    <Compile Include="Structure\CSharpBlockStructureService.cs" />
+    <Compile Include="Structure\Providers\AccessorDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\AnonymousMethodExpressionStructureProvider.cs" />
+    <Compile Include="Structure\Providers\CompilationUnitStructureProvider.cs" />
+    <Compile Include="Structure\Providers\ConstructorDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\ConversionOperatorDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\DelegateDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\DestructorDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\DisabledTextTriviaStructureProvider.cs" />
+    <Compile Include="Structure\Providers\DocumentationCommentStructureProvider.cs" />
+    <Compile Include="Structure\Providers\EnumDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\EventDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\EventFieldDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\FieldDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\IndexerDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\AbstractMetadataAsSourceStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\ConstructorDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\ConversionOperatorDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\DelegateDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\DestructorDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\EnumDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\EnumMemberDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\EventDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\EventFieldDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\FieldDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\IndexerDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MethodDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\OperatorDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\PropertyDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\RegionDirectiveStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MetadataAsSource\TypeDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\MethodDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\NamespaceDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\OperatorDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\ParenthesizedLambdaExpressionStructureProvider.cs" />
+    <Compile Include="Structure\Providers\PropertyDeclarationStructureProvider.cs" />
+    <Compile Include="Structure\Providers\RegionDirectiveStructureProvider.cs" />
+    <Compile Include="Structure\Providers\SimpleLambdaExpressionStructureProvider.cs" />
+    <Compile Include="Structure\Providers\TypeDeclarationStructureProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />
@@ -372,6 +450,7 @@
     <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider_NormalType.cs" />
     <Compile Include="SignatureHelp\SignatureHelpUtilities.cs" />
     <Compile Include="SolutionCrawler\CSharpDocumentDifferenceService.cs" />
+    <Compile Include="UseObjectInitializer\CSharpUseObjectInitializerDiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CSharpFeaturesResources.resx">
@@ -389,7 +468,5 @@
     <Compile Include="CodeFixes\SpellCheck\CSharpSpellCheckCodeFixProvider.cs" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

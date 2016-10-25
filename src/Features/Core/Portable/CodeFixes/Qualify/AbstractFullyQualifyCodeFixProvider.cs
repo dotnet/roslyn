@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,58 +46,86 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             using (Logger.LogBlock(FunctionId.Refactoring_FullyQualify, cancellationToken))
             {
                 // Has to be a simple identifier or generic name.
-                if (node != null && CanFullyQualify(diagnostic, ref node))
+                if (node == null || !CanFullyQualify(diagnostic, ref node))
                 {
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return;
+                }
 
-                    var matchingTypes = await this.GetMatchingTypesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
-                    var matchingNamespaces = await this.GetMatchingNamespacesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                    if (matchingTypes != null || matchingNamespaces != null)
-                    {
-                        matchingTypes = matchingTypes ?? SpecializedCollections.EmptyEnumerable<SymbolResult>();
-                        matchingNamespaces = matchingNamespaces ?? SpecializedCollections.EmptyEnumerable<SymbolResult>();
+                var matchingTypes = await this.GetMatchingTypesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
+                var matchingNamespaces = await this.GetMatchingNamespacesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
 
-                        var matchingTypeContainers = FilterAndSort(GetContainers(matchingTypes, semanticModel.Compilation));
-                        var matchingNamespaceContainers = FilterAndSort(GetContainers(matchingNamespaces, semanticModel.Compilation));
+                if (matchingTypes.IsEmpty && matchingNamespaces.IsEmpty)
+                {
+                    return;
+                }
 
-                        var proposedContainers =
-                            matchingTypeContainers.Concat(matchingNamespaceContainers)
-                                                  .Distinct()
-                                                  .Take(MaxResults);
+                var matchingTypeContainers = FilterAndSort(GetContainers(matchingTypes, semanticModel.Compilation));
+                var matchingNamespaceContainers = FilterAndSort(GetContainers(matchingNamespaces, semanticModel.Compilation));
 
-                        var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
+                var proposedContainers =
+                    matchingTypeContainers.Concat(matchingNamespaceContainers)
+                                            .Distinct()
+                                            .Take(MaxResults);
 
-                        foreach (var container in proposedContainers)
-                        {
-                            var containerName = displayService.ToMinimalDisplayString(semanticModel, node.SpanStart, container);
+                var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
+                var codeActions = CreateActions(context, document, diagnostic, node, semanticModel, proposedContainers, displayService).ToImmutableArray();
 
-                            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                            string name;
-                            int arity;
-                            syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
-
-                            // Actual member name might differ by case.
-                            string memberName;
-                            if (this.IgnoreCase)
-                            {
-                                var member = container.GetMembers(name).FirstOrDefault();
-                                memberName = member != null ? member.Name : name;
-                            }
-                            else
-                            {
-                                memberName = name;
-                            }
-
-                            var codeAction = new MyCodeAction(
-                                $"{containerName}.{memberName}",
-                                c => ProcessNode(document, node, containerName, c));
-
-                            context.RegisterCodeFix(codeAction, diagnostic);
-                        }
-                    }
+                if (codeActions.Length > 1)
+                {
+                    // Wrap the spell checking actions into a single top level suggestion
+                    // so as to not clutter the list.
+                    context.RegisterCodeFix(new GroupingCodeAction(
+                        string.Format(FeaturesResources.Fully_qualify_0, GetNodeName(document, node)),
+                        codeActions), context.Diagnostics);
+                }
+                else
+                {
+                    context.RegisterFixes(codeActions, context.Diagnostics);
                 }
             }
+        }
+
+        private IEnumerable<CodeAction> CreateActions(
+            CodeFixContext context, Document document, Diagnostic diagnostic, 
+            SyntaxNode node, SemanticModel semanticModel, 
+            IEnumerable<INamespaceOrTypeSymbol> proposedContainers, 
+            ISymbolDisplayService displayService)
+        {
+            foreach (var container in proposedContainers)
+            {
+                var containerName = displayService.ToMinimalDisplayString(semanticModel, node.SpanStart, container);
+
+                var name = GetNodeName(document, node);
+
+                // Actual member name might differ by case.
+                string memberName;
+                if (this.IgnoreCase)
+                {
+                    var member = container.GetMembers(name).FirstOrDefault();
+                    memberName = member != null ? member.Name : name;
+                }
+                else
+                {
+                    memberName = name;
+                }
+
+                var codeAction = new MyCodeAction(
+                    $"{containerName}.{memberName}",
+                    c => ProcessNode(document, node, containerName, c));
+
+                yield return codeAction;
+            }
+        }
+
+        private static string GetNodeName(Document document, SyntaxNode node)
+        {
+            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            string name;
+            int arity;
+            syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+            return name;
         }
 
         private async Task<Document> ProcessNode(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
@@ -105,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private async Task<IEnumerable<SymbolResult>> GetMatchingTypesAsync(
+        private async Task<ImmutableArray<SymbolResult>> GetMatchingTypesAsync(
             Project project, SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
             // Can't be on the right hand side of binary expression (like 'dot').
@@ -131,10 +160,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     && s.IsAccessibleWithin(semanticModel.Compilation.Assembly)
                     && (!inAttributeContext || s.IsAttribute())
                     && HasValidContainer(s))
-                .ToList();
+                .ToImmutableArray();
 
-            return accessibleTypeSymbols.Select(s => new SymbolResult(s, weight: TypeWeight))
-                                        .ToList();
+            return accessibleTypeSymbols.SelectAsArray(s => new SymbolResult(s, weight: TypeWeight));
         }
 
         private static bool HasValidContainer(ISymbol symbol)
@@ -144,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 (container is INamedTypeSymbol && !((INamedTypeSymbol)container).IsGenericType);
         }
 
-        private async Task<IEnumerable<SymbolResult>> GetMatchingNamespacesAsync(
+        private async Task<ImmutableArray<SymbolResult>> GetMatchingNamespacesAsync(
             Project project,
             SemanticModel semanticModel,
             SyntaxNode simpleName,
@@ -153,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
             if (syntaxFacts.IsAttributeName(simpleName))
             {
-                return null;
+                return ImmutableArray<SymbolResult>.Empty;
             }
 
             string name;
@@ -161,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out name, out arityUnused);
             if (cancellationToken.IsCancellationRequested)
             {
-                return null;
+                return ImmutableArray<SymbolResult>.Empty;
             }
 
             var symbols = await SymbolFinder.FindDeclarationsAsync(
@@ -188,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 .Select(n => new SymbolResult(n,
                     BindsWithoutErrors(n, rightName, isAttributeName) ? NamespaceWithNoErrorsWeight : NamespaceWithErrorsWeight));
 
-            return namespaces.ToList();
+            return namespaces.ToImmutableArray();
         }
 
         private bool BindsWithoutErrors(INamespaceSymbol ns, string rightName, bool isAttributeName)
@@ -250,7 +278,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+                base(title, createChangedDocument, equivalenceKey: title)
+            {
+            }
+        }
+
+        private class GroupingCodeAction : CodeAction.SimpleCodeAction
+        {
+            public GroupingCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
+                : base(title, nestedActions)
             {
             }
         }

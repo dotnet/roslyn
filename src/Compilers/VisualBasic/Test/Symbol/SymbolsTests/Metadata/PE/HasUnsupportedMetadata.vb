@@ -415,9 +415,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.False(vector.HasUnsupportedMetadata)
 
             'unsupported MD in the return type should propagate up to the method.
-            Dim front = vector.GetMember("front")
-            Assert.True(front.HasUnsupportedMetadata)
-
             Dim begin = vector.GetMember("begin")
             Assert.True(begin.HasUnsupportedMetadata)
 
@@ -426,10 +423,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim typeX = compilation1.GetTypeByMetadataName("X")
             'unsupported MD in members doesn't propagate up to the type.
             Assert.False(typeX.HasUnsupportedMetadata)
-
-            'unsupported MD in the return type should propagate up to the property.
-            Dim tok = typeX.GetMember("Token")
-            Assert.True(tok.HasUnsupportedMetadata)
         End Sub
 
         ''' <summary>

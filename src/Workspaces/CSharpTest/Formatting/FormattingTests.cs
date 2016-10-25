@@ -4443,6 +4443,28 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInNullableTuple()
+        {
+            var code = @"class Class5
+{
+    void bar()
+    {
+        (int, string) ? x = (1, ""hello"");
+    }
+}";
+            var expectedCode = @"class Class5
+{
+    void bar()
+    {
+        (int, string)? x = (1, ""hello"");
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInNestedDeconstruction()
         {
             var code = @"class Class5{

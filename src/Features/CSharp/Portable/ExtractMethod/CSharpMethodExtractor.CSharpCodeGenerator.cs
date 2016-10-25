@@ -1,11 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -306,6 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
                     this.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken);
 
+                statements = statements.Select(s => FixDeclarationExpressionsAndDeclarationPatterns(s, variableToRemoveMap));
+
                 foreach (var statement in statements)
                 {
                     var declarationStatement = statement as LocalDeclarationStatementSyntax;
@@ -392,6 +397,76 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         yield return expressionStatement;
                     }
                 }
+            }
+
+            /// <summary>
+            /// If the statement has an `out var` declaration expression for a variable which
+            /// needs to be removed, we need to turn it into a plain `out` parameter, so that
+            /// it doesn't declare a duplicate variable.
+            /// If the statement has a pattern declaration (such as `3 is int i`) for a variable
+            /// which needs to be removed, we will annotate it as a conflict, since we don't have
+            /// a better refactoring.
+            /// </summary>
+            private StatementSyntax FixDeclarationExpressionsAndDeclarationPatterns(StatementSyntax statement,
+                HashSet<SyntaxAnnotation> variablesToRemove)
+            {
+                var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
+
+                var declarations = statement.DescendantNodes()
+                    .Where(n => n.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.DeclarationPattern));
+
+                foreach (var node in declarations)
+                {
+                    switch (node.Kind())
+                    {
+                        case SyntaxKind.DeclarationExpression:
+                            var declaration = (DeclarationExpressionSyntax)node;
+                            if (declaration.VariableComponent.Kind() != SyntaxKind.TypedVariableComponent)
+                            {
+                                break;
+                            }
+
+                            var variableComponent = (TypedVariableComponentSyntax)declaration.VariableComponent;
+                            if (variableComponent.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
+                            {
+                                break;
+                            }
+
+                            var designation = (SingleVariableDesignationSyntax)variableComponent.Designation;
+                            var name = designation.Identifier.ValueText;
+                            if (variablesToRemove.HasSyntaxAnnotation(designation))
+                            {
+                                var newLeadingTrivia = new SyntaxTriviaList();
+                                newLeadingTrivia = newLeadingTrivia.AddRange(variableComponent.Type.GetLeadingTrivia());
+                                newLeadingTrivia = newLeadingTrivia.AddRange(variableComponent.Type.GetTrailingTrivia());
+                                newLeadingTrivia = newLeadingTrivia.AddRange(designation.GetLeadingTrivia());
+
+                                replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)
+                                    .WithLeadingTrivia(newLeadingTrivia));
+                            }
+
+                            break;
+
+                        case SyntaxKind.DeclarationPattern:
+                            var pattern = (DeclarationPatternSyntax)node;
+                            if (!variablesToRemove.HasSyntaxAnnotation(pattern))
+                            {
+                                break;
+                            }
+
+                            // We don't have a good refactoring for this, so we just annotate the conflict
+                            // For instance, when a local declared by a pattern declaration (`3 is int i`) is
+                            // used outside the block we're trying to extract.
+                            var identifier = pattern.Identifier;
+                            var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
+                            var newIdentifier = identifier.WithAdditionalAnnotations(annotation);
+                            replacements.Add(pattern, pattern.WithIdentifier(newIdentifier));
+
+                            break;
+                    }
+                }
+
+                return statement.ReplaceNodes(replacements.Keys, (orig, partiallyReplaced) => replacements[orig]);
             }
 
             private static SyntaxToken ApplyTriviaFromDeclarationToAssignmentIdentifier(LocalDeclarationStatementSyntax declarationStatement, bool firstVariableToAttachTrivia, VariableDeclaratorSyntax variable)
@@ -556,16 +631,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var root = newDocument.Root;
                     var methodDefinition = root.GetAnnotatedNodes<MethodDeclarationSyntax>(this.MethodDefinitionAnnotation).First();
 
-                    var newMethodDefinition =
-                        methodDefinition.ReplaceToken(
-                            methodDefinition.Body.OpenBraceToken,
-                            methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(
-                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                    var newMethodDefinition = TweakNewLinesInMethod(methodDefinition);
 
-                    newDocument = await newDocument.WithSyntaxRootAsync(root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
+                    newDocument = await newDocument.WithSyntaxRootAsync(
+                        root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
                 }
 
                 return await base.CreateGeneratedCodeAsync(status, newDocument, cancellationToken).ConfigureAwait(false);
+            }
+
+            private static MethodDeclarationSyntax TweakNewLinesInMethod(MethodDeclarationSyntax methodDefinition)
+            {
+                if (methodDefinition.Body != null)
+                {
+                    return methodDefinition.ReplaceToken(
+                            methodDefinition.Body.OpenBraceToken,
+                            methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                }
+                else if (methodDefinition.ExpressionBody != null)
+                {
+                    return methodDefinition.ReplaceToken(
+                            methodDefinition.ExpressionBody.ArrowToken,
+                            methodDefinition.ExpressionBody.ArrowToken.WithPrependedLeadingTrivia(
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                }
+                else
+                {
+                    return methodDefinition;
+                }
             }
 
             protected StatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()

@@ -15304,5 +15304,189 @@ class M
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
             );
         }
+
+        [Fact, WorkItem(13486, "https://github.com/dotnet/roslyn/issues/13486")]
+        public void BinaryMulOptimizationsAndSideeffects()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // should not optimize
+        System.Console.WriteLine(Foo1() * 0);
+        System.Console.WriteLine(0 * Foo1());
+
+        // should optimize
+        var local = 123;
+        System.Console.WriteLine(local * 0);
+        System.Console.WriteLine(0 * default(int?));
+        System.Console.WriteLine(0 * local);
+
+        // should not capture
+        System.Console.WriteLine(((Func<int>)(()=>local * 0))());
+
+        // should not optimize
+        System.Console.WriteLine(Foo2() & false);
+        System.Console.WriteLine(false & Foo2());
+
+        // should optimize
+        var local1 = true;
+        System.Console.WriteLine(local1 & false);
+        System.Console.WriteLine(false & default(bool?));
+        System.Console.WriteLine(false & ((bool?)local1).HasValue);
+        System.Console.WriteLine(false & local1);
+
+        // should optimize
+        System.Console.WriteLine(Foo2() && false);
+        System.Console.WriteLine(Foo2() && true);
+        System.Console.WriteLine(false && Foo2());
+        System.Console.WriteLine(true && Foo2());
+        System.Console.WriteLine(Foo2() || false);
+        System.Console.WriteLine(Foo2() || true);
+        System.Console.WriteLine(false || Foo2());
+        System.Console.WriteLine(true || Foo2());
+    }
+
+    static int Foo1()
+    {
+        System.Console.Write(""Foo1 "");
+        return 42;
+    }
+
+    static bool Foo2()
+    {
+        System.Console.Write(""Foo2 "");
+        return true;
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+Foo1 0
+Foo1 0
+0
+
+0
+0
+Foo2 False
+Foo2 False
+False
+False
+False
+False
+Foo2 False
+Foo2 True
+False
+Foo2 True
+Foo2 True
+Foo2 True
+Foo2 True
+True
+");
+
+            compilation.VerifyIL("Program.Main",
+    @"
+{
+  // Code size      221 (0xdd)
+  .maxstack  2
+  IL_0000:  call       ""int Program.Foo1()""
+  IL_0005:  pop
+  IL_0006:  ldc.i4.0
+  IL_0007:  call       ""void System.Console.WriteLine(int)""
+  IL_000c:  call       ""int Program.Foo1()""
+  IL_0011:  pop
+  IL_0012:  ldc.i4.0
+  IL_0013:  call       ""void System.Console.WriteLine(int)""
+  IL_0018:  ldc.i4.0
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  ldnull
+  IL_001f:  call       ""void System.Console.WriteLine(object)""
+  IL_0024:  ldc.i4.0
+  IL_0025:  call       ""void System.Console.WriteLine(int)""
+  IL_002a:  ldsfld     ""System.Func<int> Program.<>c.<>9__0_0""
+  IL_002f:  dup
+  IL_0030:  brtrue.s   IL_0049
+  IL_0032:  pop
+  IL_0033:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0038:  ldftn      ""int Program.<>c.<Main>b__0_0()""
+  IL_003e:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0043:  dup
+  IL_0044:  stsfld     ""System.Func<int> Program.<>c.<>9__0_0""
+  IL_0049:  callvirt   ""int System.Func<int>.Invoke()""
+  IL_004e:  call       ""void System.Console.WriteLine(int)""
+  IL_0053:  call       ""bool Program.Foo2()""
+  IL_0058:  pop
+  IL_0059:  ldc.i4.0
+  IL_005a:  call       ""void System.Console.WriteLine(bool)""
+  IL_005f:  call       ""bool Program.Foo2()""
+  IL_0064:  pop
+  IL_0065:  ldc.i4.0
+  IL_0066:  call       ""void System.Console.WriteLine(bool)""
+  IL_006b:  ldc.i4.0
+  IL_006c:  call       ""void System.Console.WriteLine(bool)""
+  IL_0071:  ldc.i4.0
+  IL_0072:  box        ""bool""
+  IL_0077:  call       ""void System.Console.WriteLine(object)""
+  IL_007c:  ldc.i4.0
+  IL_007d:  call       ""void System.Console.WriteLine(bool)""
+  IL_0082:  ldc.i4.0
+  IL_0083:  call       ""void System.Console.WriteLine(bool)""
+  IL_0088:  call       ""bool Program.Foo2()""
+  IL_008d:  brfalse.s  IL_0092
+  IL_008f:  ldc.i4.0
+  IL_0090:  br.s       IL_0093
+  IL_0092:  ldc.i4.0
+  IL_0093:  call       ""void System.Console.WriteLine(bool)""
+  IL_0098:  call       ""bool Program.Foo2()""
+  IL_009d:  call       ""void System.Console.WriteLine(bool)""
+  IL_00a2:  ldc.i4.0
+  IL_00a3:  call       ""void System.Console.WriteLine(bool)""
+  IL_00a8:  call       ""bool Program.Foo2()""
+  IL_00ad:  call       ""void System.Console.WriteLine(bool)""
+  IL_00b2:  call       ""bool Program.Foo2()""
+  IL_00b7:  call       ""void System.Console.WriteLine(bool)""
+  IL_00bc:  call       ""bool Program.Foo2()""
+  IL_00c1:  brtrue.s   IL_00c6
+  IL_00c3:  ldc.i4.1
+  IL_00c4:  br.s       IL_00c7
+  IL_00c6:  ldc.i4.1
+  IL_00c7:  call       ""void System.Console.WriteLine(bool)""
+  IL_00cc:  call       ""bool Program.Foo2()""
+  IL_00d1:  call       ""void System.Console.WriteLine(bool)""
+  IL_00d6:  ldc.i4.1
+  IL_00d7:  call       ""void System.Console.WriteLine(bool)""
+  IL_00dc:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(0, "http://stackoverflow.com/questions/39254676/roslyn-compiler-optimizing-away-function-call-multiplication-with-zero?stw=2")]
+        public void SideEffectOptimizedAway()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Stack<long> s = new Stack<long>();
+
+        s.Push(1);           // stack contains [1]
+        s.Push(s.Pop() * 0); // stack should contain [0]
+
+        Console.WriteLine(string.Join(""|"", s.Reverse()));
+    }
+}
+";
+            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+                expectedOutput: "0");
+        }
+
     }
 }

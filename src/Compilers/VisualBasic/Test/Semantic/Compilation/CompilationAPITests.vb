@@ -242,34 +242,46 @@ End Namespace
         Public Sub Emit_BadArgs()
             Dim comp = VisualBasicCompilation.Create("Compilation", options:=TestOptions.ReleaseDll)
 
-            Assert.Throws(Of ArgumentNullException)(Sub() comp.Emit(peStream:=Nothing))
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
+            Assert.Throws(Of ArgumentNullException)("peStream", Sub() comp.Emit(peStream:=Nothing))
+            Assert.Throws(Of ArgumentException)("peStream", Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=New MemoryStream(),
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream:=New TestStream(canRead:=False, canWrite:=True, canSeek:=True)))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=New MemoryStream(),
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
                 sourceLinkStream:=New MemoryStream()))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=Nothing,
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream:=New MemoryStream()))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 win32Resources:=New TestStream(canRead:=True, canWrite:=False, canSeek:=False)))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 win32Resources:=New TestStream(canRead:=False, canWrite:=False, canSeek:=True)))
 
@@ -1248,18 +1260,36 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
         End Sub
 
-        <Fact()>
-        <CompilerTrait(CompilerFeature.Tuples)>
-        Public Sub TuplesNotSupported2()
-            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of String)))
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_NoNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, Nothing)
+
+            Assert.True(tupleWithoutNames.IsTupleType)
+            Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
+            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(CInt(SymbolKind.NamedType), CInt(tupleWithoutNames.Kind))
         End Sub
 
-        <Fact()>
-        <CompilerTrait(CompilerFeature.Tuples)>
-        Public Sub TuplesNotSupported()
-            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=New ImmutableArray(Of String)))
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_WithNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithNames = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Alice", "Bob"))
+
+            Assert.True(tupleWithNames.IsTupleType)
+            Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithNames.ToTestDisplayString())
+            Assert.Equal({"Alice", "Bob"}, tupleWithNames.TupleElementNames)
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind)
         End Sub
 
         <Fact()>
@@ -1271,6 +1301,69 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
                         ImmutableArray.Create(DirectCast(Nothing, ITypeSymbol)),
                         ImmutableArray.Create("m1", "m2"))
                 End Function)
+        End Sub
+
+        <Fact>
+        Public Sub CreateAnonymousType_IncorrectLengths_IsReadOnly()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentException)(
+                Sub()
+                    compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create(DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol),
+                                          DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(True))
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public sub CreateAnonymousType_IncorrectLengths_Locations()
+            Dim Compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentException)(
+                Sub()
+                    Compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol),
+                                              DirectCast(Compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol)),
+                        ImmutableArray.Create("m1", "m2"),
+                        memberLocations:=ImmutableArray.Create(Location.None))
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub CreateAnonymousType_WritableProperty()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create(DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol),
+                                          DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(False, False))
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: m1 As Integer, m2 As Integer>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
+        End Sub
+
+        <Fact>
+        Public Sub CreateAnonymousType_Locations()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim tree = VisualBasicSyntaxTree.ParseText("Class X")
+            compilation = compilation.AddSyntaxTrees(tree)
+
+            Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
+            Dim loc2 = Location.Create(tree, New TextSpan(1, 1))
+
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create(DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol),
+                                          DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(False, False),
+                    ImmutableArray.Create(loc1, loc2))
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal(loc1, type.GetMembers("m1").Single().Locations.Single())
+            Assert.Equal(loc2, type.GetMembers("m2").Single().Locations.Single())
+            Assert.Equal("<anonymous type: m1 As Integer, m2 As Integer>", type.ToDisplayString())
         End Sub
 
         <Fact()>
@@ -1293,7 +1386,24 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
             Assert.True(type.IsAnonymousType)
             Assert.Equal(1, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: Key m1 As Integer>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
+        End Sub
+
+        <Fact()>
+        Public Sub CreateMutableAnonymousType1()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1"),
+                        ImmutableArray.Create(False))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(1, type.GetMembers().OfType(Of IPropertySymbol).Count())
             Assert.Equal("<anonymous type: m1 As Integer>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
         End Sub
 
         <Fact()>
@@ -1305,7 +1415,9 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
             Assert.True(type.IsAnonymousType)
             Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
-            Assert.Equal("<anonymous type: m1 As Integer, m2 As Boolean>", type.ToDisplayString())
+            Assert.Equal("<anonymous type: Key m1 As Integer, Key m2 As Boolean>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
         End Sub
 
         <Fact()>
@@ -1931,5 +2043,52 @@ End Sub
 
             Assert.Throws(Of InvalidOperationException)(Function() CreateSubmission("?a + 1", previous:=s0))
         End Sub
+
+        <Fact>
+        <WorkItem(13925, "https://github.com/dotnet/roslyn/issues/13925")>
+        Public Sub RemoveAllSyntaxTreesAndEmbeddedTrees_01()
+            Dim compilation1 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Public Module C  
+    Sub Main()
+        System.Console.WriteLine(1)
+    End Sub
+End Module
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True), references:={SystemRef})
+
+            compilation1.VerifyDiagnostics()
+
+            Dim compilation2 = compilation1.RemoveAllSyntaxTrees()
+            compilation2 = compilation2.AddSyntaxTrees(compilation1.SyntaxTrees)
+
+            compilation2.VerifyDiagnostics()
+            CompileAndVerify(compilation2, expectedOutput:="1")
+        End Sub
+
+        <Fact>
+        <WorkItem(13925, "https://github.com/dotnet/roslyn/issues/13925")>
+        Public Sub RemoveAllSyntaxTreesAndEmbeddedTrees_02()
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Module C  
+    Sub Main()
+        System.Console.WriteLine(1)
+    End Sub
+End Module
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True))
+
+            compilation1.VerifyDiagnostics()
+
+            Dim compilation2 = compilation1.RemoveAllSyntaxTrees()
+            compilation2 = compilation2.AddSyntaxTrees(compilation1.SyntaxTrees)
+
+            compilation2.VerifyDiagnostics()
+            CompileAndVerify(compilation2, expectedOutput:="1")
+        End Sub
+
     End Class
 End Namespace

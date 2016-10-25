@@ -29,10 +29,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
                 If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
-        Protected Shared Function NewLines(input As String) As String
-            Return input.Replace("\n", vbCrLf)
-        End Function
-
         Friend Overloads Async Function TestAsync(
                 initialMarkup As XElement, expected As XElement, Optional index As Integer = 0,
                 Optional compareTokens As Boolean = True, Optional priority As CodeActionPriority? = Nothing) As Threading.Tasks.Task

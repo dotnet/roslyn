@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -15,7 +13,7 @@
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
+    <RoslynProjectType>Dll</RoslynProjectType>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
@@ -61,6 +59,9 @@
     <Compile Include="..\..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
       <Link>Helpers\DateTimeUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\ExpressionCompiler\CustomTypeInfo.cs">
+      <Link>ExpressionCompiler\CustomTypeInfo.cs</Link>
+    </Compile>
     <Compile Include="..\..\ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs">
       <Link>ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs</Link>
     </Compile>
@@ -99,7 +100,5 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

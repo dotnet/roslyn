@@ -1,11 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternSwitchTests : CSharpTestBase
     {
         [Fact]
@@ -958,21 +962,21 @@ class Program
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
-@"0.0d !
+$@"0.0d !
 0.0d !
-double 2.1
+double {2.1}
 1.0d !
 double.NaN !
 double.NaN !
 0.0f !
 0.0f !
-float 2.1
+float {2.1f}
 1.0f !
 float.NaN !
 float.NaN !
 0.0m !
 0.0m !
-decimal 2.1
+decimal {2.1m}
 1.0m !
 null";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -1089,28 +1093,28 @@ null";
             compilation.VerifyDiagnostics(
                 // (13,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01:").WithArguments("1.01").WithLocation(13, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01:").WithArguments(1.01.ToString()).WithLocation(13, 13),
                 // (34,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case -0.0: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0:").WithArguments("0").WithLocation(34, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0:").WithArguments((-0.0).ToString()).WithLocation(34, 13),
                 // (35,13): error CS0152: The switch statement contains multiple cases with the label value 'NaN'
                 //             case -double.NaN: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -double.NaN:").WithArguments("NaN").WithLocation(35, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -double.NaN:").WithArguments((-double.NaN).ToString()).WithLocation(35, 13),
                 // (46,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01f: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01f:").WithArguments("1.01").WithLocation(46, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01f:").WithArguments(1.01f.ToString()).WithLocation(46, 13),
                 // (67,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case -0.0f: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0f:").WithArguments("0").WithLocation(67, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0f:").WithArguments((-0.0f).ToString()).WithLocation(67, 13),
                 // (68,13): error CS0152: The switch statement contains multiple cases with the label value 'NaN'
                 //             case -float.NaN: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -float.NaN:").WithArguments("NaN").WithLocation(68, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -float.NaN:").WithArguments((-float.NaN).ToString()).WithLocation(68, 13),
                 // (78,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01m: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01m:").WithArguments("1.01").WithLocation(78, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01m:").WithArguments(1.01m.ToString()).WithLocation(78, 13),
                 // (99,13): error CS0152: The switch statement contains multiple cases with the label value '0.0'
                 //             case -0.0m: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0m:").WithArguments("0.0").WithLocation(99, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0m:").WithArguments((-0.0m).ToString()).WithLocation(99, 13)
                 );
         }
 
@@ -1163,5 +1167,248 @@ NaN";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
+        [Fact, WorkItem(12573, "https://github.com/dotnet/roslyn/issues/12573")]
+        public void EnumAndUnderlyingType()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        M(0);
+        M(0L);
+        M((byte)0);
+        M(EnumA.ValueA);
+        M(2);
+    }
+
+    public static void M(object value)
+    {
+        switch (value)
+        {
+            case 0:
+                Console.WriteLine(""0"");
+                break;
+            case 0L:
+                Console.WriteLine(""0L"");
+                break;
+            case (byte)0:
+                Console.WriteLine(""(byte)0"");
+                break;
+            case EnumA.ValueA:
+                Console.WriteLine(""EnumA.ValueA"");
+                break;
+            default:
+                Console.WriteLine(""Default"");
+                break;
+        }
+    }
+}
+
+public enum EnumA
+{
+    ValueA,
+    ValueB,
+    ValueC
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"0
+0L
+(byte)0
+EnumA.ValueA
+Default";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(10446, "https://github.com/dotnet/roslyn/issues/10446")]
+        public void InferenceInSwitch()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        object o = 1;
+        switch (o)
+        {
+            case var i when i.ToString() is var s:
+                Console.WriteLine(s);
+                break;
+            case var i2:
+                var s2 =  i2.ToString();
+                Console.WriteLine(s2);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var sRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s").Single();
+            Assert.Equal("System.String", model.GetTypeInfo(sRef).Type.ToTestDisplayString());
+            var iRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i").Single();
+            Assert.Equal("System.Object", model.GetTypeInfo(iRef).Type.ToTestDisplayString());
+            var s2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s2").Single();
+            Assert.Equal("System.String", model.GetTypeInfo(s2Ref).Type.ToTestDisplayString());
+            var i2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i2").Single();
+            Assert.Equal("System.Object", model.GetTypeInfo(i2Ref).Type.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(13395, "https://github.com/dotnet/roslyn/issues/13395")]
+        public void CodeGenSwitchInLoop()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        bool hasB = false;
+        foreach (var c in ""ab"")
+        {
+           switch (c)
+           {
+              case char b when IsB(b):
+                 hasB = true;
+                 break;
+
+              default:
+                 hasB = false;
+                 break;
+           }
+        }
+        Console.WriteLine(hasB);
+    }
+
+    public static bool IsB(char value)
+    {
+        return value == 'b';
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(13520, "https://github.com/dotnet/roslyn/issues/13520")]
+        public void ConditionalPatternsCannotSubsume()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        object value = false;
+        switch (value)
+        {
+            case true: break;
+            case object o when args.Length == -1: break;
+            case false: break;
+            case bool b: throw null; // error: bool already handled by previous cases.
+        }
+    }
+    public static bool IsB(char value)
+    {
+        return value == 'b';
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case bool b: ; // error: bool already handled by previous cases.
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(11, 18)
+                );
+        }
+
+        [Fact, WorkItem(14296, "https://github.com/dotnet/roslyn/issues/14296")]
+        public void PatternSwitchInLocalFunctionInGenericMethod()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(Is<string>(string.Empty));
+        Console.WriteLine(Is<int>(string.Empty));
+        Console.WriteLine(Is<int>(1));
+        Console.WriteLine(Is<string>(1));
+    }
+    public static bool Is<T>(object o1)
+    {
+        bool Local(object o2)
+        {
+            switch (o2)
+            {
+                case T t: return true;
+                default: return false;
+            }
+        };
+        return Local(o1);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True
+False
+True
+False";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void CopySwitchExpression()
+        {
+            // This test ensures that we switch on a *copy* of the switch expression,
+            // so that it is not affected by subsequent assignment to a variable appearing
+            // in the swich expression.
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        int i = 1;
+        switch (i)
+        {
+            case 1 when BP(false, i = 2): break;
+            case int j when BP(false, i = 3): break;
+            case 1 when BP(true, i = 4):
+                Console.WriteLine(""Correct"");
+                Console.WriteLine(i);
+                break;
+        }
+    }
+    static bool BP(bool b, int print)
+    {
+        Console.WriteLine(print);
+        return b;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"2
+3
+4
+Correct
+4";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

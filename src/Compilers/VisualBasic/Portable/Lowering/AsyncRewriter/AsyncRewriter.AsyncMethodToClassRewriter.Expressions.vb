@@ -106,8 +106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      result.ReceiverOpt,
                                                                      result.Arguments,
                                                                      rewritten.ConstantValueOpt,
-                                                                     rewritten.SuppressObjectClone,
-                                                                     rewritten.Type))
+                                                                     isLValue:=rewritten.IsLValue,
+                                                                     suppressObjectClone:=rewritten.SuppressObjectClone,
+                                                                     type:=rewritten.Type))
             End Function
 
             Public Overrides Function VisitObjectCreationExpression(node As BoundObjectCreationExpression) As BoundNode
@@ -362,8 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitConversion(node As BoundConversion) As BoundNode
                 Dim rewritten = DirectCast(MyBase.VisitConversion(node), BoundConversion)
                 Dim operand As BoundExpression = rewritten.Operand
-                Debug.Assert(rewritten.RelaxationReceiverPlaceholderOpt Is Nothing)
-                Debug.Assert(rewritten.RelaxationLambdaOpt Is Nothing)
+                Debug.Assert(rewritten.ExtendedInfoOpt Is Nothing)
 
                 If Not NeedsSpill(operand) Then
                     Return rewritten
@@ -378,9 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                   rewritten.Checked,
                                                                   rewritten.ExplicitCastInCode,
                                                                   rewritten.ConstantValueOpt,
-                                                                  rewritten.ConstructorOpt,
-                                                                  rewritten.RelaxationLambdaOpt,
-                                                                  rewritten.RelaxationReceiverPlaceholderOpt,
+                                                                  rewritten.ExtendedInfoOpt,
                                                                   rewritten.Type))
             End Function
 

@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return;
                     }
                     else if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
-                             this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion) &&
+                             this.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.AutomaticPairCompletion) &&
                              this.IsCommitCharacter(args.TypedChar))
                     {
                         // I don't think there is any better way than this. if typed char is one of auto brace completion char,
@@ -317,6 +317,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             var completionService = GetCompletionService();
+            if (completionService == null)
+            {
+                return false;
+            }
+
             var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem.Item);
             return IsCommitCharacter(
                 completionService.GetRules(), model.SelectedItem.Item, ch, textTypedSoFar);

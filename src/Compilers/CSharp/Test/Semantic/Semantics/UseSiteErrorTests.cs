@@ -1290,6 +1290,36 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
             }
         }
 
+        [Fact]
+        public void UseSiteErrorsForSwitchSubsumption()
+        {
+            var baseSource =
+@"public class Base {}";
+            var baseLib = CreateCompilationWithMscorlib(baseSource, assemblyName: "BaseAssembly");
+            var derivedSource =
+@"public class Derived : Base {}";
+            var derivedLib = CreateCompilationWithMscorlib(derivedSource, assemblyName: "DerivedAssembly", references: new[] { new CSharpCompilationReference(baseLib) });
+            var programSource =
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        object o = args;
+        switch (o)
+        {
+            case string s: break;
+            case Derived d: break;
+        }
+    }
+}";
+            CreateCompilationWithMscorlib(programSource, references: new[] { new CSharpCompilationReference(derivedLib) }).VerifyDiagnostics(
+                // (10,13): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             case Derived d: break;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "case Derived d:").WithArguments("Base", "BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 13)
+                );
+        }
+
         #region Attributes for unsafe code
 
         /// <summary>

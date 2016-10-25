@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAnalyzerReference(string analyzerAssemblyFullPath)
         {
-            if (_analyzers.ContainsKey(analyzerAssemblyFullPath))
+            if (CurrentProjectAnalyzersContains(analyzerAssemblyFullPath))
             {
                 return;
             }
@@ -29,21 +31,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // This can happen only in tests.
                 var testAnalyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, loader: null, language: this.Language);
-                _analyzers[analyzerAssemblyFullPath] = testAnalyzer;
+                this.AddOrUpdateAnalyzer(analyzerAssemblyFullPath, testAnalyzer);
                 return;
             }
 
             var analyzerLoader = Workspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
             analyzerLoader.AddDependencyLocation(analyzerAssemblyFullPath);
             var analyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, analyzerLoader, this.Language);
-            _analyzers[analyzerAssemblyFullPath] = analyzer;
+            this.AddOrUpdateAnalyzer(analyzerAssemblyFullPath, analyzer);
 
             if (_pushingChangesToWorkspaceHosts)
             {
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceAdded(Id, analyzerReference));
 
-                List<VisualStudioAnalyzer> existingReferencesWithLoadErrors = _analyzers.Values.Where(a => a.HasLoadErrors).ToList();
+                List<VisualStudioAnalyzer> existingReferencesWithLoadErrors = GetCurrentAnalyzers().Where(a => a.HasLoadErrors).ToList();
 
                 foreach (var existingReference in existingReferencesWithLoadErrors)
                 {
@@ -69,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void RemoveAnalyzerReference(string analyzerAssemblyFullPath)
         {
             VisualStudioAnalyzer analyzer;
-            if (!_analyzers.TryGetValue(analyzerAssemblyFullPath, out analyzer))
+            if (!TryGetAnalyzer(analyzerAssemblyFullPath, out analyzer))
             {
                 return;
             }
@@ -77,14 +79,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (Workspace == null)
             {
                 // This can happen only in tests.
-                _analyzers.Remove(analyzerAssemblyFullPath);
+                RemoveAnalyzer(analyzerAssemblyFullPath);
                 analyzer.Dispose();
                 return;
             }
 
             GetAnalyzerFileWatcherService().RemoveAnalyzerAlreadyLoadedDiagnostics(Id, analyzerAssemblyFullPath);
 
-            _analyzers.Remove(analyzerAssemblyFullPath);
+            RemoveAnalyzer(analyzerAssemblyFullPath);
 
             if (_pushingChangesToWorkspaceHosts)
             {
@@ -124,10 +126,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
-                ImmutableArray<string>.Empty,
                 filePath: additionalFilePath,
                 sourceCodeKind: SourceCodeKind.Regular,
-                canUseTextBuffer: _ => true);
+                getFolderNames: _ => SpecializedCollections.EmptyReadOnlyList<string>(),
+                canUseTextBuffer: _ => true,
+                updatedOnDiskHandler: s_additionalDocumentUpdatedOnDiskEventHandler,
+                openedHandler: s_additionalDocumentOpenedEventHandler,
+                closingHandler: s_additionalDocumentClosingEventHandler);
 
             if (document == null)
             {
@@ -186,8 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_analyzerFileWatcherService == null)
             {
                 var componentModel = (IComponentModel)this.ServiceProvider.GetService(typeof(SComponentModel));
-
-                _analyzerFileWatcherService = componentModel.GetService<AnalyzerFileWatcherService>();
+                Interlocked.CompareExchange(ref _analyzerFileWatcherService, componentModel.GetService<AnalyzerFileWatcherService>(), null);
             }
 
             return _analyzerFileWatcherService;
@@ -198,8 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_dependencyCheckingService == null)
             {
                 var componentModel = (IComponentModel)this.ServiceProvider.GetService(typeof(SComponentModel));
-
-                _dependencyCheckingService = componentModel.GetService<AnalyzerDependencyCheckingService>();
+                Interlocked.CompareExchange(ref _dependencyCheckingService, componentModel.GetService<AnalyzerDependencyCheckingService>(), null);
             }
 
             return _dependencyCheckingService;

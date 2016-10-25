@@ -8,6 +8,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -421,31 +422,55 @@ a.vb
             Dim args As VisualBasicCommandLineArguments
 
             args = DefaultParse({}, _baseDirectory)
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
             args = DefaultParse({"/instrument", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
             args = DefaultParse({"/instrument:""""", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
             args = DefaultParse({"/instrument:", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
             args = DefaultParse({"/instrument:", "Test.Flag.Name", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
-            args = DefaultParse({"/instrument:Test.Flag.Name", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("Test.Flag.Name", args.EmitOptions.Instrument)
+            args = DefaultParse({"/instrument:InvalidOption", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption").WithLocation(1, 1)})
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
-            args = DefaultParse({"/instrument:""Test Flag.Name""", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/instrument:None", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("None").WithLocation(1, 1)})
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
+
+            args = DefaultParse({"/instrument:""TestCoverage,InvalidOption""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption").WithLocation(1, 1)})
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:TestCoverage", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test Flag.Name", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:""TestCoverage""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:""TESTCOVERAGE""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:TestCoverage,TestCoverage", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:TestCoverage", "/instrument:TestCoverage", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
         End Sub
 
         <Fact>
@@ -928,6 +953,17 @@ a.vb
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version"}, _baseDirectory)
+            Assert.Equal(False, parsedArgs.Errors.Any())
+            Assert.True(parsedArgs.DisplayVersion)
+            Assert.Equal(False, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version", "c"}, _baseDirectory)
+            Assert.Equal(False, parsedArgs.Errors.Any())
+            Assert.True(parsedArgs.DisplayVersion)
+            Assert.Equal(True, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version:something"}, _baseDirectory)
+            Assert.Equal(True, parsedArgs.Errors.Any())
+            Assert.False(parsedArgs.DisplayVersion)
             parsedArgs = InteractiveParse({"/?"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
@@ -1008,10 +1044,12 @@ a.vb
 
             parsedArgs = DefaultParse({"/langVERSION:default", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
             Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
             parsedArgs = DefaultParse({"/langVERSION:latest", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "latest").WithLocation(1, 1))
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
             Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
             ' default: "current version"
@@ -2524,6 +2562,159 @@ End Class")
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
+        <Fact>
+        Public Sub Embed()
+            Dim parsedArgs = DefaultParse({"a.vb "}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Empty(parsedArgs.EmbeddedFiles)
+
+            parsedArgs = DefaultParse({"/embed", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(parsedArgs.SourceFiles, parsedArgs.EmbeddedFiles)
+            AssertEx.Equal(
+                {"a.vb", "b.vb", "c.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:a.vb", "/embed:b.vb", "/debug:embedded", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:a.vb;b.vb", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:a.txt", "/embed", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.txt", "a.vb", "b.vb", "c.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed:a.txt", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed:a.txt", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            ' These should fail when native PDB support is added.
+            parsedArgs = DefaultParse({"/embed", "/debug:full", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed", "/debug:full", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed", "/debug:pdbonly", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+        End Sub
+
+        <Theory>
+        <InlineData("/debug:portable", "/embed", {"embed.vb", "embed2.vb", "embed.xyz"})>
+        <InlineData("/debug:portable", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
+        <InlineData("/debug:portable", "/embed:embed2.vb", {"embed2.vb"})>
+        <InlineData("/debug:portable", "/embed:embed.xyz", {"embed.xyz"})>
+        <InlineData("/debug:embedded", "/embed", {"embed.vb", "embed2.vb", "embed.xyz"})>
+        <InlineData("/debug:embedded", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
+        <InlineData("/debug:embedded", "/embed:embed2.vb", {"embed2.vb"})>
+        <InlineData("/debug:embedded", "/embed:embed.xyz", {"embed.xyz"})>
+        Public Sub Embed_EndToEnd(debugSwitch As String, embedSwitch As String, expectedEmbedded As String())
+            ' embed.vb: large enough To compress, has #line directives
+            Const embed_vb =
+"'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Class Program
+    Shared Sub Main()
+#ExternalSource(""embed.xyz"", 1)
+        System.Console.WriteLine(""Hello, World"")
+
+        System.Console.WriteLine(""Goodbye, World"")
+#End ExternalSource
+    End Sub
+End Class
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''"
+
+            ' embed2.vb: small enough to not compress, no sequence points
+            Const embed2_vb =
+"Class C
+End Class"
+
+            ' target of #ExternalSource
+            Const embed_xyz =
+"print Hello, World
+
+print Goodbye, World"
+
+            Assert.True(embed_vb.Length >= EmbeddedText.CompressionThreshold)
+            Assert.True(embed2_vb.Length < EmbeddedText.CompressionThreshold)
+
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("embed.vb")
+            Dim src2 = dir.CreateFile("embed2.vb")
+            Dim txt = dir.CreateFile("embed.xyz")
+
+            src.WriteAllText(embed_vb)
+            src2.WriteAllText(embed2_vb)
+            txt.WriteAllText(embed_xyz)
+
+            Dim expectedEmbeddedMap = New Dictionary(Of String, String)()
+            If expectedEmbedded.Contains("embed.vb") Then
+                expectedEmbeddedMap.Add(src.Path, embed_vb)
+            End If
+
+            If expectedEmbedded.Contains("embed2.vb") Then
+                expectedEmbeddedMap.Add(src2.Path, embed2_vb)
+            End If
+
+            If expectedEmbedded.Contains("embed.xyz") Then
+                expectedEmbeddedMap.Add(txt.Path, embed_xyz)
+            End If
+
+            Dim output = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", debugSwitch, embedSwitch, "embed.vb", "embed2.vb"})
+            Dim exitCode = vbc.Run(output)
+            Assert.Equal("", output.ToString().Trim())
+            Assert.Equal(0, exitCode)
+
+            Dim embedded = (debugSwitch = "/debug:embedded")
+            Using peReader As New PEReader(File.OpenRead(Path.Combine(dir.Path, "embed.exe")))
+                Dim entry = peReader.ReadDebugDirectory().SingleOrDefault(Function(e) e.Type = DebugDirectoryEntryType.EmbeddedPortablePdb)
+                Assert.Equal(embedded, entry.DataSize > 0)
+
+                Using mdProvider As MetadataReaderProvider = If(
+                    embedded,
+                    peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry),
+                    MetadataReaderProvider.FromPortablePdbStream(File.OpenRead(Path.Combine(dir.Path, "embed.pdb"))))
+
+                    Dim mdReader = mdProvider.GetMetadataReader()
+                    For Each handle In mdReader.Documents
+                        Dim doc = mdReader.GetDocument(handle)
+                        Dim docPath = mdReader.GetString(doc.Name)
+
+                        Dim embeddedSource = mdReader.GetEmbeddedSource(handle)
+                        If embeddedSource Is Nothing Then
+                            Continue For
+                        End If
+
+                        Assert.True(TypeOf embeddedSource.Encoding Is UTF8Encoding AndAlso embeddedSource.Encoding.GetPreamble().Length = 0)
+                        Assert.Equal(expectedEmbeddedMap(docPath), embeddedSource.ToString())
+                        Assert.True(expectedEmbeddedMap.Remove(docPath))
+                    Next
+                End Using
+            End Using
+
+            Assert.Empty(expectedEmbeddedMap)
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
 
         <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>
@@ -7734,6 +7925,25 @@ End Class
                 New String() {"a,s.dll", "b,s.dll"},
                 args.MetadataReferences.Select(Function(x) x.Reference))
         End Sub
+
+        <WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")>
+        <Fact()>
+        Public Sub Version()
+            Dim folderName = Temp.CreateDirectory().ToString()
+            Dim expected As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
+
+            Dim argss = {
+                "/version",
+                "a.cs /version /preferreduilang:en",
+                "/version /nologo",
+                "/version /help"}
+
+            For Each args In argss
+                Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
+                Assert.Equal(expected, output.Trim())
+            Next
+        End Sub
+
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

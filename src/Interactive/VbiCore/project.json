@@ -1,5 +1,7 @@
 ﻿{
-  "dependencies": { },
+  "dependencies": {
+    "System.ValueTuple": "4.0.1-beta-24425-02"
+  },
   "frameworks": {
     // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
     "netstandard1.6": {

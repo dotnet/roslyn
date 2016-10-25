@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
@@ -121,6 +123,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
             private const string TelemetryExceptionEventPath = EventPrefix + "TelemetryUnhandledException";
 
             private const string TelemetryProjectIdName = PropertyPrefix + "ProjectId";
+            private const string TelemetryProjectGuidName = PropertyPrefix + "ProjectGuid";
             private const string TelemetryLanguageName = PropertyPrefix + "Language";
             private const string TelemetryAnalyzerReferencesCountName = PropertyPrefix + "AnalyzerReferences.Count";
             private const string TelemetryProjectReferencesCountName = PropertyPrefix + "ProjectReferences.Count";
@@ -161,8 +164,12 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                 {
                     try
                     {
+                        var workspace = (VisualStudioWorkspaceImpl)project.Solution.Workspace;
+                        var vsProject = workspace.GetHostProject(projectId);
+
                         var telemetryEvent = TelemetryHelper.TelemetryService.CreateEvent(TelemetryEventPath);
                         telemetryEvent.SetStringProperty(TelemetryProjectIdName, projectId.Id.ToString());
+                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, vsProject.Guid.ToString());
                         telemetryEvent.SetStringProperty(TelemetryLanguageName, language);
                         telemetryEvent.SetIntProperty(TelemetryAnalyzerReferencesCountName, analyzerReferencesCount);
                         telemetryEvent.SetIntProperty(TelemetryProjectReferencesCountName, projectReferencesCount);

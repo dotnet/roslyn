@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; encountered an error and has been disabled..
+        /// </summary>
+        internal static string _0_encountered_an_error_and_has_been_disabled {
+            get {
+                return ResourceManager.GetString("_0_encountered_an_error_and_has_been_disabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is already part of the workspace..
         /// </summary>
         internal static string _0_is_already_part_of_the_workspace {
@@ -531,6 +540,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable.
+        /// </summary>
+        internal static string Enable {
+            get {
+                return ResourceManager.GetString("Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable and ignore future errors.
+        /// </summary>
+        internal static string Enable_and_ignore_future_errors {
+            get {
+                return ResourceManager.GetString("Enable_and_ignore_future_errors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exceptions:.
         /// </summary>
         internal static string Exceptions_colon {
@@ -892,6 +919,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show Stack Trace.
+        /// </summary>
+        internal static string Show_Stack_Trace {
+            get {
+                return ResourceManager.GetString("Show_Stack_Trace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solution file not found: &apos;{0}&apos;.
         /// </summary>
         internal static string Solution_file_not_found_colon_0 {
@@ -906,6 +942,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_path_must_be_absolute {
             get {
                 return ResourceManager.GetString("Specified_path_must_be_absolute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stream is too long..
+        /// </summary>
+        internal static string Stream_is_too_long {
+            get {
+                return ResourceManager.GetString("Stream_is_too_long", resourceCulture);
             }
         }
         

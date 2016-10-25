@@ -240,6 +240,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             switch (result.Kind)
             {
+                case ExpansionKind.Explicit:
+                    completionRoutine(DkmSuccessEvaluationResult.Create(
+                        inspectionContext,
+                        stackFrame,
+                        Name: result.DisplayName,
+                        FullName: result.FullName,
+                        Flags: result.Flags,
+                        Value: result.DisplayValue,
+                        EditableValue: result.EditableValue,
+                        Type: result.DisplayType,
+                        Category: DkmEvaluationResultCategory.Data,
+                        Access: DkmEvaluationResultAccessType.None,
+                        StorageType: DkmEvaluationResultStorageType.None,
+                        TypeModifierFlags: DkmEvaluationResultTypeModifierFlags.None,
+                        Address: result.Value.Address,
+                        CustomUIVisualizers: null,
+                        ExternalModules: null,
+                        DataItem: result.ToDataItem()));
+                    break;
                 case ExpansionKind.Error:
                     completionRoutine(DkmFailedEvaluationResult.Create(
                         inspectionContext,
@@ -465,21 +484,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// The qualified name (i.e. including containing types and namespaces) of a named, pointer,
         /// or array type followed by the qualified name of the actual runtime type, if provided.
         /// </returns>
-        private static string GetTypeName(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, ExpansionKind kind)
+        internal static string GetTypeName(
+            DkmInspectionContext inspectionContext,
+            DkmClrValue value,
+            DkmClrType declaredType,
+            DkmClrCustomTypeInfo declaredTypeInfo,
+            bool isPointerDereference)
         {
             var declaredLmrType = declaredType.GetLmrType();
             var runtimeType = value.Type;
-            var runtimeLmrType = runtimeType.GetLmrType();
             var declaredTypeName = inspectionContext.GetTypeName(declaredType, declaredTypeInfo, Formatter.NoFormatSpecifiers);
-            var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, CustomTypeInfo: null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
-            var includeRuntimeTypeName =
-                !string.Equals(declaredTypeName, runtimeTypeName, StringComparison.OrdinalIgnoreCase) && // Names will reflect "dynamic", types will not.
-                !declaredLmrType.IsPointer &&
-                (kind != ExpansionKind.PointerDereference) &&
-                (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown));
-            return includeRuntimeTypeName ?
-                string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName) :
-                declaredTypeName;
+            // Include the runtime type if distinct.
+            if (!declaredLmrType.IsPointer &&
+                !isPointerDereference &&
+                (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown)))
+            {
+                // Generate the declared type name without tuple element names.
+                var declaredTypeInfoNoTupleElementNames = declaredTypeInfo.WithNoTupleElementNames();
+                var declaredTypeNameNoTupleElementNames = (declaredTypeInfo == declaredTypeInfoNoTupleElementNames) ?
+                    declaredTypeName :
+                    inspectionContext.GetTypeName(declaredType, declaredTypeInfoNoTupleElementNames, Formatter.NoFormatSpecifiers);
+                // Generate the runtime type name with no tuple element names and no dynamic.
+                var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
+                // If the two names are distinct, include both.
+                if (!string.Equals(declaredTypeNameNoTupleElementNames, runtimeTypeName, StringComparison.Ordinal)) // Names will reflect "dynamic", types will not.
+                {
+                    return string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName);
+                }
+            }
+            return declaredTypeName;
         }
 
         internal EvalResult CreateDataItem(
@@ -822,7 +855,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 display = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
             }
 
-            var typeName = displayType ?? GetTypeName(inspectionContext, value, declaredType, declaredTypeInfo, result.Kind);
+            var typeName = displayType ?? GetTypeName(inspectionContext, value, declaredType, declaredTypeInfo, result.Kind == ExpansionKind.PointerDereference);
 
             return CreateEvaluationResult(inspectionContext, value, name, typeName, display, result);
         }
@@ -897,7 +930,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (declaredType.IsArray)
                 {
                     elementType = declaredType.GetElementType();
-                    elementTypeInfo = DynamicFlagsCustomTypeInfo.Create(declaredTypeAndInfo.Info).SkipOne().GetCustomTypeInfo();
+                    elementTypeInfo = CustomTypeInfo.SkipOne(declaredTypeAndInfo.Info);
                 }
                 else
                 {
@@ -921,8 +954,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (declaredType.IsPointer)
             {
-                // If this ever happens, the element type info is just .SkipOne().
-                Debug.Assert(!DynamicFlagsCustomTypeInfo.Create(declaredTypeAndInfo.Info).Any());
+                // If this assert fails, the element type info is just .SkipOne().
+                Debug.Assert(declaredTypeAndInfo.Info?.PayloadTypeId != CustomTypeInfo.PayloadTypeId);
                 var elementType = declaredType.GetElementType();
                 return value.IsNull || elementType.IsVoid()
                     ? null
@@ -937,6 +970,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // skip base types. (This matches the native EE behavior
                 // to expose a single property from the exception.)
                 flags &= ~ExpansionFlags.IncludeBaseMembers;
+            }
+
+            int cardinality;
+            if (runtimeType.IsTupleCompatible(out cardinality))
+            {
+                return TupleExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, cardinality);
             }
 
             return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this);

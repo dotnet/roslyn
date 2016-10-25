@@ -18,6 +18,16 @@ namespace Roslyn.Utilities
             return Empty<T>.Default;
         }
 
+        public static Task<T> DefaultOrResult<T>(T value)
+        {
+            if (EqualityComparer<T>.Default.Equals(value, default(T)))
+            {
+                return Default<T>();
+            }
+
+            return Task.FromResult(value);
+        }
+
         public static Task<ImmutableArray<T>> EmptyImmutableArray<T>()
         {
             return Empty<T>.EmptyImmutableArray;

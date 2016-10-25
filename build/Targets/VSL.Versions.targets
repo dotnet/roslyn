@@ -9,22 +9,20 @@
     <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.0.0</RoslynAssemblyVersionBase>
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
     <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.0.0</RoslynFileVersionBase>
+    <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
+         moniker listed below -->
+    <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">rc2</RoslynNuGetMoniker>
     <!-- This is the base of the NuGet versioning for prerelease packages -->
-    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-beta5</NuGetPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
     <!-- Currently we version IW the same as Roslyn. -->
     <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynAssemblyVersionBase)</MicrosoftVisualStudioInteractiveWindowVersion>
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- We cannot sign an unofficial build, so fail if 'OfficialBuild' is not 'true' but 'SignedBuild' is -->
-    <SignedBuild Condition="'$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">true</SignedBuild>
-    <Error Condition="'$(OfficialBuild)' != 'true' AND '$(SignedBuild)' == 'true'">Cannot sign an unofficial build.</Error>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <!-- We should not be signing a build anywhere except for in MicroBuild, which will always specify 'BUILD_BUILDNUMBER' -->
     <BuildNumber Condition="'$(BuildNumber)' == ''">$(BUILD_BUILDNUMBER)</BuildNumber>
-    <Error Condition="'$(BuildNumber)' == '' AND '$(SignedBuild)' == 'true'">A build number must be specified for a signed build.</Error>
+    <Error Condition="'$(BuildNumber)' == '' AND '$(OfficialBuild)' == 'true'">A build number must be specified for a signed build.</Error>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -48,7 +46,7 @@
   </PropertyGroup>
   
   <Choose>
-    <When Condition="'$(OfficialBuild)' == 'true' OR '$(SignedBuild)' == 'true' OR '$(UseShippingAssemblyVersion)' == 'true'">
+    <When Condition="'$(OfficialBuild)' == 'true' OR '$(UseShippingAssemblyVersion)' == 'true'">
       <PropertyGroup>
         <AssemblyVersion>$(RoslynAssemblyVersionBase).0</AssemblyVersion>
         <BuildVersion>$(RoslynFileVersionBase).$(BuildNumberFiveDigitDateStamp)</BuildVersion>
@@ -58,15 +56,40 @@
 
     <Otherwise>
       <!-- No build version was supplied.  We'll use a special version, higher than anything
-          installed, so that the assembly identity is different.  This will allows us to
-          have a build with an actual number installed, but then build and F5 a build with
-          this number.  -->
+           installed, so that the assembly identity is different.  This will allows us to
+           have a build with an actual number installed, but then build and F5 a build with
+           this number. We will make AssemblyVersion and BuildVersion different, to catch
+           any bugs where people might assume they are the same. -->
       <PropertyGroup>
         <AssemblyVersion>42.42.42.42</AssemblyVersion>
-        <BuildVersion>42.42.42.42</BuildVersion>
-        <VsixVersion>42.42.42.42</VsixVersion>
+        <BuildVersion>42.42.42.42424</BuildVersion>
+        <VsixVersion>42.42.42.42424</VsixVersion>
       </PropertyGroup>
     </Otherwise>
+  </Choose>
+
+  <Choose>
+      <When Condition="'$(BUILD_SOURCEVERSION)' != ''">
+          <PropertyGroup>
+              <GitHeadSha>$(BUILD_SOURCEVERSION)</GitHeadSha>
+          </PropertyGroup>
+      </When>
+      <When Condition="'$(BUILD_SOURCEVERSION)' == '' and '$(GIT_COMMIT)' != ''">
+          <PropertyGroup>
+              <GitHeadSha>$(GIT_COMMIT)</GitHeadSha>
+          </PropertyGroup>
+      </When>
+      <Otherwise>
+          <PropertyGroup>
+            <GitHeadSha>Not found</GitHeadSha>
+            <DotGitDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../.git'))</DotGitDir>
+            <HeadFileContent Condition="Exists('$(DotGitDir)/HEAD')">$([System.IO.File]::ReadAllText('$(DotGitDir)/HEAD').Trim())</HeadFileContent>
+            <RefPath Condition="$(HeadFileContent.StartsWith('ref: '))">$(DotGitDir)/$(HeadFileContent.Substring(5))</RefPath>
+            <GitHeadSha Condition="'$(RefPath)' != '' and Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
+            <GitHeadSha Condition="'$(HeadFileContent)' != '' and
+                                   '$(RefPath)' == ''">$(HeadFileContent)</GitHeadSha>
+          </PropertyGroup>
+      </Otherwise>
   </Choose>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->

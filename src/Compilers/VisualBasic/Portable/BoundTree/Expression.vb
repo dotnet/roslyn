@@ -2150,6 +2150,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Partial Friend MustInherit Class BoundTupleExpression
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
     Friend Partial Class BoundLateInvocation
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None

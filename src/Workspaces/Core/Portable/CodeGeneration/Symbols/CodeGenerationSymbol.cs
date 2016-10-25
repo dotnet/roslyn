@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             SyntaxAnnotation[] annotations;
             annotationsTable.TryGetValue(this, out annotations);
-            return annotations ?? SpecializedCollections.EmptyArray<SyntaxAnnotation>();
+            return annotations ?? Array.Empty<SyntaxAnnotation>();
         }
 
         internal CodeGenerationSymbol WithAdditionalAnnotations(params SyntaxAnnotation[] annotations)

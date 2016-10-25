@@ -15,8 +15,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestExtractReturnExpression() As Task
             Await TestAsync(
-NewLines("Class Module1 \n Private Delegate Function Func(i As Integer) \n Shared Sub Main(args As String()) \n Dim temp As Integer = 2 \n Dim fnc As Func = Function(arg As Integer) \n temp = arg \n Return [|arg|] \n End Function \n End Sub \n End Class"),
-NewLines("Class Module1 \n Private Delegate Function Func(i As Integer) \n Shared Sub Main(args As String()) \n Dim temp As Integer = 2 \n Dim fnc As Func = Function(arg As Integer) \n temp = arg \n Return {|Rename:GetArg|}(arg) \n End Function \n End Sub \n Private Shared Function GetArg(arg As Integer) As Integer \n Return arg \n End Function \n End Class"),
+"Class Module1
+    Private Delegate Function Func(i As Integer)
+    Shared Sub Main(args As String())
+        Dim temp As Integer = 2
+        Dim fnc As Func = Function(arg As Integer)
+                              temp = arg
+                              Return [|arg|]
+                          End Function
+    End Sub
+End Class",
+"Class Module1
+    Private Delegate Function Func(i As Integer)
+    Shared Sub Main(args As String())
+        Dim temp As Integer = 2
+        Dim fnc As Func = Function(arg As Integer)
+                              temp = arg
+                              Return {|Rename:GetArg|}(arg)
+                          End Function
+    End Sub
+    Private Shared Function GetArg(arg As Integer) As Integer
+        Return arg
+    End Function
+End Class",
 index:=0)
         End Function
 
@@ -24,8 +45,27 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestExtractMultilineLambda() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n If True Then Dim q As Action = [|Sub() \n End Sub|] \n End Sub \n End Module"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n If True Then Dim q As Action = {|Rename:GetQ|}() \n End Sub \n Private Function GetQ() As Action \n Return Sub() \n End Sub \n End Function \n End Module"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        If True Then Dim q As Action = [|Sub()
+                                       End Sub|]
+    End Sub
+End Module",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        If True Then Dim q As Action = {|Rename:GetQ|}()
+    End Sub
+    Private Function GetQ() As Action
+        Return Sub()
+               End Sub
+    End Function
+End Module",
 index:=0)
         End Function
 
@@ -33,8 +73,21 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestCollectionInitializerInObjectCollectionInitializer() As Task
             Await TestAsync(
-NewLines("Class Program \n Sub Main() \n [|Dim x As New List(Of Program) From {New Program}|] \n End Sub \n Public Property Name As String \n End Class"),
-NewLines("Class Program \n Sub Main() \n {|Rename:NewMethod|}() \n End Sub \n Private Shared Sub NewMethod() \n Dim x As New List(Of Program) From {New Program} \n End Sub \n Public Property Name As String \n End Class"),
+"Class Program
+    Sub Main()
+        [|Dim x As New List(Of Program) From {New Program}|]
+    End Sub
+    Public Property Name As String
+End Class",
+"Class Program
+    Sub Main()
+        {|Rename:NewMethod|}()
+    End Sub
+    Private Shared Sub NewMethod()
+        Dim x As New List(Of Program) From {New Program}
+    End Sub
+    Public Property Name As String
+End Class",
 index:=0)
         End Function
 
@@ -43,8 +96,29 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestLambdaSelection() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim q As Object \n If True Then q = [|Sub() \n End Sub|] \n End Sub \n End Module"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim q As Object \n If True Then q = {|Rename:NewMethod|}() \n End Sub \n Private Function NewMethod() As Object \n Return Sub() \n End Sub \n End Function \n End Module"))
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim q As Object
+        If True Then q = [|Sub()
+                         End Sub|]
+    End Sub
+End Module",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim q As Object
+        If True Then q = {|Rename:NewMethod|}()
+    End Sub
+    Private Function NewMethod() As Object
+        Return Sub()
+               End Sub
+    End Function
+End Module")
         End Function
 
         <WorkItem(542904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542904")>
@@ -82,31 +156,78 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInTernaryConditional() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, [|Nothing|]) \n End Sub \n End Module"),
-NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, {|Rename:NewMethod|}()) \n End Sub \n Private Function NewMethod() As Object \n Return Nothing \n End Function \n End Module"))
+"Module Program
+    Sub Main(args As String())
+        Dim p As Object = Nothing
+        Dim Obj1 = If(New With {.a = True}.a, p, [|Nothing|])
+    End Sub
+End Module",
+"Module Program
+    Sub Main(args As String())
+        Dim p As Object = Nothing
+        Dim Obj1 = If(New With {.a = True}.a, p, {|Rename:NewMethod|}())
+    End Sub
+    Private Function NewMethod() As Object
+        Return Nothing
+    End Function
+End Module")
         End Function
 
         <WorkItem(545547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545547")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInRangeArgumentUpperBound() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main() \n Dim x(0 To [|1 + 2|]) ' Extract method \n End Sub \n End Module"),
-NewLines("Module Program \n Sub Main() \n Dim x(0 To {|Rename:NewMethod|}()) ' Extract method \n End Sub \n Private Function NewMethod() As Integer \n Return 1 + 2 \n End Function \n End Module"))
+"Module Program
+    Sub Main()
+        Dim x(0 To [|1 + 2|]) ' Extract method 
+    End Sub
+End Module",
+"Module Program
+    Sub Main()
+        Dim x(0 To {|Rename:NewMethod|}()) ' Extract method 
+    End Sub
+    Private Function NewMethod() As Integer
+        Return 1 + 2
+    End Function
+End Module")
         End Function
 
         <WorkItem(545655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545655")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInWhileUntilCondition() As Task
             Await TestAsync(
-NewLines("Module M \n Sub Main() \n Dim x = 0 \n Do While [|x * x < 100|] \n x += 1 \n Loop \n End Sub \n End Module"),
-NewLines("Module M \n Sub Main() \n Dim x = 0 \n Do While {|Rename:NewMethod|}(x) \n x += 1 \n Loop \n End Sub \n Private Function NewMethod(x As Integer) As Boolean \n Return x * x < 100 \n End Function \n End Module"))
+"Module M
+    Sub Main()
+        Dim x = 0
+        Do While [|x * x < 100|]
+            x += 1
+        Loop
+    End Sub
+End Module",
+"Module M
+    Sub Main()
+        Dim x = 0
+        Do While {|Rename:NewMethod|}(x)
+            x += 1
+        Loop
+    End Sub
+    Private Function NewMethod(x As Integer) As Boolean
+        Return x * x < 100
+    End Function
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInInterpolation1() As Task
             Await TestAsync(
-NewLines("Module M \n Sub Main() \n Dim v As New Object \n [|System.Console.WriteLine($""{v}"")|] \n System.Console.WriteLine(v) \n End Sub \n End Module"),
-NewLines("Module M
+"Module M
+    Sub Main()
+        Dim v As New Object
+        [|System.Console.WriteLine($""{v}"")|]
+        System.Console.WriteLine(v)
+    End Sub
+End Module",
+"Module M
     Sub Main()
         Dim v As New Object
         {|Rename:NewMethod|}(v)
@@ -116,15 +237,21 @@ NewLines("Module M
     Private Sub NewMethod(v As Object)
         System.Console.WriteLine($""{v}"")
     End Sub
-End Module"),
+End Module",
 compareTokens:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInInterpolation2() As Task
             Await TestAsync(
-NewLines("Module M \n Sub Main() \n Dim v As New Object \n System.Console.WriteLine([|$""{v}""|]) \n System.Console.WriteLine(v) \n End Sub \n End Module"),
-NewLines("Module M
+"Module M
+    Sub Main()
+        Dim v As New Object
+        System.Console.WriteLine([|$""{v}""|])
+        System.Console.WriteLine(v)
+    End Sub
+End Module",
+"Module M
     Sub Main()
         Dim v As New Object
         System.Console.WriteLine({|Rename:NewMethod|}(v))
@@ -134,7 +261,7 @@ NewLines("Module M
     Private Function NewMethod(v As Object) As String
         Return $""{v}""
     End Function
-End Module"),
+End Module",
 compareTokens:=False)
         End Function
 
@@ -142,8 +269,23 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestMissingOnImplicitMemberAccess() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main() \n With """""""" \n Dim x = [|.GetHashCode|] Xor &H7F3E ' Introduce Local \n End With \n End Sub \n End Module"),
-NewLines("Module Program \n Sub Main() \n {|Rename:NewMethod|}() \n End Sub \n Private Sub NewMethod() \n With """""""" \n Dim x = .GetHashCode Xor &H7F3E ' Introduce Local \n End With \n End Sub \n End Module"))
+"Module Program
+    Sub Main()
+        With """"""""
+            Dim x = [|.GetHashCode|] Xor &H7F3E ' Introduce Local 
+        End With
+    End Sub
+End Module",
+"Module Program
+    Sub Main()
+        {|Rename:NewMethod|}()
+    End Sub
+    Private Sub NewMethod()
+        With """"""""
+            Dim x = .GetHashCode Xor &H7F3E ' Introduce Local 
+        End With
+    End Sub
+End Module")
         End Function
 
         <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
@@ -293,5 +435,103 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
 compareTokens:=False)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(13042, "https://github.com/dotnet/roslyn/issues/13042")>
+        Public Async Function TestTuples() As Task
+
+            Await TestAsync(
+"Class Program
+    Sub Main(args As String())
+        [|Dim x = (1, 2)|]
+        M(x)
+    End Sub
+    Private Sub M(x As (Integer, Integer))
+    End Sub
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace",
+"Class Program
+    Sub Main(args As String())
+        Dim x As (Integer, Integer) = {|Rename:NewMethod|}()
+        M(x)
+    End Sub
+    Private Shared Function NewMethod() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+    Private Sub M(x As (Integer, Integer))
+    End Sub
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace")
+
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
+        Public Async Function TestTupleDeclarationWithNames() As Task
+
+            Await TestAsync(
+"Class Program
+    Sub Main(args As String())
+        [|Dim x As (a As Integer, b As Integer) = (1, 2)|]
+        System.Console.WriteLine(x.a)
+    End Sub
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace",
+"Class Program
+    Sub Main(args As String())
+        Dim x As (a As Integer, b As Integer) = {|Rename:NewMethod|}()
+        System.Console.WriteLine(x.a)
+    End Sub
+    Private Shared Function NewMethod() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace")
+
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
+        Public Async Function TestTupleDeclarationWithSomeNames() As Task
+
+            Await TestAsync(
+"Class Program
+    Sub Main(args As String())
+        [|Dim x As (a As Integer, Integer) = (1, 2)|]
+        System.Console.WriteLine(x.a)
+    End Sub
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace",
+"Class Program
+    Sub Main(args As String())
+        Dim x As (a As Integer, Integer) = {|Rename:NewMethod|}()
+        System.Console.WriteLine(x.a)
+    End Sub
+    Private Shared Function NewMethod() As (a As Integer, Integer)
+        Return (1, 2)
+    End Function
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace")
+
+        End Function
+
     End Class
 End Namespace

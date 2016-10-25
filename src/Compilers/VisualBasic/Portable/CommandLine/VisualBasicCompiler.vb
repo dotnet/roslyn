@@ -3,7 +3,9 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -54,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    errorLogger As ErrorLogger) As SyntaxTree
 
             Dim fileReadDiagnostics As New List(Of DiagnosticInfo)()
-            Dim content = ReadFileContent(file, fileReadDiagnostics)
+            Dim content = TryReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
                 ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)
@@ -160,11 +162,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             consoleOutput.WriteLine()
         End Sub
 
-        Protected Overrides Sub PrintError(Diagnostic As DiagnosticInfo, consoleOutput As TextWriter)
-            consoleOutput.Write(VisualBasicCompiler.VbcCommandLinePrefix)
-            consoleOutput.WriteLine(Diagnostic.ToString(Culture))
-        End Sub
-
         Friend Overrides Function SuppressDefaultResponseFile(args As IEnumerable(Of String)) As Boolean
             For Each arg In args
                 Select Case arg.ToLowerInvariant
@@ -189,6 +186,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ErrorFactory.IdToString(ERRID.IDS_ToolName, Culture)
         End Function
 
+        Friend Overrides ReadOnly Property Type As Type
+            Get
+                ' We do not use Me.GetType() so that we don't break mock subtypes
+                Return GetType(VisualBasicCompiler)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Print Commandline help message (up to 80 English characters per line)
         ''' </summary>
@@ -206,6 +210,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
             Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader)
         End Function
+
+        Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(
+            tree As SyntaxTree,
+            resolver As SourceReferenceResolver,
+            embeddedFiles As OrderedSet(Of String),
+            diagnostics As IList(Of Diagnostic))
+
+            For Each directive As ExternalSourceDirectiveTriviaSyntax In tree.GetRoot().GetDirectives(
+                Function(d) d.Kind() = SyntaxKind.ExternalSourceDirectiveTrivia)
+
+                If directive.ExternalSource.IsMissing Then
+                    Continue For
+                End If
+
+                Dim path = CStr(directive.ExternalSource.Value)
+                If path Is Nothing Then
+                    Continue For
+                End If
+
+                Dim resolvedPath = resolver.ResolveReference(path, tree.FilePath)
+                If resolvedPath Is Nothing Then
+                    diagnostics.Add(
+                        MessageProvider.CreateDiagnostic(
+                            MessageProvider.ERR_FileNotFound,
+                            directive.ExternalSource.GetLocation(),
+                            path))
+
+                    Continue For
+                End If
+
+                embeddedFiles.Add(resolvedPath)
+            Next
+        End Sub
     End Class
 End Namespace
 

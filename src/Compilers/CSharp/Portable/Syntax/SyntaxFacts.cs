@@ -138,6 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefValueExpression:
                         return ((RefValueExpressionSyntax)parent).Type == node;
 
+                    case RefType:
+                        return ((RefTypeSyntax)parent).Type == node;
+
                     case Parameter:
                         return ((ParameterSyntax)parent).Type == node;
 
@@ -316,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsStatementExpression(CSharpSyntaxNode syntax)
+        internal static bool IsStatementExpression(SyntaxNode syntax)
         {
             // The grammar gives:
             //
@@ -386,35 +389,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
         }
 
-        /// <summary>
-        /// Figures out if this token is an identifier in a deconstruction-declaration.
-        /// Outputs the top-level statement if that is the case.
-        /// </summary>
-        internal static bool IsDeconstructionIdentifier(SyntaxToken identifier, out SyntaxNode parent)
+        internal static bool IsVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            for (parent = identifier.Parent; parent != null; parent = parent.Parent)
-            {
-                switch (parent.Kind())
-                {
-                    case SyntaxKind.ForEachComponentStatement:
-                    case SyntaxKind.DeconstructionDeclarationStatement:
-                    case SyntaxKind.ForStatement:
-                        return true;
-                    case SyntaxKind.ParenthesizedVariableComponent:
-                    case SyntaxKind.TypedVariableComponent:
-                    case SyntaxKind.SingleVariableDesignation:
-                    case SyntaxKind.ParenthesizedVariableDesignation:
-                    case SyntaxKind.VariableComponentAssignment:
-                        continue;
-                    default:
-                        return false;
-                }
-            }
-
-            return false;
+            return node.IsVar() || IsPredefinedType(node.Kind);
         }
 
-        internal static bool IsDeconstructionType(SyntaxNode node, out SyntaxNode parent)
+        internal static bool IsVariableComponentType(SyntaxNode node, out SyntaxNode parent)
         {
             var component = node.Parent as TypedVariableComponentSyntax;
             parent = component;

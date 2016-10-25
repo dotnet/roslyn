@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -12,6 +10,7 @@
     <AssemblyName>Roslyn.Hosting.Diagnostics</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -86,6 +85,7 @@
     <Compile Include="Waiters\ReferenceHighlightingWaiter.cs" />
     <Compile Include="Waiters\RenameWaiter.cs" />
     <Compile Include="Waiters\SignatureHelpWaiter.cs" />
+    <Compile Include="Waiters\SnippetWaiter.cs" />
     <Compile Include="Waiters\SolutionCrawlerWaiter.cs" />
     <Compile Include="Waiters\TodoCommentListWaiter.cs" />
     <Compile Include="Waiters\WorkspaceWaiter.cs" />
@@ -103,7 +103,5 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

@@ -2,12 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -67,8 +63,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         tempAccess,
                                                         raiseCallExpression.Arguments,
                                                         raiseCallExpression.ConstantValueOpt,
-                                                        raiseCallExpression.SuppressObjectClone,
-                                                        raiseCallExpression.Type)
+                                                        isLValue:=raiseCallExpression.IsLValue,
+                                                        suppressObjectClone:=raiseCallExpression.SuppressObjectClone,
+                                                        type:=raiseCallExpression.Type)
 
                 Dim invokeStatement = New BoundExpressionStatement(
                                             syntax,
@@ -112,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' If the event is a WinRT event, then the backing field is actually an EventRegistrationTokenTable,
         ' rather than a delegate.  If this is the case, then we replace the receiver with 
         ' EventRegistrationTokenTable(Of Event).GetOrCreateEventRegistrationTokenTable(eventField).InvocationList.
-        Private Function GetWindowsRuntimeEventReceiver(syntax As VisualBasicSyntaxNode, rewrittenReceiver As BoundExpression) As BoundExpression
+        Private Function GetWindowsRuntimeEventReceiver(syntax As SyntaxNode, rewrittenReceiver As BoundExpression) As BoundExpression
             Dim fieldType As NamedTypeSymbol = DirectCast(rewrittenReceiver.Type, NamedTypeSymbol)
             Debug.Assert(fieldType.Name = "EventRegistrationTokenTable")
 
@@ -134,19 +131,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' EventRegistrationTokenTable(Of Event).GetOrCreateEventRegistrationTokenTable(_tokenTable)
                     Dim getOrCreateCall = New BoundCall(syntax:=syntax,
                                                         method:=getOrCreateMethod,
-                                                        methodGroup:=Nothing,
-                                                        receiver:=Nothing,
+                                                        methodGroupOpt:=Nothing,
+                                                        receiverOpt:=Nothing,
                                                         arguments:=ImmutableArray.Create(Of BoundExpression)(rewrittenReceiver),
                                                         constantValueOpt:=Nothing,
+                                                        isLValue:=False,
+                                                        suppressObjectClone:=False,
                                                         type:=getOrCreateMethod.ReturnType).MakeCompilerGenerated()
 
                     ' EventRegistrationTokenTable(Of Event).GetOrCreateEventRegistrationTokenTable(_tokenTable).InvocationList
                     Dim invocationListAccessorCall = New BoundCall(syntax:=syntax,
                                                                    method:=invocationListAccessor,
-                                                                   methodGroup:=Nothing,
-                                                                   receiver:=getOrCreateCall,
+                                                                   methodGroupOpt:=Nothing,
+                                                                   receiverOpt:=getOrCreateCall,
                                                                    arguments:=ImmutableArray(Of BoundExpression).Empty,
                                                                    constantValueOpt:=Nothing,
+                                                                   isLValue:=False,
+                                                                   suppressObjectClone:=False,
                                                                    type:=invocationListAccessor.ReturnType).MakeCompilerGenerated()
 
                     Return invocationListAccessorCall

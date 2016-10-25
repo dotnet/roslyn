@@ -41,18 +41,21 @@ namespace RepoUtil
         internal ImmutableArray<NuGetPackage> FixedPackages { get; }
         internal ImmutableArray<string> ToolsetPackages { get; }
         internal ImmutableArray<Regex> NuSpecExcludes { get; }
+        internal ImmutableArray<Regex> ProjectJsonExcludes { get; }
         internal GenerateData? MSBuildGenerateData { get; }
 
         internal RepoConfig(
             IEnumerable<NuGetPackage> fixedPackages, 
             IEnumerable<string> toolsetPackages, 
             IEnumerable<Regex> nuspecExcludes,
+            IEnumerable<Regex> projectJsonExcludes,
             GenerateData? msbuildGenerateData)
         {
             Debug.Assert(toolsetPackages.Distinct().Count() == toolsetPackages.Count());
             MSBuildGenerateData = msbuildGenerateData;
             FixedPackages = fixedPackages.OrderBy(x => x.Name).ToImmutableArray();
             NuSpecExcludes = nuspecExcludes.ToImmutableArray();
+            ProjectJsonExcludes = projectJsonExcludes.ToImmutableArray();
             ToolsetPackages = toolsetPackages.OrderBy(x => x).ToImmutableArray();
 
             var map = new Dictionary<string, List<string>>();
@@ -110,10 +113,18 @@ namespace RepoUtil
                 nuspecExcludes.AddRange(((JArray)nuspecExcludesProp.Value).Values<string>().Select(x => new Regex(x)));
             }
 
+            var projectJsonExcludes = new List<Regex>();
+            var projectJsonExcludesProp = obj.Property("projectJsonExcludes");
+            if (projectJsonExcludesProp != null)
+            {
+                projectJsonExcludes.AddRange(((JArray)projectJsonExcludesProp.Value).Values<string>().Select(x => new Regex(x)));
+            }
+
             return new RepoConfig(
                 fixedPackagesList,
                 toolsetPackages,
                 nuspecExcludes,
+                projectJsonExcludes,
                 msbuildGenerateData);
         }
 

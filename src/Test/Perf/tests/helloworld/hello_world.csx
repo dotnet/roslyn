@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#r "../../../Roslyn.Test.Performance.Utilities.dll"
+#r "../Roslyn.Test.Performance.Utilities.dll"
 
 using System.IO;
 using Roslyn.Test.Performance.Utilities;
@@ -26,11 +26,11 @@ class HelloWorldTest : PerfTest
     
     public override void Test() 
     {
-        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, MyWorkingDirectory);
+        ShellOutVital(Path.Combine(MyWorkingDirectory, @"..\csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, MyWorkingDirectory);
         _logger.Flush();
     }
     
-    public override int Iterations => 1;
+    public override int Iterations => 3;
     public override string Name => "hello world";
     public override string MeasuredProc => "csc";
     public override bool ProvidesScenarios => false;

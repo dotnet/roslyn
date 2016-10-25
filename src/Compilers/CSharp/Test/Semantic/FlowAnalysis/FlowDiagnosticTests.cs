@@ -931,9 +931,9 @@ public struct A
     // (7,11): warning CS0219: The variable 'a' is assigned but its value is never used
     //         A a = new A();
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(7, 11),
-    // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+    // (4,7): warning CS0169: The field 'A.a' is never used
     //     A a = new A(); // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7)
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7)
     );
         }
 
@@ -2455,6 +2455,51 @@ class Derived2 : Base
                 // (10,20): error CS0165: Use of unassigned local variable 'k'
                 //         string s = k;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "k").WithArguments("k").WithLocation(10, 20)
+                );
+        }
+
+        [WorkItem(9581, "https://github.com/dotnet/roslyn/issues/9581")]
+        [Fact]
+        public void UsingSelfAssignment()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        using (System.IDisposable x = x)
+        {
+        }
+    }
+}";
+            CSharpCompilation comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (5,39): error CS0165: Use of unassigned local variable 'x'
+                //         using (System.IDisposable x = x)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(5, 39)
+                );
+        }
+
+        [Fact]
+        public void UsingAssignment()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        using (System.IDisposable x = null)
+        {
+            System.Console.WriteLine(x.ToString());
+        }
+        using (System.IDisposable x = null, y = x)
+        {
+            System.Console.WriteLine(y.ToString());
+        }
+    }
+}";
+            CSharpCompilation comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
                 );
         }
     }

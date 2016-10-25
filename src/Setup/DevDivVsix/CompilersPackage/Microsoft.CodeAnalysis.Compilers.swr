@@ -3,72 +3,110 @@ use vs
 package name=Microsoft.CodeAnalysis.Compilers
         version=$(Version)
 
+vs.dependencies
+  vs.dependency id=Microsoft.Net.4.6.1.FullRedist 
+  vs.dependency id=Microsoft.Net.4.6.1.FullRedist.Resource 
+
 folder InstallDir:\MSBuild\15.0\Bin
-    file source=$(OutputPath)\VBCSCompiler.exe vs.file.ngen=yes
-    file source=$(OutputPath)\csc.exe vs.file.ngen=yes
-    file source=$(OutputPath)\csi.exe vs.file.ngen=yes
-    file source=$(OutputPath)\vbc.exe vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\VBCSCompiler\VBCSCompiler.exe vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\csc\csc.exe vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\csi\csi.exe vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\vbc\vbc.exe vs.file.ngen=yes
 
-    file source=$(OutputPath)\csc.exe.config
-    file source=$(OutputPath)\vbc.exe.config
-    file source=$(OutputPath)\VBCSCompiler.exe.config
+    file source=$(OutputPath)\Exes\csc\csc.exe.config
+    file source=$(OutputPath)\Exes\vbc\vbc.exe.config
+    file source=$(OutputPath)\Exes\VBCSCompiler\VBCSCompiler.exe.config
 
-    file source=$(OutputPath)\csc.rsp
-    file source=$(OutputPath)\csi.rsp
-    file source=$(OutputPath)\vbc.rsp
+    file source=$(OutputPath)\Exes\csc\csc.rsp
+    file source=$(OutputPath)\Exes\csi\csi.rsp
+    file source=$(OutputPath)\Exes\vbc\vbc.rsp
 
-    file source=$(OutputPath)\Microsoft.VisualBasic.Core.targets
-    file source=$(OutputPath)\Microsoft.CSharp.Core.targets
+    file source=$(OutputPath)\Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets
+    file source=$(OutputPath)\Dlls\MSBuildTask\Microsoft.CSharp.Core.targets
 
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.Scripting.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.CSharp.Scripting.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.CSharp.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.Build.Tasks.CodeAnalysis.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.VisualBasic.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.Collections.Immutable.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.Reflection.Metadata.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\BasicCodeAnalysis\Microsoft.CodeAnalysis.VisualBasic.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\CodeAnalysis\Microsoft.CodeAnalysis.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Collections.Immutable.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Reflection.Metadata.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\csi\System.ValueTuple.dll vs.file.ngen=yes
 
-    file source=$(OutputPath)\Microsoft.DiaSymReader.Native.amd64.dll
-    file source=$(OutputPath)\Microsoft.DiaSymReader.Native.x86.dll
+    file source=$(OutputPath)\Vsix\CompilerExtension\Microsoft.DiaSymReader.Native.amd64.dll
+    file source=$(OutputPath)\Vsix\CompilerExtension\Microsoft.DiaSymReader.Native.x86.dll
 
-    file source=$(OutputPath)\System.AppContext.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.Console.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.Diagnostics.StackTrace.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.IO.FileSystem.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.IO.FileSystem.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.AppContext.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Console.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Runtime.InteropServices.RuntimeInformation.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.AccessControl.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Claims.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Encoding.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.X509Certificates.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Principal.Windows.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Threading.Thread.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XmlDocument.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll vs.file.ngen=yes
 
 folder InstallDir:\MSBuild\15.0\Bin\amd64
-    file source=$(OutputPath)\VBCSCompiler.exe vs.file.ngen=yes
-    file source=$(OutputPath)\csc.exe vs.file.ngen=yes
-    file source=$(OutputPath)\csi.exe vs.file.ngen=yes
-    file source=$(OutputPath)\vbc.exe vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\VBCSCompiler\VBCSCompiler.exe vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\csc\csc.exe vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\csi\csi.exe vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\vbc\vbc.exe vs.file.ngen=yes
 
-    file source=$(OutputPath)\csc.exe.config
-    file source=$(OutputPath)\vbc.exe.config
-    file source=$(OutputPath)\VBCSCompiler.exe.config
+    file source=$(OutputPath)\Exes\csc\csc.exe.config
+    file source=$(OutputPath)\Exes\vbc\vbc.exe.config
+    file source=$(OutputPath)\Exes\VBCSCompiler\VBCSCompiler.exe.config
 
-    file source=$(OutputPath)\csc.rsp
-    file source=$(OutputPath)\csi.rsp
-    file source=$(OutputPath)\vbc.rsp
+    file source=$(OutputPath)\Exes\csc\csc.rsp
+    file source=$(OutputPath)\Exes\csi\csi.rsp
+    file source=$(OutputPath)\Exes\vbc\vbc.rsp
 
-    file source=$(OutputPath)\Microsoft.VisualBasic.Core.targets
-    file source=$(OutputPath)\Microsoft.CSharp.Core.targets
+    file source=$(OutputPath)\Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets
+    file source=$(OutputPath)\Dlls\MSBuildTask\Microsoft.CSharp.Core.targets
 
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.Scripting.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.CSharp.Scripting.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.CSharp.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.Build.Tasks.CodeAnalysis.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.VisualBasic.dll vs.file.ngen=yes
-    file source=$(OutputPath)\Microsoft.CodeAnalysis.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.Collections.Immutable.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.Reflection.Metadata.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\BasicCodeAnalysis\Microsoft.CodeAnalysis.VisualBasic.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Dlls\CodeAnalysis\Microsoft.CodeAnalysis.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Collections.Immutable.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Reflection.Metadata.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Exes\csi\System.ValueTuple.dll vs.file.ngen=yes
 
-    file source=$(OutputPath)\Microsoft.DiaSymReader.Native.amd64.dll
-    file source=$(OutputPath)\Microsoft.DiaSymReader.Native.x86.dll
+    file source=$(OutputPath)\Vsix\CompilerExtension\Microsoft.DiaSymReader.Native.amd64.dll
+    file source=$(OutputPath)\Vsix\CompilerExtension\Microsoft.DiaSymReader.Native.x86.dll
 
-    file source=$(OutputPath)\System.AppContext.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.Console.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.Diagnostics.StackTrace.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.IO.FileSystem.dll vs.file.ngen=yes
-    file source=$(OutputPath)\System.IO.FileSystem.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.AppContext.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Console.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Runtime.InteropServices.RuntimeInformation.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.AccessControl.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Claims.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Encoding.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Primitives.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.X509Certificates.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Principal.Windows.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Threading.Thread.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XmlDocument.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.dll vs.file.ngen=yes
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll vs.file.ngen=yes

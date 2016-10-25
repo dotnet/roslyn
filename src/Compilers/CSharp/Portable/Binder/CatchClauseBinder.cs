@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_syntax.Filter != null)
             {
-                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Filter.FilterExpression);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Filter.FilterExpression);
             }
 
             return locals.ToImmutableAndFree();
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

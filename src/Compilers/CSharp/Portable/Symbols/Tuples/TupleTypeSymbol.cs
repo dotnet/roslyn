@@ -39,11 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeSymbol> _elementTypes;
 
         private ImmutableArray<Symbol> _lazyMembers;
-        private ImmutableArray<FieldSymbol> _lazyFields;
+        private ImmutableArray<FieldSymbol> _lazyDefaultElementFields;
         private SmallDictionary<Symbol, Symbol> _lazyUnderlyingDefinitionToMemberMap;
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
         internal const string TupleTypeName = "ValueTuple";
+        internal const string RestFieldName = "Rest";
 
         private TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
             : this(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
@@ -87,6 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
+
+            if (((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
+            {
+                // Complain about unembeddable types from linked assemblies.
+                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics);
+            }
 
             return Create(underlyingType, elementNames, locationOpt, elementLocations);
         }
@@ -328,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)diagnostics != null && (object)syntax != null)
             {
-                Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+                ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
             }
 
             currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (RestPosition - 1), remainder));
@@ -340,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
-                    Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
+                    ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
                 }
 
                 do
@@ -356,6 +363,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return currentSymbol;
         }
 
+        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode syntax, DiagnosticBag diagnostics, NamedTypeSymbol firstTupleType)
+        {
+            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+            Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
+        }
+
         /// <summary>
         /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
         /// </summary>
@@ -367,12 +380,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
 
             NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
-            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+            ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
 
             if (chainLength > 1)
             {
                 NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
-                Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
+                ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
+            }
+        }
+
+        internal static void ReportNamesMismatchesIfAny(TypeSymbol destination, BoundTupleLiteral literal, DiagnosticBag diagnostics)
+        {
+            var sourceNames = literal.ArgumentNamesOpt;
+            if (sourceNames.IsDefault)
+            {
+                return;
+            }
+
+            ImmutableArray<string> destinationNames = destination.TupleElementNames;
+            int sourceLength = sourceNames.Length;
+            bool allMissing = destinationNames.IsDefault;
+            Debug.Assert(allMissing || destinationNames.Length == sourceLength);
+
+            for (int i = 0; i < sourceLength; i++)
+            {
+                var sourceName = sourceNames[i];
+                if (sourceName != null && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
+                {
+                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent.Location, sourceName, destination);
+                }
             }
         }
 
@@ -533,6 +569,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return 0;
             }
 
+            return MatchesCanonicalElementName(name);
+        }
+
+        /// <summary>
+        /// Returns 3 for "Item3".
+        /// Returns -1 otherwise.
+        /// </summary>
+        private static int MatchesCanonicalElementName(string name)
+        {
             if (name.StartsWith("Item", StringComparison.Ordinal))
             {
                 string tail = name.Substring(4);
@@ -618,22 +663,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
-        public override bool IsReferenceType
-        {
-            get
-            {
-                return _underlyingType.IsErrorType() ? false : _underlyingType.IsReferenceType;
-            }
-        }
-
-        public override bool IsValueType
-        {
-            get
-            {
-                return _underlyingType.IsValueType;
-            }
-        }
-
         internal sealed override bool IsManagedType
         {
             get
@@ -675,24 +704,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Get the fields for the tuple's elements (in order and cached).
+        /// Get the default fields for the tuple's elements (in order and cached).
         /// </summary>
-        public override ImmutableArray<FieldSymbol> TupleElementFields
+        public override ImmutableArray<FieldSymbol> TupleDefaultElementFields
         {
             get
             {
-                if (_lazyFields.IsDefault)
+                if (_lazyDefaultElementFields.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyFields, CollectTupleElementFields());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDefaultElementFields, CollectTupleElementFields());
                 }
 
-                return _lazyFields;
+                return _lazyDefaultElementFields;
             }
         }
 
         private ImmutableArray<FieldSymbol> CollectTupleElementFields()
         {
-            var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length, null);
+            var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length, fillWithValue: null);
 
             foreach (var member in GetMembers())
             {
@@ -701,13 +730,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                int index = (member as TupleFieldSymbol)?.TupleElementIndex ??
-                            ((TupleErrorFieldSymbol)member).TupleElementIndex;
+                var field = (FieldSymbol)member;
 
-                if (index >= 0)
+                if (field.IsDefaultTupleElement)
                 {
+                    var index = field.TupleElementIndex;
                     Debug.Assert((object)builder[index] == null);
-                    builder[index] = (FieldSymbol)member;
+                    builder[index] = field;
                 }
             }
 
@@ -732,20 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<Symbol> CreateMembers()
         {
-            var namesOfVirtualFields = ArrayBuilder<string>.GetInstance(_elementTypes.Length);
-
-            if (_elementNames.IsDefault)
-            {
-                for (int i = 1; i <= _elementTypes.Length; i++)
-                {
-                    namesOfVirtualFields.Add(TupleMemberName(i));
-                }
-            }
-            else
-            {
-                namesOfVirtualFields.AddRange(_elementNames);
-            }
-
+            var elementsMatchedByFields = ArrayBuilder<bool>.GetInstance(_elementTypes.Length, fillWithValue: false);
             var members = ArrayBuilder<Symbol>.GetInstance(Math.Max(_elementTypes.Length, _underlyingType.OriginalDefinition.GetMembers().Length));
 
             NamedTypeSymbol currentUnderlying = _underlyingType;
@@ -778,54 +794,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (tupleFieldIndex >= 0)
                             {
                                 // This is a tuple backing field
+
+                                // adjust tuple index for nesting
+                                if (currentNestingLevel != 0)
+                                {
+                                    tupleFieldIndex += (RestPosition - 1) * currentNestingLevel;
+                                }
+
+                                var providedName = _elementNames.IsDefault ? null : _elementNames[tupleFieldIndex];
+                                var location = _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex];
+                                var defaultName = TupleMemberName(tupleFieldIndex + 1);
+                                // if provided name does not match the default one, 
+                                // then default element is declared implicitly
+                                var defaultImplicitlyDeclared = providedName != defaultName;
+
                                 var fieldSymbol = field.AsMember(currentUnderlying);
 
+                                // Add a field with default name. It should be present regardless.
                                 if (currentNestingLevel != 0)
                                 {
                                     // This is a matching field, but it is in the extension tuple
-                                    tupleFieldIndex += (RestPosition - 1) * currentNestingLevel;
-
-
-                                    string defaultName = TupleMemberName(tupleFieldIndex + 1);
-                                    // Add a field with default name if the given name is different
-                                    if (namesOfVirtualFields[tupleFieldIndex] != defaultName)
-                                    {
-                                        // The name given doesn't match default name Item8, etc.
-                                        members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, defaultName, -members.Count - 1, null));
-                                    }
-
-                                    // Add a field with the given name
-                                    var location = _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex];
-
-                                    if (field.Name == namesOfVirtualFields[tupleFieldIndex])
-                                    {
-                                        members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex, location));
-                                    }
-                                    else
-                                    {
-                                        members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex],
-                                                                                                tupleFieldIndex, location));
-                                    }
-                                }
-                                else if (field.Name == namesOfVirtualFields[tupleFieldIndex])
-                                {
-                                    members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex,
-                                                                                    _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex]));
+                                    // Make it virtual since we are not at the top level
+                                    // tupleFieldIndex << 1 because this is a default element
+                                    members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, defaultName, tupleFieldIndex << 1, location, defaultImplicitlyDeclared));
                                 }
                                 else
                                 {
-                                    // Add a field with default name
-                                    members.Add(new TupleFieldSymbol(this, fieldSymbol, -members.Count - 1));
+                                    Debug.Assert(fieldSymbol.Name == defaultName, "top level underlying field must match default name");
 
-                                    // Add a field with the given name
-                                    if (namesOfVirtualFields[tupleFieldIndex] != null)
-                                    {
-                                        members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex], tupleFieldIndex,
-                                                                                                _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex]));
-                                    }
+                                    // Add the underlying field as an element. It should have the default name.
+                                    // tupleFieldIndex << 1 because this is a default element
+                                    members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex << 1, location, defaultImplicitlyDeclared));
                                 }
 
-                                namesOfVirtualFields[tupleFieldIndex] = null; // mark as handled
+                                if (defaultImplicitlyDeclared && providedName != null)
+                                {
+                                    // The name given doesn't match the default name Item8, etc.
+                                    // Add a virtual field with the given name
+                                    // tupleFieldIndex << 1 + 1, because this is not a default element
+                                    members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared: false));
+                                }
+
+                                elementsMatchedByFields[tupleFieldIndex] = true; // mark as handled
                             }
                             else if (currentNestingLevel == 0)
                             {
@@ -885,13 +895,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             currentFieldsForElements.Free();
 
-            // At the end, add remaining virtual fields
-            for (int i = 0; i < namesOfVirtualFields.Count; i++)
+            // At the end, add unmatched fields as error symbols
+            for (int i = 0; i < elementsMatchedByFields.Count; i++)
             {
-                string name = namesOfVirtualFields[i];
-                if (name != null)
+                if (!elementsMatchedByFields[i])
                 {
-                    // We couldn't find a backing field for this vitual field. It will be an error to access it. 
+                    // We couldn't find a backing field for this element. It will be an error to access it. 
                     int fieldRemainder; // one-based
                     int fieldChainLength = NumberOfValueTuples(i + 1, out fieldRemainder);
                     NamedTypeSymbol container = GetNestedTupleUnderlyingType(_underlyingType, fieldChainLength - 1).OriginalDefinition;
@@ -903,20 +912,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                container,
                                                                                container.ContainingAssembly);
 
-                    string defaultName = TupleMemberName(i + 1);
-                    // Add a field with default name if the given name is different
-                    if (name != defaultName)
-                    {
-                        members.Add(new TupleErrorFieldSymbol(this, defaultName, -members.Count - 1, null, _elementTypes[i], diagnosticInfo));
-                    }
+                    var providedName = _elementNames.IsDefault ? null : _elementNames[i];
+                    var location = _elementLocations.IsDefault ? null : _elementLocations[i];
+                    var defaultName = TupleMemberName(i + 1);
+                    // if provided name does not match the default one, 
+                    // then default element is declared implicitly
+                    var defaultImplicitlyDeclared = providedName != defaultName;
 
-                    members.Add(new TupleErrorFieldSymbol(this, name, i,
-                                                      _elementLocations.IsDefault ? null : _elementLocations[i],
-                                                      _elementTypes[i],
-                                                      diagnosticInfo));
+                    // Add default element field. 
+                    // i << 1 because this is a default element
+                    members.Add(new TupleErrorFieldSymbol(this, defaultName, i << 1, defaultImplicitlyDeclared ? null : location, _elementTypes[i], diagnosticInfo, defaultImplicitlyDeclared));
+
+
+                    if (defaultImplicitlyDeclared && providedName != null)
+                    {
+                        // Add friendly named element field. 
+                        // (i << 1) + 1, because this is not a default element
+                        members.Add(new TupleErrorFieldSymbol(this, providedName, (i << 1) + 1, location, _elementTypes[i], diagnosticInfo, isImplicitlyDeclared: false));
+                    }
                 }
             }
 
+            elementsMatchedByFields.Free();
             return members.ToImmutableAndFree();
         }
 
@@ -1064,10 +1081,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // only classes and structs can have instance fields as tuple requires.
-                // we need to have some support for classes, but most common case will be struct
-                // in broken scenarios (ErrorType, Enum, Delegate, whatever..) we will just default to struct.
-                return _underlyingType.TypeKind == TypeKind.Class ? TypeKind.Class : TypeKind.Struct;
+                // From the language perspective tuple is a value type 
+                // composed of its underlying elements
+                return TypeKind.Struct;
             }
         }
 

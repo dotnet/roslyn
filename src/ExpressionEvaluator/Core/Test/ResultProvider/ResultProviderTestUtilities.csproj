@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -13,9 +11,9 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.CSharp" />
@@ -71,6 +69,9 @@
     </Compile>
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
       <Link>DateTimeUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\ExpressionCompiler\CustomTypeInfo.cs">
+      <Link>ExpressionCompiler\CustomTypeInfo.cs</Link>
     </Compile>
     <Compile Include="..\..\Source\ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs">
       <Link>ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs</Link>
@@ -145,7 +146,6 @@
     <Compile Include="Debugger\MemberInfo\ParameterInfoImpl.cs" />
     <Compile Include="Debugger\MemberInfo\PropertyInfoImpl.cs" />
     <Compile Include="Debugger\MemberInfo\TypeImpl.cs" />
-    <Compile Include="DynamicFlagsCustomTypeInfo_Factory.cs" />
     <Compile Include="ReflectionUtilities.cs" />
     <Compile Include="ResultProviderTestBase.cs" />
   </ItemGroup>
@@ -167,8 +167,6 @@
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

@@ -201,8 +201,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim getOrCreateCall = New BoundCall(
                 syntax:=syntax,
                 method:=getOrCreateMethod,
-                methodGroup:=Nothing,
-                receiver:=Nothing,
+                methodGroupOpt:=Nothing,
+                receiverOpt:=Nothing,
                 arguments:=ImmutableArray.Create(Of BoundExpression)(fieldAccess),
                 constantValueOpt:=Nothing,
                 type:=getOrCreateMethod.ReturnType).MakeCompilerGenerated()
@@ -220,8 +220,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim processHandlerCall = New BoundCall(
                 syntax:=syntax,
                 method:=processHandlerMethod,
-                methodGroup:=Nothing,
-                receiver:=getOrCreateCall,
+                methodGroupOpt:=Nothing,
+                receiverOpt:=getOrCreateCall,
                 arguments:=ImmutableArray.Create(Of BoundExpression)(parameterAccess),
                 constantValueOpt:=Nothing,
                 type:=processHandlerMethod.ReturnType).MakeCompilerGenerated()

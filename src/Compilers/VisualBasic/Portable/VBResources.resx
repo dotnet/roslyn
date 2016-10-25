@@ -198,6 +198,9 @@
   <data name="ERR_MissingGuidForOption" xml:space="preserve">
     <value>Command-line syntax error: Missing Guid for option '{1}'</value>
   </data>
+  <data name="ERR_BadChecksumAlgorithm" xml:space="preserve">
+    <value>Algorithm '{0}' is not supported</value>
+  </data>
   <data name="WRN_BadSwitch" xml:space="preserve">
     <value>unrecognized option '{0}'; ignored</value>
   </data>
@@ -782,6 +785,9 @@
   <data name="ERR_DuplicateProcDef1" xml:space="preserve">
     <value>'{0}' has multiple definitions with identical signatures.</value>
   </data>
+  <data name="ERR_DuplicateProcDefWithDifferentTupleNames2" xml:space="preserve">
+    <value>'{0}' has multiple definitions with identical signatures with different tuple element names, including '{1}'.</value>
+  </data>
   <data name="ERR_BadInterfaceMethodFlags1" xml:space="preserve">
     <value>'{0}' is not valid on an interface method declaration.</value>
   </data>
@@ -997,6 +1003,9 @@
   <data name="ERR_IdentNotMemberOfInterface4" xml:space="preserve">
     <value>'{0}' cannot implement '{1}' because there is no matching {2} on interface '{3}'.</value>
   </data>
+  <data name="ERR_ImplementingInterfaceWithDifferentTupleNames5" xml:space="preserve">
+    <value>'{0}' cannot implement {1} '{2}' on interface '{3}' because the tuple element names in '{4}' do not match those in '{5}'.</value>
+  </data>
   <data name="ERR_WithEventsRequiresClass" xml:space="preserve">
     <value>'WithEvents' variables must have an 'As' clause.</value>
   </data>
@@ -1035,6 +1044,12 @@
   </data>
   <data name="ERR_InvalidOverrideDueToReturn2" xml:space="preserve">
     <value>'{0}' cannot override '{1}' because they differ by their return types.</value>
+  </data>
+  <data name="WRN_InvalidOverrideDueToTupleNames2" xml:space="preserve">
+    <value>'{0}' cannot override '{1}' because they differ by their tuple element names.</value>
+  </data>
+  <data name="WRN_InvalidOverrideDueToTupleNames2_Title" xml:space="preserve">
+    <value>Member cannot override because it differs by its tuple element names.</value>
   </data>
   <data name="ERR_ConstantWithNoValue" xml:space="preserve">
     <value>Constants must have a value.</value>
@@ -1860,6 +1875,30 @@
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
   </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames2" xml:space="preserve">
+    <value>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}'.</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames3" xml:space="preserve">
+    <value>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}' (via '{2}').</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}'.</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames4" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}' (via '{3}').</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNames2" xml:space="preserve">
+    <value>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}'.</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNames3" xml:space="preserve">
+    <value>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}' (via '{2}').</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}'.</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNames4" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}' (via '{3}').</value>
+  </data>
   <data name="ERR_InterfaceNotImplemented1" xml:space="preserve">
     <value>Interface '{0}' is not implemented by this class.</value>
   </data>
@@ -1991,6 +2030,9 @@
   </data>
   <data name="ERR_TypeRefResolutionError3" xml:space="preserve">
     <value>Import of type '{0}' from assembly or module '{1}' failed.</value>
+  </data>
+  <data name="ERR_ValueTupleTypeRefResolutionError1" xml:space="preserve">
+    <value>Predefined type '{0}' is not defined or imported.</value>
   </data>
   <data name="ERR_ParamArrayWrongType" xml:space="preserve">
     <value>ParamArray parameters must have an array type.</value>
@@ -3120,6 +3162,15 @@
   </data>
   <data name="ERR_AnonymousTypeDisallowsTypeChar" xml:space="preserve">
     <value>Type characters cannot be used in anonymous type declarations.</value>
+  </data>
+  <data name="ERR_TupleLiteralDisallowsTypeChar" xml:space="preserve">
+    <value>Type characters cannot be used in tuple literals.</value>
+  </data>
+  <data name="ERR_NewWithTupleTypeSyntax" xml:space="preserve">
+    <value>'New' cannot be used with tuple type. Use a tuple literal expression instead.</value>
+  </data>
+  <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
+    <value>Predefined type '{0}' must be a structure.</value>
   </data>
   <data name="ERR_ExtensionMethodUncallable1" xml:space="preserve">
     <value>Extension method '{0}' has type constraints that can never be satisfied.</value>
@@ -5057,8 +5108,8 @@
                                   the target .dll or .exe.
 /deterministic                    Produce a deterministic assembly
                                   (including module version GUID and timestamp)
-/instrument:options               Sets instrumentation options.
-                                  If empty instrumentation is disabled.
+/instrument:TestCoverage          Produce an assembly instrumented to collect
+                                  coverage information
 /sourcelink:&lt;file&gt;                Source link info to embed into Portable PDB.
 
                                   - ERRORS AND WARNINGS -
@@ -5081,7 +5132,8 @@
                                   referenced metadata files. 
                                   import_list:namespace,...
 /langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|15.0|default
+                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|
+                                  15.0|default|latest
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
@@ -5100,6 +5152,7 @@
 /quiet                            Quiet output mode.
 /verbose                          Display verbose messages.
 /parallel[+|-]                    Concurrent build. 
+/version                          Display the compiler version number and exit.
 
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
@@ -5348,6 +5401,9 @@
   <data name="FEATURE_BinaryLiterals" xml:space="preserve">
     <value>binary literals</value>
   </data>
+  <data name="FEATURE_Tuples" xml:space="preserve">
+    <value>tuples</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
@@ -5363,10 +5419,46 @@
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
   </data>
-  <data name="TuplesNotSupported" xml:space="preserve">
-    <value>Tuples are not supported in VB.</value>
-  </data>
   <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
     <value>Option '{0}' must be an absolute path.</value>
+  </data>
+  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
+  </data>
+  <data name="ERR_TupleDuplicateElementName" xml:space="preserve">
+    <value>Tuple element names must be unique.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
+  </data>
+  <data name="ERR_TupleReservedElementName" xml:space="preserve">
+    <value>Tuple element name '{0}' is only allowed at position {1}.</value>
+  </data>
+  <data name="ERR_TupleReservedElementNameAnyPosition" xml:space="preserve">
+    <value>Tuple element name '{0}' is disallowed at any position.</value>
+  </data>
+  <data name="ERR_TupleTooFewElements" xml:space="preserve">
+    <value>Tuple must contain at least two elements.</value>
+  </data>
+  <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
+    <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
+  </data>
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
+    <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
+  </data>
+  <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">
+    <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
+  </data>
+  <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
+    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+  </data>
+  <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
+  </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
   </data>
 </root>

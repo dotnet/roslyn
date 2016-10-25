@@ -276,6 +276,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ThrowStatement(DirectCast(expressionOpt, ExpressionSyntax))
         End Function
 
+        Public Overrides Function ThrowExpression(expression As SyntaxNode) As SyntaxNode
+            Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
+        End Function
+
         Public Overrides Function TypeExpression(typeSymbol As ITypeSymbol) As SyntaxNode
             Return typeSymbol.GenerateTypeSyntax()
         End Function
@@ -3882,6 +3886,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(expression, ExpressionSyntax))
 
         End Function
+
+        Friend Overrides Function IsRegularOrDocComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.IsRegularOrDocComment()
+        End Function
+
 #End Region
 
     End Class

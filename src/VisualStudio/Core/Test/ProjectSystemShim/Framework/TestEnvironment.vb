@@ -38,17 +38,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             _monitorSelectionMock = New MockShellMonitorSelection(solutionIsFullyLoaded)
             _serviceProvider = New MockServiceProvider(_monitorSelectionMock)
-            _projectTracker = New VisualStudioProjectTracker(_serviceProvider)
             _workspace = New TestWorkspace()
-            _projectTracker.MetadataReferenceProvider = New VisualStudioMetadataReferenceManager(_serviceProvider, _workspace.Services.GetService(Of ITemporaryStorageService)())
-            _projectTracker.RuleSetFileProvider = New VisualStudioRuleSetManager(
+            _projectTracker = New VisualStudioProjectTracker(_serviceProvider, _workspace.Services)
+
+            Dim metadataReferenceProvider = New VisualStudioMetadataReferenceManager(_serviceProvider, _workspace.Services.GetService(Of ITemporaryStorageService)())
+            Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
                 DirectCast(_serviceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx),
                 New TestForegroundNotificationService(),
                 AggregateAsynchronousOperationListener.CreateEmptyListener())
 
             Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
             Dim documentProvider = New RoslynDocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
-            _projectTracker.DocumentProvider = documentProvider
+
+            _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
 
             Dim workspaceHost = New WorkspaceHost(_workspace)
             _projectTracker.RegisterWorkspaceHost(workspaceHost)
@@ -83,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Property
 
         Public Sub Dispose() Implements IDisposable.Dispose
-            For Each project In _projectTracker.Projects.ToArray()
+            For Each project In _projectTracker.ImmutableProjects.ToArray()
                 project.Disconnect()
             Next
 
@@ -248,7 +250,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Sub
 
             Public Sub OnHasAllInformation(projectId As ProjectId, hasAllInformation As Boolean) Implements IVisualStudioWorkspaceHost2.OnHasAllInformation
-                Throw New NotImplementedException()
+                _workspace.OnHasAllInformationChanged(projectId, hasAllInformation)
             End Sub
 
             Public Sub OnMetadataReferenceAdded(projectId As ProjectId, metadataReference As PortableExecutableReference) Implements IVisualStudioWorkspaceHost.OnMetadataReferenceAdded

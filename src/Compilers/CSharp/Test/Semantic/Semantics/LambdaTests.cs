@@ -1193,13 +1193,13 @@ class C
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (11,22): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (11,22): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(11, 22),
-                // (12,20): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (12,20): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(12, 20),
-                // (13,23): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (13,23): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(delegate { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(13, 23));
         }
@@ -1223,13 +1223,13 @@ class C
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (9,33): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (9,33): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         var e = new E(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(9, 33),
-                // (10,27): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (10,27): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         e = new E(() => { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(10, 27),
-                // (11,30): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (11,30): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         e = new E(delegate { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(11, 30));
         }
@@ -1268,10 +1268,10 @@ class C
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (18,13): error CS8084: By-value returns may only be used in by-value returning methods.
+                // (18,13): error CS8150: By-value returns may only be used in by-value returning methods.
                 //             return i;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(18, 13),
-                // (23,17): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (23,17): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //                 return ref i;
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(23, 17));
         }
@@ -2270,6 +2270,25 @@ class Program
                 Assert.Equal("String", typeInfo.Type.Name);
                 Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
             }
+        }
+
+        [Fact]
+        [WorkItem(13797, "https://github.com/dotnet/roslyn/issues/13797")]
+        public void DelegateAsAction()
+        {
+            var source = @"
+using System;
+
+public static class C
+{
+    public static void M() => Dispatch(delegate { });
+
+    public static T Dispatch<T>(Func<T> func) => default(T);
+
+    public static void Dispatch(Action func) { }
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            CompileAndVerify(comp);
         }
     }
 }

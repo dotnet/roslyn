@@ -76,6 +76,8 @@ var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNo
 var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
 
 string[] RedistPackageNames = {
+    "Microsoft.CodeAnalysis",
+    "Microsoft.Codeanalysis.Build.Tasks",
     "Microsoft.CodeAnalysis.Common",
     "Microsoft.CodeAnalysis.Compilers",
     "Microsoft.CodeAnalysis.CSharp.Features",
@@ -85,7 +87,8 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.EditorFeatures",
     "Microsoft.CodeAnalysis.EditorFeatures.Text",
     "Microsoft.CodeAnalysis.Features",
-    "Microsoft.CodeAnalysis",
+    "Microsoft.CodeAnalysis.Remote.ServiceHub",
+    "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Scripting.Common",
     "Microsoft.CodeAnalysis.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Features",
@@ -94,6 +97,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
     "Microsoft.VisualStudio.LanguageServices",
+    "Microsoft.VisualStudio.LanguageServices.Next",
 };
 
 string[] NonRedistPackageNames = {
@@ -107,13 +111,19 @@ string[] TestPackageNames = {
 
 };
 
-// the following packages will only be publised on myget not on nuget:
+// The following packages will only be published on myget not on nuget
+// Packages listed here must also appear in RedistPackageNames (above)
+// or they will not be published anywhere at all
 var PreReleaseOnlyPackages = new HashSet<string>
 {
+    "Microsoft.CodeAnalysis.Build.Tasks",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.CodeAnalysis.Remote.ServiceHub",
+    "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
+    "Microsoft.VisualStudio.LanguageServices.Next",
 };
 
 // Create an empty directory to be used in NuGet pack

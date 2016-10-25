@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1272,13 +1273,12 @@ class Derived : Base
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (13,29): error CS8893: 'Derived.Method1()' must not return by reference to match overridden member 'Base.Method1()'
-    //     public override ref int Method1() { return ref field; }
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method1").WithArguments("Derived.Method1()", "Base.Method1()", "not ").WithLocation(13, 29),
-    // (14,25): error CS8893: 'Derived.Method2(ref int)' must return by reference to match overridden member 'Base.Method2(ref int)'
-    //     public override int Method2(ref int i) { return i; }
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method2").WithArguments("Derived.Method2(ref int)", "Base.Method2(ref int)", "").WithLocation(14, 25)
-            );
+                // (13,29): error CS8148: 'Derived.Method1()' must not return by reference to match overridden member 'Base.Method1()'
+                //     public override ref int Method1() { return ref field; }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method1").WithArguments("Derived.Method1()", "Base.Method1()", "not ").WithLocation(13, 29),
+                // (14,25): error CS8148: 'Derived.Method2(ref int)' must return by reference to match overridden member 'Base.Method2(ref int)'
+                //     public override int Method2(ref int i) { return i; }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method2").WithArguments("Derived.Method2(ref int)", "Base.Method2(ref int)", "").WithLocation(14, 25));
         }
 
         [Fact]
@@ -1418,13 +1418,12 @@ class Derived : Base
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (15,29): error CS8893: 'Derived.Proprty1' must not return by reference to match overridden member 'Base.Proprty1'
-    //     public override ref int Proprty1 { get { return ref field; } }
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Proprty1").WithArguments("Derived.Proprty1", "Base.Proprty1", "not ").WithLocation(15, 29),
-    // (16,25): error CS8893: 'Derived.Property2' must return by reference to match overridden member 'Base.Property2'
-    //     public override int Property2 { get { return 0; } }
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property2").WithArguments("Derived.Property2", "Base.Property2", "").WithLocation(16, 25)
-            );
+                // (15,29): error CS8148: 'Derived.Proprty1' must not return by reference to match overridden member 'Base.Proprty1'
+                //     public override ref int Proprty1 { get { return ref field; } }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Proprty1").WithArguments("Derived.Proprty1", "Base.Proprty1", "not ").WithLocation(15, 29),
+                // (16,25): error CS8148: 'Derived.Property2' must return by reference to match overridden member 'Base.Property2'
+                //     public override int Property2 { get { return 0; } }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property2").WithArguments("Derived.Property2", "Base.Property2", "").WithLocation(16, 25));
         }
 
         [Fact]
@@ -1478,13 +1477,12 @@ class Derived : Base
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (15,29): error CS8893: 'Derived.this[int, int]' must not return by reference to match overridden member 'Base.this[int, int]'
-    //     public override ref int this[int x, int y] { get { return ref field; } }
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[int, int]", "Base.this[int, int]", "not ").WithLocation(15, 29),
-    // (16,25): error CS8893: 'Derived.this[int, string]' must return by reference to match overridden member 'Base.this[int, string]'
-    //     public override int this[int x, string y] { get { return field; } }
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[int, string]", "Base.this[int, string]", "").WithLocation(16, 25)
-            );
+                // (15,29): error CS8148: 'Derived.this[int, int]' must not return by reference to match overridden member 'Base.this[int, int]'
+                //     public override ref int this[int x, int y] { get { return ref field; } }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[int, int]", "Base.this[int, int]", "not ").WithLocation(15, 29),
+                // (16,25): error CS8148: 'Derived.this[int, string]' must return by reference to match overridden member 'Base.this[int, string]'
+                //     public override int this[int x, string y] { get { return field; } }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[int, string]", "Base.this[int, string]", "").WithLocation(16, 25));
         }
 
         /// <summary>
@@ -2052,31 +2050,30 @@ class Derived : Base
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (16,16): warning CS0114: 'Derived.Method3()' hides inherited member 'Base.Method3()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-    //     public int Method3() { return 0; } //wrong return type
-    Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method3").WithArguments("Derived.Method3()", "Base.Method3()").WithLocation(16, 16),
-    // (18,28): error CS8893: 'Derived.Method5(ref object)' must return by reference to match overridden member 'Base.Method5(ref object)'
-    //     public override object Method5(ref object o) { return null; } //wrong by-value return
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method5").WithArguments("Derived.Method5(ref object)", "Base.Method5(ref object)", "").WithLocation(18, 28),
-    // (19,32): error CS8893: 'Derived.Method6(ref object)' must not return by reference to match overridden member 'Base.Method6(ref object)'
-    //     public override ref object Method6(ref object o) { return ref o; } //wrong by-ref return
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method6").WithArguments("Derived.Method6(ref object)", "Base.Method6(ref object)", "not ").WithLocation(19, 32),
-    // (15,19): warning CS0114: 'Derived.Method2()' hides inherited member 'Base.Method2()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-    //     public object Method2() { return null; } //missed override keyword
-    Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method2").WithArguments("Derived.Method2()", "Base.Method2()").WithLocation(15, 19),
-    // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method2()'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method2()").WithLocation(12, 7),
-    // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method4(int)'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method4(int)").WithLocation(12, 7),
-    // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method3()'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method3()").WithLocation(12, 7),
-    // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method1()'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method1()").WithLocation(12, 7)
-            );
+                // (16,16): warning CS0114: 'Derived.Method3()' hides inherited member 'Base.Method3()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public int Method3() { return 0; } //wrong return type
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method3").WithArguments("Derived.Method3()", "Base.Method3()").WithLocation(16, 16),
+                // (18,28): error CS8148: 'Derived.Method5(ref object)' must return by reference to match overridden member 'Base.Method5(ref object)'
+                //     public override object Method5(ref object o) { return null; } //wrong by-value return
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method5").WithArguments("Derived.Method5(ref object)", "Base.Method5(ref object)", "").WithLocation(18, 28),
+                // (19,32): error CS8148: 'Derived.Method6(ref object)' must not return by reference to match overridden member 'Base.Method6(ref object)'
+                //     public override ref object Method6(ref object o) { return ref o; } //wrong by-ref return
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method6").WithArguments("Derived.Method6(ref object)", "Base.Method6(ref object)", "not ").WithLocation(19, 32),
+                // (15,19): warning CS0114: 'Derived.Method2()' hides inherited member 'Base.Method2()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public object Method2() { return null; } //missed override keyword
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method2").WithArguments("Derived.Method2()", "Base.Method2()").WithLocation(15, 19),
+                // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method3()'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method3()").WithLocation(12, 7),
+                // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method2()'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method2()").WithLocation(12, 7),
+                // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method1()'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method1()").WithLocation(12, 7),
+                // (12,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Method4(int)'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Method4(int)").WithLocation(12, 7));
         }
 
         [Fact]
@@ -2121,67 +2118,66 @@ class Derived : Base
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (23,25): error CS1715: 'Derived.Property3': type must be 'object' to match overridden member 'Base.Property3'
-    //     public override int Property3 { get; set; } //wrong type
-    Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Property3").WithArguments("Derived.Property3", "Base.Property3", "object").WithLocation(23, 25),
-    // (28,45): error CS0546: 'Derived.Property6.set': cannot override because 'Base.Property6' does not have an overridable set accessor
-    //     public override object Property6 { get; set; }
-    Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived.Property6.set", "Base.Property6").WithLocation(28, 45),
-    // (29,40): error CS0546: 'Derived.Property7.set': cannot override because 'Base.Property7' does not have an overridable set accessor
-    //     public override object Property7 { set { } }
-    Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived.Property7.set", "Base.Property7").WithLocation(29, 40),
-    // (30,40): error CS0545: 'Derived.Property8.get': cannot override because 'Base.Property8' does not have an overridable get accessor
-    //     public override object Property8 { get; set; }
-    Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.Property8.get", "Base.Property8").WithLocation(30, 40),
-    // (31,40): error CS0545: 'Derived.Property9.get': cannot override because 'Base.Property9' does not have an overridable get accessor
-    //     public override object Property9 { get { return null; } }
-    Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.Property9.get", "Base.Property9").WithLocation(31, 40),
-    // (35,32): error CS8893: 'Derived.Property10' must not return by reference to match overridden member 'Base.Property10'
-    //     public override ref object Property10 { get { return ref o; } }
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property10").WithArguments("Derived.Property10", "Base.Property10", "not ").WithLocation(35, 32),
-    // (36,28): error CS8893: 'Derived.Property11' must return by reference to match overridden member 'Base.Property11'
-    //     public override object Property11 { get { return null; } }
-    Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property11").WithArguments("Derived.Property11", "Base.Property11", "").WithLocation(36, 28),
-    // (22,19): warning CS0114: 'Derived.Property2' hides inherited member 'Base.Property2'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-    //     public object Property2 { get; set; } //missed override keyword
-    Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Property2").WithArguments("Derived.Property2", "Base.Property2").WithLocation(22, 19),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property5.get'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property5.get").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property11.get'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property11.get").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property3.get'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property3.get").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property2.set'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property2.set").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property9.set'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property9.set").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property10.get'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property10.get").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property3.set'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property3.set").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property7.get'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property7.get").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property1.set'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property1.set").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property1.get'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property1.get").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property2.get'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property2.get").WithLocation(19, 7),
-    // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property4.set'
-    // class Derived : Base
-    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property4.set").WithLocation(19, 7)
-            );
+                // (23,25): error CS1715: 'Derived.Property3': type must be 'object' to match overridden member 'Base.Property3'
+                //     public override int Property3 { get; set; } //wrong type
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Property3").WithArguments("Derived.Property3", "Base.Property3", "object").WithLocation(23, 25),
+                // (28,45): error CS0546: 'Derived.Property6.set': cannot override because 'Base.Property6' does not have an overridable set accessor
+                //     public override object Property6 { get; set; }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived.Property6.set", "Base.Property6").WithLocation(28, 45),
+                // (29,40): error CS0546: 'Derived.Property7.set': cannot override because 'Base.Property7' does not have an overridable set accessor
+                //     public override object Property7 { set { } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived.Property7.set", "Base.Property7").WithLocation(29, 40),
+                // (30,40): error CS0545: 'Derived.Property8.get': cannot override because 'Base.Property8' does not have an overridable get accessor
+                //     public override object Property8 { get; set; }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.Property8.get", "Base.Property8").WithLocation(30, 40),
+                // (31,40): error CS0545: 'Derived.Property9.get': cannot override because 'Base.Property9' does not have an overridable get accessor
+                //     public override object Property9 { get { return null; } }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.Property9.get", "Base.Property9").WithLocation(31, 40),
+                // (35,32): error CS8148: 'Derived.Property10' must not return by reference to match overridden member 'Base.Property10'
+                //     public override ref object Property10 { get { return ref o; } }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property10").WithArguments("Derived.Property10", "Base.Property10", "not ").WithLocation(35, 32),
+                // (36,28): error CS8148: 'Derived.Property11' must return by reference to match overridden member 'Base.Property11'
+                //     public override object Property11 { get { return null; } }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property11").WithArguments("Derived.Property11", "Base.Property11", "").WithLocation(36, 28),
+                // (22,19): warning CS0114: 'Derived.Property2' hides inherited member 'Base.Property2'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public object Property2 { get; set; } //missed override keyword
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Property2").WithArguments("Derived.Property2", "Base.Property2").WithLocation(22, 19),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property1.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property1.get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property3.set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property3.set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property2.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property2.get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property2.set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property2.set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property3.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property3.get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property1.set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property1.set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property11.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property11.get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property4.set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property4.set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property9.set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property9.set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property7.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property7.get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property5.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property5.get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property10.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property10.get").WithLocation(19, 7));
         }
 
         [Fact]
@@ -2490,19 +2486,18 @@ class Class : Interface
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (10,15): error CS8897: 'Class' does not implement interface member 'Interface.Method4(ref object)'. 'Class.Method4(ref object)' cannot implement 'Interface.Method4(ref object)' because it does not return by value
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method4(ref object)", "Class.Method4(ref object)", "value").WithLocation(10, 15),
-    // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method2(int)'
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method2(int)").WithLocation(10, 15),
-    // (10,15): error CS8897: 'Class' does not implement interface member 'Interface.Method3(ref object)'. 'Class.Method3(ref object)' cannot implement 'Interface.Method3(ref object)' because it does not return by reference
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method3(ref object)", "Class.Method3(ref object)", "reference").WithLocation(10, 15),
-    // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method1()'
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method1()").WithLocation(10, 15)
-            );
+                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method4(ref object)'. 'Class.Method4(ref object)' cannot implement 'Interface.Method4(ref object)' because it does not return by value
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method4(ref object)", "Class.Method4(ref object)", "value").WithLocation(10, 15),
+                // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method2(int)'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method2(int)").WithLocation(10, 15),
+                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method3(ref object)'. 'Class.Method3(ref object)' cannot implement 'Interface.Method3(ref object)' because it does not return by reference
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method3(ref object)", "Class.Method3(ref object)", "reference").WithLocation(10, 15),
+                // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method1()'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method1()").WithLocation(10, 15));
         }
 
         [Fact]
@@ -2543,28 +2538,27 @@ class Class : Interface
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property2.set'
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property2.set").WithLocation(17, 15),
-    // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property3.get'
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property3.get").WithLocation(17, 15),
-    // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property5.get'
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property5.get").WithLocation(17, 15),
-    // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property7.set'
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property7.set").WithLocation(17, 15),
-    // (17,15): error CS8897: 'Class' does not implement interface member 'Interface.Property8'. 'Class.Property8' cannot implement 'Interface.Property8' because it does not return by reference
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property8", "Class.Property8", "reference").WithLocation(17, 15),
-    // (17,15): error CS8897: 'Class' does not implement interface member 'Interface.Property9'. 'Class.Property9' cannot implement 'Interface.Property9' because it does not return by value
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property9", "Class.Property9", "value").WithLocation(17, 15),
-    // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property1'
-    // class Class : Interface
-    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property1").WithLocation(17, 15)
-            );
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property2.set'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property2.set").WithLocation(17, 15),
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property3.get'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property3.get").WithLocation(17, 15),
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property5.get'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property5.get").WithLocation(17, 15),
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property7.set'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property7.set").WithLocation(17, 15),
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property8'. 'Class.Property8' cannot implement 'Interface.Property8' because it does not return by reference
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property8", "Class.Property8", "reference").WithLocation(17, 15),
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property9'. 'Class.Property9' cannot implement 'Interface.Property9' because it does not return by value
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property9", "Class.Property9", "value").WithLocation(17, 15),
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property1'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property1").WithLocation(17, 15));
         }
 
         [Fact]
@@ -4458,7 +4452,7 @@ public class Derived : Base
     internal override void Method() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
             });
         }
@@ -4479,7 +4473,7 @@ public class Derived : Base
     internal override long Property { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
             });
         }
@@ -4500,7 +4494,7 @@ public class Derived : Base
     internal override long this[int x] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
             });
         }
@@ -4521,7 +4515,7 @@ public class Derived : Base
     internal override event System.Action Event { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 43 }, //can't see internal method in other compilation
             });
         }
@@ -4868,7 +4862,7 @@ public class Derived2 : Base
     protected internal override void Method13() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -4935,7 +4929,7 @@ public class Derived2 : Base
     protected internal override long Property13 { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -5002,7 +4996,7 @@ public class Derived2 : Base
     protected internal override long this[string w, string x, int y, string z] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -5069,7 +5063,7 @@ public class Derived2 : Base
     protected internal override event System.Action Event13 { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 44 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 53 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 41 },

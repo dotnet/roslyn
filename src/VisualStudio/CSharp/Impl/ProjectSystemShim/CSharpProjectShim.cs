@@ -287,15 +287,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             }
         }
 
-        internal bool CanCreateFileCodeModelThroughProject(string fileName)
+        internal bool CanCreateFileCodeModelThroughProject(string filePath)
         {
-            return _projectRoot.CanCreateFileCodeModel(fileName);
+            return _projectRoot.CanCreateFileCodeModel(filePath);
         }
 
-        internal object CreateFileCodeModelThroughProject(string fileName)
+        internal object CreateFileCodeModelThroughProject(string filePath)
         {
             var iid = VSConstants.IID_IUnknown;
-            return _projectRoot.CreateFileCodeModel(fileName, ref iid);
+            return _projectRoot.CreateFileCodeModel(filePath, ref iid);
         }
     }
 }

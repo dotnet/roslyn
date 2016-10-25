@@ -4,13 +4,13 @@
 
   <Target Name="Build">
     <!-- NuGetPerBuildPreReleaseVersion -->
-    <Exec Command="$(OutDir)csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
+    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
 
     <!-- NuGetPreReleaseVersion -->
-    <Exec Command="$(OutDir)csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetPreReleaseVersion)' != ''"/>
+    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetPreReleaseVersion)' != ''"/>
 
     <!-- NuGetReleaseVersion -->
-    <Exec Command="$(OutDir)csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />
+    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />
   </Target>
 
   <Target Name="Clean">

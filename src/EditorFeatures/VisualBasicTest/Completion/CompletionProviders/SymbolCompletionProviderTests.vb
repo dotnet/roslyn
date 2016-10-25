@@ -7511,5 +7511,143 @@ End Class
             Await VerifyItemExistsAsync(text, "x")
         End Function
 
+        <WorkItem(153633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EnumMembers() As Task
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Do Until (System.Console.ReadKey.Key = System.ConsoleKey.$$
+        Loop
+    End Sub
+End Module
+]]></code>.Value
+            Await VerifyItemExistsAsync(text, "A")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TupleElements() As Task
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim t = (Alice:=1, Item2:=2, ITEM3:=3, 4, 5, 6, 7, 8, Bob:=9)
+        t.$$
+    End Sub
+End Module
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)
+        Public Dim Rest As TRest
+
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, rest As TRest)
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return ""
+        End Function
+
+        Public Overrides Function GetHashCode As Integer
+            Return 0
+        End Function
+
+        Public Overrides Function CompareTo(value As Object) As Integer
+            Return 0
+        End Function
+
+        Public Overrides Function GetType As Type
+            Return Nothing
+        End Function
+    End Structure
+End Namespace
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(text, "Alice")
+            Await VerifyItemExistsAsync(text, "Bob")
+            Await VerifyItemExistsAsync(text, "CompareTo")
+            Await VerifyItemExistsAsync(text, "Equals")
+            Await VerifyItemExistsAsync(text, "GetHashCode")
+            Await VerifyItemExistsAsync(text, "GetType")
+            For index = 2 To 8
+                Await VerifyItemExistsAsync(text, "Item" + index.ToString())
+            Next
+            Await VerifyItemExistsAsync(text, "ToString")
+
+            Await VerifyItemIsAbsentAsync(text, "Item1")
+            Await VerifyItemIsAbsentAsync(text, "Item9")
+            Await VerifyItemIsAbsentAsync(text, "Rest")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function WinformsInstanceMembers() As Task
+            ' Setting the the preprocessor symbol _MyType=WindowsForms will cause the
+            ' compiler to automatically generate the My Template. See
+            ' GroupClassTests.vb for the compiler layer equivalent of these tests.
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="_MyType=WindowsForms">
+
+                        <Document name="Form.vb">
+                            <![CDATA[
+Namespace Global.System.Windows.Forms
+    Public Class Form
+        Implements IDisposable
+
+        Public Sub InstanceMethod()
+        End Sub
+
+        Public Shared Sub SharedMethod()
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public ReadOnly Property IsDisposed As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+    End Class
+End Namespace
+    ]]></Document>
+                        <Document name="types.vb"><![CDATA[
+Imports System
+
+Namespace Global.WindowsApplication1
+    Public Class Form2
+        Inherits System.Windows.Forms.Form
+    End Class
+End Namespace
+
+Namespace Global.WindowsApplication1
+    Public Class Form1
+        Inherits System.Windows.Forms.Form
+
+ Private Sub Foo()
+        Form2.$$
+    End Sub
+    End Class
+End Namespace
+    ]]></Document>
+
+                    </Project>
+                </Workspace>
+
+            Using workspace = Await TestWorkspace.CreateAsync(input)
+                Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
+                Dim position = workspace.DocumentWithCursor.CursorPosition.Value
+                Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                                        glyph:=Nothing, matchPriority:=Nothing)
+                Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                                        glyph:=Nothing, matchPriority:=Nothing)
+            End Using
+
+        End Function
+
     End Class
 End Namespace

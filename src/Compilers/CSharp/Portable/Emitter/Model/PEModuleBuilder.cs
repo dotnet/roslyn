@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Threading;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -17,12 +16,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, CSharpSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState>
+    internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, SyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState>
     {
         // TODO: Need to estimate amount of elements for this map and pass that value to the constructor. 
         protected readonly ConcurrentDictionary<Symbol, Cci.IModuleReference> AssemblyOrModuleSymbolToModuleRefMap = new ConcurrentDictionary<Symbol, Cci.IModuleReference>();
         private readonly ConcurrentDictionary<Symbol, object> _genericInstanceMap = new ConcurrentDictionary<Symbol, object>();
-        private readonly ConcurrentSet<ErrorTypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<ErrorTypeSymbol>();
+        private readonly ConcurrentSet<TypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<TypeSymbol>();
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
         public override NoPia.EmbeddedTypesManager EmbeddedTypesManagerOpt
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal override string Name
+        public override string Name
         {
             get { return _metadataName; }
         }
@@ -84,17 +83,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
 
-        internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
+        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
         {
             return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
         }
 
-        internal sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
+        public sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
         {
             return SourceModule.ContainingSourceAssembly.GetSecurityAttributes();
         }
 
-        internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
+        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
         {
             return SourceModule.GetCustomAttributesToEmit(this.CompilationState);
         }
@@ -104,16 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return SourceModule.ContainingSourceAssembly.CorLibrary; }
         }
 
-        protected sealed override bool GenerateVisualBasicStylePdb => false;
+        public sealed override bool GenerateVisualBasicStylePdb => false;
 
         // C# doesn't emit linked assembly names into PDBs.
-        protected sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
+        public sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
 
         // C# currently doesn't emit compilation level imports (TODO: scripting).
-        protected override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
+        public override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
 
         // C# doesn't allow to define default namespace for compilation.
-        protected override string DefaultNamespace => null;
+        public override string DefaultNamespace => null;
 
         protected override IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics)
         {
@@ -179,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        protected override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
+        public override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
         {
             var result = new MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation>();
 
@@ -289,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             FileLinePositionSpan span = location.GetLineSpan();
 
-            Cci.DebugSourceDocument doc = TryGetDebugDocument(span.Path, basePath: location.SourceTree.FilePath);
+            Cci.DebugSourceDocument doc = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: location.SourceTree.FilePath);
 
             if (doc != null)
             {
@@ -616,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        private NamedTypeSymbol GetUntranslatedSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        private NamedTypeSymbol GetUntranslatedSpecialType(SpecialType specialType, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -633,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return typeSymbol;
         }
 
-        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
                              diagnostics: diagnostics,
@@ -641,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                              needDeclaration: true);
         }
 
-        internal sealed override Cci.INamedTypeReference GetSystemType(CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        internal sealed override Cci.INamedTypeReference GetSystemType(SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             NamedTypeSymbol systemTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
 
@@ -661,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle);
         }
 
-        protected sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
+        public sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
         {
             var namedType = typeRef as NamedTypeSymbol;
             if ((object)namedType != null)
@@ -773,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal Cci.INamedTypeReference Translate(
             NamedTypeSymbol namedTypeSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool fromImplements = false,
             bool needDeclaration = false)
@@ -791,6 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(!needDeclaration);
                 namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
+                CheckTupleUnderlying(namedTypeSymbol, syntaxNodeOpt, diagnostics);
             }
 
             // Substitute error types with a special singleton object.
@@ -891,6 +891,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return namedTypeSymbol;
         }
 
+        private void CheckTupleUnderlying(NamedTypeSymbol namedTypeSymbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            // check that underlying type of a ValueTuple is indeed a value type (or error)
+            // this should never happen, in theory,
+            // but if it does happen we should make it a failure.
+            // NOTE: declaredBase could be null for interfaces
+            var declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
+            if (declaredBase == null ||
+                (declaredBase.SpecialType != SpecialType.System_ValueType && !declaredBase.IsErrorType()))
+            {
+                // Try to decrease noise by not complaining about the same type over and over again.
+                if (_reportedErrorTypesMap.Add(namedTypeSymbol))
+                {
+                    diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName), syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location));
+                }
+            }
+        }
+
         public static bool IsGenericType(NamedTypeSymbol toCheck)
         {
             while ((object)toCheck != null)
@@ -916,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal sealed override Cci.ITypeReference Translate(
             TypeSymbol typeSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
@@ -945,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal Cci.IFieldReference Translate(
             FieldSymbol fieldSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool needDeclaration = false)
         {
@@ -1065,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal Cci.IMethodReference Translate(
             MethodSymbol methodSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             BoundArgListOperator optArgList = null,
             bool needDeclaration = false)
@@ -1097,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private Cci.IMethodReference Translate(
             MethodSymbol methodSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool needDeclaration)
         {
@@ -1287,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal Cci.ITypeReference Translate(
             DynamicTypeSymbol symbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
             // Translate the dynamic type to System.Object special type to avoid duplicate entries in TypeRef table. 
@@ -1342,7 +1360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        protected override IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
         }

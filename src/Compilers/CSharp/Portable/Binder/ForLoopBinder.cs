@@ -27,8 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Deconstruction, Declaration, and Initializers are mutually exclusive.
             if (_syntax.Deconstruction != null)
             {
-                CollectLocalsFromDeconstruction(_syntax.Deconstruction.VariableComponent, LocalDeclarationKind.ForInitializerVariable, locals);
-                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Deconstruction.Value);
+                CollectLocalsFromDeconstruction(
+                    _syntax.Deconstruction.VariableComponent,
+                    LocalDeclarationKind.ForInitializerVariable,
+                    locals,
+                    _syntax);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Deconstruction.Value);
             }
             else if (_syntax.Declaration != null)
             {
@@ -36,16 +40,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.ForInitializerVariable);
                     locals.Add(localSymbol);
-                    PatternVariableFinder.FindPatternVariables(this, locals, vdecl.Initializer?.Value);
+
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl);
                 }
             }
             else
             {
-                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Initializers);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Initializers);
             }
 
-            PatternVariableFinder.FindPatternVariables(this, locals, node: _syntax.Condition);
-            PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Incrementors);
+            ExpressionVariableFinder.FindExpressionVariables(this, locals, node: _syntax.Condition);
+            ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Incrementors);
             return locals.ToImmutableAndFree();
         }
 
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          this.ContinueLabel);
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

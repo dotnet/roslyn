@@ -3304,8 +3304,6 @@ NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeArgument
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeArgumentSyntax.IsNamed() -> Boolean
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax.GetExpression() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax.IsNamed() -> Boolean
-NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToFullString() -> String
-NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToString() -> String
 Overloads Microsoft.CodeAnalysis.VisualBasic.Conversion.Equals(other As Microsoft.CodeAnalysis.VisualBasic.Conversion) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.GlobalImport.Equals(other As Microsoft.CodeAnalysis.VisualBasic.GlobalImport) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(other As Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions) -> Boolean
@@ -4383,10 +4381,7 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Equals(obj 
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Features() -> System.Collections.Generic.IReadOnlyDictionary(Of String, String)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.GetHashCode() -> Integer
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.PreprocessorSymbolNames() -> System.Collections.Generic.IEnumerable(Of String)
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ChildThatContainsPosition(position As Integer) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.Language() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.SerializeTo(stream As System.IO.Stream, cancellationToken As System.Threading.CancellationToken = Nothing) -> Void
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.WriteTo(writer As System.IO.TextWriter) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.Visit(node As Microsoft.CodeAnalysis.SyntaxNode) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitAccessorBlock(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.AccessorBlockSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitAccessorStatement(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.AccessorStatementSyntax) -> Microsoft.CodeAnalysis.SyntaxNode

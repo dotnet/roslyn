@@ -7,7 +7,7 @@
        not be used and the compiler exe at the ToolPath, if set, will be executed, otherwise
        the executable in the MSBuild install path will be executed. -->
 
-  <Target Name="ValidateMSBuildToolsVersion">
+  <Target Name="ValidateMSBuildToolsVersion" Condition="'$(BuildingProject)' == 'true'">
     <Error Text="Microsoft.Net.Compilers is only supported on MSBuild v14.0 and above"
            Condition="'$(MSBuildToolsVersion)' == '2.0'
                    OR '$(MSBuildToolsVersion)' == '3.5'
@@ -28,8 +28,6 @@
              AssemblyFile="$(ToolsetCompilerPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              />
   <PropertyGroup>
-    <!-- By default don't use the compiler server in Visual Studio. -->
-    <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''">false</UseSharedCompilation>
     <CSharpCoreTargetsPath>$(ToolsetCompilerPath)\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>$(ToolsetCompilerPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>

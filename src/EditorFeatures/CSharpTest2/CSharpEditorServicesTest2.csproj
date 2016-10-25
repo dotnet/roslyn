@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -53,10 +51,6 @@
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
@@ -102,6 +96,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests2</AssemblyName>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -256,8 +251,6 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

@@ -18,8 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal static class SemanticClassificationUtilities
     {
-        public static async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
+        public static async Task ProduceTagsAsync(
+            TaggerContext<IClassificationTag> context,
+            DocumentSnapshotSpan spanToTag,
+            IEditorClassificationService classificationService,
+            ClassificationTypeMap typeMap)
         {
             var document = spanToTag.Document;
             if (document == null)
@@ -37,8 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             await ClassifySpansAsync(context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
         }
 
-        private static async Task<bool> TryClassifyContainingMemberSpan(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
+        private static async Task<bool> TryClassifyContainingMemberSpan(
+            TaggerContext<IClassificationTag> context,
+            DocumentSnapshotSpan spanToTag,
+            IEditorClassificationService classificationService,
+            ClassificationTypeMap typeMap)
         {
             var range = context.TextChangeRange;
             if (range == null)
@@ -49,6 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // there was top level edit, check whether that edit updated top level element
             var document = spanToTag.Document;
+            if (!document.SupportsSyntaxTree)
+            {
+                return false;
+            }
+
             var cancellationToken = context.CancellationToken;
 
             var lastSemanticVersion = (VersionStamp?)context.State;
@@ -95,7 +106,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return true;
         }
 
-        private static async Task ClassifySpansAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
+        private static async Task ClassifySpansAsync(
+            TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
             IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
         {
             try

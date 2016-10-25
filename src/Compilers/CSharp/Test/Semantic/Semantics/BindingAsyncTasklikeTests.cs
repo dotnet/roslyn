@@ -13,17 +13,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             var source = @"
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 class C {
     async ValueTask f() { await (Task)null; }
     async ValueTask<int> g() { await (Task)null; return 1; }
 }
-struct ValueTask { public static string CreateAsyncMethodBuilder() => null; }
-struct ValueTask<T> { public static Task<T> CreateAsyncMethodBuilder() => null; }
+[AsyncMethodBuilder(typeof(string))]
+struct ValueTask { }
+[AsyncMethodBuilder(typeof(Task<>))]
+struct ValueTask<T> { }
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
-            var methodf = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("f").Single();
-            var methodg = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("g").Single();
+            var methodf = compilation.GetMember<MethodSymbol>("C.f");
+            var methodg = compilation.GetMember<MethodSymbol>("C.g");
             Assert.True(methodf.IsAsync);
             Assert.True(methodg.IsAsync);
         }
@@ -52,11 +57,6 @@ class Program
     {
         await (Task)null;
     }
-
-    static async UnTasklike h()
-    {
-        await (Task)null;
-    }
 }
 
 class Awaitable
@@ -69,17 +69,12 @@ class Unawaitable
     public Func<TaskAwaiter> GetAwaiter = () => (Task.FromResult(1) as Task).GetAwaiter();
 }
 
-public class Tasklike {
-    public static TasklikeMethodBuilder CreateAsyncMethodBuilder() => null;
-}
-
-public class UnTasklike
-{
-    public static Func<UnTasklikeMethodBuilder> CreateAsyncMethodBuilder = () => null;
-}
+[AsyncMethodBuilder(typeof(TasklikeMethodBuilder))]
+public class Tasklike { }
 
 public class TasklikeMethodBuilder
 {
+    public static TasklikeMethodBuilder Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult() { }
@@ -90,28 +85,12 @@ public class TasklikeMethodBuilder
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-public class UnTasklikeMethodBuilder
-{
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void SetResult() { }
-    public void SetException(Exception exception) { }
-    private void EnsureTaskBuilder() { }
-    public UnTasklike Task => null;
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-}
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (15,9): error CS0118: 'GetAwaiter' is a field but is used like a method
                 //         await new Unawaitable(); // error: GetAwaiter must be a field not a delegate
-                Diagnostic(ErrorCode.ERR_BadSKknown, "await new Unawaitable()").WithArguments("GetAwaiter", "field", "method").WithLocation(15, 9),
-                // (23,29): error CS1983: The return type of an async method must be void, Task, Task<T> or other tasklike
-                //     static async UnTasklike h()
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "h").WithLocation(23, 29),
-                // (23,29): error CS0161: 'Program.h()': not all code paths return a value
-                //     static async UnTasklike h()
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "h").WithArguments("Program.h()").WithLocation(23, 29)
+                Diagnostic(ErrorCode.ERR_BadSKknown, "await new Unawaitable()").WithArguments("GetAwaiter", "field", "method").WithLocation(15, 9)
             );
         }
 
@@ -132,9 +111,9 @@ class Program
     <<betterOverload>>
     <<worseOverload>>
 }
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder))]
 struct ValueTask
 {
-    public static ValueTaskMethodBuilder CreateAsyncMethodBuilder() => new ValueTaskMethodBuilder();
     <<implicitConversionToTask>>
     internal Awaiter GetAwaiter() => new Awaiter();
     internal class Awaiter : INotifyCompletion
@@ -144,10 +123,10 @@ struct ValueTask
         internal void GetResult() { }
     }
 }
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder<>))]
 struct ValueTask<T>
 {
     internal T _result;
-    public static ValueTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new ValueTaskMethodBuilder<T>();
     <<implicitConversionToTaskT>>
     public T Result => _result;
     internal Awaiter GetAwaiter() => new Awaiter(this);
@@ -163,6 +142,7 @@ struct ValueTask<T>
 sealed class ValueTaskMethodBuilder
 {
     private ValueTask _task = new ValueTask();
+    public static ValueTaskMethodBuilder Create() => new ValueTaskMethodBuilder();
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
@@ -177,6 +157,7 @@ sealed class ValueTaskMethodBuilder
 sealed class ValueTaskMethodBuilder<T>
 {
     private ValueTask<T> _task = new ValueTask<T>();
+    public static ValueTaskMethodBuilder<T> Create() => null;
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
@@ -187,7 +168,10 @@ sealed class ValueTaskMethodBuilder<T>
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public ValueTask<T> Task => _task;
-}";
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
             source = source.Replace("<<arg>>", arg);
             source = source.Replace("<<betterOverload>>", (betterOverload != null) ? "static string " + betterOverload + " => \"better\";" : "");
             source = source.Replace("<<worseOverload>>", (worseOverload != null) ? "static string " + worseOverload + " => \"worse\";" : "");
@@ -303,18 +287,23 @@ sealed class ValueTaskMethodBuilder<T>
         {
             var source = @"
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 class C {
     async ValueTask f() { await Task.Delay(0); }
     async ValueTask<int> g() { await Task.Delay(0); return 1; }
 }
-struct ValueTask { public static ValueTaskMethodBuilder CreateAsyncMethodBuilder() => null; }
-struct ValueTask<T> { public static ValueTaskMethodBuilder<T> CreateAsyncMethodBuilder() => null;}
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder))]
+struct ValueTask { }
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder<>))]
+struct ValueTask<T> { }
 class ValueTaskMethodBuilder {}
 class ValueTaskMethodBuilder<T> {}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
-            var methodf = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("f").Single();
-            var methodg = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("g").Single();
+            var methodf = compilation.GetMember<MethodSymbol>("C.f");
+            var methodg = compilation.GetMember<MethodSymbol>("C.g");
             Assert.True(methodf.IsAsync);
             Assert.True(methodg.IsAsync);
         }
@@ -360,13 +349,20 @@ public class MyTask { }
 
             var source3 = @"
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 class C
 {
     static void Main() { }
     async MyTask f() { await (Task)null; }
 }
-public class MyTask { public static MyTaskBuilder CreateAsyncMethodBuilder() => null; }
-public class MyTaskBuilder { }
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
+public class MyTask { }
+public class MyTaskBuilder
+{
+    public static MyTaskBuilder Create() => null;
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source3).VerifyDiagnostics();
         }
@@ -391,8 +387,10 @@ class C {
     static void h(Func<Task> lambda) { }
 }
 
-public class MyTask<T> { public static MyTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+[AsyncMethodBuilder(typeof(MyTaskBuilder<>))]
+public class MyTask<T> { }
 public class MyTaskBuilder<T> {
+    public static MyTaskBuilder<T> Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult(T result) { }
@@ -402,9 +400,11 @@ public class MyTaskBuilder<T> {
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-public class MyTask { public static MyTaskBuilder CreateAsyncMethodBuilder() => null; }
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
+public class MyTask { }
 public class MyTaskBuilder
 {
+    public static MyTaskBuilder Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult() { }
@@ -413,6 +413,8 @@ public class MyTaskBuilder
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h(Func<MyTask>)' and 'C.h(Func<Task>)'
@@ -430,8 +432,11 @@ using System.Threading.Tasks;
 class C {
     async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }
 }
-struct Mismatch2<T,U> { public static Mismatch2MethodBuilder<T> CreateAsyncMethodBuilder() => null; }
+[AsyncMethodBuilder(typeof(Mismatch2MethodBuilder<>))]
+struct Mismatch2<T,U> { }
 class Mismatch2MethodBuilder<T> {}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
@@ -464,21 +469,22 @@ class Program
     }
 }
 
+[AsyncMethodBuilder(typeof(ValueTaskBuilder<>))]
 class ValueTask<T>
 {
-    public static ValueTaskBuilder<T> CreateAsyncMethodBuilder() => null;
     public static implicit operator ValueTask<T>(Task<T> task) => null;
 }
 
+[AsyncMethodBuilder(typeof(MyTaskBuilder<>))]
 class MyTask<T>
 {
-    public static MyTaskBuilder<T> CreateAsyncMethodBuilder() => null;
     public static implicit operator MyTask<T>(Task<T> task) => null;
     public static implicit operator Task<T>(MyTask<T> mytask) => null;
 }
 
 class ValueTaskBuilder<T>
 {
+    public static ValueTaskBuilder<T> Create() => null;
     public void Start<TSM>(ref TSM sm) where TSM : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine sm) { }
     public void SetResult(T r) { }
@@ -490,6 +496,7 @@ class ValueTaskBuilder<T>
 
 class MyTaskBuilder<T>
 {
+    public static MyTaskBuilder<T> Create() => null;
     public void Start<TSM>(ref TSM sm) where TSM : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine sm) { }
     public void SetResult(T r) { }
@@ -498,6 +505,8 @@ class MyTaskBuilder<T>
     public void AwaitOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : INotifyCompletion where TSM : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : ICriticalNotifyCompletion where TSM : IAsyncStateMachine { }
 }
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "1");
         }
@@ -533,13 +542,12 @@ class Program
     }
 }
 
-public class ValueTask<T>
-{
-    public static ValueTaskBuilder<T> CreateAsyncMethodBuilder() => null;
-}
+[AsyncMethodBuilder(typeof(ValueTaskBuilder<>))]
+public class ValueTask<T> { }
 
 public class ValueTaskBuilder<T>
 {
+    public static ValueTaskBuilder<T> Create() => null;
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void Start<TSM>(ref TSM stateMachine) where TSM : IAsyncStateMachine { }
     public void AwaitOnCompleted<TA, TSM>(ref TA awaiter, ref TSM stateMachine) where TA : INotifyCompletion where TSM : IAsyncStateMachine { }
@@ -548,6 +556,8 @@ public class ValueTaskBuilder<T>
     public void SetException(Exception ex) { }
     public ValueTask<T> Task => null;
 }
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "bbbb");
         }

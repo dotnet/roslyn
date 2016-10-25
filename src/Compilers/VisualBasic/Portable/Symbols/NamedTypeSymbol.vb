@@ -1080,6 +1080,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>True if this Is an interface type.</returns>
         Friend MustOverride ReadOnly Property IsInterface As Boolean
 
+        ''' <summary>
+        ''' Get synthesized WithEvents overrides that aren't returned by <see cref="GetMembers"/>
+        ''' </summary>
+        Friend MustOverride Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+
 #Region "INamedTypeSymbol"
 
         Private ReadOnly Property INamedTypeSymbol_Arity As Integer Implements INamedTypeSymbol.Arity
@@ -1201,21 +1206,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property TupleElementTypes As ImmutableArray(Of ITypeSymbol) Implements INamedTypeSymbol.TupleElementTypes
+        Private ReadOnly Property INamedTypeSymbol_TupleElementTypes As ImmutableArray(Of ITypeSymbol) Implements INamedTypeSymbol.TupleElementTypes
             Get
-                Return Nothing
+                Return StaticCast(Of ITypeSymbol).From(TupleElementTypes())
             End Get
         End Property
 
-        Public ReadOnly Property TupleElementNames As ImmutableArray(Of String) Implements INamedTypeSymbol.TupleElementNames
+        Private ReadOnly Property INamedTypeSymbol_TupleElementNames As ImmutableArray(Of String) Implements INamedTypeSymbol.TupleElementNames
             Get
-                Return Nothing
+                Return TupleElementNames
             End Get
         End Property
 
-        Public ReadOnly Property TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
+        Private ReadOnly Property INamedTypeSymbol_TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
             Get
-                Return Nothing
+                Return TupleUnderlyingType
             End Get
         End Property
 
@@ -1236,6 +1241,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
 #End Region
+
+        ''' <summary>
+        ''' Verify if the given type can be used to back a tuple type 
+        ''' and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        ''' </summary>
+        ''' <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
+        ''' <returns></returns>
+        Public NotOverridable Overrides Function IsTupleCompatible(<Out> ByRef tupleCardinality As Integer) As Boolean
+            If IsTupleType Then
+                tupleCardinality = 0
+                Return False
+            End If
+
+            ' Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
+            If Not IsUnboundGenericType AndAlso
+                ContainingSymbol?.Kind = SymbolKind.Namespace AndAlso
+                ContainingNamespace?.ContainingNamespace?.IsGlobalNamespace = True AndAlso
+                Name = TupleTypeSymbol.TupleTypeName AndAlso
+                ContainingNamespace.Name = MetadataHelpers.SystemString Then
+
+                Dim arity = Me.Arity
+
+                If arity > 0 AndAlso arity < TupleTypeSymbol.RestPosition Then
+                    tupleCardinality = arity
+                    Return True
+                ElseIf arity = TupleTypeSymbol.RestPosition AndAlso Not IsDefinition Then
+                    ' Skip through "Rest" extensions
+                    Dim typeToCheck As TypeSymbol = Me
+                    Dim levelsOfNesting As Integer = 0
+
+                    Do
+                        levelsOfNesting += 1
+                        typeToCheck = DirectCast(typeToCheck, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(TupleTypeSymbol.RestPosition - 1)
+                    Loop While typeToCheck.OriginalDefinition = Me.OriginalDefinition AndAlso Not typeToCheck.IsDefinition
+
+                    If typeToCheck.IsTupleType Then
+                        Dim underlying = typeToCheck.TupleUnderlyingType
+                        If underlying.Arity = TupleTypeSymbol.RestPosition AndAlso underlying.OriginalDefinition <> Me.OriginalDefinition Then
+                            tupleCardinality = 0
+                            Return False
+                        End If
+
+                        tupleCardinality = (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting + typeToCheck.TupleElementTypes.Length
+                        Return True
+                    End If
+
+                    arity = If(TryCast(typeToCheck, NamedTypeSymbol)?.Arity, 0)
+
+                    If arity > 0 AndAlso
+                        arity < TupleTypeSymbol.RestPosition AndAlso
+                        typeToCheck.IsTupleCompatible(tupleCardinality) Then
+                        Debug.Assert(tupleCardinality < TupleTypeSymbol.RestPosition)
+                        tupleCardinality += (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting
+                        Return True
+                    End If
+                End If
+            End If
+
+            tupleCardinality = 0
+            Return False
+        End Function
 
     End Class
 End Namespace

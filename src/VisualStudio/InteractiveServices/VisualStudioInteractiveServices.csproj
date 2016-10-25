@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -14,8 +12,17 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
+      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
+      <Name>VisualStudioEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudioText\VisualStudioText.csproj">
+      <Project>{c25768b3-2fe1-4d6d-8c17-a6acd56f8389}</Project>
+      <Name>VisualStudioText</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
       <Name>Scripting</Name>
@@ -53,10 +60,6 @@
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
@@ -68,10 +71,6 @@
     <ProjectReference Include="..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
       <Project>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</Project>
       <Name>ServicesVisualStudio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
-      <Project>{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}</Project>
-      <Name>VisualStudioInteractiveWindow</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -128,7 +127,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

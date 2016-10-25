@@ -21,9 +21,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableDictionary<string, string> _features;
 
         /// <summary>
-        /// Gets the language version.
+        /// Gets the effective language version, which the compiler uses to select the
+        /// language rules to apply to the program.
         /// </summary>
         public LanguageVersion LanguageVersion { get; private set; }
+
+        /// <summary>
+        /// Gets the specified language version, which is the value that was specified in
+        /// the call to the constructor, or modified using the <see cref="WithLanguageVersion"/> method,
+        /// or provided on the command line.
+        /// </summary>
+        public LanguageVersion SpecifiedLanguageVersion { get; private set; }
 
         internal ImmutableArray<string> PreprocessorSymbols { get; private set; }
 
@@ -36,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public CSharpParseOptions(
-            LanguageVersion languageVersion = LanguageVersion.Latest,
+            LanguageVersion languageVersion = LanguageVersion.Default,
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
             IEnumerable<string> preprocessorSymbols = null)
-            : this(languageVersion.MapLatestToVersion(), documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
+            : this(languageVersion, documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
         {
             // We test the mapped value, LanguageVersion, rather than the parameter, languageVersion,
             // which has not had "Latest" mapped to the latest version yet.
@@ -60,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!SyntaxFacts.IsValidIdentifier(preprocessorSymbol))
                     {
-                        throw new ArgumentException("preprocessorSymbols");
+                        throw new ArgumentException(nameof(preprocessorSymbol));
                     }
                 }
             }
@@ -83,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private CSharpParseOptions(CSharpParseOptions other) : this(
-            languageVersion: other.LanguageVersion,
+            languageVersion: other.SpecifiedLanguageVersion,
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
             preprocessorSymbols: other.PreprocessorSymbols,
@@ -100,10 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(kind, documentationMode)
         {
             Debug.Assert(!preprocessorSymbols.IsDefault);
-            this.LanguageVersion = languageVersion;
+            this.SpecifiedLanguageVersion = languageVersion;
+            this.LanguageVersion = languageVersion.MapSpecifiedToEffectiveVersion();
             this.PreprocessorSymbols = preprocessorSymbols;
             _features = ImmutableDictionary<string, string>.Empty;
         }
+
+        public override string Language => LanguageNames.CSharp;
 
         public new CSharpParseOptions WithKind(SourceCodeKind kind)
         {
@@ -122,19 +133,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CSharpParseOptions WithLanguageVersion(LanguageVersion version)
         {
-            version = version.MapLatestToVersion();
-
-            if (version == this.LanguageVersion)
+            if (version == this.SpecifiedLanguageVersion)
             {
                 return this;
             }
 
-            if (!version.IsValid())
+            var effectiveLanguageVersion = version.MapSpecifiedToEffectiveVersion();
+            if (!effectiveLanguageVersion.IsValid())
             {
                 throw new ArgumentOutOfRangeException(nameof(version));
             }
 
-            return new CSharpParseOptions(this) { LanguageVersion = version };
+            return new CSharpParseOptions(this) { SpecifiedLanguageVersion = version, LanguageVersion = effectiveLanguageVersion };
         }
 
         public CSharpParseOptions WithPreprocessorSymbols(IEnumerable<string> preprocessorSymbols)
@@ -242,14 +252,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return this.LanguageVersion == other.LanguageVersion;
+            return this.SpecifiedLanguageVersion == other.SpecifiedLanguageVersion;
         }
 
         public override int GetHashCode()
         {
             return
                 Hash.Combine(base.GetHashCodeHelper(),
-                Hash.Combine((int)this.LanguageVersion, 0));
+                Hash.Combine((int)this.SpecifiedLanguageVersion, 0));
         }
     }
 }

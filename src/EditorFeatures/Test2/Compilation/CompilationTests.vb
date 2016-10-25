@@ -26,10 +26,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
                 Dim project = GetProject(workspace.CurrentSolution, "TestAssembly")
                 Assert.Null(Await project.GetCompilationAsync())
 
-                Dim solution = project.Solution
                 Assert.Null(Await project.GetCompilationAsync())
-                Assert.False(Await solution.ContainsSymbolsWithNameAsync(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
-                Assert.Empty(Await solution.GetDocumentsWithNameAsync(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
+                Assert.False(Await project.ContainsSymbolsWithNameAsync(Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
+                Assert.Empty(Await project.GetDocumentsWithNameAsync(Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
             End Using
         End Function
     End Class

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -131,13 +132,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 var filterResults = new List<FilterResult>();
 
-                var filterText = model.GetCurrentTextInSnapshot(model.OriginalList.Span, textSnapshot, textSpanToText);
+                var filterText = model.GetCurrentTextInSnapshot(
+                    model.OriginalList.Span, textSnapshot, textSpanToText);
 
-                // If the user was typing a number, then immediately dismiss completion.
+                // Check if the user is typing a number.  If so, only proceed if it's a number
+                // directly after a <dot>.  That's because it is actually reasonable for completion
+                // to be brought up after a <dot> and for the user to want to filter completion
+                // items based on a number that exists in the name of the item.  However, when 
+                // we are not after a dot (i.e. we're being brought up after <space> is typed)
+                // then we don't want to filter things.  Consider the user writing:
+                //
+                //      dim i =<space>
+                //
+                // We'll bring up the completion list here (as VB has completion on <space>). 
+                // If the user then types '3', we don't want to match against Int32.
                 var filterTextStartsWithANumber = filterText.Length > 0 && char.IsNumber(filterText[0]);
                 if (filterTextStartsWithANumber)
                 {
-                    return null;
+                    if (!IsAfterDot(model, textSnapshot, textSpanToText))
+                    {
+                        return null;
+                    }
                 }
 
                 foreach (var currentItem in model.TotalItems)
@@ -192,14 +207,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 return HandleNormalFiltering(
-                    model, filterReason, textSnapshot, document,
+                    model, document, filterReason, textSnapshot,
                     helper, recentItems, filterText, filterResults);
             }
 
+            private Boolean IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
+            {
+                var span = model.OriginalList.Span;
+
+                // Move the span back one character if possible.
+                span = TextSpan.FromBounds(Math.Max(0, span.Start - 1), span.End);
+
+                var text = model.GetCurrentTextInSnapshot(span, textSnapshot, textSpanToText);
+                return text.Length > 0 && text[0] == '.';
+            }
+
             private Model HandleNormalFiltering(
-                Model model, CompletionFilterReason filterReason,
-                ITextSnapshot textSnapshot, Document document,
-                CompletionHelper helper, ImmutableArray<string> recentItems,
+                Model model,
+                Document document,
+                CompletionFilterReason filterReason,
+                ITextSnapshot textSnapshot,
+                CompletionHelper helper,
+                ImmutableArray<string> recentItems,
                 string filterText,
                 List<FilterResult> filterResults)
             {
@@ -208,11 +237,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // Ask the language to determine which of the *matched* items it wants to select.
                 var service = this.Controller.GetCompletionService();
+                if (service == null)
+                {
+                    return null;
+                }
 
                 var matchingCompletionItems = filterResults.Where(r => r.MatchedFilterText)
                                                            .Select(t => t.PresentationItem.Item)
                                                            .AsImmutable();
-                var chosenItems = service.ChooseBestItems(document, matchingCompletionItems, filterText);
+                var chosenItems = service.FilterItems(
+                    document, matchingCompletionItems, filterText);
 
                 // Of the items the service returned, pick the one most recently committed
                 var bestCompletionItem = GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
@@ -414,13 +448,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     {
                         return true;
                     }
-                }
-
-                if (filterText.Length > 0 && IsAllDigits(filterText))
-                {
-                    // The user is just typing a number.  We never want this to match against
-                    // anything we would put in a completion list.
-                    return false;
                 }
 
                 return helper.MatchesFilterText(item, filterText, CultureInfo.CurrentCulture);

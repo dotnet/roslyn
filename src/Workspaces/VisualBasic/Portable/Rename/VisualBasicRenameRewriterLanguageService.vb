@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -648,13 +649,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             replacementText As String,
             renamedSymbol As ISymbol,
             renameSymbol As ISymbol,
-            referencedSymbols As IEnumerable(Of ISymbol),
+            referencedSymbols As IEnumerable(Of SymbolAndProjectId),
             baseSolution As Solution,
             newSolution As Solution,
             reverseMappedLocations As IDictionary(Of Location, Location),
             cancellationToken As CancellationToken
-        ) As Task(Of IEnumerable(Of Location)) Implements IRenameRewriterLanguageService.ComputeDeclarationConflictsAsync
-            Dim conflicts As New List(Of Location)
+        ) As Task(Of ImmutableArray(Of Location)) Implements IRenameRewriterLanguageService.ComputeDeclarationConflictsAsync
+
+            Dim conflicts = ArrayBuilder(Of Location).GetInstance()
 
             If renamedSymbol.Kind = SymbolKind.Parameter OrElse
                renamedSymbol.Kind = SymbolKind.Local OrElse
@@ -705,9 +707,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         .Select(Function(loc) reverseMappedLocations(loc)))
 
             ElseIf renamedSymbol.Kind = SymbolKind.Property Then
-                ConflictResolver.AddConflictingParametersOfProperties(referencedSymbols.Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
-                                                 renamedSymbol.Name,
-                                                 conflicts)
+                ConflictResolver.AddConflictingParametersOfProperties(
+                    referencedSymbols.Select(Function(s) s.Symbol).Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
+                    renamedSymbol.Name,
+                    conflicts)
 
             ElseIf renamedSymbol.Kind = SymbolKind.TypeParameter Then
                 For Each location In renamedSymbol.Locations
@@ -734,10 +737,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Next
             End If
 
-            Return Task.FromResult(Of IEnumerable(Of Location))(conflicts)
+            Return Task.FromResult(conflicts.ToImmutableAndFree())
         End Function
 
-        Public Async Function ComputeImplicitReferenceConflictsAsync(renameSymbol As ISymbol, renamedSymbol As ISymbol, implicitReferenceLocations As IEnumerable(Of ReferenceLocation), cancellationToken As CancellationToken) As Task(Of IEnumerable(Of Location)) Implements IRenameRewriterLanguageService.ComputeImplicitReferenceConflictsAsync
+        Public Async Function ComputeImplicitReferenceConflictsAsync(
+                renameSymbol As ISymbol, renamedSymbol As ISymbol,
+                implicitReferenceLocations As IEnumerable(Of ReferenceLocation),
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of Location)) Implements IRenameRewriterLanguageService.ComputeImplicitReferenceConflictsAsync
 
             ' Handle renaming of symbols used for foreach
             Dim implicitReferencesMightConflict = renameSymbol.Kind = SymbolKind.Property AndAlso
@@ -756,13 +762,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                             implicitReferenceLocation.Location.SourceSpan.Start, cancellationToken, findInsideTrivia:=False).ConfigureAwait(False)
 
                         If token.Kind = SyntaxKind.ForKeyword AndAlso token.Parent.IsKind(SyntaxKind.ForEachStatement) Then
-                            Return SpecializedCollections.SingletonEnumerable(DirectCast(token.Parent, ForEachStatementSyntax).Expression.GetLocation())
+                            Return ImmutableArray.Create(DirectCast(token.Parent, ForEachStatementSyntax).Expression.GetLocation())
                         End If
                     Next
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of Location)()
+            Return ImmutableArray(Of Location).Empty
         End Function
 
 #End Region
@@ -840,7 +846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             semanticModel As SemanticModel,
             originalDeclarationLocation As Location,
             newDeclarationLocationStartingPosition As Integer,
-            cancellationToken As CancellationToken) As IEnumerable(Of Location) Implements IRenameRewriterLanguageService.ComputePossibleImplicitUsageConflicts
+            cancellationToken As CancellationToken) As ImmutableArray(Of Location) Implements IRenameRewriterLanguageService.ComputePossibleImplicitUsageConflicts
 
             ' TODO: support other implicitly used methods like dispose
             If CaseInsensitiveComparison.Equals(renamedSymbol.Name, "MoveNext") OrElse
@@ -852,13 +858,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     If DirectCast(renamedSymbol, IMethodSymbol).IsOverloads AndAlso
                             (renamedSymbol.GetAllTypeArguments().Length <> 0 OrElse
                             DirectCast(renamedSymbol, IMethodSymbol).Parameters.Length <> 0) Then
-                        Return SpecializedCollections.EmptyEnumerable(Of Location)()
+                        Return ImmutableArray(Of Location).Empty
                     End If
                 End If
 
                 If TypeOf renamedSymbol Is IPropertySymbol Then
                     If DirectCast(renamedSymbol, IPropertySymbol).IsOverloads Then
-                        Return SpecializedCollections.EmptyEnumerable(Of Location)()
+                        Return ImmutableArray(Of Location).Empty
                     End If
                 End If
 
@@ -883,14 +889,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                             If CaseInsensitiveComparison.Equals(symbol.Name, "MoveNext") Then
                                 If Not method.ReturnsVoid AndAlso Not method.Parameters.Any() AndAlso method.ReturnType.SpecialType = SpecialType.System_Boolean Then
-                                    Return SpecializedCollections.SingletonEnumerable(originalDeclarationLocation)
+                                    Return ImmutableArray.Create(originalDeclarationLocation)
                                 End If
                             ElseIf CaseInsensitiveComparison.Equals(symbol.Name, "GetEnumerator") Then
                                 ' we are a bit pessimistic here. 
                                 ' To be sure we would need to check if the returned type Is having a MoveNext And Current as required by foreach
                                 If Not method.ReturnsVoid AndAlso
                                         Not method.Parameters.Any() Then
-                                    Return SpecializedCollections.SingletonEnumerable(originalDeclarationLocation)
+                                    Return ImmutableArray.Create(originalDeclarationLocation)
                                 End If
                             End If
 
@@ -898,14 +904,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                             Dim [property] = DirectCast(symbol, IPropertySymbol)
 
                             If Not [property].Parameters.Any() AndAlso Not [property].IsWriteOnly Then
-                                Return SpecializedCollections.SingletonEnumerable(originalDeclarationLocation)
+                                Return ImmutableArray.Create(originalDeclarationLocation)
                             End If
                         End If
                     Next
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of Location)()
+            Return ImmutableArray(Of Location).Empty
         End Function
 
         Public Sub TryAddPossibleNameConflicts(symbol As ISymbol, replacementText As String, possibleNameConflicts As ICollection(Of String)) Implements IRenameRewriterLanguageService.TryAddPossibleNameConflicts

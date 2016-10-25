@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     _text = _subjectBufferCaretPosition.Snapshot.AsText();
 
-                    _useSuggestionMode = session.Controller.SubjectBuffer.GetOption(Options.EditorCompletionOptions.UseSuggestionMode);
+                    _useSuggestionMode = session.Controller.SubjectBuffer.GetFeatureOnOffOption(Options.EditorCompletionOptions.UseSuggestionMode);
 
                     _disconnectedBufferGraph = new DisconnectedBufferGraph(session.Controller.SubjectBuffer, session.Controller.TextView.TextBuffer);
                 }

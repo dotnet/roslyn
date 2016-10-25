@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CollectLocalsFromDeconstruction(
                             syntax.VariableComponent,
                             LocalDeclarationKind.ForEachIterationVariable,
-                            locals);
+                            locals,
+                            syntax);
                         return locals.ToImmutableAndFree();
                     }
                 case SyntaxKind.ForEachStatement:
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
-                        this.IterationVariable.SetTypeSymbol(iterationVariableType);
+                        this.IterationVariable.SetType(iterationVariableType);
                         break;
                     }
                 case SyntaxKind.ForEachComponentStatement:
@@ -336,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This behavior is not spec'd, but it's what Dev10 does.
             if ((object)collectionExprType != null && collectionExprType.IsNullableType())
             {
-                CSharpSyntaxNode exprSyntax = collectionExpr.Syntax;
+                SyntaxNode exprSyntax = collectionExpr.Syntax;
 
                 MethodSymbol nullableValueGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value, diagnostics, exprSyntax);
                 if ((object)nullableValueGetter != null)
@@ -973,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

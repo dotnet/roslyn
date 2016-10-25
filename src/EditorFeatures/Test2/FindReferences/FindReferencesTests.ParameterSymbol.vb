@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")>
@@ -127,7 +127,7 @@ partial class program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")>
@@ -148,7 +148,7 @@ partial class program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
 #Region "FAR on partial methods"
@@ -170,7 +170,7 @@ partial class program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -180,17 +180,18 @@ partial class program
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
         Class C                
-           partial sub PM(x as Integer, y as Integer)
+           partial sub PM({|Definition:x|} as Integer, y as Integer)
               
            End Sub
-           partial sub PM({|Definition:x|} as Integer, y as Integer)
+
+           sub PM({|Definition:x|} as Integer, y as Integer)
                 Dim y as Integer = [|$$x|];;
            End Sub
         End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
 #End Region
@@ -215,7 +216,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
@@ -235,7 +236,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
@@ -254,7 +255,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(543276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543276")>
@@ -277,7 +278,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(529688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
@@ -297,7 +298,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545654")>
@@ -326,7 +327,7 @@ End Module
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545654")>
@@ -355,7 +356,7 @@ End Module
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
@@ -378,7 +379,7 @@ class X
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
@@ -401,7 +402,7 @@ class X
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
@@ -424,7 +425,7 @@ class X
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
@@ -447,7 +448,7 @@ class X
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
@@ -468,7 +469,7 @@ end class
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
@@ -489,7 +490,7 @@ end class
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
@@ -510,7 +511,7 @@ end class
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
@@ -531,7 +532,7 @@ end class
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

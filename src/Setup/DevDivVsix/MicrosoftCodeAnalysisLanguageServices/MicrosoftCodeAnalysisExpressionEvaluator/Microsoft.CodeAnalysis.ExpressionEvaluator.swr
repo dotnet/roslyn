@@ -2,9 +2,9 @@ use vs
 
 package name=Microsoft.CodeAnalysis.ExpressionEvaluator
         version=$(Version)
-        vs.package.language=en-us
         vs.package.type=vsix
         vs.package.vsixId=21BAC26D-2935-4D0D-A282-AD647E2592B5
+        vs.package.installSize=634880
 
 vs.localizedResources
   vs.localizedResource language=en-us
@@ -12,9 +12,12 @@ vs.localizedResources
                        description="Roslyn Expression Evaluators"
 
 vs.payloads
-  vs.payload source=$(OutputPath)ExpressionEvaluatorPackage.vsix
+  vs.payload source=$(OutputPath)Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix
 
 vs.dependencies
+  vs.dependency id=Microsoft.VisualStudio.MinShell
+  vs.dependency id=Microsoft.Net.4.6.1.FullRedist 
+  vs.dependency id=Microsoft.Net.4.6.1.FullRedist.Resource 
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
                 version=$(Version)
                 type=Required

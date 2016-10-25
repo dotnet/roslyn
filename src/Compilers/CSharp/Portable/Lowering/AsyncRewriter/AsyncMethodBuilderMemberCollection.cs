@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -102,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.IsVoidReturningAsync())
             {
                 var builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder);
+                Debug.Assert((object)builderType != null);
                 MethodSymbol createBuilderMethod;
                 bool customBuilder = false;
                 TryGetBuilderMember<MethodSymbol>(
@@ -110,8 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builderType,
                     customBuilder,
                     out createBuilderMethod);
-                if ((object)builderType == null ||
-                    (object)createBuilderMethod == null)
+                if ((object)createBuilderMethod == null)
                 {
                     collection = default(AsyncMethodBuilderMemberCollection);
                     return false;
@@ -136,16 +137,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 NamedTypeSymbol builderType;
-                MethodSymbol createBuilderMethod;
-                PropertySymbol taskProperty;
-                bool customBuilder = returnType.IsCustomTaskType(out builderType, out createBuilderMethod);
+                MethodSymbol createBuilderMethod = null;
+                PropertySymbol taskProperty = null;
+
+                object builderArgument;
+                bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
                 if (customBuilder)
                 {
-                    taskProperty = GetCustomTaskProperty(F, builderType);
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric:false);
+                    if ((object)builderType != null)
+                    {
+                        taskProperty = GetCustomTaskProperty(F, builderType);
+                        createBuilderMethod = GetCustomCreateMethod(F, builderType);
+                    }
                 }
                 else
                 {
                     builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder);
+                    Debug.Assert((object)builderType != null);
                     TryGetBuilderMember<MethodSymbol>(
                         F,
                         WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Create,
@@ -196,25 +205,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 returnType = returnType.ConstructedFrom.Construct(resultType);
                 NamedTypeSymbol builderType;
-                MethodSymbol createBuilderMethod;
-                PropertySymbol taskProperty;
-                bool customBuilder = returnType.IsCustomTaskType(out builderType, out createBuilderMethod);
-                if (!customBuilder)
-                {
-                    builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
-                    if ((object)builderType == null)
-                    {
-                        collection = default(AsyncMethodBuilderMemberCollection);
-                        return false;
-                    }
-                    builderType = builderType.Construct(resultType);
-                }
+                MethodSymbol createBuilderMethod = null;
+                PropertySymbol taskProperty = null;
+
+                object builderArgument;
+                bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
                 if (customBuilder)
                 {
-                    taskProperty = GetCustomTaskProperty(F, builderType);
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric:true);
+                    if ((object)builderType != null)
+                    {
+                        builderType = builderType.ConstructedFrom.Construct(resultType);
+                        taskProperty = GetCustomTaskProperty(F, builderType);
+                        createBuilderMethod = GetCustomCreateMethod(F, builderType);
+                    }
                 }
                 else
                 {
+                    builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
+                    Debug.Assert((object)builderType != null);
+                    builderType = builderType.Construct(resultType);
                     TryGetBuilderMember<MethodSymbol>(
                         F,
                         WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Create,
@@ -228,7 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         customBuilder,
                         out taskProperty);
                 }
-                if ((object)taskProperty == null ||
+                if ((object)builderType == null ||
+                    (object)taskProperty == null ||
                     (object)createBuilderMethod == null)
                 {
                     collection = default(AsyncMethodBuilderMemberCollection);
@@ -251,6 +262,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             throw ExceptionUtilities.UnexpectedValue(method);
+        }
+
+        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric)
+        {
+            var builderType = builderAttributeArgument as NamedTypeSymbol;
+
+            if ((object)builderType != null &&
+                 !builderType.IsErrorType() &&
+                 builderType.SpecialType != SpecialType.System_Void &&
+                 builderType.DeclaredAccessibility == desiredAccessibility)
+            {
+                bool isArityOk = isGeneric
+                                 ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true
+                                 : !builderType.IsGenericType;
+                if (isArityOk)
+                {
+                    return builderType;
+                }
+            }
+
+            F.Diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, F.Syntax.Location);
+            return null;
         }
 
         private static bool TryCreate(
@@ -342,6 +375,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
             return true;
+        }
+
+        private static MethodSymbol GetCustomCreateMethod(
+            SyntheticBoundNodeFactory F,
+            NamedTypeSymbol builderType)
+        {
+            // The Create method's return type is expected to be builderType.
+            // The WellKnownMembers routines aren't able to enforce that, which is why this method exists.
+            const string methodName = "Create";
+            var members = builderType.GetMembers(methodName);
+            foreach (var member in members)
+            {
+                if (member.Kind != SymbolKind.Method)
+                {
+                    continue;
+                }
+                var method = (MethodSymbol)member;
+                if ((method.DeclaredAccessibility == Accessibility.Public) &&
+                    method.IsStatic &&
+                    method.ParameterCount == 0 &&
+                    !method.IsGenericMethod &&
+                    method.ReturnType == builderType) 
+                {
+                    return method;
+                }
+            }
+            F.Diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, F.Syntax.Location, builderType, methodName);
+            return null;
         }
 
         private static PropertySymbol GetCustomTaskProperty(

@@ -10,14 +10,31 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change all these services to WorkspaceServices
     /// </summary>
-    internal static class RoslynServices
+    internal class RoslynServices
     {
         // TODO: probably need to split this to private and public services
         public static readonly HostServices HostServices = MefHostServices.Create(
-            MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+            MefHostServices.DefaultAssemblies
+                // This adds the exported MEF services from Workspaces.Desktop
+                .Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly)
+                // This adds the exported MEF services from the RemoteWorkspaces assembly.
+                .Add(typeof(RoslynServices).Assembly)
+                .Add(typeof(CSharp.CodeLens.CSharpCodeLensDisplayInfoService).Assembly)
+                .Add(typeof(VisualBasic.CodeLens.VisualBasicDisplayInfoService).Assembly));
 
-        public static readonly AssetService AssetService = new AssetService();
-        public static readonly SolutionService SolutionService = new SolutionService();
-        public static readonly CompilationService CompilationService = new CompilationService();
+        private readonly int _sessionId;
+
+        public RoslynServices(int sessionId, AssetStorage storage)
+        {
+            _sessionId = sessionId;
+
+            AssetService = new AssetService(_sessionId, storage);
+            SolutionService = new SolutionService(AssetService);
+            CompilationService = new CompilationService(SolutionService);
+        }
+
+        public AssetService AssetService { get; }
+        public SolutionService SolutionService { get; }
+        public CompilationService CompilationService { get; }
     }
 }

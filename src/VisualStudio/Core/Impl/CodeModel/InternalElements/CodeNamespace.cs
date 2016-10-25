@@ -86,14 +86,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                // Namespaces don't support comments
-                throw Exceptions.ThrowENotImpl();
+                return CodeModelService.GetComment(LookupNode());
             }
 
             set
             {
-                // Namespaces don't support comments
-                throw Exceptions.ThrowENotImpl();
+                UpdateNode(FileCodeModel.UpdateComment, value);
             }
         }
 
@@ -101,14 +99,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                // Namespaces can't have doc comments
-                return string.Empty;
+                return CodeModelService.GetDocComment(LookupNode());
             }
 
             set
             {
-                // We don't allow you to set, since you can't set things that don't exist.
-                throw Exceptions.ThrowENotImpl();
+                UpdateNode(FileCodeModel.UpdateDocComment, value);
             }
         }
 

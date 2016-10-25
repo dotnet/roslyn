@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -10,27 +11,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class BlockBinder : LocalScopeBinder
     {
-        private readonly SyntaxList<StatementSyntax> _statements;
+        private readonly BlockSyntax _block;
 
-        public BlockBinder(Binder enclosing, SyntaxList<StatementSyntax> statements)
-            : this(enclosing, statements, enclosing.Flags)
+        public BlockBinder(Binder enclosing, BlockSyntax block)
+            : this(enclosing, block, enclosing.Flags)
         {
         }
 
-        public BlockBinder(Binder enclosing, SyntaxList<StatementSyntax> statements, BinderFlags additionalFlags)
+        public BlockBinder(Binder enclosing, BlockSyntax block, BinderFlags additionalFlags)
             : base(enclosing, enclosing.Flags | additionalFlags)
         {
-            _statements = statements;
+            Debug.Assert(block != null);
+            _block = block;
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(_statements);
+            return BuildLocals(_block.Statements, this);
         }
 
         protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
         {
-            return BuildLocalFunctions(_statements);
+            return BuildLocalFunctions(_block.Statements);
         }
 
         internal override bool IsLocalFunctionsScopeBinder
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
             ArrayBuilder<LabelSymbol> labels = null;
-            base.BuildLabels(_statements, ref labels);
+            base.BuildLabels(_block.Statements, ref labels);
             return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
         }
 
@@ -56,9 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
-            if (IsMatchingScopeDesignator(scopeDesignator))
+            if (ScopeDesignator == scopeDesignator)
             {
                 return this.Locals;
             }
@@ -66,41 +68,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        private bool IsMatchingScopeDesignator(CSharpSyntaxNode scopeDesignator)
-        {
-            if (scopeDesignator.Kind() == SyntaxKind.Block)
-            {
-                if (((BlockSyntax)scopeDesignator).Statements == _statements)
-                {
-                    return true;
-                }
-            }
-            else if (_statements.Count == 1 && _statements.First() == scopeDesignator)
-            {
-                // This code compensates for the fact that we fake an enclosing block
-                // when there is an (illegal) local declaration as a controlled statement.
-                return true;
-            }
-
-            return false;
-        }
-
         internal override SyntaxNode ScopeDesignator
         {
             get
             {
-                if (_statements.Count == 1)
-                {
-                    return _statements.First();
-                }
-
-                return _statements.Node;
+                return _block;
             }
         }
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            if (IsMatchingScopeDesignator(scopeDesignator))
+            if (ScopeDesignator == scopeDesignator)
             {
                 return this.LocalFunctions;
             }

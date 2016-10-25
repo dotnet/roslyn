@@ -1375,6 +1375,14 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitRelaxationLambda(node As BoundRelaxationLambda) As BoundNode
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public Overrides Function VisitConvertedTupleElements(node As BoundConvertedTupleElements) As BoundNode
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
         Public Overrides Function VisitUserDefinedConversion(node As BoundUserDefinedConversion) As BoundNode
             VisitRvalue(node.UnderlyingExpression)
             Return Nothing
@@ -2310,6 +2318,21 @@ EnteredRegion:
                 VisitRvalue(arrayBound)
             Next
             VisitRvalue(node.Initializer)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitTupleLiteral(node As BoundTupleLiteral) As BoundNode
+            Return VisitTupleExpression(node)
+        End Function
+
+        Public Overrides Function VisitConvertedTupleLiteral(node As BoundConvertedTupleLiteral) As BoundNode
+            Return VisitTupleExpression(node)
+        End Function
+
+        Private Function VisitTupleExpression(node As BoundTupleExpression) As BoundNode
+            For Each argument In node.Arguments
+                VisitRvalue(argument)
+            Next
             Return Nothing
         End Function
 

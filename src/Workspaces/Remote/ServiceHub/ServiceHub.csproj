@@ -3,9 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -15,11 +13,20 @@
     <AssemblyName>Microsoft.CodeAnalysis.Remote.ServiceHub</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
+      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
+      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
+      <Name>Features</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -47,11 +54,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-    <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeLens\CodeLensArguments.cs" />
+    <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
+    <Compile Include="Services\CodeAnalysisService_FindReferences.cs" />
+    <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
+    <Compile Include="Services\CodeAnalysisService_NavigateTo.cs" />
+    <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Diagnostics\DiagnosticArguments.cs" />
     <Compile Include="Services\CodeAnalysisService.cs" />
@@ -62,9 +74,14 @@
     <Compile Include="Shared\Extensions.cs" />
     <Compile Include="Shared\ServerDirectStream.cs" />
     <Compile Include="Shared\ClientDirectStream.cs" />
-    <Compile Include="Shared\WellKnownServiceHubServices.cs" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Storage\" />
+  </ItemGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

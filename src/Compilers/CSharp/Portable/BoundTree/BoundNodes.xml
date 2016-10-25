@@ -84,7 +84,7 @@
   This node is used to represent an expression returning value of a certain type.
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
-  <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase" HasValidate="true">
+  <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
   <!-- only used by codegen -->
@@ -399,24 +399,29 @@
     <Field Name="IsDeclaration" Type="bool"/>
 
     <!-- Various assignable expressions, in a flat structure (no nesting) -->
-    <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;" Null="disallow"/>
 
     <Field Name="Right" Type="BoundExpression"/>
 
-    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="NotApplicable" SkipInVisitor="true" />
-
-    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
+    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="disallow" SkipInVisitor="true" />
+    <Field Name="ConversionSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="ConstructionStepsOpt" Type="ImmutableArray&lt;BoundDeconstructionConstructionStep&gt;" Null="allow" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundDeconstructionDeconstructStep" Base="BoundNode">
     <Field Name="DeconstructInvocationOpt" Type="BoundExpression" Null="allow"/>
-    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-    <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;"/>
+    <Field Name="InputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">
     <Field Name="Assignment" Type="BoundAssignmentOperator" Null="disallow"/>
-    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundDeconstructionConstructionStep" Base="BoundNode">
+    <Field Name="Construct" Type="BoundExpression" Null="disallow"/>
     <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
@@ -820,6 +825,10 @@
     <!-- We store the pattern switch binder so we can perform some binding-like
          operations during control flow analysis. -->
     <Field Name="Binder" Type="PatternSwitchBinder"/>
+    <!-- A switch is considered complete if every value of the switch expression's
+         type is handled by some switch label that is either not guarded by a when
+         clause, or for which the when clause expression has the constant value true. -->
+    <Field Name="IsComplete" Type="bool"/>
   </Node>
 
   <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
@@ -831,10 +840,10 @@
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
     <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="IsReachable" Type="bool"/>
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundStatement"/>
     <Field Name="AlternativeOpt" Type="BoundStatement" Null="allow"/>
@@ -1168,7 +1177,7 @@
         Otherwise, ReferenceTypeReceiver should be used.  
         This kind of receiver is created only by Async rewriter. 
   -->
-  <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression" HasValidate="true">
+  <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow"/>
     <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow"/>
@@ -1269,7 +1278,7 @@
     <!-- 
     It is possible for a tuple to not have a type in a literal form
     Ex: 
-     (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
+     (a:=1, b:= (c:=1, d:=Nothing))  does not have a natural type, because "Nothing" does not have one
     -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
@@ -1558,7 +1567,17 @@
   </AbstractNode>
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
-    <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
+    <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
+         a field that is a member of the script class. -->
+    <Field Name="Variable" Type="Symbol" Null="disallow"/>
+    <!-- VariableAccess is an access to the declared symbol, suitable for use
+         in the lowered form in either an lvalue or rvalue position. We maintain it separately
+         from the Symbol to facilitate lowerings in which the variable is no longer a simple
+         variable access (e.g. in the expression evaluator). It is expected to be logically side-effect
+         free. The necessity of this member is a consequence of a design issue documented in
+         https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
+         removed. -->
+    <Field Name="VariableAccess" Type="BoundExpression" Null="disallow"/>
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
@@ -1571,11 +1590,18 @@
   <Node Name="BoundWildcardPattern" Base="BoundPattern">
   </Node>
 
-  <!-- The node is transformed into BoundLocal after inference -->
-  <Node Name="OutVarLocalPendingInference" Base="BoundExpression">
+  <Node Name="BoundThrowExpression" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+  </Node>
+
+  <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
+  <Node Name="OutVariablePendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
-    <Field Name="LocalSymbol" Type="LocalSymbol"/>
+    <!-- A local symbol or a field symbol representing the variable -->
+    <Field Name="VariableSymbol" Type="Symbol"/>
+    <!-- A field receiver when VariableSymbol is a field -->
+    <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
   </Node>
 
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
@@ -1584,10 +1610,13 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
   </Node>
 
-  <!-- The node is transformed into BoundLocal after inference -->
-  <Node Name="DeconstructionLocalPendingInference" Base="BoundExpression">
+  <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
+  <Node Name="DeconstructionVariablePendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
-    <Field Name="LocalSymbol" Type="LocalSymbol"/>
+    <!-- A local symbol or a field symbol representing the variable -->
+    <Field Name="VariableSymbol" Type="Symbol"/>
+    <!-- A field receiver when VariableSymbol is a field -->
+    <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
   </Node>
 </Tree>

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             // See if we're running on a host that can provide streaming results.
             // We'll both need a FAR service that can stream results to us, and 
             // a presenter that can accept streamed results.
-            var streamingEnabled = document.Options.GetOption(FeatureOnOffOptions.StreamingFindReferences);
+            var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingFindReferences, document.Project.Language);
             if (streamingEnabled && streamingService != null && streamingPresenter != null)
             {
                 StreamingFindReferences(document, streamingService, streamingPresenter, caretPosition);
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     // that means that a new search has started.  We don't care about telling the
                     // context it has completed.  In the latter case somethign wrong has happened
                     // and we don't want to run any more code code in this particular context.
-                    context.OnCompleted();
+                    await context.OnCompletedAsync().ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

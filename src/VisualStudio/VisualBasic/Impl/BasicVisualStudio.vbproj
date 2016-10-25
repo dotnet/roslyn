@@ -1,11 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <ProjectLanguage>VB</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -14,11 +12,11 @@
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.VisualBasic</AssemblyName>
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
-    <UseCodebase>true</UseCodebase>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -133,8 +131,6 @@
     <Compile Include="Options\AutomationObject.vb" />
     <Compile Include="Options\Formatting\CodeStylePage.vb" />
     <Compile Include="Options\NamingStylesOptionPage.vb" />
-    <Compile Include="Options\VisualBasicLanguageSettingsSerializer.vb" />
-    <Compile Include="Options\VisualBasicSettingsManagerOptionSerializer.vb" />
     <Compile Include="Options\StyleOptionPage.vb" />
     <Compile Include="Options\AdvancedOptionPage.vb" />
     <Compile Include="Options\AdvancedOptionPageControl.xaml.vb">
@@ -203,6 +199,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
@@ -244,7 +241,5 @@
     <Compile Include="Options\IntelliSenseOptionPageStrings.vb" />
     <Content Include="VisualBasicPackageRegistration.pkgdef" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

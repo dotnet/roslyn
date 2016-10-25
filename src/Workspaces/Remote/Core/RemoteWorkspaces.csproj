@@ -3,9 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -15,11 +13,24 @@
     <AssemblyName>Microsoft.CodeAnalysis.Remote.Workspaces</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
+      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
+      <Project>{3973b09a-4fbf-44a5-8359-3d22ceb71f71}</Project>
+      <Name>CSharpFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
+      <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
+      <Name>BasicFeatures</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -49,16 +60,21 @@
   <ItemGroup />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Diagnostics\DiagnosticComputer.cs" />
     <Compile Include="Services\AssetSource.cs" />
     <Compile Include="Services\AssetService.cs" />
+    <Compile Include="Services\AssetStorage.cs" />
+    <Compile Include="Services\ChecksumSourceText.cs" />
     <Compile Include="Services\CompilationService.cs" />
+    <Compile Include="Services\ProjectCacheHostServiceFactory.cs" />
     <Compile Include="Services\RoslynServices.cs" />
     <Compile Include="Services\SolutionService.cs" />
+    <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

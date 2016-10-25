@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Some syntactic forms have an "implicit" receiver.  When we encounter them, we set this to the
             // syntax.  That way, in case we need to report an error about the receiver, we can use this
             // syntax for the location when the receiver was implicit.
-            private CSharpSyntaxNode _syntaxWithReceiver;
+            private SyntaxNode _syntaxWithReceiver;
 
             /// <summary>
             /// Set to true while we are analyzing the interior of an expression lambda.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The syntax nodes associated with each captured variable.
             /// </summary>
-            public MultiDictionary<Symbol, CSharpSyntaxNode> CapturedVariables = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+            public MultiDictionary<Symbol, SyntaxNode> CapturedVariables = new MultiDictionary<Symbol, SyntaxNode>();
 
             /// <summary>
             /// For each lambda in the code, the set of variables that it captures.
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var capturedVariablesNew = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+                var capturedVariablesNew = new MultiDictionary<Symbol, SyntaxNode>();
                 foreach (var old in CapturedVariables)
                 {
                     var method = old.Key as MethodSymbol;
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private void ReferenceVariable(CSharpSyntaxNode syntax, Symbol symbol)
+            private void ReferenceVariable(SyntaxNode syntax, Symbol symbol)
             {
                 var localSymbol = symbol as LocalSymbol;
                 if ((object)localSymbol != null && localSymbol.IsConst)
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private BoundNode VisitSyntaxWithReceiver(CSharpSyntaxNode syntax, BoundNode receiver)
+            private BoundNode VisitSyntaxWithReceiver(SyntaxNode syntax, BoundNode receiver)
             {
                 var previousSyntax = _syntaxWithReceiver;
                 _syntaxWithReceiver = syntax;

@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -22,6 +20,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <CreateVsixContainer>True</CreateVsixContainer>
     <DeployExtension>False</DeployExtension>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -57,20 +56,6 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
-      <Project>{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}</Project>
-      <Name>VisualStudioInteractiveWindow</Name>
-      <VSIXSubPath>Vsixes</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualStudio\SetupInteractive\VisualStudioSetupInteractive.csproj">
-      <Project>{C467FEFA-337D-4705-BB5A-BDF41A555FDC}</Project>
-      <Name>VisualStudioSetupInteractive</Name>
-      <VSIXSubPath>Vsixes</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\VisualStudio\Setup\VisualStudioSetup.csproj">
       <Project>{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}</Project>
       <Name>VisualStudioSetup</Name>
@@ -98,7 +83,5 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

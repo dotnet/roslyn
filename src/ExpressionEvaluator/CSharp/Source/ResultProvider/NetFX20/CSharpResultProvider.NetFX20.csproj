@@ -3,11 +3,8 @@
   <PropertyGroup>
     <TargetNetFX20>true</TargetNetFX20>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <OutDir>$(OutDir)NetFX20\</OutDir>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BF9DAC1E-3A5E-4DC3-BB44-9A64E0D4E9D3}</ProjectGuid>
@@ -15,6 +12,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider</AssemblyName>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
@@ -50,8 +48,6 @@
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\CSharpResultProvider.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
+  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return service.GetCompletionsAsync(document, position, triggerInfo, options: options);
         }
 
-        private async Task CheckResultsAsync(
-            Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph, int? matchPriority)
+        protected async Task CheckResultsAsync(
+            Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, int? glyph, int? matchPriority)
         {
             var code = (await document.GetTextAsync()).ToString();
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 {
                     AssertEx.Any(items, c => CompareItems(c.DisplayText, expectedItemOrNull)
                         && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
-                        && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags(glyph.Value)) : true)
+                        && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)) : true)
                         && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true ));
                 }
             }
@@ -269,12 +269,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
 
             var document1 = await WorkspaceFixture.UpdateDocumentAsync(code, sourceCodeKind);
-            await CheckResultsAsync(document1, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph, matchPriority);
+            await CheckResultsAsync(document1, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
                 var document2 = await WorkspaceFixture.UpdateDocumentAsync(code, sourceCodeKind, cleanBeforeUpdate: false);
-                await CheckResultsAsync(document2, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph, matchPriority);
+                await CheckResultsAsync(document2, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority);
             }
         }
 
@@ -300,6 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
             var workspace = await WorkspaceFixture.GetWorkspaceAsync();
+            SetWorkspaceOptions(workspace);
             var textBuffer = workspace.Documents.Single().TextBuffer;
 
             var service = GetCompletionService(workspace);
@@ -317,6 +318,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 await VerifyCustomCommitWorkerAsync(service, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
+        }
+
+        protected virtual void SetWorkspaceOptions(TestWorkspace workspace)
+        {
         }
 
         internal async Task VerifyCustomCommitWorkerAsync(

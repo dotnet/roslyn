@@ -4,10 +4,13 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicCompletionCommandHandlerTests
@@ -2164,6 +2167,26 @@ End Class
             End Using
         End Function
 
+        <WorkItem(957450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957450")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEscapedItemCommittedWithCloseBracket() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System
+Class [Interface]
+    Sub Foo()
+        Dim x As $$
+    End Sub
+End Class
+            ]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.SendTypeChars("Interf]")
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(4, "Dim x As [Interface]")
+            End Using
+        End Function
+
         <WorkItem(1075298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075298")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitOnQuestionMarkForConditionalAccess() As Task
@@ -2455,6 +2478,29 @@ Anonymous Types:
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        Public Async Function TestAnonymousTypeDescription2() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Imports System.Linq
+
+Public Class Class1
+    Sub Method()
+        Dim x = {New With { Key .x = 1}}.ToArr$$
+    End Sub
+End Class
+]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(description:=
+"<Extension> Function IEnumerable(Of 'a).ToArray() As 'a()
+
+Anonymous Types:
+    'a is New With { Key .x As Integer }")
+            End Using
+        End Function
+
         <WorkItem(11812, "https://github.com/dotnet/roslyn/issues/11812")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestObjectCreationQualifiedName() As Task
@@ -2477,5 +2523,239 @@ Anonymous Types:
                 state.AssertMatchesTextStartingAtLine(3, "Dim b As B.C(Of Integer) = New B.C(Of Integer)(")
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSymbolInTupleLiteral() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Fo")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Fo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSymbolInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("Fo")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, Fo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSnippetInTupleLiteral() As Task
+            Dim snippetProvider As CompletionProvider =
+                New VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
+
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>,
+                  extraCompletionProviders:={snippetProvider},
+                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
+                                                                                    LanguageNames.VisualBasic,
+                                                                                    SnippetsRule.AlwaysInclude)
+
+                state.SendTypeChars("Shortcu")
+                Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Shortcu:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSnippetInTupleLiteralAfterComma() As Task
+            Dim snippetProvider As CompletionProvider =
+                New VisualStudio.LanguageServices.VisualBasic.Snippets.
+                    SnippetCompletionProvider(editorAdaptersFactoryService:=Nothing)
+
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+}]]></Document>,
+                  extraCompletionProviders:={snippetProvider},
+                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
+                                                                                    LanguageNames.VisualBasic,
+                                                                                    SnippetsRule.AlwaysInclude)
+
+                state.SendTypeChars("Shortcu")
+                Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, Shortcu:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBuiltInTypesKeywordInTupleLiteral() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Intege")
+                Await state.AssertSelectedCompletionItem(displayText:="Integer", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Intege:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBuiltInTypesKeywordInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Intege")
+                Await state.AssertSelectedCompletionItem(displayText:="Integer", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, Intege:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFunctionKeywordInTupleLiteral() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Functio")
+                Await state.AssertSelectedCompletionItem(displayText:="Function", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Functio:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFunctionKeywordInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+}]]></Document>)
+                state.SendTypeChars("Functio")
+                Await state.AssertSelectedCompletionItem(displayText:="Function", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, Functio:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSymbolInTupleType() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+       Dim t As ($$)
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("Integ")
+                Await state.AssertSelectedCompletionItem(displayText:="Integer", isHardSelected:=True)
+                state.SendTypeChars(",")
+                Assert.Contains("(Integer,", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInvocationExpression() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo(Alice As Integer)
+       Foo($$)
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("Alic")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Foo(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInvocationExpressionAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo(Alice As Integer, Bob As Integer)
+       Foo(1, $$)
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("B")
+                Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Foo(1, Bob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
+        Friend Class MockSnippetInfoService
+            Implements ISnippetInfoService
+
+            Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
+                Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))
+            End Function
+
+            Public Function ShouldFormatSnippet(snippetInfo As SnippetInfo) As Boolean Implements ISnippetInfoService.ShouldFormatSnippet
+                Return False
+            End Function
+
+            Public Function SnippetShortcutExists_NonBlocking(shortcut As String) As Boolean Implements ISnippetInfoService.SnippetShortcutExists_NonBlocking
+                Return shortcut = "Shortcut"
+            End Function
+        End Class
+
     End Class
+
 End Namespace

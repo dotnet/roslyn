@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -14,6 +12,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
@@ -52,10 +51,6 @@
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\Test\EditorServicesTest.csproj">
       <Project>{8CEE3609-A5A9-4A9B-86D7-33118F5D6B33}</Project>
       <Name>EditorServicesTest</Name>
@@ -75,10 +70,6 @@
     <ProjectReference Include="..\..\Core\Test\ServicesVisualStudioTest.vbproj">
       <Project>{A1455D30-55FC-45EF-8759-3AEBDB13D940}</Project>
       <Name>ServicesVisualStudioTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
-      <Project>{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}</Project>
-      <Name>VisualStudioInteractiveWindow</Name>
     </ProjectReference>
     <ProjectReference Include="..\Impl\CSharpVisualStudio.csproj">
       <Project>{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}</Project>
@@ -176,6 +167,7 @@
     <Compile Include="ProjectSystemShim\LegacyProject\AnalyzersTests.cs" />
     <Compile Include="ProjectSystemShim\LegacyProject\CSharpCompilerOptionsTests.cs" />
     <Compile Include="ProjectSystemShim\CSharpHelpers.cs" />
+    <Compile Include="ProjectSystemShim\LifetimeTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Debugging\Resources.resx">
@@ -191,8 +183,6 @@
     <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Some nodes have special binder's for their contents
         ''' </summary>
-        Public Overridable Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Public Overridable Function GetBinder(node As SyntaxNode) As Binder
             Return m_containingBinder.GetBinder(node)
         End Function
 
@@ -454,11 +454,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         ''' type isn't found.
         ''' </summary>
-        Friend Function GetWellKnownType(type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
+        Friend Function GetWellKnownType(type As WellKnownType, syntax As SyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
             Return GetWellKnownType(Me.Compilation, type, syntax, diagBag)
         End Function
 
-        Friend Shared Function GetWellKnownType(compilation As VisualBasicCompilation, type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
+        Friend Shared Function GetWellKnownType(compilation As VisualBasicCompilation, type As WellKnownType, syntax As SyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
             Dim typeSymbol As NamedTypeSymbol = compilation.GetWellKnownType(type)
             Debug.Assert(typeSymbol IsNot Nothing)
 
@@ -537,11 +537,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a layer on top of the assembly version that generates a diagnostic if the well-known
         ''' member isn't found.
         ''' </summary>
-        Friend Function GetSpecialTypeMember(member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
+        Friend Function GetSpecialTypeMember(member As SpecialMember, syntax As SyntaxNode, diagnostics As DiagnosticBag) As Symbol
             Return GetSpecialTypeMember(Me.ContainingMember.ContainingAssembly, member, syntax, diagnostics)
         End Function
 
-        Friend Shared Function GetSpecialTypeMember(assembly As AssemblySymbol, member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
+        Friend Shared Function GetSpecialTypeMember(assembly As AssemblySymbol, member As SpecialMember, syntax As SyntaxNode, diagnostics As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
             Dim specialMemberSymbol As Symbol = GetSpecialTypeMember(assembly, member, useSiteError)
 
@@ -569,11 +569,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         ''' member isn't found.
         ''' </summary>
-        Friend Function GetWellKnownTypeMember(member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
+        Friend Function GetWellKnownTypeMember(member As WellKnownMember, syntax As SyntaxNode, diagBag As DiagnosticBag) As Symbol
             Return GetWellKnownTypeMember(Me.Compilation, member, syntax, diagBag)
         End Function
 
-        Friend Shared Function GetWellKnownTypeMember(compilation As VisualBasicCompilation, member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
+        Friend Shared Function GetWellKnownTypeMember(compilation As VisualBasicCompilation, member As WellKnownMember, syntax As SyntaxNode, diagBag As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
             Dim memberSymbol As Symbol = GetWellKnownTypeMember(compilation, member, useSiteError)
 
@@ -623,15 +623,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get an error symbol.
         ''' </summary>
-        Public Overridable Function GetErrorSymbol(name As String,
-                                                   errorInfo As DiagnosticInfo,
-                                                   candidateSymbols As ImmutableArray(Of Symbol),
-                                                   resultKind As LookupResultKind) As ErrorTypeSymbol
-            Return m_containingBinder.GetErrorSymbol(name, errorInfo, candidateSymbols, resultKind)
+        Public Shared Function GetErrorSymbol(
+            name As String,
+            errorInfo As DiagnosticInfo,
+            candidateSymbols As ImmutableArray(Of Symbol),
+            resultKind As LookupResultKind,
+            Optional reportErrorWhenReferenced As Boolean = False
+        ) As ErrorTypeSymbol
+            Return New ExtendedErrorTypeSymbol(errorInfo, name, 0, candidateSymbols, resultKind, reportErrorWhenReferenced)
         End Function
 
-        Public Function GetErrorSymbol(name As String, errorInfo As DiagnosticInfo) As ErrorTypeSymbol
-            Return GetErrorSymbol(name, errorInfo, ImmutableArray(Of Symbol).Empty, LookupResultKind.Empty)
+        Public Shared Function GetErrorSymbol(name As String, errorInfo As DiagnosticInfo, Optional reportErrorWhenReferenced As Boolean = False) As ErrorTypeSymbol
+            Return GetErrorSymbol(name, errorInfo, ImmutableArray(Of Symbol).Empty, LookupResultKind.Empty, reportErrorWhenReferenced)
         End Function
 
         ''' <summary>
@@ -881,13 +884,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' information to report diagnostics, then store the symbols so that diagnostics
         ''' can be reported at a later stage.
         ''' </summary>
-        Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As VisualBasicSyntaxNode)
+        Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As SyntaxNode)
             If Not Me.SuppressObsoleteDiagnostics Then
                 ReportDiagnosticsIfObsolete(diagnostics, Me.ContainingMember, symbol, node)
             End If
         End Sub
 
-        Friend Shared Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, context As Symbol, symbol As Symbol, node As VisualBasicSyntaxNode)
+        Friend Shared Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, context As Symbol, symbol As Symbol, node As SyntaxNode)
             Debug.Assert(context IsNot Nothing)
             Debug.Assert(symbol IsNot Nothing)
 

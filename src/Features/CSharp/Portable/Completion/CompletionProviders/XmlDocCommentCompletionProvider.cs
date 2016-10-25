@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, TextSpan span,
+            Document document, int position,
             CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var items = new List<CompletionItem>();
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var attachedToken = parentTrivia.ParentTrivia.Token;
             if (attachedToken.Kind() == SyntaxKind.None)
@@ -63,9 +62,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            if (declaredSymbol != null)
+            // User is trying to write a name, try to suggest only names.
+            if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute) ||
+                (token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute)))
             {
-                items.AddRange(GetTagsForSymbol(declaredSymbol, span, parentTrivia, token));
+                string parentElementName = null;
+
+                var emptyElement = token.GetAncestor<XmlEmptyElementSyntax>();
+                if (emptyElement != null)
+                {
+                    parentElementName = emptyElement.Name.LocalName.Text;
+                }
+
+                if (parentElementName == ParamRefTagName)
+                {
+                    return GetParamNameItems(declaredSymbol);
+                }
+                else if (parentElementName == TypeParamRefTagName)
+                {
+                    return GetTypeParamNameItems(declaredSymbol);
+                }
             }
 
             if (token.Parent.Kind() == SyntaxKind.XmlEmptyElement || token.Parent.Kind() == SyntaxKind.XmlText ||
@@ -73,22 +89,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (token.Parent.IsKind(SyntaxKind.XmlName) && token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement)))
             {
                 // The user is typing inside an XmlElement
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement)
+                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement ||
+                    token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                 {
                     items.AddRange(GetNestedTags(declaredSymbol));
                 }
 
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListTagName)
                 {
-                    items.AddRange(GetListItems(span));
+                    items.AddRange(GetListItems());
                 }
 
-                if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) & token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
+                if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                 {
                     var element = (XmlElementSyntax)token.Parent.Parent.Parent;
                     if (element.StartTag.Name.LocalName.ValueText == ListTagName)
                     {
-                        items.AddRange(GetListItems(span));
+                        items.AddRange(GetListItems());
                     }
                 }
 
@@ -97,10 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     items.AddRange(GetListHeaderItems());
                 }
 
-                if (token.Parent.Parent is DocumentationCommentTriviaSyntax)
+                if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
+                    (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
                 {
-                    items.AddRange(GetTopLevelSingleUseNames(parentTrivia, span));
+                    items.AddRange(GetTopLevelSingleUseNames(parentTrivia));
                     items.AddRange(GetTopLevelRepeatableItems());
+                    items.AddRange(GetTagsForSymbol(declaredSymbol, parentTrivia));
                 }
             }
 
@@ -110,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListTagName)
                 {
-                    items.AddRange(GetListItems(span));
+                    items.AddRange(GetListItems());
                 }
 
                 if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListHeaderTagName)
@@ -123,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return items;
         }
 
-        private IEnumerable<CompletionItem> GetTopLevelSingleUseNames(DocumentationCommentTriviaSyntax parentTrivia, TextSpan span)
+        private IEnumerable<CompletionItem> GetTopLevelSingleUseNames(DocumentationCommentTriviaSyntax parentTrivia)
         {
             var names = new HashSet<string>(new[] { SummaryTagName, RemarksTagName, ExampleTagName, CompletionListTagName });
 
@@ -147,16 +166,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private IEnumerable<CompletionItem> GetTagsForSymbol(ISymbol symbol, TextSpan itemSpan, DocumentationCommentTriviaSyntax trivia, SyntaxToken token)
+        private IEnumerable<CompletionItem> GetTagsForSymbol(ISymbol symbol, DocumentationCommentTriviaSyntax trivia)
         {
             if (symbol is IMethodSymbol)
             {
-                return GetTagsForMethod((IMethodSymbol)symbol, trivia, token);
+                return GetTagsForMethod((IMethodSymbol)symbol, trivia);
             }
 
             if (symbol is IPropertySymbol)
             {
-                return GetTagsForProperty((IPropertySymbol)symbol, trivia, token);
+                return GetTagsForProperty((IPropertySymbol)symbol, trivia);
             }
 
             if (symbol is INamedTypeSymbol)
@@ -197,36 +216,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<CompletionItem> GetTagsForProperty(
-            IPropertySymbol symbol, DocumentationCommentTriviaSyntax trivia, SyntaxToken token)
+        private IEnumerable<CompletionItem> GetTagsForProperty(IPropertySymbol symbol, DocumentationCommentTriviaSyntax trivia)
         {
             var items = new List<CompletionItem>();
 
             if (symbol.IsIndexer)
             {
                 var parameters = symbol.GetParameters().Select(p => p.Name).ToSet();
-
-                // User is trying to write a name, try to suggest only names.
-                if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute) ||
-                    (token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute)))
-                {
-                    string parentElementName = null;
-
-                    var emptyElement = token.GetAncestor<XmlEmptyElementSyntax>();
-                    if (emptyElement != null)
-                    {
-                        parentElementName = emptyElement.Name.LocalName.Text;
-                    }
-
-                    // We're writing the name of a paramref
-                    if (parentElementName == ParamRefTagName)
-                    {
-                        items.AddRange(parameters.Select(CreateCompletionItem));
-                    }
-
-                    return items;
-                }
-
                 RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, ParamTagName));
                 items.AddRange(parameters.Select(p => CreateCompletionItem(FormatParameter(ParamTagName, p))));
             }
@@ -237,38 +233,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return items;
         }
 
-        private IEnumerable<CompletionItem> GetTagsForMethod(
-            IMethodSymbol symbol, DocumentationCommentTriviaSyntax trivia, SyntaxToken token)
+        private IEnumerable<CompletionItem> GetTagsForMethod(IMethodSymbol symbol, DocumentationCommentTriviaSyntax trivia)
         {
             var items = new List<CompletionItem>();
 
             var parameters = symbol.GetParameters().Select(p => p.Name).ToSet();
             var typeParameters = symbol.TypeParameters.Select(t => t.Name).ToSet();
-
-            // User is trying to write a name, try to suggest only names.
-            if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute) ||
-                (token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute)))
-            {
-                string parentElementName = null;
-
-                var emptyElement = token.GetAncestor<XmlEmptyElementSyntax>();
-                if (emptyElement != null)
-                {
-                    parentElementName = emptyElement.Name.LocalName.Text;
-                }
-
-                // We're writing the name of a paramref or typeparamref
-                if (parentElementName == ParamRefTagName)
-                {
-                    items.AddRange(parameters.Select(CreateCompletionItem));
-                }
-                else if (parentElementName == TypeParamRefTagName)
-                {
-                    items.AddRange(typeParameters.Select(CreateCompletionItem));
-                }
-
-                return items;
-            }
 
             RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, ParamTagName));
             RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, TypeParamTagName));
@@ -300,6 +270,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return items;
+        }
+
+        protected IEnumerable<CompletionItem> GetParamNameItems(ISymbol declaredSymbol)
+        {
+            var items = declaredSymbol?.GetParameters()
+                                       .Select(parameter => CreateCompletionItem(parameter.Name));
+
+            return items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>();
+        }
+
+        protected IEnumerable<CompletionItem> GetTypeParamNameItems(ISymbol declaredSymbol)
+        {
+            var items = declaredSymbol?.GetTypeParameters()
+                                       .Select(typeParameter => CreateCompletionItem(typeParameter.Name));
+
+            return items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
         private static CompletionItemRules s_defaultRules = 

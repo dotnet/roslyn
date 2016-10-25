@@ -1,9 +1,51 @@
 {
   "dependencies": {
     "xunit": "2.1.0",
-    "xunit.runner.console": "2.2.0-beta1-build3239"
+    "xunit.runner.console": "2.2.0-beta1-build3239",
+    "Newtonsoft.Json": "8.0.3",
+    "Nerdbank.FullDuplexStream": "1.0.1",
+    "BasicUndo": {
+      "version": "0.9.3",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Composition": {
+      "version": "14.2.19-pre",
+      "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Language.StandardClassification" : {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Language.Intellisense": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Text.UI": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Text.UI.Wpf": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    }
   },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   }
 }

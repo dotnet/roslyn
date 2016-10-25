@@ -4,6 +4,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal static class PredefinedCodeFixProviderNames
     {
+        public const string AddDocCommentNodes = "Add Doc Comment Nodes";
         public const string AddAwait = "Add Await For Expression";
         public const string AddAsync = "Add Async To Member";
         public const string ApplyNamingStyle = "Apply Naming Style";
@@ -43,5 +44,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddNew = "Add new keyword to member";
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
+        public const string UseObjectInitializer = nameof(UseObjectInitializer);
+        public const string UseThrowExpression = nameof(UseThrowExpression);
+        public const string PreferFrameworkType = nameof(PreferFrameworkType);
     }
 }

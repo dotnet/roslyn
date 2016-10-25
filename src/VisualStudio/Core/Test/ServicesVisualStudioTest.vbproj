@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -14,6 +12,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -35,6 +34,14 @@
     <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
       <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
       <Name>BasicFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
+      <Project>{21b239d0-d144-430f-a394-c066d58ee267}</Project>
+      <Name>CSharpWorkspace</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
@@ -285,7 +292,7 @@
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />
-    <Compile Include="SymbolSearch\SymbolSearchServiceTests.vb" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngineTests.vb" />
     <Compile Include="Options\Style\NamingPreferences\NamingRuleDialogViewModelTests.vb" />
     <Compile Include="Telemetry\VSTelemetryLoggerTest.vb" />
     <Compile Include="Utilities\VsNavInfoHelpers.vb" />
@@ -377,8 +384,6 @@
     <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

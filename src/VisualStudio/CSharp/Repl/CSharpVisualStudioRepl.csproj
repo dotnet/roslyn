@@ -1,11 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -16,11 +14,11 @@
     <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
-    <UseCodebase>true</UseCodebase>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
   </PropertyGroup>
@@ -47,10 +45,6 @@
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01e9bd68-0339-4a13-b42f-a3ca84d164f3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
       <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
       <Name>ServicesVisualStudio</Name>
@@ -58,14 +52,11 @@
     <ProjectReference Include="..\..\Core\Impl\ServicesVisualStudioImpl.csproj">
       <Project>{c0e80510-4fbe-4b0c-af2c-4f473787722c}</Project>
       <Name>ServicesVisualStudioImpl</Name>
+      <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\InteractiveServices\VisualStudioInteractiveServices.csproj">
       <Project>{a31228bb-f05c-4d4a-b98a-0e681d876b7c}</Project>
       <Name>VisualStudioInteractiveServices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
-      <Project>{20bb6fac-44d2-4d76-abfe-0c1e163a1a4f}</Project>
-      <Name>VisualStudioInteractiveWindow</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -123,7 +114,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

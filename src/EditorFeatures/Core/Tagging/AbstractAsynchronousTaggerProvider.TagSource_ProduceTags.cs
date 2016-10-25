@@ -561,8 +561,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var options = _dataSource.Options ?? SpecializedCollections.EmptyEnumerable<Option<bool>>();
                 var perLanguageOptions = _dataSource.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
 
-                return options.Any(option => !_subjectBuffer.GetOption(option)) ||
-                       perLanguageOptions.Any(option => !_subjectBuffer.GetOption(option));
+                return options.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option)) ||
+                       perLanguageOptions.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option));
             }
 
             private Task ProduceTagsAsync(TaggerContext<TTag> context)

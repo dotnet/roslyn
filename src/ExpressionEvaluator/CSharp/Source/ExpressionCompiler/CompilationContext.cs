@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo,
             CSharpSyntaxNode syntax)
         {
-            Debug.Assert((syntax == null) || (syntax is ExpressionSyntax) || (syntax is LocalDeclarationStatementSyntax));
+            Debug.Assert((syntax == null) || (syntax is ExpressionSyntax) || (syntax is LocalDeclarationStatementSyntax) || (syntax is DeconstructionDeclarationStatementSyntax));
 
             // TODO: syntax.SyntaxTree should probably be added to the compilation,
             // but it isn't rooted by a CompilationUnitSyntax so it doesn't work (yet).
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 typeName,
                 methodName,
                 this,
-                (method, diags) =>
+                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals) =>
                 {
                     var hasDisplayClassThis = _displayClassVariables.ContainsKey(GeneratedNames.ThisProxyFieldName());
                     var binder = ExtendBinderChain(
@@ -132,8 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         method,
                         this.NamespaceBinder,
                         hasDisplayClassThis,
-                        _methodNotType);
+                        _methodNotType,
+                        out declaredLocals);
                     var statementSyntax = _syntax as StatementSyntax;
+
                     return (statementSyntax == null) ?
                         BindExpression(binder, (ExpressionSyntax)_syntax, diags, out properties) :
                         BindStatement(binder, statementSyntax, diags, out properties);
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 typeName,
                 methodName,
                 this,
-                (method, diags) =>
+                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals) =>
                 {
                     var hasDisplayClassThis = _displayClassVariables.ContainsKey(GeneratedNames.ThisProxyFieldName());
                     var binder = ExtendBinderChain(
@@ -196,7 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         method,
                         this.NamespaceBinder,
                         hasDisplayClassThis,
-                        methodNotType: true);
+                        methodNotType: true,
+                        declaredLocals: out declaredLocals);
                     return BindAssignment(binder, (ExpressionSyntax)_syntax, diags);
                 });
 
@@ -302,8 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     alias);
                                 var methodName = GetNextMethodName(methodBuilder);
                                 var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-                                var aliasMethod = this.CreateMethod(container, methodName, syntax, (method, diags) =>
+                                var aliasMethod = this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals) =>
                                 {
+                                    declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                                     var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
                                     return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                                 });
@@ -488,8 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetLocalMethod(EENamedTypeSymbol container, string methodName, string localName, int localIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(localName);
-            return this.CreateMethod(container, methodName, syntax, (method, diagnostics) =>
+            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals) =>
             {
+                declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var local = method.LocalsForBinding[localIndex];
                 var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
@@ -499,8 +504,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetParameterMethod(EENamedTypeSymbol container, string methodName, string parameterName, int parameterIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(parameterName);
-            return this.CreateMethod(container, methodName, syntax, (method, diagnostics) =>
+            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals) =>
             {
+                declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var parameter = method.Parameters[parameterIndex];
                 var expression = new BoundParameter(syntax, parameter);
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
@@ -510,8 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetThisMethod(EENamedTypeSymbol container, string methodName)
         {
             var syntax = SyntaxFactory.ThisExpression();
-            return this.CreateMethod(container, methodName, syntax, (method, diagnostics) =>
+            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals) =>
             {
+                declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var expression = new BoundThisReference(syntax, GetNonDisplayClassContainer(container.SubstitutedSourceType));
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
@@ -520,8 +527,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetTypeVariablesMethod(EENamedTypeSymbol container, string methodName, NamedTypeSymbol typeVariablesType)
         {
             var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-            return this.CreateMethod(container, methodName, syntax, (method, diagnostics) =>
+            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals) =>
             {
+                declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
                 var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
                 var statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
@@ -532,9 +540,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static BoundStatement BindExpression(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics, out ResultProperties resultProperties)
         {
             var flags = DkmClrCompilationResultFlags.None;
-
-            binder = binder.GetBinder(syntax);
-            Debug.Assert(binder != null);
 
             // In addition to C# expressions, the native EE also supports
             // type names which are bound to a representation of the type
@@ -594,8 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
-            return binder.WrapWithVariablesIfAny(syntax,
-                                                 new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true });
+            return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
         }
 
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)
@@ -619,17 +623,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static BoundStatement BindAssignment(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
-            binder = binder.GetBinder(syntax);
-            Debug.Assert(binder != null);
-
             var expression = binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
             if (diagnostics.HasAnyErrors())
             {
                 return null;
             }
 
-            return binder.WrapWithVariablesIfAny(syntax,
-                                                 new BoundExpressionStatement(expression.Syntax, expression) { WasCompilerGenerated = true });
+            return new BoundExpressionStatement(expression.Syntax, expression) { WasCompilerGenerated = true };
         }
 
         private static Binder CreateBinderChain(
@@ -787,7 +787,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             EEMethodSymbol method,
             Binder binder,
             bool hasDisplayClassThis,
-            bool methodNotType)
+            bool methodNotType,
+            out ImmutableArray<LocalSymbol> declaredLocals)
         {
             var substitutedSourceMethod = GetSubstitutedSourceMethod(method.SubstitutedSourceMethod, hasDisplayClassThis);
             var substitutedSourceType = substitutedSourceMethod.ContainingType;
@@ -816,9 +817,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 binder = new WithTypeArgumentsBinder(substitutedSourceMethod.TypeArguments, binder);
             }
 
+            // Method locals and parameters shadow pseudo-variables.
+            // That is why we place PlaceholderLocalBinder and ExecutableCodeBinder before EEMethodBinder.
             if (methodNotType)
             {
-                // Method locals and parameters shadow pseudo-variables.
                 var typeNameDecoder = new EETypeNameDecoder(binder.Compilation, (PEModuleSymbol)substitutedSourceMethod.ContainingModule);
                 binder = new PlaceholderLocalBinder(
                     syntax,
@@ -828,14 +830,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     binder);
             }
 
-            binder = new EEMethodBinder(method, substitutedSourceMethod, binder);
+            Binder originalRootBinder = null;
+            SyntaxNode declaredLocalsScopeDesignator = null;
+            var executableBinder = new ExecutableCodeBinder(syntax, substitutedSourceMethod, binder,
+                                              (rootBinder, declaredLocalsScopeDesignatorOpt) =>
+                                              {
+                                                  originalRootBinder = rootBinder;
+                                                  declaredLocalsScopeDesignator = declaredLocalsScopeDesignatorOpt;
+                                                  binder = new EEMethodBinder(method, substitutedSourceMethod, rootBinder);
 
-            if (methodNotType)
+                                                  if (methodNotType)
+                                                  {
+                                                      binder = new SimpleLocalScopeBinder(method.LocalsForBinding, binder);
+                                                  }
+
+                                                  return binder;
+                                              });
+
+            // We just need to trigger the process of building the binder map
+            // so that the lambda above was executed.
+            executableBinder.GetBinder(syntax);
+
+            Debug.Assert(originalRootBinder != null);
+            Debug.Assert(executableBinder.Next != binder);
+
+            if (declaredLocalsScopeDesignator != null)
             {
-                binder = new SimpleLocalScopeBinder(method.LocalsForBinding, binder);
+                declaredLocals = originalRootBinder.GetDeclaredLocalsForScope(declaredLocalsScopeDesignator);
+            }
+            else
+            {
+                declaredLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
-            binder = new ExecutableCodeBinder(syntax, binder.ContainingMemberOrLambda, binder);
             return binder;
         }
 

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates a lowered form of the assignment operator for the given left and right sub-expressions.
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
-        private BoundExpression MakeAssignmentOperator(CSharpSyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, TypeSymbol type,
+        private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, TypeSymbol type,
             bool used, bool isChecked, bool isCompoundAssignment)
         {
             switch (rewrittenLeft.Kind)
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates a lowered form of the assignment operator for the given left and right sub-expressions.
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
-        private BoundExpression MakeStaticAssignmentOperator(CSharpSyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, RefKind refKind, TypeSymbol type, bool used)
+        private BoundExpression MakeStaticAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, RefKind refKind, TypeSymbol type, bool used)
         {
             switch (rewrittenLeft.Kind)
             {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakePropertyAssignment(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             PropertySymbol property,
             ImmutableArray<BoundExpression> rewrittenArguments,

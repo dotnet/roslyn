@@ -15,11 +15,13 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
@@ -61,9 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public PackageInstallerService(
             VisualStudioWorkspaceImpl workspace,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(workspace, ServiceComponentOnOffOptions.SymbolSearch,
-                              AddImportOptions.SuggestForTypesInReferenceAssemblies,
-                              AddImportOptions.SuggestForTypesInNuGetPackages)
+            : base(workspace, SymbolSearchOptions.Enabled,
+                              SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
+                              SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
@@ -99,20 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _packageServices.SourcesChanged += OnSourceProviderSourcesChanged;
-        }
-
-        protected override void StopWorking()
-        {
-            this.AssertIsForeground();
-
-            if (!IsEnabled)
-            {
-                return;
-            }
-
-            // Stop listening to workspace changes.
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            _packageServices.SourcesChanged -= OnSourceProviderSourcesChanged;
         }
 
         protected override void StartWorking()
@@ -166,11 +154,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     var description = string.Format(ServicesVSResources.Install_0, packageName);
 
-                    var document = workspace.CurrentSolution.GetDocument(documentId);
-                    var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                    var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
-                    var textBuffer = textSnapshot?.TextBuffer;
-                    var undoManager = GetUndoManager(textBuffer);
+                    var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
+                        workspace, documentId, cancellationToken);
 
                     return TryInstallAndAddUndoAction(source, packageName, versionOpt, dte, dteProject, undoManager);
                 }

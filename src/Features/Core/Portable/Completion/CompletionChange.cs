@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public TextChange TextChange { get; }
 
-        [Obsolete("Use TextChange instead")]
+        [Obsolete("Use TextChange instead", error: true)]
         public ImmutableArray<TextChange> TextChanges { get; }
 
         /// <summary>
@@ -41,9 +41,6 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionChange(TextChange textChange, int? newPosition, bool includesCommitCharacter)
         {
             TextChange = textChange;
-#pragma warning disable CS0618 // Type or member is obsolete
-            TextChanges = ImmutableArray.Create(textChange);
-#pragma warning restore CS0618 // Type or member is obsolete
             NewPosition = newPosition;
             IncludesCommitCharacter = includesCommitCharacter;
         }
@@ -57,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="includesCommitCharacter">True if the changes include the typed character that caused the <see cref="CompletionItem"/> to be committed.
         /// If false, the completion host will determine if and where the commit character is inserted into the document.</param>
         /// <returns></returns>
-        [Obsolete("Use Create overload that only takes a single TextChange")]
+        [Obsolete("Use Create overload that only takes a single TextChange", error: true)]
         public static CompletionChange Create(
             ImmutableArray<TextChange> textChanges,
             int? newPosition = null,
@@ -81,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Creates a copy of this <see cref="CompletionChange"/> with the <see cref="TextChange"/> property changed.
         /// </summary>
-        [Obsolete("Use WithTextChange instead")]
+        [Obsolete("Use WithTextChange instead", error: true)]
         public CompletionChange WithTextChanges(ImmutableArray<TextChange> textChanges)
         {
             return new CompletionChange(textChanges, this.NewPosition, this.IncludesCommitCharacter);

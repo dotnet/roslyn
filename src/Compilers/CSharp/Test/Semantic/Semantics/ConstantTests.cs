@@ -2848,6 +2848,9 @@ class Program
                 // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(6, 26),
+                // (6,36): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         void f() { if () const int i = 0; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 36),
                 // (6,14): warning CS0168: The variable 'f' is declared but never used
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(6, 14)
@@ -2904,7 +2907,10 @@ void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
     // (2,18): error CS1023: Embedded statement cannot be a declaration or labeled statement
     // void f() { if () const int i = 0; }
-    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(2, 18)
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(2, 18),
+    // (2,28): warning CS0219: The variable 'i' is assigned but its value is never used
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(2, 28)
                 );
         }
 

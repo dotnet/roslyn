@@ -7,6 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Supported Visual Basic language versions.
     ''' </summary>
     Public Enum LanguageVersion
+        [Default] = 0
         VisualBasic9 = 9
         VisualBasic10 = 10
         VisualBasic11 = 11
@@ -57,8 +58,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension>
-        Friend Function MapLatestToVersion(version As LanguageVersion) As LanguageVersion
-            Return If(version = LanguageVersion.Latest, LanguageVersion.VisualBasic15, version)
+        Friend Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
+            Select Case version
+                Case LanguageVersion.Latest, LanguageVersion.Default
+                    Return LanguageVersion.VisualBasic15
+                Case Else
+                    Return version
+            End Select
         End Function
 
     End Module

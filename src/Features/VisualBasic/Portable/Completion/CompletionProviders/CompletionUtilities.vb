@@ -123,10 +123,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
             End If
 
-            ' If the user is attempting to escape something, escape the item if it isn't already
-            ' escaped
-            If ch = "]"c AndAlso insertionText(0) <> "["c Then
-                Return "[" + insertionText
+            If ch = "]"c Then
+                If insertionText(0) <> "["c Then
+                    ' user is committing with ].  If the item doesn't start with '['
+                    ' then add that to the beginning so [ and ] properly pair up.
+                    Return "[" + insertionText
+                End If
+
+                If insertionText.EndsWith("]") Then
+                    ' If the user commits with "]" and the item already ends with "]"
+                    ' then trim "]" off the end so we don't have ]] inserted into the
+                    ' document.
+                    Return insertionText.Substring(0, insertionText.Length - 1)
+                End If
             End If
 
             Return insertionText

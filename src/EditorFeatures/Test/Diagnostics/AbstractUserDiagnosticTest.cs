@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Options;
@@ -252,6 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             int index = 0,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
+            IDictionary<OptionKey, object> featureOptions = null,
             string diagnosticId = null,
             string fixAllActionEquivalenceId = null,
             object fixProviderData = null)
@@ -263,6 +265,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var expectedTextSpans = spansList.ToSet();
             using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
+                if (featureOptions != null)
+                {
+                    workspace.ApplyOptions(featureOptions);
+                }
+
                 ISet<TextSpan> actualTextSpans;
                 if (diagnosticId == null)
                 {

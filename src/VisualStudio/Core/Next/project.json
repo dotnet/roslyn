@@ -1,0 +1,22 @@
+﻿{
+    "dependencies": {
+        "Dev15BinariesForRoslyn": "4.0.0.0",
+        "Microsoft.VisualStudio.ImageCatalog": "15.0.25604-Preview4",
+        "NuGet.VisualStudio": {
+            "version": "3.3.0",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.ServiceHub.Client": "0.13.78-alpha-gf674a884a9",
+        "Newtonsoft.Json": "8.0.3",
+        "RoslynDependencies.Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.25718-Preview5",
+        "RoslynDependencies.Microsoft.VisualStudio.Workspace": "14.0.983-pre-ge167e81694",
+        "System.Collections.Immutable": "1.2.0"
+    },
+    "frameworks": {
+        "net46": { }
+    }
+}

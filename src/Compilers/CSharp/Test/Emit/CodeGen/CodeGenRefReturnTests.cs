@@ -2370,5 +2370,121 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(12, 17)
                 );
         }
+
+        [Fact]
+        public void Override_Metadata()
+        {
+            var ilSource =
+@".class public abstract A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public virtual instance object F() { ldnull throw }
+  .method public virtual instance object& get_P() { ldnull throw }
+  .property instance object& P()
+  {
+    .get instance object& A::get_P()
+  }
+}
+.class public abstract B1 extends A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public virtual instance object F() { ldnull throw }
+  .method public virtual instance object get_P() { ldnull throw }
+  .property instance object P()
+  {
+    .get instance object B1::get_P()
+  }
+}
+.class public abstract B2 extends A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public virtual instance object& F() { ldnull throw }
+  .method public virtual instance object& get_P() { ldnull throw }
+  .property instance object& P()
+  {
+    .get instance object& B2::get_P()
+  }
+}";
+            var ref1 = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib("", options: TestOptions.DebugDll, references: new[] { ref1 });
+
+            var method = compilation.GetMember<MethodSymbol>("B1.F");
+            Assert.Equal("System.Object B1.F()", method.ToTestDisplayString());
+            Assert.Equal("System.Object A.F()", method.OverriddenMethod.ToTestDisplayString());
+
+            var property = compilation.GetMember<PropertySymbol>("B1.P");
+            Assert.Equal("System.Object B1.P { get; }", property.ToTestDisplayString());
+            Assert.Null(property.OverriddenProperty);
+
+            method = compilation.GetMember<MethodSymbol>("B2.F");
+            Assert.Equal("ref System.Object B2.F()", method.ToTestDisplayString());
+            Assert.Null(method.OverriddenMethod);
+
+            property = compilation.GetMember<PropertySymbol>("B2.P");
+            Assert.Equal("ref System.Object B2.P { get; }", property.ToTestDisplayString());
+            Assert.Equal("ref System.Object A.P { get; }", property.OverriddenProperty.ToTestDisplayString());
+        }
+
+        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [Fact]
+        public void RefReturnFieldUse001()
+        {
+            var text = @"
+public class A<T>
+{
+    private T _f;
+    public ref T F()
+    {
+        return ref _f;
+    }
+
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                 // no diagnostics expected
+                );
+        }
+
+        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [Fact]
+        public void RefAssignFieldUse001()
+        {
+            var text = @"
+public class A<T>
+{
+    private T _f;
+    public ref T F()
+    {
+        ref var r = ref _f;
+        return ref r;
+    }
+
+    private T _p;
+    public ref T P
+    {
+        get 
+        { 
+            ref var r = ref _p;
+            return ref r;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // no diagnostics expected
+                );
+        }
+
     }
 }

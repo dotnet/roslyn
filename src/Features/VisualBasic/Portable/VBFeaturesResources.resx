@@ -210,9 +210,6 @@
   <data name="Mid_statement" xml:space="preserve">
     <value>Mid statement</value>
   </data>
-  <data name="Implement_Abstract_Class" xml:space="preserve">
-    <value>Implement Abstract Class</value>
-  </data>
   <data name="Fix_Incorrect_Function_Return_Type" xml:space="preserve">
     <value>Fix Incorrect Function Return Type</value>
   </data>
@@ -979,9 +976,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Insert_Await" xml:space="preserve">
     <value>Insert 'Await'.</value>
   </data>
-  <data name="Make_the_containing_scope_Async" xml:space="preserve">
-    <value>Make the containing scope 'Async'.</value>
-  </data>
   <data name="Make_0_an_Async_Function" xml:space="preserve">
     <value>Make {0} an Async Function.</value>
   </data>
@@ -1218,5 +1212,27 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Type_a_name_here_to_declare_a_partial_structure" xml:space="preserve">
     <value>Type a name here to declare a partial structure.</value>
+  </data>
+  <data name="Event_add_handler_name" xml:space="preserve">
+    <value>{0}.add</value>
+    <comment>The name of an event add handler where "{0}" is the event name.</comment>
+  </data>
+  <data name="Event_remove_handler_name" xml:space="preserve">
+    <value>{0}.remove</value>
+    <comment>The name of an event remove handler where "{0}" is the event name.</comment>
+  </data>
+  <data name="Property_getter_name" xml:space="preserve">
+    <value>{0}.get</value>
+    <comment>The name of a property getter like "public int MyProperty { get; }" where "{0}" is the property name</comment>
+  </data>
+  <data name="Property_setter_name" xml:space="preserve">
+    <value>{0}.set</value>
+    <comment>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</comment>
+  </data>
+  <data name="Make_Async_Function" xml:space="preserve">
+    <value>Make Async Function</value>
+  </data>
+  <data name="Make_Async_Sub" xml:space="preserve">
+    <value>Make Async Sub</value>
   </data>
 </root>

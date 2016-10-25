@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
                 }
 
-                string outputPath = _vsProject.TryGetObjOutputPath();
+                string outputPath = _vsProject.ObjOutputPath;
 
                 // The project doesn't produce a debuggable binary or we can't read it.
                 // Continue on since the debugger ignores HResults and we need to handle subsequent calls.
@@ -331,6 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 _exceptionRegions = null;
                 _committedBaseline = null;
                 _activeStatementIds = null;
+                _projectBeingEmitted = null;
 
                 Debug.Assert((_pdbReaderObjAsStream == IntPtr.Zero) || (_pdbReader == null));
 
@@ -405,7 +406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
             if (pbstrPEName != null && pbstrPEName.Length != 0)
             {
-                var outputPath = _vsProject.TryGetObjOutputPath();
+                var outputPath = _vsProject.ObjOutputPath;
                 Debug.Assert(outputPath != null);
 
                 pbstrPEName[0] = Path.GetFileName(outputPath);
@@ -986,7 +987,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
 
                 var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId);
-                
+
                 // Clear diagnostics, in case the project was built before and failed due to errors.
                 _diagnosticProvider.ClearDiagnostics(errorId, _projectBeingEmitted.Solution, _vsProject.Id, _documentsWithEmitError);
 

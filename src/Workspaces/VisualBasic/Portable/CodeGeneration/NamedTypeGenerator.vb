@@ -179,8 +179,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case Accessibility.ProtectedOrInternal
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
-                Case Accessibility.Internal
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
                 Case Else
             End Select
 

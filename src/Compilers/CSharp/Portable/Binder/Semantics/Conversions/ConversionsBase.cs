@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast);
 
+        internal AssemblySymbol CorLibrary {  get { return corLibrary; } }
+
         /// <summary>
         /// Determines if the source expression is convertible to the destination type via
         /// any built-in or user-defined implicit conversion.
@@ -835,6 +837,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return interpolatedStringConversion;
                     }
                     break;
+
+                case BoundKind.ThrowExpression:
+                    return Conversion.ImplicitThrow;
             }
 
             return Conversion.NoConversion;

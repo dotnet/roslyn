@@ -3,7 +3,6 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
-Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Shared.TestHooks

@@ -230,10 +230,7 @@ class C
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("C");
-                    var value = CreateDkmClrValue(
-                        value: type.Instantiate(),
-                        type: type,
-                        evalFlags: DkmEvaluationResultFlags.None);
+                    var value = type.Instantiate();
                     var evalResult = FormatResult("o", value);
                     Verify(evalResult,
                         EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));

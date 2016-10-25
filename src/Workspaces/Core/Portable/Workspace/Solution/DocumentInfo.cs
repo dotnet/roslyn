@@ -2,6 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -9,32 +12,40 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A class that represents all the arguments necessary to create a new document instance.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay() , nq}")]
     public sealed class DocumentInfo
     {
+        internal DocumentAttributes Attributes { get; }
+
         /// <summary>
         /// The Id of the document.
         /// </summary>
-        public DocumentId Id { get; }
+        public DocumentId Id => Attributes.Id;
 
         /// <summary>
         /// The name of the document.
         /// </summary>
-        public string Name { get; }
+        public string Name => Attributes.Name;
 
         /// <summary>
         /// The names of the logical nested folders the document is contained in.
         /// </summary>
-        public IReadOnlyList<string> Folders { get; }
+        public IReadOnlyList<string> Folders => Attributes.Folders;
 
         /// <summary>
         /// The kind of the source code.
         /// </summary>
-        public SourceCodeKind SourceCodeKind { get; }
+        public SourceCodeKind SourceCodeKind => Attributes.SourceCodeKind;
 
         /// <summary>
         /// The file path of the document.
         /// </summary>
-        public string FilePath { get; }
+        public string FilePath => Attributes.FilePath;
+
+        /// <summary>
+        /// True if the document is a side effect of the build.
+        /// </summary>
+        public bool IsGenerated => Attributes.IsGenerated;
 
         /// <summary>
         /// A loader that can retrieve the document text.
@@ -42,39 +53,12 @@ namespace Microsoft.CodeAnalysis
         public TextLoader TextLoader { get; }
 
         /// <summary>
-        /// True if the document is a side effect of the build.
-        /// </summary>
-        public bool IsGenerated { get; }
-
-        /// <summary>
         /// Create a new instance of a <see cref="DocumentInfo"/>.
         /// </summary>
-        private DocumentInfo(
-            DocumentId id,
-            string name,
-            IEnumerable<string> folders,
-            SourceCodeKind sourceCodeKind,
-            TextLoader loader,
-            string filePath,
-            bool isGenerated)
+        private DocumentInfo(DocumentAttributes attributes, TextLoader loader)
         {
-            if (id == null)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            this.Id = id;
-            this.Name = name;
-            this.Folders = folders.ToImmutableReadOnlyListOrEmpty();
-            this.SourceCodeKind = sourceCodeKind;
-            this.TextLoader = loader;
-            this.FilePath = filePath;
-            this.IsGenerated = isGenerated;
+            Attributes = attributes;
+            TextLoader = loader;
         }
 
         public static DocumentInfo Create(
@@ -86,65 +70,186 @@ namespace Microsoft.CodeAnalysis
             string filePath = null,
             bool isGenerated = false)
         {
-            return new DocumentInfo(id, name, folders, sourceCodeKind, loader, filePath, isGenerated);
+            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated), loader);
         }
 
         private DocumentInfo With(
-            DocumentId id = null,
-            string name = null,
-            IEnumerable<string> folders = null,
-            Optional<SourceCodeKind> sourceCodeKind = default(Optional<SourceCodeKind>),
-            Optional<TextLoader> loader = default(Optional<TextLoader>),
-            Optional<string> filePath = default(Optional<string>))
+            DocumentAttributes attributes = null,
+            Optional<TextLoader> loader = default(Optional<TextLoader>))
         {
-            var newId = id ?? this.Id;
-            var newName = name ?? this.Name;
-            var newFolders = folders ?? this.Folders;
-            var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : this.SourceCodeKind;
-            var newLoader = loader.HasValue ? loader.Value : this.TextLoader;
-            var newFilePath = filePath.HasValue ? filePath.Value : this.FilePath;
+            var newAttributes = attributes ?? Attributes;
+            var newLoader = loader.HasValue ? loader.Value : TextLoader;
 
-            if (newId == this.Id &&
-                newName == this.Name &&
-                newFolders == this.Folders &&
-                newSourceCodeKind == this.SourceCodeKind &&
-                newLoader == this.TextLoader &&
-                newFilePath == this.FilePath)
+            if (newAttributes == Attributes && newLoader == TextLoader)
             {
                 return this;
             }
 
-            return new DocumentInfo(newId, newName, newFolders, newSourceCodeKind, newLoader, newFilePath, this.IsGenerated);
+            return new DocumentInfo(newAttributes, newLoader);
         }
 
         public DocumentInfo WithId(DocumentId id)
         {
-            return this.With(id: id);
+            return With(attributes: Attributes.With(id: id));
         }
 
         public DocumentInfo WithName(string name)
         {
-            return this.With(name: name);
+            return this.With(attributes: Attributes.With(name: name));
         }
 
         public DocumentInfo WithFolders(IEnumerable<string> folders)
         {
-            return this.With(folders: folders.ToImmutableReadOnlyListOrEmpty());
+            return this.With(attributes: Attributes.With(folders: folders.ToImmutableReadOnlyListOrEmpty()));
         }
 
         public DocumentInfo WithSourceCodeKind(SourceCodeKind kind)
         {
-            return this.With(sourceCodeKind: kind);
+            return this.With(attributes: Attributes.With(sourceCodeKind: kind));
         }
 
         public DocumentInfo WithTextLoader(TextLoader loader)
         {
-            return this.With(loader: loader);
+            return With(loader: loader);
         }
 
         public DocumentInfo WithFilePath(string filePath)
         {
-            return this.With(filePath: filePath);
+            return this.With(attributes: Attributes.With(filePath: filePath));
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return (FilePath == null) ? (nameof(Name) + " = " + Name) : (nameof(FilePath) + " = " + FilePath);
+        }
+
+        /// <summary>
+        /// type that contains information regarding this document itself but
+        /// no tree information such as document info
+        /// </summary>
+        internal class DocumentAttributes : IChecksummedObject, IObjectWritable
+        {
+            /// <summary>
+            /// The Id of the document.
+            /// </summary>
+            public DocumentId Id { get; }
+
+            /// <summary>
+            /// The name of the document.
+            /// </summary>
+            public string Name { get; }
+
+            /// <summary>
+            /// The names of the logical nested folders the document is contained in.
+            /// </summary>
+            public IReadOnlyList<string> Folders { get; }
+
+            /// <summary>
+            /// The kind of the source code.
+            /// </summary>
+            public SourceCodeKind SourceCodeKind { get; }
+
+            /// <summary>
+            /// The file path of the document.
+            /// </summary>
+            public string FilePath { get; }
+
+            /// <summary>
+            /// True if the document is a side effect of the build.
+            /// </summary>
+            public bool IsGenerated { get; }
+
+            public DocumentAttributes(
+                DocumentId id,
+                string name,
+                IEnumerable<string> folders,
+                SourceCodeKind sourceCodeKind,
+                string filePath,
+                bool isGenerated)
+            {
+                if (id == null)
+                {
+                    throw new ArgumentNullException(nameof(id));
+                }
+
+                if (name == null)
+                {
+                    throw new ArgumentNullException(nameof(name));
+                }
+
+                Id = id;
+                Name = name;
+                Folders = folders.ToImmutableReadOnlyListOrEmpty();
+                SourceCodeKind = sourceCodeKind;
+                FilePath = filePath;
+                IsGenerated = isGenerated;
+            }
+
+            public DocumentAttributes With(
+                DocumentId id = null,
+                string name = null,
+                IEnumerable<string> folders = null,
+                Optional<SourceCodeKind> sourceCodeKind = default(Optional<SourceCodeKind>),
+                Optional<string> filePath = default(Optional<string>),
+                Optional<bool> isGenerated = default(Optional<bool>))
+            {
+                var newId = id ?? Id;
+                var newName = name ?? Name;
+                var newFolders = folders ?? Folders;
+                var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : SourceCodeKind;
+                var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
+                var newIsGenerated = isGenerated.HasValue ? isGenerated.Value : IsGenerated;
+
+                if (newId == Id &&
+                    newName == Name &&
+                    newFolders == Folders &&
+                    newSourceCodeKind == SourceCodeKind &&
+                    newFilePath == FilePath &&
+                    newIsGenerated == IsGenerated)
+                {
+                    return this;
+                }
+
+                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated);
+            }
+
+            public void WriteTo(ObjectWriter writer)
+            {
+                Id.WriteTo(writer);
+
+                writer.WriteString(Name);
+                writer.WriteValue(Folders.ToArray());
+                writer.WriteInt32((int)SourceCodeKind);
+                writer.WriteString(FilePath);
+                writer.WriteBoolean(IsGenerated);
+            }
+
+            public static DocumentAttributes ReadFrom(ObjectReader reader)
+            {
+                var documentId = DocumentId.ReadFrom(reader);
+
+                var name = reader.ReadString();
+                var folders = (string[])reader.ReadValue();
+                var sourceCodeKind = reader.ReadInt32();
+                var filePath = reader.ReadString();
+                var isGenerated = reader.ReadBoolean();
+
+                return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
+            }
+
+            private Checksum _lazyChecksum;
+            Checksum IChecksummedObject.Checksum
+            {
+                get
+                {
+                    if (_lazyChecksum == null)
+                    {
+                        _lazyChecksum = Checksum.Create(this, nameof(DocumentAttributes));
+                    }
+
+                    return _lazyChecksum;
+                }
+            }
         }
     }
 }

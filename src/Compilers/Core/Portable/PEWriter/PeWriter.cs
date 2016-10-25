@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -41,7 +42,7 @@ namespace Microsoft.Cci
 
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, isDeterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
-            var properties = context.Module.Properties;
+            var properties = context.Module.SerializationProperties;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
@@ -74,8 +75,7 @@ namespace Microsoft.Cci
 
             if (nativePdbWriterOpt != null)
             {
-                var assembly = mdWriter.Module.AsAssembly;
-                if (assembly != null && assembly.Kind == OutputKind.WindowsRuntimeMetadata)
+                if (mdWriter.Module.OutputKind == OutputKind.WindowsRuntimeMetadata)
                 {
                     // Dev12: If compiling to winmdobj, we need to add to PDB source spans of
                     //        all types and members for better error reporting by WinMDExp.
@@ -89,6 +89,9 @@ namespace Microsoft.Cci
                     nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(mdWriter.Module.GetSymbolToLocationMap());
 #endif
                 }
+
+                // embedded text not currently supported for native PDB and we should have validated that
+                Debug.Assert(!mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments.Any());
             }
 
             Stream peStream = getPeStream();
@@ -133,6 +136,8 @@ namespace Microsoft.Cci
             BlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitStandaloneDebugMetadata)
             {
+                mdWriter.AddRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
+
                 var portablePdbBlob = new BlobBuilder();
                 var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes, debugEntryPointHandle, deterministicIdProvider);
                 pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
@@ -193,8 +198,7 @@ namespace Microsoft.Cci
                 deterministicIdProvider);
 
             var peBlob = new BlobBuilder();
-            BlobContentId peContentId;
-            peBuilder.Serialize(peBlob, out peContentId);
+            var peContentId = peBuilder.Serialize(peBlob);
 
             PatchModuleVersionIds(mvidFixup, mvidStringFixup, peContentId.Guid);
 
@@ -236,7 +240,7 @@ namespace Microsoft.Cci
             return path + new string('\0', Math.Max(0, minLength - Encoding.UTF8.GetByteCount(path) - 1));
         }
 
-        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(IModule module)
+        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(CommonPEModuleBuilder module)
         {
             // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
             // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
@@ -293,9 +297,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private static int CalculateStrongNameSignatureSize(IModule module)
+        private static int CalculateStrongNameSignatureSize(CommonPEModuleBuilder module)
         {
-            IAssembly assembly = module.AsAssembly;
+            ISourceAssemblySymbolInternal assembly = module.SourceAssemblyOpt;
             if (assembly == null)
             {
                 return 0;
@@ -306,7 +310,7 @@ namespace Microsoft.Cci
 
             if (keySize == 0)
             {
-                keySize = assembly.PublicKey.Length;
+                keySize = assembly.Identity.PublicKey.Length;
             }
 
             if (keySize == 0)

@@ -40,8 +40,8 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.Scripting.dll" target="lib\dotnet" />
-    <file src="Microsoft.CodeAnalysis.Scripting.xml" target="lib\dotnet" />
+    <file src="Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.dll" target="lib\dotnet" />
+    <file src="Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.xml" target="lib\dotnet" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

@@ -220,6 +220,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         {
             switch (glyph)
             {
+                case Glyph.None:
+                    return default(ImageMoniker);
+
                 case Glyph.Assembly:
                     return KnownMonikers.Assembly;
 
@@ -638,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 }
             }
 
-            return default(Glyph);
+            return Glyph.None;
         }
 
         private static Accessibility GetAccessibility(ImmutableArray<string> tags)

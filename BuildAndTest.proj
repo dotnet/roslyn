@@ -13,16 +13,25 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
+    <RunTestArgs Condition="'$(TestVsi)' == 'true'">$(RunTestArgs) -testVsi</RunTestArgs>
     <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
-    <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
+    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests*.dll</IncludePattern>
+    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests*.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
     <MSBuildCommonProperties>
       RestorePackages=false;
       TreatWarningsAsErrors=true;
+    </MSBuildCommonProperties>
+    <MSBuildCommonProperties Condition="'$(TestVsi)' != 'true'">
+      $(MSBuildCommonProperties);
       DeployExtension=false;
+    </MSBuildCommonProperties>
+    <MSBuildCommonProperties Condition="'$(TestVsi)' == 'true'">
+      $(MSBuildCommonProperties);
+      DeployExtension=true;
     </MSBuildCommonProperties>
   </PropertyGroup>
 
@@ -79,30 +88,23 @@
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
       <TestAssemblies Condition="'$(Test64)' != 'true'" 
-                      Include="$(OutputDirectory)\$(IncludePattern)" />
+                      Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);" />
 
       <TestAssemblies Condition="'$(Test64)' == 'true'" 
-                      Include="$(OutputDirectory)\$(IncludePattern)" 
-                      Exclude="$(OutputDirectory)\Roslyn.Interactive*" />
+                      Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);"
+                      Exclude="$(OutputDirectory)\UnitTests*\**\Roslyn.Interactive*" />
 
       <CoreTestAssemblies Include="$(CoreClrTestDirectory)\$(IncludePattern)" />
-
-      <MisplacedTestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)"
-                               Exclude="$(OutputDirectory)\$(IncludePattern);@(CoreTestAssemblies)" />
     </ItemGroup>
-
-    <Error Condition="'@(MisplacedTestAssemblies->Count())' &gt; 0"
-        Text="Found test assemblies outside a well-known test directory: 
-@(MisplacedTestAssemblies, '%0a')" />
 
     <PropertyGroup>
       <CoreRunExe>$(CoreClrTestDirectory)\CoreRun.exe</CoreRunExe>
       <CoreRunArgs>$(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\xUnitResults\TestResults.xml</CoreRunArgs>
-      <RunTestsExe>Binaries\$(Configuration)\RunTests\RunTests.exe</RunTestsExe>
+      <RunTestsExe>Binaries\$(Configuration)\Tools\RunTests\RunTests.exe</RunTestsExe>
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
     </PropertyGroup>
     
-    <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+    <Exec Condition="'$(RunProcessWatchdog)' != 'true' AND '$(TestVsi)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
     <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
 

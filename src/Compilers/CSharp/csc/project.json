@@ -1,13 +1,11 @@
 ﻿{
-  "dependencies": {
-    "Microsoft.DiaSymReader.Native": "1.5.0-beta1"
-  },
-  "frameworks": {
-    "net46": { }
-  },
-  "runtimes": {
-    "win7": { },
-    "ubuntu.14.04": { },
-    "osx.10.10": { }
-  }
+    "dependencies": {
+        "Microsoft.DiaSymReader.Native": "1.5.0-beta1"
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -17,6 +15,7 @@
     <TargetFrameworkProfile />
     <RestorePackages>true</RestorePackages>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -89,10 +88,6 @@
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
@@ -143,6 +138,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -185,6 +181,7 @@
     <Compile Include="CodeGeneration\ExpressionPrecedenceGenerationTests.cs" />
     <Compile Include="CodeGeneration\NameGenerationTests.cs" />
     <Compile Include="CodeGeneration\StatementGenerationTests.cs" />
+    <Compile Include="CodeLens\AbstractCodeLensTest.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringServiceTest.cs" />
     <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactorings.cs" />
     <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactoringsAsync.cs" />
@@ -219,12 +216,13 @@
     <Compile Include="Extensions\WorkspaceExtensions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
     <Compile Include="MoveType\AbstractMoveTypeTest.cs" />
-    <Compile Include="Outlining\AbstractSyntaxNodeOutlinerTests.cs" />
-    <Compile Include="Outlining\AbstractSyntaxOutlinerTests.cs" />
-    <Compile Include="Outlining\AbstractSyntaxTriviaOutlinerTests.cs" />
-    <Compile Include="Outlining\OutliningServiceTests.cs" />
+    <Compile Include="NavigateTo\AbstractNavigateToTests.cs" />
     <Compile Include="Preview\MockPreviewPaneService.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
+    <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />
+    <Compile Include="Structure\AbstractSyntaxStructureProviderTests.cs" />
+    <Compile Include="Structure\AbstractSyntaxTriviaStructureProviderTests.cs" />
+    <Compile Include="Structure\BlockStructureServiceTests.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />
     <Compile Include="DocumentationComments\AbstractXmlTagCompletionTests.cs" />
@@ -267,11 +265,10 @@
     <Compile Include="MetadataAsSource\MetadataAsSourceTests.cs" />
     <Compile Include="MetadataAsSource\MetadataAsSourceTests.CSharp.cs" />
     <Compile Include="MetadataAsSource\MetadataAsSourceTests.VisualBasic.cs" />
-    <Compile Include="MinimalTestExportProvider.cs" />
     <Compile Include="NavigateTo\NavigateToTestAggregator.Callback.cs" />
     <Compile Include="NavigateTo\NavigateToTestAggregator.cs" />
-    <Compile Include="Outlining\OutliningSpanTests.cs" />
-    <Compile Include="Outlining\OutliningTaggerTests.cs" />
+    <Compile Include="Structure\BlockSpanTests.cs" />
+    <Compile Include="Structure\StructureTaggerTests.cs" />
     <Compile Include="Preview\PreviewWorkspaceTests.cs" />
     <Compile Include="QuickInfo\AbstractQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\AbstractSemanticQuickInfoSourceTests.cs" />
@@ -288,8 +285,6 @@
     <Compile Include="Tagging\AsynchronousTaggerTests.cs" />
     <Compile Include="Tagging\TagSpanIntervalTreeTests.cs" />
     <Compile Include="TestExportProvider.cs" />
-    <Compile Include="TestExtensionErrorHandler.cs" />
-    <Compile Include="TestOptionsServiceFactory.cs" />
     <Compile Include="TextEditorFactoryExtensions.cs" />
     <Compile Include="TextEditor\TextBufferAssociatedViewServiceTests.cs" />
     <Compile Include="TextEditor\TryGetDocumentTests.cs" />
@@ -303,14 +298,9 @@
     <Compile Include="Utilities\SymbolEquivalenceComparerTests.cs" />
     <Compile Include="Utilities\TestEditorOptions.cs" />
     <Compile Include="Utilities\TestWaitContext.cs" />
-    <Compile Include="Utilities\TestWaitIndicator.cs" />
     <Compile Include="Workspaces\CSharpTestWorkspaceFixture.cs" />
     <Compile Include="Workspaces\MefTestWorkspace.cs" />
-    <Compile Include="Workspaces\NoCompilationConstants.cs" />
-    <Compile Include="Workspaces\NoCompilationContentTypeDefinitions.cs" />
-    <Compile Include="Workspaces\NoCompilationContentTypeLanguageService.cs" />
-    <Compile Include="Workspaces\NoCompilationDocumentDiagnosticAnalyzer.cs" />
-    <Compile Include="Workspaces\NoCompilationLanguageServiceFactory.cs" />
+    <Compile Include="OptionExtensions.cs" />
     <Compile Include="Workspaces\TestForegroundNotificationService.cs" />
     <Compile Include="Workspaces\TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Workspaces\TestFormattingRuleFactoryServiceFactory.cs" />
@@ -338,8 +328,6 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

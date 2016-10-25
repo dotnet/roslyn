@@ -126,13 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);
-
-            // local declaration statements need to be wrapped in a block so the local gets seen 
-            if (!statement.IsKind(SyntaxKind.Block))
-            {
-                binder = new BlockBinder(binder, new SyntaxList<StatementSyntax>(statement));
-            }
-
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, position);
             return true;
         }

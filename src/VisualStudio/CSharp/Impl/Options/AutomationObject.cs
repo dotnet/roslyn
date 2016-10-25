@@ -9,11 +9,13 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -352,20 +354,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int SortUsings_PlaceSystemFirst
         {
-            get { return GetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst); }
-            set { SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value); }
+            get { return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst); }
+            set { SetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst, value); }
         }
 
         public int AddImport_SuggestForTypesInReferenceAssemblies
         {
-            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies); }
-            set { SetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, value); }
+            get { return GetBooleanOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies); }
+            set { SetBooleanOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, value); }
         }
 
         public int AddImport_SuggestForTypesInNuGetPackages
         {
-            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages); }
-            set { SetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages, value); }
+            get { return GetBooleanOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages); }
+            set { SetBooleanOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, value); }
         }
 
         public int Space_AfterBasesColon
@@ -515,16 +517,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpFormattingOptions.SpaceWithinSquareBrackets, value); }
         }
 
-        public int Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration
         {
-            get { return GetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration); }
-            set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value); }
+            get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration); }
+            set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value); }
         }
 
-        public int Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess
         {
-            get { return GetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); }
-            set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
+            get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); }
+            set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
         }
 
         public string Style_NamingPreferences

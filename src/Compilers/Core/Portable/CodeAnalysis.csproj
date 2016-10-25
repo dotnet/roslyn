@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -13,14 +11,15 @@
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <NoStdLib>true</NoStdLib>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -48,17 +47,23 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
+    <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeGen\ItemTokenMap.cs" />
+    <Compile Include="Emit\DebugDocumentsBuilder.cs" />
+    <Compile Include="Emit\InstrumentationKind.cs" />
+    <Compile Include="EmbeddedText.cs" />
+    <Compile Include="Emit\EditAndContinue\LambdaSyntaxFacts.cs" />
+    <Compile Include="InternalUtilities\EncodingExtensions.cs" />
+    <Compile Include="InternalUtilities\BlobBuildingStream.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="InternalUtilities\IncrementalHash.cs" />
+    <Compile Include="PEWriter\DebugSourceInfo.cs" />
     <Compile Include="PEWriter\ExportedType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\CoreClrShim.cs">
-      <Link>CoreClrShim.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\DesktopShim.cs">
       <Link>DesktopShim.cs</Link>
     </Compile>
@@ -101,10 +106,42 @@
     <Compile Include="StrongName\CryptoBlobParser.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
+    <Compile Include="Symbols\ISourceAssemblySymbolInternal.cs" />
     <Compile Include="Symbols\TypeCompareKind.cs" />
+    <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
+    <Compile Include="Syntax\SyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithLotsOfChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithManyChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithThreeChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithTwoChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder`1.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilderExtensions.cs" />
+    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList`1.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList`1.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
+    <Compile Include="Syntax\SyntaxList.cs" />
+    <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithManyChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithManyWeakChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithThreeChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithTwoChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.cs" />
+    <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
+    <Compile Include="Syntax\SyntaxListBuilder`1.cs" />
+    <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.cs" />
+    <Compile Include="Syntax\SyntaxTokenListBuilder.cs" />
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />
+    <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />
     <Compile Include="Text\LargeTextWriter.cs" />
     <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
@@ -361,13 +398,11 @@
     <Compile Include="InternalUtilities\ConsList`1.cs" />
     <Compile Include="InternalUtilities\DecimalUtilities.cs" />
     <Compile Include="InternalUtilities\DocumentationCommentXmlNames.cs" />
-    <Compile Include="InternalUtilities\EnumerableExtensions.ComparisonComparer.cs" />
     <Compile Include="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="InternalUtilities\EnumField.cs" />
     <Compile Include="InternalUtilities\EnumUtilties.cs" />
     <Compile Include="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="InternalUtilities\FileNameUtilities.cs" />
-    <Compile Include="InternalUtilities\HashAlgorithms.cs" />
     <Compile Include="InternalUtilities\Hash.cs" />
     <Compile Include="InternalUtilities\ImmutableArrayExtensions.cs" />
     <Compile Include="InternalUtilities\ImmutableListExtensions.cs" />
@@ -380,7 +415,6 @@
     <Compile Include="InternalUtilities\ReadOnlyUnmanagedMemoryStream.cs" />
     <Compile Include="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.cs" />
-    <Compile Include="InternalUtilities\SpecializedCollections.Empty.Array.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.Dictionary.cs" />
@@ -458,7 +492,6 @@
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
-    <Compile Include="PortableShim.cs" />
     <Compile Include="RuleSet\InvalidRuleSetException.cs" />
     <Compile Include="RuleSet\RuleSet.cs" />
     <Compile Include="RuleSet\RuleSetInclude.cs" />
@@ -639,7 +672,7 @@
     <Compile Include="Symbols\TypeParameterKind.cs" />
     <Compile Include="Symbols\VarianceKind.cs" />
     <Compile Include="Symbols\WellKnownMemberNames.cs" />
-    <Compile Include="Syntax\AbstractSyntaxNavigator.cs" />
+    <Compile Include="Syntax\SyntaxNavigator.cs" />
     <Compile Include="Syntax\AbstractWarningStateMap.cs" />
     <Compile Include="Syntax\AnnotationExtensions.cs" />
     <Compile Include="Syntax\ChildSyntaxList.cs" />
@@ -782,7 +815,5 @@
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

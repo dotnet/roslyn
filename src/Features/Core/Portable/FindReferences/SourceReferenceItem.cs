@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.FindReferences
         /// <summary>
         /// The location of the source item.
         /// </summary>
-        public DocumentLocation Location { get; }
+        public DocumentSpan SourceSpan { get; }
 
-        public SourceReferenceItem(DefinitionItem definition, DocumentLocation location)
+        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan)
         {
             Definition = definition;
-            Location = location;
+            SourceSpan = sourceSpan;
         }
     }
 }

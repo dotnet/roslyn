@@ -3495,6 +3495,189 @@ End Class
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
         End Sub
 
+        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        Public Sub Lambdas_Update_CeaseCapture_SetterValueParameter1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Property D As Integer
+        Get
+            Return 0
+        End Get
+
+        Set
+            Call New Action(Sub() Console.Write(value)).Invoke()
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Property D As Integer
+        Get
+            Return 0
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
+        End Sub
+
+        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerSetterValueParameter1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Property D(a1 As Integer, a2 As Integer) As Integer
+        Get
+            Return 0
+        End Get
+
+        Set
+            Call New Action(Sub() Console.Write(value)).Invoke()
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Property D(a1 As Integer, a2 As Integer) As Integer
+        Get
+            Return 0
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
+        End Sub
+
+        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerSetterValueParameter2()
+            Dim src1 = "
+Imports System
+
+Class C
+    Property D As Integer
+        Get
+            Return 0
+        End Get
+
+        Set(Value As Integer)
+            Call New Action(Sub() Console.Write(value)).Invoke()
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Property D As Integer
+        Get
+            Return 0
+        End Get
+
+        Set(Value As Integer)
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
+        End Sub
+
+        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        Public Sub Lambdas_Update_CeaseCapture_EventAdderValueParameter1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Custom Event D As Action
+        AddHandler(Value As Action)
+            Call New Action(Sub() Console.Write(Value)).Invoke()
+        End AddHandler
+
+        RemoveHandler(Value As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Custom Event D As Action
+        AddHandler(Value As Action)
+        End AddHandler
+
+        RemoveHandler(Value As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
+        End Sub
+
+        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        Public Sub Lambdas_Update_CeaseCapture_EventRemoverValueParameter1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Custom Event D As Action
+        AddHandler(Value As Action)
+        End AddHandler
+
+        RemoveHandler(Value As Action)
+            Call New Action(Sub() Console.Write(value)).Invoke()
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Custom Event D As Action
+        AddHandler(Value As Action)
+        End AddHandler
+
+        RemoveHandler(Value As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
+        End Sub
+
         <Fact>
         Public Sub Lambdas_Update_DeleteCapture1()
             Dim src1 = "
@@ -3585,6 +3768,189 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_SetterValueParameter1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Property D As Integer
+        Get
+            Return 0
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Property D As Integer
+        Get
+            Return 0
+        End Get
+
+        Set
+            Call New Action(Sub() Console.Write(value)).Invoke()
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.CapturingVariable, "Set", "Value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_IndexerSetterValueParameter1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Property D(a1 As Integer, a2 As Integer) As Integer
+        Get
+            Return 0
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Property D(a1 As Integer, a2 As Integer) As Integer
+        Get
+            Return 0
+        End Get
+
+        Set
+            Call New Action(Sub() Console.Write(value)).Invoke()
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.CapturingVariable, "Set", "Value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_IndexerSetterValueParameter2()
+            Dim src1 = "
+Imports System
+
+Class C
+    Property D As Integer
+        Get
+            Return 0
+        End Get
+
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Property D As Integer
+        Get
+            Return 0
+        End Get
+
+        Set(value As Integer)
+            Call New Action(Sub() Console.Write(value)).Invoke()
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.CapturingVariable, "value", "value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_EventAdderValueParameter1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Custom Event D As Action
+        AddHandler(value As Action)
+        End AddHandler
+
+        RemoveHandler(value As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Custom Event D As Action
+        AddHandler(value As Action)
+            Call New Action(Sub() Console.Write(value)).Invoke()
+        End AddHandler
+
+        RemoveHandler(value As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.CapturingVariable, "value", "value"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_EventRemoverValueParameter1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Custom Event D As Action
+        AddHandler(value As Action)
+        End AddHandler
+
+        RemoveHandler(value As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Custom Event D As Action
+        AddHandler(value As Action)
+        End AddHandler
+
+        RemoveHandler(value As Action)
+            Call New Action(Sub() Console.Write(value)).Invoke()
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.CapturingVariable, "value", "value"))
         End Sub
 
         <Fact>

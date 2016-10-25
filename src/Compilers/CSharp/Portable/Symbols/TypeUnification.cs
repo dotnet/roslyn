@@ -287,9 +287,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol namedType = (NamedTypeSymbol)type;
                         while ((object)namedType != null)
                         {
-                            foreach (TypeSymbol typeArg in namedType.TypeArgumentsNoUseSiteDiagnostics)
+                            ImmutableArray<TypeSymbol> typeParts = namedType.IsTupleType ? namedType.TupleElementTypes : namedType.TypeArgumentsNoUseSiteDiagnostics;
+                            foreach (TypeSymbol typePart in typeParts)
                             {
-                                if (Contains(typeArg, typeParam))
+                                if (Contains(typePart, typeParam))
                                 {
                                     return true;
                                 }

@@ -8,10 +8,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
     internal class SplitStringLiteralOptions
     {
-        public const string FeatureName = "SplitStringLiteral";
-
         public static PerLanguageOption<bool> Enabled =
-            new PerLanguageOption<bool>(FeatureName, nameof(Enabled), defaultValue: true);
+            new PerLanguageOption<bool>(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
     }
 
     [ExportOptionProvider, Shared]

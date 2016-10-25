@@ -3,6 +3,7 @@
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Partial Public MustInherit Class AbstractCodeElementTests(Of TCodeElement As Class)
@@ -40,8 +41,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Function
 
-        Protected Overloads Async Function TestElementUpdate(code As XElement, expectedCode As XElement, updater As Action(Of TCodeElement)) As Task
+        Protected Overloads Async Function TestElementUpdate(
+                code As XElement, expectedCode As XElement, updater As Action(Of TCodeElement),
+                Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
             Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+                If options IsNot Nothing Then
+                    For Each kvp In options
+                        state.Workspace.Options = state.Workspace.Options.WithChangedOption(kvp.Key, kvp.Value)
+                    Next
+                End If
+
                 Dim codeElement = GetCodeElement(state)
                 Assert.NotNull(codeElement)
 
@@ -744,13 +753,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Overrides Async Function TestAddProperty(code As XElement, expectedCode As XElement, data As PropertyData) As Task
+        Protected Overrides Async Function TestAddProperty(
+                code As XElement, expectedCode As XElement, data As PropertyData,
+                Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
             Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     Dim prop = AddProperty(codeElement, data)
                     Assert.NotNull(prop)
                     Assert.True(data.GetterName = prop.Name OrElse data.PutterName = prop.Name)
-                End Sub)
+                End Sub,
+                options)
         End Function
 
         Protected Overrides Async Function TestAddVariable(code As XElement, expectedCode As XElement, data As VariableData) As Task

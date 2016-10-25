@@ -3,7 +3,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
@@ -24,6 +26,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
             await TestAsync(
 @"class Class { void Method() { [|Foo|](); } }",
 @"using System; class Class { void Method() { Foo(); } private void Foo() { throw new NotImplementedException(); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestSimpleInvocationIntoSameType_CodeStyle1()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|Foo|](); } }",
+@"using System; class Class { void Method() { Foo(); } private void Foo() => throw new NotImplementedException(); }",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -3139,6 +3150,138 @@ withScriptOption: true);
 @"using System; class Class { void Method() { Undefined(a: out int c); } private void Undefined(out int a) { throw new NotImplementedException(); } }",
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
 withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        public async Task TestDeconstruction1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int y) = [|Method|]();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int y) = Method();
+    }
+
+    private (int x, int y) Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        public async Task TestDeconstruction2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, (int y, int z)) = [|Method|]();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, (int y, int z)) = Method();
+    }
+
+    private (int x, (int y, int z)) Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        public async Task TestDeconstruction3()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, (int, int)) = [|Method|]();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, (int, int)) = Method();
+    }
+
+    private (int x, (int, int)) Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        public async Task TestDeconstruction4()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int) = [|Method|]();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, int) = Method();
+    }
+
+    private (int x, int) Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
         }
     }
 }

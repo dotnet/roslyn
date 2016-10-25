@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundResumeStatement
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, Optional isNext As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, Optional isNext As Boolean = False)
             Me.New(syntax, If(isNext, ResumeStatementKind.Next, ResumeStatementKind.Plain), Nothing, Nothing)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             Me.New(syntax, ResumeStatementKind.Label, label, labelExpressionOpt, hasErrors)
             Debug.Assert(labelExpressionOpt IsNot Nothing)
         End Sub

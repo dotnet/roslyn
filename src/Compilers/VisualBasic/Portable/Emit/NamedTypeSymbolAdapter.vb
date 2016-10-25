@@ -399,14 +399,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             For Each [interface] In GetInterfacesToEmit()
-                Dim translated = moduleBeingBuilt.Translate([interface],
+                Dim typeRef = moduleBeingBuilt.Translate([interface],
                                                             syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
                                                             diagnostics:=context.Diagnostics,
                                                             fromImplements:=True)
 
-                ' TODO(https://github.com/dotnet/roslyn/issues/12592):
-                ' TODO: Add support for tuple attributes on interface implementations
-                Yield New Cci.TypeReferenceWithAttributes(translated)
+                Yield [interface].GetTypeRefWithAttributes(Me.DeclaringCompilation, typeRef)
             Next
         End Function
 

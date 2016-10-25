@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -12,10 +10,9 @@
     <RootNamespace>
     </RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests</AssemblyName>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <VBRuntime>
-    </VBRuntime>
+    <VBRuntime></VBRuntime>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Xml.Linq" />
@@ -36,6 +33,10 @@
     <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
       <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
+      <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
@@ -73,6 +74,7 @@
     <Compile Include="Helpers\TestTypeExtensions.vb" />
     <Compile Include="ObjectIdTests.vb" />
     <Compile Include="ResultsViewTests.vb" />
+    <Compile Include="TupleTests.vb" />
     <Compile Include="TypeNameFormatterTests.vb" />
     <Compile Include="TypeVariablesExpansionTests.vb" />
     <Compile Include="ValueFormatterTests.vb" />
@@ -85,8 +87,6 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\BasicResultProvider.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

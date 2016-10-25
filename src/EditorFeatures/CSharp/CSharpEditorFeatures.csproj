@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -14,6 +12,7 @@
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -67,6 +66,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomaticCompletion\AutomaticLineEnderCommandHandler.cs" />
@@ -146,48 +146,7 @@
     <Compile Include="InlineRename\CSharpEditorInlineRenameService.cs" />
     <Compile Include="LanguageServices\CSharpContentTypeLanguageService.cs" />
     <Compile Include="LineSeparators\CSharpLineSeparatorService.cs" />
-    <Compile Include="NavigateTo\CSharpNavigateToSearchService.cs" />
     <Compile Include="NavigationBar\CSharpNavigationBarItemService.cs" />
-    <Compile Include="Outlining\CSharpOutliningHelpers.cs" />
-    <Compile Include="Outlining\CSharpOutliningService.cs" />
-    <Compile Include="Outlining\Outliners\AccessorDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\AnonymousMethodExpressionOutliner.cs" />
-    <Compile Include="Outlining\Outliners\CompilationUnitOutliner.cs" />
-    <Compile Include="Outlining\Outliners\ConstructorDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\ConversionOperatorDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\DelegateDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\DestructorDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\DisabledTextTriviaOutliner.cs" />
-    <Compile Include="Outlining\Outliners\DocumentationCommentOutliner.cs" />
-    <Compile Include="Outlining\Outliners\EnumDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\EventDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\EventFieldDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\FieldDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\IndexerDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\AbstractMetadataAsSourceOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\ConstructorDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\ConversionOperatorDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\DelegateDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\DestructorDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\EnumDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\EnumMemberDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\EventDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\EventFieldDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\FieldDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\IndexerDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\MethodDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\OperatorDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\PropertyDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\RegionDirectiveOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\TypeDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\MethodDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\NamespaceDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\OperatorDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\ParenthesizedLambdaExpressionOutliner.cs" />
-    <Compile Include="Outlining\Outliners\PropertyDeclarationOutliner.cs" />
-    <Compile Include="Outlining\Outliners\RegionDirectiveOutliner.cs" />
-    <Compile Include="Outlining\Outliners\SimpleLambdaExpressionOutliner.cs" />
-    <Compile Include="Outlining\Outliners\TypeDeclarationOutliner.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoProvider.cs" />
     <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.cs" />
@@ -225,7 +184,5 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

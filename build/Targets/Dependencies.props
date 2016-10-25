@@ -2,19 +2,23 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
-    <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
+    <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
+    <MicrosoftBuildVersion>14.3.0-prerelease01</MicrosoftBuildVersion>
+    <MicrosoftBuildTasksCoreVersion>14.3.0-prerelease01</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.5.0-beta1</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60723-01</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60831-01</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftVisualBasicVersion>10.0.1</MicrosoftVisualBasicVersion>
+    <RoslynToolsMicrosoftSignToolVersion>0.2.0-beta</RoslynToolsMicrosoftSignToolVersion>
     <SystemAppContextVersion>4.1.0</SystemAppContextVersion>
     <SystemCollectionsVersion>4.0.11</SystemCollectionsVersion>
     <SystemCollectionsConcurrentVersion>4.0.12</SystemCollectionsConcurrentVersion>
     <SystemCollectionsImmutableVersion>1.2.0</SystemCollectionsImmutableVersion>
     <SystemConsoleVersion>4.0.0</SystemConsoleVersion>
+    <SystemDiagnosticsContractsVersion>4.0.1</SystemDiagnosticsContractsVersion>
     <SystemDiagnosticsDebugVersion>4.0.11</SystemDiagnosticsDebugVersion>
     <SystemDiagnosticsFileVersionInfoVersion>4.0.0</SystemDiagnosticsFileVersionInfoVersion>
     <SystemDiagnosticsProcessVersion>4.1.0</SystemDiagnosticsProcessVersion>
@@ -23,6 +27,7 @@
     <SystemDynamicRuntimeVersion>4.0.11</SystemDynamicRuntimeVersion>
     <SystemGlobalizationVersion>4.0.11</SystemGlobalizationVersion>
     <SystemIOVersion>4.1.0</SystemIOVersion>
+    <SystemIOCompressionVersion>4.1.0</SystemIOCompressionVersion>
     <SystemIOFileSystemVersion>4.0.1</SystemIOFileSystemVersion>
     <SystemIOFileSystemDriveInfoVersion>4.0.0</SystemIOFileSystemDriveInfoVersion>
     <SystemIOFileSystemPrimitivesVersion>4.0.1</SystemIOFileSystemPrimitivesVersion>
@@ -30,11 +35,14 @@
     <SystemIOPipesVersion>4.0.0</SystemIOPipesVersion>
     <SystemLinqVersion>4.1.0</SystemLinqVersion>
     <SystemLinqExpressionsVersion>4.1.0</SystemLinqExpressionsVersion>
+    <SystemLinqParallelVersion>4.0.1</SystemLinqParallelVersion>
     <SystemNetNameResolutionVersion>4.0.0</SystemNetNameResolutionVersion>
+    <SystemNetSecurityVersion>4.0.0</SystemNetSecurityVersion>
     <SystemNetSocketsVersion>4.1.0</SystemNetSocketsVersion>
+    <SystemObjectModelVersion>4.0.10</SystemObjectModelVersion>
     <SystemReflectionVersion>4.1.0</SystemReflectionVersion>
     <SystemReflectionExtensionsVersion>4.0.1</SystemReflectionExtensionsVersion>
-    <SystemReflectionMetadataVersion>1.4.1-beta-24322-03</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>1.4.1-beta-24430-01</SystemReflectionMetadataVersion>
     <SystemReflectionPrimitivesVersion>4.0.1</SystemReflectionPrimitivesVersion>
     <SystemReflectionTypeExtensionsVersion>4.1.0</SystemReflectionTypeExtensionsVersion>
     <SystemResourcesResourceManagerVersion>4.0.1</SystemResourcesResourceManagerVersion>
@@ -45,9 +53,11 @@
     <SystemRuntimeInteropServicesRuntimeInformationVersion>4.0.0</SystemRuntimeInteropServicesRuntimeInformationVersion>
     <SystemRuntimeLoaderVersion>4.0.0</SystemRuntimeLoaderVersion>
     <SystemRuntimeNumericsVersion>4.0.1</SystemRuntimeNumericsVersion>
+    <SystemSecurityAccessControlVersion>4.0.0</SystemSecurityAccessControlVersion>
     <SystemSecurityCryptographyAlgorithmsVersion>4.2.0</SystemSecurityCryptographyAlgorithmsVersion>
     <SystemSecurityCryptographyEncodingVersion>4.0.0</SystemSecurityCryptographyEncodingVersion>
     <SystemSecurityCryptographyX509CertificatesVersion>4.1.0</SystemSecurityCryptographyX509CertificatesVersion>
+    <SystemSecurityPrincipalWindowsVersion>4.0.0</SystemSecurityPrincipalWindowsVersion>
     <SystemTextEncodingVersion>4.0.11</SystemTextEncodingVersion>
     <SystemTextEncodingCodePagesVersion>4.0.1</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.0.11</SystemTextEncodingExtensionsVersion>
@@ -56,6 +66,7 @@
     <SystemThreadingTasksVersion>4.0.11</SystemThreadingTasksVersion>
     <SystemThreadingTasksParallelVersion>4.0.1</SystemThreadingTasksParallelVersion>
     <SystemThreadingThreadVersion>4.0.0</SystemThreadingThreadVersion>
+    <SystemValueTupleVersion>4.0.1-beta-24425-02</SystemValueTupleVersion>
     <SystemXmlReaderWriterVersion>4.0.11</SystemXmlReaderWriterVersion>
     <SystemXmlXDocumentVersion>4.0.11</SystemXmlXDocumentVersion>
     <SystemXmlXmlDocumentVersion>4.0.1</SystemXmlXmlDocumentVersion>

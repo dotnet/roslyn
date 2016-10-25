@@ -369,7 +369,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
-                var accessibility = member.Name == memberName ? Accessibility.Public : Accessibility.Private;
+                var accessibility = member.Name == memberName || generateAbstractly
+                    ? Accessibility.Public 
+                    : Accessibility.Private;
 
                 if (member.Kind == SymbolKind.Method)
                 {

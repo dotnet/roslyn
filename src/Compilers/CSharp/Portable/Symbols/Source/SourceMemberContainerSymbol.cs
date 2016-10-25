@@ -733,6 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case Accessibility.Private:
                         return Accessibility.Private;
                     case Accessibility.Internal:
+                    case Accessibility.ProtectedAndInternal:
                         result = Accessibility.Internal;
                         continue;
                 }
@@ -915,6 +916,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (TryCalculateSyntaxOffsetOfPositionInInitializer(position, tree, isStatic, ctorInitializerLength: 0, syntaxOffset: out syntaxOffset))
             {
                 return syntaxOffset;
+            }
+
+            if (declaration.Declarations.Length >= 1 && position == declaration.Declarations[0].Location.SourceSpan.Start)
+            {
+                // With dynamic analysis instrumentation, the introducing declaration of a type can provide
+                // the syntax associated with both the analysis payload local of a synthesized constructor
+                // and with the constructor itself. If the synthesized constructor includes an initializer with a lambda,
+                // that lambda needs a closure that captures the analysis payload of the constructor,
+                // and the offset of the syntax for the local within the constructor is by definition zero.
+                return 0;
             }
 
             // an implicit constructor has no body and no initializer, so the variable has to be declared in a member initializer
@@ -2883,9 +2894,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             foreach (var variable in fieldSyntax.Declaration.Variables)
                             {
                                 var fieldSymbol = (modifiers & DeclarationModifiers.Fixed) == 0
-                                    ? new SourceMemberFieldSymbol(this, variable, modifiers, modifierErrors, diagnostics)
+                                    ? new SourceMemberFieldSymbolFromDeclarator(this, variable, modifiers, modifierErrors, diagnostics)
                                     : new SourceFixedFieldSymbol(this, variable, modifiers, modifierErrors, diagnostics);
                                 builder.NonTypeNonIndexerMembers.Add(fieldSymbol);
+
+                                if (IsScriptClass)
+                                {
+                                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                                    ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers, variable, this,
+                                                            DeclarationModifiers.Private | (modifiers & DeclarationModifiers.Static),
+                                                            fieldSymbol);
+                                }
 
                                 if (variable.Initializer != null)
                                 {
@@ -2962,25 +2981,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.GetMethod, diagnostics);
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.SetMethod, diagnostics);
+                            FieldSymbol backingField = property.BackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
                             //   In addition, we will change autoproperties to behavior in 
                             //   a similar manner and make the autoproperty fields private.
-                            if ((object)property.BackingField != null)
+                            if ((object)backingField != null)
                             {
-                                builder.NonTypeNonIndexerMembers.Add(property.BackingField);
+                                builder.NonTypeNonIndexerMembers.Add(backingField);
 
                                 var initializer = propertySyntax.Initializer;
                                 if (initializer != null)
                                 {
+                                    if (IsScriptClass)
+                                    {
+                                        // also gather expression-declared variables from the initializer
+                                        ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers,
+                                                                                      initializer,
+                                                                                      this,
+                                                                                      DeclarationModifiers.Private | (property.IsStatic ? DeclarationModifiers.Static : 0),
+                                                                                      backingField);
+                                    }
+
                                     if (property.IsStatic)
                                     {
-                                        AddInitializer(ref staticInitializers, ref builder.StaticSyntaxLength, property.BackingField, initializer);
+                                        AddInitializer(ref staticInitializers, ref builder.StaticSyntaxLength, backingField, initializer);
                                     }
                                     else
                                     {
-                                        AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, property.BackingField, initializer);
+                                        AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, backingField, initializer);
                                     }
                                 }
                             }
@@ -3003,6 +3033,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 builder.NonTypeNonIndexerMembers.Add(@event);
 
                                 FieldSymbol associatedField = @event.AssociatedField;
+
+                                if (IsScriptClass)
+                                {
+                                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                                    ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers, declarator, this,
+                                                            DeclarationModifiers.Private | (@event.IsStatic ? DeclarationModifiers.Static : 0),
+                                                            associatedField);
+                                }
+
                                 if ((object)associatedField != null)
                                 {
                                     // NOTE: specifically don't add the associated field to the members list
@@ -3106,6 +3145,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_GlobalStatement, new SourceLocation(globalStatement));
                             }
 
+                            if (IsScriptClass)
+                            {
+                                var innerStatement = globalStatement;
+
+                                // drill into any LabeledStatements 
+                                while (innerStatement.Kind() == SyntaxKind.LabeledStatement)
+                                {
+                                    innerStatement = ((LabeledStatementSyntax)innerStatement).Statement;
+                                }
+
+                                switch (innerStatement.Kind())
+                                {
+                                    case SyntaxKind.DeconstructionDeclarationStatement:
+                                        var assignment = ((DeconstructionDeclarationStatementSyntax)innerStatement).Assignment;
+
+                                        CollectFieldsFromGlobalDeconstruction(builder.NonTypeNonIndexerMembers,
+                                            assignment.VariableComponent,
+                                            assignment);
+
+                                        ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers,
+                                            assignment.Value,
+                                            this,
+                                            DeclarationModifiers.Private,
+                                            containingFieldOpt: null);
+                                        break;
+
+                                    case SyntaxKind.LocalDeclarationStatement:
+                                        // We shouldn't reach this place, but field declarations preceded with a label end up here.
+                                        // This is tracked by https://github.com/dotnet/roslyn/issues/13712. Let's do our best for now.
+                                        var decl = (LocalDeclarationStatementSyntax)innerStatement;
+                                        foreach (var vdecl in decl.Declaration.Variables)
+                                        {
+                                            // also gather expression-declared variables from the bracketed argument lists and the initializers
+                                            ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers, vdecl, this, DeclarationModifiers.Private,
+                                                                                          containingFieldOpt: null);
+                                        }
+                                        break;
+
+                                    case SyntaxKind.ExpressionStatement:
+                                    case SyntaxKind.IfStatement:
+                                    case SyntaxKind.YieldReturnStatement:
+                                    case SyntaxKind.ReturnStatement:
+                                    case SyntaxKind.ThrowStatement:
+                                    case SyntaxKind.SwitchStatement:
+                                    case SyntaxKind.WhileStatement:
+                                    case SyntaxKind.DoStatement:
+                                    case SyntaxKind.LockStatement:
+                                        ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers,
+                                                  innerStatement,
+                                                  this,
+                                                  DeclarationModifiers.Private,
+                                                  containingFieldOpt: null);
+                                        break;
+
+                                    default:
+                                        // no other statement introduces variables into the enclosing scope
+                                        break;
+                                }
+                            }
+
                             AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, null, globalStatement);
                         }
                         break;
@@ -3121,6 +3220,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddInitializers(builder.InstanceInitializers, instanceInitializers);
             AddInitializers(builder.StaticInitializers, staticInitializers);
+        }
+
+        private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableComponentSyntax variableComponent,
+                        VariableComponentAssignmentSyntax assignment)
+        {
+            switch (variableComponent.Kind())
+            {
+                case SyntaxKind.TypedVariableComponent:
+                    var typed = (TypedVariableComponentSyntax)variableComponent;
+                    CollectFieldsFromGlobalDeconstruction(
+                        builder,
+                        typed.Designation,
+                        typed.Type,
+                        assignment);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    foreach (VariableComponentSyntax variable in ((ParenthesizedVariableComponentSyntax)variableComponent).Variables)
+                    {
+                        CollectFieldsFromGlobalDeconstruction(builder, variable, assignment);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(variableComponent.Kind());
+            }
+        }
+
+        private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableDesignationSyntax designation,
+                        TypeSyntax type, VariableComponentAssignmentSyntax assignment)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    var single = (SingleVariableDesignationSyntax)designation;
+                    var field = GlobalExpressionVariable.Create(
+                        containingType: this,
+                        modifiers: DeclarationModifiers.Private,
+                        typeSyntax: type,
+                        name: single.Identifier.ValueText,
+                        syntax: designation,
+                        location: designation.Location,
+                        containingFieldOpt: null,
+                        nodeToBind: assignment);
+                    builder.Add(field);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    foreach (VariableDesignationSyntax variable in ((ParenthesizedVariableDesignationSyntax)designation).Variables)
+                    {
+                        CollectFieldsFromGlobalDeconstruction(builder, variable, type, assignment);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
         }
 
         private static bool IsGlobalCodeAllowed(CSharpSyntaxNode parent)

@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub PopulateRangeVariableMapForAnonymousType(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             anonymousTypeInstance As BoundExpression,
             rangeVariables As ImmutableArray(Of RangeVariableSymbol),
             ByRef firstUnmappedRangeVariable As Integer
@@ -141,10 +141,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       propertyDef,
                                                                       Nothing,
                                                                       PropertyAccessKind.Get,
-                                                                      False,
-                                                                      anonymousTypeInstance,
-                                                                      ImmutableArray(Of BoundExpression).Empty,
-                                                                      propertyDef.Type)
+                                                                      isWriteable:=False,
+                                                                      isLValue:=False,
+                                                                      receiverOpt:=anonymousTypeInstance,
+                                                                      arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                                                      type:=propertyDef.Type)
                 Else
                     Dim getter = propertyDef.GetMethod
                     getCallOrPropertyAccess = New BoundCall(syntax,

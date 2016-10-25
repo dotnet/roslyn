@@ -1,23 +1,12 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
-  <metadata>
+  <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.Common</id>
     <summary>A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").</summary>
     <description>
       A shared package used by the Microsoft .NET Compiler Platform ("Roslyn"). Do not install this package manually, it will be added as a prerequisite by other packages that require it.
-
-      Supported Platforms:
-      - .NET Framework 4.5
-      - Windows 8
-      - Portable Class Libraries
     </description>
     <dependencies>
-      <group targetFramework="portable-net45+win8">
-        <dependency id="System.Collections.Immutable"                  version="$SystemCollectionsImmutableVersion$" />
-        <dependency id="System.Reflection.Metadata"                    version="$SystemReflectionMetadataVersion$" />
-        <dependency id="Microsoft.CodeAnalysis.Analyzers"              version="$MicrosoftCodeAnalysisAnalyzersVersion$" />
-      </group>
-
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.Analyzers"              version="$MicrosoftCodeAnalysisAnalyzersVersion$" />
 
@@ -32,17 +21,16 @@
         <dependency id="System.Diagnostics.Tools"                      version="$SystemDiagnosticsToolsVersion$"/>
         <dependency id="System.Dynamic.Runtime"                        version="$SystemDynamicRuntimeVersion$"/>
         <dependency id="System.Globalization"                          version="$SystemGlobalizationVersion$"/>
+        <dependency id="System.IO.Compression"                         version="$SystemIOCompressionVersion$" />
         <dependency id="System.IO.FileSystem"                          version="$SystemIOFileSystemVersion$"/>
         <dependency id="System.IO.FileSystem.Primitives"               version="$SystemIOFileSystemPrimitivesVersion$"/>
         <dependency id="System.Linq"                                   version="$SystemLinqVersion$"/>
         <dependency id="System.Linq.Expressions"                       version="$SystemLinqExpressionsVersion$"/>
         <dependency id="System.Reflection"                             version="$SystemReflectionVersion$"/>
         <dependency id="System.Reflection.Metadata"                    version="$SystemReflectionMetadataVersion$"/>
-        <dependency id="System.Reflection.Primitives"                  version="$SystemReflectionPrimitivesVersion$"/>
         <dependency id="System.Resources.ResourceManager"              version="$SystemResourcesResourceManagerVersion$"/>
         <dependency id="System.Runtime"                                version="$SystemRuntimeVersion$"/>
         <dependency id="System.Runtime.Extensions"                     version="$SystemRuntimeExtensionsVersion$"/>
-        <dependency id="System.Runtime.Handles"                        version="$SystemRuntimeHandlesVersion$"/>
         <dependency id="System.Runtime.InteropServices"                version="$SystemRuntimeInteropServicesVersion$"/>
         <dependency id="System.Runtime.Numerics"                       version="$SystemRuntimeNumericsVersion$"/>
         <dependency id="System.Security.Cryptography.Algorithms"       version="$SystemSecurityCryptographyAlgorithmsVersion$"/>
@@ -73,12 +61,8 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.dll" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.xml" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.dll" target="lib\net45" />
-    <file src="Microsoft.CodeAnalysis.xml" target="lib\net45" />
-    <file src="Microsoft.CodeAnalysis.dll" target="lib\netstandard1.3" />
-    <file src="Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

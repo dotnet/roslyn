@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
             var count = (int)reader.ReadCompressedUInt();
             if (count == 0)
             {
-                _arguments = SpecializedCollections.EmptyObjects;
+                _arguments = Array.Empty<object>();
             }
             else if (count > 0)
             {

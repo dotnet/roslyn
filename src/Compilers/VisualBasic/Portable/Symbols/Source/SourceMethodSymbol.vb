@@ -753,7 +753,7 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 If m_syntaxReferenceOpt Is Nothing Then
                     Return Nothing
@@ -1444,6 +1444,14 @@ lReportErrorOnTwoTokens:
             End If
         End Sub
 
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            If Me.ReturnType.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Me.ReturnType))
+            End If
+        End Sub
+
         Protected Function GetDecodedWellKnownAttributeData() As MethodWellKnownAttributeData
             Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.m_lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
@@ -1551,6 +1559,10 @@ lReportErrorOnTwoTokens:
         Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
 
             If arguments.SymbolPart = AttributeLocation.Return Then
                 ' Decode well-known attributes applied to return value
@@ -2099,33 +2111,7 @@ lReportErrorOnTwoTokens:
                 Dim overridden = overriddenMembers.OverriddenMember
 
                 If overridden IsNot Nothing Then
-                    ' Copy custom modifiers
-
-                    ' For the most part, we will copy custom modifiers by copying types.
-                    ' The only time when this fails Is when the type refers to a type parameter
-                    ' owned by the overridden method.  We need to replace all such references
-                    ' with (equivalent) type parameters owned by this method.  We know that
-                    ' we can perform this mapping positionally, because the method signatures
-                    ' have already been compared.
-                    Dim constructedMethodWithCustomModifiers As MethodSymbol
-
-                    If Me.Arity > 0 Then
-                        constructedMethodWithCustomModifiers = overridden.Construct(Me.TypeParameters.As(Of TypeSymbol))
-                    Else
-                        constructedMethodWithCustomModifiers = overridden
-                    End If
-
-                    Dim returnTypeWithCustomModifiers As TypeSymbol = constructedMethodWithCustomModifiers.ReturnType
-
-                    ' We do an extra check before copying the return type to handle the case where the overriding
-                    ' method (incorrectly) has a different return type than the overridden method.  In such cases,
-                    ' we want to retain the original (incorrect) return type to avoid hiding the return type
-                    ' given in source.
-                    If retType.IsSameTypeIgnoringCustomModifiers(returnTypeWithCustomModifiers) Then
-                        retType = returnTypeWithCustomModifiers
-                    End If
-
-                    params = CustomModifierUtils.CopyParameterCustomModifiers(constructedMethodWithCustomModifiers.Parameters, params)
+                    CustomModifierUtils.CopyMethodCustomModifiers(overridden, Me.TypeArguments, retType, params)
                 End If
 
                 ' Unlike MethodSymbol, in SourceMethodSymbol we cache the result of MakeOverriddenOfHiddenMembers, because we use

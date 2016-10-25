@@ -456,5 +456,55 @@ static void M(int x, int y) { }
 ";
             await VerifyNoItemsExistAsync(markup);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitWithColonWordFullyTyped()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args$$)
+    }
+}
+";
+
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args:)
+    }
+}
+";
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "args");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitWithColonWordPartiallyTyped()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(ar$$)
+    }
+}
+";
+
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args:)
+    }
+}
+";
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "arg");
+        }
     }
 }

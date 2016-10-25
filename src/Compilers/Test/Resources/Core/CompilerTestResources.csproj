@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -13,10 +11,10 @@
     <AssemblyName>Roslyn.Compilers.Test.Resources</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
@@ -347,6 +345,8 @@
     <EmbeddedResource Include="SymbolsTests\snKey2.snk" />
     <EmbeddedResource Include="SymbolsTests\snPublicKey.snk" />
     <EmbeddedResource Include="SymbolsTests\snPublicKey2.snk" />
+    <EmbeddedResource Include="SymbolsTests\snMaxSizeKey.snk" />
+    <EmbeddedResource Include="SymbolsTests\snMaxSizePublicKey.snk" />
     <EmbeddedResource Include="SymbolsTests\TypeForwarders\Forwarded.netmodule" />
     <EmbeddedResource Include="SymbolsTests\TypeForwarders\TypeForwarder.dll" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.vb" />
@@ -430,7 +430,5 @@
   <ItemGroup>
     <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

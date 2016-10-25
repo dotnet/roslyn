@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // double-evaluation of side effects.
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic);
 
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             // OK, we now have the temporary declarations, the temporary stores, and the transformed left hand side.
             // We need to generate 
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> rewrittenArguments = VisitList(indexerAccess.Arguments);
 
-            CSharpSyntaxNode syntax = indexerAccess.Syntax;
+            SyntaxNode syntax = indexerAccess.Syntax;
             PropertySymbol indexer = indexerAccess.Indexer;
             ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
             bool expanded = indexerAccess.Expanded;
@@ -527,6 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference: // a special kind of parameter
+                case BoundKind.PseudoVariable:
                     // No temporaries are needed. Just generate local = local + value
                     return originalLHS;
 
@@ -691,11 +692,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return objCreation.Arguments.Length == 1 && ReadIsSideeffecting(objCreation.Arguments[0]);
                     }
 
-                    return false;
+                    return true;
+
+                case BoundKind.Call:
+                    var call = (BoundCall)expression;
+                    var method = call.Method;
+
+                    // common production of lowered lifted operators
+                    // GetValueOrDefault is known to be not sideeffecting.
+                    if (method.ContainingType?.IsNullableType() == true)
+                    {
+                        if (IsSpecialMember(method, SpecialMember.System_Nullable_T_GetValueOrDefault) ||
+                            IsSpecialMember(method, SpecialMember.System_Nullable_T_get_HasValue))
+                        {
+                            return ReadIsSideeffecting(call.ReceiverOpt);
+                        }
+                    }
+
+                    return true;
 
                 default:
                     return true;
             }
+        }
+
+        private static bool IsSpecialMember(MethodSymbol method, SpecialMember specialMember)
+        {
+            method = method.OriginalDefinition;
+            return method.ContainingAssembly?.GetSpecialTypeMember(specialMember) == method;
         }
 
         // nontrivial literals do not change between reads

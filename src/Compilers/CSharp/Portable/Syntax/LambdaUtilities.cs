@@ -394,6 +394,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.YieldReturnStatement:
                     return true;
 
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                    // With dynamic analysis instrumentation, a type declaration can be the syntax associated
+                    // with the analysis payload local of a synthesized constructor.
+                    // If the synthesized constructor includes an initializer with a lambda,
+                    // that lambda needs a closure that captures the analysis payload of the constructor.
+                    return true;
+
                 default:
                     break;
             }

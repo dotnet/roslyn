@@ -2,12 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -143,10 +145,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task TestActionCountAsync(
             string initialMarkup,
             int count,
-            ParseOptions parseOptions = null, CompilationOptions compilationOptions = null)
+            ParseOptions parseOptions = null,
+            CompilationOptions compilationOptions = null,
+            IDictionary<OptionKey, object> featureOptions = null)
         {
             using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
+                if (featureOptions != null)
+                {
+                    workspace.ApplyOptions(featureOptions);
+                }
+
                 var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
 
                 Assert.Equal(count, actions.Count());
@@ -219,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expected,
-            IEnumerable<CodeActionOperation> operations,
+            ImmutableArray<CodeActionOperation> operations,
             bool hasProjectChange,
             ProjectId modifiedProjectId,
             IList<string> expectedFolders,
@@ -302,36 +311,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             object fixProviderData = null,
             CodeActionPriority? priority = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
-            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
+            await TestAsync(initialMarkup, expectedMarkup, null, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
+            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
         }
 
         internal async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
+            CompilationOptions compilationOptions = null,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null,
-            bool withScriptOption = false,
-            CodeActionPriority? priority = null)
+            CodeActionPriority? priority = null,
+            bool withScriptOption = false)
         {
-            await TestAsync(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
+            await TestAsync(initialMarkup, expectedMarkup, parseOptions, compilationOptions, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
 
             if (withScriptOption)
             {
-                await TestAsync(initialMarkup, expectedMarkup, parseOptions.WithKind(SourceCodeKind.Script), null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
+                await TestAsync(initialMarkup, expectedMarkup, parseOptions.WithKind(SourceCodeKind.Script), compilationOptions, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
             }
         }
 
-        internal async Task TestAsync(
+        private async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
-            int index = 0, bool compareTokens = true,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null,
-            CodeActionPriority? priority = null)
+            int index, bool compareTokens,
+            IDictionary<OptionKey, object> options,
+            string fixAllActionEquivalenceKey,
+            object fixProviderData,
+            CodeActionPriority? priority)
         {
             string expected;
             IDictionary<string, IList<TextSpan>> spanMap;
@@ -372,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         private static bool IsWorkspaceElement(string text)
         {
-            return text.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal);
+            return TestWorkspace.IsWorkspaceElement(text);
         }
 
         protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
@@ -459,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        internal static async Task<IEnumerable<CodeActionOperation>> VerifyInputsAndGetOperationsAsync(
+        internal static async Task<ImmutableArray<CodeActionOperation>> VerifyInputsAndGetOperationsAsync(
             int index, IList<CodeAction> actions, CodeActionPriority? priority = null)
         {
             Assert.NotNull(actions);
@@ -497,7 +507,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
                 else if (operation.ApplyDuringTests)
                 {
-                    operation.Apply(workspace, new ProgressTracker(), CancellationToken.None);
+                    var oldSolution = workspace.CurrentSolution;
+                    operation.TryApply(workspace, new ProgressTracker(), CancellationToken.None);
+                    var newSolution = workspace.CurrentSolution;
+                    result = Tuple.Create(oldSolution, newSolution);
                 }
             }
 
@@ -519,12 +532,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return codeActions?.SelectMany(a => a.HasCodeActions ? a.GetCodeActions().ToArray() : new[] { a }).ToList();
         }
 
-        protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyle.CodeStyleOption<bool>> option, bool value, CodeStyle.NotificationOption notification)
-        {
-            return OptionsSet(Tuple.Create(option, value, notification));
-        }
+        protected IDictionary<OptionKey, object> Option(IOption option, CodeStyleOption<bool> notification)
+            => Option(option, notification.Value, notification.Notification);
 
-        protected IDictionary<OptionKey, object> OptionsSet(params Tuple<PerLanguageOption<CodeStyle.CodeStyleOption<bool>>, bool, CodeStyle.NotificationOption>[] optionsToSet)
+        protected IDictionary<OptionKey, object> Option(IOption option, bool value, NotificationOption notification)
+            => OptionsSet(Tuple.Create(option, value, notification));
+
+        protected IDictionary<OptionKey, object> OptionsSet(params Tuple<IOption, bool, NotificationOption>[] optionsToSet)
         {
             var options = new Dictionary<OptionKey, object>();
             foreach (var triple in optionsToSet)
@@ -532,7 +546,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var option = triple.Item1;
                 var value = triple.Item2;
                 var notification = triple.Item3;
-                options.Add(new OptionKey(option, GetLanguage()), new CodeStyle.CodeStyleOption<bool>(value, notification));
+                var optionKey = new OptionKey(option, option.IsPerLanguage ? GetLanguage() : null);
+                options.Add(optionKey, new CodeStyleOption<bool>(value, notification));
             }
 
             return options;

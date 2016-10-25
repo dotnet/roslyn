@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 Solution solution, ISymbol definition)
                 : base(tags, displayParts,
                       GetOriginationParts(definition),
-                      ImmutableArray<DocumentLocation>.Empty,
+                      ImmutableArray<DocumentSpan>.Empty,
                       displayIfNoReferences)
             {
                 _workspace = solution.Workspace;

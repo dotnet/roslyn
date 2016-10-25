@@ -254,6 +254,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Block Structure Guides.
+        /// </summary>
+        internal static string Block_Structure_Guides {
+            get {
+                return ResourceManager.GetString("Block_Structure_Guides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [-] .
         /// </summary>
         internal static string bracket_bracket {
@@ -344,6 +353,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        internal static string Close {
+            get {
+                return ResourceManager.GetString("Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code block preferences:.
+        /// </summary>
+        internal static string Code_block_preferences_colon {
+            get {
+                return ResourceManager.GetString("Code_block_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Computing remove suppressions fix....
         /// </summary>
         internal static string Computing_remove_suppressions_fix {
@@ -358,6 +385,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Computing_suppressions_fix {
             get {
                 return ResourceManager.GetString("Computing_suppressions_fix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy to Clipboard.
+        /// </summary>
+        internal static string Copy_to_Clipboard {
+            get {
+                return ResourceManager.GetString("Copy_to_Clipboard", resourceCulture);
             }
         }
         
@@ -524,6 +560,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to --- End of inner exception stack trace ---.
+        /// </summary>
+        internal static string End_of_inner_exception_stack {
+            get {
+                return ResourceManager.GetString("End_of_inner_exception_stack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to End position must be &gt;= start position.
         /// </summary>
         internal static string End_position_must_be_start_position {
@@ -625,6 +670,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression preferences:.
+        /// </summary>
+        internal static string Expression_preferences_colon {
+            get {
+                return ResourceManager.GetString("Expression_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extract Interface.
         /// </summary>
         internal static string Extract_Interface {
@@ -684,6 +738,78 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string First_word_upper {
             get {
                 return ResourceManager.GetString("First_word_upper", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For accessors.
+        /// </summary>
+        internal static string For_accessors {
+            get {
+                return ResourceManager.GetString("For_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For constructors.
+        /// </summary>
+        internal static string For_constructors {
+            get {
+                return ResourceManager.GetString("For_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For indexers.
+        /// </summary>
+        internal static string For_indexers {
+            get {
+                return ResourceManager.GetString("For_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For locals, parameters and members.
+        /// </summary>
+        internal static string For_locals_parameters_and_members {
+            get {
+                return ResourceManager.GetString("For_locals_parameters_and_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For member access expressions.
+        /// </summary>
+        internal static string For_member_access_expressions {
+            get {
+                return ResourceManager.GetString("For_member_access_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For methods.
+        /// </summary>
+        internal static string For_methods {
+            get {
+                return ResourceManager.GetString("For_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For operators.
+        /// </summary>
+        internal static string For_operators {
+            get {
+                return ResourceManager.GetString("For_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For properties.
+        /// </summary>
+        internal static string For_properties {
+            get {
+                return ResourceManager.GetString("For_properties", resourceCulture);
             }
         }
         
@@ -783,6 +909,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Implements_ {
             get {
                 return ResourceManager.GetString("Implements_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to in {0}:line {1}.
+        /// </summary>
+        internal static string in_0_line_1 {
+            get {
+                return ResourceManager.GetString("in_0_line_1", resourceCulture);
             }
         }
         
@@ -1105,11 +1240,29 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to N/A.
+        /// </summary>
+        internal static string NotApplicable {
+            get {
+                return ResourceManager.GetString("NotApplicable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         internal static string OK {
             get {
                 return ResourceManager.GetString("OK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Outlining.
+        /// </summary>
+        internal static string Outlining {
+            get {
+                return ResourceManager.GetString("Outlining", resourceCulture);
             }
         }
         
@@ -1209,6 +1362,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_framework_type {
             get {
                 return ResourceManager.GetString("Prefer_framework_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer inlined variable declaration.
+        /// </summary>
+        internal static string Prefer_inlined_variable_declaration {
+            get {
+                return ResourceManager.GetString("Prefer_inlined_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer object initializer.
+        /// </summary>
+        internal static string Prefer_object_initializer {
+            get {
+                return ResourceManager.GetString("Prefer_object_initializer", resourceCulture);
             }
         }
         
@@ -1471,6 +1642,60 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show guides for code level constructs.
+        /// </summary>
+        internal static string Show_guides_for_code_level_constructs {
+            get {
+                return ResourceManager.GetString("Show_guides_for_code_level_constructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show guides for comments and preprocessor regions.
+        /// </summary>
+        internal static string Show_guides_for_comments_and_preprocessor_regions {
+            get {
+                return ResourceManager.GetString("Show_guides_for_comments_and_preprocessor_regions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show guides for declaration level constructs.
+        /// </summary>
+        internal static string Show_guides_for_declaration_level_constructs {
+            get {
+                return ResourceManager.GetString("Show_guides_for_declaration_level_constructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show outlining for code level constructs.
+        /// </summary>
+        internal static string Show_outlining_for_code_level_constructs {
+            get {
+                return ResourceManager.GetString("Show_outlining_for_code_level_constructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show outlining for comments and preprocessor regions.
+        /// </summary>
+        internal static string Show_outlining_for_comments_and_preprocessor_regions {
+            get {
+                return ResourceManager.GetString("Show_outlining_for_comments_and_preprocessor_regions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show outlining for declaration level constructs.
+        /// </summary>
+        internal static string Show_outlining_for_declaration_level_constructs {
+            get {
+                return ResourceManager.GetString("Show_outlining_for_declaration_level_constructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Summary:.
         /// </summary>
         internal static string Summary_colon {
@@ -1503,6 +1728,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Suppression_State {
             get {
                 return ResourceManager.GetString("Suppression_State", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to &apos;Intellisense&apos; diagnostics for suppression..
+        /// </summary>
+        internal static string SuppressionNotSupportedToolTip {
+            get {
+                return ResourceManager.GetString("SuppressionNotSupportedToolTip", resourceCulture);
             }
         }
         
@@ -1690,6 +1924,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;Unknown Parameters&gt;.
+        /// </summary>
+        internal static string Unknown_parameters {
+            get {
+                return ResourceManager.GetString("Unknown_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown rename type.
         /// </summary>
         internal static string Unknown_rename_type {
@@ -1722,6 +1965,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Validating_breakpoint_location {
             get {
                 return ResourceManager.GetString("Validating_breakpoint_location", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable preferences:.
+        /// </summary>
+        internal static string Variable_preferences_colon {
+            get {
+                return ResourceManager.GetString("Variable_preferences_colon", resourceCulture);
             }
         }
         

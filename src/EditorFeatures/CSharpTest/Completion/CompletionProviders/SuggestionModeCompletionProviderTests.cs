@@ -391,11 +391,11 @@ class Program
         Console.CancelKeyPress += new ConsoleCancelEventHandler(((a$$
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ParenthesizedExpression()
+        public async Task ParenthesizedExpressionInVarDeclaration()
         {
             var markup = @"using System;
 class Program
@@ -405,11 +405,11 @@ class Program
         var x = (a$$
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TupleExpressionAfterParen()
+        public async Task TupleExpressionInVarDeclaration()
         {
             var markup = @"using System;
 class Program
@@ -419,10 +419,11 @@ class Program
         var x = (a$$, b)
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
-        public async Task TupleExpressionAfterComma()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleExpressionInVarDeclaration2()
         {
             var markup = @"using System;
 class Program
@@ -432,9 +433,64 @@ class Program
         var x = (a, b$$)
     }
 }";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task IncompleteLambdaInActionDeclaration()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Action x = (a$$, b)
+    }
+}";
             await VerifyBuilderAsync(markup);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleWithNamesInActionDeclaration()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Action x = (a$$, b: b)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleWithNamesInActionDeclaration2()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Action x = (a: a, b$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleWithNamesInVarDeclaration()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = (a: a, b$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
 
         [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -628,6 +684,34 @@ class a
         {
             var markup = @"partial interface $$";
             await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UnwrapParamsArray()
+        {
+            var markup = @"
+using System;
+class C {
+    C(params Action<int>[] a) {
+        new C($$
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotUnwrapRegularArray()
+        {
+            var markup = @"
+using System;
+class C {
+    C(Action<int>[] a) {
+        new C($$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
         }
 
         private async Task VerifyNotBuilderAsync(string markup)

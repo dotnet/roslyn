@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -13,12 +11,13 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
+    <SyntaxDefinition>$(MSBuildThisFileDirectory)Syntax\Syntax.xml</SyntaxDefinition>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
@@ -101,6 +100,7 @@
     <Compile Include="Binder\ConstantFieldsInProgressBinder.cs" />
     <Compile Include="Binder\ContextualAttributeBinder.cs" />
     <Compile Include="Binder\EarlyWellKnownAttributeBinder.cs" />
+    <Compile Include="Binder\EmbeddedStatementBinder.cs" />
     <Compile Include="Binder\ExecutableCodeBinder.cs" />
     <Compile Include="Binder\ExtensionMethodScope.cs" />
     <Compile Include="Binder\FixedStatementBinder.cs" />
@@ -109,7 +109,6 @@
     <Compile Include="Binder\ForLoopBinder.cs" />
     <Compile Include="Binder\HostObjectModeBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedFieldBinder.cs" />
-    <Compile Include="Binder\ImplicitlyTypedLocalBinder.cs" />
     <Compile Include="Binder\ImportChain.cs" />
     <Compile Include="Binder\Imports.cs" />
     <Compile Include="Binder\InContainerBinder.cs" />
@@ -127,9 +126,9 @@
     <Compile Include="Binder\MethodGroupResolution.cs" />
     <Compile Include="Binder\NameofBinder.cs" />
     <Compile Include="Binder\NamespaceOrTypeAndUsingDirective.cs" />
-    <Compile Include="Binder\PatternVariableFinder.cs" />
+    <Compile Include="Binder\ExpressionVariableFinder.cs" />
     <Compile Include="Binder\ScriptLocalScopeBinder.cs" />
-    <Compile Include="Binder\PatternVariableBinder.cs" />
+    <Compile Include="Binder\ExpressionVariableBinder.cs" />
     <Compile Include="Binder\Semantics\AccessCheck.cs" />
     <Compile Include="Binder\Semantics\BestTypeInferrer.cs" />
     <Compile Include="Binder\Semantics\Conversions\BestIndex.cs" />
@@ -175,7 +174,7 @@
     <Compile Include="Binder\SingleLookupResult.cs" />
     <Compile Include="Binder\SwitchBinder.cs" />
     <Compile Include="Binder\SimpleLocalScopeBinder.cs" />
-    <Compile Include="Binder\SwitchBinder_BindPatternSwitch.cs" />
+    <Compile Include="Binder\PatternSwitchBinder.cs" />
     <Compile Include="Binder\TypeofBinder.cs" />
     <Compile Include="Binder\UsingStatementBinder.cs" />
     <Compile Include="Binder\WhileBinder.cs" />
@@ -200,14 +199,16 @@
     <Compile Include="BoundTree\BoundTreeWalker.cs" />
     <Compile Include="BoundTree\Constructors.cs" />
     <Compile Include="BoundTree\DecisionTree.cs" />
+    <Compile Include="BoundTree\DecisionTreeBuilder.cs" />
     <Compile Include="BoundTree\Expression.cs" />
-    <Compile Include="BoundTree\DeconstructionLocalPendingInference.cs" />
-    <Compile Include="BoundTree\OutVarLocalPendingInference.cs" />
+    <Compile Include="BoundTree\DeconstructionVariablePendingInference.cs" />
+    <Compile Include="BoundTree\OutVariablePendingInference.cs" />
     <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
     <Compile Include="BoundTree\Formatting.cs" />
     <Compile Include="BoundTree\NoOpStatementFlavor.cs" />
     <Compile Include="BoundTree\Statement.cs" />
+    <Compile Include="Binder\SubsumptionDiagnosticBuilder.cs" />
     <Compile Include="BoundTree\UnboundLambda.cs" />
     <Compile Include="CodeGen\CodeGenerator.cs" />
     <Compile Include="CodeGen\EmitAddress.cs" />
@@ -286,6 +287,7 @@
     <Compile Include="DocumentationComments\PEDocumentationCommentUtils.cs" />
     <Compile Include="DocumentationComments\SourceDocumentationCommentUtils.cs" />
     <Compile Include="Emitter\EditAndContinue\CSharpDefinitionMap.cs" />
+    <Compile Include="Emitter\EditAndContinue\CSharpLambdaSyntaxFacts.cs" />
     <Compile Include="Emitter\EditAndContinue\EmitHelpers.cs" />
     <Compile Include="Emitter\EditAndContinue\PEDeltaAssemblyBuilder.cs" />
     <Compile Include="Emitter\EditAndContinue\CSharpSymbolMatcher.cs" />
@@ -353,6 +355,7 @@
     <Compile Include="FlowAnalysis\ControlFlowPass.cs" />
     <Compile Include="FlowAnalysis\CSharpDataFlowAnalysis.cs" />
     <Compile Include="FlowAnalysis\DataFlowPass.cs" />
+    <Compile Include="FlowAnalysis\DataFlowPass.LocalFunctions.cs" />
     <Compile Include="FlowAnalysis\DataFlowPass.VariableIdentifier.cs" />
     <Compile Include="FlowAnalysis\DataFlowsInWalker.cs" />
     <Compile Include="FlowAnalysis\DataFlowsOutWalker.cs" />
@@ -401,6 +404,7 @@
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.Analysis.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaFrame.cs" />
+    <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.LocalFunctionReferenceRewriter.cs" />
     <Compile Include="Lowering\LambdaRewriter\SynthesizedLambdaMethod.cs" />
     <Compile Include="Lowering\LocalRewriter\DynamicSiteContainer.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter.cs" />
@@ -492,7 +496,6 @@
     <Compile Include="Parser\QuickScanner.cs" />
     <Compile Include="Parser\SlidingTextWindow.cs" />
     <Compile Include="Parser\SyntaxFactoryContext.cs" />
-    <Compile Include="Parser\SyntaxListPool.cs" />
     <Compile Include="Parser\SyntaxParser.cs" />
     <Compile Include="Parser\SyntaxParser.ResetPoint.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplay.cs" />
@@ -523,6 +526,7 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.cs" />
+    <Compile Include="Symbols\Source\GlobalExpressionVariable.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleFieldSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />
@@ -754,8 +758,8 @@
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.cs" />
     <Compile Include="Syntax\AttributeSyntax.cs" />
     <Compile Include="Syntax\AttributeTargetSpecifierSyntax.cs" />
-    <Compile Include="Syntax\BaseSyntaxNodeExtensions.cs" />
     <Compile Include="Syntax\CompilationUnitSyntax.cs" />
+    <Compile Include="Syntax\ConstructorDeclarationSyntax.cs" />
     <Compile Include="Syntax\CSharpLineDirectiveMap.cs" />
     <Compile Include="Syntax\CSharpPragmaWarningStateMap.cs" />
     <Compile Include="Syntax\CSharpSyntaxNode.cs" />
@@ -766,39 +770,22 @@
     <Compile Include="Syntax\CSharpSyntaxWalker.cs" />
     <Compile Include="Syntax\DeclarationStatementSyntax.cs" />
     <Compile Include="Syntax\DelegateDeclarationSyntax.cs" />
+    <Compile Include="Syntax\DestructorDeclarationSyntax.cs" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
     <Compile Include="Syntax\ForStatementSyntax.cs" />
     <Compile Include="Syntax\GenericNameSyntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
+    <Compile Include="Syntax\InternalSyntax\CSharpSyntaxNodeCache.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\IdentifierNameSyntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxList.cs" />
-    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\InternalSyntax\StructuredTriviaSyntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\Syntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxFactory.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxLastTokenReplacer.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithLotsOfChildren.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithManyChildren.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithThreeChildren.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithTwoChildren.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList`.Enumerator.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList`1.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder`1.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilderExtensions.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNode.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxRewriter.cs" />
+    <Compile Include="Syntax\InternalSyntax\CSharpSyntaxNode.cs" />
+    <Compile Include="Syntax\InternalSyntax\CSharpSyntaxRewriter.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.MissingTokenWithTrivia.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.SyntaxIdentifier.cs" />
@@ -810,7 +797,7 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.SyntaxTokenWithTrivia.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxFirstTokenReplacer.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxTrivia.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxVisitor.cs" />
+    <Compile Include="Syntax\InternalSyntax\CSharpSyntaxVisitor.cs" />
     <Compile Include="Syntax\AnonymousMethodExpressionSyntax.cs" />
     <Compile Include="Syntax\LookupPosition.cs" />
     <Compile Include="Syntax\IndexerDeclarationSyntax.cs" />
@@ -821,7 +808,6 @@
     <Compile Include="Syntax\ParameterListSyntax.cs" />
     <Compile Include="Syntax\ParameterSyntax.cs" />
     <Compile Include="Syntax\QualifiedNameSyntax.cs" />
-    <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SimpleNameSyntax.cs" />
     <Compile Include="Syntax\SimpleSyntaxReference.cs" />
     <Compile Include="Syntax\SkippedTokensTriviaSyntax.cs" />
@@ -834,25 +820,11 @@
     <Compile Include="Syntax\SyntaxKind.cs" />
     <Compile Include="Syntax\SyntaxKindEqualityComparer.cs" />
     <Compile Include="Syntax\SyntaxKindFacts.cs" />
-    <Compile Include="Syntax\SyntaxList.cs" />
-    <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.cs" />
-    <Compile Include="Syntax\SyntaxList.WithManyChildren.cs" />
-    <Compile Include="Syntax\SyntaxList.WithManyWeakChildren.cs" />
-    <Compile Include="Syntax\SyntaxList.WithThreeChildren.cs" />
-    <Compile Include="Syntax\SyntaxList.WithTwoChildren.cs" />
-    <Compile Include="Syntax\SyntaxListBuilder.cs" />
-    <Compile Include="Syntax\SyntaxListBuilder`1.cs" />
-    <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
-    <Compile Include="Syntax\SyntaxNavigator.cs" />
     <Compile Include="Syntax\SyntaxNodeExtensions.cs" />
     <Compile Include="Syntax\SyntaxFacts.cs" />
-    <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.cs" />
     <Compile Include="Syntax\SyntaxNodeRemover.cs" />
     <Compile Include="Syntax\SyntaxReplacer.cs" />
-    <Compile Include="Syntax\SyntaxTokenListBuilder.cs" />
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.cs" />
-    <Compile Include="Syntax\SyntaxTriviaFunctions.cs" />
-    <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />
     <Compile Include="Syntax\TypeDeclarationSyntax.cs" />
     <Compile Include="Syntax\TypeSyntax.cs" />
     <Compile Include="Syntax\XmlNameAttributeElementKind.cs" />
@@ -880,7 +852,9 @@
     </BoundTreeDefinition>
     <Compile Include="$(IntermediateOutputPath)BoundNodes.xml.Generated.cs" />
     <Compile Include="$(IntermediateOutputPath)ErrorFacts.Generated.cs" />
-    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.cs" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Syntax.Generated.cs" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Main.Generated.cs" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Internal.Generated.cs" />
     <Compile Include="Errors\ErrorCode.cs" />
     <EmbeddedResource Include="CSharpResources.resx">
       <SubType>Designer</SubType>
@@ -888,9 +862,6 @@
       <LastGenOutput>CSharpResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <ErrorCode Include="Errors\ErrorCode.cs" />
-    <SyntaxDefinition Include="Syntax\Syntax.xml">
-      <SubType>Designer</SubType>
-    </SyntaxDefinition>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
@@ -923,7 +894,5 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
   </ItemGroup>
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

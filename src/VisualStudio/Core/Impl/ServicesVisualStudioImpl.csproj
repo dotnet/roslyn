@@ -5,9 +5,7 @@
          even in WPF's build of a temporary project, where it won't be able to determine it based on the file extension. -->
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -57,10 +55,12 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
@@ -237,12 +237,9 @@
     <Compile Include="Options\AbstractOptionPage.cs" />
     <Compile Include="Options\AbstractOptionPageControl.cs" />
     <Compile Include="Options\AbstractRadioButtonViewModel.cs" />
-    <Compile Include="Options\AbstractSettingsManagerOptionSerializer.cs" />
-    <Compile Include="Options\AbstractLocalUserRegistryOptionSerializer.cs" />
     <Compile Include="Options\CheckBoxViewModel.cs" />
     <Compile Include="Options\HeaderItemViewModel.cs" />
     <Compile Include="Options\OptionBinding.cs" />
-    <Compile Include="Options\InternalOptionSerializer.cs" />
     <Compile Include="Options\PerLanguageOptionBinding.cs" />
     <Compile Include="Options\RadioButtonViewModel.cs" />
     <Compile Include="Options\Style\NamingPreferences\EnforcementLevel.cs" />
@@ -269,6 +266,12 @@
       <DependentUpon>SymbolSpecificationDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Options\SymbolSpecification\SymbolSpecificationViewModel.cs" />
+    <Compile Include="ProjectSystem\CPS\CPSProject.cs" />
+    <Compile Include="ProjectSystem\CPS\CPSCodeModelFactory.cs" />
+    <Compile Include="ProjectSystem\CPS\CPSProjectFactory.cs" />
+    <Compile Include="ProjectSystem\CPS\CPSProject_IProjectCodeModelProvider.cs" />
+    <Compile Include="ProjectSystem\CPS\CPSProject_IWorkspaceProjectContext.cs" />
+    <Compile Include="ProjectSystem\CPS\CPSProjectCodeModel.cs" />
     <Compile Include="RoslynVisualStudioWorkspace.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -298,7 +301,5 @@
     </Page>
   </ItemGroup>
   <ItemGroup />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

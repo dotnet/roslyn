@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public CSharpCompilation Compilation { get { return CompilationState.Compilation; } }
-        public CSharpSyntaxNode Syntax { get; set; }
+        public SyntaxNode Syntax { get; set; }
         public PEModuleBuilder ModuleBuilderOpt { get { return CompilationState.ModuleBuilderOpt; } }
         public DiagnosticBag Diagnostics { get; }
         public TypeCompilationState CompilationState { get; }
@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             set
             {
                 _currentMethod = value;
-                if ((object)value != null && value.MethodKind != MethodKind.AnonymousFunction)
+                if ((object)value != null &&
+                    value.MethodKind != MethodKind.AnonymousFunction &&
+                    value.MethodKind != MethodKind.LocalFunction)
                 {
                     _topLevelMethod = value;
                     _currentType = value.ContainingType;
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression MakeInvocationExpression(
             BinderFlags flags,
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BoundExpression receiver,
             string methodName,
             ImmutableArray<BoundExpression> args,
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, CSharpSyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, SyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
             : this(topLevelMethod, topLevelMethod.ContainingType, node, compilationState, diagnostics)
         {
         }
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethodOpt, NamedTypeSymbol currentClassOpt, CSharpSyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethodOpt, NamedTypeSymbol currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
             Debug.Assert(compilationState != null);
@@ -408,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, statements) { WasCompilerGenerated = true };
         }
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, params BoundStatement[] statements)
@@ -734,30 +736,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocal(Syntax, local, null, local.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(LocalSymbol temp, params BoundExpression[] parts)
+        public BoundExpression MakeSequence(LocalSymbol temp, params BoundExpression[] parts)
         {
-            return Sequence(ImmutableArray.Create<LocalSymbol>(temp), parts);
+            return MakeSequence(ImmutableArray.Create<LocalSymbol>(temp), parts);
         }
 
-        public BoundExpression Sequence(params BoundExpression[] parts)
+        public BoundExpression MakeSequence(params BoundExpression[] parts)
         {
-            return Sequence(ImmutableArray<LocalSymbol>.Empty, parts);
+            return MakeSequence(ImmutableArray<LocalSymbol>.Empty, parts);
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, params BoundExpression[] parts)
+        public BoundExpression MakeSequence(ImmutableArray<LocalSymbol> locals, params BoundExpression[] parts)
         {
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
-            for (int i = 0; i < parts.Length - 1; i++) builder.Add(parts[i]);
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                var part = parts[i];
+                if (LocalRewriter.ReadIsSideeffecting(part))
+                {
+                    builder.Add(parts[i]);
+                }
+            }
             var lastExpression = parts[parts.Length - 1];
+
+            if (locals.IsDefaultOrEmpty && builder.Count == 0)
+            {
+                builder.Free();
+                return lastExpression;
+            }
+
             return Sequence(locals, builder.ToImmutableAndFree(), lastExpression);
         }
 
-        public BoundExpression Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol type = null)
+        public BoundSequence Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol type = null)
         {
             return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, type ?? result.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
+        public BoundSequence Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
         {
             return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
@@ -907,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundExpressionStatement(Syntax, Call(Base(), ctor)) { WasCompilerGenerated = true };
         }
 
-        public BoundStatement SequencePoint(CSharpSyntaxNode syntax, BoundStatement statement)
+        public BoundStatement SequencePoint(SyntaxNode syntax, BoundStatement statement)
         {
             return new BoundSequencePoint(syntax, statement);
         }
@@ -925,6 +941,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement ThrowNull()
         {
             return Throw(Null(Compilation.GetWellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Exception)));
+        }
+
+        public BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)
+        {
+            return new BoundThrowExpression(thrown.Syntax, thrown, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Null(TypeSymbol type)
@@ -1206,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundAssignmentOperator store,
             RefKind refKind = RefKind.None,
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
-            CSharpSyntaxNode syntaxOpt = null
+            SyntaxNode syntaxOpt = null
 #if DEBUG
             , [CallerLineNumber]int callerLineNumber = 0
             , [CallerFilePath]string callerFilePath = null

@@ -28,6 +28,7 @@ namespace Roslyn.Test.Utilities
             public const string Classification = nameof(Classification);
             public const string ClassView = nameof(ClassView);
             public const string CodeActionsAddConstructorParameters = "CodeActions.AddConstructorParameters";
+            public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
@@ -57,7 +58,9 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsFullyQualify = "CodeActions.FullyQualify";
             public const string CodeActionsImplementAbstractClass = "CodeActions.ImplementAbstractClass";
             public const string CodeActionsImplementInterface = "CodeActions.ImplementInterface";
+            public const string CodeActionsInlineDeclaration = "CodeActions.InlineDeclaration";
             public const string CodeActionsInlineTemporary = "CodeActions.InlineTemporary";
+            public const string CodeActionsInlineTypeCheck = "CodeActions.InlineTypeCheck";
             public const string CodeActionsInsertBraces = "CodeActions.InsertBraces";
             public const string CodeActionsInsertMissingCast = "CodeActions.InsertMissingCast";
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
@@ -81,10 +84,15 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
+            public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";
             public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
+            public const string CodeActionsUseFrameworkType = "CodeActions.UseFrameworkType";
+            public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
+            public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
             public const string CodeGeneration = nameof(CodeGeneration);
             public const string CodeGenerationSortDeclarations = "CodeGeneration.SortDeclarations";
+            public const string CodeLens = nameof(CodeLens);
             public const string CodeModel = nameof(CodeModel);
             public const string CodeModelEvents = "CodeModel.Events";
             public const string CodeModelMethodXml = "CodeModel.MethodXml";
@@ -134,6 +142,7 @@ namespace Roslyn.Test.Utilities
             public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
             public const string Rename = nameof(Rename);
             public const string RenameTracking = nameof(RenameTracking);
+            public const string RemoteHost = nameof(RemoteHost);
             public const string RQName = nameof(RQName);
             public const string SignatureHelp = nameof(SignatureHelp);
             public const string Simplification = nameof(Simplification);

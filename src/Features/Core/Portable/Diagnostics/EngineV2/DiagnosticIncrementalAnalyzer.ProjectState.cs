@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -17,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private class ProjectState
         {
+            private static readonly Task<StrongBox<ImmutableArray<DiagnosticData>>> s_emptyResultTaskCache =
+                Task.FromResult(new StrongBox<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty));
+
             // project id of this state
             private readonly StateSet _owner;
 
@@ -369,26 +373,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CancellationToken cancellationToken) where T : class
             {
                 var diagnostics = await DeserializeAsync(serializer, documentOrProject, key, stateKey, cancellationToken).ConfigureAwait(false);
-                if (diagnostics.IsDefault)
+                if (diagnostics == null)
                 {
                     return false;
                 }
 
-                add(key, diagnostics);
+                add(key, diagnostics.Value);
                 return true;
             }
 
-            private async Task<ImmutableArray<DiagnosticData>> DeserializeAsync(DiagnosticDataSerializer serializer, object documentOrProject, object key, string stateKey, CancellationToken cancellationToken)
+            private Task<StrongBox<ImmutableArray<DiagnosticData>>> DeserializeAsync(DiagnosticDataSerializer serializer, object documentOrProject, object key, string stateKey, CancellationToken cancellationToken)
             {
+                // when VS is loading new solution, we will try to find out all diagnostics persisted from previous VS session.
+                // in that situation, it is possible that we have a lot of deserialization returning empty result. previously we used to
+                // return default(ImmutableArray) for such case, but it turns out async/await framework has allocation issues with returning
+                // default(value type), so we are using StrongBox to return no data as null. async/await has optimization where it will return
+                // cached empty task if given value is null for reference type. (see AsyncMethodBuilder.GetTaskForResult)
+                // 
+                // right now, we can't use Nullable either, since it is not one of value type the async/await will reuse cached task. in future,
+                // if they do, we can change it to return Nullable<ImmutableArray>
+                //
+                // after initial deserialization, we track actual document/project that actually have diagnostics so no data won't be a common
+                // case.
+
                 // check cache first
                 CacheEntry entry;
                 if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out entry) && serializer.Version == entry.Version)
                 {
-                    return entry.Diagnostics;
+                    if (entry.Diagnostics.Length == 0)
+                    {
+                        // if there is no result, use cached task
+                        return s_emptyResultTaskCache;
+                    }
+
+                    return Task.FromResult(new StrongBox<ImmutableArray<DiagnosticData>>(entry.Diagnostics));
                 }
 
                 // try to deserialize it
-                return await serializer.DeserializeAsync(documentOrProject, stateKey, cancellationToken).ConfigureAwait(false);
+                return serializer.DeserializeAsync(documentOrProject, stateKey, cancellationToken);
             }
 
             private void RemoveInMemoryCache(DiagnosticAnalysisResult lastResult)
@@ -469,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        _others.IsDefault ? ImmutableArray<DiagnosticData>.Empty : _others,
+                        _others.NullToEmpty(),
                         _documentIds,
                         fromBuild: false);
                 }

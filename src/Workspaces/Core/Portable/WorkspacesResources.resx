@@ -474,4 +474,19 @@
   <data name="Options_did_not_come_from_Workspace" xml:space="preserve">
     <value>Options did not come from Workspace</value>
   </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="Enable_and_ignore_future_errors" xml:space="preserve">
+    <value>Enable and ignore future errors</value>
+  </data>
+  <data name="_0_encountered_an_error_and_has_been_disabled" xml:space="preserve">
+    <value>'{0}' encountered an error and has been disabled.</value>
+  </data>
+  <data name="Show_Stack_Trace" xml:space="preserve">
+    <value>Show Stack Trace</value>
+  </data>
+  <data name="Stream_is_too_long" xml:space="preserve">
+    <value>Stream is too long.</value>
+  </data>
 </root>

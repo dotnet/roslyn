@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var members = semanticModel.LookupSymbols(
                 position: name.SpanStart,
                 container: symbol)
-                    .Where(s => !s.IsStatic)
+                    .WhereAsArray(s => !s.IsStatic)
                     .FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
 
             // We're going to create a entry for each one, including the signature

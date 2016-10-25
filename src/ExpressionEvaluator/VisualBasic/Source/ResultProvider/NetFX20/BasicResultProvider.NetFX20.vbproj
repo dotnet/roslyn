@@ -3,11 +3,8 @@
   <PropertyGroup>
     <TargetNetFX20>true</TargetNetFX20>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <OutDir>$(OutDir)NetFX20\</OutDir>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{76242A2D-2600-49DD-8C15-FEA07ECB1842}</ProjectGuid>
@@ -16,9 +13,9 @@
     </RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider</AssemblyName>
     <VBSyntaxGeneratorToolPath>$(OutDir)..\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <RestorePackages>true</RestorePackages>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -69,8 +66,6 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <Import Project="..\BasicResultProvider.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
+  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

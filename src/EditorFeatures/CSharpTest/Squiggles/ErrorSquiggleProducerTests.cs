@@ -19,6 +19,9 @@ using Xunit;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        public async Task SuggestionTagsForUnnecessaryCode()
+        public async Task CustomizableTagsForUnnecessaryCode()
         {
             var workspaceXml =
 @"<Workspace>
@@ -97,6 +100,14 @@ class Program
 
             using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
+                var options = new Dictionary<OptionKey, object>();
+                var language = workspace.Projects.Single().Language;
+                var preferIntrinsicPredefinedTypeOption = new OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
+                var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Error);
+                options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue);
+
+                workspace.ApplyOptions(options);
+
                 var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
                 {
                     {
@@ -128,7 +139,7 @@ class Program
                 Assert.Equal(82, second.Span.Start);
                 Assert.Equal(60, second.Span.Length);
 
-                Assert.Equal(PredefinedErrorTypeNames.Suggestion, third.Tag.ErrorType);
+                Assert.Equal(PredefinedErrorTypeNames.SyntaxError, third.Tag.ErrorType);
                 Assert.Equal(WorkspacesResources.Name_can_be_simplified, third.Tag.ToolTipContent);
                 Assert.Equal(196, third.Span.Start);
                 Assert.Equal(5, third.Span.Length);

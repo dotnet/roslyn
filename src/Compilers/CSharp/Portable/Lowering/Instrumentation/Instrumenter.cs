@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement collectionVarDecl)
         {
             Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
+            Debug.Assert(original.Syntax is CommonForEachStatementSyntax);
             return collectionVarDecl;
         }
 
@@ -242,10 +242,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InstrumentStatement(original, rewritten);
         }
 
-        public virtual BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public virtual BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
         {
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
             return InstrumentStatement(original, rewritten);
+        }
+
+        /// <summary>
+        /// Instrument a switch case when clause, which is translated to a conditional branch to the body of the case block.
+        /// </summary>
+        /// <param name="original">the bound expression of the when clause</param>
+        /// <param name="ifConditionGotoBody">the lowered conditional branch into the case block</param>
+        public virtual BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        {
+            Debug.Assert(!original.WasCompilerGenerated);
+            Debug.Assert(original.Syntax.Parent.Kind() == SyntaxKind.WhenClause);
+            return ifConditionGotoBody;
         }
 
         public virtual BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
@@ -278,8 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenFilter;
         }
 
-        public virtual BoundExpression InstrumentSwitchStatementExpression(BoundSwitchStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        public virtual BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
+            Debug.Assert(original.Kind == BoundKind.SwitchStatement || original.Kind == BoundKind.PatternSwitchStatement);
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
             Debug.Assert(factory != null);

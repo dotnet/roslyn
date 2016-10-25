@@ -1,11 +1,28 @@
-Microsoft.CodeAnalysis.CommandLineArguments.SourceLink.get -> string
-Microsoft.CodeAnalysis.Compilation.CreateAnonymousTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> memberTypes, System.Collections.Immutable.ImmutableArray<string> memberNames) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(Microsoft.CodeAnalysis.INamedTypeSymbol underlyingType, System.Collections.Immutable.ImmutableArray<string> elementNames = default(System.Collections.Immutable.ImmutableArray<string>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, System.Collections.Immutable.ImmutableArray<string> elementNames = default(System.Collections.Immutable.ImmutableArray<string>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 *REMOVED*Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream peStream, System.IO.Stream pdbStream = null, System.IO.Stream xmlDocumentationStream = null, System.IO.Stream win32Resources = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, Microsoft.CodeAnalysis.Emit.EmitOptions options = null, Microsoft.CodeAnalysis.IMethodSymbol debugEntryPoint = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
-Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream peStream, System.IO.Stream pdbStream = null, System.IO.Stream xmlDocumentationStream = null, System.IO.Stream win32Resources = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, Microsoft.CodeAnalysis.Emit.EmitOptions options = null, Microsoft.CodeAnalysis.IMethodSymbol debugEntryPoint = null, System.IO.Stream sourceLinkStream = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
+*REMOVED*abstract Microsoft.CodeAnalysis.SyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
+*REMOVED*abstract Microsoft.CodeAnalysis.SyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+*REMOVED*abstract Microsoft.CodeAnalysis.SyntaxNode.ToFullString() -> string
+*REMOVED*abstract Microsoft.CodeAnalysis.SyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
+*REMOVED*override abstract Microsoft.CodeAnalysis.SyntaxNode.ToString() -> string
+*REMOVED*static Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.Stream stream, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1, bool throwIfBinaryDetected = false) -> Microsoft.CodeAnalysis.Text.SourceText
+*REMOVED*static Microsoft.CodeAnalysis.Text.SourceText.From(byte[] buffer, int length, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1, bool throwIfBinaryDetected = false) -> Microsoft.CodeAnalysis.Text.SourceText
+Microsoft.CodeAnalysis.CommandLineArguments.DisplayVersion.get -> bool
+Microsoft.CodeAnalysis.CommandLineArguments.EmbeddedFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineSourceFile>
+Microsoft.CodeAnalysis.CommandLineArguments.SourceLink.get -> string
+Microsoft.CodeAnalysis.Compilation.CreateAnonymousTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> memberTypes, System.Collections.Immutable.ImmutableArray<string> memberNames, System.Collections.Immutable.ImmutableArray<bool> memberIsReadOnly = default(System.Collections.Immutable.ImmutableArray<bool>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location> memberLocations = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
+Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(Microsoft.CodeAnalysis.INamedTypeSymbol underlyingType, System.Collections.Immutable.ImmutableArray<string> elementNames = default(System.Collections.Immutable.ImmutableArray<string>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location> elementLocations = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
+Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, System.Collections.Immutable.ImmutableArray<string> elementNames = default(System.Collections.Immutable.ImmutableArray<string>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location> elementLocations = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Location>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
+Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream peStream, System.IO.Stream pdbStream = null, System.IO.Stream xmlDocumentationStream = null, System.IO.Stream win32Resources = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, Microsoft.CodeAnalysis.Emit.EmitOptions options = null, Microsoft.CodeAnalysis.IMethodSymbol debugEntryPoint = null, System.IO.Stream sourceLinkStream = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.EmbeddedText> embeddedTexts = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
 Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream peStream, System.IO.Stream pdbStream, System.IO.Stream xmlDocumentationStream, System.IO.Stream win32Resources, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources, Microsoft.CodeAnalysis.Emit.EmitOptions options, Microsoft.CodeAnalysis.IMethodSymbol debugEntryPoint, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Emit.EmitResult
 Microsoft.CodeAnalysis.CompilationOptions.WithConcurrentBuild(bool concurrent) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithCryptoKeyContainer(string cryptoKeyContainer) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithCryptoKeyFile(string cryptoKeyFile) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithCryptoPublicKey(System.Collections.Immutable.ImmutableArray<byte> cryptoPublicKey) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithDelaySign(bool? delaySign) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithMainTypeName(string mainTypeName) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithModuleName(string moduleName) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithOverflowChecks(bool checkOverflow) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithScriptClassName(string scriptClassName) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
@@ -52,10 +69,17 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SemanticModel
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SymbolActionsCount.set -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SyntaxNodeActionsCount.set -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SyntaxTreeActionsCount.set -> void
-Microsoft.CodeAnalysis.Emit.EmitOptions.EmitOptions(bool metadataOnly = false, Microsoft.CodeAnalysis.Emit.DebugInformationFormat debugInformationFormat = (Microsoft.CodeAnalysis.Emit.DebugInformationFormat)0, string pdbFilePath = null, string outputNameOverride = null, int fileAlignment = 0, ulong baseAddress = 0, bool highEntropyVirtualAddressSpace = false, Microsoft.CodeAnalysis.SubsystemVersion subsystemVersion = default(Microsoft.CodeAnalysis.SubsystemVersion), string runtimeMetadataVersion = null, bool tolerateErrors = false, bool includePrivateMembers = false, string instrument = "") -> void
+Microsoft.CodeAnalysis.EmbeddedText
+Microsoft.CodeAnalysis.EmbeddedText.Checksum.get -> System.Collections.Immutable.ImmutableArray<byte>
+Microsoft.CodeAnalysis.EmbeddedText.ChecksumAlgorithm.get -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
+Microsoft.CodeAnalysis.EmbeddedText.FilePath.get -> string
+Microsoft.CodeAnalysis.Emit.EmitOptions.EmitOptions(bool metadataOnly = false, Microsoft.CodeAnalysis.Emit.DebugInformationFormat debugInformationFormat = (Microsoft.CodeAnalysis.Emit.DebugInformationFormat)0, string pdbFilePath = null, string outputNameOverride = null, int fileAlignment = 0, ulong baseAddress = 0, bool highEntropyVirtualAddressSpace = false, Microsoft.CodeAnalysis.SubsystemVersion subsystemVersion = default(Microsoft.CodeAnalysis.SubsystemVersion), string runtimeMetadataVersion = null, bool tolerateErrors = false, bool includePrivateMembers = false, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind> instrumentationKinds = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind>)) -> void
 Microsoft.CodeAnalysis.Emit.EmitOptions.EmitOptions(bool metadataOnly, Microsoft.CodeAnalysis.Emit.DebugInformationFormat debugInformationFormat, string pdbFilePath, string outputNameOverride, int fileAlignment, ulong baseAddress, bool highEntropyVirtualAddressSpace, Microsoft.CodeAnalysis.SubsystemVersion subsystemVersion, string runtimeMetadataVersion, bool tolerateErrors, bool includePrivateMembers) -> void
-Microsoft.CodeAnalysis.Emit.EmitOptions.Instrument.get -> string
-Microsoft.CodeAnalysis.Emit.EmitOptions.WithInstrument(string instrument) -> Microsoft.CodeAnalysis.Emit.EmitOptions
+Microsoft.CodeAnalysis.Emit.EmitOptions.InstrumentationKinds.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind>
+Microsoft.CodeAnalysis.Emit.EmitOptions.WithInstrumentationKinds(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind> instrumentationKinds) -> Microsoft.CodeAnalysis.Emit.EmitOptions
+Microsoft.CodeAnalysis.Emit.InstrumentationKind
+Microsoft.CodeAnalysis.Emit.InstrumentationKind.None = 0 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
+Microsoft.CodeAnalysis.Emit.InstrumentationKind.TestCoverage = 1 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRef.get -> bool
 Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElementNames.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElementTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol>
@@ -686,11 +710,13 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixIncrement = 77
 Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveGenericsOptions(Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions options) -> Microsoft.CodeAnalysis.SymbolDisplayFormat
 Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveLocalOptions(Microsoft.CodeAnalysis.SymbolDisplayLocalOptions options) -> Microsoft.CodeAnalysis.SymbolDisplayFormat
 Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveMiscellaneousOptions(Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions options) -> Microsoft.CodeAnalysis.SymbolDisplayFormat
+Microsoft.CodeAnalysis.Text.SourceText.CanBeEmbedded.get -> bool
 Microsoft.CodeAnalysis.Text.SourceText.GetChecksum() -> System.Collections.Immutable.ImmutableArray<byte>
+abstract Microsoft.CodeAnalysis.CompilationOptions.Language.get -> string
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.ParseOptions.Language.get -> string
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
-const Microsoft.CodeAnalysis.WellKnownMemberNames.CreateAsyncMethodBuilder = "CreateAsyncMethodBuilder" -> string
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAddressOfExpression(Microsoft.CodeAnalysis.Semantics.IAddressOfExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation) -> void
@@ -765,6 +791,11 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarati
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
+override Microsoft.CodeAnalysis.SyntaxNode.ToString() -> string
+static Microsoft.CodeAnalysis.CaseInsensitiveComparison.StartsWith(string value, string possibleStart) -> bool
+static Microsoft.CodeAnalysis.EmbeddedText.FromBytes(string filePath, System.ArraySegment<byte> bytes, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.EmbeddedText
+static Microsoft.CodeAnalysis.EmbeddedText.FromSource(string filePath, Microsoft.CodeAnalysis.Text.SourceText text) -> Microsoft.CodeAnalysis.EmbeddedText
+static Microsoft.CodeAnalysis.EmbeddedText.FromStream(string filePath, System.IO.Stream stream, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.EmbeddedText
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetRootOperation(this Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
@@ -782,6 +813,11 @@ static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUna
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(this Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression unary) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode>(Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode>
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>
+static Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.Stream stream, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1, bool throwIfBinaryDetected = false, bool canBeEmbedded = false) -> Microsoft.CodeAnalysis.Text.SourceText
+static Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.Stream stream, System.Text.Encoding encoding, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected) -> Microsoft.CodeAnalysis.Text.SourceText
+static Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.TextReader reader, int length, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.Text.SourceText
+static Microsoft.CodeAnalysis.Text.SourceText.From(byte[] buffer, int length, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1, bool throwIfBinaryDetected = false, bool canBeEmbedded = false) -> Microsoft.CodeAnalysis.Text.SourceText
+static Microsoft.CodeAnalysis.Text.SourceText.From(byte[] buffer, int length, System.Text.Encoding encoding, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected) -> Microsoft.CodeAnalysis.Text.SourceText
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
@@ -940,3 +976,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.SyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
+virtual Microsoft.CodeAnalysis.SyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+virtual Microsoft.CodeAnalysis.SyntaxNode.ToFullString() -> string
+virtual Microsoft.CodeAnalysis.SyntaxNode.WriteTo(System.IO.TextWriter writer) -> void

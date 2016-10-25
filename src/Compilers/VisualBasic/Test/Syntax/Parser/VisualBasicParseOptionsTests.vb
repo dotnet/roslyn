@@ -30,9 +30,14 @@ Public Class VisualBasicParseOptionsTests
         Dim oldOpt1 = VisualBasicParseOptions.Default
         Dim newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Latest)
         Dim newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Latest)
-        Assert.Equal(LanguageVersion.Latest.MapLatestToVersion, oldOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapLatestToVersion, newOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapLatestToVersion, newOpt2.LanguageVersion)
+        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
+        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
+        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
+        newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Default)
+        newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Default)
+        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
+        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
+        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
     End Sub
 
     <Fact>
@@ -253,8 +258,10 @@ Public Class VisualBasicParseOptionsTests
         ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 (GetType(VisualBasicParseOptions)),
                 "Features",
+                "Language",
                 "LanguageVersion",
                 "PreprocessorSymbolNames",
-                "PreprocessorSymbols")
+                "PreprocessorSymbols",
+                "SpecifiedLanguageVersion")
     End Sub
 End Class

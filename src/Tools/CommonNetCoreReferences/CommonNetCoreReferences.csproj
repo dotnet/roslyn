@@ -11,7 +11,6 @@
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <OutDir>$(OutDir)\CoreClrTest</OutDir>
     <RestorePackages>true</RestorePackages>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <NonShipping>true</NonShipping>
@@ -19,6 +18,7 @@
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <NoStdLib>true</NoStdLib>
+    <RoslynProjectType>Deployment</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
@@ -28,9 +28,7 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   <!-- Override the defaults and make this .NETCoreApp -->
   <PropertyGroup>
     <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>

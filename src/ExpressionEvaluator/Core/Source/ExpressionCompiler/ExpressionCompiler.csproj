@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -11,13 +9,11 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
@@ -31,9 +27,9 @@
     <Compile Include="CustomTypeInfo.cs" />
     <Compile Include="DebuggerDiagnosticFormatter.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
-    <Compile Include="DynamicFlagsCustomTypeInfo_Factory.cs" />
     <Compile Include="EESymbolProvider.cs" />
     <Compile Include="ILSpan.cs" />
+    <Compile Include="NotImplementedMetadataException.cs" />
     <Compile Include="PDB\MethodDebugInfo.Native.cs" />
     <Compile Include="PDB\MethodDebugInfo.Portable.cs" />
     <Compile Include="Placeholders.cs" />
@@ -80,10 +76,6 @@
     <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
@@ -96,7 +88,5 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

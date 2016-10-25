@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol _constructor;
         private readonly MethodSymbol _staticConstructor;
         private readonly FieldSymbol _singletonCache;
-        internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
+        internal readonly SyntaxNode ScopeSyntaxOpt;
         internal readonly int ClosureOrdinal;
 
-        internal LambdaFrame(MethodSymbol topLevelMethod, MethodSymbol containingMethod, bool isStruct, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
+        internal LambdaFrame(MethodSymbol topLevelMethod, MethodSymbol containingMethod, bool isStruct, SyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
             : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
         {
             _typeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [Conditional("DEBUG")]
-        private static void AssertIsClosureScopeSyntax(CSharpSyntaxNode syntaxOpt)
+        private static void AssertIsClosureScopeSyntax(SyntaxNode syntaxOpt)
         {
             // See C# specification, chapter 3.7 Scopes.
 

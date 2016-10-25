@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -13,16 +14,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class EnumCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
-        Protected Overrides Function GetPreselectedSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Function GetPreselectedSymbolsWorker(
+                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+            End If
+
+            ' This providers provides fully qualified names, eg "DayOfWeek.Monday"
+            ' Don't run after dot because SymbolCompletionProvider will provide
+            ' members in situations like Dim x = DayOfWeek.$$
+            If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
             Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
 
             If enumType.TypeKind <> TypeKind.Enum Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
@@ -33,15 +43,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return m.Kind = SymbolKind.Field AndAlso
                         DirectCast(m, IFieldSymbol).IsConst AndAlso
                         m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                End Function)
+                End Function).ToImmutableArray()
 
-            Return Task.FromResult(Of IEnumerable(Of ISymbol))(result)
+            Return Task.FromResult(result)
         End Function
 
-        Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Function GetSymbolsWorker(
+                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+            End If
+
+            If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
@@ -49,15 +65,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
 
             If enumType.TypeKind <> TypeKind.Enum Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
 
-            Dim otherSymbols = context.SemanticModel.LookupSymbols(position).Where(Function(s) s.MatchesKind(SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property) AndAlso
-                                                                               s.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation))
+            Dim otherSymbols = context.SemanticModel.LookupSymbols(position).WhereAsArray(
+                Function(s) s.MatchesKind(SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property) AndAlso
+                    s.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation))
 
-            Dim otherInstances = otherSymbols.Where(Function(s) enumType Is GetTypeFromSymbol(s))
+            Dim otherInstances = otherSymbols.WhereAsArray(Function(s) enumType Is GetTypeFromSymbol(s))
 
             Return Task.FromResult(otherInstances.Concat(enumType))
         End Function

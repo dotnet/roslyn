@@ -1,8 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Text
-Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -26,12 +26,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
         End Sub
 
-        Protected Overrides Sub AppendGenericTypeArgumentList(
+        Protected Overrides Sub AppendGenericTypeArguments(
             builder As StringBuilder,
             typeArguments() As Type,
             typeArgumentOffset As Integer,
-            dynamicFlags As DynamicFlagsCustomTypeInfo,
-            ByRef index As Integer, arity As Integer,
+            dynamicFlags As ReadOnlyCollection(Of Byte),
+            ByRef dynamicFlagIndex As Integer,
+            tupleElementNames As ReadOnlyCollection(Of String),
+            ByRef tupleElementIndex As Integer,
+            arity As Integer,
             escapeKeywordIdentifiers As Boolean,
             <Out> ByRef sawInvalidIdentifier As Boolean)
 
@@ -42,12 +45,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     builder.Append(", ")
                 End If
 
-                Dim sawSingleInvalidIdentifier As Boolean = Nothing
+                Dim sawSingleInvalidIdentifier = False
                 Dim typeArgument As Type = typeArguments(typeArgumentOffset + i)
-                AppendQualifiedTypeName(builder, typeArgument, dynamicFlags, index, escapeKeywordIdentifiers, sawSingleInvalidIdentifier)
+                AppendQualifiedTypeName(
+                    builder,
+                    typeArgument,
+                    dynamicFlags,
+                    dynamicFlagIndex,
+                    tupleElementNames,
+                    tupleElementIndex,
+                    escapeKeywordIdentifiers,
+                    sawSingleInvalidIdentifier)
                 sawInvalidIdentifier = sawInvalidIdentifier Or sawSingleInvalidIdentifier
             Next
             builder.Append(")"c)
+        End Sub
+
+        Protected Overrides Sub AppendTupleElement(
+            builder As StringBuilder,
+            type As Type,
+            nameOpt As String,
+            dynamicFlags As ReadOnlyCollection(Of Byte),
+            ByRef dynamicFlagIndex As Integer,
+            tupleElementNames As ReadOnlyCollection(Of String),
+            ByRef tupleElementIndex As Integer,
+            escapeKeywordIdentifiers As Boolean,
+            <Out> ByRef sawInvalidIdentifier As Boolean)
+
+            sawInvalidIdentifier = False
+            Dim sawSingleInvalidIdentifier = False
+            If Not String.IsNullOrEmpty(nameOpt) Then
+                AppendIdentifier(builder, escapeKeywordIdentifiers, nameOpt, sawSingleInvalidIdentifier)
+                sawInvalidIdentifier = sawInvalidIdentifier Or sawSingleInvalidIdentifier
+                builder.Append(" As ")
+            End If
+            AppendQualifiedTypeName(
+                    builder,
+                    type,
+                    dynamicFlags,
+                    dynamicFlagIndex,
+                    tupleElementNames,
+                    tupleElementIndex,
+                    escapeKeywordIdentifiers,
+                    sawSingleInvalidIdentifier)
+            Debug.Assert(Not sawSingleInvalidIdentifier)
         End Sub
 
         Protected Overrides Sub AppendRankSpecifier(builder As StringBuilder, rank As Integer)

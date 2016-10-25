@@ -70,6 +70,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             var sourceFiles = _compiler.Arguments.SourceFiles;
 
+            if (_compiler.Arguments.DisplayVersion)
+            {
+                _compiler.PrintVersion(_console.Out);
+                return 0;
+            }
+
             if (sourceFiles.IsEmpty && _compiler.Arguments.DisplayLogo)
             {
                 _compiler.PrintLogo(_console.Out);
@@ -98,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
                 else
                 {
-                    code = _compiler.ReadFileContent(sourceFiles[0], diagnosticsInfos);
+                    code = _compiler.TryReadFileContent(sourceFiles[0], diagnosticsInfos);
                 }
             }
 

@@ -12,7 +12,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <OutDir>$(OutDir)\$(AssemblyName)</OutDir>
     <TargetFrameworkProfile />
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -29,6 +28,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <RoslynProjectType>ToolDesktop</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChangeCommand.cs" />
+    <Compile Include="ConflictingPackagesException.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ConsumesCommand.cs" />
     <Compile Include="FileName.cs" />
@@ -48,6 +49,8 @@
     <Compile Include="GenerateUtil.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="JsonTypes.cs" />
+    <Compile Include="NuGetConfigUtil.cs" />
+    <Compile Include="NuGetFeed.cs" />
     <Compile Include="NuGetPackage.cs" />
     <Compile Include="NuGetPackageChange.cs" />
     <Compile Include="NuGetPackageSource.cs" />

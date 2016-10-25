@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -12,11 +10,11 @@
     </RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Features</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -56,12 +54,15 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
@@ -91,7 +92,6 @@
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.CodeAction.vb" />
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.vb" />
     <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\Async\VisualBasicAddAsyncCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicAddAwaitCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
@@ -126,6 +126,7 @@
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Spellcheck\VisualBasicSpellCheckCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Suppression\VisualBasicSuppressionCodeFixProvider.vb" />
+    <Compile Include="CodeLens\VisualBasicDisplayInfoService.vb" />
     <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />
@@ -293,6 +294,7 @@
     <Compile Include="Completion\KeywordRecommenders\Statements\YieldKeywordRecommender.vb" />
     <Compile Include="Completion\KeywordRecommenders\Types\BuiltInTypesKeywordRecommender.vb" />
     <Compile Include="Completion\VisualBasicCompletionService.vb" />
+    <Compile Include="Diagnostics\Analyzers\VisualBasicPreferFrameworkTypeDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicQualifyMemberAccessDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicUnboundIdentifiersDiagnosticAnalyzer.vb" />
@@ -303,6 +305,7 @@
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.vb" />
     <Compile Include="DocumentationComments\VisualBasicDocumentationCommentFormattingService.vb" />
     <Compile Include="DocumentationComments\CodeFixes\VisualBasicRemoveDocCommentNodeCodeFixProvider.vb" />
+    <Compile Include="Structure\Providers\DoLoopBlockStructureProvider.vb" />
     <Compile Include="EditAndContinue\BreakpointSpans.vb" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxComparer.vb" />
@@ -327,6 +330,8 @@
     <Compile Include="ExtractMethod\VisualBasicSelectionValidator.vb" />
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaService.vb" />
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaServiceFactory.vb" />
+    <Compile Include="Structure\Providers\ForBlockStructureProvider.vb" />
+    <Compile Include="Structure\Providers\ForEachBlockStructureProvider.vb" />
     <Compile Include="GenerateFromMembers\AddConstructorParameters\VisualBasicAddConstructorParametersService.vb" />
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\VisualBasicGenerateConstructorFromMembersService.vb" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\VisualBasicGenerateEqualsAndGetHashCodeService.vb" />
@@ -351,9 +356,12 @@
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayService.SymbolDescriptionBuilder.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayService.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayServiceFactory.vb" />
+    <Compile Include="MakeMethodAsynchronous\VisualBasicMakeMethodAsynchronousCodeFixProvider.vb" />
     <Compile Include="MakeMethodSynchronous\VisualBasicMakeMethodSynchronousCodeFixProvider.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceService.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceServiceFactory.vb" />
+    <Compile Include="Structure\Providers\MultiLineIfBlockStructureProvider.vb" />
+    <Compile Include="NavigateTo\VisualBasicNavigateToSearchService.vb" />
     <Compile Include="OrganizeImports\VisualBasicOrganizeImportsService.Rewriter.vb" />
     <Compile Include="OrganizeImports\VisualBasicOrganizeImportsService.vb" />
     <Compile Include="Organizing\Organizers\MemberDeclarationsOrganizer.Comparer.vb" />
@@ -361,6 +369,40 @@
     <Compile Include="Organizing\Organizers\TypeBlockOrganizer.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.Rewriter.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.vb" />
+    <Compile Include="Structure\Providers\SelectBlockStructureProvider.vb" />
+    <Compile Include="Structure\Providers\AccessorDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\CompilationUnitStructureProvider.vb" />
+    <Compile Include="Structure\Providers\ConstructorDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\DelegateDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\DisabledTextTriviaStructureProvider.vb" />
+    <Compile Include="Structure\Providers\DocumentationCommentStructureProvider.vb" />
+    <Compile Include="Structure\Providers\WhileBlockStructureProvider.vb" />
+    <Compile Include="Structure\Providers\EnumDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\EventDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\ExternalMethodDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\FieldDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\AbstractMetadataAsSourceStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataConstructorDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataDelegateDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataEnumDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataEnumMemberDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataEventDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataFieldDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataMethodDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataOperatorDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataPropertyDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataRegionDirectiveStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MetadataAsSource\MetadataTypeDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MethodDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\MultilineLambdaStructureProvider.vb" />
+    <Compile Include="Structure\Providers\NamespaceDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\OperatorDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\PropertyDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\RegionDirectiveStructureProvider.vb" />
+    <Compile Include="Structure\Providers\TypeDeclarationStructureProvider.vb" />
+    <Compile Include="Structure\Providers\XmlExpressionStructureProvider.vb" />
+    <Compile Include="Structure\VisualBasicStructureHelpers.vb" />
+    <Compile Include="Structure\VisualBasicBlockStructureProvider.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Visitor.vb" />
@@ -390,11 +432,17 @@
     <Compile Include="SignatureHelp\RaiseEventStatementSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\SignatureHelpUtilities.vb" />
     <Compile Include="SolutionCrawler\VisualBasicDocumentDifferenceService.vb" />
+    <Compile Include="Structure\Providers\SyncLockBlockStructureProvider.vb" />
+    <Compile Include="Structure\Providers\TryBlockStructureProvider.vb" />
+    <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerCodeFixProvider.vb" />
+    <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
+    <Compile Include="Structure\Providers\UsingBlockStructureProvider.vb" />
     <Compile Include="VBFeaturesResources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>VBFeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Structure\Providers\WithBlockStructureProvider.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBFeaturesResources.resx">
@@ -418,7 +466,5 @@
     <Compile Include="ReplaceMethodWithProperty\VisualBasicReplaceMethodWithPropertyService.vb" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

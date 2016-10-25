@@ -2,20 +2,20 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{3BED15FD-D608-4573-B432-1569C1026F6D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Roslyn.VisualStudio.Test.Utilities</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Test.Utilities</AssemblyName>
-    <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <Nonshipping>true</Nonshipping>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Common\Comparison.cs" />
@@ -53,7 +53,7 @@
     <Compile Include="OutOfProcess\VisualStudioWorkspace_OutOfProc.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.VisualStudio.IntegrationTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
   </ItemGroup>
   <ItemGroup>
@@ -99,14 +99,6 @@
     <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
       <Name>Features</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01e9bd68-0339-4a13-b42f-a3ca84d164f3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
-      <Project>{20bb6fac-44d2-4d76-abfe-0c1e163a1a4f}</Project>
-      <Name>VisualStudioInteractiveWindow</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Diagnostics\Diagnostics.csproj">
       <Project>{e2e889a5-2489-4546-9194-47c63e49eaeb}</Project>

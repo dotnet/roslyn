@@ -291,8 +291,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
             var languageServices = workspace.Services.GetLanguageServices(language);
 
-            var compilationOptions = CreateCompilationOptions(workspace, projectElement, language);
             var parseOptions = GetParseOptions(projectElement, language, languageServices);
+            var compilationOptions = CreateCompilationOptions(workspace, projectElement, language, parseOptions);
 
             var references = CreateReferenceList(workspace, projectElement);
             var analyzers = CreateAnalyzerList(workspace, projectElement);
@@ -454,15 +454,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static CompilationOptions CreateCompilationOptions(
             TestWorkspace workspace,
             XElement projectElement,
-            string language)
+            string language,
+            ParseOptions parseOptions)
         {
             var compilationOptionsElement = projectElement.Element(CompilationOptionsElementName);
             return language == LanguageNames.CSharp || language == LanguageNames.VisualBasic
-                ? CreateCompilationOptions(workspace, language, compilationOptionsElement)
+                ? CreateCompilationOptions(workspace, language, compilationOptionsElement, parseOptions)
                 : null;
         }
 
-        private static CompilationOptions CreateCompilationOptions(TestWorkspace workspace, string language, XElement compilationOptionsElement)
+        private static CompilationOptions CreateCompilationOptions(TestWorkspace workspace, string language, XElement compilationOptionsElement, ParseOptions parseOptions)
         {
             var rootNamespace = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication).RootNamespace;
             var globalImports = new List<GlobalImport>();
@@ -493,9 +494,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         rootNamespace = new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).RootNamespace;
                     }
 
+                    // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                     return language == LanguageNames.CSharp
                        ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)
-                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace);
+                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace)
+                            .WithParseOptions((VisualBasicParseOptions)parseOptions ?? VisualBasicParseOptions.Default);
                 }
             }
             else
@@ -519,8 +522,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (language == LanguageNames.VisualBasic)
             {
+                // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                 compilationOptions = ((VisualBasicCompilationOptions)compilationOptions).WithRootNamespace(rootNamespace)
-                                                                                        .WithGlobalImports(globalImports);
+                                                                                        .WithGlobalImports(globalImports)
+                                                                                        .WithParseOptions((VisualBasicParseOptions)parseOptions ?? 
+                                                                                            VisualBasicParseOptions.Default);
             }
 
             return compilationOptions;
@@ -821,6 +827,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             return references;
+        }
+
+        public static bool IsWorkspaceElement(string text)
+        {
+            return text.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal);
         }
     }
 }

@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports System.Threading.Tasks

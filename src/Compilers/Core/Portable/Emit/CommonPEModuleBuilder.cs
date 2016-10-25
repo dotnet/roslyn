@@ -11,97 +11,372 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal abstract class CommonPEModuleBuilder
+    internal abstract class CommonPEModuleBuilder : Cci.IUnit, Cci.IModuleReference
     {
-        internal abstract EmitOptions EmitOptions { get; }
-        internal abstract Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics);
-        internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
-        internal abstract Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
-        internal abstract bool SupportsPrivateImplClass { get; }
-        internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
-        internal abstract Compilation CommonCompilation { get; }
-        internal abstract CommonModuleCompilationState CommonModuleCompilationState { get; }
-        internal abstract void CompilationFinished();
-        internal abstract ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers();
-        internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
-        internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
-        internal abstract Cci.DebugSourceDocument GetSourceDocumentFromIndex(uint index);
-
+        internal readonly DebugDocumentsBuilder DebugDocumentsBuilder;
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
+        internal readonly EmitOptions EmitOptions;
+        internal readonly Cci.ModulePropertiesForSerialization SerializationProperties;
+        internal readonly OutputKind OutputKind;
         internal IEnumerable<Cci.IWin32Resource> Win32Resources;
         internal Cci.ResourceSection Win32ResourceSection;
         internal Stream SourceLinkStreamOpt;
-
-        public CommonPEModuleBuilder(IEnumerable<ResourceDescription> manifestResources)
-        {
-            ManifestResources = manifestResources;
-        }
-    }
-
-    /// <summary>
-    /// Common base class for C# and VB PE module builder.
-    /// </summary>
-    internal abstract class PEModuleBuilder<TCompilation, TSourceModuleSymbol, TAssemblySymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, Cci.IModule, ITokenDeferral
-        where TCompilation : Compilation
-        where TSourceModuleSymbol : class, IModuleSymbol
-        where TAssemblySymbol : class
-        where TTypeSymbol : class
-        where TNamedTypeSymbol : class, TTypeSymbol, Cci.INamespaceTypeDefinition
-        where TMethodSymbol : class, Cci.IMethodDefinition
-        where TSyntaxNode : SyntaxNode
-        where TEmbeddedTypesManager : NoPia.CommonEmbeddedTypesManager
-        where TModuleCompilationState : ModuleCompilationState<TNamedTypeSymbol, TMethodSymbol>
-    {
-        private readonly Cci.RootModuleType _rootModuleType = new Cci.RootModuleType();
-
-        private readonly TSourceModuleSymbol _sourceModule;
-        private readonly TCompilation _compilation;
-        private readonly OutputKind _outputKind;
-        private readonly EmitOptions _emitOptions;
-        private readonly Cci.ModulePropertiesForSerialization _serializationProperties;
-        private readonly ConcurrentCache<ValueTuple<string, string>, string> _normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
-
+        
+        internal Cci.IMethodReference PEEntryPoint;
+        internal Cci.IMethodReference DebugEntryPoint;
+       
+        private readonly ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody> _methodBodyMap;
         private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>();
         private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
         private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new ItemTokenMap<Cci.DebugSourceDocument>();
-        private readonly ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody> _methodBodyMap =
-            new ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
 
-        private Cci.IMethodReference _peEntryPoint;
-        private Cci.IMethodReference _debugEntryPoint;
-        private PrivateImplementationDetails _privateImplementationDetails;
-        private ArrayMethods _lazyArrayMethods;
-        private HashSet<string> _namesOfTopLevelTypes;
+        private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
+        private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
+        private IEnumerable<EmbeddedText> _embedddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
 
-        internal readonly TModuleCompilationState CompilationState;
+        // Only set when running tests to allow realized IL for a given method to be looked up by method.
+        internal ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> TestData { get; private set; }
 
-        // This is a map from the document "name" to the document.
-        // Document "name" is typically a file path like "C:\Abc\Def.cs". However, that is not guaranteed.
-        // For compatibility reasons the names are treated as case-sensitive in C# and case-insensitive in VB.
-        // Neither language trims the names, so they are both sensitive to the leading and trailing whitespaces.
-        // NOTE: We are not considering how filesystem or debuggers do the comparisons, but how native implementations did.
-        // Deviating from that may result in unexpected warnings or different behavior (possibly without warnings).
-        private readonly ConcurrentDictionary<string, Cci.DebugSourceDocument> _debugDocuments;
+        public CommonPEModuleBuilder(
+            IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions emitOptions,
+            OutputKind outputKind,
+            Cci.ModulePropertiesForSerialization serializationProperties,
+            Compilation compilation)
+        {
+            Debug.Assert(manifestResources != null);
+            Debug.Assert(emitOptions != null);
+            Debug.Assert(serializationProperties != null);
+            Debug.Assert(compilation != null);
 
-        public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
+            EmitOptions = emitOptions;
+            ManifestResources = manifestResources;
+            DebugDocumentsBuilder = new DebugDocumentsBuilder(compilation.Options.SourceReferenceResolver, compilation.IsCaseSensitive);
+            OutputKind = outputKind;
+            SerializationProperties = serializationProperties;
+            _methodBodyMap = new ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
+        }
 
         /// <summary>
         /// EnC generation.
         /// </summary>
         public abstract int CurrentGenerationOrdinal { get; }
 
-        private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
+        /// <summary>
+        /// If this module represents an assembly, name of the assembly used in AssemblyDef table. Otherwise name of the module same as <see cref="ModuleName"/>.
+        /// </summary>
+        public abstract string Name { get; }
 
-        // Only set when running tests to allow realized IL for a given method to be looked up by method.
-        internal ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> TestData { get; private set; }
+        /// <summary>
+        /// Name of the module. Used in ModuleDef table.
+        /// </summary>
+        internal abstract string ModuleName { get; }
 
-        internal bool SaveTestData
+        internal abstract Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics);
+        internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
+        internal abstract Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
+        internal abstract bool SupportsPrivateImplClass { get; }
+        internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
+        internal abstract Compilation CommonCompilation { get; }
+        internal abstract IModuleSymbol CommonSourceModule { get; }
+        internal abstract IAssemblySymbol CommonCorLibrary { get; }
+        internal abstract CommonModuleCompilationState CommonModuleCompilationState { get; }
+        internal abstract void CompilationFinished();
+        internal abstract ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers();
+        internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
+        internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
+        public abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes();
+        public abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
+        public abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
+        internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
+
+        /// <summary>
+        /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly
+        /// followed by types forwarded to another assembly.
+        /// </summary>
+        public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
+
+        /// <summary>
+        /// Used to distinguish which style to pick while writing native PDB information.
+        /// </summary>
+        /// <remarks>
+        /// The PDB content for custom debug information is different between Visual Basic and CSharp.
+        /// E.g. C# always includes a CustomMetadata Header (MD2) that contains the namespace scope counts, where 
+        /// as VB only outputs namespace imports into the namespace scopes. 
+        /// C# defines forwards in that header, VB includes them into the scopes list.
+        /// 
+        /// Currently the compiler doesn't allow mixing C# and VB method bodies. Thus this flag can be per module.
+        /// It is possible to move this flag to per-method basis but native PDB CDI forwarding would need to be adjusted accordingly.
+        /// </remarks>
+        public abstract bool GenerateVisualBasicStylePdb { get; }
+
+        /// <summary>
+        /// Linked assembly names to be stored to native PDB (VB only).
+        /// </summary>
+        public abstract IEnumerable<string> LinkedAssembliesDebugInfo { get; }
+
+        /// <summary>
+        /// Project level imports (VB only, TODO: C# scripts).
+        /// </summary>
+        public abstract ImmutableArray<Cci.UsedNamespaceOrType> GetImports();
+
+        /// <summary>
+        /// Default namespace (VB only).
+        /// </summary>
+        public abstract string DefaultNamespace { get; }
+
+        protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(EmitContext context);
+        protected abstract IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics);
+        protected abstract void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics);
+        public abstract Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context);
+        public abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
+        public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context);
+        
+        /// <summary>
+        /// A list of the files that constitute the assembly. Empty for netmodule. These are not the source language files that may have been
+        /// used to compile the assembly, but the files that contain constituent modules of a multi-module assembly as well
+        /// as any external resources. It corresponds to the File table of the .NET assembly file format.
+        /// </summary>
+        public abstract IEnumerable<Cci.IFileReference> GetFiles(EmitContext context);
+
+        /// <summary>
+        /// Builds symbol definition to location map used for emitting token -> location info
+        /// into PDB to be consumed by WinMdExp.exe tool (only applicable for /t:winmdobj)
+        /// </summary>
+        public abstract MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap();
+
+        /// <summary>
+        /// Number of debug documents in the module. 
+        /// Used to determine capacities of lists and indices when emitting debug info.
+        /// </summary>
+        public int DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
+
+        public void Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit(this);
+
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context) => SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
+
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
-            get { return TestData != null; }
+            Debug.Assert(ReferenceEquals(context.Module, this));
+            return this;
         }
+
+        public abstract ISourceAssemblySymbolInternal SourceAssemblyOpt { get; }
+
+        /// <summary>
+        /// An approximate number of method definitions that can
+        /// provide a basis for approximating the capacities of
+        /// various databases used during Emit.
+        /// </summary>
+        public int HintNumberOfMethodDefinitions => _methodBodyMap.Count;
+
+        internal Cci.IMethodBody GetMethodBody(IMethodSymbol methodSymbol)
+        {
+            Debug.Assert(methodSymbol.ContainingModule == CommonSourceModule);
+            Debug.Assert(methodSymbol.IsDefinition);
+            Debug.Assert(methodSymbol.PartialDefinitionPart == null); // Must be definition.
+
+            Cci.IMethodBody body;
+
+            if (_methodBodyMap.TryGetValue(methodSymbol, out body))
+            {
+                return body;
+            }
+
+            return null;
+        }
+
+        public void SetMethodBody(IMethodSymbol methodSymbol, Cci.IMethodBody body)
+        {
+            Debug.Assert(methodSymbol.ContainingModule == CommonSourceModule);
+            Debug.Assert(methodSymbol.IsDefinition);
+            Debug.Assert(methodSymbol.PartialDefinitionPart == null); // Must be definition.
+            Debug.Assert(body == null || (object)methodSymbol == body.MethodDefinition);
+
+            _methodBodyMap.Add(methodSymbol, body);
+        }
+
+        internal void SetPEEntryPoint(IMethodSymbol method, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(method == null || IsSourceDefinition(method));
+            Debug.Assert(OutputKind.IsApplication());
+
+            PEEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+        }
+
+        internal void SetDebugEntryPoint(IMethodSymbol method, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(method == null || IsSourceDefinition(method));
+
+            DebugEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+        }
+
+        private bool IsSourceDefinition(IMethodSymbol method)
+        {
+            return method.ContainingModule == CommonSourceModule && method.IsDefinition;
+        }
+
+        /// <summary>
+        /// CorLibrary assembly referenced by this module.
+        /// </summary>
+        public Cci.IAssemblyReference GetCorLibrary(EmitContext context)
+        {
+            return Translate(CommonCorLibrary, context.Diagnostics);
+        }
+
+        public Cci.IAssemblyReference GetContainingAssembly(EmitContext context)
+        {
+            return OutputKind == OutputKind.NetModule ? null : (Cci.IAssemblyReference)this;
+        }
+
+        /// <summary>
+        /// Returns User Strings referenced from the IL in the module. 
+        /// </summary>
+        public IEnumerable<string> GetStrings()
+        {
+            return _stringsInILMap.GetAllItems();
+        }
+
+        public uint GetFakeSymbolTokenForIL(Cci.IReference symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            bool added;
+            uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out added);
+            if (added)
+            {
+                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics));
+            }
+            return token;
+        }
+
+        public uint GetSourceDocumentIndexForIL(Cci.DebugSourceDocument document)
+        {
+            return _sourceDocumentsInILMap.GetOrAddTokenFor(document);
+        }
+
+        internal Cci.DebugSourceDocument GetSourceDocumentFromIndex(uint token)
+        {
+            return _sourceDocumentsInILMap.GetItem(token);
+        }
+
+        public Cci.IReference GetReferenceFromToken(uint token)
+        {
+            return _referencesInILMap.GetItem(token);
+        }
+
+        public uint GetFakeStringTokenForIL(string str)
+        {
+            return _stringsInILMap.GetOrAddTokenFor(str);
+        }
+
+        public string GetStringFromToken(uint token)
+        {
+            return _stringsInILMap.GetItem(token);
+        }
+
+        public IEnumerable<Cci.IReference> ReferencesInIL(out int count)
+        {
+            return _referencesInILMap.GetAllItemsAndCount(out count);
+        }
+
+        /// <summary>
+        /// Assembly reference aliases (C# only).
+        /// </summary>
+        public ImmutableArray<Cci.AssemblyReferenceAlias> GetAssemblyReferenceAliases(EmitContext context)
+        {
+            if (_lazyAssemblyReferenceAliases.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAssemblyReferenceAliases, CalculateAssemblyReferenceAliases(context), default(ImmutableArray<Cci.AssemblyReferenceAlias>));
+            }
+
+            return _lazyAssemblyReferenceAliases;
+        }
+
+        private ImmutableArray<Cci.AssemblyReferenceAlias> CalculateAssemblyReferenceAliases(EmitContext context)
+        {
+            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance();
+
+            foreach (var assemblyAndAliases in CommonCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
+            {
+                var assembly = assemblyAndAliases.Item1;
+                var aliases = assemblyAndAliases.Item2;
+
+                for (int i = 0; i < aliases.Length; i++)
+                {
+                    string alias = aliases[i];
+
+                    // filter out duplicates and global aliases:
+                    if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
+                    {
+                        result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(assembly, context.Diagnostics)));
+                    }
+                }
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        public IEnumerable<Cci.IAssemblyReference> GetAssemblyReferences(EmitContext context)
+        {
+            Cci.IAssemblyReference corLibrary = GetCorLibraryReferenceToEmit(context);
+
+            // Only add Cor Library reference explicitly, PeWriter will add
+            // other references implicitly on as needed basis.
+            if (corLibrary != null)
+            {
+                yield return corLibrary;
+            }
+
+            if (OutputKind != OutputKind.NetModule)
+            {
+                // Explicitly add references from added modules
+                foreach (var aRef in GetAssemblyReferencesFromAddedModules(context.Diagnostics))
+                {
+                    yield return aRef;
+                }
+            }
+        }
+        
+        public ImmutableArray<Cci.ManagedResource> GetResources(EmitContext context)
+        {
+            if (_lazyManagedResources.IsDefault)
+            {
+                var builder = ArrayBuilder<Cci.ManagedResource>.GetInstance();
+
+                foreach (ResourceDescription r in ManifestResources)
+                {
+                    builder.Add(r.ToManagedResource(this));
+                }
+
+                if (OutputKind != OutputKind.NetModule)
+                {
+                    // Explicitly add resources from added modules
+                    AddEmbeddedResourcesFromAddedModules(builder, context.Diagnostics);
+                }
+
+                _lazyManagedResources = builder.ToImmutableAndFree();
+            }
+
+            return _lazyManagedResources;
+        }
+
+        public IEnumerable<EmbeddedText> EmbeddedTexts
+        {
+            get 
+            { 
+                return _embedddedTexts; 
+            }
+            set
+            {
+                Debug.Assert(value != null);
+                _embedddedTexts = value;
+            }
+        }
+
+        internal bool SaveTestData => TestData != null;
 
         internal void SetMethodTestData(IMethodSymbol method, ILBuilder builder)
         {
@@ -113,6 +388,34 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(TestData == null);
             TestData = methods;
         }
+    }
+
+    /// <summary>
+    /// Common base class for C# and VB PE module builder.
+    /// </summary>
+    internal abstract class PEModuleBuilder<TCompilation, TSourceModuleSymbol, TAssemblySymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, ITokenDeferral
+        where TCompilation : Compilation
+        where TSourceModuleSymbol : class, IModuleSymbol
+        where TAssemblySymbol : class, IAssemblySymbol
+        where TTypeSymbol : class
+        where TNamedTypeSymbol : class, TTypeSymbol, Cci.INamespaceTypeDefinition
+        where TMethodSymbol : class, Cci.IMethodDefinition
+        where TSyntaxNode : SyntaxNode
+        where TEmbeddedTypesManager : CommonEmbeddedTypesManager
+        where TModuleCompilationState : ModuleCompilationState<TNamedTypeSymbol, TMethodSymbol>
+    {
+        private readonly Cci.RootModuleType _rootModuleType = new Cci.RootModuleType();
+
+        internal readonly TSourceModuleSymbol SourceModule;
+        internal readonly TCompilation Compilation;
+
+        private PrivateImplementationDetails _privateImplementationDetails;
+        private ArrayMethods _lazyArrayMethods;
+        private HashSet<string> _namesOfTopLevelTypes;
+
+        internal readonly TModuleCompilationState CompilationState;
+
+        public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
         protected PEModuleBuilder(
             TCompilation compilation,
@@ -122,21 +425,14 @@ namespace Microsoft.CodeAnalysis.Emit
             OutputKind outputKind,
             EmitOptions emitOptions,
             TModuleCompilationState compilationState) 
-            : base(manifestResources)
+            : base(manifestResources, emitOptions, outputKind, serializationProperties, compilation)
         {
             Debug.Assert(sourceModule != null);
             Debug.Assert(serializationProperties != null);
 
-            _compilation = compilation;
-            _sourceModule = sourceModule;
-            _serializationProperties = serializationProperties;
-            _outputKind = outputKind;
-            _emitOptions = emitOptions;
+            Compilation = compilation;
+            SourceModule = sourceModule;
             this.CompilationState = compilationState;
-            _debugDocuments = new ConcurrentDictionary<string, Cci.DebugSourceDocument>(
-                compilation.IsCaseSensitive ?
-                StringComparer.Ordinal :
-                StringComparer.OrdinalIgnoreCase);
         }
 
         internal sealed override void CompilationFinished()
@@ -144,16 +440,9 @@ namespace Microsoft.CodeAnalysis.Emit
             this.CompilationState.Freeze();
         }
 
-        internal override EmitOptions EmitOptions => _emitOptions;
-        internal abstract string ModuleName { get; }
-        internal abstract string Name { get; }
+        internal override IAssemblySymbol CommonCorLibrary => CorLibrary;
         internal abstract TAssemblySymbol CorLibrary { get; }
-
-        internal abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes();
-        internal abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
-        internal abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
-        internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
-
+        
         internal abstract Cci.INamedTypeReference GetSystemType(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
 
@@ -179,7 +468,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context);
 
-        private IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
+        /// <summary>
+        /// Returns all top-level (not nested) types defined in the module. 
+        /// </summary>
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
             Cci.NoPiaReferenceIndexer noPiaIndexer = null;
             HashSet<string> names;
@@ -264,38 +556,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate((TMethodSymbol)symbol, diagnostics, needDeclaration);
         }
 
-        internal OutputKind OutputKind => _outputKind;
-        internal TSourceModuleSymbol SourceModule => _sourceModule;
-        internal TCompilation Compilation => _compilation;
-
-        internal sealed override Compilation CommonCompilation => _compilation;
+        internal sealed override IModuleSymbol CommonSourceModule => SourceModule;
+        internal sealed override Compilation CommonCompilation => Compilation;
         internal sealed override CommonModuleCompilationState CommonModuleCompilationState => CompilationState;
         internal sealed override CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt => EmbeddedTypesManagerOpt;
-
-        Cci.IMethodReference Cci.IModule.PEEntryPoint => _peEntryPoint;
-        Cci.IMethodReference Cci.IModule.DebugEntryPoint => _debugEntryPoint;
-        Stream Cci.IModule.SourceLinkStream => SourceLinkStreamOpt;
-
-        internal void SetPEEntryPoint(TMethodSymbol method, DiagnosticBag diagnostics)
-        {
-            Debug.Assert(method == null || IsSourceDefinition((IMethodSymbol)method));
-            Debug.Assert(_outputKind.IsApplication());
-
-            _peEntryPoint = Translate(method, diagnostics, needDeclaration: true);
-        }
-
-        internal void SetDebugEntryPoint(TMethodSymbol method, DiagnosticBag diagnostics)
-        {
-            Debug.Assert(method == null || IsSourceDefinition((IMethodSymbol)method));
-
-            _debugEntryPoint = Translate(method, diagnostics, needDeclaration: true);
-        }
-
-        private bool IsSourceDefinition(IMethodSymbol method)
-        {
-            return (object)method.ContainingModule == _sourceModule && method.IsDefinition;
-        }
-
+        
         internal MetadataConstant CreateConstant(
             TTypeSymbol type,
             object value,
@@ -314,31 +579,6 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             noPiaIndexer?.Visit((Cci.ITypeDefinition)type);
         }
-
-        private ImmutableArray<Cci.AssemblyReferenceAlias> CalculateAssemblyReferenceAliases(EmitContext context)
-        {
-            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance();
-
-            foreach (var assemblyAndAliases in _compilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
-            {
-                var assembly = assemblyAndAliases.Item1;
-                var aliases = assemblyAndAliases.Item2;
-
-                for (int i = 0; i < aliases.Length; i++)
-                {
-                    string alias = aliases[i];
-
-                    // filter out duplicates and global aliases:
-                    if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
-                    {
-                        result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(assembly, context.Diagnostics)));
-                    }
-                }
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
 
         internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
@@ -599,47 +839,6 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        public uint GetFakeSymbolTokenForIL(Cci.IReference symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
-        {
-            bool added;
-            uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out added);
-            if (added)
-            {
-                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics));
-            }
-            return token;
-        }
-
-        public uint GetSourceDocumentIndexForIL(Cci.DebugSourceDocument document)
-        {
-            return _sourceDocumentsInILMap.GetOrAddTokenFor(document);
-        }
-
-        internal override Cci.DebugSourceDocument GetSourceDocumentFromIndex(uint token)
-        {
-            return _sourceDocumentsInILMap.GetItem(token);
-        }
-
-        public Cci.IReference GetReferenceFromToken(uint token)
-        {
-            return _referencesInILMap.GetItem(token);
-        }
-
-        public uint GetFakeStringTokenForIL(string str)
-        {
-            return _stringsInILMap.GetOrAddTokenFor(str);
-        }
-
-        public string GetStringFromToken(uint token)
-        {
-            return _stringsInILMap.GetItem(token);
-        }
-
-        IEnumerable<Cci.IReference> Cci.IModule.ReferencesInIL(out int count)
-        {
-            return _referencesInILMap.GetAllItemsAndCount(out count);
-        }
-
         #endregion
 
         #region Private Implementation Details Type
@@ -653,7 +852,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 result = new PrivateImplementationDetails(
                         this,
                         this.SourceModule.Name,
-                        _compilation.GetSubmissionSlotIndex(),
+                        Compilation.GetSubmissionSlotIndex(),
                         this.GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_ValueType, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_Byte, syntaxNodeOpt, diagnostics),
@@ -683,51 +882,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #endregion
 
-        #region Method Body Map
-
-        internal Cci.IMethodBody GetMethodBody(TMethodSymbol methodSymbol)
-        {
-            Debug.Assert(((IMethodSymbol)methodSymbol).ContainingModule == this.SourceModule);
-            Debug.Assert(((IMethodSymbol)methodSymbol).IsDefinition);
-            Debug.Assert(((IMethodSymbol)methodSymbol).PartialDefinitionPart == null); // Must be definition.
-
-            Cci.IMethodBody body;
-
-            if (_methodBodyMap.TryGetValue(methodSymbol, out body))
-            {
-                return body;
-            }
-
-            return null;
-        }
-
-        public void SetMethodBody(TMethodSymbol methodSymbol, Cci.IMethodBody body)
-        {
-            Debug.Assert(((IMethodSymbol)methodSymbol).ContainingModule == this.SourceModule);
-            Debug.Assert(((IMethodSymbol)methodSymbol).IsDefinition);
-            Debug.Assert(((IMethodSymbol)methodSymbol).PartialDefinitionPart == null); // Must be definition.
-            Debug.Assert(body == null || (object)methodSymbol == body.MethodDefinition);
-
-            _methodBodyMap.Add(methodSymbol, body);
-        }
-
-        #endregion
-
-        #region IModule
-
-        public virtual void Dispatch(Cci.MetadataVisitor visitor)
-        {
-            visitor.Visit((Cci.IModule)this);
-        }
-
-        IEnumerable<Cci.INamespaceTypeDefinition> Cci.IModule.GetTopLevelTypes(EmitContext context)
-        {
-            return GetTopLevelTypes(context);
-        }
-
-        public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
-
-        Cci.ITypeReference Cci.IModule.GetPlatformType(Cci.PlatformType platformType, EmitContext context)
+        public override Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context)
         {
             Debug.Assert((object)this == context.Module);
 
@@ -740,261 +895,5 @@ namespace Microsoft.CodeAnalysis.Emit
                     return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
             }
         }
-
-        protected abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
-
-        bool Cci.IModule.IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
-        {
-            return IsPlatformType(typeRef, platformType);
-        }
-
-        IEnumerable<Cci.ICustomAttribute> Cci.IModule.AssemblyAttributes
-        {
-            get
-            {
-                return GetSourceAssemblyAttributes();
-            }
-        }
-
-        IEnumerable<Cci.SecurityAttribute> Cci.IModule.AssemblySecurityAttributes
-        {
-            get
-            {
-                return GetSourceAssemblySecurityAttributes();
-            }
-        }
-
-        IEnumerable<Cci.ICustomAttribute> Cci.IModule.ModuleAttributes
-        {
-            get { return GetSourceModuleAttributes(); }
-        }
-
-        ImmutableArray<Cci.AssemblyReferenceAlias> Cci.IModule.GetAssemblyReferenceAliases(EmitContext context)
-        {
-            if (_lazyAssemblyReferenceAliases.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAssemblyReferenceAliases, CalculateAssemblyReferenceAliases(context), default(ImmutableArray<Cci.AssemblyReferenceAlias>));
-            }
-
-            return _lazyAssemblyReferenceAliases;
-        }
-
-        bool Cci.IModule.GenerateVisualBasicStylePdb => GenerateVisualBasicStylePdb;
-        protected abstract bool GenerateVisualBasicStylePdb { get; }
-
-        IEnumerable<string> Cci.IModule.LinkedAssembliesDebugInfo => LinkedAssembliesDebugInfo;
-        protected abstract IEnumerable<string> LinkedAssembliesDebugInfo { get; }
-
-        ImmutableArray<Cci.UsedNamespaceOrType> Cci.IModule.GetImports() => GetImports();
-        protected abstract ImmutableArray<Cci.UsedNamespaceOrType> GetImports();
-
-        string Cci.IModule.DefaultNamespace => DefaultNamespace;
-        protected abstract string DefaultNamespace { get; }
-
-        protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(EmitContext context);
-
-        /// <summary>
-        /// Builds symbol definition to location map used for emitting token -> location info
-        /// into PDB to be consumed by WinMdExp.exe tool (only applicable for /t:winmdobj)
-        /// </summary>
-        protected abstract MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap();
-
-        MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> Cci.IModule.GetSymbolToLocationMap()
-        {
-            return GetSymbolToLocationMap();
-        }
-
-        IEnumerable<Cci.IAssemblyReference> Cci.IModule.GetAssemblyReferences(EmitContext context)
-        {
-            Cci.IAssemblyReference corLibrary = GetCorLibraryReferenceToEmit(context);
-
-            // Only add Cor Library reference explicitly, PeWriter will add
-            // other references implicitly on as needed basis.
-            if (corLibrary != null)
-            {
-                yield return corLibrary;
-            }
-
-            if (OutputKind != OutputKind.NetModule)
-            {
-                // Explicitly add references from added modules
-                foreach (var aRef in GetAssemblyReferencesFromAddedModules(context.Diagnostics))
-                {
-                    yield return aRef;
-                }
-            }
-        }
-
-        protected abstract IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics);
-
-        private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
-
-        ImmutableArray<Cci.ManagedResource> Cci.IModule.GetResources(EmitContext context)
-        {
-            if (_lazyManagedResources.IsDefault)
-            {
-                var builder = ArrayBuilder<Cci.ManagedResource>.GetInstance();
-
-                foreach (ResourceDescription r in ManifestResources)
-                {
-                    builder.Add(r.ToManagedResource(this));
-                }
-
-                if (OutputKind != OutputKind.NetModule)
-                {
-                    // Explicitly add resources from added modules
-                    AddEmbeddedResourcesFromAddedModules(builder, context.Diagnostics);
-                }
-
-                _lazyManagedResources = builder.ToImmutableAndFree();
-            }
-
-            return _lazyManagedResources;
-        }
-
-        protected abstract void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics);
-
-        Cci.IAssembly Cci.IModule.AsAssembly
-        {
-            get { return this as Cci.IAssembly; }
-        }
-
-        Cci.IAssemblyReference Cci.IModule.GetCorLibrary(EmitContext context)
-        {
-            return Translate(CorLibrary, context.Diagnostics);
-        }
-
-        Cci.IAssembly Cci.IModule.GetContainingAssembly(EmitContext context)
-        {
-            return this.OutputKind.IsNetModule() ? null : (Cci.IAssembly)this;
-        }
-
-        Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
-        {
-            return this.OutputKind.IsNetModule() ? null : (Cci.IAssemblyReference)this;
-        }
-
-        IEnumerable<string> Cci.IModule.GetStrings()
-        {
-            return _stringsInILMap.GetAllItems();
-        }
-
-        OutputKind Cci.IModule.Kind => _outputKind;
-
-        string Cci.IModule.ModuleName
-        {
-            get { return ModuleName; }
-        }
-
-        IEnumerable<Cci.IModuleReference> Cci.IModule.ModuleReferences
-        {
-            get
-            {
-                // Let's not add any module references explicitly,
-                // PeWriter will implicitly add those needed.
-                return SpecializedCollections.EmptyEnumerable<Cci.IModuleReference>();
-            }
-        }
-
-        Cci.ModulePropertiesForSerialization Cci.IModule.Properties => _serializationProperties;
-
-        Cci.ResourceSection Cci.IModule.Win32ResourceSection
-        {
-            get
-            {
-                return this.Win32ResourceSection;
-            }
-        }
-
-        IEnumerable<Cci.IWin32Resource> Cci.IModule.Win32Resources
-        {
-            get
-            {
-                return this.Win32Resources;
-            }
-        }
-
-        int Cci.IModule.HintNumberOfMethodDefinitions
-        {
-            get
-            {
-                return _methodBodyMap.Count;
-            }
-        }
-
-        int Cci.IModule.DebugDocumentCount => _debugDocuments.Count;
-
-        #endregion
-
-        #region INamedEntity
-
-        string Cci.INamedEntity.Name
-        {
-            get
-            {
-                return Name;
-            }
-        }
-
-        #endregion
-
-        #region IReference
-
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-        }
-
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            Debug.Assert(ReferenceEquals(context.Module, this));
-            return this;
-        }
-
-        #endregion
-
-        #region Debug Documents
-
-        internal void AddDebugDocument(Cci.DebugSourceDocument document)
-        {
-            _debugDocuments.Add(document.Location, document);
-        }
-
-        internal Cci.DebugSourceDocument TryGetDebugDocument(string path, string basePath)
-        {
-            return TryGetDebugDocumentForNormalizedPath(NormalizeDebugDocumentPath(path, basePath));
-        }
-
-        internal Cci.DebugSourceDocument TryGetDebugDocumentForNormalizedPath(string normalizedPath)
-        {
-            Cci.DebugSourceDocument document;
-            _debugDocuments.TryGetValue(normalizedPath, out document);
-            return document;
-        }
-
-        internal Cci.DebugSourceDocument GetOrAddDebugDocument(string path, string basePath, Func<string, Cci.DebugSourceDocument> factory)
-        {
-            return _debugDocuments.GetOrAdd(NormalizeDebugDocumentPath(path, basePath), factory);
-        }
-
-        internal string NormalizeDebugDocumentPath(string path, string basePath)
-        {
-            var resolver = _compilation.Options.SourceReferenceResolver;
-            if (resolver == null)
-            {
-                return path;
-            }
-
-            var key = ValueTuple.Create(path, basePath);
-            string normalizedPath;
-            if (!_normalizedPathsCache.TryGetValue(key, out normalizedPath))
-            {
-                normalizedPath = resolver.NormalizePath(path, basePath) ?? path;
-                _normalizedPathsCache.TryAdd(key, normalizedPath);
-            }
-
-            return normalizedPath;
-        }
-        #endregion
     }
 }

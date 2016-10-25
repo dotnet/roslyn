@@ -2272,5 +2272,59 @@ class Class1
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
         }
+
+        [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
+        public void GenericStructInLambda()
+        {
+            var source = @"
+using System;
+
+static class LiveList
+{
+    struct WhereInfo<TSource>
+    {
+        public int Key { get; set; }
+    }
+
+    static void Where<TSource>()
+    {
+        Action subscribe = () =>
+        {
+            WhereInfo<TSource>? previous = null;
+
+            var previousKey = previous?.Key;
+        };
+    }
+}";
+
+            CompileAndVerify(source);
+        }
+
+        [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
+        public void GenericStructInIterator()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+static class LiveList
+{
+    struct WhereInfo<TSource>
+    {
+        public int Key { get; set; }
+    }
+
+    static IEnumerable<int> Where<TSource>()
+    {
+        WhereInfo<TSource>? previous = null;
+
+        var previousKey = previous?.Key;
+
+        yield break;
+    }
+}";
+
+            CompileAndVerify(source);
+        }
     }
 }

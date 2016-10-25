@@ -25,7 +25,7 @@ namespace Roslyn.VisualStudio.Test.Utilities {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("14.0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("15.0")]
         public string VsProductVersion {
             get {
                 return ((string)(this["VsProductVersion"]));

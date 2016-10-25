@@ -2,9 +2,9 @@ use vs
 
 package name=Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents
         version=$(Version)
-        vs.package.language=en-us
         vs.package.type=vsix
         vs.package.vsixId=500fff63-afcf-4195-8db4-3fa8a5180e79
+        vs.package.installSize=16867328
 
 vs.localizedResources
   vs.localizedResource language=en-us
@@ -12,12 +12,12 @@ vs.localizedResources
                        description="Interactive Roslyn components for Visual Studio."
 
 vs.payloads
-  vs.payload source=$(OutputPath)Roslyn.VisualStudio.InteractiveComponents.vsix
+  vs.payload source=$(OutputPath)Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix
 
 vs.dependencies
+  vs.dependency id=Microsoft.Net.4.6.1.FullRedist 
+  vs.dependency id=Microsoft.Net.4.6.1.FullRedist.Resource 
+  vs.dependency id=Microsoft.VisualStudio.MinShell
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
-                version=$(Version)
-                type=Required
-  vs.dependency id=Microsoft.VisualStudio.InteractiveWindow
                 version=$(Version)
                 type=Required

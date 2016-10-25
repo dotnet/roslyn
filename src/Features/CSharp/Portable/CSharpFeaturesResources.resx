@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Implement_Abstract_Class" xml:space="preserve">
-    <value>Implement Abstract Class</value>
-  </data>
   <data name="Inline_temporary_variable" xml:space="preserve">
     <value>Inline temporary variable</value>
   </data>
@@ -155,6 +152,12 @@
   </data>
   <data name="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation" xml:space="preserve">
     <value>Autoselect disabled due to possible explicitly named anonymous type member creation.</value>
+  </data>
+  <data name="element_name" xml:space="preserve">
+    <value>&lt;element name&gt; : </value>
+  </data>
+  <data name="Autoselect_disabled_due_to_possible_tuple_type_element_creation" xml:space="preserve">
+    <value>Autoselect disabled due to possible tuple type element creation.</value>
   </data>
   <data name="range_variable" xml:space="preserve">
     <value>&lt;range variable&gt;</value>
@@ -254,9 +257,6 @@
   </data>
   <data name="Insert_await" xml:space="preserve">
     <value>Insert 'await'.</value>
-  </data>
-  <data name="Make_the_containing_scope_async" xml:space="preserve">
-    <value>Make the containing scope 'async'.</value>
   </data>
   <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
     <value>Make {0} return Task instead of void.</value>
@@ -378,6 +378,30 @@
     <value>into clause</value>
     <comment>{Locked="into"} "into" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="is_pattern" xml:space="preserve">
+    <value>is pattern</value>
+    <comment>{Locked="is"} "is" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="deconstruction" xml:space="preserve">
+    <value>deconstruction</value>
+  </data>
+  <data name="tuple" xml:space="preserve">
+    <value>tuple</value>
+  </data>
+  <data name="local_function" xml:space="preserve">
+    <value>local function</value>
+  </data>
+  <data name="out_var" xml:space="preserve">
+    <value>out variable</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="ref_local_or_expression" xml:space="preserve">
+    <value>ref local or expression</value>
+    <comment>{Locked="ref"} "ref" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="v7_switch" xml:space="preserve">
+    <value>C# 7 enhanced switch statement</value>
+  </data>
   <data name="global_statement" xml:space="preserve">
     <value>global statement</value>
     <comment>{Locked="global"} "global" is a C# keyword and should not be localized.</comment>
@@ -463,5 +487,11 @@
   </data>
   <data name="struct_name" xml:space="preserve">
     <value>&lt;struct name&gt;</value>
+  </data>
+  <data name="Make_method_async" xml:space="preserve">
+    <value>Make method async</value>
+  </data>
+  <data name="Make_method_async_remain_void" xml:space="preserve">
+    <value>Make method async (stay void)</value>
   </data>
 </root>

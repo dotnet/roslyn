@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,8 +13,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
-    internal abstract class AbstractRemoveDocCommentNodeCodeFixProvider<TXmlElementSyntax> : CodeFixProvider
+    internal abstract class AbstractRemoveDocCommentNodeCodeFixProvider<TXmlElementSyntax, TXmlTextSyntax> : CodeFixProvider
         where TXmlElementSyntax : SyntaxNode
+        where TXmlTextSyntax : SyntaxNode
     {
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -23,9 +25,13 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         protected abstract SyntaxTriviaList GetRevisedDocCommentTrivia(string docCommentText);
 
+        protected abstract SyntaxTokenList GetTextTokens(TXmlTextSyntax xmlText);
+        protected abstract bool IsXmlNewLineToken(SyntaxToken token);
+        protected abstract bool IsXmlWhitespaceToken(SyntaxToken token);
+
         public async sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync().ConfigureAwait(false);
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
             if (GetParamNode(root, context.Span) != null)
             {
@@ -60,9 +66,8 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             // If, perhaps, this specific node is not directly preceded by the comment marker node,
             // it will be preceded by another XML node
             var paramNodeIndex = paramNodeSiblings.IndexOf(paramNode);
-            var previousNodeTextTrimmed = paramNodeSiblings[paramNodeIndex - 1].ToFullString().Trim();
 
-            if (previousNodeTextTrimmed == string.Empty || previousNodeTextTrimmed == DocCommentSignifierToken)
+            if (ShouldRemovePreviousSibling(paramNodeSiblings, paramNodeIndex))
             {
                 removedNodes.Add(paramNodeSiblings[paramNodeIndex - 1]);
             }
@@ -72,6 +77,48 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             // around these nodes are not attached to them as trivia.
             var newRoot = root.RemoveNodes(removedNodes, SyntaxRemoveOptions.KeepNoTrivia);
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private bool ShouldRemovePreviousSibling(List<SyntaxNode> paramNodeSiblings, int paramNodeIndex)
+        {
+            if (paramNodeIndex > 0)
+            {
+                var previousNodeTextTrimmed = paramNodeSiblings[paramNodeIndex - 1].ToFullString().Trim();
+
+                if (previousNodeTextTrimmed == string.Empty ||
+                    previousNodeTextTrimmed == DocCommentSignifierToken)
+                {
+                    // Only remove the preceding /// if this param node is also the only thing on this line.
+                    if (paramNodeIndex + 1 < paramNodeSiblings.Count)
+                    {
+                        var nextSibling = paramNodeSiblings[paramNodeIndex + 1];
+                        var textSyntax = nextSibling as TXmlTextSyntax;
+                        if (textSyntax != null)
+                        {
+                            // Walk the next text block forward, making sure we only see whitespace
+                            // until we hit the next newline.  If that's all we can remove the preceding
+                            // '///'.  Otherwise we'll want to keep it to keep whatever comes after
+                            // this node valid.
+                            foreach (var childToken in GetTextTokens(textSyntax))
+                            {
+                                if (IsXmlWhitespaceToken(childToken))
+                                {
+                                    continue;
+                                }
+
+                                if (IsXmlNewLineToken(childToken))
+                                {
+                                    return true;
+                                }
+
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

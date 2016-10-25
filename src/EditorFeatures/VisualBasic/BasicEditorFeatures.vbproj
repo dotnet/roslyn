@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -11,6 +9,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -160,45 +159,12 @@
     <Compile Include="LineCommit\ContainingStatementInfo.vb" />
     <Compile Include="LineCommit\ICommitFormatter.vb" />
     <Compile Include="LineSeparators\VisualBasicLineSeparatorService.vb" />
-    <Compile Include="NavigateTo\VisualBasicNavigateToSearchService.vb" />
     <Compile Include="NavigationBar\AbstractGenerateCodeItem.vb" />
     <Compile Include="NavigationBar\GenerateDefaultConstructorItem.vb" />
     <Compile Include="NavigationBar\GenerateEventHandlerItem.vb" />
     <Compile Include="NavigationBar\GenerateFinalizerItem.vb" />
     <Compile Include="NavigationBar\GenerateMethodItem.vb" />
     <Compile Include="NavigationBar\VisualBasicNavigationBarItemService.vb" />
-    <Compile Include="Outlining\Outliners\AccessorDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\CompilationUnitOutliner.vb" />
-    <Compile Include="Outlining\Outliners\ConstructorDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\DelegateDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\DisabledTextTriviaOutliner.vb" />
-    <Compile Include="Outlining\Outliners\DocumentationCommentOutliner.vb" />
-    <Compile Include="Outlining\Outliners\EnumDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\EventDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\ExternalMethodDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\FieldDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\AbstractMetadataAsSourceOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\ConstructorDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\DelegateDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\EnumDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\EnumMemberDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\EventDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\FieldDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\MethodDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\OperatorDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\PropertyDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\RegionDirectiveOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MetadataAsSource\TypeDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MethodDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\MultilineLambdaOutliner.vb" />
-    <Compile Include="Outlining\Outliners\NamespaceDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\OperatorDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\PropertyDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\RegionDirectiveOutliner.vb" />
-    <Compile Include="Outlining\Outliners\TypeDeclarationOutliner.vb" />
-    <Compile Include="Outlining\Outliners\XmlExpressionOutliner.vb" />
-    <Compile Include="Outlining\VisualBasicOutliningHelpers.vb" />
-    <Compile Include="Outlining\VisualBasicOutliningService.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.vb" />
     <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.vb" />
     <Compile Include="RenameTracking\BasicRenameTrackingLanguageHeuristicsService.vb" />
@@ -241,6 +207,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBEditorResources.resx">
@@ -260,7 +227,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

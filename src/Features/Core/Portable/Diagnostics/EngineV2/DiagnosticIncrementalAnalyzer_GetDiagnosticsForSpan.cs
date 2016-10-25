@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var containsFullResult = true;
                     foreach (var stateSet in _stateSets)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         containsFullResult &= await TryGetSyntaxAndSemanticDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
 
                         // check whether compilation end code fix is enabled
@@ -314,6 +316,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return true;
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // check whether we want up-to-date document wide diagnostics
                 var supportsSemanticInSpan = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
                 if (!BlockForData(kind, supportsSemanticInSpan))
@@ -360,6 +364,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     list.AddRange(existingData.Where(ShouldInclude));
                     return true;
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // check whether we want up-to-date document wide diagnostics
                 var supportsSemanticInSpan = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
