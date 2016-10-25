@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private LogMessage CreateLogMessage(CancellationToken cancellationToken)
                 => KeyValueLogMessage.Create(d =>
                 {
-                    d[nameof(cancellationToken.IsCancellationRequested)] = cancellationToken.IsCancellationRequested;
                     d[nameof(SearchCurrentDocument)] = SearchCurrentDocument;
                 });
 
