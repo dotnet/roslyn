@@ -125,6 +125,12 @@ try
     foreach ($extension in $extensions.extensions.extension)
     {
         $vsix = $extension.id + ".vsix"
+        if (-not (test-path $vsix)) 
+        {
+            Write-Error "VSIX $vsix does not exist"
+            $extiCode = 5
+        }
+
         $requestUrl = "https://dotnet.myget.org/F/roslyn/vsix/upload"
         
         Write-Host "  Uploading '$vsix' to '$requestUrl'"
