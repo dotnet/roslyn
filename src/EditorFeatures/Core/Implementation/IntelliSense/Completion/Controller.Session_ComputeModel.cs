@@ -106,11 +106,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             return null;
                         }
 
+                        var suggestionMode = _useSuggestionMode || completionList.SuggestionModeItem != null;
                         return Model.CreateModel(
                             _documentOpt,
                             _disconnectedBufferGraph,
                             completionList,
-                            useSuggestionMode: _useSuggestionMode,
+                            useSuggestionMode: suggestionMode,
                             trigger: _trigger);
                     }
                 }
