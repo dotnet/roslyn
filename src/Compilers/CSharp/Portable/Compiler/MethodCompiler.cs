@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(!instrumentForDynamicAnalysis);
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
-                                var lowered = LowerBodyOrInitializer(
+                                BoundStatement lowered = LowerBodyOrInitializer(
                                     methodSymbol,
                                     methodOrdinal,
                                     analyzedInitializers,
