@@ -95,11 +95,6 @@ namespace BuildBoss
             configPath = null;
             sourcePath = null;
 
-            if (args.Length != 1)
-            {
-                return false;
-            }
-
             var i = 0;
             while (i < args.Length)
             {
