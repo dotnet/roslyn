@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
-                   syntax.Body?.GetReference(),
+                   ((SyntaxNode)syntax.Body ?? syntax.ExpressionBody)?.GetReference(),
                    ImmutableArray.Create(syntax.Keyword.GetLocation()))
         {
             Debug.Assert(syntax != null);
