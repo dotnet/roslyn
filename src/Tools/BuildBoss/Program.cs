@@ -13,16 +13,21 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
-            var sourceDir = args[0];
-            Console.WriteLine(sourceDir);
-            var configPath = Path.Combine(sourceDir, @"build\config\BuildBossData.json");
+            string sourcePath;
+            string configPath;
+            if (!ParseArgs(args, out sourcePath, out configPath))
+            {
+                Usage();
+                return 1;
+            }
+
             var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configPath));
             var allGood = true;
             var list = new List<string>();
 
-            foreach (var projectPath in Directory.EnumerateFiles(Path.Combine(sourceDir, "src"), "*proj", SearchOption.AllDirectories))
+            foreach (var projectPath in Directory.EnumerateFiles(sourcePath, "*proj", SearchOption.AllDirectories))
             {
-                var relativePath = GetRelativePath(sourceDir, projectPath);
+                var relativePath = GetRelativePath(sourcePath, projectPath);
                 if (Exclude(config, relativePath))
                 {
                     continue;
@@ -39,12 +44,6 @@ namespace BuildBoss
                     list.Add(relativePath);
                     allGood = false;
                 }
-            }
-
-            // Print it all out in the end for easy editting.
-            foreach (var item in list)
-            {
-                Console.WriteLine(item);
             }
 
             return allGood ? 0 : 1;
@@ -89,6 +88,47 @@ namespace BuildBoss
             }
 
             return false;
+        }
+
+        private static bool ParseArgs(string[] args, out string sourcePath, out string configPath)
+        {
+            configPath = null;
+            sourcePath = null;
+
+            var i = 0;
+            while (i < args.Length)
+            {
+                var current = args[i];
+                if (current == "-config")
+                {
+                    if (i + 1 >= args.Length)
+                    {
+                        Console.WriteLine("The -config option requires a parameter");
+                        return false;
+                    }
+
+                    configPath = args[i + 1];
+                    i += 2;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (i + 1 != args.Length)
+            {
+                return false;
+            }
+
+            sourcePath = args[i];
+            configPath = configPath ?? Path.Combine(sourcePath, @"build\config\BuildBossData.json");
+            return true;
+        }
+
+        private static void Usage()
+        {
+            Console.WriteLine($"BuildBoss [-config <config path>] <source path>");
         }
     }
 }
