@@ -875,13 +875,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
                                                 !HasThisConstructorInitializer(methodSymbol);
 
-                    try {
+                    //try {
                         body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested);
-                    } catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+                    /*} catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
                     {
                         _diagnostics.Add(ErrorCode.ERR_InsufficientStack, (methodSymbol as SourceMethodSymbol).BodySyntax.GetFirstToken().GetLocation());
                         return;
-                    }
+                    }*/
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
