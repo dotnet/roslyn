@@ -27,15 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             return s_propertyMap.GetOrAdd(new Key(functionId, propertyKey), CreatePropertyName);
         }
 
-        private static string CreateEventName(Key key)
-        {
-            return (EventPrefix + Enum.GetName(typeof(FunctionId), key.FunctionId).Replace('_', '/') + (key.ItemKey == null ? string.Empty : ("/" + key.ItemKey))).ToLowerInvariant();
-        }
+        private static Func<Key, string> CreateEventName = key =>
+            (EventPrefix + Enum.GetName(typeof(FunctionId), key.FunctionId).Replace('_', '/') + (key.ItemKey == null ? string.Empty : ("/" + key.ItemKey))).ToLowerInvariant();
 
-        private static string CreatePropertyName(Key key)
-        {
-            return (PropertyPrefix + Enum.GetName(typeof(FunctionId), key.FunctionId).Replace('_', '.') + "." + key.ItemKey).ToLowerInvariant();
-        }
+        private static Func<Key, string> CreatePropertyName = key =>
+            (PropertyPrefix + Enum.GetName(typeof(FunctionId), key.FunctionId).Replace('_', '.') + "." + key.ItemKey).ToLowerInvariant();
 
         private struct Key : IEquatable<Key>
         {
