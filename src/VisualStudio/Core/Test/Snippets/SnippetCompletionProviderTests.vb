@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim service = document.Project.LanguageServices.GetService(Of CompletionService)
                 Dim itemDescription = Await service.GetDescriptionAsync(document, testState.CurrentCompletionPresenterSession.SelectedItem)
-                Assert.Equal("Description", itemDescription.Text)
+                Assert.True(itemDescription.Text.StartsWith("Description"))
 
                 testState.SendTabToCompletion()
 
