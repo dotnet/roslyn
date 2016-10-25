@@ -57,8 +57,8 @@ namespace Roslyn.Test.Utilities
 
         internal sealed class VirtualizedStrongNameProvider : DesktopStrongNameProvider
         {
-            public VirtualizedStrongNameProvider(ImmutableArray<string> searchPaths)
-                : base(searchPaths)
+            public VirtualizedStrongNameProvider(ImmutableArray<string> searchPaths = default(ImmutableArray<string>), string tempPath = null)
+                : base(searchPaths, tempPath)
             {
             }
 

@@ -17,13 +17,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared s_responseFileName As String
         Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
+        Private ReadOnly _tempDirectory As String
         Private _additionalTextFiles As ImmutableArray(Of AdditionalTextFile)
 
-        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), clientDirectory As String, baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, additionalReferenceDirectories, analyzerLoader)
+        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), buildPaths As BuildPaths, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader)
+            MyBase.New(parser, responseFile, args, buildPaths, additionalReferenceDirectories, analyzerLoader)
 
-            _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory, AddressOf GetAdditionalTextFiles)
+            _diagnosticFormatter = New CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, AddressOf GetAdditionalTextFiles)
             _additionalTextFiles = Nothing
+            _tempDirectory = buildPaths.TempDirectory
         End Sub
 
         Private Function GetAdditionalTextFiles() As ImmutableArray(Of AdditionalTextFile)
@@ -128,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 PrintReferences(resolvedReferences, consoleOutput)
             End If
 
-            Dim strongNameProvider = New LoggingStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger)
+            Dim strongNameProvider = New LoggingStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger, _tempDirectory)
             Dim xmlFileResolver = New LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger)
 
             ' TODO: support for #load search paths

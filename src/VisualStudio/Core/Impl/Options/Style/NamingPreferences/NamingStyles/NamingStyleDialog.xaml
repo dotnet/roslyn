@@ -47,7 +47,7 @@
         </Grid.ColumnDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=NamingStyleTitleLabelText}"/>
-        <TextBox Grid.Row="0" Grid.Column="1" MinWidth="300" Text="{Binding NamingConventionName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" MinWidth="300" Text="{Binding ItemName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
 
         <Label Grid.Row="1" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=RequiredPrefixLabelText}"/>
         <TextBox Grid.Row="1" Grid.Column="1" Margin="0 5 0 0" Width="100" HorizontalAlignment="Left" VerticalContentAlignment="Center" Text="{Binding RequiredPrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
