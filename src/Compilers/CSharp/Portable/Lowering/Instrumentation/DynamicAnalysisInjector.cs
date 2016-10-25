@@ -233,12 +233,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             ifConditionGotoBody = base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
+            Debug.Assert(whenClause != null);
 
-            // Instrument the statement using a factory with the same syntax as the statement, so that the instrumentation appears to be part of the statement.
-            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _methodBodyFactory.CompilationState, _diagnostics);
+            // Instrument the statement using a factory with the same syntax as the clause, so that the instrumentation appears to be part of the clause.
+            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, whenClause, _methodBodyFactory.CompilationState, _diagnostics);
 
             // Instrument using the span of the expression
-            return statementFactory.StatementList(AddAnalysisPoint(original.Syntax, statementFactory), ifConditionGotoBody);
+            return statementFactory.StatementList(AddAnalysisPoint(whenClause, statementFactory), ifConditionGotoBody);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
