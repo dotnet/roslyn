@@ -3,7 +3,7 @@
     "Newtonsoft.Json": "8.0.3",
     "Moq": "4.2.1402.2112",
     "Microsoft.VisualStudio.Composition": "14.2.19-pre",
-    "Dev15BinariesForRoslyn": "4.0.0.0",
+    "Dev15BinariesForRoslyn": "5.0.0.0",
     "Microsoft.VisualStudio.Imaging": "15.0.25604-Preview4",
     "Microsoft.VisualStudio.Utilities": "15.0.25604-Preview4",
     "Microsoft.VisualStudio.ImageCatalog": "15.0.25604-Preview4",

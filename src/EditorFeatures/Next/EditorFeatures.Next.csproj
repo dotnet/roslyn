@@ -54,6 +54,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
@@ -61,11 +62,12 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.cs" />
+    <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.Dev15ItemDisplayFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\IntellisenseFilter2.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
-    <Compile Include="NavigateTo\Dev15NavigateToOptionsService.cs" />
     <Compile Include="Structure\BlockContextProvider.cs" />
     <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
   </ItemGroup>

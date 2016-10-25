@@ -7,13 +7,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal partial class NavigateToItemProvider
+    internal partial class Dev14NavigateToHostVersionService
     {
-        private class ItemDisplayFactory : INavigateToItemDisplayFactory, IDisposable
+        private class Dev14ItemDisplayFactory : INavigateToItemDisplayFactory, IDisposable
         {
             private readonly NavigateToIconFactory _iconFactory;
 
-            public ItemDisplayFactory(NavigateToIconFactory iconFactory)
+            public Dev14ItemDisplayFactory(NavigateToIconFactory iconFactory)
             {
                 Contract.ThrowIfNull(iconFactory);
 
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public INavigateToItemDisplay CreateItemDisplay(NavigateToItem item)
             {
                 var searchResult = (INavigateToSearchResult)item.Tag;
-                return new NavigateToItemDisplay(searchResult, _iconFactory);
+                return new Dev14NavigateToItemDisplay(searchResult, _iconFactory);
             }
 
             public void Dispose()

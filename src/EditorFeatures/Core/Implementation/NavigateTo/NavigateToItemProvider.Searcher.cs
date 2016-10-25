@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private class Searcher
         {
             private readonly Solution _solution;
-            private readonly ItemDisplayFactory _displayFactory;
+            private readonly INavigateToItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
             private readonly bool _searchCurrentDocument;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public Searcher(
                 Solution solution,
                 IAsynchronousOperationListener asyncListener,
-                ItemDisplayFactory displayFactory,
+                INavigateToItemDisplayFactory displayFactory,
                 INavigateToCallback callback,
                 string searchPattern,
                 bool searchCurrentDocument,

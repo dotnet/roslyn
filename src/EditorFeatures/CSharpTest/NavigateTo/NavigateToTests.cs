@@ -859,7 +859,7 @@ class D
 
                 _provider = new NavigateToItemProvider(
                     workspace, _glyphServiceMock.Object, aggregateListener,
-                    workspace.ExportProvider.GetExportedValues<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>>());
+                    workspace.ExportProvider.GetExportedValues<Lazy<INavigateToHostVersionService, VisualStudioVersionMetadata>>());
                 _aggregator = new NavigateToTestAggregator(_provider);
 
                 var items = await _aggregator.GetItemsAsync("VisibleMethod");

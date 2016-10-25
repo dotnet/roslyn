@@ -107,6 +107,7 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
@@ -270,7 +271,8 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
-    <Compile Include="Implementation\NavigateTo\INavigateToOptionsService.cs" />
+    <Compile Include="Implementation\NavigateTo\Dev14NavigateToHostVersionService.cs" />
+    <Compile Include="Implementation\NavigateTo\INavigateToHostVersionService.cs" />
     <Compile Include="Implementation\Structure\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.cs" />
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
@@ -536,8 +538,8 @@
     <Compile Include="Implementation\NavigateTo\INavigateToPreviewService.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToIconFactory.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.ItemDisplayFactory.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.NavigateToItemDisplay.cs" />
+    <Compile Include="Implementation\NavigateTo\Dev14NavigateToHostVersionService.ItemDisplayFactory.cs" />
+    <Compile Include="Implementation\NavigateTo\Dev14NavigateToHostVersionService.NavigateToItemDisplay.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.Searcher.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProviderFactory.cs" />
     <Compile Include="Implementation\NavigationBar\NavigationBarController.cs" />
