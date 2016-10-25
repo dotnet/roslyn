@@ -75,7 +75,6 @@ namespace BuildBoss
             {
                 case "Dll":
                 case "ExeDesktop":
-                case "ToolDesktop":
                 case "ExeCoreClr":
                 case "UnitTest":
                 case "UnitTestNext":
@@ -83,7 +82,6 @@ namespace BuildBoss
                 case "DeploymentCompilerGeneratorTools":
                 case "Deployment":
                 case "Vsix":
-                case "Ignore":
                 case "Dependency":
                 case "Custom":
                     return true;

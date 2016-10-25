@@ -119,7 +119,7 @@ call :TerminateBuildProcesses
 
 REM Verify the state of our project.jsons
 echo Running RepoUtil
-.\Binaries\%BuildConfiguration%\Tools\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
+.\Binaries\%BuildConfiguration%\Exes\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
 
 REM Verify the state of our project.jsons
 echo Running BuildBoss
