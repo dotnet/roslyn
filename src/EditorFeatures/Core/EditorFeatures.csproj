@@ -200,13 +200,12 @@
     <Compile Include="Extensibility\Commands\ExportInteractiveCommandAttribute.cs" />
     <Compile Include="Extensibility\Commands\ICommandHandler.cs" />
     <Compile Include="Extensibility\Commands\PredefinedCommandHandlerNames.cs" />
-    <Compile Include="Extensibility\Completion\PresentationItemEventArgs.cs" />
+    <Compile Include="Extensibility\Completion\CompletionItemEventArgs.cs" />
     <Compile Include="Extensibility\Completion\CompletionItemFilterStateChangedEventArgs.cs" />
     <Compile Include="Extensibility\Completion\ExportCompletionProviderAttribute.cs" />
     <Compile Include="Extensibility\Completion\IAsyncCompletionService.cs" />
     <Compile Include="Extensibility\Completion\ICompletionPresenterSession.cs" />
     <Compile Include="Extensibility\Completion\ICustomCommitCompletionProvider.cs" />
-    <Compile Include="Extensibility\Completion\PresentationItem.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionPresenterNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionProviderNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionRulesFactoryNames.cs" />
@@ -269,7 +268,6 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\IVisualStudioCompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\Roslyn14CompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSet.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\SimplePresentationItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSetFactory.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
@@ -477,7 +475,6 @@
     <Compile Include="Implementation\Intellisense\Completion\Controller_TabKey.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_ToggleCompletionMode.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_TypeChar.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\DescriptionModifyingPresentationItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Model.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenterSession.cs" />

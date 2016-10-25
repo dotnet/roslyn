@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             ExpressionSyntax sizeExpression = arguments[0].Expression;
 
                             BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(SyntaxTree);
-                            Binder binder = new ExpressionVariableBinder(sizeExpression, binderFactory.GetBinder(sizeExpression));
+                            Binder binder = binderFactory.GetBinder(sizeExpression);
+                            binder = new ExecutableCodeBinder(sizeExpression, binder.ContainingMemberOrLambda, binder).GetBinder(sizeExpression);
 
                             TypeSymbol intType = binder.GetSpecialType(SpecialType.System_Int32, diagnostics, sizeExpression);
                             BoundExpression boundSizeExpression = binder.GenerateConversionForAssignment(

@@ -29,36 +29,39 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
-            if (symbol == null)
+            using (solution.Services.CacheService?.EnableCaching(document.Project.Id))
             {
-                return null;
-            }
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken))
-            {
-                try
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+                if (symbol == null)
                 {
-                    await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                        progress.CancellationToken).ConfigureAwait(false);
-
-                    return await onResults(progress).ConfigureAwait(false);
+                    return null;
                 }
-                catch (OperationCanceledException)
-                {
-                    if (onCapped != null && progress.SearchCapReached)
-                    {
-                        // search was cancelled, and it was cancelled by us because a cap was reached.
-                        return await onCapped(progress).ConfigureAwait(false);
-                    }
 
-                    // search was cancelled, but not because of cap.
-                    // this always throws.
-                    throw;
+                using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken))
+                {
+                    try
+                    {
+                        await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
+                            progress.CancellationToken).ConfigureAwait(false);
+
+                        return await onResults(progress).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        if (onCapped != null && progress.SearchCapReached)
+                        {
+                            // search was cancelled, and it was cancelled by us because a cap was reached.
+                            return await onCapped(progress).ConfigureAwait(false);
+                        }
+
+                        // search was cancelled, but not because of cap.
+                        // this always throws.
+                        throw;
+                    }
                 }
             }
         }
@@ -248,16 +251,18 @@ namespace Microsoft.CodeAnalysis.CodeLens
             CancellationToken cancellationToken)
         {
             var commonLocation = syntaxNode.GetLocation();
-            var doc = solution.GetDocument(commonLocation.SourceTree);
-            if (doc == null)
+            var document = solution.GetDocument(commonLocation.SourceTree);
+
+            if (document == null)
             {
                 return null;
             }
 
-            var document = solution.GetDocument(doc.Id);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            return GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
+            using (solution.Services.CacheService?.EnableCaching(document.Project.Id))
+            {
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                return GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
+            }
         }
     }
 }
